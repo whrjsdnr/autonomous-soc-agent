@@ -91,6 +91,7 @@ class InvestigationPlan(BaseModel):
 
     plan_id: UUID = Field(default_factory=uuid4)
     incident_id: UUID
+    goal: NonEmptyText | None = None
     steps: tuple[InvestigationStep, ...] = Field(min_length=1)
     created_at: UTCTimestamp = Field(default_factory=utc_now)
 
