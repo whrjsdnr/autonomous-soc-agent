@@ -4,6 +4,15 @@
 
 This repository implements a **Human-Governed Autonomous SOC Agent**.
 
+Its long-term identity is a **Human-Governed Self-Improving Autonomous SOC Agent**:
+
+```text
+Autonomous Investigation
++ Deterministic Governance
++ Human-Controlled Response
++ Outcome-Based Self-Improvement
+```
+
 The goal is not to build a security chatbot or a simple log summarizer.
 
 The system must autonomously investigate security events while keeping human operators in control of risky actions.
@@ -33,10 +42,16 @@ Observe
 → Investigate
 → Assess
 → Decide
+→ Govern
 → Approve
 → Act
 → Verify
+→ Reflect
+→ Learn
 ```
+
+Govern means deterministic policy evaluation. Reflect and Learn are future roadmap
+stages, not part of the current Foundation implementation.
 
 The initial implementation must prioritize **read-only investigation**.
 
@@ -954,3 +969,48 @@ The agent may investigate autonomously using permitted read-only tools.
 The agent must not obtain unrestricted execution authority.
 
 Evidence, policy, and human control take precedence over model autonomy.
+
+---
+
+# 33. Governed Self-Improvement Roadmap
+
+> LLM recommends. Policy decides. Human approves. Executor acts.
+
+> The agent may propose improvements, but it must never autonomously weaken its own security controls.
+
+Future improvement proposals may address investigation strategy, tool selection
+strategy, investigation ordering, known incident patterns, false-positive knowledge,
+playbooks, prompt strategy, and the knowledge base.
+
+The agent must not directly change policy rules, human approval requirements,
+tool permissions, risk levels, security boundaries, audit requirements,
+authorization rules, or its own safety constraints. Changes require:
+
+```text
+Improvement Proposal
+→ Policy Validation
+→ Human Review
+→ Approved Update
+```
+
+Future architecture:
+
+```text
+Incident Outcome
+→ Evaluation
+→ Reflection
+→ Improvement Proposal
+→ Policy Validation
+→ Human Review
+→ Approved Knowledge / Playbook Update
+→ Future Incident
+```
+
+Incident Memory, Evaluator, Reflection Engine, ImprovementProposal, Knowledge Store,
+and Playbook Versioning are future candidates only. Phase 1-4 implements Policy and
+Approval foundations; it must not implement memory or reflection packages,
+evaluators, knowledge/vector databases, RAG, a playbook engine, or self-modifying code.
+
+> The agent may improve its investigation strategy, but it may never autonomously weaken its governance.
+
+> Self-improvement produces proposals, not unrestricted self-modification.
