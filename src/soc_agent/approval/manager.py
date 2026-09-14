@@ -24,13 +24,23 @@ class ApprovalManager:
     def __init__(self) -> None:
         self._requests: dict[UUID, ApprovalRequest] = {}
 
-    def create(self, *, incident_id: UUID, metadata: ToolMetadata, reason: str) -> ApprovalRequest:
+    def create(
+        self,
+        *,
+        incident_id: UUID,
+        metadata: ToolMetadata,
+        reason: str,
+        action_id: UUID | None = None,
+        action_input_json: str | None = None,
+    ) -> ApprovalRequest:
         if not isinstance(metadata, ToolMetadata):
             raise ApprovalValidationError("Invalid tool metadata")
         try:
             validated = ToolMetadata.model_validate(metadata.model_dump(warnings=False))
             request = ApprovalRequest(
                 incident_id=incident_id,
+                action_id=action_id,
+                action_input_json=action_input_json,
                 tool_name=validated.name,
                 permission=validated.permission,
                 risk_level=validated.risk_level,

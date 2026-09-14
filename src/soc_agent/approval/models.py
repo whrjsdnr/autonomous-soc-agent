@@ -52,13 +52,15 @@ class ApprovalDecision(BaseModel):
 class ApprovalRequest(BaseModel):
     """Incident-linked request snapshot, not an executable authorization token.
 
-    Concrete action parameters and authorization binding belong to a future executor.
+    Legacy unbound requests remain valid records but cannot authorize governed execution.
     """
 
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     approval_id: UUID = Field(default_factory=uuid4)
     incident_id: UUID
+    action_id: UUID | None = None
+    action_input_json: NonEmptyText | None = None
     tool_name: ToolName
     permission: ToolPermission
     risk_level: ToolRiskLevel
@@ -69,6 +71,8 @@ class ApprovalRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_decision(self) -> Self:
+        if (self.action_id is None) != (self.action_input_json is None):
+            raise ValueError("Action ID and input binding must be supplied together")
         if self.status == ApprovalStatus.PENDING:
             if self.decision is not None:
                 raise ValueError("Pending request cannot have a decision")
