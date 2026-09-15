@@ -12,6 +12,13 @@ from soc_agent.security_ai.errors import (
     SecurityAIOutputValidationError,
     SecurityAIRegistrationError,
 )
+from soc_agent.security_ai.investigation_errors import SecurityAIInvestigationError
+from soc_agent.security_ai.investigation_models import (
+    SecurityAIInvestigationResult,
+    SecurityAIInvestigationStep,
+    SecurityAIInvestigationStepStatus,
+)
+from soc_agent.security_ai.investigator import SecurityAIInvestigator
 from soc_agent.security_ai.mock import MockSecurityAI
 from soc_agent.security_ai.models import (
     SecurityAIModelMetadata,
@@ -39,6 +46,11 @@ from soc_agent.security_ai.selector import SecurityAISelector
 from soc_agent.security_ai.signals import AISignal, create_ai_signal
 
 __all__ = [
+    "SecurityAIInvestigationError",
+    "SecurityAIInvestigationResult",
+    "SecurityAIInvestigationStep",
+    "SecurityAIInvestigationStepStatus",
+    "SecurityAIInvestigator",
     "SecurityAISelectionDecision",
     "SecurityAISelectionDraft",
     "SecurityAISelectionPlan",
