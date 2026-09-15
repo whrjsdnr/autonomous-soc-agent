@@ -1,5 +1,9 @@
-"""Bounded, planning-only adaptation across Tool and SecurityAI investigations."""
+"""Adaptive planning and bounded coordination of Tool and SecurityAI investigations."""
 
+from soc_agent.adaptive.coordinator import (
+    BoundedInvestigationCoordinator,
+    BoundedInvestigationError,
+)
 from soc_agent.adaptive.errors import (
     AdaptiveContextTooLargeError,
     AdaptivePlanningError,
@@ -14,8 +18,13 @@ from soc_agent.adaptive.models import (
     ReplanningDraft,
 )
 from soc_agent.adaptive.planner import AdaptiveInvestigationPlanner
+from soc_agent.adaptive.session import AutonomousInvestigationRound, AutonomousInvestigationSession
 
 __all__ = [
+    "BoundedInvestigationCoordinator",
+    "BoundedInvestigationError",
+    "AutonomousInvestigationSession",
+    "AutonomousInvestigationRound",
     "AdaptiveContextTooLargeError",
     "AdaptivePlanningError",
     "InvalidInvestigationContextError",

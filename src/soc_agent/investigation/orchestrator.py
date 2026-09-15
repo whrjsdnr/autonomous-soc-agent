@@ -67,11 +67,14 @@ class InvestigationOrchestrator:
         plan: InvestigationPlan,
         step_id: UUID,
         approval_id: UUID | None = None,
+        require_read_only: bool = False,
     ) -> InvestigationResult:
         action = self.prepare_step(incident_state=incident_state, plan=plan, step_id=step_id)
         running = plan.transition_step(step_id, InvestigationStepStatus.RUNNING)
         try:
-            tool_result = await self._executor.execute(action, approval_id=approval_id)
+            tool_result = await self._executor.execute(
+                action, approval_id=approval_id, require_read_only=require_read_only
+            )
         except (ExecutionError, ApprovalError) as error:
             return self._failure(
                 incident_state, running, step_id, InvestigationStepStatus.BLOCKED, error
@@ -118,6 +121,7 @@ class InvestigationOrchestrator:
         incident_state: IncidentState,
         plan: InvestigationPlan,
         approval_ids: Mapping[UUID, UUID] | None = None,
+        require_read_only: bool = False,
     ) -> InvestigationResult:
         """At most one attempt per pending step; stop at the first block or failure."""
         self._check_incident(incident_state, plan)
@@ -132,6 +136,7 @@ class InvestigationOrchestrator:
                 plan=result.plan,
                 step_id=step.step_id,
                 approval_id=approval_ids.get(step.step_id) if approval_ids else None,
+                require_read_only=require_read_only,
             )
             if result.plan.get_step(step.step_id).status != InvestigationStepStatus.COMPLETED:
                 break
