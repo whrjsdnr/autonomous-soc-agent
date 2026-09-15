@@ -20,9 +20,37 @@ from soc_agent.security_ai.models import (
     SecurityAIResult,
 )
 from soc_agent.security_ai.registry import SecurityAIRegistry
+from soc_agent.security_ai.selection_errors import (
+    InvalidAISignalContextError,
+    InvalidSelectedModelInputError,
+    NoSecurityAIAvailableError,
+    SecurityAISelectionError,
+    SelectionContextTooLargeError,
+    UnknownSelectedModelError,
+)
+from soc_agent.security_ai.selection_models import (
+    SecurityAISelectionDecision,
+    SecurityAISelectionDraft,
+    SecurityAISelectionPlan,
+    SecurityAISelectionStep,
+    SecurityAISelectionStepDraft,
+)
+from soc_agent.security_ai.selector import SecurityAISelector
 from soc_agent.security_ai.signals import AISignal, create_ai_signal
 
 __all__ = [
+    "SecurityAISelectionDecision",
+    "SecurityAISelectionDraft",
+    "SecurityAISelectionPlan",
+    "SecurityAISelectionStep",
+    "SecurityAISelectionStepDraft",
+    "SecurityAISelectionError",
+    "NoSecurityAIAvailableError",
+    "UnknownSelectedModelError",
+    "InvalidSelectedModelInputError",
+    "InvalidAISignalContextError",
+    "SelectionContextTooLargeError",
+    "SecurityAISelector",
     "AISignal",
     "build_ai_signal_context",
     "create_ai_signal",
