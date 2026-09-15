@@ -17,6 +17,15 @@ class ToolMetadata(BaseModel):
     permission: ToolPermission
     risk_level: ToolRiskLevel
 
+    @property
+    def is_read_only_capability(self) -> bool:
+        """Observation-only scope, independent of policy authorization."""
+        return self.permission in (
+            ToolPermission.SYSTEM_READ,
+            ToolPermission.NETWORK_READ,
+            ToolPermission.FILE_READ,
+        ) and self.risk_level in (ToolRiskLevel.READ_ONLY, ToolRiskLevel.LOW)
+
 
 class ToolResult[TOutput: BaseModel](BaseModel):
     """A successful result; failures are exceptions, not success=False payloads.

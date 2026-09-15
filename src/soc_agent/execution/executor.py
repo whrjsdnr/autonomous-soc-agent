@@ -52,11 +52,17 @@ class GovernedExecutor:
         )
 
     async def execute(
-        self, action: ActionProposal, *, approval_id: UUID | None = None
+        self,
+        action: ActionProposal,
+        *,
+        approval_id: UUID | None = None,
+        require_read_only: bool = False,
     ) -> ToolResult[BaseModel]:
         """Re-evaluate current policy; explicit approval ID avoids magic lookup."""
         action = ActionProposal.model_validate(action.model_dump(warnings=False))
         tool = self._registry.get(action.tool_name)
+        if require_read_only and not tool.metadata.is_read_only_capability:
+            raise ExecutionDeniedError("Caller requires an observation-only tool capability")
         result = self._policy.evaluate(tool.metadata)
         if result.decision == PolicyDecision.DENY:
             raise ExecutionDeniedError(result.reason)
