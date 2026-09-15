@@ -1,0 +1,1 @@
+"""Security AI contract tests."""
