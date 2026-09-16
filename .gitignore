@@ -27,3 +27,7 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Local security datasets and trained artifacts
+/data/raw/
+/data/processed/
+/artifacts/
