@@ -3,13 +3,13 @@
 import math
 from typing import Self
 
-import numpy as np
 import xgboost as xgb
 from pydantic import Field, model_validator
 
 from soc_agent._json import canonical_json_object
 from soc_agent.security_ai.features import FeatureSchema, FeatureSet
 from soc_agent.security_ai.features.models import Snapshot, Version
+from soc_agent.security_ai.network.preprocessing import feature_matrix
 from soc_agent.security_ai.network.schema import network_feature_schema
 
 
@@ -62,29 +62,6 @@ class ModelContract(Snapshot):
         ):
             raise ValueError("Unsupported classifier contract")
         return self
-
-
-def feature_matrix(features: tuple[FeatureSet, ...], contract: ModelContract) -> np.ndarray:
-    if not features:
-        raise ValueError("No features supplied")
-    rows = []
-    for feature in features:
-        feature = FeatureSet.model_validate(feature.model_dump(warnings=False))
-        if feature.feature_schema != contract.feature_schema or (
-            feature.provenance.extractor_name,
-            feature.provenance.extractor_version,
-        ) != (contract.extractor_name, contract.extractor_version):
-            raise ValueError("Runtime feature schema or extractor differs from model contract")
-        values = feature.feature_values
-        if any(value is None or value < 0 or value > np.finfo(np.float32).max for value in values):
-            raise ValueError("Features are outside the supported numeric range")
-        if values[0] <= 0:
-            raise ValueError("Flow duration must be positive")
-        rows.append(values)
-    matrix = np.asarray(rows, dtype=np.float32)
-    if not np.isfinite(matrix).all() or (matrix[:, 0] <= 0).any():
-        raise ValueError("Features are not representable as finite float32")
-    return matrix
 
 
 class NetworkAttackClassifier:
