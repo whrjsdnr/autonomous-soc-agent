@@ -6,16 +6,16 @@ from typing import Literal, Self
 
 import numpy as np
 import sklearn
-from pydantic import Field, model_validator
+from pydantic import model_validator
 from sklearn.ensemble import IsolationForest
-from sklearn.metrics import (
-    average_precision_score,
-    confusion_matrix,
-    precision_recall_fscore_support,
-    roc_auc_score,
-)
 from sklearn.preprocessing import StandardScaler
 
+from soc_agent.security_ai.anomaly_common import (
+    AnomalyEvaluation as AnomalyEvaluation,
+)
+from soc_agent.security_ai.anomaly_common import (
+    evaluate_anomaly as evaluate_anomaly,
+)
 from soc_agent.security_ai.features import DatasetSchema
 from soc_agent.security_ai.features.models import Snapshot
 from soc_agent.security_ai.network.anomaly import (
@@ -24,53 +24,11 @@ from soc_agent.security_ai.network.anomaly import (
     AnomalyScoreReference,
     AnomalyTrainingConfig,
     NetworkAnomalyDetector,
-    NetworkAnomalyPrediction,
-    Probability,
     ScalerState,
 )
 from soc_agent.security_ai.network.dataset import PreparedDataset
 from soc_agent.security_ai.network.preprocessing import feature_matrix
 from soc_agent.security_ai.network.training import SplitMetadata, split_dataset
-
-
-class AnomalyEvaluation(Snapshot):
-    precision: Probability
-    recall: Probability
-    f1: Probability
-    confusion_matrix: tuple[tuple[int, int], tuple[int, int]]
-    normal_support: int = Field(ge=0)
-    anomaly_support: int = Field(ge=0)
-    roc_auc: Probability | None
-    average_precision: Probability | None
-
-
-def evaluate_anomaly(
-    truth: tuple[bool, ...], predictions: tuple[NetworkAnomalyPrediction, ...]
-) -> AnomalyEvaluation:
-    if not truth or len(truth) != len(predictions) or any(type(y) is not bool for y in truth):
-        raise ValueError("Evaluation requires aligned nonempty binary labels and predictions")
-    predictions = tuple(
-        NetworkAnomalyPrediction.model_validate(p.model_dump()) for p in predictions
-    )
-    y = np.asarray(truth, dtype=int)
-    decisions = [p.is_anomaly for p in predictions]
-    # Raw measure retains ranking beyond the empirical percentile's saturated tails.
-    scores = [p.raw_anomaly_measure for p in predictions]
-    precision, recall, f1, _ = precision_recall_fscore_support(
-        y, decisions, average="binary", zero_division=0
-    )
-    both_classes = len(set(truth)) == 2
-    matrix = confusion_matrix(y, decisions, labels=[0, 1])
-    return AnomalyEvaluation(
-        precision=float(precision),
-        recall=float(recall),
-        f1=float(f1),
-        confusion_matrix=tuple(tuple(int(v) for v in row) for row in matrix),
-        normal_support=int(np.count_nonzero(y == 0)),
-        anomaly_support=int(np.count_nonzero(y == 1)),
-        roc_auc=float(roc_auc_score(y, scores)) if both_classes else None,
-        average_precision=float(average_precision_score(y, scores)) if both_classes else None,
-    )
 
 
 class AnomalyTrainingMetadata(Snapshot):
