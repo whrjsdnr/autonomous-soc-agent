@@ -106,19 +106,17 @@ class AuthenticationTrainingResult:
             raise ValueError("Detector and metadata profiles differ")
 
 
-def train_authentication(
-    examples: tuple[AuthenticationExample, ...],
+def fit_authentication_anomaly(
+    features: tuple[FeatureSet, ...],
     *,
     config: AnomalyTrainingConfig | None = None,
     model_version: str = "1.0.0",
-) -> AuthenticationTrainingResult:
-    examples = tuple(AuthenticationExample.model_validate(e.model_dump()) for e in examples)
+) -> AuthenticationAnomalyDetector:
+    """Fit explicitly supplied normal training features only; never evaluates holdouts."""
     config = AnomalyTrainingConfig.model_validate((config or AnomalyTrainingConfig()).model_dump())
-    split = split_authentication(examples, config.seed)
-    indices = tuple(i for i in split.train if examples[i].label == "normal")
-    if len({examples[i].features.input_fingerprint for i in indices}) < 2:
+    if len({f.input_fingerprint for f in features}) < 2:
         raise ValueError("At least two distinct normal training inputs required")
-    baseline = feature_matrix(tuple(examples[i].features for i in indices)).astype(np.float64)
+    baseline = feature_matrix(features).astype(np.float64)
     scaler = StandardScaler().fit(baseline)
     scaler_state = ScalerState(
         mean=tuple(scaler.mean_),
@@ -129,7 +127,7 @@ def train_authentication(
     scaled = scaler_state.transform(baseline)
     model = IsolationForest(
         n_estimators=config.n_estimators,
-        max_samples=min(config.max_samples, len(indices)),
+        max_samples=min(config.max_samples, len(features)),
         contamination=config.contamination,
         random_state=config.seed,
         n_jobs=config.n_jobs,
@@ -150,6 +148,26 @@ def train_authentication(
         fitted_max_samples=int(model.max_samples_),
     )
     detector = AuthenticationAnomalyDetector(profile=profile, _model=model)
+
+    return detector
+
+
+def train_authentication(
+    examples: tuple[AuthenticationExample, ...],
+    *,
+    config: AnomalyTrainingConfig | None = None,
+    model_version: str = "1.0.0",
+) -> AuthenticationTrainingResult:
+    examples = tuple(AuthenticationExample.model_validate(e.model_dump()) for e in examples)
+    config = AnomalyTrainingConfig.model_validate((config or AnomalyTrainingConfig()).model_dump())
+    split = split_authentication(examples, config.seed)
+    indices = tuple(i for i in split.train if examples[i].label == "normal")
+    if len({examples[i].features.input_fingerprint for i in indices}) < 2:
+        raise ValueError("At least two distinct normal training inputs required")
+    detector = fit_authentication_anomaly(
+        tuple(examples[i].features for i in indices), config=config, model_version=model_version
+    )
+    profile = detector.profile
 
     def metrics(partition: tuple[int, ...]) -> AnomalyEvaluation:
         predictions = tuple(detector.predict(examples[i].features) for i in partition)

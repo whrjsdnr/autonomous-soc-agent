@@ -12,6 +12,7 @@ from pydantic import Field, field_validator, model_validator
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_fscore_support
 
 from soc_agent._json import canonical_json_object
+from soc_agent.security_ai.features import FeatureSet
 from soc_agent.security_ai.features.models import Snapshot
 from soc_agent.security_ai.network.classifier import (
     ModelContract,
@@ -132,6 +133,35 @@ class TrainingMetadata(Snapshot):
 class TrainingResult:
     classifier: NetworkAttackClassifier
     metadata: TrainingMetadata
+
+
+def fit_classifier(
+    features: tuple[FeatureSet, ...],
+    labels: tuple[str, ...],
+    *,
+    config: TrainingConfig | None = None,
+    model_version: str = "1.0.0",
+) -> NetworkAttackClassifier:
+    """Fit training rows only; labels never enter the feature contract."""
+    config = TrainingConfig.model_validate((config or TrainingConfig()).model_dump())
+    if not features or len(features) != len(labels):
+        raise ValueError("Training features and labels must align")
+    contract = ModelContract(model_version=model_version, classes=tuple(sorted(set(labels))))
+    matrix = feature_matrix(features, contract)
+    encoding = {label: i for i, label in enumerate(contract.classes)}
+    booster = xgb.train(
+        config.parameters(len(contract.classes)),
+        xgb.DMatrix(
+            matrix,
+            label=[encoding[label] for label in labels],
+            nthread=1,
+            feature_names=[f.name for f in contract.feature_schema.features],
+        ),
+        num_boost_round=config.n_estimators,
+        verbose_eval=False,
+    )
+    booster.set_attr(feature_contract=canonical_json_object(contract.model_dump(mode="json")))
+    return NetworkAttackClassifier(booster=booster, contract=contract)
 
 
 def train(

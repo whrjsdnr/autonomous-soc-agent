@@ -16,7 +16,7 @@ from soc_agent.security_ai.anomaly_common import (
 from soc_agent.security_ai.anomaly_common import (
     evaluate_anomaly as evaluate_anomaly,
 )
-from soc_agent.security_ai.features import DatasetSchema
+from soc_agent.security_ai.features import DatasetSchema, FeatureSet
 from soc_agent.security_ai.features.models import Snapshot
 from soc_agent.security_ai.network.anomaly import (
     AnomalyInferenceProfile,
@@ -76,25 +76,18 @@ class AnomalyTrainingResult:
             raise ValueError("Detector profile and training metadata differ")
 
 
-def train_anomaly(
-    dataset: PreparedDataset,
+def fit_network_anomaly(
+    features: tuple[FeatureSet, ...],
     *,
     config: AnomalyTrainingConfig | None = None,
     model_version: str = "1.0.0",
-) -> AnomalyTrainingResult:
-    dataset = PreparedDataset.model_validate(dataset.model_dump(warnings=False))
+) -> NetworkAnomalyDetector:
+    """Fit explicitly supplied normal training features only; never evaluates holdouts."""
     config = AnomalyTrainingConfig.model_validate((config or AnomalyTrainingConfig()).model_dump())
-    split = split_dataset(dataset, config.seed)
-    indices = tuple(i for i in split.train if dataset.examples[i].label == "BENIGN")
-    if (
-        len(indices) < 2
-        or len({dataset.examples[i].features.input_fingerprint for i in indices}) < 2
-    ):
-        raise ValueError("At least two distinct BENIGN training inputs are required")
+    if len({f.input_fingerprint for f in features}) < 2:
+        raise ValueError("At least two distinct normal training inputs required")
     contract = AnomalyModelContract(model_version=model_version)
-    baseline = feature_matrix(
-        tuple(dataset.examples[i].features for i in indices), contract
-    ).astype(np.float64)
+    baseline = feature_matrix(features, contract).astype(np.float64)
     scaler = StandardScaler(with_mean=True, with_std=True).fit(baseline)
     scaler_state = ScalerState(
         mean=tuple(float(v) for v in scaler.mean_),
@@ -105,7 +98,7 @@ def train_anomaly(
     scaled = scaler_state.transform(baseline)
     model = IsolationForest(
         n_estimators=config.n_estimators,
-        max_samples=min(config.max_samples, len(indices)),
+        max_samples=min(config.max_samples, len(features)),
         contamination=config.contamination,
         random_state=config.seed,
         n_jobs=config.n_jobs,
@@ -127,6 +120,31 @@ def train_anomaly(
         fitted_max_samples=int(model.max_samples_),
     )
     detector = NetworkAnomalyDetector(profile=profile, _model=model)
+
+    return detector
+
+
+def train_anomaly(
+    dataset: PreparedDataset,
+    *,
+    config: AnomalyTrainingConfig | None = None,
+    model_version: str = "1.0.0",
+) -> AnomalyTrainingResult:
+    dataset = PreparedDataset.model_validate(dataset.model_dump(warnings=False))
+    config = AnomalyTrainingConfig.model_validate((config or AnomalyTrainingConfig()).model_dump())
+    split = split_dataset(dataset, config.seed)
+    indices = tuple(i for i in split.train if dataset.examples[i].label == "BENIGN")
+    if (
+        len(indices) < 2
+        or len({dataset.examples[i].features.input_fingerprint for i in indices}) < 2
+    ):
+        raise ValueError("At least two distinct BENIGN training inputs are required")
+    detector = fit_network_anomaly(
+        tuple(dataset.examples[i].features for i in indices),
+        config=config,
+        model_version=model_version,
+    )
+    profile = detector.profile
 
     def metrics(partition: tuple[int, ...]) -> AnomalyEvaluation:
         return evaluate_anomaly(
