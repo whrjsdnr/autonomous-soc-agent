@@ -132,12 +132,12 @@ def binding_from_package(package: ModelPackage) -> FusionModelBinding:
     )
 
 
-def source_payload(features: FeatureSet) -> tuple[str, ...]:
+def source_payload(provenance: FeatureExtractionProvenance) -> tuple[str, ...]:
     """Logical source identity ignores only freshly allocated extraction record UUIDs."""
     return tuple(
         sorted(
             canonical_json_object(s.model_dump(mode="json", exclude={"record_id"}))
-            for s in features.provenance.sources
+            for s in provenance.sources
         )
     )
 
@@ -145,7 +145,24 @@ def source_payload(features: FeatureSet) -> tuple[str, ...]:
 def validated_prediction(
     item: FusionInput, binding: FusionModelBinding
 ) -> ClassificationPrediction | AnomalyPrediction:
-    signal, features = item.signal, item.features
+    features = item.features
+    profile = binding.profile
+    if isinstance(profile, AuthenticationInferenceProfile):
+        auth_matrix((features,))
+    else:
+        feature_matrix(
+            (features,), profile if isinstance(profile, ModelContract) else profile.contract
+        )
+    return validated_signal(item.signal, features.provenance, features.input_fingerprint, binding)
+
+
+def validated_signal(
+    signal: AISignal,
+    provenance: FeatureExtractionProvenance,
+    fingerprint: str,
+    binding: FusionModelBinding,
+) -> ClassificationPrediction | AnomalyPrediction:
+    """Validate retained inference lineage; does not claim to revalidate absent feature values."""
     manifest, profile = binding.manifest, binding.profile
     classifier = isinstance(profile, ModelContract)
     task = SecurityAITaskType.CLASSIFICATION if classifier else SecurityAITaskType.ANOMALY_DETECTION
@@ -155,15 +172,15 @@ def validated_prediction(
         task,
     ):
         raise FusionValidationError("Signal model identity/task differs from package binding")
-    if features.provenance.incident_id not in (None, signal.incident_id):
+    if provenance.incident_id not in (None, signal.incident_id):
         raise FusionValidationError("Feature incident differs from signal")
     if signal.source_created_at > signal.created_at or any(
-        s.observed_at > signal.source_created_at for s in features.provenance.sources
+        s.observed_at > signal.source_created_at for s in provenance.sources
     ):
         raise FusionValidationError("Signal predates its source observations/result")
     if len(set(signal.source_evidence_ids)) != len(signal.source_evidence_ids) or not set(
         signal.source_evidence_ids
-    ) <= set(features.provenance.source_evidence_ids):
+    ) <= set(provenance.source_evidence_ids):
         raise FusionValidationError("Signal evidence references differ from feature provenance")
     record_type = (
         "authentication_event"
@@ -172,20 +189,22 @@ def validated_prediction(
     )
     if any(
         s.record_type != record_type or s.record_schema_version != "1.0.0"
-        for s in features.provenance.sources
+        for s in provenance.sources
     ):
         raise FusionValidationError("Source record contract mismatch")
-    if isinstance(profile, AuthenticationInferenceProfile):
-        auth_matrix((features,))
-    else:
-        feature_matrix((features,), profile if classifier else profile.contract)
+    contract = profile if classifier else profile.contract
+    if (provenance.extractor_name, provenance.extractor_version) != (
+        contract.extractor_name,
+        contract.extractor_version,
+    ):
+        raise FusionValidationError("Source extractor differs from package")
     explanation_type = _ClassifierExplanation if classifier else _AnomalyExplanation
     explanation = explanation_type.model_validate(signal.explanation_payload())
     if (
         explanation.package_manifest_digest != binding.manifest_digest
         or explanation.selection_digest != manifest.selection_digest
-        or explanation.feature_fingerprint != features.input_fingerprint
-        or explanation.feature_provenance != features.provenance
+        or explanation.feature_fingerprint != fingerprint
+        or explanation.feature_provenance != provenance
     ):
         raise FusionValidationError("Signal package, fingerprint or provenance mismatch")
     if classifier:

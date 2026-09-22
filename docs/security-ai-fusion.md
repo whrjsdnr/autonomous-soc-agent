@@ -258,10 +258,10 @@ Fusion has not resolved Network IF's Phase 3-5 synthetic holdout **FPR .30**, no
 measured real-data false-positive performance. Small synthetic fixtures, shared
 generator assumptions and lack of calibrated fusion confidence remain limitations.
 
-Phase 4 may explicitly consume FusionResult as model-derived context while retaining
-its signal lineage, per-group disagreement, coverage gaps and limitations. Source
-Evidence remains separate. Threat assessment, severity, incident decisions, response
-planning, governance, human approval and execution are left entirely to future work.
+Phase 4-1 now consumes FusionResult as model-derived context while retaining
+its signal lineage, per-group disagreement, coverage gaps and limitations (see below).
+Source Evidence remains separate. Incident decisions, severity application, response
+planning and execution remain outside the fusion and assessment integration.
 
 ## Final verification (2026-09-22)
 
@@ -282,3 +282,19 @@ labels, validation/security tests and actual saved-package scenarios.
 Workspace execution logs: `/tmp/soc-fusion-unit-final.log`,
 `/tmp/soc-fusion-focused.log`, `/tmp/soc-fusion-full.log`. Temporary logs are not
 required to run the checked-in fixture-based tests.
+
+## Phase 4-1 assessment integration
+
+The optional `ThreatAssessor.assess(state, fusion_result=fusion)` boundary now
+revalidates retained results through shared fusion signal/aggregation rules and
+passes their analytical information as untrusted model-derived context.
+`FusionAssessmentResult.model_derived_context` retains the complete artifact
+separately from `ThreatAssessment` and Evidence. Fusion-aware calls return an
+unchanged IncidentState and reject new Observation/Hypothesis drafts; legacy
+calls without fusion retain their existing state-snapshot behavior.
+
+See [Fusion-aware threat assessment](fusion-aware-assessment.md) for Evidence
+membership checks, prompt projection, resource limits, failure semantics and the
+Phase 4-2 handoff. Retained lineage validation does not authenticate model execution
+or recompute absent FeatureSet values. Phase 4-2 decisions and response actions
+are not implemented by this integration.

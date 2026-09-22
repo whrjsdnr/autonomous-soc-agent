@@ -9,6 +9,7 @@ from soc_agent.assessment.errors import (
     InvalidEvidenceReferenceError,
     NoEvidenceError,
 )
+from soc_agent.assessment.fusion import FusionAssessmentResult, InvalidFusionContextError
 from soc_agent.assessment.models import (
     AssessmentResult,
     HypothesisDraft,
@@ -23,6 +24,8 @@ __all__ = [
     "AssessmentError",
     "AssessmentResult",
     "HypothesisDraft",
+    "FusionAssessmentResult",
+    "InvalidFusionContextError",
     "InvalidAnalysisReferenceError",
     "InvalidAssessmentDraftError",
     "InvalidEvidenceReferenceError",

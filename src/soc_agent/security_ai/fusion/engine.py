@@ -6,7 +6,9 @@ from uuid import UUID
 
 from pydantic import TypeAdapter
 
+from soc_agent.security_ai.anomaly_common import AnomalyPrediction
 from soc_agent.security_ai.evaluation.data import digest
+from soc_agent.security_ai.features.models import FeatureExtractionProvenance
 from soc_agent.security_ai.fusion.compatibility import (
     group_agreement,
     network_relations,
@@ -33,6 +35,14 @@ from soc_agent.security_ai.fusion.validation import (
 from soc_agent.security_ai.network.classifier import ClassificationPrediction
 from soc_agent.security_ai.packaging.package import Kind
 from soc_agent.security_ai.signals import AISignal
+
+
+@dataclass(frozen=True)
+class _ValidatedSignal:
+    signal: AISignal
+    provenance: FeatureExtractionProvenance
+    fingerprint: str
+    prediction: ClassificationPrediction | AnomalyPrediction
 
 
 @dataclass(frozen=True)
@@ -80,6 +90,30 @@ class MultiModelFusionEngine:
         if not isinstance(incident_id, UUID) or not isinstance(inputs, tuple) or len(inputs) > 128:
             raise FusionValidationError("UUID incident and at most 128 immutable inputs required")
         bindings = {b.manifest_digest: b for b in self.bindings}
+        checked = tuple(checked_input(item) for item in inputs)
+        validated = []
+        for item in checked:
+            key = item.signal.explanation_payload()["package_manifest_digest"]
+            if key not in bindings:
+                raise FusionValidationError("Unknown package identity")
+            validated.append(
+                _ValidatedSignal(
+                    item.signal,
+                    item.features.provenance,
+                    item.features.input_fingerprint,
+                    validated_prediction(item, bindings[key]),
+                )
+            )
+        return self._assemble(incident_id, tuple(validated), unavailable)
+
+    def _assemble(
+        self,
+        incident_id: UUID,
+        checked: tuple[_ValidatedSignal, ...],
+        unavailable: tuple[ModelAvailability, ...],
+    ) -> FusionResult:
+        """Shared aggregation for fresh inputs and retained-result boundary validation."""
+        bindings = {b.manifest_digest: b for b in self.bindings}
         signals: dict[UUID, AISignal] = {}
         results: dict[UUID, str] = {}
         sources: dict[str, str] = {}
@@ -87,17 +121,15 @@ class MultiModelFusionEngine:
         group_keys: dict[str, Literal["network", "authentication"]] = {}
         contribution_groups: dict[str, str] = {}
         replay_values: dict[str, str] = {}
-        # Sort to select the same representative provenance for a replay, regardless of order.
-        checked = tuple(checked_input(item) for item in inputs)
         for item in sorted(checked, key=lambda item: str(item.signal.signal_id)):
-            signal, features = item.signal, item.features
+            signal = item.signal
             if signal.incident_id != incident_id:
                 raise FusionValidationError("Mixed incident signals")
             key = signal.explanation_payload()["package_manifest_digest"]
             if key not in bindings:
                 raise FusionValidationError("Unknown package identity")
             binding = bindings[key]
-            prediction = validated_prediction(item, binding)
+            prediction = item.prediction
             if signal.signal_id in signals and signals[signal.signal_id] != signal:
                 raise FusionIdentityCollision("Same signal_id has different contents")
             result_content = signal.model_dump(
@@ -111,7 +143,7 @@ class MultiModelFusionEngine:
                 raise FusionIdentityCollision("Same source_result_id has different contents")
             results[signal.source_result_id] = result_digest
             signals[signal.signal_id] = signal
-            for source in features.provenance.sources:
+            for source in item.provenance.sources:
                 logical_key = digest(
                     {
                         "reference": source.source_reference.model_dump(mode="json"),
@@ -132,8 +164,8 @@ class MultiModelFusionEngine:
                 {
                     "incident": str(incident_id),
                     "domain": domain,
-                    "fingerprint": features.input_fingerprint,
-                    "sources": list(source_payload(features)),
+                    "fingerprint": item.fingerprint,
+                    "sources": list(source_payload(item.provenance)),
                 }
             )
             identity = digest(
@@ -179,8 +211,8 @@ class MultiModelFusionEngine:
                 if isinstance(prediction, ClassificationPrediction)
                 else "empirical anomaly rank; raw=-score_samples",
                 operating_point=binding.manifest.operating_point or "argmax",
-                feature_fingerprint=features.input_fingerprint,
-                provenance=features.provenance,
+                feature_fingerprint=item.fingerprint,
+                provenance=item.provenance,
             )
         ordered = tuple(contributions[k] for k in sorted(contributions))
         groups = []
