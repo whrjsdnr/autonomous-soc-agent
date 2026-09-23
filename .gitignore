@@ -31,3 +31,12 @@ Thumbs.db
 /data/raw/
 /data/processed/
 /artifacts/
+
+# Local governance databases, journals and sidecars (never commit incident data)
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+/governance-data/
