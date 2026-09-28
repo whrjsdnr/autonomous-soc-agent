@@ -95,3 +95,10 @@ check scoped expected effects and unintended impact, distinguish failed/unknown
 outcomes, and preserve action-to-verification provenance. Incident closure needs
 an explicit validated lifecycle decision after that verification. Rollback,
 persistence, reflection, learning, and self-modification remain deferred.
+
+## Phase 4-5 advisory planning
+
+The Decision/Review/snapshot-bound, non-executable planning API is documented in
+[Advisory Response Planning](advisory-response-planning.md). It uses the separate
+`soc_agent.response.advisory` contracts; this earlier step/coordinator API remains
+unchanged and is not an implicit promotion path for Phase 4-5 proposals.
