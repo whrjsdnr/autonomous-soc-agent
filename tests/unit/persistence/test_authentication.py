@@ -25,6 +25,7 @@ def boundary():
     principal = AuthenticatedPrincipal(
         subject_id="human-1",
         provider_id="test-provider",
+        session_id="test-session",
         subject_kind="human",
         authentication_context=("test-mfa",),
         authenticated_at=now,
@@ -57,9 +58,11 @@ def boundary():
         confirmation_id="test-confirmation",
         subject_id=principal.subject_id,
         provider_id=principal.provider_id,
+        session_id=principal.session_id,
         action=context.action,
         binding_digest=context.binding_digest,
         confirmed_at=now,
+        expires_at=principal.expires_at,
     )
     authority = ProviderHumanAuthority(
         provider=provider,

@@ -5,12 +5,14 @@ No provider, token parser, credentials or permissive implementation is selected 
 
 from collections.abc import Callable
 from datetime import datetime, timedelta
+from threading import RLock
 from typing import Literal, Protocol
 from uuid import UUID
 
 from pydantic import Field
 
 from soc_agent.review.authority import HumanAction, VerifiedHumanAction
+from soc_agent.review.authorization import HumanPermission, permission_for
 from soc_agent.review.errors import HumanAuthorizationDenied
 from soc_agent.review.models import Frozen, Hash, StateChange, Subject
 from soc_agent.review.validation import checked
@@ -20,6 +22,7 @@ from soc_agent.state.evidence import UTCTimestamp, utc_now
 class AuthenticatedPrincipal(Frozen):
     subject_id: Subject
     provider_id: Subject
+    session_id: Subject
     subject_kind: Literal["human"]
     authentication_context: tuple[Subject, ...] = Field(min_length=1)
     authenticated_at: UTCTimestamp
@@ -41,9 +44,25 @@ class HumanConfirmation(Frozen):
     confirmation_id: Subject
     subject_id: Subject
     provider_id: Subject
+    session_id: Subject
     action: HumanAction
     binding_digest: Hash
     confirmed_at: UTCTimestamp
+    expires_at: UTCTimestamp
+
+
+class HumanVerificationRecord(Frozen):
+    """Non-secret authorization provenance, not proof the domain operation committed."""
+
+    subject_id: Subject
+    provider_id: Subject
+    session_id: Subject
+    permission: HumanPermission
+    context: HumanActionContext
+    confirmation_id: Subject
+    confirmed_at: UTCTimestamp
+    expires_at: UTCTimestamp
+    verified_at: UTCTimestamp
 
 
 class AuthenticationProvider(Protocol):
@@ -92,8 +111,17 @@ class ProviderHumanAuthority:
         self._resolve = resolve_context
         self._clock = clock
         self._maximum_age = maximum_age
+        self._lock = RLock()
+        self._used: set[tuple[str, str]] = set()
+        self._records: list[HumanVerificationRecord] = []
 
     def verify(
+        self, *, credential: str, action: HumanAction, binding_digest: str
+    ) -> VerifiedHumanAction:
+        with self._lock:
+            return self._verify(credential=credential, action=action, binding_digest=binding_digest)
+
+    def _verify(
         self, *, credential: str, action: HumanAction, binding_digest: str
     ) -> VerifiedHumanAction:
         if not isinstance(credential, str) or not credential:
@@ -113,17 +141,47 @@ class ProviderHumanAuthority:
         confirmation = checked(
             HumanConfirmation, self._provider.confirm(credential, principal, context)
         )
+        # Provider/authorization calls may take time. Expiration is checked again.
+        now = self._clock()
         if (
             confirmation.provider_id != principal.provider_id
             or confirmation.subject_id != principal.subject_id
+            or confirmation.session_id != principal.session_id
             or confirmation.action != action
             or confirmation.binding_digest != binding_digest
             or not principal.authenticated_at <= confirmation.confirmed_at <= now
             or now - confirmation.confirmed_at > self._maximum_age
+            or not now < confirmation.expires_at <= principal.expires_at
+            or now - principal.authenticated_at > self._maximum_age
         ):
             raise HumanAuthorizationDenied(
                 "Human confirmation does not bind the authenticated action"
             )
+        key = (confirmation.provider_id, confirmation.confirmation_id)
+        if key in self._used:
+            raise HumanAuthorizationDenied("Human confirmation already used by this authority")
+        record = HumanVerificationRecord(
+            subject_id=principal.subject_id,
+            provider_id=principal.provider_id,
+            session_id=principal.session_id,
+            permission=permission_for(action),
+            context=context,
+            confirmation_id=confirmation.confirmation_id,
+            confirmed_at=confirmation.confirmed_at,
+            expires_at=confirmation.expires_at,
+            verified_at=now,
+        )
+        self._used.add(key)
+        self._records.append(record)
         return VerifiedHumanAction(
             subject_id=principal.subject_id, action=action, binding_digest=binding_digest
         )
+
+    def verification_records(self) -> tuple[HumanVerificationRecord, ...]:
+        """Correlate by request digest/incident with existing governance audit records.
+
+        Memory-only receipts contain no credential. Provider-side replay protection
+        across authorities/processes/restarts is still required by the provider contract.
+        """
+        with self._lock:
+            return tuple(self._records)
