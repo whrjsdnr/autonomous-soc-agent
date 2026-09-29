@@ -4,6 +4,7 @@ from collections.abc import Callable
 from uuid import UUID
 
 from soc_agent.decision import IncidentDecision
+from soc_agent.review.authentication import ProviderHumanAuthority
 from soc_agent.review.authority import HumanAuthority
 from soc_agent.review.models import (
     ApplicationResult,
@@ -93,7 +94,10 @@ class PersistentHumanReviewService:
         try:
             with self.store.database.transaction() as connection:
                 session = GovernanceSession(connection, self.store.store_id)
-                service = session.restore_service(self.authority)
+                authority = self.authority
+                if isinstance(authority, ProviderHumanAuthority):
+                    authority = authority.for_transaction(self.store.store_id, connection)
+                service = session.restore_service(authority)
                 return operation(service, session)
         except CommitOutcomeUnknown as error:
             if failure_kind:

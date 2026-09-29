@@ -20,7 +20,7 @@ STATEMENTS = (
 def migrate(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version == 2:
+        if version in (2, 3):
             return
         if version != 1:
             raise UnsupportedSchemaError("Execution migration requires governance schema v1")

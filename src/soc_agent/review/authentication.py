@@ -4,7 +4,9 @@ No provider, token parser, credentials or permissive implementation is selected 
 """
 
 from collections.abc import Callable
+from copy import copy
 from datetime import datetime, timedelta
+from sqlite3 import Connection
 from threading import RLock
 from typing import Literal, Protocol
 from uuid import UUID
@@ -85,6 +87,16 @@ class HumanPermissionVerifier(Protocol):
         ...
 
 
+class ConfirmationConsumer(Protocol):
+    """Trusted composition dependency, not an authentication/issuance API."""
+
+    def consume(self, record: HumanVerificationRecord) -> None: ...
+
+    def for_transaction(
+        self, repository_id: UUID, connection: Connection
+    ) -> "ConfirmationConsumer": ...
+
+
 class ProviderHumanAuthority:
     """Opt-in adapter implementing the Phase 4-3 HumanAuthority protocol.
 
@@ -102,6 +114,7 @@ class ProviderHumanAuthority:
         resolve_context: Callable[[HumanAction, str], HumanActionContext],
         clock: Callable[[], datetime] = utc_now,
         maximum_age: timedelta = timedelta(minutes=5),
+        confirmation_consumer: ConfirmationConsumer | None = None,
     ) -> None:
         if not provider_id.strip() or maximum_age <= timedelta(0):
             raise ValueError("Explicit provider identity and positive maximum age required")
@@ -111,6 +124,7 @@ class ProviderHumanAuthority:
         self._resolve = resolve_context
         self._clock = clock
         self._maximum_age = maximum_age
+        self._confirmation_consumer = confirmation_consumer
         self._lock = RLock()
         self._used: set[tuple[str, str]] = set()
         self._records: list[HumanVerificationRecord] = []
@@ -118,6 +132,10 @@ class ProviderHumanAuthority:
     def verify(
         self, *, credential: str, action: HumanAction, binding_digest: str
     ) -> VerifiedHumanAction:
+        if self._confirmation_consumer is not None:
+            # SQLite serializes durable consumption. Never hold the memory lock while
+            # waiting for SQL: Incident Review may already own the write transaction.
+            return self._verify(credential=credential, action=action, binding_digest=binding_digest)
         with self._lock:
             return self._verify(credential=credential, action=action, binding_digest=binding_digest)
 
@@ -158,8 +176,9 @@ class ProviderHumanAuthority:
                 "Human confirmation does not bind the authenticated action"
             )
         key = (confirmation.provider_id, confirmation.confirmation_id)
-        if key in self._used:
-            raise HumanAuthorizationDenied("Human confirmation already used by this authority")
+        with self._lock:
+            if key in self._used:
+                raise HumanAuthorizationDenied("Human confirmation already used by this authority")
         record = HumanVerificationRecord(
             subject_id=principal.subject_id,
             provider_id=principal.provider_id,
@@ -171,17 +190,33 @@ class ProviderHumanAuthority:
             expires_at=confirmation.expires_at,
             verified_at=now,
         )
-        self._used.add(key)
-        self._records.append(record)
+        if self._confirmation_consumer is not None:
+            self._confirmation_consumer.consume(record)
+        with self._lock:
+            self._used.add(key)
+            self._records.append(record)
         return VerifiedHumanAction(
             subject_id=principal.subject_id, action=action, binding_digest=binding_digest
         )
 
+    def for_transaction(
+        self, repository_id: UUID, connection: Connection
+    ) -> "ProviderHumanAuthority":
+        """Bind a per-operation copy; never mutate another thread's connection scope."""
+        if self._confirmation_consumer is None:
+            return self
+        bound = copy(self)
+        bound._confirmation_consumer = self._confirmation_consumer.for_transaction(
+            repository_id, connection
+        )
+        return bound
+
     def verification_records(self) -> tuple[HumanVerificationRecord, ...]:
         """Correlate by request digest/incident with existing governance audit records.
 
-        Memory-only receipts contain no credential. Provider-side replay protection
-        across authorities/processes/restarts is still required by the provider contract.
+        This memory cache contains no credential. A configured durable consumer
+        also stores consumption; without it cross-process replay remains the provider's
+        responsibility. Receipts do not prove the downstream operation committed.
         """
         with self._lock:
             return tuple(self._records)
