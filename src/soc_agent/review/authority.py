@@ -9,6 +9,8 @@ from soc_agent.review.models import Frozen, Hash, Subject
 
 class HumanAction(StrEnum):
     RECORD_REVIEW = "record_human_review"
+    REVIEW_RESPONSE_ACTION = "review_response_action"
+    APPROVE_PROMOTED_TOOL = "approve_promoted_tool"
     AUTHORIZE_STATE_CHANGE = "authorize_incident_state_change"
 
 
