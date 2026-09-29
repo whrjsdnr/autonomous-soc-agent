@@ -9,6 +9,7 @@ from soc_agent.execution import ActionProposal, GovernedExecutor
 from soc_agent.execution.binding import validate_binding
 from soc_agent.execution.errors import ApprovalBindingError, ApprovalRequiredError
 from soc_agent.policy import PolicyDecision
+from soc_agent.response.advisory import ResponsePlan
 from soc_agent.response.promotion.models import ExecutionProvenance, PromotedAction
 from soc_agent.response.promotion.service import PromotionService, confirm
 from soc_agent.review.authority import DenyHumanAuthority, HumanAction, HumanAuthority
@@ -156,3 +157,20 @@ class ExecutionBridge:
 
     def audit_events(self) -> tuple[ExecutionProvenance, ...]:
         return tuple(self._events)
+
+    def validated_approval(
+        self, promoted: PromotedAction, approval_id: UUID | None
+    ) -> ApprovalRequest | None:
+        """Export a verified snapshot, not a new approval or execution permission."""
+        self.executable_action(promoted)
+        if approval_id is None:
+            if promoted.content.current_policy.decision == PolicyDecision.REQUIRE_APPROVAL:
+                raise ApprovalRequiredError("Exact trusted Tool Approval required")
+            return None
+        approval = self._approval(promoted, approval_id)
+        if self._confirmed.get(approval_id) != approval:
+            raise ApprovalRequiredError("Independent trusted Tool Approval is absent")
+        return approval
+
+    def source_plan(self, promoted: PromotedAction) -> ResponsePlan:
+        return self._promotions.source_plan(promoted)

@@ -179,6 +179,12 @@ class PromotionService:
         with self._lock:
             return tuple(self._reviews.values())
 
+    def source_plan(self, promoted: PromotedAction) -> ResponsePlan:
+        """Export only a currently validated, registered promotion's source lineage."""
+        promoted = self.validate_promoted(promoted)
+        with self._lock:
+            return self._plans[promoted.content.request.target.response_plan_id]
+
     def requests(self) -> tuple[PromotionRequest, ...]:
         with self._lock:
             return tuple(self._requests.values())
