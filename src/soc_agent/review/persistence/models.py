@@ -39,6 +39,7 @@ class FailureAuditUnavailable(StorageError):
 EventType = Literal[
     "incident_registered",
     "evidence_appended",
+    "assessment_appended",
     "review_requested",
     "review_recorded",
     "change_requested",

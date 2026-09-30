@@ -4,6 +4,7 @@ from collections.abc import Callable
 from pathlib import Path
 from uuid import UUID
 
+from soc_agent.assessment import AssessmentResult, FusionAssessmentResult
 from soc_agent.review.identity import state_fingerprint
 from soc_agent.review.models import ApplicationResult, StateAnchor, StoredIncident
 from soc_agent.review.persistence import ledger
@@ -90,6 +91,48 @@ class SQLiteGovernanceStore:
                 connection,
                 GovernanceEvent(
                     event_type="evidence_appended",
+                    incident_id=expected.incident_id,
+                    before=expected,
+                    after=anchor,
+                ),
+            )
+            return StoredIncident(state=updated, anchor=anchor)
+
+    def append_assessment(self, expected: StateAnchor, result: AssessmentResult) -> StoredIncident:
+        """Publish append-only analysis; never copy advisory severity into incident state."""
+        from soc_agent.review.errors import StaleSnapshotError
+
+        expected = checked(StateAnchor, expected)
+        result = checked(
+            FusionAssessmentResult if type(result) is FusionAssessmentResult else AssessmentResult,
+            result,
+        )
+        updated = result.incident_state
+        with self.database.transaction() as connection:
+            session = GovernanceSession(connection, self.store_id)
+            current = session.load(expected.incident_id)
+            if current.anchor != expected:
+                raise StaleSnapshotError("Analysis publication CAS conflict")
+            old = current.state
+            if type(result) is FusionAssessmentResult and updated != old:
+                raise ValueError("Model-derived context cannot publish facts into incident state")
+            excluded = {"observations", "hypotheses", "updated_at"}
+            if (
+                updated.model_dump(exclude=excluded) != old.model_dump(exclude=excluded)
+                or updated.observations[: len(old.observations)] != old.observations
+                or updated.hypotheses[: len(old.hypotheses)] != old.hypotheses
+                or updated.updated_at < old.updated_at
+            ):
+                raise ValueError("Assessment may only append validated analysis records")
+            if updated.observations == old.observations and updated.hypotheses == old.hypotheses:
+                if updated != old:
+                    raise ValueError("Timestamp-only assessment update is not allowed")
+                return current
+            anchor = session.save_state(expected, updated)
+            ledger.append_event(
+                connection,
+                GovernanceEvent(
+                    event_type="assessment_appended",
                     incident_id=expected.incident_id,
                     before=expected,
                     after=anchor,
