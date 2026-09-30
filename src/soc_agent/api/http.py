@@ -18,6 +18,8 @@ from soc_agent.execution.durable.errors import (
     ExecutionReplay,
 )
 from soc_agent.execution.errors import ExecutionError
+from soc_agent.ingestion import SOCEvent
+from soc_agent.ingestion.store import EventConflict
 from soc_agent.investigation.runtime.persistence.models import StaleCheckpoint, WorkflowInFlight
 from soc_agent.response.promotion.errors import PromotionPolicyDenied
 from soc_agent.review.authentication import AuthenticatedPrincipal, AuthenticationProvider
@@ -57,6 +59,7 @@ def error_response(error: Exception) -> tuple[int, str]:
         error,
         (
             Conflict,
+            EventConflict,
             StaleCheckpoint,
             WorkflowInFlight,
             StaleSnapshotError,
@@ -135,10 +138,10 @@ class SOCApplication:
         try:
             credential, principal = self.authenticate(scope.get("headers", []))
             parts = scope["path"].strip("/").split("/")
-            if not parts or parts[0] != "incidents":
+            if not parts or (parts[0] != "incidents" and parts != ["events"]):
                 raise APIError(404, "not_found")
             incident_id = UUID(parts[1]) if len(parts) > 1 else None
-            operation = "/".join(parts[2:]) if incident_id else "incidents"
+            operation = "/".join(parts[2:]) if incident_id else parts[0]
             try:
                 self._access.require_access(
                     principal, incident_id, scope["method"] + ":" + operation
@@ -181,6 +184,8 @@ class SOCApplication:
 
     async def dispatch(self, service, method, incident_id, operation, body, credential):
         if incident_id is None:
+            if method == "POST" and operation == "events":
+                return service.ingest(SOCEvent.model_validate(body))
             if method != "POST":
                 raise APIError(405, "method_not_allowed")
             request = models.CreateIncident.model_validate(body)

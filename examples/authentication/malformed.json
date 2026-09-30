@@ -1,0 +1,22 @@
+{
+  "event_id": "c0dabb09-fc0e-4501-b38e-a11e29e79e56",
+  "event_type": "authentication",
+  "source": "synthetic-demo",
+  "occurred_at": "2026-01-01T00:01:00Z",
+  "subject": "demo-alice",
+  "resource": "demo-login",
+  "synthetic": true,
+  "severity_hint": "info",
+  "attributes": {
+    "attempts": [
+      {
+        "event_id": "attempt-0",
+        "event_time": "2026-01-01T00:00:00Z",
+        "account_id": "demo-alice",
+        "authentication_result": "success",
+        "source_identifier": "192.0.2.10"
+      }
+    ]
+  },
+  "password": "REJECTED-FIELD-NOT-A-REAL-CREDENTIAL"
+}

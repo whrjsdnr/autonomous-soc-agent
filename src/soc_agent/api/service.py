@@ -14,6 +14,7 @@ from soc_agent.api.models import (
     WorkflowView,
 )
 from soc_agent.execution.durable import ExecutionStore, ReconciliationRequest
+from soc_agent.ingestion import EventIngestor, SOCEvent
 from soc_agent.investigation.runtime import SOCRuntime
 from soc_agent.investigation.runtime.persistence import CheckpointStore
 from soc_agent.investigation.runtime.persistence.models import StaleCheckpoint, WorkflowCheckpoint
@@ -45,8 +46,12 @@ class ApplicationService:
         bridge: ExecutionBridge,
         execution: ExecutionStore,
         authority: HumanAuthority | None = None,
+        ingestion: EventIngestor | None = None,
     ) -> None:
         self.store, self.checkpoints = store, CheckpointStore(store)
+        self.ingestion = ingestion
+        if ingestion is not None and ingestion.store.store_id != store.store_id:
+            raise ValueError("Ingestion repository mismatch")
         self.runtime_factory = runtime_factory
         self.reviews, self.promotions, self.bridge = reviews, promotions, bridge
         self.execution, self.authority = execution, authority or DenyHumanAuthority()
@@ -60,6 +65,11 @@ class ApplicationService:
             )
         ):
             raise ValueError("Application dependencies must share authoritative storage")
+
+    def ingest(self, event: SOCEvent):
+        if self.ingestion is None:
+            raise ValueError("Event ingestion is not configured")
+        return self.ingestion.ingest(event)
 
     def _exists(self, table: str, incident_id: UUID) -> bool:
         # Table names are private constants, never request input.

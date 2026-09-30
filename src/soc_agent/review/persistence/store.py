@@ -5,7 +5,6 @@ from pathlib import Path
 from uuid import UUID
 
 from soc_agent.assessment import AssessmentResult, FusionAssessmentResult
-from soc_agent.review.identity import state_fingerprint
 from soc_agent.review.models import ApplicationResult, StateAnchor, StoredIncident
 from soc_agent.review.persistence import ledger
 from soc_agent.review.persistence.database import GovernanceDatabase
@@ -35,30 +34,8 @@ class SQLiteGovernanceStore:
         return self.database.store_id
 
     def register(self, state: IncidentState) -> StoredIncident:
-        state = checked(IncidentState, state)
-        anchor = StateAnchor(
-            repository_id=self.store_id,
-            incident_id=state.incident_id,
-            revision=0,
-            fingerprint=state_fingerprint(state),
-        )
-        payload = ledger.serialize(state)
         with self.database.transaction() as connection:
-            connection.execute(
-                "INSERT INTO incidents VALUES (?,?,?,?)",
-                (str(state.incident_id), 0, anchor.fingerprint, payload),
-            )
-            connection.execute(
-                "INSERT INTO snapshots VALUES (?,?,?,?)",
-                (str(state.incident_id), 0, anchor.fingerprint, payload),
-            )
-            ledger.append_event(
-                connection,
-                GovernanceEvent(
-                    event_type="incident_registered", incident_id=state.incident_id, after=anchor
-                ),
-            )
-        return StoredIncident(state=state, anchor=anchor)
+            return GovernanceSession(connection, self.store_id).register(state)
 
     def load(self, incident_id: UUID) -> StoredIncident:
         with self.database.transaction(write=False) as connection:

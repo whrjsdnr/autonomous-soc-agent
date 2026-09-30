@@ -15,7 +15,7 @@ from soc_agent.review.persistence import ledger
 from soc_agent.review.persistence.models import GovernanceEvent, StoredDataError
 from soc_agent.review.service import HumanReviewService
 from soc_agent.review.transitions import validate_changes
-from soc_agent.review.validation import validate_decision
+from soc_agent.review.validation import checked, validate_decision
 from soc_agent.state import IncidentState
 
 
@@ -23,6 +23,31 @@ class GovernanceSession:
     def __init__(self, connection: sqlite3.Connection, store_id: UUID) -> None:
         self.connection = connection
         self.store_id = store_id
+
+    def register(self, state: IncidentState) -> StoredIncident:
+        state = checked(IncidentState, state)
+        anchor = StateAnchor(
+            repository_id=self.store_id,
+            incident_id=state.incident_id,
+            revision=0,
+            fingerprint=state_fingerprint(state),
+        )
+        payload = ledger.serialize(state)
+        self.connection.execute(
+            "INSERT INTO incidents VALUES (?,?,?,?)",
+            (str(state.incident_id), 0, anchor.fingerprint, payload),
+        )
+        self.connection.execute(
+            "INSERT INTO snapshots VALUES (?,?,?,?)",
+            (str(state.incident_id), 0, anchor.fingerprint, payload),
+        )
+        ledger.append_event(
+            self.connection,
+            GovernanceEvent(
+                event_type="incident_registered", incident_id=state.incident_id, after=anchor
+            ),
+        )
+        return StoredIncident(state=state, anchor=anchor)
 
     def _decode_state(self, row: sqlite3.Row | None) -> StoredIncident:
         if row is None:

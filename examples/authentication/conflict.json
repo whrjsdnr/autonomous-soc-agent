@@ -1,0 +1,294 @@
+{
+  "event_id": "c0dabb09-fc0e-4501-b38e-a11e29e79e55",
+  "event_type": "authentication",
+  "source": "synthetic-demo",
+  "occurred_at": "2026-01-01T00:01:00Z",
+  "subject": "demo-alice",
+  "resource": "other-demo-login",
+  "synthetic": true,
+  "severity_hint": "critical",
+  "attributes": {
+    "attempts": [
+      {
+        "event_id": "attempt-0",
+        "event_time": "2026-01-01T00:00:00Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-1",
+        "event_time": "2026-01-01T00:00:01Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-2",
+        "event_time": "2026-01-01T00:00:02Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-3",
+        "event_time": "2026-01-01T00:00:03Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-4",
+        "event_time": "2026-01-01T00:00:04Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-5",
+        "event_time": "2026-01-01T00:00:05Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-6",
+        "event_time": "2026-01-01T00:00:06Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-7",
+        "event_time": "2026-01-01T00:00:07Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-8",
+        "event_time": "2026-01-01T00:00:08Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-9",
+        "event_time": "2026-01-01T00:00:09Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-10",
+        "event_time": "2026-01-01T00:00:10Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-11",
+        "event_time": "2026-01-01T00:00:11Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-12",
+        "event_time": "2026-01-01T00:00:12Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-13",
+        "event_time": "2026-01-01T00:00:13Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-14",
+        "event_time": "2026-01-01T00:00:14Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-15",
+        "event_time": "2026-01-01T00:00:15Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-16",
+        "event_time": "2026-01-01T00:00:16Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-17",
+        "event_time": "2026-01-01T00:00:17Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-18",
+        "event_time": "2026-01-01T00:00:18Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-19",
+        "event_time": "2026-01-01T00:00:19Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-20",
+        "event_time": "2026-01-01T00:00:20Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-21",
+        "event_time": "2026-01-01T00:00:21Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-22",
+        "event_time": "2026-01-01T00:00:22Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-23",
+        "event_time": "2026-01-01T00:00:23Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-24",
+        "event_time": "2026-01-01T00:00:24Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-25",
+        "event_time": "2026-01-01T00:00:25Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-26",
+        "event_time": "2026-01-01T00:00:26Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-27",
+        "event_time": "2026-01-01T00:00:27Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-28",
+        "event_time": "2026-01-01T00:00:28Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-29",
+        "event_time": "2026-01-01T00:00:29Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-30",
+        "event_time": "2026-01-01T00:00:30Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-31",
+        "event_time": "2026-01-01T00:00:31Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-32",
+        "event_time": "2026-01-01T00:00:32Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-33",
+        "event_time": "2026-01-01T00:00:33Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-34",
+        "event_time": "2026-01-01T00:00:34Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-35",
+        "event_time": "2026-01-01T00:00:35Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-36",
+        "event_time": "2026-01-01T00:00:36Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-37",
+        "event_time": "2026-01-01T00:00:37Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-38",
+        "event_time": "2026-01-01T00:00:38Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      },
+      {
+        "event_id": "attempt-39",
+        "event_time": "2026-01-01T00:00:39Z",
+        "account_id": "demo-alice",
+        "authentication_result": "failure",
+        "source_identifier": "192.0.2.10"
+      }
+    ]
+  }
+}
