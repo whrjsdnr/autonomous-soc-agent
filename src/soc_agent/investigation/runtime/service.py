@@ -19,6 +19,11 @@ from soc_agent.investigation.runtime.models import (
     WorkflowResult,
     WorkflowStep,
 )
+from soc_agent.investigation.runtime.trace import (
+    OrchestrationTrace,
+    OrchestrationTraceEntry,
+    TraceContent,
+)
 from soc_agent.planning import InvestigationPlanner
 from soc_agent.response.advisory import (
     CandidateIntent,
@@ -51,6 +56,7 @@ class _Workflow:
     attempted: set[tuple[str, str]] = field(default_factory=set)
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     failure: WorkflowFailure | None = None
+    trace_entries: tuple[OrchestrationTraceEntry, ...] = ()
 
 
 class SOCRuntime:
@@ -107,6 +113,19 @@ class SOCRuntime:
             execution_intent_id=workflow.execution_id,
         )
 
+    def trace(self, incident_id: UUID) -> OrchestrationTrace:
+        """Read-only snapshot. Polling does not append entries."""
+        return OrchestrationTrace(
+            incident_id=incident_id, entries=self._workflows[incident_id].trace_entries
+        )
+
+    def validate_trace(self, value: OrchestrationTrace) -> OrchestrationTrace:
+        """Compare against this live runtime's exact lineage, not a grant of authority."""
+        value = checked(OrchestrationTrace, value)
+        if value != self.trace(value.incident_id):
+            raise ValueError("Trace differs from the runtime's recorded artifact bindings")
+        return value
+
     def _result(
         self,
         workflow: _Workflow,
@@ -130,11 +149,18 @@ class SOCRuntime:
             ("response_plan", workflow.plan.plan_id if workflow.plan else None),
             ("promoted_action", workflow.promoted.promoted_id if workflow.promoted else None),
             ("execution_intent", workflow.execution_id),
+            ("tool_approval", workflow.approval_id),
+            (
+                "fusion",
+                workflow.assessment.model_derived_context.fusion_id
+                if isinstance(workflow.assessment, FusionAssessmentResult)
+                else None,
+            ),
         ):
             if identity is not None:
                 references.append(ArtifactReference(kind=kind, identity=str(identity)))
         workflow.failure = failure
-        return WorkflowResult(
+        result = WorkflowResult(
             incident_id=workflow.anchor.incident_id,
             current_step=current,
             next_step=workflow.step,
@@ -144,6 +170,20 @@ class SOCRuntime:
             terminal=workflow.step == WorkflowStep.COMPLETE,
             failure=failure,
         )
+        last = workflow.trace_entries[-1] if workflow.trace_entries else None
+        if last is None or (last.content.result, last.content.snapshot) != (
+            result,
+            workflow.anchor,
+        ):
+            content = TraceContent(
+                sequence=len(workflow.trace_entries) + 1,
+                snapshot=workflow.anchor,
+                result=result,
+                previous_entry_id=last.entry_id if last else None,
+            )
+            entry = OrchestrationTraceEntry(entry_id=content_digest(content), content=content)
+            workflow.trace_entries = (*workflow.trace_entries, entry)
+        return result
 
     async def advance(
         self,
@@ -457,6 +497,15 @@ class SOCRuntime:
             if record.state != Lifecycle.PENDING:
                 return self._outcome(w, current)
             await self._executor.execute(w.execution_id, claimant="soc-runtime")
+        except asyncio.CancelledError:
+            self._result(
+                w,
+                current,
+                "Dispatch cancelled; durable outcome requires recovery",
+                waiting=True,
+                failure=WorkflowFailure.UNCERTAIN,
+            )
+            raise
         except Exception:
             # Classify via authoritative lifecycle, never infer failure from a missing reply.
             # Cancellation also leaves RECOVER selected, and propagates to the caller.

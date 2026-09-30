@@ -7,6 +7,7 @@ from tests.review_support import HumanConfirmations, record_review
 from tests.unit.execution.conftest import SampleInput, SampleOutput
 from tests.unit.promotion.conftest import CurrentPolicy, approve, promoted
 
+from soc_agent._json import canonical_json_object
 from soc_agent.approval import ApprovalManager
 from soc_agent.assessment import ThreatAssessor
 from soc_agent.execution import GovernedExecutor
@@ -67,6 +68,7 @@ def runtime_case(tmp_path):
         responses=None,
         limit=2,
         model_analysis=None,
+        event_fields=None,
     ):
         nonlocal count
         count += 1
@@ -77,7 +79,7 @@ def runtime_case(tmp_path):
                     incident_id=state.incident_id,
                     source="fixture",
                     summary="Test input",
-                    raw_data="{}",
+                    raw_data=canonical_json_object(event_fields or {}),
                     observed_at=utc_now(),
                 )
             )

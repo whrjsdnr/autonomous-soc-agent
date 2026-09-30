@@ -160,3 +160,93 @@ investigation, pause/resume, WRITE approval, DENY, FAILED, UNCERTAIN/reconciliat
 loop guards, stale/forged inputs, ambiguous commits, cancellation, and restricted
 analysis publication. No saved-model E2E is added. Existing `tests/fusion_support.py`
 is left unchanged.
+
+## Phase 5-2: composed incident lifecycle and trace
+
+The existing runtime is the only coordinator. The E2E composition is exercised in
+`tests/integration/orchestration/`; no second orchestrator or execution worker is
+introduced. A caller registers an IncidentState and any normalized input Evidence
+using existing ingestion contracts, then calls `start` and explicitly advances it.
+
+- The READ_ONLY scenario begins without investigation Evidence, takes PLAN/ROUTE,
+  collects a real mock ToolResult through InvestigationOrchestrator, assesses and
+  decides, waits for externally recorded reviews/promotion, then explicitly
+  dispatches a read-only candidate through DurableExecutor and evaluates its result.
+- The AI/WRITE scenario begins with synthetic network-event Evidence. The existing
+  NetworkFeatureExtractor, SecurityAISelector, SecurityAI wrapper/investigator and
+  FusionEngine feed ThreatAssessor. A test model supplies contract-valid synthetic
+  predictions; no saved package is loaded and no model is trained. The actual
+  selector, signal, feature/provenance and fusion validators run. Analysis LLM and
+  selection LLM outputs are mocks, not independent security findings.
+- The resulting advisory concern loops back into investigation and is reassessed
+  only after new Evidence. Model context remains separate from Evidence and does
+  not create observations or confirmed compromise. Human review can subsequently
+  request governed response consideration; it cannot approve the Tool.
+- The WRITE workflow waits for explicit response review/promotion and then for an
+  independently confirmed exact Tool Approval. Repeated waiting calls retain the
+  completed assessment, fusion and decision. ACT still requires a separate explicit
+  dispatch call. The tests use existing test-only human confirmation adapters and
+  mock Tools; they do not establish production authentication or response efficacy.
+
+### Immutable orchestration trace
+
+`runtime.trace(incident_id)` returns an immutable `OrchestrationTrace`. Each entry
+has `entry_id` and `content`, containing:
+
+- `sequence`: contiguous, starting at one;
+- `snapshot`: authoritative store identity, incident, revision and fingerprint;
+- `result`: the exact returned WorkflowResult, including incident, current/next step,
+  reason, artifact references, waiting/terminal flags and failure category;
+- `previous_entry_id`: the preceding entry's content digest.
+
+References include investigation, assessment, decision, incident review, response
+plan, promotion, Tool Approval, durable intent and Fusion identities when present.
+Existing artifact identities are recorded without converting their meaning. A trace
+entry never becomes Evidence, human confirmation, Approval or execution authority.
+Terminal without a failure category means the workflow ended, not necessarily that
+remediation succeeded; consult the durable outcome and reason.
+
+Entries are appended only by the runtime when returning a result. Read-only trace
+access cannot append. Consecutive identical result/snapshot pairs are suppressed:
+repeated human-wait polling does not create arbitrary duplicates. A genuinely new
+step, changed artifact reference, snapshot or outcome is retained. Resume preserves
+the existing prefix. Cancellation at dispatch records the RECOVER transition before
+propagating cancellation, preserving explanatory continuity without retrying.
+
+Sequence, incident/snapshot binding, predecessor digests, step continuity and
+consecutive duplicates are validated. `validate_trace(value)` additionally compares
+all exact contents with this runtime's current trace, rejecting artifact substitutions
+and stale/truncated exports. Serialization round trips preserve entry identities.
+There is no new wall-clock timestamp in the trace identity; existing snapshot and
+artifact identities remain part of its input. Ordering is deterministic for a given
+serialized sequence of runtime results, not across newly generated random artifact
+IDs or independently interleaved calls.
+
+These are unkeyed content hashes and process-local lineage checks. An attacker who
+can rewrite an exported trace can recompute hashes. This is not a signed audit log,
+not tamper-proof, and not a durable trace store. Exact runtime comparison requires
+the original live runtime. Trace inspection grants no authority and cannot resume
+or execute anything by itself.
+
+### Recovery and E2E safety
+
+SUCCEEDED routes through EVALUATE to COMPLETE. FAILED remains an explicit failure.
+UNCERTAIN stays in RECOVER, even when the caller repeatedly asks to execute. The
+runtime queries the existing durable record and never assumes missing success means
+failure. An untrusted reconciliation request is rejected by the existing authority;
+only externally confirmed reconciliation changes the durable outcome. The next
+advance observes that outcome and completes without another Tool invocation.
+
+E2E tests also cover current Policy DENY after human approval, stale state after
+approval, altered promoted input, State Change Authorization used as Tool Approval,
+cross-incident review substitution, and protected-field changes from an analysis
+adapter. These fail closed. The existing governance services and restricted analysis
+CAS enforce the boundaries; the trace records the resulting explanation.
+
+The Phase 5-1 process-local cursor limitation is unchanged. There is no distributed
+orchestrator, automatic approval, automatic uncertain retry, workflow persistence
+redesign or exactly-once external side-effect guarantee.
+
+Phase 5-2 verification results: 22 new E2E/trace tests passed; 431 Phase 5-1,
+governance and durable regression tests passed. The single full pytest run completed
+with **1,859 passed, exit 0** (401.93 seconds), against the 1,837-test baseline.
