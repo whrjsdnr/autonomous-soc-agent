@@ -128,6 +128,18 @@ class SOCRuntime:
                 raise
         return result
 
+    @property
+    def checkpoint_repository_id(self) -> UUID | None:
+        """Composition identity; None explicitly identifies a memory-only runtime."""
+        return self._checkpoints.governance.store_id if self._checkpoints else None
+
+    def checkpoint(self, incident_id: UUID) -> WorkflowCheckpoint:
+        """Exact restored/published cursor for application-level request revision checks."""
+        workflow = self._workflows[incident_id]
+        if workflow.checkpoint is None or workflow.persistence_blocked:
+            raise WorkflowInFlight("No usable durable cursor")
+        return workflow.checkpoint
+
     def artifacts(self, incident_id: UUID) -> WorkflowArtifacts:
         workflow = self._workflows[incident_id]
         return WorkflowArtifacts(
