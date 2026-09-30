@@ -69,6 +69,7 @@ def runtime_case(tmp_path):
         limit=2,
         model_analysis=None,
         event_fields=None,
+        durable_workflow=False,
     ):
         nonlocal count
         count += 1
@@ -132,6 +133,17 @@ def runtime_case(tmp_path):
             registry=registry, source=PersistentPlanningSource(store)
         )
         executor = DurableExecutor(store=ExecutionStore(store), registry=registry, policy=policy)
+        checkpoints = None
+        if durable_workflow:
+            from soc_agent.investigation.runtime.persistence import (
+                CheckpointStore,
+                migrate_checkpoints,
+            )
+            from soc_agent.review.persistence.confirmations import migrate_confirmations
+
+            migrate_confirmations(store.database)
+            migrate_checkpoints(store.database)
+            checkpoints = CheckpointStore(store)
         runtime = SOCRuntime(
             investigator=investigation,
             store=store,
@@ -142,6 +154,7 @@ def runtime_case(tmp_path):
             executor=executor,
             max_investigation_rounds=limit,
             model_analysis=model_analysis,
+            checkpoints=checkpoints,
         )
         runtime.start(state.incident_id)
         return SimpleNamespace(

@@ -31,7 +31,7 @@ class ExecutionStore:
         self.governance = governance
         self.database = governance.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (2, 3):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (2, 3, 4):
                 raise UnsupportedSchemaError("Explicit execution schema migration required")
             connection.execute("SELECT id FROM execution_records LIMIT 0")
             connection.execute("SELECT event_id FROM execution_events LIMIT 0")

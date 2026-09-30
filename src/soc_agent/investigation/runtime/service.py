@@ -3,7 +3,7 @@
 import asyncio
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from soc_agent.assessment import AssessmentResult, FusionAssessmentResult, ThreatAssessor
 from soc_agent.decision import IncidentDecision, IncidentDecisionEngine
@@ -19,6 +19,12 @@ from soc_agent.investigation.runtime.models import (
     WorkflowResult,
     WorkflowStep,
 )
+from soc_agent.investigation.runtime.persistence.models import (
+    WorkflowAuthorityUnavailable,
+    WorkflowCheckpoint,
+    WorkflowInFlight,
+)
+from soc_agent.investigation.runtime.persistence.store import CheckpointStore
 from soc_agent.investigation.runtime.trace import (
     OrchestrationTrace,
     OrchestrationTraceEntry,
@@ -32,12 +38,16 @@ from soc_agent.response.advisory import (
     ResponsePlanner,
 )
 from soc_agent.response.promotion import ExecutionBridge, PromotedAction
+from soc_agent.review.errors import StaleSnapshotError
 from soc_agent.review.identity import content_digest
 from soc_agent.review.models import HumanReviewRecord, ReviewOutcome, StateAnchor
-from soc_agent.review.persistence import SQLiteGovernanceStore
-from soc_agent.review.validation import checked
+from soc_agent.review.persistence import SQLiteGovernanceStore, ledger
+from soc_agent.review.persistence.models import CommitOutcomeUnknown, StorageError
+from soc_agent.review.persistence.session import GovernanceSession
+from soc_agent.review.validation import checked, validate_decision
 from soc_agent.security_ai.fusion import FusionResult
 from soc_agent.state import IncidentState, IncidentStatus
+from soc_agent.state.evidence import utc_now
 
 
 @dataclass
@@ -57,13 +67,17 @@ class _Workflow:
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
     failure: WorkflowFailure | None = None
     trace_entries: tuple[OrchestrationTraceEntry, ...] = ()
+    checkpoint: WorkflowCheckpoint | None = None
+    persistence_blocked: bool = False
+    suspended_promoted_id: str | None = None
 
 
 class SOCRuntime:
     """One bounded step per call. Human artifacts and execution dispatch are explicit.
 
-    Workflow cursors are process-local. Incident state and execution records are
-    authoritative SQLite data. An injected analysis adapter may compose the existing
+    Workflow cursors are process-local unless an explicit CheckpointStore is supplied.
+    Incident state and execution records are authoritative SQLite data.
+    An injected analysis adapter may compose the existing
     SecurityAIInvestigator and FusionEngine; it must not grant execution authority.
     """
 
@@ -79,6 +93,7 @@ class SOCRuntime:
         executor: DurableExecutor,
         model_analysis: Callable[[IncidentState], Awaitable[FusionResult]] | None = None,
         max_investigation_rounds: int = 2,
+        checkpoints: CheckpointStore | None = None,
     ) -> None:
         if type(max_investigation_rounds) is not int or max_investigation_rounds < 1:
             raise ValueError("A positive finite investigation budget is required")
@@ -91,6 +106,9 @@ class SOCRuntime:
         self._limit = max_investigation_rounds
         self._workflows: dict[UUID, _Workflow] = {}
         self._source = PersistentPlanningSource(store)
+        if checkpoints is not None and checkpoints.governance.store_id != store.store_id:
+            raise ValueError("Checkpoint and runtime stores must match")
+        self._checkpoints = checkpoints
 
     def start(self, incident_id: UUID) -> WorkflowResult:
         if incident_id in self._workflows:
@@ -98,9 +116,17 @@ class SOCRuntime:
         current = self._store.load(incident_id)
         workflow = _Workflow(current.anchor)
         self._workflows[incident_id] = workflow
-        return self._result(
+        result = self._result(
             workflow, WorkflowStep.OBSERVE, "Incident observed; no action dispatched"
         )
+        if self._checkpoints is not None:
+            workflow.checkpoint = self._checkpoint(workflow, revision=0)
+            try:
+                self._checkpoints.create(workflow.checkpoint, self.trace(incident_id))
+            except BaseException:
+                workflow.persistence_blocked = True
+                raise
+        return result
 
     def artifacts(self, incident_id: UUID) -> WorkflowArtifacts:
         workflow = self._workflows[incident_id]
@@ -147,7 +173,12 @@ class SOCRuntime:
             ("decision", workflow.decision.decision_id if workflow.decision else None),
             ("incident_review", workflow.review.review_id if workflow.review else None),
             ("response_plan", workflow.plan.plan_id if workflow.plan else None),
-            ("promoted_action", workflow.promoted.promoted_id if workflow.promoted else None),
+            (
+                "promoted_action",
+                workflow.promoted.promoted_id
+                if workflow.promoted
+                else workflow.suspended_promoted_id,
+            ),
             ("execution_intent", workflow.execution_id),
             ("tool_approval", workflow.approval_id),
             (
@@ -185,7 +216,151 @@ class SOCRuntime:
             workflow.trace_entries = (*workflow.trace_entries, entry)
         return result
 
+    def _checkpoint(self, workflow: _Workflow, *, revision: int) -> WorkflowCheckpoint:
+        old = workflow.checkpoint
+        now = utc_now()
+        return WorkflowCheckpoint(
+            run_id=old.run_id if old else uuid4(),
+            incident_id=workflow.anchor.incident_id,
+            revision=revision,
+            artifacts=self.artifacts(workflow.anchor.incident_id),
+            result=workflow.trace_entries[-1].content.result,
+            review_id=workflow.review.review_id if workflow.review else None,
+            promoted_id=workflow.promoted.promoted_id
+            if workflow.promoted
+            else workflow.suspended_promoted_id,
+            approval_id=workflow.approval_id,
+            rounds=workflow.rounds,
+            round_limit=old.round_limit if old else self._limit,
+            attempted=tuple(sorted(workflow.attempted)),
+            created_at=old.created_at if old else now,
+            updated_at=now,
+        )
+
+    def restore(
+        self, incident_id: UUID, *, promoted: PromotedAction | None = None
+    ) -> WorkflowResult:
+        """Restore progress only; required execution authority must still be supplied live."""
+        if self._checkpoints is None or incident_id in self._workflows:
+            raise ValueError("Restore needs an explicit checkpoint store and a fresh runtime")
+        saved, trace = self._checkpoints.load(incident_id)
+        a = saved.artifacts
+        outcome_only = saved.result.next_step in (
+            WorkflowStep.RECOVER,
+            WorkflowStep.EVALUATE,
+            WorkflowStep.COMPLETE,
+        )
+        with self._store.database.transaction(write=False) as connection:
+            session = GovernanceSession(connection, self._store.store_id)
+            historical = session.snapshot(a.snapshot)
+            current = session.load(incident_id)
+            if not outcome_only and current.anchor != a.snapshot:
+                raise StaleSnapshotError("Checkpoint incident snapshot is stale")
+            if a.assessment and a.assessment.incident_state != historical.state:
+                raise ValueError("Checkpoint assessment differs from its authoritative snapshot")
+            if a.decision:
+                validate_decision(historical.state, a.decision)
+            if a.investigation:
+                self._investigator._check_incident(historical.state, a.investigation)
+            review = None
+            if saved.review_id is not None:
+                session.restore_service()
+                review = ledger.get(connection, "reviews", str(saved.review_id))
+                if (
+                    a.decision is None
+                    or review.target.decision_digest != content_digest(a.decision)
+                    or review.target.snapshot != a.snapshot
+                ):
+                    raise ValueError("Checkpoint review reference mismatch")
+        if review is not None and not outcome_only:
+            self._source.validate_sources(current.state, a.decision, review)
+        if a.response_plan is not None and not outcome_only:
+            self._responses.validate_current(a.response_plan, incident_state=current.state)
+        if a.execution_intent_id is not None:
+            execution = self._executor.store.load(a.execution_intent_id)
+            if (
+                execution.intent.binding.incident_id != incident_id
+                or execution.intent.binding.promoted_action_id != saved.promoted_id
+                or execution.intent.binding.approval_id != saved.approval_id
+                or execution.intent.plan != a.response_plan
+            ):
+                raise ValueError("Checkpoint execution provenance mismatch")
+        if promoted is not None:
+            if promoted.promoted_id != saved.promoted_id:
+                raise ValueError("Supplied promotion differs from checkpoint reference")
+            if self._bridge.source_plan(promoted) != a.response_plan:
+                raise ValueError("Supplied promotion has another source plan")
+            self._bridge.executable_action(promoted)
+        if saved.result.next_step == WorkflowStep.ACT and a.execution_intent_id is None:
+            if promoted is None:
+                raise WorkflowAuthorityUnavailable(
+                    "ACT requires revalidated live promotion/approval"
+                )
+            self._bridge.validated_approval(promoted, saved.approval_id)
+        workflow = _Workflow(
+            anchor=a.snapshot,
+            step=saved.result.next_step,
+            investigation=a.investigation,
+            assessment=a.assessment,
+            decision=a.decision,
+            review=review,
+            plan=a.response_plan,
+            promoted=promoted,
+            approval_id=saved.approval_id,
+            execution_id=a.execution_intent_id,
+            rounds=saved.rounds,
+            attempted=set(saved.attempted),
+            failure=saved.result.failure,
+            trace_entries=trace.entries,
+            checkpoint=saved,
+            suspended_promoted_id=saved.promoted_id,
+        )
+        self._workflows[incident_id] = workflow
+        return saved.result
+
     async def advance(
+        self,
+        incident_id: UUID,
+        *,
+        review: HumanReviewRecord | None = None,
+        candidates: tuple[CandidateIntent, ...] = (),
+        promoted: PromotedAction | None = None,
+        approval_id: UUID | None = None,
+        execute: bool = False,
+    ) -> WorkflowResult:
+        workflow = self._workflows[incident_id]
+        if self._checkpoints is None:
+            return await self._advance_local(
+                incident_id,
+                review=review,
+                candidates=candidates,
+                promoted=promoted,
+                approval_id=approval_id,
+                execute=execute,
+            )
+        if workflow.persistence_blocked or workflow.checkpoint is None:
+            raise WorkflowInFlight("Persistence must be reconciled in a fresh runtime")
+        expected = workflow.checkpoint
+        try:
+            claim = self._checkpoints.claim(expected)
+            result = await self._advance_local(
+                incident_id,
+                review=review,
+                candidates=candidates,
+                promoted=promoted,
+                approval_id=approval_id,
+                execute=execute,
+            )
+            updated = self._checkpoint(workflow, revision=expected.revision + 1)
+            self._checkpoints.publish(expected, claim, updated, self.trace(incident_id))
+            workflow.checkpoint = updated
+            return result
+        except BaseException:
+            # Never infer rollback, re-run the step, or clear a durable claim here.
+            workflow.persistence_blocked = True
+            raise
+
+    async def _advance_local(
         self,
         incident_id: UUID,
         *,
@@ -240,6 +415,11 @@ class SOCRuntime:
                     if accepted_promotion is not None and accepted_promotion != promoted:
                         raise ValueError("Promotion replacement requires a new workflow")
                     self._bridge.executable_action(promoted)
+                    if (
+                        workflow.promoted is None
+                        and workflow.suspended_promoted_id != promoted.promoted_id
+                    ):
+                        accepted_approval = None
                     accepted_promotion = promoted
                 if approval_id is not None:
                     if accepted_promotion is None:
@@ -260,6 +440,10 @@ class SOCRuntime:
                     # investigation budgets or execute a plan on the same call.
                     return self._result(workflow, current_step, "Validated human review accepted")
             except Exception as error:
+                if self._checkpoints is not None and isinstance(
+                    error, (StorageError, CommitOutcomeUnknown)
+                ):
+                    raise
                 # Fail closed without treating invalid human input as permission or retry.
                 return self._result(
                     workflow,
@@ -273,6 +457,10 @@ class SOCRuntime:
                     workflow, current.state, current_step, candidates, execute
                 )
             except Exception as error:
+                if self._checkpoints is not None and isinstance(
+                    error, (StorageError, CommitOutcomeUnknown)
+                ):
+                    raise
                 stage = workflow.step
                 failure = (
                     WorkflowFailure.ANALYSIS
@@ -301,7 +489,8 @@ class SOCRuntime:
             w.step = WorkflowStep.ROUTE if state.evidence else WorkflowStep.PLAN
             return self._result(w, current, "Route current evidence or request investigation")
         if step == WorkflowStep.PLAN:
-            if w.rounds >= self._limit:
+            limit = w.checkpoint.round_limit if w.checkpoint else self._limit
+            if w.rounds >= limit:
                 return self._result(
                     w,
                     current,
@@ -315,7 +504,7 @@ class SOCRuntime:
             if any(s.status != InvestigationStepStatus.PENDING for s in plan.steps):
                 raise ValueError("Only fresh pending investigation steps are accepted")
             if any((s.tool_name, s.tool_input) in w.attempted for s in plan.steps):
-                w.rounds = self._limit
+                w.rounds = w.checkpoint.round_limit if w.checkpoint else self._limit
                 return self._result(
                     w,
                     current,
@@ -343,7 +532,7 @@ class SOCRuntime:
                 key = (pending.tool_name, pending.tool_input)
                 if key in w.attempted:
                     w.step = WorkflowStep.PLAN
-                    w.rounds = self._limit
+                    w.rounds = w.checkpoint.round_limit if w.checkpoint else self._limit
                     return self._result(
                         w,
                         current,
@@ -461,6 +650,13 @@ class SOCRuntime:
                     waiting=True,
                     failure=WorkflowFailure.GOVERNANCE,
                 )
+            if self._checkpoints is not None:
+                # Persist verified authority in the EXISTING execution ledger, never
+                # inside the checkpoint. Creating an intent does not claim or invoke it.
+                record = self._executor.store.create(
+                    self._bridge, w.promoted, approval_id=w.approval_id
+                )
+                w.execution_id = record.intent.execution_intent_id
             w.step = WorkflowStep.ACT
             return self._result(
                 w, current, "Validated candidate; explicit dispatch required", waiting=True
@@ -474,6 +670,26 @@ class SOCRuntime:
         raise ValueError("Unsupported workflow step")
 
     async def _dispatch(self, w: _Workflow, current: WorkflowStep) -> WorkflowResult:
+        if self._checkpoints is not None and w.execution_id is not None:
+            # Restart uses the existing durable intent's validated approval snapshot.
+            # A checkpoint alone cannot create this ledger entry or change its binding.
+            w.step = WorkflowStep.RECOVER
+            try:
+                record = self._executor.store.load(w.execution_id)
+                if record.state == Lifecycle.PENDING:
+                    await self._executor.execute(w.execution_id, claimant="soc-runtime")
+            except asyncio.CancelledError:
+                self._result(
+                    w,
+                    current,
+                    "Dispatch cancelled; durable outcome requires recovery",
+                    waiting=True,
+                    failure=WorkflowFailure.UNCERTAIN,
+                )
+                raise
+            except Exception:
+                return self._outcome(w, current)
+            return self._outcome(w, current)
         if w.promoted is None:
             raise ValueError("Dispatch requires an exact promotion")
         # Resolve policy and approval before recording an execution attempt. Compute the

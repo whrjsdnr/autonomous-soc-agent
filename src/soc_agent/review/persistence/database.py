@@ -84,8 +84,8 @@ class GovernanceDatabase:
 
     def _metadata(self, connection: sqlite3.Connection) -> UUID:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        # v2 adds execution tables explicitly; the v1 governance contracts stay intact.
-        if version not in (SCHEMA_VERSION, 2, 3):
+        # v2 execution, v3 confirmations, v4 checkpoints are explicit additive migrations.
+        if version not in (SCHEMA_VERSION, 2, 3, 4):
             raise UnsupportedSchemaError(
                 "Unsupported governance schema version; migration required"
             )

@@ -135,10 +135,11 @@ already-created execution identity.
 
 ## Scope and limitations
 
-- Runtime cursors and analysis result objects are process-local, not a durable
-  workflow engine. SQLite incident snapshots and execution records are durable.
-- Restart does not automatically reconstruct or resume a cursor. Operators must
-  inspect durable execution records and use existing recovery/reconciliation.
+- Without the optional Phase 5-3 CheckpointStore, runtime cursors and analysis
+  result objects are process-local. SQLite incident snapshots and execution records
+  are durable. The opt-in restart contract is described below.
+- There is no automatic startup runner. With CheckpointStore, explicitly call
+  restore; without it, inspect durable execution records using existing recovery.
 - External incident mutation before dispatch pauses with a snapshot validation
   failure; this runtime never silently rebinds reviews or approvals. Start a new
   explicitly configured runtime only after operator review of outstanding work.
@@ -243,10 +244,120 @@ cross-incident review substitution, and protected-field changes from an analysis
 adapter. These fail closed. The existing governance services and restricted analysis
 CAS enforce the boundaries; the trace records the resulting explanation.
 
-The Phase 5-1 process-local cursor limitation is unchanged. There is no distributed
-orchestrator, automatic approval, automatic uncertain retry, workflow persistence
-redesign or exactly-once external side-effect guarantee.
+Phase 5-2 kept the Phase 5-1 process-local cursor limitation. Phase 5-3 adds an
+explicit optional checkpoint store below. There is no distributed orchestrator,
+automatic approval, automatic uncertain retry or exactly-once external side-effect
+guarantee.
 
 Phase 5-2 verification results: 22 new E2E/trace tests passed; 431 Phase 5-1,
 governance and durable regression tests passed. The single full pytest run completed
 with **1,859 passed, exit 0** (401.93 seconds), against the 1,837-test baseline.
+
+## Phase 5-3: durable checkpoints and explicit restart
+
+**Checkpoint records progress. Checkpoint does not grant authority.**
+
+Pass `checkpoints=CheckpointStore(governance_store)` to the existing SOCRuntime to
+opt in. The memory-only construction remains available and compatible. Use the
+same explicitly configured private SQLite file as IncidentState and durable
+execution. No global database path or replacement persistence framework is added.
+
+### Schema and data
+
+The existing chain is governance v1, durable execution v2, confirmations v3.
+`migrate_checkpoints(database)` explicitly upgrades **v3 to v4** with two additive
+tables: `workflow_checkpoints` and `workflow_trace`. Earlier migrations must be
+called explicitly first. Existing incident snapshots, human governance artifacts,
+execution records/events and confirmation consumption records are preserved.
+Migration DDL and version update share the existing transaction. A failure rolls
+back partial DDL; unsupported future versions fail without reset. Earlier consumers
+recognize v4 while retaining their unchanged domain and table contracts.
+
+There is one workflow run per registered incident in this initial implementation.
+The checkpoint has a run UUID, incident, checkpoint revision, snapshot anchor,
+last exact WorkflowResult (current/next step, wait/terminal/failure and references),
+round limit/count, canonical attempted investigation inputs, and creation/update
+metadata. Validated analysis, investigation and advisory artifacts are cached for
+resume. A cached ResponsePlan includes its original human-review citation, but
+that citation is revalidated against the existing authoritative review ledger.
+No Tool Approval object, human confirmation, credential or token is copied into
+checkpoint storage. Review, promotion and approval identities remain references.
+
+Trace entries are stored once under `(run_id, sequence)` with their existing
+content identities. The trace prefix is immutable in publication; checkpoint/head,
+incident, run, sequence and artifact references are validated on reads. Checkpoint
+publication, new trace entries and claim release commit atomically. Polling a
+stable human wait may advance checkpoint revision but does not duplicate trace
+entries. Restoring itself neither appends trace entries nor performs a workflow step.
+
+### Restart lifecycle
+
+Construct a new runtime with the same database and call `restore(incident_id)`.
+Restore checks the checkpoint and complete trace, retained authoritative snapshot,
+current incident anchor, analysis/decision references, persisted human review and
+advisory plan. It restores the exact next step and previous artifacts without
+repeating completed LLM, model/fusion or investigation work. The stored loop limit
+and attempted-action guard survive even if constructor defaults later differ.
+Stale active snapshots or stale/invalid artifacts fail closed, rather than silently
+replanning or reauthorizing. Terminal/outcome-only checkpoints may inspect their
+validated historical snapshot even if the incident subsequently changed.
+
+At GOVERN after a restart, an Incident Review is fetched and revalidated from its
+existing authoritative store. An unapproved WRITE candidate remains waiting.
+The current PromotionService/ExecutionBridge issuance graphs are still memory
+based: a pre-intent promotion reference in a checkpoint is not imported as a trusted
+promotion. Supply a separately reviewed, currently valid promotion through the
+existing live service and, when required, a separate exact Tool Approval. The
+stored response plan and analysis are retained; these human operations are external
+to the orchestrator and never automatically generated.
+
+In durable mode, GOVERN persists a verified **ExecutionIntent in the existing
+ExecutionStore** before returning ACT. This does not claim or invoke the Tool.
+The intent's existing execution-side approval snapshot is the authoritative source
+for restart, not the checkpoint. ACT requires a subsequent explicit execute call.
+A restored ACT uses that exact ledger intent and the existing DurableExecutor's
+state/tool/schema/input/policy/approval and replay checks. A checkpoint with an ACT
+reference but no recoverable authority cannot authorize execution by itself.
+
+### CAS and interruptions
+
+Before advancing, the runtime atomically claims its expected checkpoint revision
+under `BEGIN IMMEDIATE`. Competing processes either see the active claim or lose
+revision CAS. Only the claimant can publish a successor with the next revision and
+unchanged trace prefix. No SQLite transaction is held across LLM, model or Tool work.
+Independent spawned Python interpreters test both initial observation and resume
+from an already completed assessment: one advances, the other reports conflict.
+
+A process crash or publication failure **during** a claimed step is different from
+a clean checkpoint boundary. The claim is not stolen or expired automatically.
+Restore raises `WorkflowInFlight`; operator investigation of authoritative incident
+and execution records is required. There is deliberately no automatic claim release
+or interrupted-investigation retry API in this phase. This sacrifices availability
+rather than risking repeating work or an external side effect. A caller receiving
+an uncertain commit must stop using that runtime. A fresh read may confirm a
+successfully published successor; an unresolved active claim remains blocked.
+
+`StaleCheckpoint` distinguishes revision conflicts; `WorkflowInFlight` distinguishes
+active/interrupted work. Existing StorageError and CommitOutcomeUnknown propagate
+for persistence problems. They are not converted into permission or normal success.
+Domain validation, governance blocks, execution FAILED and execution UNCERTAIN
+retain their existing meanings.
+
+### Recovery and limitations
+
+A successfully published RECOVER checkpoint restores as RECOVER and queries its
+exact durable execution record. Repeated execute requests cannot retry it. Trusted
+reconciliation is performed externally through the existing authority contract;
+only its recorded outcome lets the resumed workflow evaluate and complete.
+Completed workflows and successful execution records never redispatch on restore.
+
+SQLite transaction and external Tool side effects are **not atomic**. Exactly-once
+external execution is not guaranteed. Incident/analysis publication and checkpoint
+publication are also separate transactions; an interrupted step may therefore need
+operator investigation even if its incident or execution record already committed.
+Claims intentionally block that ambiguous work from being repeated automatically.
+
+The supported concurrency scope is cooperating processes on a same-host local
+SQLite filesystem. There is no distributed orchestration, multi-host coordination,
+background resume worker, signed audit log or protection from a database administrator
+rewriting all records and hashes. No automatic new run replaces an existing run.
