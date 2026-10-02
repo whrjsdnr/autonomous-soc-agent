@@ -8,10 +8,10 @@ from copy import copy
 from datetime import datetime, timedelta
 from sqlite3 import Connection
 from threading import RLock
-from typing import Literal, Protocol
+from typing import Literal, Protocol, Self
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from soc_agent.review.authority import HumanAction, VerifiedHumanAction
 from soc_agent.review.authorization import HumanPermission, permission_for
@@ -36,10 +36,16 @@ class HumanActionContext(Frozen):
     incident_id: UUID
     action: HumanAction
     binding_digest: Hash
-    decision_id: Hash
+    decision_id: Hash | None
     review_id: UUID | None = None
     request_id: UUID | None = None
     changes: tuple[StateChange, ...] = ()
+
+    @model_validator(mode="after")
+    def decision_context(self) -> Self:
+        if self.decision_id is None and self.action != HumanAction.SUBMIT_ANALYST_FEEDBACK:
+            raise ValueError("Governance action requires a decision reference")
+        return self
 
 
 class HumanConfirmation(Frozen):
@@ -147,15 +153,7 @@ class ProviderHumanAuthority:
         context = checked(HumanActionContext, self._resolve(action, binding_digest))
         if (context.action, context.binding_digest) != (action, binding_digest):
             raise HumanAuthorizationDenied("Resolved human action context mismatch")
-        principal = checked(AuthenticatedPrincipal, self._provider.authenticate(credential))
-        now = self._clock()
-        if (
-            principal.provider_id != self._provider_id
-            or not principal.authenticated_at <= now < principal.expires_at
-            or now - principal.authenticated_at > self._maximum_age
-        ):
-            raise HumanAuthorizationDenied("Untrusted or stale authenticated principal")
-        self._permissions.require_permission(principal, context)
+        principal = self.authenticate_context(credential=credential, context=context)
         confirmation = checked(
             HumanConfirmation, self._provider.confirm(credential, principal, context)
         )
@@ -198,6 +196,24 @@ class ProviderHumanAuthority:
         return VerifiedHumanAction(
             subject_id=principal.subject_id, action=action, binding_digest=binding_digest
         )
+
+    def authenticate_context(
+        self, *, credential: str, context: HumanActionContext
+    ) -> AuthenticatedPrincipal:
+        """Authenticate and authorize a read/retry; never substitutes for confirmation."""
+        context = checked(HumanActionContext, context)
+        if not isinstance(credential, str) or not credential:
+            raise HumanAuthorizationDenied("Provider credentials required, not principal claims")
+        principal = checked(AuthenticatedPrincipal, self._provider.authenticate(credential))
+        now = self._clock()
+        if (
+            principal.provider_id != self._provider_id
+            or not principal.authenticated_at <= now < principal.expires_at
+            or now - principal.authenticated_at > self._maximum_age
+        ):
+            raise HumanAuthorizationDenied("Untrusted or stale authenticated principal")
+        self._permissions.require_permission(principal, context)
+        return principal
 
     def for_transaction(
         self, repository_id: UUID, connection: Connection

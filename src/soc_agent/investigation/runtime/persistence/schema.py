@@ -19,7 +19,7 @@ STATEMENTS = (
 def migrate_checkpoints(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (4, 5, 6):
+        if version in (4, 5, 6, 7):
             return
         if version != 3:
             raise UnsupportedSchemaError("Checkpoint migration requires schema v3")

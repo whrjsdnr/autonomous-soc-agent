@@ -19,7 +19,7 @@ class EventConflict(ValueError):
 def migrate_ingestion(store: SQLiteGovernanceStore) -> None:
     """Independent optional extension v1. Governance schema v4 is not reset/relabelled."""
     with store.database.transaction() as connection:
-        if connection.execute("PRAGMA user_version").fetchone()[0] not in (4, 5, 6):
+        if connection.execute("PRAGMA user_version").fetchone()[0] not in (4, 5, 6, 7):
             raise UnsupportedSchemaError("Ingestion requires checkpoint schema v4")
         exists = connection.execute(
             "SELECT name FROM sqlite_master WHERE name='soc_ingestion_schema'"

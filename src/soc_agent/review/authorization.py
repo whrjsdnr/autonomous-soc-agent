@@ -18,6 +18,7 @@ class HumanRole(StrEnum):
 
 
 class HumanPermission(StrEnum):
+    SUBMIT_ANALYST_FEEDBACK = "submit_analyst_feedback"
     INCIDENT_REVIEW = "incident_review"
     RESPONSE_REVIEW = "response_review"
     TOOL_APPROVE = "tool_approve"
@@ -27,6 +28,7 @@ class HumanPermission(StrEnum):
 
 def permission_for(action: HumanAction) -> HumanPermission:
     return {
+        HumanAction.SUBMIT_ANALYST_FEEDBACK: HumanPermission.SUBMIT_ANALYST_FEEDBACK,
         HumanAction.RECORD_REVIEW: HumanPermission.INCIDENT_REVIEW,
         HumanAction.REVIEW_RESPONSE_ACTION: HumanPermission.RESPONSE_REVIEW,
         HumanAction.APPROVE_PROMOTED_TOOL: HumanPermission.TOOL_APPROVE,
@@ -59,7 +61,9 @@ class RBACPermissionVerifier:
             raise HumanAuthorizationDenied("Trusted role resolution failed") from error
         required = permission_for(context.action)
         grants = {
-            HumanRole.ANALYST: frozenset({HumanPermission.INCIDENT_REVIEW}),
+            HumanRole.ANALYST: frozenset(
+                {HumanPermission.INCIDENT_REVIEW, HumanPermission.SUBMIT_ANALYST_FEEDBACK}
+            ),
             HumanRole.RESPONDER: frozenset({HumanPermission.RESPONSE_REVIEW}),
             HumanRole.APPROVER: frozenset(
                 {
