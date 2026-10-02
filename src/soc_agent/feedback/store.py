@@ -17,7 +17,7 @@ class FeedbackStore:
         self.evaluations = evaluations
         self.database = evaluations.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (7, 8):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (7, 8, 9):
                 raise UnsupportedSchemaError("Explicit feedback migration required")
             connection.execute("SELECT feedback_id FROM analyst_feedback LIMIT 0")
             connection.execute("SELECT feedback_id FROM feedback_audit LIMIT 0")
