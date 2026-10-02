@@ -15,7 +15,7 @@ class EvaluationStore:
         self.experiences = experiences
         self.database = experiences.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (6, 7):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (6, 7, 8):
                 raise UnsupportedSchemaError("Explicit evaluation migration required")
             connection.execute("SELECT evaluation_id FROM evaluations LIMIT 0")
 
