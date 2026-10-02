@@ -18,7 +18,7 @@ class CheckpointStore:
     def __init__(self, governance: SQLiteGovernanceStore) -> None:
         self.governance, self.database = governance, governance.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (4, 5):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (4, 5, 6):
                 raise UnsupportedSchemaError("Explicit checkpoint migration required")
             connection.execute("SELECT run_id FROM workflow_checkpoints LIMIT 0")
             connection.execute("SELECT run_id FROM workflow_trace LIMIT 0")

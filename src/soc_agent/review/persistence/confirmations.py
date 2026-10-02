@@ -47,7 +47,7 @@ def migrate_confirmations(database: GovernanceDatabase) -> None:
     """Explicit v2 -> v3; v1 callers first explicitly apply the execution migration."""
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (3, 4, 5):
+        if version in (3, 4, 5, 6):
             return
         if version != 2:
             raise UnsupportedSchemaError("Confirmation migration requires governance schema v2")
@@ -75,7 +75,7 @@ class SQLiteConfirmationConsumer:
 
     @staticmethod
     def _schema(connection: Connection) -> None:
-        if connection.execute("PRAGMA user_version").fetchone()[0] not in (3, 4, 5):
+        if connection.execute("PRAGMA user_version").fetchone()[0] not in (3, 4, 5, 6):
             raise UnsupportedSchemaError("Explicit confirmation schema migration required")
         connection.execute("SELECT provider_id FROM human_confirmations LIMIT 0")
 

@@ -14,7 +14,7 @@ class ExperienceStore:
         self.governance = governance
         self.database = governance.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] != 5:
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (5, 6):
                 raise UnsupportedSchemaError("Explicit experience migration required")
             connection.execute("SELECT experience_id FROM experiences LIMIT 0")
 
