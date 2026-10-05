@@ -16,7 +16,7 @@ STATEMENTS = (
 def migrate_experiences(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (5, 6, 7, 8, 9):
+        if version in (5, 6, 7, 8, 9, 10):
             connection.execute("SELECT experience_id FROM experiences LIMIT 0")
             return
         if version != 4:

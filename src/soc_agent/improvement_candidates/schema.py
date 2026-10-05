@@ -23,7 +23,7 @@ STATEMENTS = (
 def migrate_candidates(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version == 9:
+        if version in (9, 10):
             connection.execute("SELECT pattern_id FROM failure_patterns LIMIT 0")
             connection.execute("SELECT candidate_id FROM improvement_candidates LIMIT 0")
             return

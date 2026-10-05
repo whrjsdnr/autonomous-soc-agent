@@ -25,7 +25,7 @@ STATEMENTS = (
 def migrate_feedback(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (7, 8, 9):
+        if version in (7, 8, 9, 10):
             connection.execute("SELECT feedback_id FROM analyst_feedback LIMIT 0")
             connection.execute("SELECT feedback_id FROM feedback_audit LIMIT 0")
             return
