@@ -46,15 +46,15 @@ class OfflineComparisonStore:
         self.database = planning.database
         with self.database.transaction(write=False) as connection:
             version = connection.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (11, 12):
+            if version not in (11, 12, 13):
                 raise UnsupportedSchemaError("Explicit offline comparison migration required")
-            if version == 12:
+            if version in (12, 13):
                 connection.execute("SELECT baseline_id FROM frozen_offline_baselines LIMIT 0")
             for table in TABLES:
                 connection.execute(f"SELECT id FROM {table} LIMIT 0")
 
     def _baseline(self, connection: Connection, baseline_id: str) -> FrozenBaseline:
-        if connection.execute("PRAGMA user_version").fetchone()[0] != 12:
+        if connection.execute("PRAGMA user_version").fetchone()[0] not in (12, 13):
             raise UnsupportedSchemaError("Explicit frozen baseline migration required")
         row = connection.execute(
             "SELECT * FROM frozen_offline_baselines WHERE baseline_id=?", (baseline_id,)
@@ -80,7 +80,7 @@ class OfflineComparisonStore:
         digest = content_digest(content)
         value = FrozenBaseline(baseline_id=digest, baseline_version=digest, content=content)
         with self.database.transaction() as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] != 12:
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (12, 13):
                 raise UnsupportedSchemaError("Explicit frozen baseline migration required")
             row = connection.execute(
                 "SELECT * FROM frozen_offline_baselines WHERE baseline_id=?", (digest,)

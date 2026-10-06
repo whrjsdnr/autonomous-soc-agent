@@ -18,6 +18,7 @@ class HumanRole(StrEnum):
 
 
 class HumanPermission(StrEnum):
+    REVIEW_IMPROVEMENT_CANDIDATE = "review_improvement_candidate"
     SUBMIT_ANALYST_FEEDBACK = "submit_analyst_feedback"
     INCIDENT_REVIEW = "incident_review"
     RESPONSE_REVIEW = "response_review"
@@ -28,6 +29,7 @@ class HumanPermission(StrEnum):
 
 def permission_for(action: HumanAction) -> HumanPermission:
     return {
+        HumanAction.REVIEW_IMPROVEMENT_CANDIDATE: HumanPermission.REVIEW_IMPROVEMENT_CANDIDATE,
         HumanAction.SUBMIT_ANALYST_FEEDBACK: HumanPermission.SUBMIT_ANALYST_FEEDBACK,
         HumanAction.RECORD_REVIEW: HumanPermission.INCIDENT_REVIEW,
         HumanAction.REVIEW_RESPONSE_ACTION: HumanPermission.RESPONSE_REVIEW,
@@ -67,6 +69,7 @@ class RBACPermissionVerifier:
             HumanRole.RESPONDER: frozenset({HumanPermission.RESPONSE_REVIEW}),
             HumanRole.APPROVER: frozenset(
                 {
+                    HumanPermission.REVIEW_IMPROVEMENT_CANDIDATE,
                     HumanPermission.TOOL_APPROVE,
                     HumanPermission.EXECUTION_RECONCILE,
                     HumanPermission.STATE_CHANGE_AUTHORIZE,

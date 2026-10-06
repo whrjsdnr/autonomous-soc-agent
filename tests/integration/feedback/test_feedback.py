@@ -219,7 +219,7 @@ def test_query_detects_receipt_or_feedback_corruption(feedback_case, table):
         c.feedback_store.get(result.feedback_id)
 
 
-def test_null_decision_context_only_for_feedback(feedback_case):
+def test_null_decision_context_for_domains_without_incident_decision(feedback_case):
     from soc_agent.review.authentication import HumanActionContext
 
     data = dict(
@@ -227,10 +227,13 @@ def test_null_decision_context_only_for_feedback(feedback_case):
         binding_digest=feedback_case.request.digest,
         decision_id=None,
     )
-    assert (
-        HumanActionContext(action=HumanAction.SUBMIT_ANALYST_FEEDBACK, **data).decision_id is None
-    )
+    without_incident_decision = {
+        HumanAction.SUBMIT_ANALYST_FEEDBACK,
+        HumanAction.REVIEW_IMPROVEMENT_CANDIDATE,
+    }
     for action in HumanAction:
-        if action != HumanAction.SUBMIT_ANALYST_FEEDBACK:
+        if action in without_incident_decision:
+            assert HumanActionContext(action=action, **data).decision_id is None
+        else:
             with pytest.raises(ValidationError):
                 HumanActionContext(action=action, **data)

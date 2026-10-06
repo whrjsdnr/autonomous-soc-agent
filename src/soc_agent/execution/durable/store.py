@@ -43,6 +43,7 @@ class ExecutionStore:
                 10,
                 11,
                 12,
+                13,
             ):
                 raise UnsupportedSchemaError("Explicit execution schema migration required")
             connection.execute("SELECT id FROM execution_records LIMIT 0")

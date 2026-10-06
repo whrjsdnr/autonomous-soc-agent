@@ -23,6 +23,7 @@ class EvaluationStore:
                 10,
                 11,
                 12,
+                13,
             ):
                 raise UnsupportedSchemaError("Explicit evaluation migration required")
             connection.execute("SELECT evaluation_id FROM evaluations LIMIT 0")

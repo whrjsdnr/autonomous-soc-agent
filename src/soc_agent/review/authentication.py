@@ -43,7 +43,10 @@ class HumanActionContext(Frozen):
 
     @model_validator(mode="after")
     def decision_context(self) -> Self:
-        if self.decision_id is None and self.action != HumanAction.SUBMIT_ANALYST_FEEDBACK:
+        if self.decision_id is None and self.action not in (
+            HumanAction.SUBMIT_ANALYST_FEEDBACK,
+            HumanAction.REVIEW_IMPROVEMENT_CANDIDATE,
+        ):
             raise ValueError("Governance action requires a decision reference")
         return self
 
