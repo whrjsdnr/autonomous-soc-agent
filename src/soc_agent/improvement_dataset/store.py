@@ -22,7 +22,7 @@ class ImprovementDatasetStore:
         self.feedback = feedback
         self.database = feedback.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (8, 9, 10):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (8, 9, 10, 11, 12):
                 raise UnsupportedSchemaError("Explicit dataset migration required")
             for table in (
                 "improvement_samples",

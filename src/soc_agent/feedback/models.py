@@ -2,10 +2,15 @@
 
 import re
 from enum import StrEnum
-from typing import Literal, Self
+from typing import Literal, Self, cast
 from uuid import UUID
 
-from pydantic import Field, model_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    model_serializer,
+    model_validator,
+)
 
 from soc_agent.review.authentication import HumanVerificationRecord
 from soc_agent.review.authority import HumanAction
@@ -13,6 +18,7 @@ from soc_agent.review.authorization import HumanPermission
 from soc_agent.review.identity import content_digest
 from soc_agent.review.models import Frozen, Hash, Subject
 from soc_agent.state.evidence import UTCTimestamp, utc_now
+from soc_agent.tools.models import ReadOnlyPermission
 
 
 class Verdict(StrEnum):
@@ -26,6 +32,19 @@ class DiagnosticLabel(StrEnum):
     FALSE_NEGATIVE = "false_negative"
     UNNECESSARY_INVESTIGATION = "unnecessary_investigation"
     MISSED_INVESTIGATION = "missed_investigation"
+
+
+class CoverageExpectation(Frozen):
+    """Explicit human required paths; never inferred from overall defect labels."""
+
+    contract_version: Literal["human-read-only-coverage:v1"] = "human-read-only-coverage:v1"
+    required_permissions: tuple[ReadOnlyPermission, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def canonical(self) -> Self:
+        if self.required_permissions != tuple(sorted(set(self.required_permissions))):
+            raise ValueError("Canonical unique human coverage requirements required")
+        return self
 
 
 class FeedbackRequest(Frozen):
@@ -44,11 +63,14 @@ class FeedbackRequest(Frozen):
     scope: Literal["overall"] = "overall"
     verdict: Verdict
     labels: tuple[DiagnosticLabel, ...] = ()
+    coverage_expectation: CoverageExpectation | None = None
     # Plain text annotation only. Never interpolated into prompts or interpreted.
     note: str = Field(default="", max_length=1000)
 
     @model_validator(mode="after")
     def semantics(self) -> Self:
+        if self.coverage_expectation is not None and (self.verdict == Verdict.INCONCLUSIVE):
+            raise ValueError("Explicit human coverage requires conclusive feedback")
         if len(set(self.labels)) != len(self.labels):
             raise ValueError("Duplicate diagnostic label")
         if tuple(sorted(self.labels)) != self.labels:
@@ -69,6 +91,13 @@ class FeedbackRequest(Frozen):
         ):
             raise ValueError("Do not include authentication material in notes")
         return self
+
+    @model_serializer(mode="wrap")
+    def legacy_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        value = cast(dict[str, object], handler(self))
+        if self.coverage_expectation is None:
+            value.pop("coverage_expectation", None)
+        return value
 
     @property
     def digest(self) -> str:

@@ -16,9 +16,11 @@ from soc_agent.improvement_dataset.models import (
 from soc_agent.review.identity import content_digest
 from soc_agent.review.models import Frozen, Hash
 from soc_agent.state.evidence import UTCTimestamp, utc_now
+from soc_agent.tools.models import ReadOnlyPermission
 
 ANALYZER_VERSION = "soc-failure-analyzer:v1"
 GENERATOR_VERSION = "soc-improvement-candidate-generator:v1"
+DECLARATION_VERSION = "soc-offline-coverage-proposal-declaration:v1"
 
 
 class AnalysisConfig(Frozen):
@@ -210,16 +212,44 @@ class RuleProposal(Frozen):
     ] = "Review failure and recovery handling; preserve policy, approval and execution boundaries."
 
 
+class CoverageProposal(Frozen):
+    """Caller-declared offline coverage addition, never generated from labels."""
+
+    candidate_type: Literal[CandidateType.INVESTIGATION_STRATEGY] = (
+        CandidateType.INVESTIGATION_STRATEGY
+    )
+    operation: Literal["REQUIRE_READ_ONLY_PERMISSION_COVERAGE"] = (
+        "REQUIRE_READ_ONLY_PERMISSION_COVERAGE"
+    )
+    target_component: Literal["investigation_planning"] = "investigation_planning"
+    target_reference: Literal["soc_agent.planning.models.PlannerInput"] = (
+        "soc_agent.planning.models.PlannerInput"
+    )
+    target_version: None = None
+    focus: Literal[ReviewFocus.MISSED_INVESTIGATION] = ReviewFocus.MISSED_INVESTIGATION
+    required_permission: ReadOnlyPermission
+    review_candidate: ArtifactReference
+    offline_evaluable: Literal[True] = True
+
+
+InvestigationProposalContract = Annotated[
+    InvestigationProposal | CoverageProposal, Field(discriminator="operation")
+]
+
 Proposal = Annotated[
-    PromptProposal | InvestigationProposal | ToolSelectionProposal | RuleProposal,
+    PromptProposal | InvestigationProposalContract | ToolSelectionProposal | RuleProposal,
     Field(discriminator="candidate_type"),
 ]
 
 
 class CandidateContent(Frozen):
-    schema_version: Literal["improvement-candidate:v1"] = "improvement-candidate:v1"
+    schema_version: Literal["improvement-candidate:v1", "improvement-candidate:v2"] = (
+        "improvement-candidate:v1"
+    )
     dataset: DatasetBinding
-    generator_version: Literal["soc-improvement-candidate-generator:v1"] = GENERATOR_VERSION
+    generator_version: Literal[
+        "soc-improvement-candidate-generator:v1", "soc-offline-coverage-proposal-declaration:v1"
+    ] = GENERATOR_VERSION
     candidate_type: CandidateType
     failure_pattern_refs: tuple[ArtifactReference, ...] = Field(min_length=1, max_length=1)
     supporting_sample_refs: tuple[ArtifactReference, ...]
@@ -233,6 +263,11 @@ class CandidateContent(Frozen):
 
     @model_validator(mode="after")
     def structure(self) -> Self:
+        executable = isinstance(self.proposal, CoverageProposal)
+        if executable != (self.generator_version == DECLARATION_VERSION) or executable != (
+            self.schema_version == "improvement-candidate:v2"
+        ):
+            raise ValueError("Explicit declaration version required for offline coverage proposal")
         if self.candidate_type != self.proposal.candidate_type:
             raise ValueError("Candidate/proposal type mismatch")
         if not self.supporting_sample_refs or not canonical_references(self.supporting_sample_refs):

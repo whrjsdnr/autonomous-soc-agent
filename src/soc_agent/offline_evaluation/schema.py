@@ -23,7 +23,7 @@ STATEMENTS = (
 def migrate_offline_evaluation(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version == 10:
+        if version in (10, 11, 12):
             connection.execute(
                 "SELECT specification_id FROM offline_evaluation_specifications LIMIT 0"
             )

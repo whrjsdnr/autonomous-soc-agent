@@ -3,10 +3,12 @@
 from sqlite3 import Connection, Row
 
 from soc_agent.improvement_candidates.analysis import analyze
+from soc_agent.improvement_candidates.declaration import declare_coverage
 from soc_agent.improvement_candidates.generation import generate
 from soc_agent.improvement_candidates.models import (
     CandidateType,
     CandidateTypeCount,
+    CoverageProposal,
     DatasetBinding,
     FailurePattern,
     ImprovementCandidate,
@@ -17,6 +19,7 @@ from soc_agent.improvement_dataset.store import ImprovementDatasetStore
 from soc_agent.review.identity import content_digest
 from soc_agent.review.persistence import ledger
 from soc_agent.review.persistence.models import StoredDataError, UnsupportedSchemaError
+from soc_agent.tools.models import ReadOnlyPermission
 
 Context = tuple[DatasetBinding, tuple[SampleFacts, ...]]
 
@@ -26,7 +29,7 @@ class ImprovementCandidateStore:
         self.datasets = datasets
         self.database = datasets.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (9, 10):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (9, 10, 11, 12):
                 raise UnsupportedSchemaError("Explicit candidate migration required")
             connection.execute("SELECT pattern_id FROM failure_patterns LIMIT 0")
             connection.execute("SELECT candidate_id FROM improvement_candidates LIMIT 0")
@@ -101,7 +104,23 @@ class ImprovementCandidateStore:
         pattern = self._pattern(connection, pattern_row, context)
         if ref.digest != content_digest(pattern.content):
             raise StoredDataError("Candidate pattern digest mismatch")
-        if not any(candidate.content == c for candidate in generate(pattern)):
+        if isinstance(c.proposal, CoverageProposal):
+            parent_ref = c.proposal.review_candidate
+            parent_row = connection.execute(
+                "SELECT * FROM improvement_candidates WHERE candidate_id=?", (parent_ref.identity,)
+            ).fetchone()
+            if parent_row is None:
+                raise StoredDataError("Declared coverage review candidate missing")
+            # REVIEW parents must be generated for this exact validated pattern.
+            parent = ledger.decode(ImprovementCandidate, parent_row)
+            if isinstance(parent.content.proposal, CoverageProposal):
+                raise StoredDataError("Nested executable declaration prohibited")
+            parent = self._candidate(connection, parent_row, context)
+            if parent_ref.digest != content_digest(parent.content) or (
+                declare_coverage(parent, c.proposal.required_permission).content != c
+            ):
+                raise StoredDataError("Declared coverage proposal/source mismatch")
+        elif not any(candidate.content == c for candidate in generate(pattern)):
             raise StoredDataError("Candidate does not match its supporting pattern")
         return value
 
@@ -159,6 +178,21 @@ class ImprovementCandidateStore:
             ),
         )
         return value
+
+    def declare_coverage_proposal(
+        self, review_candidate_id: str, *, required_permission: ReadOnlyPermission
+    ) -> ImprovementCandidate:
+        """Explicit offline-only declaration, not automatic generation or approval."""
+        with self.database.transaction() as connection:
+            row = connection.execute(
+                "SELECT * FROM improvement_candidates WHERE candidate_id=?", (review_candidate_id,)
+            ).fetchone()
+            if row is None:
+                raise StoredDataError("Unknown review candidate")
+            context = self._context(connection, row["dataset_id"])
+            review = self._candidate(connection, row, context)
+            value = declare_coverage(review, required_permission)
+            return self._insert_candidate(connection, value, context)
 
     def get_pattern(self, pattern_id: str) -> FailurePattern:
         with self.database.transaction(write=False) as connection:

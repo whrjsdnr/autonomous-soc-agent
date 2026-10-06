@@ -1,12 +1,18 @@
 """Immutable declarations and successful structured results."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
 from soc_agent.tools.enums import ToolPermission, ToolRiskLevel
 
 ToolName = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9]*(_[a-z0-9]+)*$")]
+
+
+# Existing permission categories, restricted to observation-only paths.
+ReadOnlyPermission = Literal[
+    ToolPermission.SYSTEM_READ, ToolPermission.NETWORK_READ, ToolPermission.FILE_READ
+]
 
 
 class ToolMetadata(BaseModel):
