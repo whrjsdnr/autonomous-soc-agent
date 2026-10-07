@@ -4,6 +4,7 @@ import json
 import sqlite3
 from collections.abc import Callable
 from typing import Protocol
+from urllib.parse import urlsplit
 from uuid import UUID
 
 from pydantic import BaseModel, ValidationError
@@ -92,9 +93,21 @@ class SOCApplication:
         provider: AuthenticationProvider | None = None,
         provider_id: str | None = None,
         access: AccessPolicy | None = None,
+        dashboard_origin: str | None = None,
     ) -> None:
         self._factory, self._service = service_factory, None
         self._provider, self._provider_id, self._access = provider, provider_id, access
+        if dashboard_origin is not None:
+            parsed = urlsplit(dashboard_origin)
+            if (
+                parsed.scheme not in ("http", "https")
+                or not parsed.netloc
+                or parsed.username is not None
+                or parsed.password is not None
+                or dashboard_origin != f"{parsed.scheme}://{parsed.netloc}"
+            ):
+                raise ValueError("Exact trusted dashboard origin required")
+        self.dashboard_origin = dashboard_origin
 
     def startup(self) -> ApplicationService:
         if self._service is None:
@@ -137,6 +150,25 @@ class SOCApplication:
             return
         try:
             credential, principal = self.authenticate(scope.get("headers", []))
+            if scope["path"] in ("/dashboard/security-ai", "/api/dashboard/security-ai"):
+                await self.security_ai_monitor(scope, principal, send)
+                return
+            if scope["path"] == "/dashboard/governance" or scope["path"].startswith(
+                "/dashboard/governance/"
+            ):
+                from soc_agent.api.dashboard.governance_http import handle_governance
+
+                await handle_governance(self, scope, receive, send, credential, principal)
+                return
+            if scope["path"] in ("/dashboard", "/api/dashboard/overview"):
+                await self.dashboard(scope, principal, send)
+                return
+            detail_parts = scope["path"].strip("/").split("/")
+            if (len(detail_parts) == 3 and detail_parts[:2] == ["dashboard", "incidents"]) or (
+                len(detail_parts) == 4 and detail_parts[:3] == ["api", "dashboard", "incidents"]
+            ):
+                await self.dashboard_incident(scope, principal, UUID(detail_parts[-1]), send)
+                return
             parts = scope["path"].strip("/").split("/")
             if not parts or (parts[0] != "incidents" and parts != ["events"]):
                 raise APIError(404, "not_found")
@@ -235,3 +267,126 @@ class SOCApplication:
         except KeyError as error:
             # A trusted context/confirmation resolver could not resolve this human operation.
             raise HumanAuthorizationDenied("Human confirmation context unavailable") from error
+
+    async def dashboard(self, scope, principal, send):
+        from soc_agent.api.dashboard.render import CSP, render_overview
+
+        if scope["method"] != "GET":
+            raise APIError(405, "method_not_allowed")
+        try:
+            self._access.require_access(principal, None, "GET:dashboard")
+        except Exception as error:
+            raise HumanAuthorizationDenied("Dashboard access denied") from error
+
+        def visible(identity):
+            try:
+                for operation in ("GET:", "GET:workflow", "GET:artifacts"):
+                    self._access.require_access(principal, identity, operation)
+            except Exception:
+                return False
+            return True
+
+        overview = self.startup().dashboard_overview(visible)
+        html = scope["path"] == "/dashboard"
+        payload = (
+            render_overview(overview, utc_now()).encode()
+            if html
+            else overview.model_dump_json().encode()
+        )
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    (b"content-type", b"text/html; charset=utf-8" if html else b"application/json"),
+                    (b"cache-control", b"no-store"),
+                    (b"content-security-policy", CSP.encode()),
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"referrer-policy", b"no-referrer"),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": payload})
+
+    async def security_ai_monitor(self, scope, principal, send):
+        from soc_agent.api.dashboard.render import CSP
+        from soc_agent.api.dashboard.security_ai_render import render_security_ai
+
+        if scope["method"] != "GET":
+            raise APIError(405, "method_not_allowed")
+        try:
+            self._access.require_access(principal, None, "GET:dashboard")
+        except Exception as error:
+            raise HumanAuthorizationDenied("Monitoring access denied") from error
+
+        def visible(identity):
+            try:
+                for operation in (
+                    "GET:",
+                    "GET:workflow",
+                    "GET:artifacts",
+                    "GET:dashboard/incident-detail",
+                ):
+                    self._access.require_access(principal, identity, operation)
+            except Exception:
+                return False
+            return True
+
+        view = self.startup().dashboard_security_ai(visible)
+        html = scope["path"] == "/dashboard/security-ai"
+        payload = render_security_ai(view).encode() if html else view.model_dump_json().encode()
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    (b"content-type", b"text/html; charset=utf-8" if html else b"application/json"),
+                    (b"cache-control", b"no-store"),
+                    (b"content-security-policy", CSP.encode()),
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"referrer-policy", b"no-referrer"),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": payload})
+
+    async def dashboard_incident(self, scope, principal, incident_id, send):
+        from soc_agent.api.dashboard.incident_render import render_incident
+        from soc_agent.api.dashboard.render import CSP
+
+        if scope["method"] != "GET":
+            raise APIError(405, "method_not_allowed")
+        try:
+            # Separate aggregate access cannot grant object/history access.
+            self._access.require_access(principal, None, "GET:dashboard")
+            for operation in (
+                "GET:dashboard/incident-detail",
+                "GET:",
+                "GET:workflow",
+                "GET:trace",
+                "GET:artifacts",
+            ):
+                self._access.require_access(principal, incident_id, operation)
+        except Exception as error:
+            raise HumanAuthorizationDenied("Incident detail access denied") from error
+        detail = self.startup().dashboard_incident(incident_id)
+        html = scope["path"].startswith("/dashboard/")
+        payload = (
+            render_incident(detail, utc_now()).encode()
+            if html
+            else detail.model_dump_json().encode()
+        )
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    (b"content-type", b"text/html; charset=utf-8" if html else b"application/json"),
+                    (b"cache-control", b"no-store"),
+                    (b"content-security-policy", CSP.encode()),
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"referrer-policy", b"no-referrer"),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": payload})

@@ -220,6 +220,11 @@ class ProviderHumanAuthority:
         self._permissions.require_permission(principal, context)
         return principal
 
+    @property
+    def confirmation_consumer(self) -> ConfirmationConsumer | None:
+        """Trusted composition inspection only; neither issues nor consumes confirmation."""
+        return self._confirmation_consumer
+
     def for_transaction(
         self, repository_id: UUID, connection: Connection
     ) -> "ProviderHumanAuthority":

@@ -1,6 +1,7 @@
 """Application coordination only; domain services retain all authority checks."""
 
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from soc_agent.api.models import (
@@ -26,6 +27,9 @@ from soc_agent.review.models import StoredIncident
 from soc_agent.review.persistence import PersistentHumanReviewService, SQLiteGovernanceStore
 from soc_agent.state import IncidentState
 
+if TYPE_CHECKING:
+    from soc_agent.api.dashboard.governance_commands import ConfirmationPreview
+
 
 class NotFound(ValueError):
     pass
@@ -47,6 +51,7 @@ class ApplicationService:
         execution: ExecutionStore,
         authority: HumanAuthority | None = None,
         ingestion: EventIngestor | None = None,
+        governance_confirmation_preview: "ConfirmationPreview | None" = None,
     ) -> None:
         self.store, self.checkpoints = store, CheckpointStore(store)
         self.ingestion = ingestion
@@ -55,6 +60,9 @@ class ApplicationService:
         self.runtime_factory = runtime_factory
         self.reviews, self.promotions, self.bridge = reviews, promotions, bridge
         self.execution, self.authority = execution, authority or DenyHumanAuthority()
+        # Optional trusted non-consuming lookup of existing provider confirmations.
+        # Never selected from a browser body; no issuance implementation is supplied.
+        self.governance_confirmation_preview = governance_confirmation_preview
         self.response_intents: dict[UUID, ResponseReviewIntent] = {}
         if any(
             identity != store.store_id
@@ -65,6 +73,31 @@ class ApplicationService:
             )
         ):
             raise ValueError("Application dependencies must share authoritative storage")
+
+    def dashboard_overview(self, visible: Callable[[UUID], bool]):
+        from soc_agent.api.dashboard.query import project_overview
+        from soc_agent.review.persistence.dashboard import read_dashboard_snapshot
+
+        return project_overview(read_dashboard_snapshot(self.store, visible))
+
+    def dashboard_incident(self, incident_id: UUID):
+        from soc_agent.api.dashboard.incident_query import project_incident
+        from soc_agent.review.persistence.incident_detail import (
+            IncidentDetailNotFound,
+            read_incident_detail,
+        )
+
+        try:
+            source = read_incident_detail(self.store, self.checkpoints, self.execution, incident_id)
+        except IncidentDetailNotFound as error:
+            raise NotFound("Incident not found") from error
+        return project_incident(source)
+
+    def dashboard_security_ai(self, visible: Callable[[UUID], bool]):
+        from soc_agent.api.dashboard.security_ai_query import project_security_ai
+        from soc_agent.review.persistence.security_ai_monitor import read_security_ai_snapshot
+
+        return project_security_ai(read_security_ai_snapshot(self.store, visible))
 
     def ingest(self, event: SOCEvent):
         if self.ingestion is None:
