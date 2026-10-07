@@ -17,6 +17,7 @@ from soc_agent.offline_comparison.models import (
     VerdictState,
 )
 from soc_agent.offline_evaluation.models import HardInvariant, MetricDefinition, MetricName
+from soc_agent.planning.strategy import InvestigationStrategy, missing_permissions
 from soc_agent.review.identity import content_digest
 
 
@@ -35,8 +36,13 @@ def replay(case: EvaluationCase, configuration: CoverageConfiguration) -> Covera
         configuration_digest=content_digest(configuration),
         selected_permissions=output.selected_permissions,
         required_permissions=required,
-        missing_permissions=tuple(sorted(set(required) - set(output.selected_permissions)))
+        missing_permissions=missing_permissions(
+            InvestigationStrategy(required_permissions=required), output.selected_permissions
+        )
         if required is not None
+        else None,
+        unnecessary_permissions=ground_truth.explicit_unnecessary()
+        if ground_truth is not None
         else None,
     )
 
@@ -98,6 +104,11 @@ def measure(
         MetricName.MISSED_PATHS: (
             sum(len(t.missing_permissions) for t in traces if t.missing_permissions is not None)
             if traces and all(t.missing_permissions is not None for t in traces)
+            else None
+        ),
+        MetricName.UNNECESSARY_PATHS: (
+            sum(len(set(t.selected_permissions) & set(t.unnecessary_permissions)) for t in traces)
+            if traces and all(t.unnecessary_permissions is not None for t in traces)
             else None
         ),
     }

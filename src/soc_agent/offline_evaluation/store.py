@@ -18,7 +18,7 @@ class OfflineEvaluationStore:
         self.candidates = candidates
         self.database = candidates.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (10, 11, 12, 13):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (10, 11, 12, 13, 14):
                 raise UnsupportedSchemaError("Explicit offline evaluation migration required")
             connection.execute(
                 "SELECT specification_id FROM offline_evaluation_specifications LIMIT 0"

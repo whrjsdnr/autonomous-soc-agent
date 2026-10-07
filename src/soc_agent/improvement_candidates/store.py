@@ -29,7 +29,14 @@ class ImprovementCandidateStore:
         self.datasets = datasets
         self.database = datasets.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (9, 10, 11, 12, 13):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+            ):
                 raise UnsupportedSchemaError("Explicit candidate migration required")
             connection.execute("SELECT pattern_id FROM failure_patterns LIMIT 0")
             connection.execute("SELECT candidate_id FROM improvement_candidates LIMIT 0")

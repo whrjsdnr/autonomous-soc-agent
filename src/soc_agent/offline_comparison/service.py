@@ -1,6 +1,6 @@
 """Validate -> explicit offline replay or unavailable result -> compare -> STOP."""
 
-from soc_agent.offline_comparison.models import EvaluationArtifacts
+from soc_agent.offline_comparison.models import EXEC_EVALUATOR_VERSION, EvaluationArtifacts
 from soc_agent.offline_comparison.store import OfflineComparisonStore
 
 
@@ -15,6 +15,7 @@ class OfflineEvaluationRunner:
         expected_plan_digest: str | None = None,
         baseline_id: str | None = None,
         expected_baseline_digest: str | None = None,
+        evaluator_version: str = EXEC_EVALUATOR_VERSION,
     ) -> EvaluationArtifacts:
         with self.store.database.transaction() as connection:
             expected = self.store._expected(
@@ -23,8 +24,9 @@ class OfflineEvaluationRunner:
                 baseline_id,
                 expected_plan_digest=expected_plan_digest,
                 expected_baseline_digest=expected_baseline_digest,
+                evaluator_version=evaluator_version,
             )
-            cache = {(plan_id, baseline_id): expected}
+            cache = {(plan_id, baseline_id, evaluator_version): expected}
             variant = self.store._insert(
                 connection, "offline_candidate_variants", expected.variant, expected_cache=cache
             )

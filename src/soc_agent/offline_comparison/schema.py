@@ -23,7 +23,7 @@ STATEMENTS = tuple(
 def migrate_offline_comparison(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (11, 12, 13):
+        if version in (11, 12, 13, 14):
             for table in (
                 "offline_candidate_variants",
                 "offline_evaluation_results",
@@ -50,7 +50,7 @@ def migrate_frozen_baselines(database: GovernanceDatabase) -> None:
     """Explicit v11 -> v12: independent snapshots cannot use plan-bound v11 tables."""
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (12, 13):
+        if version in (12, 13, 14):
             connection.execute("SELECT baseline_id FROM frozen_offline_baselines LIMIT 0")
             return
         if version != 11:

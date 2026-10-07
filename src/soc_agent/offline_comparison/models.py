@@ -17,6 +17,7 @@ from soc_agent.offline_comparison.coverage_models import (
     CoverageGroundTruth,
     CoverageTrace,
 )
+from soc_agent.offline_comparison.strategy_safety import StrategySafetyEvidence
 from soc_agent.offline_evaluation.models import (
     CandidateBinding,
     HardInvariant,
@@ -32,6 +33,7 @@ EVALUATOR_VERSION = "soc-offline-candidate-evaluator:v1"
 COMPARATOR_VERSION = "soc-baseline-candidate-comparator:v1"
 EXEC_BUILDER_VERSION = "soc-offline-candidate-variant-builder:v2"
 EXEC_EVALUATOR_VERSION = "soc-offline-candidate-evaluator:v2"
+CONTRACT_EVALUATOR_VERSION = "soc-offline-candidate-evaluator:v3"
 
 
 class VerdictState(StrEnum):
@@ -176,6 +178,8 @@ class InvariantResult(CompatibleFrozen):
             "BOUND_CASE_TRACE_CHECK",
             "OBSERVED_PERMISSION_SELECTION",
             "DOWNSTREAM_GATES_NOT_EXERCISED",
+            "OBSERVED_LOCAL_POLICY_PREFLIGHT",
+            "OBSERVED_LOCAL_APPROVAL_PREFLIGHT",
         ]
         | None
     ) = None
@@ -190,9 +194,13 @@ class CaseOutcome(CompatibleFrozen):
     status: Literal["NOT_EXECUTED", "EXECUTED"] = "NOT_EXECUTED"
 
 
-class ResultContent(Frozen):
+class ResultContent(CompatibleFrozen):
+    legacy_omitted = ("strategy_safety",)
+    strategy_safety: StrategySafetyEvidence | None = None
     evaluator_version: Literal[
-        "soc-offline-candidate-evaluator:v1", "soc-offline-candidate-evaluator:v2"
+        "soc-offline-candidate-evaluator:v1",
+        "soc-offline-candidate-evaluator:v2",
+        "soc-offline-candidate-evaluator:v3",
     ] = EVALUATOR_VERSION
     binding: EvaluationBinding
     arm: Literal["BASELINE", "CANDIDATE"]
@@ -232,7 +240,10 @@ class ResultContent(Frozen):
             raise ValueError("Unexecuted safety is unknown")
         executed = self.execution_status == "EXECUTED"
         if executed:
-            if self.evaluator_version != EXEC_EVALUATOR_VERSION or (
+            if self.evaluator_version not in (
+                EXEC_EVALUATOR_VERSION,
+                CONTRACT_EVALUATOR_VERSION,
+            ) or (
                 self.binding.frozen_baseline is None
                 or self.baseline_reference != self.binding.frozen_baseline
                 or self.sandbox != "OFFLINE_PERMISSION_COVERAGE"
@@ -245,6 +256,10 @@ class ResultContent(Frozen):
                 raise ValueError("Observed safety decisions require explicit evidence basis")
         elif self.sandbox != "OFFLINE_NO_EXECUTION":
             raise ValueError("Unexecuted results cannot claim sandbox execution")
+        if (self.strategy_safety is not None) != (
+            self.evaluator_version == CONTRACT_EVALUATOR_VERSION and executed
+        ):
+            raise ValueError("Strategy gate evidence requires the explicit v3 evaluator")
         if any(
             (o.status == "EXECUTED") != executed or (o.trace is not None) != executed
             for o in self.per_case_outcomes
@@ -266,7 +281,9 @@ class ResultContent(Frozen):
 class OfflineEvaluationResult(Frozen):
     result_id: Hash
     run_version: Literal[
-        "soc-offline-candidate-evaluator:v1", "soc-offline-candidate-evaluator:v2"
+        "soc-offline-candidate-evaluator:v1",
+        "soc-offline-candidate-evaluator:v2",
+        "soc-offline-candidate-evaluator:v3",
     ] = EVALUATOR_VERSION
     content: ResultContent
     created_at: UTCTimestamp = Field(default_factory=utc_now)

@@ -21,7 +21,7 @@ STATEMENTS = (
 def migrate_datasets(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version in (8, 9, 10, 11, 12, 13):
+        if version in (8, 9, 10, 11, 12, 13, 14):
             for table in (
                 "improvement_samples",
                 "improvement_datasets",

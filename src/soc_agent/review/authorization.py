@@ -18,6 +18,8 @@ class HumanRole(StrEnum):
 
 
 class HumanPermission(StrEnum):
+    PROMOTE_IMPROVEMENT_ARTIFACT = "promote_improvement_artifact"
+    ROLLBACK_IMPROVEMENT_ARTIFACT = "rollback_improvement_artifact"
     REVIEW_IMPROVEMENT_CANDIDATE = "review_improvement_candidate"
     SUBMIT_ANALYST_FEEDBACK = "submit_analyst_feedback"
     INCIDENT_REVIEW = "incident_review"
@@ -29,6 +31,8 @@ class HumanPermission(StrEnum):
 
 def permission_for(action: HumanAction) -> HumanPermission:
     return {
+        HumanAction.PROMOTE_IMPROVEMENT_ARTIFACT: HumanPermission.PROMOTE_IMPROVEMENT_ARTIFACT,
+        HumanAction.ROLLBACK_IMPROVEMENT_ARTIFACT: HumanPermission.ROLLBACK_IMPROVEMENT_ARTIFACT,
         HumanAction.REVIEW_IMPROVEMENT_CANDIDATE: HumanPermission.REVIEW_IMPROVEMENT_CANDIDATE,
         HumanAction.SUBMIT_ANALYST_FEEDBACK: HumanPermission.SUBMIT_ANALYST_FEEDBACK,
         HumanAction.RECORD_REVIEW: HumanPermission.INCIDENT_REVIEW,

@@ -44,6 +44,8 @@ class HumanActionContext(Frozen):
     @model_validator(mode="after")
     def decision_context(self) -> Self:
         if self.decision_id is None and self.action not in (
+            HumanAction.PROMOTE_IMPROVEMENT_ARTIFACT,
+            HumanAction.ROLLBACK_IMPROVEMENT_ARTIFACT,
             HumanAction.SUBMIT_ANALYST_FEEDBACK,
             HumanAction.REVIEW_IMPROVEMENT_CANDIDATE,
         ):

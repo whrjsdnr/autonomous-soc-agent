@@ -24,6 +24,7 @@ class ExperienceStore:
                 11,
                 12,
                 13,
+                14,
             ):
                 raise UnsupportedSchemaError("Explicit experience migration required")
             connection.execute("SELECT experience_id FROM experiences LIMIT 0")

@@ -25,6 +25,7 @@ class FeedbackStore:
                 11,
                 12,
                 13,
+                14,
             ):
                 raise UnsupportedSchemaError("Explicit feedback migration required")
             connection.execute("SELECT feedback_id FROM analyst_feedback LIMIT 0")

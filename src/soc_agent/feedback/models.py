@@ -34,17 +34,69 @@ class DiagnosticLabel(StrEnum):
     MISSED_INVESTIGATION = "missed_investigation"
 
 
+class ReviewCompleteness(StrEnum):
+    COMPLETE = "COMPLETE"
+    PARTIAL = "PARTIAL"
+
+
+class InvestigationPathAdjudication(Frozen):
+    """Human review of the three read-only permission classes, not tool-call counts."""
+
+    adjudication_version: Literal["human-investigation-path-adjudication:v1"] = (
+        "human-investigation-path-adjudication:v1"
+    )
+    unnecessary_permissions: tuple[ReadOnlyPermission, ...]
+    review_completeness: ReviewCompleteness
+
+    @model_validator(mode="after")
+    def canonical(self) -> Self:
+        if self.unnecessary_permissions != tuple(sorted(set(self.unnecessary_permissions))):
+            raise ValueError("Canonical unique unnecessary permissions required")
+        return self
+
+
+def adjudications_conflict(
+    required: set[ReadOnlyPermission], adjudications: tuple[InvestigationPathAdjudication, ...]
+) -> bool:
+    """Preserve disagreement; do not choose a reviewer or infer a complete allowlist."""
+    complete = {
+        a.unnecessary_permissions
+        for a in adjudications
+        if a.review_completeness == ReviewCompleteness.COMPLETE
+    }
+    if len(complete) > 1 or any(
+        required.intersection(a.unnecessary_permissions) for a in adjudications
+    ):
+        return True
+    if complete:
+        (full,) = complete
+        return any(not set(a.unnecessary_permissions) <= set(full) for a in adjudications)
+    return False
+
+
 class CoverageExpectation(Frozen):
     """Explicit human required paths; never inferred from overall defect labels."""
 
     contract_version: Literal["human-read-only-coverage:v1"] = "human-read-only-coverage:v1"
     required_permissions: tuple[ReadOnlyPermission, ...] = Field(min_length=1)
+    path_adjudication: InvestigationPathAdjudication | None = None
 
     @model_validator(mode="after")
     def canonical(self) -> Self:
         if self.required_permissions != tuple(sorted(set(self.required_permissions))):
             raise ValueError("Canonical unique human coverage requirements required")
+        if self.path_adjudication is not None and adjudications_conflict(
+            set(self.required_permissions), (self.path_adjudication,)
+        ):
+            raise ValueError("Required and unnecessary permissions conflict")
         return self
+
+    @model_serializer(mode="wrap")
+    def legacy_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        value = cast(dict[str, object], handler(self))
+        if self.path_adjudication is None:
+            value.pop("path_adjudication", None)
+        return value
 
 
 class FeedbackRequest(Frozen):

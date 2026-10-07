@@ -29,6 +29,7 @@ class ImprovementDatasetStore:
                 11,
                 12,
                 13,
+                14,
             ):
                 raise UnsupportedSchemaError("Explicit dataset migration required")
             for table in (

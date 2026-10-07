@@ -4,7 +4,12 @@ from sqlite3 import Connection
 
 from soc_agent.evaluation.models import EvaluationRecord
 from soc_agent.evaluation.sources import validate_sources
-from soc_agent.feedback.models import AnalystFeedback, DiagnosticLabel, Verdict
+from soc_agent.feedback.models import (
+    AnalystFeedback,
+    DiagnosticLabel,
+    Verdict,
+    adjudications_conflict,
+)
 from soc_agent.feedback.store import FeedbackStore
 from soc_agent.improvement_dataset.models import (
     ArtifactReference,
@@ -94,13 +99,26 @@ def select(
     labels = tuple(sorted({label for f in feedback for label in f.request.labels}))
     verdicts = {f.request.verdict for f in feedback}
     conclusive = verdicts - {Verdict.INCONCLUSIVE}
+    expectations = tuple(
+        f.request.coverage_expectation
+        for f in feedback
+        if f.request.coverage_expectation is not None
+    )
+    path_disagreement = adjudications_conflict(
+        {p for e in expectations for p in e.required_permissions},
+        tuple(e.path_adjudication for e in expectations if e.path_adjudication is not None),
+    )
     if not feedback:
         reason = EligibilityReason.NO_FEEDBACK
-    elif len(conclusive) > 1 or any(
-        pair <= set(labels)
-        for pair in (
-            {DiagnosticLabel.FALSE_POSITIVE, DiagnosticLabel.FALSE_NEGATIVE},
-            {DiagnosticLabel.UNNECESSARY_INVESTIGATION, DiagnosticLabel.MISSED_INVESTIGATION},
+    elif (
+        path_disagreement
+        or len(conclusive) > 1
+        or any(
+            pair <= set(labels)
+            for pair in (
+                {DiagnosticLabel.FALSE_POSITIVE, DiagnosticLabel.FALSE_NEGATIVE},
+                {DiagnosticLabel.UNNECESSARY_INVESTIGATION, DiagnosticLabel.MISSED_INVESTIGATION},
+            )
         )
     ):
         reason = EligibilityReason.ANALYST_DISAGREEMENT

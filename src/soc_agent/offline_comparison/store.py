@@ -9,10 +9,13 @@ from soc_agent.offline_comparison.coverage_models import (
     CoverageConfiguration,
     CoverageGroundTruth,
     FrozenBaseline,
+    PinnedPathAdjudication,
 )
 from soc_agent.offline_comparison.evaluation import evaluate_unavailable
 from soc_agent.offline_comparison.execution import execute_pair
 from soc_agent.offline_comparison.models import (
+    CONTRACT_EVALUATOR_VERSION,
+    EXEC_EVALUATOR_VERSION,
     EvaluationArtifacts,
     OfflineCandidateVariant,
     OfflineComparison,
@@ -25,6 +28,7 @@ from soc_agent.review.persistence.models import StoredDataError, UnsupportedSche
 from soc_agent.tools.enums import ToolPermission
 
 Artifact = OfflineCandidateVariant | OfflineEvaluationResult | OfflineComparison
+ExpectedCache = dict[tuple[str, str | None, str], EvaluationArtifacts]
 TABLES = {
     "offline_candidate_variants": OfflineCandidateVariant,
     "offline_evaluation_results": OfflineEvaluationResult,
@@ -46,15 +50,15 @@ class OfflineComparisonStore:
         self.database = planning.database
         with self.database.transaction(write=False) as connection:
             version = connection.execute("PRAGMA user_version").fetchone()[0]
-            if version not in (11, 12, 13):
+            if version not in (11, 12, 13, 14):
                 raise UnsupportedSchemaError("Explicit offline comparison migration required")
-            if version in (12, 13):
+            if version in (12, 13, 14):
                 connection.execute("SELECT baseline_id FROM frozen_offline_baselines LIMIT 0")
             for table in TABLES:
                 connection.execute(f"SELECT id FROM {table} LIMIT 0")
 
     def _baseline(self, connection: Connection, baseline_id: str) -> FrozenBaseline:
-        if connection.execute("PRAGMA user_version").fetchone()[0] not in (12, 13):
+        if connection.execute("PRAGMA user_version").fetchone()[0] not in (12, 13, 14):
             raise UnsupportedSchemaError("Explicit frozen baseline migration required")
         row = connection.execute(
             "SELECT * FROM frozen_offline_baselines WHERE baseline_id=?", (baseline_id,)
@@ -80,7 +84,7 @@ class OfflineComparisonStore:
         digest = content_digest(content)
         value = FrozenBaseline(baseline_id=digest, baseline_version=digest, content=content)
         with self.database.transaction() as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (12, 13):
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (12, 13, 14):
                 raise UnsupportedSchemaError("Explicit frozen baseline migration required")
             row = connection.execute(
                 "SELECT * FROM frozen_offline_baselines WHERE baseline_id=?", (digest,)
@@ -108,6 +112,7 @@ class OfflineComparisonStore:
         for fact in facts:
             requirements: set[ToolPermission] = set()
             refs = []
+            adjudications = []
             for ref in fact.sources.feedback:
                 row = connection.execute(
                     "SELECT * FROM analyst_feedback WHERE feedback_id=?", (ref.identity,)
@@ -136,10 +141,17 @@ class OfflineComparisonStore:
                 if expectation is not None:
                     requirements.update(expectation.required_permissions)
                     refs.append(ref)
+                    if expectation.path_adjudication is not None:
+                        adjudications.append(
+                            PinnedPathAdjudication(
+                                feedback=ref, adjudication=expectation.path_adjudication
+                            )
+                        )
             truths[fact.sample.identity] = CoverageGroundTruth(
                 status="MEASURABLE" if refs else "NOT_MEASURABLE",
                 required_permissions=tuple(sorted(requirements)),
                 feedback_refs=tuple(refs),
+                path_adjudications=tuple(adjudications),
             )
         return truths
 
@@ -151,7 +163,10 @@ class OfflineComparisonStore:
         *,
         expected_plan_digest: str | None = None,
         expected_baseline_digest: str | None = None,
+        evaluator_version: str = EXEC_EVALUATOR_VERSION,
     ) -> EvaluationArtifacts:
+        if evaluator_version not in (EXEC_EVALUATOR_VERSION, CONTRACT_EVALUATOR_VERSION):
+            raise ValueError("Unsupported offline evaluator version")
         row = connection.execute(
             "SELECT * FROM candidate_test_plans WHERE plan_id=?", (plan_id,)
         ).fetchone()
@@ -182,7 +197,15 @@ class OfflineComparisonStore:
         truths = self._ground_truth(
             connection, tuple(f for f in facts if f.sample.identity in holdout)
         )
-        return execute_pair(source, specification, plan, facts, baseline, truths)
+        return execute_pair(
+            source,
+            specification,
+            plan,
+            facts,
+            baseline,
+            truths,
+            evaluator_version=evaluator_version,
+        )
 
     def _decode(
         self,
@@ -190,7 +213,7 @@ class OfflineComparisonStore:
         table: str,
         row: Row,
         *,
-        expected_cache: dict[tuple[str, str | None], EvaluationArtifacts] | None = None,
+        expected_cache: ExpectedCache | None = None,
     ) -> Artifact:
         value = ledger.decode(TABLES[table], row)
         binding = value.content.binding
@@ -204,12 +227,29 @@ class OfflineComparisonStore:
         # every persisted parent still gets checksum, index and semantic validation.
         if expected_cache is None:
             expected_cache = {}
+        evaluator = EXEC_EVALUATOR_VERSION
+        if isinstance(value, OfflineEvaluationResult):
+            if value.content.evaluator_version == CONTRACT_EVALUATOR_VERSION:
+                evaluator = CONTRACT_EVALUATOR_VERSION
+        elif isinstance(value, OfflineComparison):
+            parent_row = connection.execute(
+                "SELECT * FROM offline_evaluation_results WHERE id=?",
+                (value.content.candidate_result.identity,),
+            ).fetchone()
+            if parent_row is None:
+                raise StoredDataError("Missing comparison evaluator source")
+            parent = ledger.decode(OfflineEvaluationResult, parent_row)
+            if parent.content.evaluator_version == CONTRACT_EVALUATOR_VERSION:
+                evaluator = CONTRACT_EVALUATOR_VERSION
         key = (
             row["plan_id"],
             binding.frozen_baseline.identity if binding.frozen_baseline is not None else None,
+            evaluator,
         )
         if key not in expected_cache:
-            expected_cache[key] = self._expected(connection, *key)
+            expected_cache[key] = self._expected(
+                connection, key[0], key[1], evaluator_version=key[2]
+            )
         expected = expected_cache[key]
         options = (
             expected.variant,
@@ -246,7 +286,7 @@ class OfflineComparisonStore:
         table: str,
         value: Artifact,
         *,
-        expected_cache: dict[tuple[str, str | None], EvaluationArtifacts] | None = None,
+        expected_cache: ExpectedCache | None = None,
     ) -> Artifact:
         row = connection.execute(f"SELECT * FROM {table} WHERE id=?", (identity(value),)).fetchone()
         if row is not None:
@@ -277,7 +317,7 @@ class OfflineComparisonStore:
     def _list(self, table: str, candidate_id: str) -> tuple[Artifact, ...]:
         with self.database.transaction(write=False) as connection:
             self.planning._source(connection, candidate_id)
-            cache: dict[tuple[str, str | None], EvaluationArtifacts] = {}
+            cache: ExpectedCache = {}
             return tuple(
                 self._decode(connection, table, row, expected_cache=cache)
                 for row in connection.execute(

@@ -12,8 +12,22 @@ from soc_agent.planning.models import (
     PlannerInput,
 )
 from soc_agent.planning.planner import InvestigationPlanner
+from soc_agent.planning.strategy import (
+    ExplicitStrategyProvider,
+    InvestigationStrategy,
+    InvestigationStrategyProvider,
+    StrategyCoverageError,
+    UnsatisfiableStrategy,
+    validate_strategy,
+)
 
 __all__ = [
+    "ExplicitStrategyProvider",
+    "InvestigationStrategy",
+    "InvestigationStrategyProvider",
+    "StrategyCoverageError",
+    "UnsatisfiableStrategy",
+    "validate_strategy",
     "InvalidPlanError",
     "InvalidPlannedToolInputError",
     "InvestigationPlanner",

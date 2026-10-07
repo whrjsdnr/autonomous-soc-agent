@@ -16,6 +16,7 @@ from soc_agent.execution.errors import (
 from soc_agent.execution.models import ActionProposal
 from soc_agent.policy import PolicyDecision, PolicyEngine
 from soc_agent.tools import ToolRegistry, ToolResult
+from soc_agent.tools.models import ToolMetadata
 
 
 class GovernedExecutor:
@@ -51,14 +52,18 @@ class GovernedExecutor:
             action_input_json=action.tool_input,
         )
 
-    async def execute(
+    def preflight(
         self,
         action: ActionProposal,
         *,
         approval_id: UUID | None = None,
         require_read_only: bool = False,
-    ) -> ToolResult[BaseModel]:
-        """Re-evaluate current policy; explicit approval ID avoids magic lookup."""
+    ) -> ToolMetadata:
+        """Observe existing policy/approval gates without dispatch or attempt reservation.
+
+        A successful preflight is not a token: execute always checks the gates again.
+        It creates no approval and consumes no confirmation.
+        """
         action = ActionProposal.model_validate(action.model_dump(warnings=False))
         tool = self._registry.get(action.tool_name)
         if require_read_only and not tool.metadata.is_read_only_capability:
@@ -80,6 +85,19 @@ class GovernedExecutor:
                 raise ApprovalBindingError("Unsupported approval status")
         elif result.decision != PolicyDecision.ALLOW:
             raise ExecutionDeniedError("Unsupported policy decision")
+        return tool.metadata
+
+    async def execute(
+        self,
+        action: ActionProposal,
+        *,
+        approval_id: UUID | None = None,
+        require_read_only: bool = False,
+    ) -> ToolResult[BaseModel]:
+        """Re-evaluate current policy; explicit approval ID avoids magic lookup."""
+        action = ActionProposal.model_validate(action.model_dump(warnings=False))
+        self.preflight(action, approval_id=approval_id, require_read_only=require_read_only)
+        tool = self._registry.get(action.tool_name)
         if action.action_id in self._attempted:
             raise ActionAlreadyAttemptedError("Action has already been attempted by this executor")
         self._attempted.add(action.action_id)

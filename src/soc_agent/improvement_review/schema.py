@@ -20,7 +20,7 @@ STATEMENTS = (
 def migrate_improvement_review(database: GovernanceDatabase) -> None:
     with database.transaction() as connection:
         version = connection.execute("PRAGMA user_version").fetchone()[0]
-        if version == 13:
+        if version in (13, 14):
             connection.execute("SELECT id FROM improvement_review_requests LIMIT 0")
             connection.execute("SELECT id FROM improvement_review_records LIMIT 0")
             return

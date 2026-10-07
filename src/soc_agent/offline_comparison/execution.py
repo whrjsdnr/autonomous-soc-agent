@@ -5,6 +5,7 @@ from soc_agent.improvement_candidates.models import (
     ImprovementCandidate,
     SampleFacts,
 )
+from soc_agent.improvement_candidates.strategy import compile_candidate_strategy
 from soc_agent.improvement_dataset.models import ArtifactReference
 from soc_agent.offline_comparison.adapter import measure, replay, safety
 from soc_agent.offline_comparison.coverage_models import (
@@ -13,6 +14,7 @@ from soc_agent.offline_comparison.coverage_models import (
     FrozenBaseline,
 )
 from soc_agent.offline_comparison.models import (
+    CONTRACT_EVALUATOR_VERSION,
     EXEC_BUILDER_VERSION,
     EXEC_EVALUATOR_VERSION,
     CaseContent,
@@ -20,12 +22,20 @@ from soc_agent.offline_comparison.models import (
     EvaluationArtifacts,
     EvaluationBinding,
     EvaluationCase,
+    InvariantResult,
     OfflineCandidateVariant,
     OfflineEvaluationResult,
     ResultContent,
     VariantContent,
+    VerdictState,
 )
-from soc_agent.offline_evaluation.models import CandidateTestPlan, EvaluationSpecification
+from soc_agent.offline_comparison.strategy_safety import observe_strategy_gates
+from soc_agent.offline_evaluation.models import (
+    CandidateTestPlan,
+    EvaluationSpecification,
+    HardInvariant,
+)
+from soc_agent.planning.strategy import InvestigationStrategy
 from soc_agent.review.identity import content_digest
 from soc_agent.review.persistence.models import StoredDataError
 
@@ -45,12 +55,13 @@ def build_variant(
         ):
             raise StoredDataError("Wrong frozen baseline target or digest")
     if isinstance(proposal, CoverageProposal):
+        strategy = compile_candidate_strategy(source)
         configuration = (
             CoverageConfiguration(
                 covered_permissions=tuple(
                     sorted(
                         set(baseline.content.configuration.covered_permissions)
-                        | {proposal.required_permission}
+                        | set(strategy.required_permissions)
                     )
                 )
             )
@@ -86,9 +97,13 @@ def execute_pair(
     facts: tuple[SampleFacts, ...],
     baseline: FrozenBaseline,
     ground_truth: dict[str, CoverageGroundTruth],
+    *,
+    evaluator_version: str = EXEC_EVALUATOR_VERSION,
 ) -> EvaluationArtifacts:
     from soc_agent.offline_comparison.evaluation import compare, evaluate_unavailable, reference
 
+    if evaluator_version not in (EXEC_EVALUATOR_VERSION, CONTRACT_EVALUATOR_VERSION):
+        raise ValueError("Unsupported offline evaluator version")
     # Shared integrity validation also retains the safe non-executable/empty-holdout path.
     foundation = evaluate_unavailable(source, specification, plan, facts, baseline=baseline)
     variant = foundation.variant
@@ -124,9 +139,40 @@ def execute_pair(
             for case in frozen_cases
         )
         invariants = safety(frozen_cases, outcomes)
+        evidence = None
+        if evaluator_version == CONTRACT_EVALUATOR_VERSION:
+            strategy = (
+                compile_candidate_strategy(source)
+                if arm == "CANDIDATE"
+                else InvestigationStrategy(required_permissions=configuration.covered_permissions)
+                if configuration.covered_permissions
+                else None
+            )
+            evidence = observe_strategy_gates(strategy, configuration.covered_permissions)
+            observed = {
+                HardInvariant.NO_POLICY_BYPASS: (
+                    evidence.policy_status,
+                    "OBSERVED_LOCAL_POLICY_PREFLIGHT",
+                ),
+                HardInvariant.NO_APPROVAL_BYPASS: (
+                    evidence.approval_status,
+                    "OBSERVED_LOCAL_APPROVAL_PREFLIGHT",
+                ),
+            }
+            invariants = tuple(
+                InvariantResult(
+                    invariant=i.invariant,
+                    status=VerdictState(observed[i.invariant][0]),
+                    basis=observed[i.invariant][1],
+                )
+                if i.invariant in observed
+                else i
+                for i in invariants
+            )
         measurements = measure(specification.content.metrics, outcomes, invariants)
         content = ResultContent(
-            evaluator_version=EXEC_EVALUATOR_VERSION,
+            evaluator_version=evaluator_version,
+            strategy_safety=evidence,
             binding=binding,
             arm=arm,
             baseline_reference=binding.frozen_baseline,
@@ -138,7 +184,9 @@ def execute_pair(
             invariants=invariants,
             blockers=(
                 "INDEPENDENT_UNSEEN_EVIDENCE_UNAVAILABLE",
-                "UNOBSERVABLE_DOWNSTREAM_GATES",
+                "UNOBSERVABLE_DOWNSTREAM_GATES"
+                if evidence is None
+                else "LOCAL_GATE_PROBES_NOT_PRODUCTION_LLM_REPLAY",
                 "UNMEASURED_SPECIFICATION_METRICS",
             ),
             execution_status="EXECUTED",
@@ -147,7 +195,7 @@ def execute_pair(
         results.append(
             OfflineEvaluationResult(
                 result_id=content_digest(content),
-                run_version=EXEC_EVALUATOR_VERSION,
+                run_version=evaluator_version,
                 content=content,
             )
         )

@@ -12,13 +12,12 @@ from soc_agent.improvement_review.models import (
     safety_counts,
 )
 from soc_agent.offline_comparison.models import (
-    EvaluationArtifacts,
     OfflineCandidateVariant,
     OfflineComparison,
     OfflineEvaluationResult,
     VerdictState,
 )
-from soc_agent.offline_comparison.store import Artifact, OfflineComparisonStore
+from soc_agent.offline_comparison.store import Artifact, ExpectedCache, OfflineComparisonStore
 from soc_agent.review.identity import content_digest
 from soc_agent.review.persistence import ledger
 from soc_agent.review.persistence.confirmations import SQLiteConfirmationConsumer
@@ -30,13 +29,13 @@ class ImprovementReviewStore:
         self.comparisons = comparisons
         self.database = comparisons.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] != 13:
+            if connection.execute("PRAGMA user_version").fetchone()[0] not in (13, 14):
                 raise UnsupportedSchemaError("Explicit improvement review migration required")
             for table in ("improvement_review_requests", "improvement_review_records"):
                 connection.execute(f"SELECT id FROM {table} LIMIT 0")
 
     def _content(self, connection: Connection, comparison_id: str) -> ReviewRequestContent:
-        cache: dict[tuple[str, str | None], EvaluationArtifacts] = {}
+        cache: ExpectedCache = {}
 
         def load(table: str, artifact_id: str) -> Artifact:
             row = connection.execute(f"SELECT * FROM {table} WHERE id=?", (artifact_id,)).fetchone()

@@ -228,6 +228,8 @@ def test_null_decision_context_for_domains_without_incident_decision(feedback_ca
         decision_id=None,
     )
     without_incident_decision = {
+        HumanAction.PROMOTE_IMPROVEMENT_ARTIFACT,
+        HumanAction.ROLLBACK_IMPROVEMENT_ARTIFACT,
         HumanAction.SUBMIT_ANALYST_FEEDBACK,
         HumanAction.REVIEW_IMPROVEMENT_CANDIDATE,
     }

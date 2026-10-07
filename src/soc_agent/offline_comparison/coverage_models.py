@@ -1,9 +1,14 @@
 """Narrow permission-coverage contracts; no tool names, code or runtime authority."""
 
-from typing import Literal, Self
+from typing import Literal, Self, cast
 
-from pydantic import Field, model_validator
+from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
+from soc_agent.feedback.models import (
+    InvestigationPathAdjudication,
+    ReviewCompleteness,
+    adjudications_conflict,
+)
 from soc_agent.improvement_dataset.models import ArtifactReference
 from soc_agent.review.identity import content_digest
 from soc_agent.review.models import Frozen, Hash
@@ -63,10 +68,16 @@ class FrozenBaseline(Frozen):
         return self
 
 
+class PinnedPathAdjudication(Frozen):
+    feedback: ArtifactReference
+    adjudication: InvestigationPathAdjudication
+
+
 class CoverageGroundTruth(Frozen):
     status: Literal["MEASURABLE", "NOT_MEASURABLE"]
     required_permissions: tuple[ReadOnlyPermission, ...]
     feedback_refs: tuple[ArtifactReference, ...]
+    path_adjudications: tuple[PinnedPathAdjudication, ...] = ()
 
     @model_validator(mode="after")
     def support(self) -> Self:
@@ -79,7 +90,35 @@ class CoverageGroundTruth(Frozen):
             raise ValueError("Measurable coverage requires explicit human facts and provenance")
         if self.status == "NOT_MEASURABLE" and (self.required_permissions or self.feedback_refs):
             raise ValueError("Unknown ground truth cannot carry inferred requirements")
+        ids = tuple(a.feedback.identity for a in self.path_adjudications)
+        if ids != tuple(sorted(set(ids))) or any(
+            a.feedback not in self.feedback_refs for a in self.path_adjudications
+        ):
+            raise ValueError("Adjudication must bind canonical contributing feedback")
+        if adjudications_conflict(
+            set(self.required_permissions), tuple(a.adjudication for a in self.path_adjudications)
+        ):
+            raise ValueError("Disagreeing path adjudications")
         return self
+
+    @model_serializer(mode="wrap")
+    def legacy_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        value = cast(dict[str, object], handler(self))
+        if not self.path_adjudications:
+            value.pop("path_adjudications", None)
+        return value
+
+    def explicit_unnecessary(self) -> tuple[ReadOnlyPermission, ...] | None:
+        # A compatible PARTIAL judgment adds facts but never establishes completeness.
+        # A separate explicit COMPLETE judgment can supply that missing human evidence.
+        return next(
+            (
+                a.adjudication.unnecessary_permissions
+                for a in self.path_adjudications
+                if a.adjudication.review_completeness == ReviewCompleteness.COMPLETE
+            ),
+            None,
+        )
 
 
 class CoverageOutput(Frozen):
@@ -95,9 +134,14 @@ class CoverageTrace(Frozen):
     selected_permissions: tuple[ToolPermission, ...]
     required_permissions: tuple[ReadOnlyPermission, ...] | None
     missing_permissions: tuple[ReadOnlyPermission, ...] | None
+    unnecessary_permissions: tuple[ReadOnlyPermission, ...] | None = None
 
     @model_validator(mode="after")
     def observation(self) -> Self:
+        if self.unnecessary_permissions is not None and self.unnecessary_permissions != tuple(
+            sorted(set(self.unnecessary_permissions))
+        ):
+            raise ValueError("Canonical explicit unnecessary paths required")
         if self.selected_permissions != tuple(sorted(set(self.selected_permissions))):
             raise ValueError("Canonical observed selection required")
         if self.required_permissions is None:
@@ -111,3 +155,10 @@ class CoverageTrace(Frozen):
             ):
                 raise ValueError("Observed missing paths mismatch")
         return self
+
+    @model_serializer(mode="wrap")
+    def legacy_serialization(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        value = cast(dict[str, object], handler(self))
+        if self.unnecessary_permissions is None:
+            value.pop("unnecessary_permissions", None)
+        return value

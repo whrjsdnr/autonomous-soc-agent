@@ -29,6 +29,7 @@ class CheckpointStore:
                 11,
                 12,
                 13,
+                14,
             ):
                 raise UnsupportedSchemaError("Explicit checkpoint migration required")
             connection.execute("SELECT run_id FROM workflow_checkpoints LIMIT 0")
