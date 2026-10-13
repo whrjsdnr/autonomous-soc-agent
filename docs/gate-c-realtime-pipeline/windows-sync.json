@@ -1,0 +1,104 @@
+{
+  "contract_version": "soc-new-files-sync:v1",
+  "baseline_commit": "0bd5e5d234cef9f49514a79bc48ea0ffa36aad8f",
+  "policy": "CreateNew only; keep identical targets; stop on different existing target. No automatic copy performed by this manifest.",
+  "target_root": "C:\\soc-agent-realtime-validation-20261013",
+  "files": [
+    {
+      "path": "docs/gate-c-realtime-pipeline/architecture.md",
+      "sha256": "99b3672160fe6e2f24f822fbb8af6ae67083c99faf4727cf21a856b2776b70ea",
+      "purpose": "common real-time pipeline verification documentation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\docs\\gate-c-realtime-pipeline\\architecture.md"
+    },
+    {
+      "path": "docs/gate-c-realtime-pipeline/collector-matrix.md",
+      "sha256": "ef20c7b9314ca9256e2c95c2025df0aff793969ff8d50b540019432e32e0e703",
+      "purpose": "common real-time pipeline verification documentation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\docs\\gate-c-realtime-pipeline\\collector-matrix.md"
+    },
+    {
+      "path": "docs/gate-c-realtime-pipeline/event-contract.md",
+      "sha256": "7aade5c704a7234e3936004c494b1705daeb8621faf610f66e23fd795560424a",
+      "purpose": "common real-time pipeline verification documentation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\docs\\gate-c-realtime-pipeline\\event-contract.md"
+    },
+    {
+      "path": "docs/gate-c-realtime-pipeline/queue-recovery.md",
+      "sha256": "243b702ed13f21c1e94159f3ed57bde1a32b8451b3594881347a4551201ecf05",
+      "purpose": "common real-time pipeline verification documentation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\docs\\gate-c-realtime-pipeline\\queue-recovery.md"
+    },
+    {
+      "path": "docs/gate-c-realtime-pipeline/remaining-risks.md",
+      "sha256": "ab1bc7c80eab8d5c6256a2aa14198336f8cd3d449546892bba3b6a7148f75589",
+      "purpose": "common real-time pipeline verification documentation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\docs\\gate-c-realtime-pipeline\\remaining-risks.md"
+    },
+    {
+      "path": "docs/gate-c-realtime-pipeline/report.md",
+      "sha256": "bc104564d2c75e04d7405aa56626fe1782aae26005eef3e38dcd9757adc358c6",
+      "purpose": "common real-time pipeline verification documentation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\docs\\gate-c-realtime-pipeline\\report.md"
+    },
+    {
+      "path": "src/soc_agent/realtime/__init__.py",
+      "sha256": "47f63bf900c44e24e7f6df1e97178f58ea0fdaa1ab6eb3055f67572d2545d7aa",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\__init__.py"
+    },
+    {
+      "path": "src/soc_agent/realtime/__main__.py",
+      "sha256": "981c6b2e78dc17491bbb7970d04c448468f4ac4b05a6702061cb714d9d2c6402",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\__main__.py"
+    },
+    {
+      "path": "src/soc_agent/realtime/collectors.py",
+      "sha256": "58f8bec44cb4481457747b88f56acea4497582400f800ef905743c7ff16e4892",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\collectors.py"
+    },
+    {
+      "path": "src/soc_agent/realtime/fixture.py",
+      "sha256": "bf637fa9f7b2a322f9f31a2a28419f358d438b9fbd68aa845cd844c2e12e95a8",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\fixture.py"
+    },
+    {
+      "path": "src/soc_agent/realtime/models.py",
+      "sha256": "491e979e67ceabeb5c6c9837be8ce57f12c2923ba55d31ed4633e73d7f9e735b",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\models.py"
+    },
+    {
+      "path": "src/soc_agent/realtime/queue.py",
+      "sha256": "fd0e8b82851a6ec61503d29ffea1d3afe11e520e3d45a8c5e333bbde8800af45",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\queue.py"
+    },
+    {
+      "path": "src/soc_agent/realtime/worker.py",
+      "sha256": "76724bce14545d6a5dfd9e1be60c18fb463f870678bb28b8a495fd56c981472b",
+      "purpose": "common real-time pipeline implementation",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\src\\soc_agent\\realtime\\worker.py"
+    },
+    {
+      "path": "tests/integration/realtime/test_inference.py",
+      "sha256": "8a52afce4e4f8b01348e51741766716675f08cd19141e0a38c1ea6ac29922cd3",
+      "purpose": "common real-time pipeline regression tests",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\tests\\integration\\realtime\\test_inference.py"
+    },
+    {
+      "path": "tests/integration/realtime/test_realtime_runtime.py",
+      "sha256": "08cb880a3526c387d6b4e358a1858390cc899d12c5f527aedcfaf2a4a5534b2b",
+      "purpose": "common real-time pipeline regression tests",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\tests\\integration\\realtime\\test_realtime_runtime.py"
+    },
+    {
+      "path": "tests/unit/realtime/test_pipeline.py",
+      "sha256": "989def56eed4d14b36c6c04f09289c3e4be8f4457aceea6715f41e67044102f5",
+      "purpose": "common real-time pipeline regression tests",
+      "windows_target": "C:\\soc-agent-realtime-validation-20261013\\tests\\unit\\realtime\\test_pipeline.py"
+    }
+  ]
+}
