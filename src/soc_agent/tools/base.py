@@ -1,7 +1,7 @@
 """Small validation wrapper composed with a trusted async implementation."""
 
 from collections.abc import Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from inspect import iscoroutinefunction
 from typing import Protocol
 
@@ -13,6 +13,7 @@ from soc_agent.tools.errors import (
     ToolOutputValidationError,
     ToolRegistrationError,
 )
+from soc_agent.tools.guard import ToolGuard
 from soc_agent.tools.models import ToolMetadata, ToolResult
 
 
@@ -35,6 +36,7 @@ class Tool[TInput: BaseModel, TOutput: BaseModel]:
     input_model: type[TInput]
     output_model: type[TOutput]
     handler: ToolHandler[TInput]
+    execution_guard: ToolGuard | None = field(default=None, repr=False, compare=False)
 
     def __post_init__(self) -> None:
         if not isinstance(self.metadata, ToolMetadata):
@@ -57,6 +59,8 @@ class Tool[TInput: BaseModel, TOutput: BaseModel]:
         Extra fields are rejected; field coercion follows the supplied schema.
         Cancellation and other BaseExceptions propagate unchanged.
         """
+        if self.execution_guard is not None:
+            self.execution_guard.before_tool(self)
         try:
             # Revalidation below reports invalid model values as boundary errors.
             payload = (
@@ -67,6 +71,8 @@ class Tool[TInput: BaseModel, TOutput: BaseModel]:
             validated_input = self.input_model.model_validate(payload, extra="forbid")
         except ValidationError as error:
             raise ToolInputValidationError("Tool input does not match its schema") from error
+        if self.execution_guard is not None:
+            self.execution_guard.before_handler(self, validated_input)
         try:
             output = await self.handler(validated_input)
         except ToolExecutionError:

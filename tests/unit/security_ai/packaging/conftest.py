@@ -1,5 +1,5 @@
 import pytest
-from tests.packaging_support import selected_models
+from tests.packaging_support import development_models
 
 from soc_agent.security_ai.packaging import load_package, save_package
 
@@ -8,7 +8,8 @@ from soc_agent.security_ai.packaging import load_package, save_package
 def packages(tmp_path_factory):
     directory = tmp_path_factory.mktemp("packages")
     result = {}
-    for name, (selection, rows) in selected_models(directory).items():
+    # Round-trip a newly frozen selection in this environment, not a historical release.
+    for name, (selection, rows) in development_models(directory).items():
         path = directory / name
         pin = save_package(selection, path)
         result[name] = (

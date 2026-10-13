@@ -94,6 +94,7 @@ class SOCRuntime:
         model_analysis: Callable[[IncidentState], Awaitable[FusionResult]] | None = None,
         max_investigation_rounds: int = 2,
         checkpoints: CheckpointStore | None = None,
+        external=None,
     ) -> None:
         if type(max_investigation_rounds) is not int or max_investigation_rounds < 1:
             raise ValueError("A positive finite investigation budget is required")
@@ -109,10 +110,19 @@ class SOCRuntime:
         if checkpoints is not None and checkpoints.governance.store_id != store.store_id:
             raise ValueError("Checkpoint and runtime stores must match")
         self._checkpoints = checkpoints
+        if getattr(store, "requires_external_runtime", False) and external is None:
+            raise ValueError("This store requires its external integrity runtime extension")
+        self._external = external
+        if external is not None:
+            if checkpoints is None:
+                raise ValueError("External runtime requires durable checkpoints")
+            checkpoints.external = external
 
     def start(self, incident_id: UUID) -> WorkflowResult:
         if incident_id in self._workflows:
             raise ValueError("Workflow already exists; resume it with advance")
+        if self._external is not None:
+            self._external.open(incident_id)
         current = self._store.load(incident_id)
         workflow = _Workflow(current.anchor)
         self._workflows[incident_id] = workflow
@@ -249,13 +259,29 @@ class SOCRuntime:
             updated_at=now,
         )
 
+    def reconcile_external_interruption(
+        self, incident_id: UUID, *, run_id: UUID, revision: int
+    ) -> WorkflowResult:
+        if self._external is None or self._checkpoints is None:
+            raise ValueError("No external durable runtime configured")
+        return self._external.reconcile_interrupted(
+            self._checkpoints, incident_id, run_id, revision
+        )
+
     def restore(
         self, incident_id: UUID, *, promoted: PromotedAction | None = None
     ) -> WorkflowResult:
         """Restore progress only; required execution authority must still be supplied live."""
         if self._checkpoints is None or incident_id in self._workflows:
             raise ValueError("Restore needs an explicit checkpoint store and a fresh runtime")
-        saved, trace = self._checkpoints.load(incident_id)
+        try:
+            saved, trace = self._checkpoints.load(incident_id)
+        except StorageError:
+            if self._external is not None:
+                self._external.record_rejection(incident_id)
+            raise
+        if self._external is not None:
+            self._external.open(incident_id)
         a = saved.artifacts
         outcome_only = saved.result.next_step in (
             WorkflowStep.RECOVER,
@@ -340,6 +366,30 @@ class SOCRuntime:
         approval_id: UUID | None = None,
         execute: bool = False,
     ) -> WorkflowResult:
+        options = dict(
+            review=review,
+            candidates=candidates,
+            promoted=promoted,
+            approval_id=approval_id,
+            execute=execute,
+        )
+        if self._external is None:
+            return await self._advance_checked(incident_id, **options)
+        with self._external.step(incident_id):
+            return await self._advance_checked(incident_id, **options)
+
+    async def _advance_checked(
+        self,
+        incident_id: UUID,
+        *,
+        review: HumanReviewRecord | None = None,
+        candidates: tuple[CandidateIntent, ...] = (),
+        promoted: PromotedAction | None = None,
+        approval_id: UUID | None = None,
+        execute: bool = False,
+    ) -> WorkflowResult:
+        if self._external is not None:
+            self._external.require_scope(incident_id)
         workflow = self._workflows[incident_id]
         if self._checkpoints is None:
             return await self._advance_local(
@@ -382,6 +432,8 @@ class SOCRuntime:
         approval_id: UUID | None = None,
         execute: bool = False,
     ) -> WorkflowResult:
+        if self._external is not None:
+            self._external.require_scope(incident_id)
         workflow = self._workflows[incident_id]
         async with workflow.lock:
             current_step = workflow.step
@@ -496,6 +548,8 @@ class SOCRuntime:
         candidates: tuple[CandidateIntent, ...],
         execute: bool,
     ) -> WorkflowResult:
+        if self._external is not None:
+            self._external.require_scope(state.incident_id)
         step = w.step
         if step == WorkflowStep.OBSERVE:
             w.step = WorkflowStep.ROUTE if state.evidence else WorkflowStep.PLAN
@@ -590,13 +644,36 @@ class SOCRuntime:
                 else "Evidence analysis selected",
             )
         if step == WorkflowStep.ANALYZE:
+            if self._external is not None:
+                self._external.before_assessment(state.incident_id, w.anchor)
             fusion = await self._models(state) if self._models else None
+            # Any new assessment invalidates the previous decision's exact assessment binding.
+            # Its historical receipt remains durable; it is never silently re-bound.
+            w.decision = w.review = w.plan = None
             result = await self._assessor.assess(state, fusion_result=fusion)
             result = checked(
                 FusionAssessmentResult
                 if type(result) is FusionAssessmentResult
                 else AssessmentResult,
                 result,
+            )
+            # DecisionEngine treats reference lists as sets and canonicalizes their order.
+            # Retain that same exact assessment representation in the checkpoint, rather
+            # than weakening its existing Decision/Assessment equality validation.
+            assessment = result.threat_assessment
+            canonical_assessment = type(assessment).model_validate(
+                assessment.model_dump()
+                | {
+                    name: tuple(sorted(set(getattr(assessment, name)), key=str))
+                    for name in (
+                        "supporting_evidence_ids",
+                        "supporting_observation_ids",
+                        "supporting_hypothesis_ids",
+                    )
+                }
+            )
+            result = type(result).model_validate(
+                result.model_dump() | {"threat_assessment": canonical_assessment.model_dump()}
             )
             published = self._store.append_assessment(w.anchor, result)
             w.anchor, w.assessment = published.anchor, result

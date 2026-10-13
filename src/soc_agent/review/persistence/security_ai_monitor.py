@@ -16,6 +16,7 @@ from soc_agent.review.persistence import SQLiteGovernanceStore
 from soc_agent.review.persistence.models import StoredDataError
 from soc_agent.review.persistence.session import GovernanceSession
 from soc_agent.security_ai.fusion.models import FusionResult
+from soc_agent.security_ai.fusion.validation import validate_binding
 from soc_agent.security_ai.network.classifier import ClassificationPrediction
 
 
@@ -97,11 +98,10 @@ def read_security_ai_snapshot(
                     raise StoredDataError("Monitoring duplicate source identity")
                 evidence = {e.evidence_id for e in retained.state.evidence}
                 for binding in bindings.values():
-                    metadata = {"value": binding.manifest.model_dump(mode="json")}
-                    if hashlib.sha256(canonical_json_object(metadata).encode()).hexdigest() != (
-                        binding.manifest_digest
-                    ):
-                        raise StoredDataError("Monitoring manifest digest mismatch")
+                    # Package pins hash original manifest bytes, not reconstructed JSON.
+                    # Reads validate retained contracts/lineage; live artifact integrity
+                    # remains UNKNOWN and only the startup loader checks file bytes.
+                    validate_binding(binding)
                 for signal in fusion.signals:
                     if (
                         signal.incident_id != identity
@@ -133,6 +133,8 @@ def read_security_ai_snapshot(
                         if signal.signal_id in contribution.signal_ids and (
                             signal.model_name != binding.manifest.model_id
                             or signal.model_version != binding.manifest.model_version
+                            or signal.explanation_payload().get("package_manifest_digest")
+                            != binding.manifest_digest
                         ):
                             raise StoredDataError("Monitoring model identity mismatch")
                 result.append(

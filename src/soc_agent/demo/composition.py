@@ -1,35 +1,31 @@
 """Explicit demo composition; no identity provider or approving authority by default."""
 
 import json
+from collections.abc import Awaitable, Callable, Sequence
 from uuid import UUID
 
 from soc_agent.api import ApplicationService
-from soc_agent.approval import ApprovalManager
-from soc_agent.assessment import ThreatAssessor
-from soc_agent.demo.tools import demo_read_tool, demo_response_tool
-from soc_agent.execution import GovernedExecutor
-from soc_agent.execution.durable import DurableExecutor, ExecutionStore
+from soc_agent.application import compose_application
+from soc_agent.demo.tools import demo_network_tool, demo_read_tool, demo_response_tool
+from soc_agent.deployment import DeploymentDescriptor, DeploymentProfile
 from soc_agent.ingestion import EventIngestor, migrate_ingestion
 from soc_agent.ingestion.authentication import authentication_records
-from soc_agent.investigation import InvestigationOrchestrator
-from soc_agent.investigation.runtime import SOCRuntime
-from soc_agent.investigation.runtime.persistence import CheckpointStore
-from soc_agent.planning import InvestigationPlanner
-from soc_agent.policy import PolicyEngine
-from soc_agent.response.advisory import PersistentPlanningSource, ResponsePlanner
-from soc_agent.response.promotion import ExecutionBridge, PromotionService
+from soc_agent.llm import LLMClient
 from soc_agent.review.authority import HumanAuthority
-from soc_agent.review.persistence import PersistentHumanReviewService, SQLiteGovernanceStore
+from soc_agent.review.persistence import SQLiteGovernanceStore
 from soc_agent.security_ai.authentication.aggregation import AuthenticationWindowExtractor
 from soc_agent.security_ai.fusion import (
     FusionInput,
+    FusionResult,
     ModelAvailability,
     MultiModelFusionEngine,
     binding_from_package,
 )
+from soc_agent.security_ai.model_analysis import PackagedAnalysis
 from soc_agent.security_ai.models import SecurityAIRequest
 from soc_agent.security_ai.packaging import AuthenticationAnomalyAdapter, ModelPackage
 from soc_agent.security_ai.signals import create_ai_signal
+from soc_agent.state import IncidentState
 
 
 class DemoLLM:
@@ -42,13 +38,16 @@ class DemoLLM:
     async def generate_structured(self, *, request, response_model):
         context = json.loads(request.user_prompt)
         incident = UUID(context["INCIDENT CONTEXT"]["incident_id"])
+        receipt = self.ingestion.load(incident)
         if "AVAILABLE TOOLS" in context:
             return response_model.model_validate(
                 {
                     "goal": "Inspect synthetic source report",
                     "steps": [
                         {
-                            "tool_name": "read_demo_authentication",
+                            "tool_name": "read_demo_authentication"
+                            if receipt.event.event_type == "authentication"
+                            else "read_demo_network",
                             "tool_input": {"incident_id": str(incident)},
                             "purpose": "Establish what the demo source reported",
                         }
@@ -56,9 +55,10 @@ class DemoLLM:
                 }
             )
         self.analysis_calls += 1
-        receipt = self.ingestion.load(incident)
-        failures = sum(
-            a.authentication_result == "failure" for a in receipt.event.attributes.attempts
+        failures = (
+            sum(a.authentication_result == "failure" for a in receipt.event.attributes.attempts)
+            if receipt.event.event_type == "authentication"
+            else 0
         )
         return response_model.model_validate(
             {
@@ -84,6 +84,20 @@ class AuthenticationAnalysis:
 
     async def __call__(self, state):
         receipt = self.ingestion.load(state.incident_id)
+        if receipt.event.event_type != "authentication":
+            return MultiModelFusionEngine((), ("authentication_anomaly",)).fuse(
+                incident_id=state.incident_id,
+                inputs=(),
+                unavailable=(
+                    ModelAvailability(
+                        model_kind="authentication_anomaly",
+                        status="insufficient_input",
+                        reason=(
+                            "Network event has no authentication records; no cross-domain inference"
+                        ),
+                    ),
+                ),
+            )
         windows = AuthenticationWindowExtractor().extract(
             authentication_records(receipt), state=state
         )
@@ -121,6 +135,9 @@ def compose_demo(
     *,
     authority: HumanAuthority | None = None,
     package: ModelPackage | None = None,
+    llm_client: LLMClient | None = None,
+    model_analysis: Callable[[IncidentState], Awaitable[FusionResult]] | None = None,
+    packages: Sequence[ModelPackage] = (),
 ) -> ApplicationService:
     migrate_ingestion(store)
     ingestion = EventIngestor(store)
@@ -128,37 +145,27 @@ def compose_demo(
 
     registry = ToolRegistry()
     registry.register(demo_read_tool(ingestion))
+    registry.register(demo_network_tool(ingestion))
     registry.register(demo_response_tool())
-    policy, approvals = PolicyEngine(), ApprovalManager()
-    promotions = PromotionService(
-        store=store, registry=registry, policy=policy, authority=authority
-    )
-    bridge = ExecutionBridge(promotions=promotions, approvals=approvals, authority=authority)
-    executor = DurableExecutor(store=ExecutionStore(store), registry=registry, policy=policy)
-    llm = DemoLLM(ingestion)
-
-    def runtime():
-        return SOCRuntime(
-            store=store,
-            checkpoints=CheckpointStore(store),
-            investigator=InvestigationOrchestrator(
-                executor=GovernedExecutor(registry=registry, policy=policy, approvals=approvals)
-            ),
-            planner=InvestigationPlanner(llm_client=llm, registry=registry),
-            assessor=ThreatAssessor(llm_client=llm),
-            responses=ResponsePlanner(registry=registry, source=PersistentPlanningSource(store)),
-            bridge=bridge,
-            executor=executor,
-            model_analysis=AuthenticationAnalysis(ingestion, package),
+    llm = llm_client if llm_client is not None else DemoLLM(ingestion)
+    if packages and (package is not None or model_analysis is not None):
+        raise ValueError("Select one explicit model analysis composition")
+    analysis = (
+        model_analysis
+        if model_analysis is not None
+        else (
+            PackagedAnalysis(ingestion, packages)
+            if packages
+            else AuthenticationAnalysis(ingestion, package)
         )
+    )
 
-    return ApplicationService(
-        store=store,
-        runtime_factory=runtime,
-        reviews=PersistentHumanReviewService(store=store, authority=authority),
-        promotions=promotions,
-        bridge=bridge,
-        execution=executor.store,
+    return compose_application(
+        store,
+        deployment=DeploymentDescriptor(profile=DeploymentProfile.DEMO),
+        registry=registry,
+        llm_client=llm,
+        model_analysis=analysis,
         authority=authority,
         ingestion=ingestion,
-    )
+    ).service

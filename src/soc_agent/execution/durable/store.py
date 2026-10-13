@@ -31,7 +31,7 @@ class ExecutionStore:
         self.governance = governance
         self.database = governance.database
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (
+            if self.database.core_schema_version(connection) not in (
                 2,
                 3,
                 4,

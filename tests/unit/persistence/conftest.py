@@ -47,3 +47,11 @@ def prepared(case):
     )
     authorization = authorize(service, authority, request, review)
     return *case, review, request, authorization
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--windows-unsupported-root",
+        default=None,
+        help="Native Windows unsupported-volume fixture; existing root, metadata only",
+    )

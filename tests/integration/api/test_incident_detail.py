@@ -358,7 +358,7 @@ def test_trace_corruption_fails_closed_and_presentation_has_no_database(api_case
     with pytest.raises(StoredDataError):
         a.service.dashboard_incident(a.c.incident_id)
     root = Path(__file__).parents[3] / "src/soc_agent/api/dashboard"
-    source = (root / "incident_render.py").read_text()
+    source = (root / "incident_render.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     imports = [n.module or "" for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)]
     assert all("persistence" not in name and "execution" not in name for name in imports)

@@ -102,7 +102,7 @@ def read_incident_detail(
                 or bound.intent.binding.approval_id != checkpoint.approval_id
             ):
                 raise StoredDataError("Detail execution/checkpoint binding mismatch")
-        version = connection.execute("PRAGMA user_version").fetchone()[0]
+        version = store.database.core_schema_version(connection)
         evaluations, feedback = [], []
         if version >= 6:
             for row in connection.execute(

@@ -36,7 +36,10 @@ class InvestigationPlanner:
 
     async def create_plan(self, incident_state: IncidentState) -> InvestigationPlan:
         tools = {
-            metadata.name: self._registry.get(metadata.name) for metadata in self._registry.list()
+            metadata.name: self._registry.get(metadata.name)
+            for metadata in self._registry.list()
+            if self._registry.execution_guard is None
+            or self._registry.execution_guard.planning_allowed(incident_state.incident_id, metadata)
         }
         if not tools:
             raise PlanningError("Cannot plan without registered tools")

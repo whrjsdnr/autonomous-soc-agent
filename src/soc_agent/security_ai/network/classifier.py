@@ -3,6 +3,7 @@
 import math
 from typing import Self
 
+import numpy as np
 import xgboost as xgb
 from pydantic import Field, model_validator
 
@@ -99,3 +100,18 @@ class NetworkAttackClassifier:
             confidence=winner.probability,
             class_probabilities=probabilities,
         )
+
+    def predict_margins(self, features: FeatureSet) -> tuple[float, ...]:
+        """Validated raw scores for explicit offline probability diagnostics/evaluation."""
+        matrix = feature_matrix((features,), self.contract)
+        raw = self._booster.predict(
+            xgb.DMatrix(
+                matrix,
+                feature_names=[f.name for f in self.contract.feature_schema.features],
+                nthread=1,
+            ),
+            output_margin=True,
+        )
+        if raw.shape != (1, len(self.contract.classes)) or not np.isfinite(raw).all():
+            raise ValueError("Model margin shape/values differ from classes")
+        return tuple(float(v) for v in raw[0])

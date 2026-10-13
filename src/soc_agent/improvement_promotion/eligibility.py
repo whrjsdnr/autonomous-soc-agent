@@ -11,7 +11,12 @@ from soc_agent.improvement_candidates.models import (
 )
 from soc_agent.improvement_candidates.strategy import compile_candidate_strategy
 from soc_agent.improvement_dataset.models import ArtifactReference
-from soc_agent.improvement_review.models import BlockingReason, ReviewDecision
+from soc_agent.improvement_review.models import (
+    BlockingReason,
+    ImprovementReviewRecord,
+    ImprovementReviewRequest,
+    ReviewDecision,
+)
 from soc_agent.improvement_review.store import ImprovementReviewStore
 from soc_agent.offline_comparison.models import CONTRACT_EVALUATOR_VERSION, OfflineEvaluationResult
 from soc_agent.review.identity import content_digest
@@ -76,61 +81,74 @@ class PromotionEligibilityService:
             (review_request_id,),
         ).fetchone()
         record = None if row is None else self.reviews._record(connection, row)
-        content = request.content
-        reasons: set[PromotionReason] = set()
-        proposal = content.candidate.proposal
-        if proposal.candidate_type != CandidateType.INVESTIGATION_STRATEGY:
-            reasons.add(PromotionReason.UNSUPPORTED_CANDIDATE_TYPE)
-        if proposal.operation != "REQUIRE_READ_ONLY_PERMISSION_COVERAGE":
-            reasons.add(PromotionReason.UNSUPPORTED_OPERATION)
-        # _request has already revalidated this exact result and its complete
-        # parent graph in the same read snapshot. Decode its pinned evidence
-        # without interpreting legacy v2 selections as production validation.
         result_row = connection.execute(
             "SELECT * FROM offline_evaluation_results WHERE id=?",
-            (content.candidate_result.identity,),
+            (request.content.candidate_result.identity,),
         ).fetchone()
         if result_row is None:
             raise StoredDataError("Missing promotion eligibility result")
-        result = ledger.decode(OfflineEvaluationResult, result_row)
-        if content_digest(result.content) != content.candidate_result.digest:
-            raise StoredDataError("Promotion eligibility result binding mismatch")
-        evidence = result.content.strategy_safety
-        contract_available = False
-        if isinstance(proposal, CoverageProposal) and evidence is not None:
-            candidate = ImprovementCandidate(
-                candidate_id=content.binding.source.candidate.identity,
-                candidate_version=content.binding.source.candidate.identity,
-                content=content.candidate,
-            )
-            contract_available = (
-                result.content.evaluator_version == CONTRACT_EVALUATOR_VERSION
-                and evidence.strategy == compile_candidate_strategy(candidate)
-                and evidence.plan_validation == "PASS"
-            )
-        if not contract_available:
-            reasons.add(PromotionReason.RUNTIME_CONTRACT_UNAVAILABLE)
-        if record is None or record.submission.decision != ReviewDecision.APPROVE:
-            reasons.add(PromotionReason.REVIEW_NOT_APPROVED)
-        if content.blocking_reasons:
-            reasons.add(PromotionReason.EVALUATION_NOT_MEASURABLE)
-        for blocker, reason in (
-            (BlockingReason.SAFETY_FAIL, PromotionReason.SAFETY_FAILED),
-            (BlockingReason.SAFETY_UNKNOWN, PromotionReason.SAFETY_UNKNOWN),
-            (BlockingReason.ACCEPTANCE_FAIL, PromotionReason.ACCEPTANCE_NOT_PASS),
-            (BlockingReason.ACCEPTANCE_UNKNOWN, PromotionReason.ACCEPTANCE_NOT_PASS),
-        ):
-            if blocker in content.approval_blockers:
-                reasons.add(reason)
-        return PromotionEligibility(
-            review_request=ArtifactReference(
-                identity=request.review_request_id, digest=content_digest(content)
-            ),
-            candidate=content.binding.source.candidate,
-            comparison=content.comparison,
-            review_record=None
-            if record is None
-            else ArtifactReference(identity=record.review_record_id, digest=content_digest(record)),
-            reasons=tuple(sorted(reasons)),
-            status="NON_PROMOTABLE" if reasons else "PROMOTABLE",
+        return project_eligibility(
+            request, record, ledger.decode(OfflineEvaluationResult, result_row)
         )
+
+
+def project_eligibility(
+    request: ImprovementReviewRequest,
+    record: ImprovementReviewRecord | None,
+    result: OfflineEvaluationResult,
+) -> PromotionEligibility:
+    """Existing eligibility rules on pinned evidence; not activation authority.
+
+    Command services perform full source revalidation before calling this projection.
+    Dashboard callers must validate durable content/reference bindings first.
+    """
+    content = request.content
+    reasons: set[PromotionReason] = set()
+    proposal = content.candidate.proposal
+    if proposal.candidate_type != CandidateType.INVESTIGATION_STRATEGY:
+        reasons.add(PromotionReason.UNSUPPORTED_CANDIDATE_TYPE)
+    if proposal.operation != "REQUIRE_READ_ONLY_PERMISSION_COVERAGE":
+        reasons.add(PromotionReason.UNSUPPORTED_OPERATION)
+    # Commands validate the full graph; read projections validate durable pins.
+    # Neither may interpret legacy v2 selections as production validation.
+    if content_digest(result.content) != content.candidate_result.digest:
+        raise StoredDataError("Promotion eligibility result binding mismatch")
+    evidence = result.content.strategy_safety
+    contract_available = False
+    if isinstance(proposal, CoverageProposal) and evidence is not None:
+        candidate = ImprovementCandidate(
+            candidate_id=content.binding.source.candidate.identity,
+            candidate_version=content.binding.source.candidate.identity,
+            content=content.candidate,
+        )
+        contract_available = (
+            result.content.evaluator_version == CONTRACT_EVALUATOR_VERSION
+            and evidence.strategy == compile_candidate_strategy(candidate)
+            and evidence.plan_validation == "PASS"
+        )
+    if not contract_available:
+        reasons.add(PromotionReason.RUNTIME_CONTRACT_UNAVAILABLE)
+    if record is None or record.submission.decision != ReviewDecision.APPROVE:
+        reasons.add(PromotionReason.REVIEW_NOT_APPROVED)
+    if content.blocking_reasons:
+        reasons.add(PromotionReason.EVALUATION_NOT_MEASURABLE)
+    for blocker, reason in (
+        (BlockingReason.SAFETY_FAIL, PromotionReason.SAFETY_FAILED),
+        (BlockingReason.SAFETY_UNKNOWN, PromotionReason.SAFETY_UNKNOWN),
+        (BlockingReason.ACCEPTANCE_FAIL, PromotionReason.ACCEPTANCE_NOT_PASS),
+        (BlockingReason.ACCEPTANCE_UNKNOWN, PromotionReason.ACCEPTANCE_NOT_PASS),
+    ):
+        if blocker in content.approval_blockers:
+            reasons.add(reason)
+    return PromotionEligibility(
+        review_request=ArtifactReference(
+            identity=request.review_request_id, digest=content_digest(content)
+        ),
+        candidate=content.binding.source.candidate,
+        comparison=content.comparison,
+        review_record=None
+        if record is None
+        else ArtifactReference(identity=record.review_record_id, digest=content_digest(record)),
+        reasons=tuple(sorted(reasons)),
+        status="NON_PROMOTABLE" if reasons else "PROMOTABLE",
+    )

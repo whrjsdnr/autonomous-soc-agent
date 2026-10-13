@@ -5,6 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from soc_agent.execution.security import mutation_guard
 from soc_agent.policy import PolicyEngine
 from soc_agent.response.advisory import ResponsePlan
 from soc_agent.response.promotion.errors import (
@@ -113,6 +114,7 @@ class PromotionService:
         self, intent: ResponseReviewIntent, *, credential: str
     ) -> ResponseActionReview:
         intent = exact(ResponseReviewIntent, intent)
+        mutation_guard(self.validation.store, intent.target.incident_id, "RESPONSE_REVIEW_DENIED")
         with self._lock:
             if self._intents.get(intent.intent_id) != intent:
                 raise InvalidPromotionArtifact("Unknown or changed response review intent")
@@ -146,6 +148,7 @@ class PromotionService:
 
     def promote(self, request: PromotionRequest) -> PromotedAction:
         request = exact(PromotionRequest, request)
+        mutation_guard(self.validation.store, request.target.incident_id, "PROMOTION_DENIED")
         with self._lock:
             if self._requests.get(request.request_id) != request:
                 raise InvalidPromotionArtifact("Unknown or changed promotion request")
@@ -162,6 +165,11 @@ class PromotionService:
 
     def validate_promoted(self, promoted: PromotedAction) -> PromotedAction:
         promoted = exact(PromotedAction, promoted)
+        mutation_guard(
+            self.validation.store,
+            promoted.content.request.target.incident_id,
+            "PROMOTED_ACTION_DENIED",
+        )
         with self._lock:
             if self._promoted.get(promoted.promoted_id) != promoted:
                 raise InvalidPromotionArtifact("Unregistered or changed promotion")

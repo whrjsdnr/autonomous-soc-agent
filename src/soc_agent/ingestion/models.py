@@ -7,6 +7,7 @@ from pydantic import Field, StringConstraints, model_validator
 
 from soc_agent.review.models import Frozen, Hash
 from soc_agent.security_ai.authentication.aggregation import AuthenticationEvent
+from soc_agent.security_ai.network.schema import NetworkFlowInput
 from soc_agent.state.enums import Severity
 from soc_agent.state.evidence import UTCTimestamp
 
@@ -46,11 +47,41 @@ class SOCEvent(Frozen):
         return self
 
 
+class NetworkAttributes(NetworkFlowInput):
+    """Reuse all existing strict flow fields; no authentication/network coercion."""
+
+    model_config = NetworkFlowInput.model_config | {"frozen": True}
+
+
+class NetworkEvent(Frozen):
+    event_id: UUID
+    event_type: Literal["network"]
+    source: Reference
+    occurred_at: UTCTimestamp
+    subject: Reference
+    resource: Reference
+    severity_hint: Severity | None = None
+    synthetic: bool = Field(default=False, strict=True)
+    attributes: NetworkAttributes
+
+
+Event = Annotated[SOCEvent | NetworkEvent, Field(discriminator="event_type")]
+
+
 class IngestionReceipt(Frozen):
-    event: SOCEvent
+    event: Event
     incident_id: UUID
     canonical_digest: Hash
-    ingestion_version: Literal["authentication-ingestion:v1"] = "authentication-ingestion:v1"
+    ingestion_version: Literal["authentication-ingestion:v1", "network-ingestion:v1"] = (
+        "authentication-ingestion:v1"
+    )
+
+    @model_validator(mode="after")
+    def domain_version(self) -> Self:
+        if self.ingestion_version != f"{self.event.event_type}-ingestion:v1":
+            raise ValueError("Event domain differs from ingestion provenance")
+        return self
+
     received_at: UTCTimestamp
 
 

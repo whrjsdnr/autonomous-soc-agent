@@ -1,5 +1,6 @@
 import asyncio
 from collections.abc import Callable
+from datetime import timedelta
 from uuid import uuid4
 
 import pytest
@@ -271,7 +272,12 @@ async def test_session_rejects_inconsistent_provenance(kind: str) -> None:
     elif kind == "plan":
         data["rounds"][1]["tool_execution"]["plan"]["plan_id"] = uuid4()
     else:
-        data["rounds"][0]["completed_at"] = session.created_at
+        original = data["rounds"][0]["completed_at"]
+        changed = data["rounds"][0]["started_at"] - timedelta(seconds=1)
+        assert changed != original and changed < data["rounds"][0]["started_at"]
+        assert original.utcoffset() is not None and changed.utcoffset() is not None
+        print("PROVENANCE time:", original.isoformat(), "->", changed.isoformat())
+        data["rounds"][0]["completed_at"] = changed
     with pytest.raises(ValidationError):
         AutonomousInvestigationSession.model_validate(data)
 

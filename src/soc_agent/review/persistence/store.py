@@ -5,6 +5,7 @@ from pathlib import Path
 from uuid import UUID
 
 from soc_agent.assessment import AssessmentResult, FusionAssessmentResult
+from soc_agent.execution.security import mutation_guard
 from soc_agent.review.models import ApplicationResult, StateAnchor, StoredIncident
 from soc_agent.review.persistence import ledger
 from soc_agent.review.persistence.database import GovernanceDatabase
@@ -47,6 +48,7 @@ class SQLiteGovernanceStore:
         authorization_id: UUID,
         build: Callable[[StoredIncident], ApplicationResult],
     ) -> ApplicationResult:
+        mutation_guard(self, expected.incident_id, "STATE_CAS_DENIED")
         with self.database.transaction() as connection:
             session = GovernanceSession(connection, self.store_id)
             session.restore_service()  # Check the persisted issuance/reference graph as well.

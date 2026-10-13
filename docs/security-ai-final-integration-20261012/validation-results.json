@@ -1,0 +1,157 @@
+{
+  "contract_version": "soc-final-integration-validation:v1",
+  "integration_status": "PASS_SCOPED",
+  "overall_status": "INCONCLUSIVE",
+  "scope": "Offline synthetic/precomputed inputs; real official predictors; scripted LLM; isolated handlers; WSL and Windows 11 Native backend/CLI.",
+  "real_inference": {
+    "network_quality": "PASS",
+    "network_edge": "PASS",
+    "dns_litert": "PASS",
+    "wsl_native_runtime_cases": 4,
+    "windows_native_runtime_cases": 4
+  },
+  "runtime": {
+    "shared_socruntime": "PASS",
+    "investigation_assessment_decision": "PASS",
+    "decision_id_contract": "PRESERVED",
+    "context_v2": "PRESERVED",
+    "fusion_v1": "PRESERVED",
+    "sqlite_v14_v15_layout": "PRESERVED",
+    "explicit_runtime_schema": 16,
+    "atomic_publication": "PASS",
+    "actual_process_exit_recovery": "PASS",
+    "resume_guard": "PASS",
+    "durable_security_audit": "PASS",
+    "legacy_regression": "PASS",
+    "explicit_read_input_incident_binding": "PASS",
+    "task_local_staging_cas": "PASS"
+  },
+  "tests": {
+    "wsl_full": {
+      "passed": 3104,
+      "skipped": 25,
+      "failed": 0,
+      "warnings": 6,
+      "seconds": 1018.98,
+      "completed_runs": 3,
+      "last_run_native_environment_explicit": true
+    },
+    "wsl_initial_related": {
+      "passed": 491,
+      "failed": 0
+    },
+    "wsl_initial_runtime_atomic_attacks": {
+      "passed": 64,
+      "failed": 0
+    },
+    "wsl_additional_security_legacy_api": {
+      "passed": 16,
+      "failed": 0
+    },
+    "wsl_explicit_prior_native": {
+      "passed": 2,
+      "failed": 0
+    },
+    "windows_first_related": {
+      "passed": 278,
+      "skipped": 3,
+      "failed": 0,
+      "seconds": 702.61
+    },
+    "windows_latest_runtime_native_ntfs_decision": {
+      "passed": 121,
+      "skipped": 2,
+      "failed": 0,
+      "seconds": 859.56
+    },
+    "windows_full_regression": "NOT_RUN",
+    "wsl_first_full": {
+      "passed": 3094,
+      "skipped": 27,
+      "failed": 0,
+      "warnings": 6,
+      "seconds": 1277.02,
+      "completed_runs": 1
+    },
+    "wsl_read_scope": {
+      "passed": 8,
+      "failed": 0,
+      "before_fix_read_spy_regression_failures": 4,
+      "after_fix_read_spy_calls": 0
+    },
+    "windows_latest_private_artifact_read_scope": {
+      "passed": 12,
+      "failed": 0,
+      "seconds": 129.64
+    },
+    "wsl_second_full": {
+      "passed": 3100,
+      "skipped": 25,
+      "failed": 0,
+      "warnings": 6,
+      "seconds": 1040.86,
+      "completed_runs": 2,
+      "last_run_native_environment_explicit": true
+    },
+    "wsl_same_runtime_cas": {
+      "passed": 4,
+      "failed": 0,
+      "seconds": 9.54
+    },
+    "windows_same_runtime_cas": {
+      "passed": 4,
+      "failed": 0,
+      "seconds": 55.55
+    }
+  },
+  "smoke": {
+    "wsl_desktop_start_restart": "PASS",
+    "wsl_headless_profile_cli": "PASS",
+    "windows_desktop_appdata_start_restart": "PASS",
+    "authenticated_asgi_test_service": "PASS",
+    "separate_linux_desktop_host": "NOT_RUN",
+    "separate_linux_headless_host": "NOT_RUN"
+  },
+  "static": {
+    "ruff": "PASS",
+    "format": "PASS",
+    "diff": "PASS"
+  },
+  "safety": {
+    "external_provider_requests": 0,
+    "actual_security_actions": 0,
+    "write_spy_calls": 0,
+    "operational_database_migrations": 0,
+    "model_retraining": 0,
+    "original_artifact_changes": 0,
+    "commit": false,
+    "push": false,
+    "fusion_helper_preserved": true,
+    "existing_model_retraining": 0,
+    "model_retraining_scope": "No existing/production models were retrained; pre-existing isolated synthetic fitting tests ran."
+  },
+  "windows_environment": {
+    "existing_conda_soc_windows": "UNCHANGED",
+    "native_venv": "C:/soc-native-inference-final-20261013",
+    "lightgbm": "4.7.0",
+    "torch": "2.14.1",
+    "ai_edge_litert": "2.3.0",
+    "pandas": "3.0.6",
+    "numpy": "2.5.3",
+    "scikit_learn": "1.9.1",
+    "private_artifact_copy": "LOCALAPPDATA/AutonomousSOCFinalArtifacts20261013; 10 files verified and protected by native storage API"
+  },
+  "unverified": [
+    "Separate Linux Desktop and Linux Headless operating-host deployments",
+    "Windows complete regression on latest integration",
+    "New cross-platform native numerical/decision equivalence using external models",
+    "Production feature extraction/detection efficacy",
+    "Hostile executable Python/OS sandbox"
+  ],
+  "conda_update": {
+    "requested_version": "26.7.1",
+    "status": "AWAITING_TARGET_CLARIFICATION",
+    "wsl_and_windows_base_present": true,
+    "performed": false
+  }
+}

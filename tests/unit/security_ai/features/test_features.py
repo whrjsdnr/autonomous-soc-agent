@@ -338,7 +338,12 @@ def test_bad_evidence_binding(record, kind):
     elif kind == "source":
         source = source.model_copy(update={"source": "forged"})
     elif kind == "observed_at":
-        source = source.model_copy(update={"observed_at": utc_now()})
+        original = source.observed_at
+        changed = original + timedelta(seconds=1)
+        assert changed != original
+        assert original.utcoffset() is not None and changed.utcoffset() is not None
+        print("PROVENANCE observed_at:", original.isoformat(), "->", changed.isoformat())
+        source = source.model_copy(update={"observed_at": changed})
     elif kind == "no_state":
         state = None
     else:

@@ -4,6 +4,7 @@ from collections.abc import Callable
 from uuid import UUID
 
 from soc_agent.decision import IncidentDecision
+from soc_agent.execution.security import mutation_guard
 from soc_agent.review.authentication import ProviderHumanAuthority
 from soc_agent.review.authority import HumanAuthority
 from soc_agent.review.models import (
@@ -157,6 +158,8 @@ class PersistentHumanReviewService:
         reason: str,
         credential: str,
     ) -> HumanReviewRecord:
+        mutation_guard(self.store, request.target.incident_id, "HUMAN_REVIEW_DENIED")
+
         def operation(service, session):
             result = service.record_review(
                 request,
@@ -187,6 +190,8 @@ class PersistentHumanReviewService:
     def authorize_change(
         self, request: StateChangeRequest, review: HumanReviewRecord, *, credential: str
     ) -> StateChangeAuthorization:
+        mutation_guard(self.store, request.target.incident_id, "STATE_AUTHORIZATION_DENIED")
+
         def operation(service, session):
             result = service.authorize_change(request, review, credential=credential)
             ledger.insert(session.connection, result)
@@ -211,6 +216,7 @@ class PersistentHumanReviewService:
         request: StateChangeRequest,
         authorization: StateChangeAuthorization,
     ) -> ApplicationResult:
+        mutation_guard(self.store, state.incident_id, "STATE_APPLICATION_DENIED")
         identity = getattr(authorization, "authorization_id", None)
         identity = identity if isinstance(identity, UUID) else None
         return self._run(

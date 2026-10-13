@@ -3,6 +3,7 @@
 from typing import Literal
 from uuid import UUID
 
+from soc_agent.ingestion.models import NetworkAttributes
 from soc_agent.ingestion.store import EventIngestor
 from soc_agent.review.models import Frozen
 from soc_agent.tools import Tool, ToolMetadata, ToolPermission, ToolRiskLevel
@@ -58,7 +59,11 @@ def demo_read_tool(ingestor: EventIngestor):
     async def read(value: DemoReadInput):
         receipt = ingestor.load(value.incident_id)
         event = receipt.event
-        if not event.synthetic or event.source != "synthetic-demo":
+        if (
+            not event.synthetic
+            or event.source != "synthetic-demo"
+            or event.event_type != "authentication"
+        ):
             raise ValueError("Demo reader only handles synthetic demo reports")
         failures = sum(a.authentication_result == "failure" for a in event.attributes.attempts)
         return DemoReport(
@@ -81,5 +86,45 @@ def demo_read_tool(ingestor: EventIngestor):
         ),
         DemoReadInput,
         DemoReport,
+        read,
+    )
+
+
+class DemoNetworkReport(Frozen):
+    event_id: UUID
+    source: str
+    occurred_at: str
+    canonical_digest: str
+    ingestion_version: str
+    flow: NetworkAttributes
+    meaning: Literal["synthetic_source_report_not_verified_attack"] = (
+        "synthetic_source_report_not_verified_attack"
+    )
+
+
+def demo_network_tool(ingestor: EventIngestor):
+    async def read(value: DemoReadInput):
+        receipt = ingestor.load(value.incident_id)
+        event = receipt.event
+        if not event.synthetic or event.source != "synthetic-demo" or event.event_type != "network":
+            raise ValueError("Demo network reader requires synthetic flow reports")
+        return DemoNetworkReport(
+            event_id=event.event_id,
+            source=event.source,
+            occurred_at=event.occurred_at.isoformat(),
+            canonical_digest=receipt.canonical_digest,
+            ingestion_version=receipt.ingestion_version,
+            flow=event.attributes,
+        )
+
+    return Tool(
+        ToolMetadata(
+            name="read_demo_network",
+            description="Read bounded synthetic flow source reports only",
+            permission=ToolPermission.NETWORK_READ,
+            risk_level=ToolRiskLevel.READ_ONLY,
+        ),
+        DemoReadInput,
+        DemoNetworkReport,
         read,
     )

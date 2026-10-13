@@ -33,6 +33,10 @@ from soc_agent.security_ai.evaluation.metrics import (
     temperature_scale,
     threshold_trials,
 )
+from soc_agent.security_ai.evaluation.reference_probability import (
+    REFERENCE_SOFTMAX,
+    reference_softmax,
+)
 from soc_agent.security_ai.features.models import Snapshot
 from soc_agent.security_ai.network.anomaly import NetworkAnomalyDetector
 from soc_agent.security_ai.network.anomaly_training import fit_network_anomaly
@@ -192,8 +196,15 @@ class FrozenSelection:
     normal_label: str
     point: OperatingPoint | None = None
     temperature: float = 1.0
+    probability_transform: Literal["native", "decimal-softmax-binary64:v1"] = "native"
 
     def __post_init__(self) -> None:
+        if self.probability_transform not in ("native", REFERENCE_SOFTMAX):
+            raise ValueError("Unknown evaluation probability transform")
+        if self.probability_transform != "native" and not isinstance(
+            self.selected_model, NetworkAttackClassifier
+        ):
+            raise ValueError("Reference probability transform requires classifier")
         if type(self.baseline_model) is not type(self.selected_model):
             raise ValueError("Baseline and selected model domains differ")
         selected = [c for c in self.report.candidates if c.selected]
@@ -217,6 +228,11 @@ class FrozenSelection:
                     "calibration_digest": self.development[2].content_digest
                     if len(self.development) == 3
                     else None,
+                    **(
+                        {"evaluation_probability_transform": self.probability_transform}
+                        if self.probability_transform != "native"
+                        else {}
+                    ),
                 }
             )
         else:
@@ -247,7 +263,17 @@ class FinalTestReport(Snapshot):
     diagnostics: tuple[ScoreDistribution, ...] = ()
 
 
-def _predictions(model: NetworkAttackClassifier, partition: Partition) -> np.ndarray:
+def _predictions(
+    model: NetworkAttackClassifier, partition: Partition, probability_transform: str = "native"
+) -> np.ndarray:
+    if probability_transform == REFERENCE_SOFTMAX:
+        return reference_softmax(
+            np.asarray(
+                [model.predict_margins(r.features) for r in partition.rows], dtype=np.float32
+            )
+        )
+    if probability_transform != "native":
+        raise ValueError("Unknown evaluation probability transform")
     return probability_matrix(
         tuple(model.predict(r.features) for r in partition.rows), model.contract.classes
     )
@@ -367,12 +393,15 @@ def select_classifier(
     validation: Partition,
     *,
     calibration: Partition | None = None,
+    probability_transform: Literal["native", "decimal-softmax-binary64:v1"] = "native",
     configs: tuple[TrainingConfig, ...] = (
         TrainingConfig(),
         TrainingConfig(n_estimators=60, max_depth=2),
         TrainingConfig(learning_rate=0.05),
     ),
 ) -> FrozenSelection:
+    if probability_transform not in ("native", REFERENCE_SOFTMAX):
+        raise ValueError("Unknown evaluation probability transform")
     train = checked(train, "train")
     validation = checked(validation, "selection")
     development = (
@@ -401,14 +430,18 @@ def select_classifier(
             config=config,
             model_version="1.1.0",
         )
-        metrics = probability_metrics(labels, _predictions(model, validation), classes)
+        metrics = probability_metrics(
+            labels, _predictions(model, validation, probability_transform), classes
+        )
         trials.append(
             CandidateResult(
                 candidate_id="baseline" if i == 0 else f"model-{i}",
                 configuration=config.model_dump_json(),
                 training_rows=len(train.rows),
                 training_metrics=probability_metrics(
-                    tuple(r.label for r in train.rows), _predictions(model, train), classes
+                    tuple(r.label for r in train.rows),
+                    _predictions(model, train, probability_transform),
+                    classes,
                 ),
                 validation=metrics,
             )
@@ -430,13 +463,13 @@ def select_classifier(
     )
     model = models[winner]
     before = trials[winner].validation
-    val_prob = _predictions(model, validation)
+    val_prob = _predictions(model, validation, probability_transform)
     temp = 1.0
     fitting = ()
     reason = "No independent calibration subset; calibration not fitted"
     if calibration is not None:
         calibration = development[2]
-        cal_prob = _predictions(model, calibration)
+        cal_prob = _predictions(model, calibration, probability_transform)
         cal_labels = tuple(r.label for r in calibration.rows)
         fitting = tuple(
             TemperatureTrial(temperature=t, log_loss=m.log_loss, brier_score=m.brier_score)
@@ -476,6 +509,11 @@ def select_classifier(
                 "configuration": configs[winner].model_dump(),
                 "temperature": temp,
                 "calibration_digest": calibration.content_digest if calibration else None,
+                **(
+                    {"evaluation_probability_transform": probability_transform}
+                    if probability_transform != "native"
+                    else {}
+                ),
             }
         ),
     )
@@ -486,6 +524,7 @@ def select_classifier(
         development=development,
         normal_label="BENIGN",
         temperature=temp,
+        probability_transform=probability_transform,
     )
 
 
@@ -497,11 +536,16 @@ def evaluate_test(selection: FrozenSelection, test: Partition) -> FinalTestRepor
         classes = selection.selected_model.contract.classes
         labels = tuple(r.label for r in test.rows)
         baseline = probability_metrics(
-            labels, _predictions(selection.baseline_model, test), classes
+            labels,
+            _predictions(selection.baseline_model, test, selection.probability_transform),
+            classes,
         )
         selected = probability_metrics(
             labels,
-            temperature_scale(_predictions(selection.selected_model, test), selection.temperature),
+            temperature_scale(
+                _predictions(selection.selected_model, test, selection.probability_transform),
+                selection.temperature,
+            ),
             classes,
         )
         diagnostics = ()

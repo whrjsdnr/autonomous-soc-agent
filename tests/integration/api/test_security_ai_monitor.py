@@ -312,7 +312,7 @@ async def test_escaped_labels_provenance_and_sensitive_sources_omitted(api_case,
 
 def test_presentation_has_no_persistence_or_execution_dependency():
     root = Path(__file__).parents[3] / "src/soc_agent/api/dashboard"
-    source = (root / "security_ai_render.py").read_text()
+    source = (root / "security_ai_render.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     modules = [node.module or "" for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)]
     assert all("persistence" not in name and "execution" not in name for name in modules)

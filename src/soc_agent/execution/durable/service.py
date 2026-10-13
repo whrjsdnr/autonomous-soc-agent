@@ -9,6 +9,7 @@ from soc_agent.execution import GovernedExecutor
 from soc_agent.execution.durable.errors import ClaimConflict, ExecutionOutcomeUnknown
 from soc_agent.execution.durable.models import ExecutionRecord, Lifecycle
 from soc_agent.execution.durable.store import ExecutionStore
+from soc_agent.execution.security import mutation_guard
 from soc_agent.policy import PolicyEngine
 from soc_agent.response.promotion.errors import PromotionPolicyChanged
 from soc_agent.response.promotion.validation import CurrentValidation
@@ -43,6 +44,10 @@ class DurableExecutor:
     async def execute(
         self, identity: str, *, claimant: str, lease_seconds: int = 60
     ) -> ToolResult[BaseModel]:
+        record = self.store.load(identity)
+        mutation_guard(
+            self.store.governance, record.intent.binding.incident_id, "DURABLE_WRITE_DENIED"
+        )
         claimed = self.store.claim(identity, claimant=claimant, lease_seconds=lease_seconds)
         return await self.execute_claim(claimed)
 
@@ -52,6 +57,7 @@ class DurableExecutor:
         if stored != claimed or stored.state != Lifecycle.CLAIMED:
             raise ClaimConflict("Unregistered, forged or stale execution claim")
         intent = stored.intent
+        mutation_guard(self.store.governance, intent.binding.incident_id, "DURABLE_CLAIM_DENIED")
         try:
             current = self.validation.check(intent.plan, intent.promoted.content.request.target)
             if current != intent.promoted.content.current_policy:

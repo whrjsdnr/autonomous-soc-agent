@@ -1,0 +1,5 @@
+# Preserve the existing helper-import grouping after adding tests.unit namespace.
+extend = "../../pyproject.toml"
+
+[lint.isort]
+known-third-party = ["tests"]

@@ -163,16 +163,17 @@ def render_overview(view: DashboardOverview, refreshed_at: UTCTimestamp) -> str:
 <a class="refresh" href="/dashboard" aria-label="Refresh overview">↻ Refresh</a></div></header>
 <div class="layout"><aside><nav aria-label="Main navigation">
 <a href="/dashboard" aria-current="page">Overview</a>
-<span aria-disabled="true">Incidents<small>Not available yet</small></span>
+<a href="#active-incidents">Incidents</a>
 <a href="/dashboard/security-ai">Security AI</a>
 <span aria-disabled="true">Workflow<small>Not available yet</small></span>
 <a href="/dashboard/governance">Human governance</a>
-<span aria-disabled="true">Learning<small>Not available yet</small></span></nav>
+<a href="/dashboard/self-improvement">Self-Improvement</a></nav>
 <p class="aside-note">Human-governed operations<br>Read-only observation surface</p></aside>
 <main id="main"><div class="intro"><div><h2>Operations overview</h2>
 <p class="muted">{e(view.scope)}</p></div>
 <div>{badge(view.posture)}<p class="muted">Workflow posture · not a risk score</p></div></div>
-<div class="kpis">{cards}</div>{panel("Active Incidents", incident_html, "Governed state")}
+<div class="kpis">{cards}</div><div id="active-incidents">
+{panel("Active Incidents", incident_html, "Governed state")}</div>
 <div class="grid"><div>{panel("Agent Workflow", workflow_html)}</div>
 <div>{panel("Human Action Required", human_html, "Read only")}</div></div>
 <p><a href="/dashboard/security-ai">Open Security AI Monitoring</a></p>

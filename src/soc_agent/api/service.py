@@ -16,6 +16,7 @@ from soc_agent.api.models import (
 )
 from soc_agent.execution.durable import ExecutionStore, ReconciliationRequest
 from soc_agent.ingestion import EventIngestor, SOCEvent
+from soc_agent.ingestion.models import NetworkEvent
 from soc_agent.investigation.runtime import SOCRuntime
 from soc_agent.investigation.runtime.persistence import CheckpointStore
 from soc_agent.investigation.runtime.persistence.models import StaleCheckpoint, WorkflowCheckpoint
@@ -74,6 +75,21 @@ class ApplicationService:
         ):
             raise ValueError("Application dependencies must share authoritative storage")
 
+    def analyze_external(self, incident_id: UUID, inputs):
+        """Configured offline analysis; no client-chosen artifact root or execution authority."""
+        self.incident(incident_id)
+        service = getattr(self, "external_ai", None)
+        if service is None:
+            raise ValueError("External inference is not explicitly configured")
+        return service.analyze(incident_id, inputs)
+
+    def reconcile_external_interruption(self, incident_id: UUID, *, run_id: UUID, revision: int):
+        """Trusted operator call; closes uncertain READ progress without replay."""
+        self.incident(incident_id)
+        return self._runtime().reconcile_external_interruption(
+            incident_id, run_id=run_id, revision=revision
+        )
+
     def dashboard_overview(self, visible: Callable[[UUID], bool]):
         from soc_agent.api.dashboard.query import project_overview
         from soc_agent.review.persistence.dashboard import read_dashboard_snapshot
@@ -99,7 +115,13 @@ class ApplicationService:
 
         return project_security_ai(read_security_ai_snapshot(self.store, visible))
 
-    def ingest(self, event: SOCEvent):
+    def dashboard_self_improvement(self, visible: Callable[[UUID], bool]):
+        from soc_agent.api.dashboard.self_improvement_query import project_self_improvement
+        from soc_agent.review.persistence.self_improvement import read_self_improvement
+
+        return project_self_improvement(read_self_improvement(self.store, visible))
+
+    def ingest(self, event: SOCEvent | NetworkEvent):
         if self.ingestion is None:
             raise ValueError("Event ingestion is not configured")
         return self.ingestion.ingest(event)

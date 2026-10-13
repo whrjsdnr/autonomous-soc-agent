@@ -1,5 +1,6 @@
 """Separate confirmed activation actions; SQLite owns consumption, history and CAS."""
 
+from soc_agent.execution.security import mutation_guard
 from soc_agent.improvement_dataset.models import ArtifactReference
 from soc_agent.improvement_promotion.models import (
     FAMILY,
@@ -55,6 +56,7 @@ class ImprovementActivationService:
     def _activate(
         self, request: PromotionRequest | RollbackRequest, *, credential: str
     ) -> ActivationRecord:
+        mutation_guard(self.store, None, "IMPROVEMENT_ACTIVATION_DENIED")
         kind = "promotion" if isinstance(request, PromotionRequest) else "rollback"
         with self.store.database.transaction() as connection:
             pinned = self.store._request(connection, kind, request.request_id)

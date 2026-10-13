@@ -271,9 +271,9 @@ def test_snapshot_uses_one_transaction_and_rejects_corruption(api_case, monkeypa
 
 def test_presentation_cannot_import_persistence_or_execution():
     root = Path(__file__).parents[3] / "src/soc_agent/api/dashboard"
-    tree = ast.parse((root / "render.py").read_text())
+    tree = ast.parse((root / "render.py").read_text(encoding="utf-8"))
     modules = [node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)]
     assert not any("persistence" in (name or "") or "execution" in (name or "") for name in modules)
-    assert "sqlite" not in (root / "render.py").read_text()
-    css = (root / "style.css").read_text()
+    assert "sqlite" not in (root / "render.py").read_text(encoding="utf-8")
+    css = (root / "style.css").read_text(encoding="utf-8")
     assert "max-width:1100px" in css and "max-width:720px" in css

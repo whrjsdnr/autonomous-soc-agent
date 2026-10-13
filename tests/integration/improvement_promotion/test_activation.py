@@ -2,6 +2,8 @@
 
 import asyncio
 import multiprocessing
+import os
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 import pytest
@@ -13,6 +15,7 @@ from tests.integration.improvement_promotion.test_path_adjudication import (
 )
 from tests.integration.improvement_review.test_review import issue, submission
 from tests.integration.offline_comparison.test_storage import reopen
+from tests.unit.identity.conftest import TestProvider, TestRoles
 from tests.unit.planning.conftest import mock_tool, registry, response
 from tests.unit.planning.test_strategy import add_tool
 
@@ -29,6 +32,7 @@ from soc_agent.improvement_review import ImprovementReviewStore, ReviewDecision
 from soc_agent.llm import MockLLMClient
 from soc_agent.planning import InvestigationPlanner
 from soc_agent.planning.strategy import StrategyCoverageError
+from soc_agent.review.authentication import AuthenticatedPrincipal, HumanConfirmation
 from soc_agent.review.authorization import HumanRole, RBACPermissionVerifier
 from soc_agent.review.errors import HumanAuthorizationDenied
 from soc_agent.review.persistence.models import CommitOutcomeUnknown, StorageError, StoredDataError
@@ -53,11 +57,30 @@ def token(boundary, request, roles=(HumanRole.ADMIN,)):
     return boundary.issue(action_context(request), roles)
 
 
-def worker(path, boundary, request, credential, start, output):
+@dataclass(frozen=True)
+class WorkerAuthorization:
+    """Test-only pickleable identity facts; no store, connection, clock or authority callback."""
+
+    principal: AuthenticatedPrincipal
+    confirmation: HumanConfirmation
+    roles: tuple[HumanRole, ...]
+
+
+def worker(path, authorization, request, credential, start, output):
     try:
+        provider, roles = TestProvider(), TestRoles()
+        provider.principals[credential] = authorization.principal
+        provider.confirmations[credential] = authorization.confirmation
+        principal = authorization.principal
+        context = action_context(request)
+        roles.assignments[(principal.provider_id, principal.subject_id, context.incident_id)] = (
+            authorization.roles
+        )
+        boundary = SimpleNamespace(provider=provider, roles=roles)
         store = ImprovementPromotionStore(ImprovementReviewStore(reopen(path)))
         store.database.timeout = 60
-        start.wait(20)
+        if not start.wait(20):
+            raise TimeoutError("Process race start signal missing")
         operation = service(store, boundary)
         record = (
             operation.promote(request, credential=credential)
@@ -68,30 +91,50 @@ def worker(path, boundary, request, credential, start, output):
     except StaleActivation:
         output.put(("stale", request.request_id))
     except Exception as error:
-        output.put(("error", type(error).__name__ + ":" + str(error)))
+        output.put(("error", type(error).__name__))
 
 
-def race(store, boundary, requests):
-    ctx = multiprocessing.get_context("fork")
+def race(store, boundary, requests, *, start_method=None):
+    ctx = multiprocessing.get_context(start_method or ("spawn" if os.name == "nt" else "fork"))
     start, output = ctx.Event(), ctx.Queue()
     credentials = [token(boundary, r) for r in requests]
+    authorizations = []
+    for request, credential in zip(requests, credentials, strict=True):
+        principal = boundary.provider.principals[credential]
+        authorizations.append(
+            WorkerAuthorization(
+                principal,
+                boundary.provider.confirmations[credential],
+                boundary.roles.roles_for(principal, action_context(request)),
+            )
+        )
     processes = [
-        ctx.Process(target=worker, args=(store.database.path, boundary, r, t, start, output))
-        for r, t in zip(requests, credentials, strict=True)
+        ctx.Process(target=worker, args=(store.database.path, authorization, r, t, start, output))
+        for r, t, authorization in zip(requests, credentials, authorizations, strict=True)
     ]
-    for p in processes:
-        p.start()
-    start.set()
-    outcomes = [output.get(timeout=120) for _ in processes]
-    for p in processes:
-        p.join(120)
-        assert p.exitcode == 0
+    try:
+        for p in processes:
+            p.start()
+        start.set()
+        outcomes = [output.get(timeout=120) for _ in processes]
+        for p in processes:
+            p.join(120)
+            assert p.exitcode == 0
+    finally:
+        for p in processes:
+            if p.pid is not None:
+                if p.is_alive():
+                    p.terminate()  # Only a controlled test child; never retry the operation.
+                p.join(10)
+        output.close()
+        output.join_thread()
     assert sorted(o[0] for o in outcomes) == ["committed", "stale"], outcomes
     return next(identity for state, identity in outcomes if state == "committed")
 
 
+@pytest.mark.parametrize("start_method", (None,) if os.name == "nt" else (None, "spawn"))
 def test_governed_activation_runtime_rollback_atomicity_restart_and_process_cas(
-    review_case, registry, mock_tool, response, monkeypatch
+    review_case, registry, mock_tool, response, monkeypatch, start_method
 ):
     c, source = review_case, review_case.source
     # Old UNKNOWN graph remains non-promotable; no approval or activation is fabricated.
@@ -178,7 +221,7 @@ def test_governed_activation_runtime_rollback_atomicity_restart_and_process_cas(
     with store.database.transaction() as conn:
         conn.execute("DROP TRIGGER reject_activation")
     # Two independent processes with the same expected NONE pointer: one commit.
-    winner = race(store, c.boundary, requests[:2])
+    winner = race(store, c.boundary, requests[:2], start_method=start_method)
     first = store.get_active_artifact()
     assert first.content.version == 1 and store.get_active_pointer().revision == 1
     assert not hasattr(store, "set_active") and not hasattr(store, "activate")
@@ -218,7 +261,7 @@ def test_governed_activation_runtime_rollback_atomicity_restart_and_process_cas(
     # Promotion vs rollback race, same expected revision.
     third_request = store.create_promotion_request(reviews[2].review_request_id)
     rollback = store.create_rollback_request(first.artifact_id)
-    race(store, c.boundary, (third_request, rollback))
+    race(store, c.boundary, (third_request, rollback), start_method=start_method)
     active = store.get_active_artifact()
     if active.artifact_id == first.artifact_id:
         third_request = store.create_promotion_request(reviews[2].review_request_id)
@@ -229,7 +272,7 @@ def test_governed_activation_runtime_rollback_atomicity_restart_and_process_cas(
     current = store.get_active_artifact()
     targets = [a for a in artifacts if a.artifact_id != current.artifact_id]
     rollbacks = [store.create_rollback_request(a.artifact_id) for a in targets]
-    race(store, c.boundary, rollbacks)
+    race(store, c.boundary, rollbacks, start_method=start_method)
     assert [a.content.version for a in store.list_artifacts()] == [1, 2, 3]
     # Explicitly restore NETWORK coverage, proving post-rollback runtime semantics.
     network = next(

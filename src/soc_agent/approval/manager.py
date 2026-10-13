@@ -22,6 +22,7 @@ class ApprovalManager:
     """
 
     def __init__(self) -> None:
+        self.execution_guard = None
         self._requests: dict[UUID, ApprovalRequest] = {}
 
     def create(
@@ -33,6 +34,8 @@ class ApprovalManager:
         action_id: UUID | None = None,
         action_input_json: str | None = None,
     ) -> ApprovalRequest:
+        if self.execution_guard is not None:
+            self.execution_guard.mutation(incident_id, "APPROVAL_ISSUANCE_DENIED")
         if not isinstance(metadata, ToolMetadata):
             raise ApprovalValidationError("Invalid tool metadata")
         try:
@@ -70,6 +73,8 @@ class ApprovalManager:
 
     def _decide(self, approval_id: UUID, *, actor: str, status: ApprovalStatus) -> ApprovalRequest:
         request = self.get(approval_id)
+        if self.execution_guard is not None:
+            self.execution_guard.mutation(request.incident_id, "APPROVAL_REPLAY")
         if request.status != ApprovalStatus.PENDING:
             raise ApprovalAlreadyDecidedError("Approval request already has a decision")
         try:

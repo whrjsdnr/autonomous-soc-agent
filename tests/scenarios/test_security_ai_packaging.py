@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 import pytest
 from tests.authentication_support import fixture_examples
-from tests.packaging_support import selected_models
+from tests.packaging_support import development_models
 
 from soc_agent.approval import ApprovalManager
 from soc_agent.execution import GovernedExecutor
@@ -69,7 +69,7 @@ async def test_three_model_packaged_end_to_end(tmp_path, monkeypatch):
         (GovernedExecutor, "execute"),
     ):
         monkeypatch.setattr(cls, name, forbidden)
-    models = selected_models(tmp_path)
+    models = development_models(tmp_path)
     registry = SecurityAIRegistry()
     state = IncidentState()
     before = state.model_dump_json()

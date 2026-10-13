@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import UUID
@@ -12,9 +13,29 @@ from soc_agent.review.authentication import HumanActionContext
 from soc_agent.review.authority import HumanAction
 from soc_agent.review.authorization import HumanRole
 from soc_agent.review.persistence.confirmations import SQLiteConfirmationConsumer
+from soc_agent.review.persistence.secure_storage import (
+    create_private_directory,
+    validate_directory,
+)
 from tests.integration.api.conftest import TestAccess, call
 from tests.unit.confirmations.conftest import authority_for
 from tests.unit.identity.conftest import Boundary
+
+
+@pytest.fixture
+def live_runtime_directory(tmp_path):
+    """Only Windows needs an explicit protected private child of pytest's temp path."""
+    if os.name != "nt":
+        return tmp_path
+    from tests.windows_storage_support import acl_diagnostics
+
+    directory = tmp_path / "SOC private runtime 한글 space"
+    # Diagnostic output contains ACL metadata/aliases, never user SIDs or raw events.
+    print(acl_diagnostics(tmp_path, target_alias="$PYTEST_TMP"))
+    create_private_directory(directory, exist_ok=False)
+    validate_directory(directory)  # Real native verification; no ACL repair or bypass.
+    print(acl_diagnostics(directory, target_alias="$SOC_PRIVATE"))
+    return directory
 
 
 @pytest.fixture

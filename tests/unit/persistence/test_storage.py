@@ -146,14 +146,42 @@ def test_creation_and_path_permissions(case, tmp_path):
         SQLiteGovernanceStore.create(store.database.path)
     with pytest.raises(ValueError):
         SQLiteGovernanceStore.create("relative.sqlite")
-    assert store.database.path.stat().st_mode & 0o777 == 0o600
+    from soc_agent.review.persistence.secure_storage import validate_file
+
+    validate_file(store.database.path)
+
+
+def test_existing_store_symlink_rejected(case, tmp_path):
+    from tests.platform_support import make_test_symlink
+
+    *_, store, _ = case
     link = tmp_path / "link.sqlite"
-    link.symlink_to(store.database.path)
+    make_test_symlink(link, store.database.path)
     with pytest.raises(ValueError):
         SQLiteGovernanceStore(link)
-    store.database.path.chmod(0o644)
-    with pytest.raises(ValueError):
-        SQLiteGovernanceStore(store.database.path)
+
+
+def test_existing_store_insecure_access_rejected(case):
+    import os
+
+    *_, store, _ = case
+    if os.name == "nt":
+        from tests.unit.persistence.test_native_windows_storage import restore_dacl, set_dacl
+
+        from soc_agent.review.persistence.windows_storage import NativeWin32
+
+        api = NativeWin32()
+        try:
+            set_dacl(api, store.database.path, f"D:P(A;;FA;;;{api.user})(A;;FA;;;WD)")
+            with pytest.raises(ValueError):
+                SQLiteGovernanceStore(store.database.path)
+        finally:
+            restore_dacl(api, store.database.path, directory=False)
+    else:
+        assert store.database.path.stat().st_mode & 0o777 == 0o600
+        store.database.path.chmod(0o644)
+        with pytest.raises(ValueError):
+            SQLiteGovernanceStore(store.database.path)
 
 
 @pytest.mark.parametrize(

@@ -8,6 +8,8 @@ from soc_agent.security_ai.features import SecurityRecord, SourceReference, Sour
 
 
 def authentication_records(receipt: IngestionReceipt) -> tuple[SecurityRecord, ...]:
+    if receipt.event.event_type != "authentication":
+        raise ValueError("Authentication records require authentication source reports")
     records = []
     for attempt in receipt.event.attributes.attempts:
         record = authentication_record(

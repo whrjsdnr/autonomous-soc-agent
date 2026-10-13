@@ -73,9 +73,8 @@ class SQLiteConfirmationConsumer:
         with database.transaction(write=False) as connection:
             self._schema(connection)
 
-    @staticmethod
-    def _schema(connection: Connection) -> None:
-        if connection.execute("PRAGMA user_version").fetchone()[0] not in (
+    def _schema(self, connection: Connection) -> None:
+        if self.database.core_schema_version(connection) not in (
             3,
             4,
             5,

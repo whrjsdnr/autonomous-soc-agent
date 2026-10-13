@@ -17,8 +17,9 @@ from soc_agent.review.validation import checked
 class CheckpointStore:
     def __init__(self, governance: SQLiteGovernanceStore) -> None:
         self.governance, self.database = governance, governance.database
+        self.external = None
         with self.database.transaction(write=False) as connection:
-            if connection.execute("PRAGMA user_version").fetchone()[0] not in (
+            if self.database.core_schema_version(connection) not in (
                 4,
                 5,
                 6,
@@ -72,6 +73,8 @@ class CheckpointStore:
             checkpoint, trace, claim = self._read(connection, incident_id)
             if claim is not None:
                 raise WorkflowInFlight("Step interrupted or active; automatic resume refused")
+            if self.external is not None:
+                self.external.validate_publication(checkpoint, trace)
             return checkpoint, trace
 
     def _append(
@@ -114,6 +117,8 @@ class CheckpointStore:
             if cursor.rowcount != 1:
                 raise StoredDataError("Checkpoint insertion did not succeed")
             self._append(connection, checkpoint.run_id, trace.entries)
+            if self.external is not None:
+                self.external.publish(connection, checkpoint, trace)
             self._read(connection, checkpoint.incident_id)
 
     def claim(self, expected: WorkflowCheckpoint) -> UUID:
@@ -175,4 +180,6 @@ class CheckpointStore:
             )
             if cursor.rowcount != 1:
                 raise StaleCheckpoint("Checkpoint update failed")
+            if self.external is not None:
+                self.external.publish(connection, updated, trace)
             self._read(connection, updated.incident_id)

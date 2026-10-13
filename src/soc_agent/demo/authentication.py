@@ -86,7 +86,7 @@ async def run(args):
             raise ValueError(f"Demo request rejected: {result}")
         return result
 
-    event = json.loads(args.event.read_text())
+    event = json.loads(args.event.read_text(encoding="utf-8"))
     if event.get("synthetic") is not True:
         raise ValueError("CLI accepts explicitly synthetic events only")
     ingested = await request("POST", "/events", event)

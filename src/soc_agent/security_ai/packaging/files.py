@@ -37,6 +37,10 @@ def strict_json(value: bytes) -> object:
 
 
 def read_package(path: Path) -> dict[str, bytes]:
+    if os.name == "nt":
+        from soc_agent.security_ai.packaging.windows_files import read_windows_package
+
+        return read_windows_package(path)
     # Open each directory component relative to an already opened directory FD.
     # This rejects symlinks in ancestors as well as inside the package.
     absolute = Path(os.path.abspath(path))

@@ -1,9 +1,11 @@
 import json
 import shutil
 from dataclasses import replace
+from pathlib import Path
 
 import numpy as np
 import pytest
+from tests.platform_support import make_test_symlink
 
 from soc_agent.security_ai.packaging import load_package
 from soc_agent.security_ai.packaging.files import MAX_FILE_BYTES, sha256
@@ -135,11 +137,13 @@ def test_inventory_rejection(packages, tmp_path, change):
         (target / "model/extra.json").write_text("{}")
     elif change == "symlink":
         (target / "metadata.json").unlink()
-        (target / "metadata.json").symlink_to(packages["network_anomaly"][2] / "metadata.json")
+        make_test_symlink(
+            target / "metadata.json", packages["network_anomaly"][2] / "metadata.json"
+        )
     elif change == "directory_symlink":
         shutil.rmtree(target / "model")
-        (target / "model").symlink_to(
-            packages["network_anomaly"][2] / "model", target_is_directory=True
+        make_test_symlink(
+            target / "model", packages["network_anomaly"][2] / "model", directory=True
         )
     elif change == "oversized":
         with (target / "metadata.json").open("wb") as stream:
@@ -147,6 +151,8 @@ def test_inventory_rejection(packages, tmp_path, change):
     elif change == "fifo":
         import os
 
+        if not hasattr(os, "mkfifo"):
+            pytest.skip("Actual POSIX FIFO creation unavailable; no simulated file type")
         (target / "metadata.json").unlink()
         os.mkfifo(target / "metadata.json")
     elif change == "json_duplicate":
@@ -306,11 +312,59 @@ def test_tree_structure_rejected(change):
 
 def test_parent_symlink_rejected(packages, tmp_path):
     link = tmp_path / "parent-link"
-    link.symlink_to(packages["network_anomaly"][2].parent, target_is_directory=True)
+    make_test_symlink(link, packages["network_anomaly"][2].parent, directory=True)
     with pytest.raises(ValueError):
         load_package(
             link / "network_anomaly", expected_manifest_digest=packages["network_anomaly"][3]
         )
+
+
+def test_historical_selection_metadata_remains_integrity_checked():
+    from tests.scenarios.test_security_ai_fusion import PINS
+
+    from soc_agent.security_ai.evaluation.data import digest
+    from soc_agent.security_ai.packaging import load_package
+
+    root = Path(__file__).parents[4]
+    report = json.loads(
+        (root / "docs/evaluation/synthetic-phase3-5.json").read_text(encoding="utf-8")
+    )
+    for kind, pin, _ in PINS:
+        historical = report["experiments"][kind]
+        frozen = historical["final_test"]["selection_digest"]
+        assert digest(historical["selection"]) == frozen
+        package = load_package(
+            root / "tests/fixtures/security_ai_packages" / kind, expected_manifest_digest=pin
+        )
+        assert package.manifest.selection_digest == frozen
+
+
+def test_native_selection_version_provenance_is_not_discarded(packages):
+    selection = packages["network_anomaly"][0]
+    changed = replace(
+        selection,
+        report=selection.report.model_copy(update={"versions": (("python", "different-version"),)}),
+    )
+    assert changed.freeze_digest != selection.freeze_digest
+
+
+def test_historical_release_reproduction_still_rejects_changed_version(
+    packages, tmp_path, monkeypatch
+):
+    from tests import packaging_support
+
+    selection = packages["network_anomaly"][0]
+    changed = replace(
+        selection,
+        report=selection.report.model_copy(update={"versions": (("python", "different-version"),)}),
+    )
+    monkeypatch.setattr(
+        packaging_support,
+        "development_models",
+        lambda _: {"network_anomaly": (changed, packages["network_anomaly"][1])},
+    )
+    with pytest.raises(AssertionError):
+        packaging_support.selected_models(tmp_path)
 
 
 def test_reference_ties_and_normalized_boundary_roundtrip():

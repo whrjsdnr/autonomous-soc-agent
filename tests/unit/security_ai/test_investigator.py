@@ -532,7 +532,12 @@ async def test_execution_snapshot_rejects_inconsistent_links(
     elif kind == "signal_source":
         step["signal"]["source_evidence_ids"] = (uuid4(),)
     elif kind == "signal_time":
-        step["signal"]["source_created_at"] = utc_now()
+        original = step["signal"]["source_created_at"]
+        changed = original + timedelta(seconds=1)
+        assert changed != original
+        assert original.utcoffset() is not None and changed.utcoffset() is not None
+        print("PROVENANCE signal_time:", original.isoformat(), "->", changed.isoformat())
+        step["signal"]["source_created_at"] = changed
     elif kind == "result_model":
         step["result"]["model_version"] = "99"
     elif kind == "incident":

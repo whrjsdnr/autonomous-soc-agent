@@ -150,6 +150,9 @@ class SOCApplication:
             return
         try:
             credential, principal = self.authenticate(scope.get("headers", []))
+            if scope["path"] in ("/dashboard/self-improvement", "/api/dashboard/self-improvement"):
+                await self.self_improvement(scope, principal, send)
+                return
             if scope["path"] in ("/dashboard/security-ai", "/api/dashboard/security-ai"):
                 await self.security_ai_monitor(scope, principal, send)
                 return
@@ -335,6 +338,50 @@ class SOCApplication:
         view = self.startup().dashboard_security_ai(visible)
         html = scope["path"] == "/dashboard/security-ai"
         payload = render_security_ai(view).encode() if html else view.model_dump_json().encode()
+        await send(
+            {
+                "type": "http.response.start",
+                "status": 200,
+                "headers": [
+                    (b"content-type", b"text/html; charset=utf-8" if html else b"application/json"),
+                    (b"cache-control", b"no-store"),
+                    (b"content-security-policy", CSP.encode()),
+                    (b"x-content-type-options", b"nosniff"),
+                    (b"referrer-policy", b"no-referrer"),
+                ],
+            }
+        )
+        await send({"type": "http.response.body", "body": payload})
+
+    async def self_improvement(self, scope, principal, send):
+        from soc_agent.api.dashboard.render import CSP
+        from soc_agent.api.dashboard.self_improvement_render import render_self_improvement
+
+        if scope["method"] != "GET":
+            raise APIError(405, "method_not_allowed")
+        try:
+            self._access.require_access(principal, None, "GET:dashboard")
+        except Exception as error:
+            raise HumanAuthorizationDenied("Monitoring access denied") from error
+
+        def visible(identity):
+            try:
+                for operation in (
+                    "GET:",
+                    "GET:workflow",
+                    "GET:artifacts",
+                    "GET:dashboard/incident-detail",
+                ):
+                    self._access.require_access(principal, identity, operation)
+            except Exception:
+                return False
+            return True
+
+        view = self.startup().dashboard_self_improvement(visible)
+        html = scope["path"] == "/dashboard/self-improvement"
+        payload = (
+            render_self_improvement(view).encode() if html else view.model_dump_json().encode()
+        )
         await send(
             {
                 "type": "http.response.start",

@@ -2,7 +2,13 @@
 
 from uuid import NAMESPACE_URL, UUID, uuid5
 
-from soc_agent.ingestion.models import IngestionReceipt, IngestionResult, SOCEvent
+from soc_agent.ingestion.models import (
+    Event,
+    IngestionReceipt,
+    IngestionResult,
+    NetworkEvent,
+    SOCEvent,
+)
 from soc_agent.review.identity import content_digest
 from soc_agent.review.persistence import SQLiteGovernanceStore, ledger
 from soc_agent.review.persistence.models import StoredDataError, UnsupportedSchemaError
@@ -19,7 +25,7 @@ class EventConflict(ValueError):
 def migrate_ingestion(store: SQLiteGovernanceStore) -> None:
     """Independent optional extension v1. Governance schema v4 is not reset/relabelled."""
     with store.database.transaction() as connection:
-        if connection.execute("PRAGMA user_version").fetchone()[0] not in (
+        if store.database.core_schema_version(connection) not in (
             4,
             5,
             6,
@@ -28,6 +34,9 @@ def migrate_ingestion(store: SQLiteGovernanceStore) -> None:
             9,
             10,
             11,
+            12,
+            13,
+            14,
         ):
             raise UnsupportedSchemaError("Ingestion requires checkpoint schema v4")
         exists = connection.execute(
@@ -41,6 +50,10 @@ def migrate_ingestion(store: SQLiteGovernanceStore) -> None:
                 "SELECT event_id, incident_id, payload, digest FROM soc_events LIMIT 0"
             )
             return
+        if connection.execute("PRAGMA user_version").fetchone()[0] == 16:
+            raise UnsupportedSchemaError(
+                "Runtime ingestion layout must be provisioned before activation"
+            )
         if connection.execute("SELECT name FROM sqlite_master WHERE name='soc_events'").fetchone():
             raise StoredDataError("Unversioned event table; no silent adoption")
         connection.execute("CREATE TABLE soc_ingestion_schema (version INTEGER PRIMARY KEY)")
@@ -81,8 +94,8 @@ class EventIngestor:
             GovernanceSession(connection, self.store.store_id).load(receipt.incident_id)
             return receipt
 
-    def ingest(self, event: SOCEvent) -> IngestionResult:
-        event = checked(SOCEvent, event)
+    def ingest(self, event: Event) -> IngestionResult:
+        event = checked(NetworkEvent if isinstance(event, NetworkEvent) else SOCEvent, event)
         digest = content_digest(event)
         with self.store.database.transaction() as connection:
             row = connection.execute(
@@ -95,7 +108,7 @@ class EventIngestor:
                 GovernanceSession(connection, self.store.store_id).load(receipt.incident_id)
             else:
                 incident_id = uuid5(
-                    NAMESPACE_URL, f"soc-agent:authentication-event:{event.event_id}"
+                    NAMESPACE_URL, f"soc-agent:{event.event_type}-event:{event.event_id}"
                 )
                 state = IncidentState(incident_id=incident_id)
                 GovernanceSession(connection, self.store.store_id).register(state)
@@ -104,6 +117,7 @@ class EventIngestor:
                     incident_id=incident_id,
                     canonical_digest=digest,
                     received_at=utc_now(),
+                    ingestion_version=f"{event.event_type}-ingestion:v1",
                 )
                 connection.execute(
                     "INSERT INTO soc_events VALUES (?,?,?,?)",

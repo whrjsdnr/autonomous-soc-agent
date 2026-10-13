@@ -1,5 +1,6 @@
 """Governance before registered, validated execution; no reasoning or retries."""
 
+from contextlib import nullcontext
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -40,6 +41,8 @@ class GovernedExecutor:
     def request_approval(self, action: ActionProposal, *, reason: str) -> ApprovalRequest:
         """Explicit request creation; never approves or executes anything."""
         action = ActionProposal.model_validate(action.model_dump(warnings=False))
+        if self._registry.execution_guard is not None:
+            self._registry.execution_guard.action(action, "APPROVAL")
         tool = self._registry.get(action.tool_name)
         result = self._policy.evaluate(tool.metadata)
         if result.decision != PolicyDecision.REQUIRE_APPROVAL:
@@ -65,6 +68,8 @@ class GovernedExecutor:
         It creates no approval and consumes no confirmation.
         """
         action = ActionProposal.model_validate(action.model_dump(warnings=False))
+        if self._registry.execution_guard is not None:
+            self._registry.execution_guard.action(action, "EXECUTE")
         tool = self._registry.get(action.tool_name)
         if require_read_only and not tool.metadata.is_read_only_capability:
             raise ExecutionDeniedError("Caller requires an observation-only tool capability")
@@ -101,4 +106,6 @@ class GovernedExecutor:
         if action.action_id in self._attempted:
             raise ActionAlreadyAttemptedError("Action has already been attempted by this executor")
         self._attempted.add(action.action_id)
-        return await tool.execute(action.input_payload())
+        guard = self._registry.execution_guard
+        with guard.dispatch(action, tool) if guard is not None else nullcontext():
+            return await tool.execute(action.input_payload())
