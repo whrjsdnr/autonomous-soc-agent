@@ -1,0 +1,582 @@
+{
+  "contract_version": "soc-feature-contract-review:v1",
+  "expected_package_code_identity": "56293972d069dffaf564a390ab7a4c4554c2a2a5b2ab6be6f6f758b5ea3cce44",
+  "models": [
+    {
+      "profile": "detection_quality",
+      "source_package": "network-security-ai",
+      "package_version": "0.1.0",
+      "model_id": "network_cse2018_lightgbm_v4b2",
+      "model_version": "v4-b2",
+      "feature_schema": "cse-cic-ids2018-top40-v1",
+      "ordered_names_digest": "ac252fd93d3c5504803695fc609e8209701c74c812b163508b001490cb31b649",
+      "metadata_digest": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "features": [
+        {
+          "position": 0,
+          "name": "Fwd Act Data Pkts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 1,
+          "name": "Fwd Seg Size Min",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 2,
+          "name": "Fwd Header Len",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 3,
+          "name": "ECE Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 4,
+          "name": "Init Fwd Win Byts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 5,
+          "name": "URG Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 6,
+          "name": "RST Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 7,
+          "name": "Dst Port",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 8,
+          "name": "Fwd PSH Flags",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 9,
+          "name": "Fwd Pkts/s",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 10,
+          "name": "Fwd Pkt Len Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 11,
+          "name": "Pkt Len Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 12,
+          "name": "SYN Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 13,
+          "name": "Fwd Seg Size Avg",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 14,
+          "name": "Bwd Header Len",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 15,
+          "name": "Init Bwd Win Byts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 16,
+          "name": "Fwd IAT Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 17,
+          "name": "Fwd IAT Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 18,
+          "name": "Pkt Size Avg",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 19,
+          "name": "Fwd IAT Tot",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 20,
+          "name": "Bwd Pkt Len Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 21,
+          "name": "PSH Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 22,
+          "name": "Flow IAT Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 23,
+          "name": "Bwd IAT Min",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 24,
+          "name": "Bwd Pkt Len Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 25,
+          "name": "Pkt Len Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 26,
+          "name": "Bwd IAT Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 27,
+          "name": "Fwd Pkt Len Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 28,
+          "name": "ACK Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 29,
+          "name": "TotLen Bwd Pkts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 30,
+          "name": "Pkt Len Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 31,
+          "name": "FIN Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 32,
+          "name": "Bwd IAT Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 33,
+          "name": "Flow Duration",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 34,
+          "name": "Flow IAT Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 35,
+          "name": "Subflow Bwd Byts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 36,
+          "name": "Idle Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 37,
+          "name": "Fwd URG Flags",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 38,
+          "name": "Bwd Pkts/s",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 39,
+          "name": "Bwd IAT Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        }
+      ],
+      "status": "METADATA_CONTRACT_VERIFIED_ONLY",
+      "native_inference_run": false
+    },
+    {
+      "profile": "edge",
+      "source_package": "network-security-ai",
+      "package_version": "0.1.0",
+      "model_id": "network_cse2018_dnn_fp32",
+      "model_version": "v4-fp32-epoch13",
+      "feature_schema": "cse-cic-ids2018-top40-v1",
+      "ordered_names_digest": "ac252fd93d3c5504803695fc609e8209701c74c812b163508b001490cb31b649",
+      "metadata_digest": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "features": [
+        {
+          "position": 0,
+          "name": "Fwd Act Data Pkts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 1,
+          "name": "Fwd Seg Size Min",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 2,
+          "name": "Fwd Header Len",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 3,
+          "name": "ECE Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 4,
+          "name": "Init Fwd Win Byts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 5,
+          "name": "URG Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 6,
+          "name": "RST Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 7,
+          "name": "Dst Port",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 8,
+          "name": "Fwd PSH Flags",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 9,
+          "name": "Fwd Pkts/s",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 10,
+          "name": "Fwd Pkt Len Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 11,
+          "name": "Pkt Len Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 12,
+          "name": "SYN Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 13,
+          "name": "Fwd Seg Size Avg",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 14,
+          "name": "Bwd Header Len",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 15,
+          "name": "Init Bwd Win Byts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 16,
+          "name": "Fwd IAT Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 17,
+          "name": "Fwd IAT Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 18,
+          "name": "Pkt Size Avg",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 19,
+          "name": "Fwd IAT Tot",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 20,
+          "name": "Bwd Pkt Len Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 21,
+          "name": "PSH Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 22,
+          "name": "Flow IAT Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 23,
+          "name": "Bwd IAT Min",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 24,
+          "name": "Bwd Pkt Len Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 25,
+          "name": "Pkt Len Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 26,
+          "name": "Bwd IAT Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 27,
+          "name": "Fwd Pkt Len Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 28,
+          "name": "ACK Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 29,
+          "name": "TotLen Bwd Pkts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 30,
+          "name": "Pkt Len Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 31,
+          "name": "FIN Flag Cnt",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 32,
+          "name": "Bwd IAT Mean",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 33,
+          "name": "Flow Duration",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 34,
+          "name": "Flow IAT Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 35,
+          "name": "Subflow Bwd Byts",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 36,
+          "name": "Idle Max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 37,
+          "name": "Fwd URG Flags",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 38,
+          "name": "Bwd Pkts/s",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 39,
+          "name": "Bwd IAT Std",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        }
+      ],
+      "status": "METADATA_CONTRACT_VERIFIED_ONLY",
+      "native_inference_run": false
+    },
+    {
+      "profile": "litert",
+      "source_package": "dns-security-ai",
+      "package_version": "0.1.0",
+      "model_id": "dns_cicbell_dnn_int8",
+      "model_version": "int8-sha256-28e089af363d",
+      "feature_schema": "cic-bell-dns-stateless9-v1",
+      "ordered_names_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+      "metadata_digest": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+      "features": [
+        {
+          "position": 0,
+          "name": "FQDN_count",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 1,
+          "name": "subdomain_length",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 2,
+          "name": "numeric",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 3,
+          "name": "entropy",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 4,
+          "name": "special",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 5,
+          "name": "labels",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 6,
+          "name": "labels_max",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 7,
+          "name": "labels_average",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        },
+        {
+          "position": 8,
+          "name": "len",
+          "dtype": "float32",
+          "training_calculation_rule_status": "UNVERIFIED"
+        }
+      ],
+      "status": "METADATA_CONTRACT_VERIFIED_ONLY",
+      "native_inference_run": false
+    }
+  ]
+}
