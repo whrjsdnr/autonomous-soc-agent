@@ -22,6 +22,7 @@ from soc_agent.security_ai.operational.native_authentication import (
 
 
 def setup(tmp_path, monkeypatch, records=None, **config):
+    config.setdefault("assessment_mode", "READ_ONLY")
     cfg = RuntimeConfig(
         incident_id=UUID(int=55),
         repeated_failures=3,
@@ -160,7 +161,7 @@ async def test_stop_during_investigation_retains_unfinished_job(tmp_path, monkey
     monitor.store.request_stop()
     await asyncio.wait_for(task, timeout=3)
     assert monitor.store.state()["state"] == "STOPPED"
-    assert monitor.store.jobs()["PENDING"] >= 1
+    assert monitor.store.jobs()["BLOCKED"] == 1  # External invocation may still be alive.
 
 
 @pytest.mark.asyncio
@@ -282,7 +283,10 @@ async def test_llm_success_actual_core_with_fixture_client_and_unknown_cost(tmp_
             return response_model.model_validate(value)
 
     monitor.client = FixtureLLM()
-    await monitor.run(duration_seconds=1.5)
+    # Complete this finite batch deterministically; lifecycle deadlines are tested
+    # separately and CPU contention must not truncate the second fixture job.
+    await monitor.tick()
+    await monitor.investigate_one()
     assert monitor.store.jobs() == {"DONE": 2}
     with monitor.store.database.transaction(write=False) as c:
         import json

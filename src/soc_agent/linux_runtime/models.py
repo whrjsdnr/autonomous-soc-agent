@@ -28,7 +28,7 @@ class RuntimeConfig(Snapshot):
     max_llm_calls: int = Field(default=2, strict=True, ge=2, le=2)
     max_tool_calls: int = Field(default=2, strict=True, ge=1, le=8)
     circuit_failures: int = Field(default=3, strict=True, ge=1, le=10)
-    assessment_mode: Literal["READ_ONLY", "REAL_LLM"] = "READ_ONLY"
+    assessment_mode: Literal["SCRIPTED", "READ_ONLY", "REAL_LLM"] = "SCRIPTED"
     env_file: Path | None = Field(default=None, repr=False)
 
     @property

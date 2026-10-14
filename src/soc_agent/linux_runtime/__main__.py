@@ -29,8 +29,14 @@ def status(directory: Path):
     )
     collection_good = state["collector"] in ("INITIAL_READ", "RESUMED_EXACT", "RESUMED_WITH_REPLAY")
     ready = active and collection_good and state["llm"] == "AVAILABLE"
-    if store.config.assessment_mode == "READ_ONLY":
+    if store.config.assessment_mode != "REAL_LLM":
         ready = active and collection_good and state["last_error"] is None
+    ready = ready and not (
+        jobs.get("BLOCKED", 0)
+        or jobs.get("FAILED", 0)
+        or state["circuit_open"]
+        or state["last_error"]
+    )
     return {
         "runtime_state": state["state"],
         "health": "FAILED" if state["state"] == "FAILED" else "HEALTHY" if ready else "DEGRADED",
@@ -49,6 +55,11 @@ def status(directory: Path):
         "failed_investigations": jobs.get("FAILED", 0),
         "completed_read_only": jobs.get("DONE_READ_ONLY", 0),
         "completed_llm": jobs.get("DONE", 0),
+        "completed_scripted": jobs.get("DONE_SCRIPTED", 0),
+        "blocked_investigations": jobs.get("BLOCKED", 0),
+        "assessment_mode": store.config.assessment_mode,
+        "real_llm_enabled": store.config.assessment_mode == "REAL_LLM",
+        "response_execution": "DISABLED",
         "last_investigation_time": state["last_investigation"],
         "llm_availability": state["llm"],
         "last_error": state["last_error"],
@@ -68,7 +79,9 @@ def main():
     init.add_argument("--repeated-failures", type=int, required=True)
     init.add_argument("--multiple-accounts", type=int, required=True)
     init.add_argument("--poll-seconds", type=float, default=2)
-    init.add_argument("--assessment-mode", choices=("READ_ONLY", "REAL_LLM"), default="READ_ONLY")
+    init.add_argument(
+        "--assessment-mode", choices=("SCRIPTED", "READ_ONLY", "REAL_LLM"), default="SCRIPTED"
+    )
     init.add_argument("--env-file", type=Path)
     start = sub.add_parser("start")
     start.add_argument("--duration-seconds", type=float)

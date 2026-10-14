@@ -106,6 +106,18 @@ class RuntimeStore:
         with self.database.transaction() as c:
             self._audit(c, kind, details)
 
+    def invocation_event(self, finding: Finding, attempt: int, kind: str, details: dict):
+        """Commit safe invocation metadata before/after the nontransactional provider call."""
+        with self.database.transaction() as c:
+            row = c.execute(
+                "SELECT * FROM monitor_findings WHERE id=?", (finding.finding_id,)
+            ).fetchone()
+            if row is None or self._decode(row) != finding:
+                raise ValueError("LLM_INVOCATION_BINDING_REJECTED")
+            if row["status"] != "RUNNING" or row["attempts"] != attempt:
+                raise ValueError("LLM_INVOCATION_ATTEMPT_REJECTED")
+            self._audit(c, kind, details | {"finding": finding.finding_id, "attempt": attempt})
+
     def state(self):
         with self.database.transaction(write=False) as c:
             row = c.execute("SELECT * FROM monitor_state WHERE id=1").fetchone()
@@ -134,11 +146,41 @@ class RuntimeStore:
 
     def recover(self):
         with self.database.transaction() as c:
-            rows = c.execute("SELECT id FROM monitor_findings WHERE status='RUNNING'").fetchall()
+            rows = c.execute("SELECT * FROM monitor_findings").fetchall()
             for row in rows:
-                c.execute("UPDATE monitor_findings SET status='PENDING' WHERE id=?", (row["id"],))
+                finding = self._decode(row)  # Never repair a tampered row by restamping it.
+                if row["status"] != "RUNNING":
+                    continue
+                if self.config.assessment_mode == "REAL_LLM":
+                    # No atomicity exists between SQLite and the provider. Fail closed even
+                    # if this crash preceded submission; legacy ledgers have no call intent.
+                    result = {
+                        "finding_digest": finding.digest,
+                        "failure": "INTERRUPTED_REAL_LLM_REQUIRES_REVIEW",
+                        "invocation_outcome": "UNKNOWN",
+                        "llm_calls": None,
+                        "token_usage": None,
+                        "cost_estimate": None,
+                        "write_disposition": "WRITE_DENIED",
+                    }
+                    c.execute(
+                        "UPDATE monitor_findings SET status='BLOCKED',result=?,result_digest=? "
+                        "WHERE id=?",
+                        (json.dumps(result), content_digest_payload(result), row["id"]),
+                    )
+                else:
+                    c.execute(
+                        "UPDATE monitor_findings SET status='PENDING' WHERE id=?", (row["id"],)
+                    )
                 self._stamp(c, row["id"])
-                self._audit(c, "INVESTIGATION_RECOVERED", {"finding": row["id"]})
+                self._audit(
+                    c,
+                    "INVESTIGATION_RECOVERED",
+                    {
+                        "finding": row["id"],
+                        "requires_review": self.config.assessment_mode == "REAL_LLM",
+                    },
+                )
 
     def put(self, finding: Finding):
         with self.database.transaction() as c:
@@ -190,6 +232,7 @@ class RuntimeStore:
             "RUNNING",
             "DONE",
             "DONE_READ_ONLY",
+            "DONE_SCRIPTED",
             "FAILED",
             "BLOCKED",
         ):
@@ -203,7 +246,7 @@ class RuntimeStore:
         ):
             raise ValueError("INVESTIGATION_RESULT_INTEGRITY_REJECTED")
         if (
-            row["status"] in ("DONE", "DONE_READ_ONLY", "FAILED", "BLOCKED")
+            row["status"] in ("DONE", "DONE_READ_ONLY", "DONE_SCRIPTED", "FAILED", "BLOCKED")
             and row["result"] is None
         ):
             raise ValueError("INVESTIGATION_COMPLETION_RECEIPT_MISSING")
@@ -251,9 +294,23 @@ class RuntimeStore:
     def finish(
         self, finding: Finding, status: str, result: dict, *, next_attempt: datetime | None = None
     ):
-        if status not in ("PENDING", "DONE", "DONE_READ_ONLY", "FAILED", "BLOCKED"):
+        if status not in (
+            "PENDING",
+            "DONE",
+            "DONE_READ_ONLY",
+            "DONE_SCRIPTED",
+            "FAILED",
+            "BLOCKED",
+        ):
             raise ValueError("INVALID_JOB_STATUS")
+        if result.get("finding_digest") != finding.digest:
+            raise ValueError("INVESTIGATION_RESULT_BINDING_MISMATCH")
         with self.database.transaction() as c:
+            row = c.execute(
+                "SELECT * FROM monitor_findings WHERE id=?", (finding.finding_id,)
+            ).fetchone()
+            if row is None or self._decode(row) != finding:
+                raise ValueError("INVESTIGATION_COMPLETION_BINDING_REJECTED")
             changed = c.execute(
                 "UPDATE monitor_findings SET "
                 "status=?,result=?,result_digest=?,next_attempt=? WHERE id=? AND "

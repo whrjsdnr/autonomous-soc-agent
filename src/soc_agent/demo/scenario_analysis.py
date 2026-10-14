@@ -60,6 +60,7 @@ async def analyze(
     client: LLMClient | None = None,
     env_file: Path | None = None,
     finding_context: dict | None = None,
+    max_plan_steps: int = 8,
 ) -> tuple[
     InvestigationResult | None,
     AssessmentResult | None,
@@ -104,7 +105,9 @@ async def analyze(
                     )
                 )
             registry = authentication_read_registry(pipeline)
-            planner = InvestigationPlanner(llm_client=recorded, registry=registry)
+            planner = InvestigationPlanner(
+                llm_client=recorded, registry=registry, max_steps=max_plan_steps
+            )
             plan = await planner.create_plan(state)
             investigation = await InvestigationOrchestrator(
                 executor=GovernedExecutor(
@@ -130,7 +133,7 @@ async def analyze(
                         "assessment": {
                             "severity": "info",
                             "confidence": 0.0,
-                            "summary": "FIXTURE advisory only: no attack established; no authority",
+                            "summary": "SCRIPTED advisory: no attack established; no authority",
                             "supporting_evidence_ids": [
                                 str(e.evidence_id) for e in investigation.incident_state.evidence
                             ],

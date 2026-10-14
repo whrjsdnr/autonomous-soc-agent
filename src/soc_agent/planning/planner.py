@@ -1,9 +1,11 @@
 """One structured LLM request, followed by deterministic plan validation."""
 
+from pydantic import Field, create_model
+
 from soc_agent.investigation import InvestigationPlan
 from soc_agent.llm import LLMClient
 from soc_agent.planning.errors import PlanningError
-from soc_agent.planning.models import LLMInvestigationPlanDraft
+from soc_agent.planning.models import LLMInvestigationPlanDraft, LLMInvestigationStepDraft
 from soc_agent.planning.prompts import build_planner_input, build_request
 from soc_agent.planning.strategy import (
     InvestigationStrategy,
@@ -29,10 +31,26 @@ class InvestigationPlanner:
         llm_client: LLMClient,
         registry: ToolRegistry,
         strategy_provider: InvestigationStrategyProvider | None = None,
+        max_steps: int = 8,
     ) -> None:
+        if type(max_steps) is not int or not 1 <= max_steps <= 8:
+            raise ValueError("Planner step limit must be in [1, 8]")
         self._llm = llm_client
         self._registry = registry
         self._strategy_provider = strategy_provider
+        self._max_steps = max_steps
+        self._response_model = (
+            LLMInvestigationPlanDraft
+            if max_steps == 8
+            else create_model(
+                "LLMInvestigationPlanDraft",
+                __base__=LLMInvestigationPlanDraft,
+                steps=(
+                    tuple[LLMInvestigationStepDraft, ...],
+                    Field(min_length=1, max_length=max_steps),
+                ),
+            )
+        )
 
     async def create_plan(self, incident_state: IncidentState) -> InvestigationPlan:
         tools = {
@@ -53,7 +71,10 @@ class InvestigationPlanner:
             ensure_satisfiable(strategy, tools)
         context = build_planner_input(incident_state, tools)
         draft = await self._llm.generate_structured(
-            request=build_request(context), response_model=LLMInvestigationPlanDraft
+            request=build_request(context, max_steps=self._max_steps),
+            response_model=self._response_model,
         )
+        # Revalidate independently of a custom client implementation.
+        draft = self._response_model.model_validate(draft.model_dump())
         plan = normalize_plan(draft, incident_id=context.incident_id, tools=tools)
         return validate_strategy(plan, strategy, tools=tools) if strategy is not None else plan

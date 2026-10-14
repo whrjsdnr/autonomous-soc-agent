@@ -49,7 +49,7 @@ def build_planner_input(
     )
 
 
-def build_request(context: PlannerInput) -> LLMRequest:
+def build_request(context: PlannerInput, *, max_steps: int = 8) -> LLMRequest:
     """JSON section keys keep hostile text inside escaped data values."""
     data = context.model_dump(mode="json")
     sections = {
@@ -63,6 +63,6 @@ def build_request(context: PlannerInput) -> LLMRequest:
         ],
     }
     return LLMRequest(
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=SYSTEM_PROMPT.replace("1 to 8 steps", f"1 to {max_steps} steps"),
         user_prompt=json.dumps(sections, sort_keys=True, ensure_ascii=True, indent=2),
     )

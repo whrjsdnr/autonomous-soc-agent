@@ -15,8 +15,12 @@ from soc_agent.execution.errors import ExecutionDeniedError
 from soc_agent.linux_runtime.findings import correlate, validate_finding
 from soc_agent.linux_runtime.models import RuntimeConfig
 from soc_agent.linux_runtime.store import RuntimeStore
-from soc_agent.llm.errors import LLMResponseValidationError
-from soc_agent.llm.openai_compatible import OpenAICompatibleClient, OpenAICompatibleSettings
+from soc_agent.llm.errors import LLMError, LLMResponseValidationError, LLMTimeoutError
+from soc_agent.llm.openai_compatible import (
+    LLMNetworkError,
+    OpenAICompatibleClient,
+    OpenAICompatibleSettings,
+)
 from soc_agent.policy import PolicyEngine
 from soc_agent.realtime.queue import EventQueue
 from soc_agent.review.persistence.models import StorageError
@@ -63,19 +67,55 @@ def initialize(directory: Path, config: RuntimeConfig):
 
 
 class BudgetClient:
-    def __init__(self, client, config):
+    def __init__(self, client, config, *, store=None, finding=None, attempt=None):
         self.client, self.config, self.calls = client, config, 0
         self.usage = []
+        self.store, self.finding, self.attempt = store, finding, attempt
+        self.invocation_uncertain = False
+
+    def record(self, kind, details):
+        if self.store is not None:
+            self.store.invocation_event(self.finding, self.attempt, kind, details)
 
     async def generate_structured(self, *, request, response_model):
         if self.calls >= self.config.max_llm_calls:
             raise LLMResponseValidationError("LLM_CALL_LIMIT")
+        details = {
+            "call": self.calls + 1,
+            "request_digest": content_digest_payload(request.model_dump(mode="json")),
+        }
+        # An audit write failure prevents submission, not merely completion.
+        self.record("LLM_INVOCATION_STARTED", details)
         self.calls += 1
-        response = await self.client.generate_structured(
-            request=request, response_model=response_model
-        )
+        self.invocation_uncertain = True
+        try:
+            response = await self.client.generate_structured(
+                request=request, response_model=response_model
+            )
+        except (LLMError, asyncio.CancelledError) as error:
+            self.invocation_uncertain = isinstance(
+                error, (LLMTimeoutError, LLMNetworkError, asyncio.CancelledError)
+            )
+            usage = getattr(self.client, "last_usage", None)
+            self.usage.append(dict(usage) if isinstance(usage, dict) else None)
+            self.record(
+                "LLM_INVOCATION_FAILED",
+                details
+                | {"category": type(error).__name__, "outcome_unknown": self.invocation_uncertain},
+            )
+            raise
         usage = getattr(self.client, "last_usage", None)
         self.usage.append(dict(usage) if isinstance(usage, dict) else None)
+        self.record(
+            "LLM_RESPONSE_RECEIVED",
+            details
+            | {
+                "response_digest": content_digest_payload(response.model_dump(mode="json")),
+                "token_usage": self.usage[-1],
+                "response_trust": "UNTRUSTED",
+            },
+        )
+        self.invocation_uncertain = False
         if hasattr(response, "steps") and len(response.steps) > self.config.max_tool_calls:
             raise LLMResponseValidationError("TOOL_CALL_LIMIT")
         return response
@@ -116,10 +156,17 @@ class LinuxMonitor:
         if not claimed:
             return
         finding, attempt = claimed
-        budget = BudgetClient(self.client, self.config) if self.client else None
+        budget = (
+            BudgetClient(
+                self.client, self.config, store=self.store, finding=finding, attempt=attempt
+            )
+            if self.config.assessment_mode == "REAL_LLM" and self.client
+            else None
+        )
         failure_code = "SOURCE_VALIDATION_FAILURE"
         try:
             validate_finding(self.pipeline, finding)
+            failure_code = "INVESTIGATION_FAILURE"
             if self.config.assessment_mode == "READ_ONLY":
                 investigation = await asyncio.wait_for(
                     investigate_authentication(self.pipeline),
@@ -144,9 +191,10 @@ class LinuxMonitor:
                 investigation, assessment, stages, exchanges = await asyncio.wait_for(
                     analyze(
                         self.pipeline,
-                        "REAL_LLM",
+                        self.config.assessment_mode,
                         client=budget,
                         finding_context=finding.model_dump(mode="json"),
+                        max_plan_steps=self.config.max_tool_calls,
                     ),
                     timeout=self.config.investigation_seconds,
                 )
@@ -155,7 +203,7 @@ class LinuxMonitor:
                     raise ValueError("LLM_INVESTIGATION_BLOCKED")
                 result = {
                     "finding_digest": finding.digest,
-                    "mode": "REAL_LLM",
+                    "mode": self.config.assessment_mode,
                     "investigation": investigation.model_dump(mode="json"),
                     "investigation_digest": content_digest_payload(
                         investigation.model_dump(mode="json")
@@ -163,12 +211,12 @@ class LinuxMonitor:
                     "assessment": assessment.model_dump(mode="json"),
                     "assessment_digest": content_digest_payload(assessment.model_dump(mode="json")),
                     "llm_exchanges": list(exchanges),
-                    "llm_calls": budget.calls,
-                    "token_usage": budget.usage,
+                    "llm_calls": budget.calls if budget else 0,
+                    "token_usage": budget.usage if budget else None,
                     "cost_estimate": None,
                     "write_disposition": "WRITE_DENIED",
                 }
-                status = "DONE"
+                status = "DONE" if budget else "DONE_SCRIPTED"
             # Real execution boundary, not just a UI warning.
             executor = GovernedExecutor(
                 registry=authentication_read_registry(self.pipeline),
@@ -198,26 +246,34 @@ class LinuxMonitor:
         except asyncio.CancelledError:
             self.store.finish(
                 finding,
-                "PENDING",
+                "BLOCKED" if budget and budget.calls else "PENDING",
                 {
                     "finding_digest": finding.digest,
                     "failure": "CANCELLED",
                     "llm_calls": budget.calls if budget else 0,
-                    "token_usage": None,
+                    "token_usage": budget.usage if budget else None,
                     "cost_estimate": None,
+                    "invocation_outcome": "UNKNOWN" if budget and budget.calls else "NOT_SUBMITTED",
+                    "write_disposition": "WRITE_DENIED",
                 },
             )
             raise
         except (TimeoutError, ValueError, StorageError, OSError) as error:
             self.llm_failures += 1
-            retry = attempt <= self.config.investigation_retry_limit
+            retry = attempt <= self.config.investigation_retry_limit and not (
+                budget and budget.invocation_uncertain
+            )
             result = {
                 "finding_digest": finding.digest,
                 "failure": type(error).__name__,
                 "failure_code": failure_code,
                 "llm_calls": budget.calls if budget else 0,
-                "token_usage": None,
+                "token_usage": budget.usage if budget else None,
                 "cost_estimate": None,
+                "invocation_outcome": "UNKNOWN"
+                if budget and budget.invocation_uncertain
+                else "SETTLED",
+                "write_disposition": "WRITE_DENIED",
             }
             self.store.finish(
                 finding,
