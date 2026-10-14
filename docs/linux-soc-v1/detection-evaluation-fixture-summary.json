@@ -1,0 +1,651 @@
+{
+  "dataset_id": "authentication-advisory-fixtures:1.0.0",
+  "ground_truth_digest": "5eec9c8a198596e954d0f5bece72d99121c0311808435b30d4ed6a73d6437ce4",
+  "source_origin": [
+    "FIXTURE"
+  ],
+  "unit": "INCIDENT_UTC_FIVE_MINUTE_WINDOW_RULE",
+  "deduplication": "OR per rule/window",
+  "label_semantics": "INDEPENDENT_ADVISORY_UTILITY_NOT_ATTACK_TRUTH",
+  "case_count": 11,
+  "unit_count": 60,
+  "label_distribution": {
+    "positive": 9,
+    "negative": 51
+  },
+  "configuration": {
+    "repeated_failures": 5,
+    "multiple_accounts": 3,
+    "assurance": "EXAMPLE_UNVALIDATED"
+  },
+  "code_version": "b93fac8fc21b09b27e09bc8f23747cff5bc7167c",
+  "source_sha256": {
+    "soc_agent/evaluation/authentication.py": "43bd501217e70afc3610e952d95d9c3263650092051d74330ae437a5d6cb7d86",
+    "soc_agent/linux_runtime/findings.py": "94b865683fb634c4ba9f4afa252f352dd9f7038e7225694e07245256f52cad78",
+    "soc_agent/security_ai/operational/authentication_detection.py": "6cf925c80967571b8d4feebbaf9df190f05355edd8486d467fa91cd8968d7fc7",
+    "soc_agent/security_ai/operational/native_authentication.py": "20d4bc911bc724174f78a4fb63e9c15c4018f662c670b2630bb9419685e8e907",
+    "soc_agent/security_ai/operational/source_store.py": "0b0a950ee83d0ef070d527567baefcec3d136bf56aa12b728bb1d8ddea50de90",
+    "soc_agent/demo/scenario_pipeline.py": "e4a75a4eea4c2276b6aaa07ef76c75ac66dc9bb32ceff516aa57f15e147e81d8",
+    "soc_agent/demo/scenario_models.py": "9aa8ddb3fb4951db8e2d3911a25931028391a05b7388408afbe97b60de6f34d9",
+    "soc_agent/realtime/queue.py": "fd0e8b82851a6ec61503d29ffea1d3afe11e520e3d45a8c5e333bbde8800af45"
+  },
+  "confusion_matrix": {
+    "TP": 7,
+    "FP": 2,
+    "TN": 49,
+    "FN": 2
+  },
+  "metrics": {
+    "precision": 0.7777777777777778,
+    "recall": 0.7777777777777778,
+    "f1": 0.7777777777777778,
+    "false_positive_rate": 0.0392156862745098,
+    "false_negative_rate": 0.2222222222222222
+  },
+  "per_rule": {
+    "REPEATED_AUTH_FAILURE": {
+      "counts": {
+        "TP": 2,
+        "FP": 1,
+        "TN": 8,
+        "FN": 1
+      },
+      "metrics": {
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "f1": 0.6666666666666666,
+        "false_positive_rate": 0.1111111111111111,
+        "false_negative_rate": 0.3333333333333333
+      }
+    },
+    "REPEATED_ACCOUNT_FAILURE": {
+      "counts": {
+        "TP": 2,
+        "FP": 1,
+        "TN": 8,
+        "FN": 1
+      },
+      "metrics": {
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "f1": 0.6666666666666666,
+        "false_positive_rate": 0.1111111111111111,
+        "false_negative_rate": 0.3333333333333333
+      }
+    },
+    "MULTI_ACCOUNT_FAILURE": {
+      "counts": {
+        "TP": 1,
+        "FP": 0,
+        "TN": 11,
+        "FN": 0
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0
+      }
+    },
+    "FAILURE_THEN_SUCCESS": {
+      "counts": {
+        "TP": 1,
+        "FP": 0,
+        "TN": 11,
+        "FN": 0
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0
+      }
+    },
+    "SUDO_PAM_MODULE_FAILURE": {
+      "counts": {
+        "TP": 1,
+        "FP": 0,
+        "TN": 11,
+        "FN": 0
+      },
+      "metrics": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "false_positive_rate": 0.0,
+        "false_negative_rate": 0.0
+      }
+    }
+  },
+  "cases": [
+    {
+      "case_id": "normal",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 0,
+      "unique_rule_window_detections": 0,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": []
+    },
+    {
+      "case_id": "single",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 0,
+      "unique_rule_window_detections": 0,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": []
+    },
+    {
+      "case_id": "repeated",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 2,
+      "unique_rule_window_detections": 2,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": [
+        10.0,
+        10.0
+      ]
+    },
+    {
+      "case_id": "multiple",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 1,
+      "unique_rule_window_detections": 1,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": [
+        10.0
+      ]
+    },
+    {
+      "case_id": "transition",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 1,
+      "unique_rule_window_detections": 1,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": [
+        10.0
+      ]
+    },
+    {
+      "case_id": "sudo",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 1,
+      "unique_rule_window_detections": 1,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": [
+        10.0
+      ]
+    },
+    {
+      "case_id": "boundary",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:05:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:05:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:05:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:05:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:05:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 0,
+      "unique_rule_window_detections": 0,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": []
+    },
+    {
+      "case_id": "late",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "FN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "FN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 0,
+      "unique_rule_window_detections": 0,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": []
+    },
+    {
+      "case_id": "duplicate",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 2,
+      "unique_rule_window_detections": 2,
+      "duplicate_events": 5,
+      "fixture_latency_seconds": [
+        10.0,
+        10.0
+      ]
+    },
+    {
+      "case_id": "unsupported",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 0,
+      "unique_rule_window_detections": 0,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": []
+    },
+    {
+      "case_id": "benign-burst",
+      "outcomes": [
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_AUTH_FAILURE",
+          "classification": "FP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "REPEATED_ACCOUNT_FAILURE",
+          "classification": "FP",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "MULTI_ACCOUNT_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "FAILURE_THEN_SUCCESS",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "window_start": "2026-01-01T00:00:00+00:00",
+          "rule": "SUDO_PAM_MODULE_FAILURE",
+          "classification": "TN",
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ],
+      "finding_count": 2,
+      "unique_rule_window_detections": 2,
+      "duplicate_events": 0,
+      "fixture_latency_seconds": [
+        10.0,
+        10.0
+      ]
+    }
+  ],
+  "latency_assurance": "SIMULATED_FIXTURE_CLOCK_NOT_PRODUCTION_LATENCY",
+  "detection_latency_distribution": {
+    "sample_count": 9,
+    "min": 10.0,
+    "max": 10.0,
+    "median": 10.0
+  },
+  "false_positives": [
+    {
+      "case_id": "benign-burst",
+      "window_start": "2026-01-01T00:00:00+00:00",
+      "rule": "REPEATED_AUTH_FAILURE",
+      "classification": "FP",
+      "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+    },
+    {
+      "case_id": "benign-burst",
+      "window_start": "2026-01-01T00:00:00+00:00",
+      "rule": "REPEATED_ACCOUNT_FAILURE",
+      "classification": "FP",
+      "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+    }
+  ],
+  "false_negatives": [
+    {
+      "case_id": "late",
+      "window_start": "2026-01-01T00:00:00+00:00",
+      "rule": "REPEATED_AUTH_FAILURE",
+      "classification": "FN",
+      "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+    },
+    {
+      "case_id": "late",
+      "window_start": "2026-01-01T00:00:00+00:00",
+      "rule": "REPEATED_ACCOUNT_FAILURE",
+      "classification": "FN",
+      "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+    }
+  ],
+  "evaluation_digest": "43474039d917781d2c99fd6dea49b11cf185859a3fcb8f8a93bd573e23042539",
+  "measured_replay_seconds": [
+    0.11684435105416924,
+    0.10908556199865416,
+    0.5693848690134473,
+    0.4451327819842845,
+    0.3951294769649394,
+    0.12888346699764952,
+    0.5557262150105089,
+    0.41297001601196826,
+    0.6378678669570945,
+    0.02658485504798591,
+    0.4735353810247034
+  ]
+}

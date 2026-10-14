@@ -1,0 +1,3151 @@
+{
+  "dataset_id": "authentication-advisory-fixtures:1.0.0",
+  "cases": [
+    {
+      "case_id": "normal",
+      "description": "Controlled normal authentication",
+      "incident_id": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "5170431d-8cfb-50f8-82ed-d4d210342355",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:30Z",
+          "source": {
+            "namespace": "scenario:normal:55061643f8c3719ddd99ba40f253084e1ab4f628f7cda347295dad770fa7d228",
+            "generation": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+            "record": "fixture-normal-ed3278bf-0c67-5e07-8b87-8ba8a575b66d-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "94f7a31d946aa156b9e370f2de124a782b72540d3eacebdc22bc22a84fb63753"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "success"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "normal",
+          "incident_id": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+          "event_ids": [
+            "5170431d-8cfb-50f8-82ed-d4d210342355"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "a19ea4d504b33d9d8afec315753afa0b77adc7d3bd21bd88941c8e198af3fdc0"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "normal",
+          "incident_id": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+          "event_ids": [
+            "5170431d-8cfb-50f8-82ed-d4d210342355"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "a19ea4d504b33d9d8afec315753afa0b77adc7d3bd21bd88941c8e198af3fdc0"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "normal",
+          "incident_id": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+          "event_ids": [
+            "5170431d-8cfb-50f8-82ed-d4d210342355"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "a19ea4d504b33d9d8afec315753afa0b77adc7d3bd21bd88941c8e198af3fdc0"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "normal",
+          "incident_id": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+          "event_ids": [
+            "5170431d-8cfb-50f8-82ed-d4d210342355"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "a19ea4d504b33d9d8afec315753afa0b77adc7d3bd21bd88941c8e198af3fdc0"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "normal",
+          "incident_id": "ed3278bf-0c67-5e07-8b87-8ba8a575b66d",
+          "event_ids": [
+            "5170431d-8cfb-50f8-82ed-d4d210342355"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "a19ea4d504b33d9d8afec315753afa0b77adc7d3bd21bd88941c8e198af3fdc0"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "single",
+      "description": "Single test failure is not an attack",
+      "incident_id": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "98c39306-b7cb-537b-ab6a-fd54719e308e",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:30Z",
+          "source": {
+            "namespace": "scenario:single:ec56922022bd9c472da5f02d598349d0d14c6e8d2dc9ce61f68df6df734ece22",
+            "generation": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+            "record": "fixture-single-0cac090b-5edf-59e3-a63d-48ebdffd539b-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "c4ccf5f47b6d819d075e8476c8b11c53a4f71598d0a51a4cc07455288a62ae6b"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "single",
+          "incident_id": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+          "event_ids": [
+            "98c39306-b7cb-537b-ab6a-fd54719e308e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "5c4168ee17609ee1d3484170343950c339a1c199b5d93592cde94c58e8987b41"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "single",
+          "incident_id": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+          "event_ids": [
+            "98c39306-b7cb-537b-ab6a-fd54719e308e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "5c4168ee17609ee1d3484170343950c339a1c199b5d93592cde94c58e8987b41"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "single",
+          "incident_id": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+          "event_ids": [
+            "98c39306-b7cb-537b-ab6a-fd54719e308e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "5c4168ee17609ee1d3484170343950c339a1c199b5d93592cde94c58e8987b41"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "single",
+          "incident_id": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+          "event_ids": [
+            "98c39306-b7cb-537b-ab6a-fd54719e308e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "5c4168ee17609ee1d3484170343950c339a1c199b5d93592cde94c58e8987b41"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "single",
+          "incident_id": "0cac090b-5edf-59e3-a63d-48ebdffd539b",
+          "event_ids": [
+            "98c39306-b7cb-537b-ab6a-fd54719e308e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "5c4168ee17609ee1d3484170343950c339a1c199b5d93592cde94c58e8987b41"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "repeated",
+      "description": "Candidate repeat pattern, not proven malicious",
+      "incident_id": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "d4173b8b-b296-54e3-b46b-18dccb42a165",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:repeated:ec77c8e4af2b008976cdd7ab2866bcdedf7347d6d5cee99904d24adf92731ebd",
+            "generation": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+            "record": "fixture-repeated-535bfbee-d2e1-5c34-a5a6-08fc6989bd79-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "a6493352d07375587aa154fe5b5af3413690de2e31fd159d88f5479e58ac2856"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "490e5de8-029a-5fb6-b5cf-fc2c92e3c68d",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:repeated:ec77c8e4af2b008976cdd7ab2866bcdedf7347d6d5cee99904d24adf92731ebd",
+            "generation": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+            "record": "fixture-repeated-535bfbee-d2e1-5c34-a5a6-08fc6989bd79-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "b3457d7dd85e0cc73f20f7bafa4a9618164897b3db9ff5503524bc91f946b763"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "9283b7ff-a2f9-596a-b220-c02782079bc5",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:repeated:ec77c8e4af2b008976cdd7ab2866bcdedf7347d6d5cee99904d24adf92731ebd",
+            "generation": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+            "record": "fixture-repeated-535bfbee-d2e1-5c34-a5a6-08fc6989bd79-2"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225602000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "8de17cdb151c0f87040158bc7ad977b6c25eaacd81a9d604a90842d6d9d12456"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "c5305c17-c78c-5272-ad14-9a7f844c2718",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:03Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:repeated:ec77c8e4af2b008976cdd7ab2866bcdedf7347d6d5cee99904d24adf92731ebd",
+            "generation": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+            "record": "fixture-repeated-535bfbee-d2e1-5c34-a5a6-08fc6989bd79-3"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225603000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "7a7e12f1a8e9363b244ef4b04acfb0f33bc23e38bdd095b6ffdd97591da4a87a"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "12efd1fc-d24e-5088-bba6-64c4aefa3ecb",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:repeated:ec77c8e4af2b008976cdd7ab2866bcdedf7347d6d5cee99904d24adf92731ebd",
+            "generation": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+            "record": "fixture-repeated-535bfbee-d2e1-5c34-a5a6-08fc6989bd79-4"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225604000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "c2b01203fa9ca946bcef88e2f9d0f1c4787e5a2abe5663aa9069a72db187e1dd"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "repeated",
+          "incident_id": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+          "event_ids": [
+            "d4173b8b-b296-54e3-b46b-18dccb42a165",
+            "490e5de8-029a-5fb6-b5cf-fc2c92e3c68d",
+            "9283b7ff-a2f9-596a-b220-c02782079bc5",
+            "c5305c17-c78c-5272-ad14-9a7f844c2718",
+            "12efd1fc-d24e-5088-bba6-64c4aefa3ecb"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "18955d1083d9441afc94a2357f9ca21f8ff8eeb254816d703bafdf9c52660df4",
+            "52f8fb6f6f3407d06cc1040ae85dde15b0e9127b9f4bf94ae2457f01dbb78f85",
+            "ba973c8924cc3903f58ea6219fc31068edc5ae7117250ccf6bd09b4f86c5333c",
+            "214a73ab4f9cf891a78db0a1d000ebf8941e83681a554e71183c9406bb9f5ec8",
+            "9a305b97ab3a567e6c1942d9de4aa10b8571a0c896db235f4252d1b7366c464f"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "repeated",
+          "incident_id": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+          "event_ids": [
+            "d4173b8b-b296-54e3-b46b-18dccb42a165",
+            "490e5de8-029a-5fb6-b5cf-fc2c92e3c68d",
+            "9283b7ff-a2f9-596a-b220-c02782079bc5",
+            "c5305c17-c78c-5272-ad14-9a7f844c2718",
+            "12efd1fc-d24e-5088-bba6-64c4aefa3ecb"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "18955d1083d9441afc94a2357f9ca21f8ff8eeb254816d703bafdf9c52660df4",
+            "52f8fb6f6f3407d06cc1040ae85dde15b0e9127b9f4bf94ae2457f01dbb78f85",
+            "ba973c8924cc3903f58ea6219fc31068edc5ae7117250ccf6bd09b4f86c5333c",
+            "214a73ab4f9cf891a78db0a1d000ebf8941e83681a554e71183c9406bb9f5ec8",
+            "9a305b97ab3a567e6c1942d9de4aa10b8571a0c896db235f4252d1b7366c464f"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "repeated",
+          "incident_id": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+          "event_ids": [
+            "d4173b8b-b296-54e3-b46b-18dccb42a165",
+            "490e5de8-029a-5fb6-b5cf-fc2c92e3c68d",
+            "9283b7ff-a2f9-596a-b220-c02782079bc5",
+            "c5305c17-c78c-5272-ad14-9a7f844c2718",
+            "12efd1fc-d24e-5088-bba6-64c4aefa3ecb"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "18955d1083d9441afc94a2357f9ca21f8ff8eeb254816d703bafdf9c52660df4",
+            "52f8fb6f6f3407d06cc1040ae85dde15b0e9127b9f4bf94ae2457f01dbb78f85",
+            "ba973c8924cc3903f58ea6219fc31068edc5ae7117250ccf6bd09b4f86c5333c",
+            "214a73ab4f9cf891a78db0a1d000ebf8941e83681a554e71183c9406bb9f5ec8",
+            "9a305b97ab3a567e6c1942d9de4aa10b8571a0c896db235f4252d1b7366c464f"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "repeated",
+          "incident_id": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+          "event_ids": [
+            "d4173b8b-b296-54e3-b46b-18dccb42a165",
+            "490e5de8-029a-5fb6-b5cf-fc2c92e3c68d",
+            "9283b7ff-a2f9-596a-b220-c02782079bc5",
+            "c5305c17-c78c-5272-ad14-9a7f844c2718",
+            "12efd1fc-d24e-5088-bba6-64c4aefa3ecb"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "18955d1083d9441afc94a2357f9ca21f8ff8eeb254816d703bafdf9c52660df4",
+            "52f8fb6f6f3407d06cc1040ae85dde15b0e9127b9f4bf94ae2457f01dbb78f85",
+            "ba973c8924cc3903f58ea6219fc31068edc5ae7117250ccf6bd09b4f86c5333c",
+            "214a73ab4f9cf891a78db0a1d000ebf8941e83681a554e71183c9406bb9f5ec8",
+            "9a305b97ab3a567e6c1942d9de4aa10b8571a0c896db235f4252d1b7366c464f"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "repeated",
+          "incident_id": "535bfbee-d2e1-5c34-a5a6-08fc6989bd79",
+          "event_ids": [
+            "d4173b8b-b296-54e3-b46b-18dccb42a165",
+            "490e5de8-029a-5fb6-b5cf-fc2c92e3c68d",
+            "9283b7ff-a2f9-596a-b220-c02782079bc5",
+            "c5305c17-c78c-5272-ad14-9a7f844c2718",
+            "12efd1fc-d24e-5088-bba6-64c4aefa3ecb"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "18955d1083d9441afc94a2357f9ca21f8ff8eeb254816d703bafdf9c52660df4",
+            "52f8fb6f6f3407d06cc1040ae85dde15b0e9127b9f4bf94ae2457f01dbb78f85",
+            "ba973c8924cc3903f58ea6219fc31068edc5ae7117250ccf6bd09b4f86c5333c",
+            "214a73ab4f9cf891a78db0a1d000ebf8941e83681a554e71183c9406bb9f5ec8",
+            "9a305b97ab3a567e6c1942d9de4aa10b8571a0c896db235f4252d1b7366c464f"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "multiple",
+      "description": "Multiple account candidate",
+      "incident_id": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "b09d4b7a-222a-5648-be5f-0abfab056fbb",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:32Z",
+          "source": {
+            "namespace": "scenario:multiple:50f62ef99699e71e99a72ac21fc131582eeb047e4ea88e428b54500e39019dfa",
+            "generation": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+            "record": "fixture-multiple-19364793-58df-5eb8-8f6c-0cb8c8bbcd19-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "74dab743ccc65cc0666186b0cc5f766e5f26ed3ee67747260fb08d3ecd54e769"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "22dc82dbf410f3bfc9c722675d2b9637fa755e5f9aa0061fb290547633394135"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "f9a99449-fe8f-5ffb-920f-e0e844f149db",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:00:32Z",
+          "source": {
+            "namespace": "scenario:multiple:50f62ef99699e71e99a72ac21fc131582eeb047e4ea88e428b54500e39019dfa",
+            "generation": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+            "record": "fixture-multiple-19364793-58df-5eb8-8f6c-0cb8c8bbcd19-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "43f0599d7ebabb39a6eaebad64442695501f7e79887f2ff4c6a4655a3b679f67"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "c7aef2ce5d4185002cbe278e196166f427709b3ace203505d8a2ff6cd868f78e"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "60ede18c-f1fe-50f6-aaa1-e8d23f693337",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "ingestion_timestamp": "2026-01-01T00:00:32Z",
+          "source": {
+            "namespace": "scenario:multiple:50f62ef99699e71e99a72ac21fc131582eeb047e4ea88e428b54500e39019dfa",
+            "generation": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+            "record": "fixture-multiple-19364793-58df-5eb8-8f6c-0cb8c8bbcd19-2"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225602000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "3413d82362a61fe46c7b78166d0a86193bcfa5c99577794e4d6fdbded2ef6742"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "77fde31dbaf3173063847ea86a42c9ab38dd832176e99bed4559fc64d171f186"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0,
+        1,
+        2
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "multiple",
+          "incident_id": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+          "event_ids": [
+            "b09d4b7a-222a-5648-be5f-0abfab056fbb",
+            "f9a99449-fe8f-5ffb-920f-e0e844f149db",
+            "60ede18c-f1fe-50f6-aaa1-e8d23f693337"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "59a15022fd1e3e7702e74da589af7cee60c56fcc290d0610b1537d916f07bee0",
+            "2b75a99f11185915fcb3a7c4ee82fb3bd3cbf4cb1730b72228ca2f92c88afab3",
+            "34355fe451126cc3e5de5fc5037cc04c8b63166afe505b32ebd34f6e51193e51"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "multiple",
+          "incident_id": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+          "event_ids": [
+            "b09d4b7a-222a-5648-be5f-0abfab056fbb",
+            "f9a99449-fe8f-5ffb-920f-e0e844f149db",
+            "60ede18c-f1fe-50f6-aaa1-e8d23f693337"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "59a15022fd1e3e7702e74da589af7cee60c56fcc290d0610b1537d916f07bee0",
+            "2b75a99f11185915fcb3a7c4ee82fb3bd3cbf4cb1730b72228ca2f92c88afab3",
+            "34355fe451126cc3e5de5fc5037cc04c8b63166afe505b32ebd34f6e51193e51"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "multiple",
+          "incident_id": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+          "event_ids": [
+            "b09d4b7a-222a-5648-be5f-0abfab056fbb",
+            "f9a99449-fe8f-5ffb-920f-e0e844f149db",
+            "60ede18c-f1fe-50f6-aaa1-e8d23f693337"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "59a15022fd1e3e7702e74da589af7cee60c56fcc290d0610b1537d916f07bee0",
+            "2b75a99f11185915fcb3a7c4ee82fb3bd3cbf4cb1730b72228ca2f92c88afab3",
+            "34355fe451126cc3e5de5fc5037cc04c8b63166afe505b32ebd34f6e51193e51"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "multiple",
+          "incident_id": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+          "event_ids": [
+            "b09d4b7a-222a-5648-be5f-0abfab056fbb",
+            "f9a99449-fe8f-5ffb-920f-e0e844f149db",
+            "60ede18c-f1fe-50f6-aaa1-e8d23f693337"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "59a15022fd1e3e7702e74da589af7cee60c56fcc290d0610b1537d916f07bee0",
+            "2b75a99f11185915fcb3a7c4ee82fb3bd3cbf4cb1730b72228ca2f92c88afab3",
+            "34355fe451126cc3e5de5fc5037cc04c8b63166afe505b32ebd34f6e51193e51"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "multiple",
+          "incident_id": "19364793-58df-5eb8-8f6c-0cb8c8bbcd19",
+          "event_ids": [
+            "b09d4b7a-222a-5648-be5f-0abfab056fbb",
+            "f9a99449-fe8f-5ffb-920f-e0e844f149db",
+            "60ede18c-f1fe-50f6-aaa1-e8d23f693337"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "59a15022fd1e3e7702e74da589af7cee60c56fcc290d0610b1537d916f07bee0",
+            "2b75a99f11185915fcb3a7c4ee82fb3bd3cbf4cb1730b72228ca2f92c88afab3",
+            "34355fe451126cc3e5de5fc5037cc04c8b63166afe505b32ebd34f6e51193e51"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "transition",
+      "description": "Failure followed by success candidate",
+      "incident_id": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "08badae1-65d9-5409-a474-39b3dead6e8b",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:31Z",
+          "source": {
+            "namespace": "scenario:transition:538043bfaad9bb51699e67991a24e2baf60ec212483e0e04c88e62e54775a240",
+            "generation": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+            "record": "fixture-transition-b81bbee0-470b-5a70-9fa2-30f897f94a8c-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "aa3549978c1d1dc2369feda5a7d012b887040a327294fe3afe509838a494e810"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "f007a47b-6fa1-50ed-a41c-04ad57cb78b9",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:00:31Z",
+          "source": {
+            "namespace": "scenario:transition:538043bfaad9bb51699e67991a24e2baf60ec212483e0e04c88e62e54775a240",
+            "generation": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+            "record": "fixture-transition-b81bbee0-470b-5a70-9fa2-30f897f94a8c-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "2e71bd2d4ed101cee14244afe250dc9e46a67f3569e2328e703b2d25a34c67a2"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "success"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0,
+        1
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "transition",
+          "incident_id": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+          "event_ids": [
+            "08badae1-65d9-5409-a474-39b3dead6e8b",
+            "f007a47b-6fa1-50ed-a41c-04ad57cb78b9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "7f78b8ea834ee54ca613256aa9c8a605ecdbfa63b70f5d7347bd014b00d01f71",
+            "62ca9cd76ee5077db794c5972d96a4dfff453a65f085184ba1066a7814c1b2d2"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "transition",
+          "incident_id": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+          "event_ids": [
+            "08badae1-65d9-5409-a474-39b3dead6e8b",
+            "f007a47b-6fa1-50ed-a41c-04ad57cb78b9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "7f78b8ea834ee54ca613256aa9c8a605ecdbfa63b70f5d7347bd014b00d01f71",
+            "62ca9cd76ee5077db794c5972d96a4dfff453a65f085184ba1066a7814c1b2d2"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "transition",
+          "incident_id": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+          "event_ids": [
+            "08badae1-65d9-5409-a474-39b3dead6e8b",
+            "f007a47b-6fa1-50ed-a41c-04ad57cb78b9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "7f78b8ea834ee54ca613256aa9c8a605ecdbfa63b70f5d7347bd014b00d01f71",
+            "62ca9cd76ee5077db794c5972d96a4dfff453a65f085184ba1066a7814c1b2d2"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "transition",
+          "incident_id": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+          "event_ids": [
+            "08badae1-65d9-5409-a474-39b3dead6e8b",
+            "f007a47b-6fa1-50ed-a41c-04ad57cb78b9"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "7f78b8ea834ee54ca613256aa9c8a605ecdbfa63b70f5d7347bd014b00d01f71",
+            "62ca9cd76ee5077db794c5972d96a4dfff453a65f085184ba1066a7814c1b2d2"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "transition",
+          "incident_id": "b81bbee0-470b-5a70-9fa2-30f897f94a8c",
+          "event_ids": [
+            "08badae1-65d9-5409-a474-39b3dead6e8b",
+            "f007a47b-6fa1-50ed-a41c-04ad57cb78b9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "7f78b8ea834ee54ca613256aa9c8a605ecdbfa63b70f5d7347bd014b00d01f71",
+            "62ca9cd76ee5077db794c5972d96a4dfff453a65f085184ba1066a7814c1b2d2"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "sudo",
+      "description": "PAM module failure, not final sudo denial",
+      "incident_id": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "1b939ca5-bca3-55b0-916e-275ec84d389c",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:30Z",
+          "source": {
+            "namespace": "scenario:sudo:409f739331aa716e871e2b6338ba73bce0b62e1040da955829463b928d8f6f9a",
+            "generation": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+            "record": "fixture-sudo-b0f9de41-9330-5c68-bf59-94ba931d9070-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sudo",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "73539cf17d691e65370e461d0a2ae5c9505a18665c572216f91d718c7ca10c64"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "pam-unix-sudo-auth-failure:v1"
+            ],
+            [
+              "account_id",
+              "e1056ec0c28f6c3ede7a61178a85fee4f88efb82bcf62307d5a2bee266db20fb"
+            ],
+            [
+              "source_identifier",
+              "aa48ca84cee76110b477d6f2887d53c4a84bfc0697f611e0dfd51f5891b495a2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "sudo",
+          "incident_id": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+          "event_ids": [
+            "1b939ca5-bca3-55b0-916e-275ec84d389c"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "edfe46afc92940fd9c6fb9e4d470b317a60565166adb136f5149299e12a5b910"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "sudo",
+          "incident_id": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+          "event_ids": [
+            "1b939ca5-bca3-55b0-916e-275ec84d389c"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "edfe46afc92940fd9c6fb9e4d470b317a60565166adb136f5149299e12a5b910"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "sudo",
+          "incident_id": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+          "event_ids": [
+            "1b939ca5-bca3-55b0-916e-275ec84d389c"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "edfe46afc92940fd9c6fb9e4d470b317a60565166adb136f5149299e12a5b910"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "sudo",
+          "incident_id": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+          "event_ids": [
+            "1b939ca5-bca3-55b0-916e-275ec84d389c"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "edfe46afc92940fd9c6fb9e4d470b317a60565166adb136f5149299e12a5b910"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "sudo",
+          "incident_id": "b0f9de41-9330-5c68-bf59-94ba931d9070",
+          "event_ids": [
+            "1b939ca5-bca3-55b0-916e-275ec84d389c"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "edfe46afc92940fd9c6fb9e4d470b317a60565166adb136f5149299e12a5b910"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "boundary",
+      "description": "Below threshold in each of two windows",
+      "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "01a6e7ff-08d7-5c29-bdd0-19f4471d015d",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:05:31Z",
+          "source": {
+            "namespace": "scenario:boundary:21dada03161bc5cbe02027fafc806af1af0d7b228860ea53f7b7e0353739a660",
+            "generation": "b111e639-d71f-5154-9983-cc76e268bf25",
+            "record": "fixture-boundary-b111e639-d71f-5154-9983-cc76e268bf25-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "216a86134efec523a58ed2918db764b09364ec198652c4ada959bb3db10b5b7c"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "0f6ee58f-ead5-5110-8853-02de5df93da9",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:05:31Z",
+          "source": {
+            "namespace": "scenario:boundary:21dada03161bc5cbe02027fafc806af1af0d7b228860ea53f7b7e0353739a660",
+            "generation": "b111e639-d71f-5154-9983-cc76e268bf25",
+            "record": "fixture-boundary-b111e639-d71f-5154-9983-cc76e268bf25-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "f83fac1bea266edd70c5f18139dceef946908c862d1f4d1bf91040fbc96c3ff7"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "bd990a97-b1c4-53f3-a809-1ebc4a82bb45",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:05:00Z",
+          "ingestion_timestamp": "2026-01-01T00:05:31Z",
+          "source": {
+            "namespace": "scenario:boundary:21dada03161bc5cbe02027fafc806af1af0d7b228860ea53f7b7e0353739a660",
+            "generation": "b111e639-d71f-5154-9983-cc76e268bf25",
+            "record": "fixture-boundary-b111e639-d71f-5154-9983-cc76e268bf25-2"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225900000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "6f1ea1ca6954221e9574a1cf471b93d7536e81bee8ea0cb7b87240cea033ecb8"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "2d66b39a-e23a-52ae-ad23-77d85ec13948",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:05:01Z",
+          "ingestion_timestamp": "2026-01-01T00:05:31Z",
+          "source": {
+            "namespace": "scenario:boundary:21dada03161bc5cbe02027fafc806af1af0d7b228860ea53f7b7e0353739a660",
+            "generation": "b111e639-d71f-5154-9983-cc76e268bf25",
+            "record": "fixture-boundary-b111e639-d71f-5154-9983-cc76e268bf25-3"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225901000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "a6e267486723ac92cbabfab95adc29731f9ddc73f5e709c3754952c447131a1d"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "01a6e7ff-08d7-5c29-bdd0-19f4471d015d",
+            "0f6ee58f-ead5-5110-8853-02de5df93da9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "34011939536ed5ae3622831e9f053b0e26b2cbdf42700f62f175383faebe7af4",
+            "2101b9aaf0164ea99888799d7892de5b56c30384763e1a877e1151a1341a4b00"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "01a6e7ff-08d7-5c29-bdd0-19f4471d015d",
+            "0f6ee58f-ead5-5110-8853-02de5df93da9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "34011939536ed5ae3622831e9f053b0e26b2cbdf42700f62f175383faebe7af4",
+            "2101b9aaf0164ea99888799d7892de5b56c30384763e1a877e1151a1341a4b00"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "01a6e7ff-08d7-5c29-bdd0-19f4471d015d",
+            "0f6ee58f-ead5-5110-8853-02de5df93da9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "34011939536ed5ae3622831e9f053b0e26b2cbdf42700f62f175383faebe7af4",
+            "2101b9aaf0164ea99888799d7892de5b56c30384763e1a877e1151a1341a4b00"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "01a6e7ff-08d7-5c29-bdd0-19f4471d015d",
+            "0f6ee58f-ead5-5110-8853-02de5df93da9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "34011939536ed5ae3622831e9f053b0e26b2cbdf42700f62f175383faebe7af4",
+            "2101b9aaf0164ea99888799d7892de5b56c30384763e1a877e1151a1341a4b00"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "01a6e7ff-08d7-5c29-bdd0-19f4471d015d",
+            "0f6ee58f-ead5-5110-8853-02de5df93da9"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "34011939536ed5ae3622831e9f053b0e26b2cbdf42700f62f175383faebe7af4",
+            "2101b9aaf0164ea99888799d7892de5b56c30384763e1a877e1151a1341a4b00"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "bd990a97-b1c4-53f3-a809-1ebc4a82bb45",
+            "2d66b39a-e23a-52ae-ad23-77d85ec13948"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:05:01Z",
+          "window_start": "2026-01-01T00:05:00Z",
+          "window_end": "2026-01-01T00:10:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "6783ea288fac34d1ad8e432d1c25b50985b27e3ef36e121d1b4985b2c1bbe2d0",
+            "af2e850be5b6682eca505da8e173254030e03d4318acb8c60d9f7f0f574a2b6d"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "bd990a97-b1c4-53f3-a809-1ebc4a82bb45",
+            "2d66b39a-e23a-52ae-ad23-77d85ec13948"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:05:01Z",
+          "window_start": "2026-01-01T00:05:00Z",
+          "window_end": "2026-01-01T00:10:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "6783ea288fac34d1ad8e432d1c25b50985b27e3ef36e121d1b4985b2c1bbe2d0",
+            "af2e850be5b6682eca505da8e173254030e03d4318acb8c60d9f7f0f574a2b6d"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "bd990a97-b1c4-53f3-a809-1ebc4a82bb45",
+            "2d66b39a-e23a-52ae-ad23-77d85ec13948"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:05:01Z",
+          "window_start": "2026-01-01T00:05:00Z",
+          "window_end": "2026-01-01T00:10:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "6783ea288fac34d1ad8e432d1c25b50985b27e3ef36e121d1b4985b2c1bbe2d0",
+            "af2e850be5b6682eca505da8e173254030e03d4318acb8c60d9f7f0f574a2b6d"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "bd990a97-b1c4-53f3-a809-1ebc4a82bb45",
+            "2d66b39a-e23a-52ae-ad23-77d85ec13948"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:05:01Z",
+          "window_start": "2026-01-01T00:05:00Z",
+          "window_end": "2026-01-01T00:10:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "6783ea288fac34d1ad8e432d1c25b50985b27e3ef36e121d1b4985b2c1bbe2d0",
+            "af2e850be5b6682eca505da8e173254030e03d4318acb8c60d9f7f0f574a2b6d"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "boundary",
+          "incident_id": "b111e639-d71f-5154-9983-cc76e268bf25",
+          "event_ids": [
+            "bd990a97-b1c4-53f3-a809-1ebc4a82bb45",
+            "2d66b39a-e23a-52ae-ad23-77d85ec13948"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:05:01Z",
+          "window_start": "2026-01-01T00:05:00Z",
+          "window_end": "2026-01-01T00:10:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "6783ea288fac34d1ad8e432d1c25b50985b27e3ef36e121d1b4985b2c1bbe2d0",
+            "af2e850be5b6682eca505da8e173254030e03d4318acb8c60d9f7f0f574a2b6d"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "late",
+      "description": "Reference repeat pattern but arrivals quarantined as late",
+      "incident_id": "0170885b-7249-54fd-a266-9851bc254a09",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "72243313-de04-5fdc-abb7-c857aa98f899",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:02:30Z",
+          "source": {
+            "namespace": "scenario:late:4f318464e1a4a0476f356881f808dae53ee11240830f55e5ddd499ab11f7d01c",
+            "generation": "0170885b-7249-54fd-a266-9851bc254a09",
+            "record": "fixture-late-0170885b-7249-54fd-a266-9851bc254a09-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "c82cf11b73cf43774a883bd4d3c0d464c019adbbf7076321936be5e39adbd8c3"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "da326a8a-20d5-5248-b68b-3810c957d124",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:02:30Z",
+          "source": {
+            "namespace": "scenario:late:4f318464e1a4a0476f356881f808dae53ee11240830f55e5ddd499ab11f7d01c",
+            "generation": "0170885b-7249-54fd-a266-9851bc254a09",
+            "record": "fixture-late-0170885b-7249-54fd-a266-9851bc254a09-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "31169630ae6ef6461d1783dc865a12897b64aa24b45cfa58c9c52e41e89454a8"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "bbda7664-9be1-588f-a17d-5dceeb23401e",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "ingestion_timestamp": "2026-01-01T00:02:30Z",
+          "source": {
+            "namespace": "scenario:late:4f318464e1a4a0476f356881f808dae53ee11240830f55e5ddd499ab11f7d01c",
+            "generation": "0170885b-7249-54fd-a266-9851bc254a09",
+            "record": "fixture-late-0170885b-7249-54fd-a266-9851bc254a09-2"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225602000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "ff59ef6322280e5844077373b106cfd65e2b5c7c29e4172aa703d5ca2b0af283"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "dfcdc6f2-3a6d-5422-95b5-7693d5fdbfcc",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:03Z",
+          "ingestion_timestamp": "2026-01-01T00:02:30Z",
+          "source": {
+            "namespace": "scenario:late:4f318464e1a4a0476f356881f808dae53ee11240830f55e5ddd499ab11f7d01c",
+            "generation": "0170885b-7249-54fd-a266-9851bc254a09",
+            "record": "fixture-late-0170885b-7249-54fd-a266-9851bc254a09-3"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225603000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "f0e5632d1f7679162ab220a1d95c9195e51ceaf6af5177250624dde7ed95fa6d"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "5e6267f1-f1ba-57b4-9efe-5adc1ed0d880",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "ingestion_timestamp": "2026-01-01T00:02:30Z",
+          "source": {
+            "namespace": "scenario:late:4f318464e1a4a0476f356881f808dae53ee11240830f55e5ddd499ab11f7d01c",
+            "generation": "0170885b-7249-54fd-a266-9851bc254a09",
+            "record": "fixture-late-0170885b-7249-54fd-a266-9851bc254a09-4"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225604000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "329d3b0370de802a2ed356b298e4a713ef7ff70b7134c7614110f00b932ed34f"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "97cd2b54-233d-5660-9d66-9de192b5b822",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:02:00Z",
+          "ingestion_timestamp": "2026-01-01T00:02:30Z",
+          "source": {
+            "namespace": "scenario:late:4f318464e1a4a0476f356881f808dae53ee11240830f55e5ddd499ab11f7d01c",
+            "generation": "0170885b-7249-54fd-a266-9851bc254a09",
+            "record": "fixture-late-0170885b-7249-54fd-a266-9851bc254a09-5"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225720000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "fba49aa5eb66762cdcc05bfbd3b7be89df9be1cb0904a04f80a311ccb159063b"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "success"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        5,
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "late",
+          "incident_id": "0170885b-7249-54fd-a266-9851bc254a09",
+          "event_ids": [
+            "72243313-de04-5fdc-abb7-c857aa98f899",
+            "da326a8a-20d5-5248-b68b-3810c957d124",
+            "bbda7664-9be1-588f-a17d-5dceeb23401e",
+            "dfcdc6f2-3a6d-5422-95b5-7693d5fdbfcc",
+            "5e6267f1-f1ba-57b4-9efe-5adc1ed0d880",
+            "97cd2b54-233d-5660-9d66-9de192b5b822"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:02:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "1fd49308890dc4907f812b7471a88dea2efc346af95075b4f7e57cce02c60995",
+            "3408b0fbc57d8d3c49aaeaa871ea5ef8ca995a9f0b061e826067276293b57df5",
+            "11eac4240d85c5a6d4e28ced2b361f4bca1b65b6283d3a6f9993db24d0610f94",
+            "5a32a6f63dc30e6a06e294550dbead9f20c9b226fe9978647266b9788a2036d7",
+            "8999e4ab43350fafa556890acc8f1b4fd354e46ed5ec8803bcc89dd6ca1092be",
+            "6bac070e8a920b0ee14c2b3afb23eb937106de9a4ae300408c5830aa02d6f142"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "late",
+          "incident_id": "0170885b-7249-54fd-a266-9851bc254a09",
+          "event_ids": [
+            "72243313-de04-5fdc-abb7-c857aa98f899",
+            "da326a8a-20d5-5248-b68b-3810c957d124",
+            "bbda7664-9be1-588f-a17d-5dceeb23401e",
+            "dfcdc6f2-3a6d-5422-95b5-7693d5fdbfcc",
+            "5e6267f1-f1ba-57b4-9efe-5adc1ed0d880",
+            "97cd2b54-233d-5660-9d66-9de192b5b822"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:02:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "1fd49308890dc4907f812b7471a88dea2efc346af95075b4f7e57cce02c60995",
+            "3408b0fbc57d8d3c49aaeaa871ea5ef8ca995a9f0b061e826067276293b57df5",
+            "11eac4240d85c5a6d4e28ced2b361f4bca1b65b6283d3a6f9993db24d0610f94",
+            "5a32a6f63dc30e6a06e294550dbead9f20c9b226fe9978647266b9788a2036d7",
+            "8999e4ab43350fafa556890acc8f1b4fd354e46ed5ec8803bcc89dd6ca1092be",
+            "6bac070e8a920b0ee14c2b3afb23eb937106de9a4ae300408c5830aa02d6f142"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "late",
+          "incident_id": "0170885b-7249-54fd-a266-9851bc254a09",
+          "event_ids": [
+            "72243313-de04-5fdc-abb7-c857aa98f899",
+            "da326a8a-20d5-5248-b68b-3810c957d124",
+            "bbda7664-9be1-588f-a17d-5dceeb23401e",
+            "dfcdc6f2-3a6d-5422-95b5-7693d5fdbfcc",
+            "5e6267f1-f1ba-57b4-9efe-5adc1ed0d880",
+            "97cd2b54-233d-5660-9d66-9de192b5b822"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:02:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "1fd49308890dc4907f812b7471a88dea2efc346af95075b4f7e57cce02c60995",
+            "3408b0fbc57d8d3c49aaeaa871ea5ef8ca995a9f0b061e826067276293b57df5",
+            "11eac4240d85c5a6d4e28ced2b361f4bca1b65b6283d3a6f9993db24d0610f94",
+            "5a32a6f63dc30e6a06e294550dbead9f20c9b226fe9978647266b9788a2036d7",
+            "8999e4ab43350fafa556890acc8f1b4fd354e46ed5ec8803bcc89dd6ca1092be",
+            "6bac070e8a920b0ee14c2b3afb23eb937106de9a4ae300408c5830aa02d6f142"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "late",
+          "incident_id": "0170885b-7249-54fd-a266-9851bc254a09",
+          "event_ids": [
+            "72243313-de04-5fdc-abb7-c857aa98f899",
+            "da326a8a-20d5-5248-b68b-3810c957d124",
+            "bbda7664-9be1-588f-a17d-5dceeb23401e",
+            "dfcdc6f2-3a6d-5422-95b5-7693d5fdbfcc",
+            "5e6267f1-f1ba-57b4-9efe-5adc1ed0d880",
+            "97cd2b54-233d-5660-9d66-9de192b5b822"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:02:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "1fd49308890dc4907f812b7471a88dea2efc346af95075b4f7e57cce02c60995",
+            "3408b0fbc57d8d3c49aaeaa871ea5ef8ca995a9f0b061e826067276293b57df5",
+            "11eac4240d85c5a6d4e28ced2b361f4bca1b65b6283d3a6f9993db24d0610f94",
+            "5a32a6f63dc30e6a06e294550dbead9f20c9b226fe9978647266b9788a2036d7",
+            "8999e4ab43350fafa556890acc8f1b4fd354e46ed5ec8803bcc89dd6ca1092be",
+            "6bac070e8a920b0ee14c2b3afb23eb937106de9a4ae300408c5830aa02d6f142"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "late",
+          "incident_id": "0170885b-7249-54fd-a266-9851bc254a09",
+          "event_ids": [
+            "72243313-de04-5fdc-abb7-c857aa98f899",
+            "da326a8a-20d5-5248-b68b-3810c957d124",
+            "bbda7664-9be1-588f-a17d-5dceeb23401e",
+            "dfcdc6f2-3a6d-5422-95b5-7693d5fdbfcc",
+            "5e6267f1-f1ba-57b4-9efe-5adc1ed0d880",
+            "97cd2b54-233d-5660-9d66-9de192b5b822"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:02:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "1fd49308890dc4907f812b7471a88dea2efc346af95075b4f7e57cce02c60995",
+            "3408b0fbc57d8d3c49aaeaa871ea5ef8ca995a9f0b061e826067276293b57df5",
+            "11eac4240d85c5a6d4e28ced2b361f4bca1b65b6283d3a6f9993db24d0610f94",
+            "5a32a6f63dc30e6a06e294550dbead9f20c9b226fe9978647266b9788a2036d7",
+            "8999e4ab43350fafa556890acc8f1b4fd354e46ed5ec8803bcc89dd6ca1092be",
+            "6bac070e8a920b0ee14c2b3afb23eb937106de9a4ae300408c5830aa02d6f142"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "duplicate",
+      "description": "Same repeat records replayed twice",
+      "incident_id": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "0b9954d8-d477-5f67-9e1c-94eb2b8d17cb",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:duplicate:4409af5b516dd4453e2f743990b1d3a5eb0b7cbcaa04cccd05eadea1f795684c",
+            "generation": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+            "record": "fixture-duplicate-414cfba6-8369-5755-ba8b-2370d3137b4e-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "a48ae4c00046e3e0141355eb30a514dcf2875f162eb845f1de921a20575822d4"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "c72accc0-7da4-5ca7-b271-19b8d892e211",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:duplicate:4409af5b516dd4453e2f743990b1d3a5eb0b7cbcaa04cccd05eadea1f795684c",
+            "generation": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+            "record": "fixture-duplicate-414cfba6-8369-5755-ba8b-2370d3137b4e-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "5fa6591dd4681d45c2a152f9a61997af9f6178f148cc9755359abbd43e246b6a"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "2c1d164f-dea8-5571-af4c-169d6569b678",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:duplicate:4409af5b516dd4453e2f743990b1d3a5eb0b7cbcaa04cccd05eadea1f795684c",
+            "generation": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+            "record": "fixture-duplicate-414cfba6-8369-5755-ba8b-2370d3137b4e-2"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225602000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "fc751fa3896a3c2749aad03d4bae903b10c569fc78d219e6c25d45db49f1314c"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "3d46da02-fa95-5692-a6a4-065825ea715b",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:03Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:duplicate:4409af5b516dd4453e2f743990b1d3a5eb0b7cbcaa04cccd05eadea1f795684c",
+            "generation": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+            "record": "fixture-duplicate-414cfba6-8369-5755-ba8b-2370d3137b4e-3"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225603000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "363806dd49e4311668929e509112a0ef65595880c0b6fb9a849e5c532f564b3b"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "327df582-48d7-598d-b210-4905c4d0d79e",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:duplicate:4409af5b516dd4453e2f743990b1d3a5eb0b7cbcaa04cccd05eadea1f795684c",
+            "generation": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+            "record": "fixture-duplicate-414cfba6-8369-5755-ba8b-2370d3137b4e-4"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225604000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "95595851f8c3e24afdd9e7d2c5a0c1a8c309bd11668f12b598375442a63fe085"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "duplicate",
+          "incident_id": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+          "event_ids": [
+            "0b9954d8-d477-5f67-9e1c-94eb2b8d17cb",
+            "c72accc0-7da4-5ca7-b271-19b8d892e211",
+            "2c1d164f-dea8-5571-af4c-169d6569b678",
+            "3d46da02-fa95-5692-a6a4-065825ea715b",
+            "327df582-48d7-598d-b210-4905c4d0d79e"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "0425e01ea829652db1b9d44092b9789fdba205062fd44436603158d36ab89d60",
+            "de953368f07417017eb8964a4d921c10e87b8ca1443a14af981df1d762ce1978",
+            "1e3e9371b3d5cdb428082e0f1fdbfe56a67f8c10d2eb3866f1fe9e0873c651a1",
+            "7bead790c19e4f312d37ef61ee9671bce5c31e5931cfed2182a68788d39d1952",
+            "8bfa77807d4308b3cb8c07d804a4d6de32bcc6b5a4c8a80d4a37eca9db89c3fb"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "duplicate",
+          "incident_id": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+          "event_ids": [
+            "0b9954d8-d477-5f67-9e1c-94eb2b8d17cb",
+            "c72accc0-7da4-5ca7-b271-19b8d892e211",
+            "2c1d164f-dea8-5571-af4c-169d6569b678",
+            "3d46da02-fa95-5692-a6a4-065825ea715b",
+            "327df582-48d7-598d-b210-4905c4d0d79e"
+          ],
+          "ground_truth_label": "EXPECTED_ADVISORY",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "0425e01ea829652db1b9d44092b9789fdba205062fd44436603158d36ab89d60",
+            "de953368f07417017eb8964a4d921c10e87b8ca1443a14af981df1d762ce1978",
+            "1e3e9371b3d5cdb428082e0f1fdbfe56a67f8c10d2eb3866f1fe9e0873c651a1",
+            "7bead790c19e4f312d37ef61ee9671bce5c31e5931cfed2182a68788d39d1952",
+            "8bfa77807d4308b3cb8c07d804a4d6de32bcc6b5a4c8a80d4a37eca9db89c3fb"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "duplicate",
+          "incident_id": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+          "event_ids": [
+            "0b9954d8-d477-5f67-9e1c-94eb2b8d17cb",
+            "c72accc0-7da4-5ca7-b271-19b8d892e211",
+            "2c1d164f-dea8-5571-af4c-169d6569b678",
+            "3d46da02-fa95-5692-a6a4-065825ea715b",
+            "327df582-48d7-598d-b210-4905c4d0d79e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "0425e01ea829652db1b9d44092b9789fdba205062fd44436603158d36ab89d60",
+            "de953368f07417017eb8964a4d921c10e87b8ca1443a14af981df1d762ce1978",
+            "1e3e9371b3d5cdb428082e0f1fdbfe56a67f8c10d2eb3866f1fe9e0873c651a1",
+            "7bead790c19e4f312d37ef61ee9671bce5c31e5931cfed2182a68788d39d1952",
+            "8bfa77807d4308b3cb8c07d804a4d6de32bcc6b5a4c8a80d4a37eca9db89c3fb"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "duplicate",
+          "incident_id": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+          "event_ids": [
+            "0b9954d8-d477-5f67-9e1c-94eb2b8d17cb",
+            "c72accc0-7da4-5ca7-b271-19b8d892e211",
+            "2c1d164f-dea8-5571-af4c-169d6569b678",
+            "3d46da02-fa95-5692-a6a4-065825ea715b",
+            "327df582-48d7-598d-b210-4905c4d0d79e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "0425e01ea829652db1b9d44092b9789fdba205062fd44436603158d36ab89d60",
+            "de953368f07417017eb8964a4d921c10e87b8ca1443a14af981df1d762ce1978",
+            "1e3e9371b3d5cdb428082e0f1fdbfe56a67f8c10d2eb3866f1fe9e0873c651a1",
+            "7bead790c19e4f312d37ef61ee9671bce5c31e5931cfed2182a68788d39d1952",
+            "8bfa77807d4308b3cb8c07d804a4d6de32bcc6b5a4c8a80d4a37eca9db89c3fb"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "duplicate",
+          "incident_id": "414cfba6-8369-5755-ba8b-2370d3137b4e",
+          "event_ids": [
+            "0b9954d8-d477-5f67-9e1c-94eb2b8d17cb",
+            "c72accc0-7da4-5ca7-b271-19b8d892e211",
+            "2c1d164f-dea8-5571-af4c-169d6569b678",
+            "3d46da02-fa95-5692-a6a4-065825ea715b",
+            "327df582-48d7-598d-b210-4905c4d0d79e"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "0425e01ea829652db1b9d44092b9789fdba205062fd44436603158d36ab89d60",
+            "de953368f07417017eb8964a4d921c10e87b8ca1443a14af981df1d762ce1978",
+            "1e3e9371b3d5cdb428082e0f1fdbfe56a67f8c10d2eb3866f1fe9e0873c651a1",
+            "7bead790c19e4f312d37ef61ee9671bce5c31e5931cfed2182a68788d39d1952",
+            "8bfa77807d4308b3cb8c07d804a4d6de32bcc6b5a4c8a80d4a37eca9db89c3fb"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "unsupported",
+      "description": "Untrusted logger record is not authentication evidence",
+      "incident_id": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "6089a4bd-f567-562e-bfe5-c82a3b72e8a1",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:30Z",
+          "source": {
+            "namespace": "scenario:unsupported:9f016b680e7e7879f48494782f71df8eb9e7c87ca5270bd2c722506d707957f5",
+            "generation": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+            "record": "fixture-unsupported-e408c73b-9f12-52c8-8323-b7be8b75ceaa-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "186f04784e6fb300cd269bb0bbd2730dc95d6b85981509e6d63cb844ce7046e8"
+            ],
+            [
+              "parse_status",
+              "NOT_INFERABLE"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "unsupported",
+          "incident_id": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+          "event_ids": [
+            "6089a4bd-f567-562e-bfe5-c82a3b72e8a1"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "c61c35fd96221ee1d590726c6c7d41a3e12da5b6c03f7eb539c37ede360a78db"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "unsupported",
+          "incident_id": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+          "event_ids": [
+            "6089a4bd-f567-562e-bfe5-c82a3b72e8a1"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "c61c35fd96221ee1d590726c6c7d41a3e12da5b6c03f7eb539c37ede360a78db"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "unsupported",
+          "incident_id": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+          "event_ids": [
+            "6089a4bd-f567-562e-bfe5-c82a3b72e8a1"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "c61c35fd96221ee1d590726c6c7d41a3e12da5b6c03f7eb539c37ede360a78db"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "unsupported",
+          "incident_id": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+          "event_ids": [
+            "6089a4bd-f567-562e-bfe5-c82a3b72e8a1"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "c61c35fd96221ee1d590726c6c7d41a3e12da5b6c03f7eb539c37ede360a78db"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "unsupported",
+          "incident_id": "e408c73b-9f12-52c8-8323-b7be8b75ceaa",
+          "event_ids": [
+            "6089a4bd-f567-562e-bfe5-c82a3b72e8a1"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "c61c35fd96221ee1d590726c6c7d41a3e12da5b6c03f7eb539c37ede360a78db"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    },
+    {
+      "case_id": "benign-burst",
+      "description": "Operator-labelled authorized failure test; alert is undesired",
+      "incident_id": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+      "events": [
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "dfb174a7-2170-5f9d-b656-e58df5752139",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:00Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:benign-burst:41de4b4b132933bf4ce783d9b8c4d921d404d369a67cfda41586454e280fe4e8",
+            "generation": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+            "record": "fixture-benign-burst-2eee0e9a-6f00-5403-82f4-e676a0575173-0"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225600000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "cccb33127f40273754b5f9f69412854ff620ebb4710ce0b137477f5d6253fbdd"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "fd9de627-d13e-5bb9-a1fc-3341f31d2a29",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:01Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:benign-burst:41de4b4b132933bf4ce783d9b8c4d921d404d369a67cfda41586454e280fe4e8",
+            "generation": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+            "record": "fixture-benign-burst-2eee0e9a-6f00-5403-82f4-e676a0575173-1"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225601000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "7759f5216e96ea640a04205a675c91f5a524e98e1c205a46228410aa5abc5289"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "ced654ce-f0d2-5ed2-b29c-ddb2b102ab51",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:02Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:benign-burst:41de4b4b132933bf4ce783d9b8c4d921d404d369a67cfda41586454e280fe4e8",
+            "generation": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+            "record": "fixture-benign-burst-2eee0e9a-6f00-5403-82f4-e676a0575173-2"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225602000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "c974121647ada7c620227d16459add334347ec0a644a49721a95984f8a1a8069"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "f6ca93d2-843d-54fd-b9d1-fcf4049bbc83",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:03Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:benign-burst:41de4b4b132933bf4ce783d9b8c4d921d404d369a67cfda41586454e280fe4e8",
+            "generation": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+            "record": "fixture-benign-burst-2eee0e9a-6f00-5403-82f4-e676a0575173-3"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225603000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "b2851833a8d4476e3cf784e8c99230bfd6e86bc31fcee0192f3e05c08b5b5ec7"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        },
+        {
+          "schema_version": "soc-common-event:v2",
+          "event_id": "a4f54c94-d095-5ba0-93d0-5ff60db22af3",
+          "platform": "validated_fixture",
+          "collector_id": "scenario-auth-pam:v1",
+          "event_type": "os_record",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "ingestion_timestamp": "2026-01-01T00:00:34Z",
+          "source": {
+            "namespace": "scenario:benign-burst:41de4b4b132933bf4ce783d9b8c4d921d404d369a67cfda41586454e280fe4e8",
+            "generation": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+            "record": "fixture-benign-burst-2eee0e9a-6f00-5403-82f4-e676a0575173-4"
+          },
+          "metadata": {
+            "channel": "journal",
+            "provider": "sshd",
+            "code": "6",
+            "original_timestamp": "1767225604000000"
+          },
+          "normalized_fields": [
+            [
+              "raw_record_digest",
+              "a71337d7f0ee656ba99edf10bf7b3f2059737ef4ab2395626467a6ba2d5ee26b"
+            ],
+            [
+              "parse_status",
+              "MAPPED_AUTHENTICATION"
+            ],
+            [
+              "parser",
+              "openssh-auth-log:v1"
+            ],
+            [
+              "account_id",
+              "dbd54bd47689d46cdba4ef267d571892715a29bafa8ac940ab093a487628f871"
+            ],
+            [
+              "source_identifier",
+              "7371dc2d89cbf1882cb8cc6434bb46eeee1e3eb711bf21fd2b63c8ce1e0aeaa2"
+            ],
+            [
+              "authentication_result",
+              "failure"
+            ]
+          ],
+          "provenance": "explicit_log_fixture",
+          "validation_status": "VALIDATED_SOURCE_RECORD",
+          "soc_event": null,
+          "feature_payload": []
+        }
+      ],
+      "arrival_order": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "labels": [
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "benign-burst",
+          "incident_id": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+          "event_ids": [
+            "dfb174a7-2170-5f9d-b656-e58df5752139",
+            "fd9de627-d13e-5bb9-a1fc-3341f31d2a29",
+            "ced654ce-f0d2-5ed2-b29c-ddb2b102ab51",
+            "f6ca93d2-843d-54fd-b9d1-fcf4049bbc83",
+            "a4f54c94-d095-5ba0-93d0-5ff60db22af3"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_AUTH_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "92d28a50a9c86343e63f6ef0d950b23c0554c8173df9d13a0b30e48fb92783be",
+            "1f4e0858122fbb2bb7a780296d080a265d34925bb9aafbd37acd83ba854a03c2",
+            "2a6afae50d29c69321131ae107f0dda2104fbae58dd6eb2667bdc51ea77f483b",
+            "2135295d6c7965dbc9f7b47546f216c0473af7da410e0e6bf4fe89567eb7dcc8",
+            "7d84ac09d77d5dc969ad915aa748d57c2bd3bd6cb002626d0f3325268593cef6"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "benign-burst",
+          "incident_id": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+          "event_ids": [
+            "dfb174a7-2170-5f9d-b656-e58df5752139",
+            "fd9de627-d13e-5bb9-a1fc-3341f31d2a29",
+            "ced654ce-f0d2-5ed2-b29c-ddb2b102ab51",
+            "f6ca93d2-843d-54fd-b9d1-fcf4049bbc83",
+            "a4f54c94-d095-5ba0-93d0-5ff60db22af3"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "REPEATED_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "92d28a50a9c86343e63f6ef0d950b23c0554c8173df9d13a0b30e48fb92783be",
+            "1f4e0858122fbb2bb7a780296d080a265d34925bb9aafbd37acd83ba854a03c2",
+            "2a6afae50d29c69321131ae107f0dda2104fbae58dd6eb2667bdc51ea77f483b",
+            "2135295d6c7965dbc9f7b47546f216c0473af7da410e0e6bf4fe89567eb7dcc8",
+            "7d84ac09d77d5dc969ad915aa748d57c2bd3bd6cb002626d0f3325268593cef6"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "benign-burst",
+          "incident_id": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+          "event_ids": [
+            "dfb174a7-2170-5f9d-b656-e58df5752139",
+            "fd9de627-d13e-5bb9-a1fc-3341f31d2a29",
+            "ced654ce-f0d2-5ed2-b29c-ddb2b102ab51",
+            "f6ca93d2-843d-54fd-b9d1-fcf4049bbc83",
+            "a4f54c94-d095-5ba0-93d0-5ff60db22af3"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "MULTI_ACCOUNT_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "92d28a50a9c86343e63f6ef0d950b23c0554c8173df9d13a0b30e48fb92783be",
+            "1f4e0858122fbb2bb7a780296d080a265d34925bb9aafbd37acd83ba854a03c2",
+            "2a6afae50d29c69321131ae107f0dda2104fbae58dd6eb2667bdc51ea77f483b",
+            "2135295d6c7965dbc9f7b47546f216c0473af7da410e0e6bf4fe89567eb7dcc8",
+            "7d84ac09d77d5dc969ad915aa748d57c2bd3bd6cb002626d0f3325268593cef6"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "benign-burst",
+          "incident_id": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+          "event_ids": [
+            "dfb174a7-2170-5f9d-b656-e58df5752139",
+            "fd9de627-d13e-5bb9-a1fc-3341f31d2a29",
+            "ced654ce-f0d2-5ed2-b29c-ddb2b102ab51",
+            "f6ca93d2-843d-54fd-b9d1-fcf4049bbc83",
+            "a4f54c94-d095-5ba0-93d0-5ff60db22af3"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "FAILURE_THEN_SUCCESS",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "92d28a50a9c86343e63f6ef0d950b23c0554c8173df9d13a0b30e48fb92783be",
+            "1f4e0858122fbb2bb7a780296d080a265d34925bb9aafbd37acd83ba854a03c2",
+            "2a6afae50d29c69321131ae107f0dda2104fbae58dd6eb2667bdc51ea77f483b",
+            "2135295d6c7965dbc9f7b47546f216c0473af7da410e0e6bf4fe89567eb7dcc8",
+            "7d84ac09d77d5dc969ad915aa748d57c2bd3bd6cb002626d0f3325268593cef6"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        },
+        {
+          "dataset_id": "authentication-advisory-fixtures:1.0.0",
+          "scenario_id": "benign-burst",
+          "incident_id": "2eee0e9a-6f00-5403-82f4-e676a0575173",
+          "event_ids": [
+            "dfb174a7-2170-5f9d-b656-e58df5752139",
+            "fd9de627-d13e-5bb9-a1fc-3341f31d2a29",
+            "ced654ce-f0d2-5ed2-b29c-ddb2b102ab51",
+            "f6ca93d2-843d-54fd-b9d1-fcf4049bbc83",
+            "a4f54c94-d095-5ba0-93d0-5ff60db22af3"
+          ],
+          "ground_truth_label": "NO_ADVISORY_EXPECTED",
+          "expected_rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_timestamp": "2026-01-01T00:00:04Z",
+          "window_start": "2026-01-01T00:00:00Z",
+          "window_end": "2026-01-01T00:05:00Z",
+          "source_origin": "FIXTURE",
+          "evidence_references": [
+            "92d28a50a9c86343e63f6ef0d950b23c0554c8173df9d13a0b30e48fb92783be",
+            "1f4e0858122fbb2bb7a780296d080a265d34925bb9aafbd37acd83ba854a03c2",
+            "2a6afae50d29c69321131ae107f0dda2104fbae58dd6eb2667bdc51ea77f483b",
+            "2135295d6c7965dbc9f7b47546f216c0473af7da410e0e6bf4fe89567eb7dcc8",
+            "7d84ac09d77d5dc969ad915aa748d57c2bd3bd6cb002626d0f3325268593cef6"
+          ],
+          "label_provenance": "developer-authored-independent-advisory-spec:1.0.0"
+        }
+      ]
+    }
+  ],
+  "label_semantics": "INDEPENDENT_ADVISORY_UTILITY_NOT_ATTACK_TRUTH",
+  "ground_truth_digest": "5eec9c8a198596e954d0f5bece72d99121c0311808435b30d4ed6a73d6437ce4"
+}

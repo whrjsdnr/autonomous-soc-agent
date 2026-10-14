@@ -8,9 +8,14 @@ from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
+from soc_agent.approval.errors import ApprovalError
+from soc_agent.execution.errors import ExecutionError
 from soc_agent.linux_runtime.models import RuntimeConfig
+from soc_agent.linux_runtime.response_simulation import RuntimeResponseSimulation
 from soc_agent.linux_runtime.service import LinuxMonitor, initialize, open_pipeline
 from soc_agent.linux_runtime.store import RuntimeStore
+from soc_agent.review.persistence.models import StorageError
+from soc_agent.runtime_lock import exclusive_runtime_lock
 from soc_agent.security_ai.operational.retention import MaintenanceLog
 from soc_agent.state.evidence import utc_now
 
@@ -22,6 +27,8 @@ def status(directory: Path):
     audit = MaintenanceLog(directory.resolve() / "collection-audit.sqlite", pipeline)
     audit.entries()
     jobs = store.jobs()
+    simulation = RuntimeResponseSimulation(store, pipeline)
+    records = simulation.records()
     queue = pipeline.queue.counts()
     heartbeat_age = (utc_now() - datetime.fromisoformat(state["heartbeat"])).total_seconds()
     active = state["state"] == "RUNNING" and 0 <= heartbeat_age <= max(
@@ -36,6 +43,7 @@ def status(directory: Path):
         or jobs.get("FAILED", 0)
         or state["circuit_open"]
         or state["last_error"]
+        or any(r.status == "UNCERTAIN" for r in records)
     )
     return {
         "runtime_state": state["state"],
@@ -60,6 +68,11 @@ def status(directory: Path):
         "assessment_mode": store.config.assessment_mode,
         "real_llm_enabled": store.config.assessment_mode == "REAL_LLM",
         "response_execution": "DISABLED",
+        "response_simulation": "RESPONSE_SIMULATION" if simulation.enabled() else "DISABLED",
+        "automatic_human_approval": "DISABLED",
+        "pending_response_reviews": sum(r.status == "PENDING_REVIEW" for r in records),
+        "completed_simulations": sum(r.status == "SIMULATED" for r in records),
+        "uncertain_simulations": sum(r.status == "UNCERTAIN" for r in records),
         "last_investigation_time": state["last_investigation"],
         "llm_availability": state["llm"],
         "last_error": state["last_error"],
@@ -85,6 +98,18 @@ def main():
     init.add_argument("--env-file", type=Path)
     start = sub.add_parser("start")
     start.add_argument("--duration-seconds", type=float)
+    sim = sub.add_parser("simulation", help="Opt-in pure simulator; only explicit test reviewers")
+    simsub = sim.add_subparsers(dest="simulation_command", required=True)
+    for command in ("enable", "disable", "list"):
+        simsub.add_parser(command)
+    request = simsub.add_parser("request")
+    request.add_argument("finding_id")
+    request.add_argument("--ttl-seconds", type=int, default=300)
+    for command in ("approve", "reject", "execute"):
+        review = simsub.add_parser(command)
+        review.add_argument("candidate_id")
+        if command != "execute":
+            review.add_argument("--test-reviewer", required=True)
     for command in ("stop", "status", "health", "readiness"):
         sub.add_parser(command)
     args = parser.parse_args()
@@ -103,6 +128,44 @@ def main():
                 ),
             )
             print(json.dumps({"initialized": True, "response": "DISABLED"}))
+        elif args.command == "simulation":
+            store = RuntimeStore(directory)
+            if args.simulation_command == "list":
+                simulation = RuntimeResponseSimulation(
+                    store, open_pipeline(directory, store.config)
+                )
+                print(json.dumps([r.model_dump(mode="json") for r in simulation.records()]))
+            else:
+                # Local review/execution only while the monitor is stopped. Never race
+                # the live writer or accept an LLM-issued approval/response instruction.
+                with exclusive_runtime_lock(directory / "writer.lock"):
+                    simulation = RuntimeResponseSimulation(
+                        store, open_pipeline(directory, store.config)
+                    )
+                    command = args.simulation_command
+                    if command in ("enable", "disable"):
+                        simulation.set_enabled(command == "enable")
+                        print(
+                            json.dumps(
+                                {
+                                    "response_simulation": command,
+                                    "actual_response_execution": "DISABLED",
+                                }
+                            )
+                        )
+                    else:
+                        record = (
+                            simulation.request(args.finding_id, ttl_seconds=args.ttl_seconds)
+                            if command == "request"
+                            else asyncio.run(simulation.execute(args.candidate_id))
+                            if command == "execute"
+                            else simulation.review(
+                                args.candidate_id,
+                                approve=command == "approve",
+                                test_reviewer=args.test_reviewer,
+                            )
+                        )
+                        print(record.model_dump_json())
         elif args.command == "stop":
             RuntimeStore(directory).request_stop()
             print(json.dumps({"stop_requested": True}))
@@ -123,7 +186,14 @@ def main():
             print(json.dumps(status(directory)))
         else:
             print(json.dumps(status(directory)))
-    except (ValueError, OSError, RuntimeError) as error:
+    except (
+        ValueError,
+        OSError,
+        RuntimeError,
+        ExecutionError,
+        ApprovalError,
+        StorageError,
+    ) as error:
         print(
             json.dumps(
                 {"health": "FAILED", "readiness": "NOT_READY", "error": type(error).__name__}

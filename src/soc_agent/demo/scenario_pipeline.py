@@ -1,5 +1,6 @@
 """Fixture replay through the existing queue, aggregation and read-only investigator."""
 
+from datetime import datetime
 from pathlib import Path
 from uuid import NAMESPACE_URL, UUID, uuid5
 
@@ -16,11 +17,14 @@ from soc_agent.security_ai.operational.native_authentication import (
 from soc_agent.security_ai.operational.source_store import OperationalSourceStore
 
 
-def fixture_event(scenario: Scenario, index: int, replay_run_id: UUID) -> CommonEvent:
+def fixture_event(
+    scenario: Scenario, index: int, replay_run_id: UUID, *, timestamp: datetime | None = None
+) -> CommonEvent:
     # Reuse the parser without claiming its projected kernel fields were observed live.
-    projected = project_journal(
-        journal_fixture(scenario, index, replay_run_id), include_pam_failures=True
-    )
+    row = journal_fixture(scenario, index, replay_run_id)
+    if timestamp is not None:
+        row["__REALTIME_TIMESTAMP"] = str(int(timestamp.timestamp() * 1e6))
+    projected = project_journal(row, include_pam_failures=True)
     source = SourceIdentity(
         namespace=f"scenario:{scenario.scenario_id}:{scenario.fixture_identity}",
         generation=str(replay_run_id),

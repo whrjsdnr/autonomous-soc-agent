@@ -14,6 +14,7 @@ from soc_agent.execution import ActionProposal, GovernedExecutor
 from soc_agent.execution.errors import ExecutionDeniedError
 from soc_agent.linux_runtime.findings import correlate, validate_finding
 from soc_agent.linux_runtime.models import RuntimeConfig
+from soc_agent.linux_runtime.response_simulation import RuntimeResponseSimulation
 from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.llm.errors import LLMError, LLMResponseValidationError, LLMTimeoutError
 from soc_agent.llm.openai_compatible import (
@@ -127,6 +128,7 @@ class LinuxMonitor:
         self.store = RuntimeStore(self.directory)
         self.config = self.store.config
         self.pipeline = open_pipeline(self.directory, self.config)
+        self.simulation = RuntimeResponseSimulation(self.store, self.pipeline)
         self.audit = MaintenanceLog(self.directory / "collection-audit.sqlite", self.pipeline)
         self.collector = collector or LinuxAuthenticationCollector(include_pam_failures=True)
         self.stop_event = asyncio.Event()
@@ -327,6 +329,8 @@ class LinuxMonitor:
         for finding in correlate(self.pipeline, self.config):
             self.store.put(finding)
         await self.investigate_one()
+        if not self.stop_event.is_set() and not self.store.state()["stop_requested"]:
+            self.simulation.prepare_completed()
         self.store.update(
             detection="IDLE", investigation="CIRCUIT_OPEN" if self.circuit_open else "IDLE"
         )
@@ -340,6 +344,7 @@ class LinuxMonitor:
         with exclusive_runtime_lock(self.directory / "writer.lock"):
             self.pipeline.queue.recover()
             self.store.recover()
+            self.simulation.recover()
             self.store.request_stop(False)
             self.store.update(state="RUNNING", started_at=utc_now().isoformat(), last_error=None)
             self.store.event("RUNTIME_STARTED", {"config": self.config.digest})
