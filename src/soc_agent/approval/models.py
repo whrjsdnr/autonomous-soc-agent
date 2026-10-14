@@ -67,10 +67,14 @@ class ApprovalRequest(BaseModel):
     reason: NonEmptyText
     status: ApprovalStatus = ApprovalStatus.PENDING
     created_at: UTCTimestamp = Field(default_factory=utc_now)
+    # Omit absent expiry so legacy serialized bindings and audit payloads stay unchanged.
+    expires_at: UTCTimestamp | None = Field(default=None, exclude_if=lambda value: value is None)
     decision: ApprovalDecision | None = None
 
     @model_validator(mode="after")
     def validate_decision(self) -> Self:
+        if self.expires_at is not None and self.expires_at <= self.created_at:
+            raise ValueError("Approval expiry must follow creation")
         if (self.action_id is None) != (self.action_input_json is None):
             raise ValueError("Action ID and input binding must be supplied together")
         if self.status == ApprovalStatus.PENDING:
@@ -80,4 +84,10 @@ class ApprovalRequest(BaseModel):
             raise ValueError("Decided request must have a matching decision")
         if self.decision is not None and self.decision.decided_at < self.created_at:
             raise ValueError("Decision must not precede request creation")
+        if (
+            self.decision is not None
+            and self.expires_at is not None
+            and self.decision.decided_at >= self.expires_at
+        ):
+            raise ValueError("Decision must precede approval expiry")
         return self

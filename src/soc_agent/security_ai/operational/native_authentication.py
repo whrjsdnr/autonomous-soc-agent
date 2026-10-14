@@ -39,6 +39,8 @@ FIELDS = (
 PROFILE = "openssh-auth-log:v1"
 COLLECTOR = "journald-auth:v1"
 PAM_COLLECTOR = "journald-auth-pam-failure:v1"
+SCENARIO_COLLECTOR = "scenario-auth-pam:v1"
+SCENARIO_IDENTITY = "scenario:authentication:v1"
 PAM_PROFILE = "pam-unix-sudo-auth-failure:v1"
 _PAM_FAILURE = re.compile(
     r"pam_unix\(sudo:auth\): authentication failure; "
@@ -222,11 +224,14 @@ def authentication_source(
     event = CommonEvent.model_validate(event.model_dump())
     if event.source_digest != expected_event_digest:
         raise ValueError("NATIVE_AUTH_PROJECTION_DIGEST_MISMATCH")
-    if (
-        event.platform != "linux"
-        or event.collector_id not in (COLLECTOR, PAM_COLLECTOR)
-        or event.event_type != "os_record"
-    ):
+    fixture = (
+        event.platform == "validated_fixture"
+        and event.provenance == "explicit_log_fixture"
+        and event.collector_id == SCENARIO_COLLECTOR
+        and event.schema_version == "soc-common-event:v2"
+    )
+    native = event.platform == "linux" and event.collector_id in (COLLECTOR, PAM_COLLECTOR)
+    if not (fixture or native) or event.event_type != "os_record":
         raise ValueError("NATIVE_AUTH_COLLECTOR_MISMATCH")
     fields = dict(event.normalized_fields)
     if re.fullmatch(r"[0-9a-f]{64}", fields.get("raw_record_digest", "")) is None:
@@ -245,7 +250,11 @@ def authentication_source(
         "authentication_result",
     } or (
         fields["parser"]
-        not in ((PROFILE, PAM_PROFILE) if event.collector_id == PAM_COLLECTOR else (PROFILE,))
+        not in (
+            (PROFILE, PAM_PROFILE)
+            if event.collector_id in (PAM_COLLECTOR, SCENARIO_COLLECTOR)
+            else (PROFILE,)
+        )
         or fields["parse_status"] != "MAPPED_AUTHENTICATION"
     ):
         raise ValueError("NATIVE_AUTH_PROJECTION_CONTRACT_REJECTED")

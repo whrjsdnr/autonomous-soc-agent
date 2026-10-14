@@ -9,6 +9,8 @@ from soc_agent.security_ai.external.models import content_digest_payload
 from soc_agent.security_ai.operational.native_authentication import (
     COLLECTOR,
     PAM_COLLECTOR,
+    SCENARIO_COLLECTOR,
+    SCENARIO_IDENTITY,
     LinuxAuthenticationCollector,
     NativeAuthenticationReceipt,
     ingest_authentication,
@@ -35,6 +37,7 @@ class AuthenticationPipeline:
         if collector_identity not in (
             LinuxAuthenticationCollector.identity,
             "linux:journal:authentication:pam-failure:v1",
+            SCENARIO_IDENTITY,
         ):
             raise ValueError("AUTH_COLLECTOR_IDENTITY_REJECTED")
         self.queue, self.store, self.incident_id = queue, store, incident_id
@@ -101,9 +104,13 @@ class AuthenticationPipeline:
             return "IDLE"
         try:
             expected_collector = (
-                PAM_COLLECTOR
-                if self.binding["collector"] == "linux:journal:authentication:pam-failure:v1"
-                else COLLECTOR
+                SCENARIO_COLLECTOR
+                if self.binding["collector"] == SCENARIO_IDENTITY
+                else (
+                    PAM_COLLECTOR
+                    if self.binding["collector"] == "linux:journal:authentication:pam-failure:v1"
+                    else COLLECTOR
+                )
             )
             if claim.event.collector_id != expected_collector:
                 raise ValueError("AUTH_QUEUE_COLLECTOR_BINDING_MISMATCH")

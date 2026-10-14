@@ -15,3 +15,7 @@ class ApprovalAlreadyDecidedError(ApprovalError):
 
 class ApprovalValidationError(ApprovalError):
     """Request or human decision input is invalid."""
+
+
+class ApprovalExpiredError(ApprovalError):
+    """Approval lifetime ended; a new human decision is required."""

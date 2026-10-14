@@ -30,7 +30,7 @@ class SourceMetadata(Frozen):
 
 
 class CommonEvent(Frozen):
-    schema_version: Literal["soc-common-event:v1"] = "soc-common-event:v1"
+    schema_version: Literal["soc-common-event:v1", "soc-common-event:v2"] = "soc-common-event:v1"
     event_id: UUID
     platform: Literal["windows", "linux", "validated_fixture"]
     collector_id: Text
@@ -40,7 +40,7 @@ class CommonEvent(Frozen):
     source: SourceIdentity
     metadata: SourceMetadata
     normalized_fields: tuple[tuple[Text, Text], ...] = Field(default=(), max_length=16)
-    provenance: Literal["native_read_only", "explicit_precomputed_fixture"]
+    provenance: Literal["native_read_only", "explicit_precomputed_fixture", "explicit_log_fixture"]
     validation_status: Literal["VALIDATED_SOURCE_RECORD"] = "VALIDATED_SOURCE_RECORD"
     soc_event: Event | None = None
     feature_payload: tuple[FeatureRow, ...] = Field(default=(), max_length=3)
@@ -53,7 +53,21 @@ class CommonEvent(Frozen):
         if self.event_type == "os_record":
             if self.soc_event is not None or self.feature_payload:
                 raise ValueError("OS records cannot invent model inputs")
-            if self.provenance != "native_read_only" or self.platform == "validated_fixture":
+            fixture = (
+                self.schema_version == "soc-common-event:v2"
+                and self.platform == "validated_fixture"
+                and self.provenance == "explicit_log_fixture"
+                and self.collector_id == "scenario-auth-pam:v1"
+                and self.source.namespace.startswith("scenario:")
+            )
+            native = (
+                self.schema_version == "soc-common-event:v1"
+                and self.provenance == "native_read_only"
+                and self.platform != "validated_fixture"
+                and self.collector_id != "scenario-auth-pam:v1"
+                and not self.source.namespace.startswith("scenario:")
+            )
+            if not (fixture or native):
                 raise ValueError("Native observation provenance required")
         else:
             if (

@@ -1,11 +1,13 @@
 """Governance before registered, validated execution; no reasoning or retries."""
 
 from contextlib import nullcontext
+from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel
 
 from soc_agent.approval import ApprovalManager, ApprovalRequest, ApprovalStatus
+from soc_agent.approval.errors import ApprovalExpiredError
 from soc_agent.execution.binding import validate_binding
 from soc_agent.execution.errors import (
     ActionAlreadyAttemptedError,
@@ -38,7 +40,9 @@ class GovernedExecutor:
         self._approvals = approvals
         self._attempted: set[UUID] = set()
 
-    def request_approval(self, action: ActionProposal, *, reason: str) -> ApprovalRequest:
+    def request_approval(
+        self, action: ActionProposal, *, reason: str, expires_at: datetime | None = None
+    ) -> ApprovalRequest:
         """Explicit request creation; never approves or executes anything."""
         action = ActionProposal.model_validate(action.model_dump(warnings=False))
         if self._registry.execution_guard is not None:
@@ -53,6 +57,7 @@ class GovernedExecutor:
             reason=reason,
             action_id=action.action_id,
             action_input_json=action.tool_input,
+            expires_at=expires_at,
         )
 
     def preflight(
@@ -79,7 +84,10 @@ class GovernedExecutor:
         if result.decision == PolicyDecision.REQUIRE_APPROVAL:
             if approval_id is None:
                 raise ApprovalRequiredError("Exact action approval is required")
-            approval = self._approvals.get(approval_id)
+            try:
+                approval = self._approvals.require_current(approval_id)
+            except ApprovalExpiredError as error:
+                raise ExecutionDeniedError("Approval expired") from error
             approval = ApprovalRequest.model_validate(approval.model_dump(warnings=False))
             validate_binding(action, approval, tool.metadata)
             if approval.status == ApprovalStatus.PENDING:
