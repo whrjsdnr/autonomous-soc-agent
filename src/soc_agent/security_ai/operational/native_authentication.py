@@ -38,6 +38,14 @@ FIELDS = (
 )
 PROFILE = "openssh-auth-log:v1"
 COLLECTOR = "journald-auth:v1"
+PAM_COLLECTOR = "journald-auth-pam-failure:v1"
+PAM_PROFILE = "pam-unix-sudo-auth-failure:v1"
+_PAM_FAILURE = re.compile(
+    r"pam_unix\(sudo:auth\): authentication failure; "
+    r"logname=[^\s;]{0,99} uid=(?P<uid>[0-9]{1,10}) euid=0 "
+    r"tty=[^\s;]{0,128} ruser=[^\s;]{0,99} rhost=  "
+    r"user=(?P<user>[A-Za-z0-9_.@-]{1,99})\Z"
+)
 # OpenSSH V_8_9_P1 auth.c::auth_log; only final Accepted/Failed, no PAM sessions.
 _AUTH = re.compile(
     r"(?P<result>Accepted|Failed) (?P<method>password|publickey|keyboard-interactive/pam) "
@@ -47,8 +55,10 @@ _AUTH = re.compile(
 )
 
 
-def project_journal(row: dict[str, object]) -> CommonEvent:
+def project_journal(row: dict[str, object], *, include_pam_failures: bool = False) -> CommonEvent:
     """Parse a reviewed format; this function alone does not attest native origin."""
+    if type(include_pam_failures) is not bool:
+        raise CollectorUnavailable("Invalid authentication parser option")
     if type(row) is not dict:
         raise CollectorUnavailable("Invalid authentication journal record")
     retained = {k: row[k] for k in FIELDS if k in row}
@@ -91,10 +101,37 @@ def project_journal(row: dict[str, object]) -> CommonEvent:
             ("source_identifier", remote),
             ("authentication_result", "success" if match["result"] == "Accepted" else "failure"),
         ]
+    if (
+        include_pam_failures
+        and match is None
+        and (retained.get("_EXE"), retained.get("_COMM")) == ("/usr/bin/sudo", "sudo")
+    ):
+        pam = _PAM_FAILURE.fullmatch(retained.get("MESSAGE", ""))
+        # Sudo is setuid: journal real UID need not be root. Bind the explicit
+        # logged UID to the kernel-added UID; do not weaken the SSH root rule.
+        if pam is not None and pam["uid"] == retained.get("_UID"):
+            account = content_digest_payload(
+                {
+                    "machine": retained["_MACHINE_ID"],
+                    "service": "sudo:pam_unix",
+                    "user": pam["user"],
+                }
+            )
+            origin = content_digest_payload(
+                {"machine": retained["_MACHINE_ID"], "local_caller_uid": pam["uid"]}
+            )
+            fields = [
+                ("raw_record_digest", raw_digest),
+                ("parse_status", "MAPPED_AUTHENTICATION"),
+                ("parser", PAM_PROFILE),
+                ("account_id", account),
+                ("source_identifier", origin),
+                ("authentication_result", "failure"),
+            ]
     return CommonEvent.model_validate(
         event.model_dump()
         | {
-            "collector_id": COLLECTOR,
+            "collector_id": PAM_COLLECTOR if include_pam_failures else COLLECTOR,
             "normalized_fields": tuple(fields),
         }
     )
@@ -103,7 +140,13 @@ def project_journal(row: dict[str, object]) -> CommonEvent:
 class LinuxAuthenticationCollector:
     identity = "linux:journal:authentication:v1"
 
-    def __init__(self) -> None:
+    def __init__(self, *, include_pam_failures: bool = False) -> None:
+        if type(include_pam_failures) is not bool:
+            raise CollectorUnavailable("Invalid authentication parser option")
+        self.include_pam_failures = include_pam_failures
+        self.collector_id = PAM_COLLECTOR if include_pam_failures else COLLECTOR
+        if include_pam_failures:
+            self.identity = "linux:journal:authentication:pam-failure:v1"
         self.native = LinuxJournalCollector()
 
     def poll(self, cursor: CommonEvent | None = None, limit: int = 16) -> list[CommonEvent]:
@@ -122,7 +165,10 @@ class LinuxAuthenticationCollector:
         # stay NOT_INFERABLE; no broad journal MESSAGE collection.
         filters = ["SYSLOG_FACILITY=4", "SYSLOG_FACILITY=10", "+", "_COMM=sshd"]
         if cursor is not None:
-            if cursor.collector_id != COLLECTOR or cursor.source.namespace != "systemd-journal":
+            if (
+                cursor.collector_id != self.collector_id
+                or cursor.source.namespace != "systemd-journal"
+            ):
                 raise CursorUnavailable("Authentication cursor binding mismatch")
             probe = bounded_command(
                 base + ["--cursor=" + cursor.source.record, "--lines=+1"] + filters
@@ -130,13 +176,19 @@ class LinuxAuthenticationCollector:
             lines = probe.splitlines()
             if (
                 not lines
-                or project_journal(json.loads(lines[0])).source_digest != cursor.source_digest
+                or project_journal(
+                    json.loads(lines[0]), include_pam_failures=self.include_pam_failures
+                ).source_digest
+                != cursor.source_digest
             ):
                 raise CursorUnavailable("Authentication journal cursor changed or expired")
             base += ["--after-cursor=" + cursor.source.record]
         data = bounded_command(base + [f"--lines=+{limit}"] + filters)
         try:
-            rows = [project_journal(json.loads(line)) for line in data.splitlines()]
+            rows = [
+                project_journal(json.loads(line), include_pam_failures=self.include_pam_failures)
+                for line in data.splitlines()
+            ]
         except (ValueError, TypeError) as error:
             raise CollectorUnavailable("Authentication journal response rejected") from error
         if len(rows) > limit:
@@ -160,20 +212,19 @@ class NativeAuthenticationReceipt(Snapshot):
     write_disposition: Literal["WRITE_DENIED"] = "WRITE_DENIED"
 
 
-def ingest_authentication(
+def authentication_source(
     event: CommonEvent,
     *,
     expected_event_digest: str,
-    store: OperationalSourceStore,
     incident_id: UUID,
-) -> NativeAuthenticationReceipt | None:
-    """Consume a durable minimized projection. Hash linkage is not source attestation."""
+) -> AuthenticationSource | None:
+    """Pure checked conversion; hash linkage does not attest native origin."""
     event = CommonEvent.model_validate(event.model_dump())
     if event.source_digest != expected_event_digest:
         raise ValueError("NATIVE_AUTH_PROJECTION_DIGEST_MISMATCH")
     if (
         event.platform != "linux"
-        or event.collector_id != COLLECTOR
+        or event.collector_id not in (COLLECTOR, PAM_COLLECTOR)
         or event.event_type != "os_record"
     ):
         raise ValueError("NATIVE_AUTH_COLLECTOR_MISMATCH")
@@ -192,17 +243,23 @@ def ingest_authentication(
         "account_id",
         "source_identifier",
         "authentication_result",
-    } or (fields["parser"] != PROFILE or fields["parse_status"] != "MAPPED_AUTHENTICATION"):
+    } or (
+        fields["parser"]
+        not in ((PROFILE, PAM_PROFILE) if event.collector_id == PAM_COLLECTOR else (PROFILE,))
+        or fields["parse_status"] != "MAPPED_AUTHENTICATION"
+    ):
         raise ValueError("NATIVE_AUTH_PROJECTION_CONTRACT_REJECTED")
     for name in ("raw_record_digest", "account_id", "source_identifier"):
         if re.fullmatch(r"[0-9a-f]{64}", fields[name]) is None:
             raise ValueError("NATIVE_AUTH_REFERENCE_REJECTED")
+    if fields["parser"] == PAM_PROFILE and fields["authentication_result"] != "failure":
+        raise ValueError("PAM_FAILURE_PROFILE_RESULT_MISMATCH")
     source = AuthenticationSource(
         header=SourceHeader(
             incident_id=incident_id,
             event_id=str(event.event_id),
             source=event.source,
-            collector_id=COLLECTOR,
+            collector_id=event.collector_id,
             collector_version="1.0.0",
             observed_at=event.event_timestamp,
         ),
@@ -214,6 +271,21 @@ def ingest_authentication(
             authentication_result=fields["authentication_result"],
         ),
     )
+    return source
+
+
+def ingest_authentication(
+    event: CommonEvent,
+    *,
+    expected_event_digest: str,
+    store: OperationalSourceStore,
+    incident_id: UUID,
+) -> NativeAuthenticationReceipt | None:
+    source = authentication_source(
+        event, expected_event_digest=expected_event_digest, incident_id=incident_id
+    )
+    if source is None:
+        return None
     admission = store.ingest(
         source,
         expected_incident=incident_id,
@@ -241,7 +313,7 @@ def ingest_authentication(
         incident_id=incident_id,
         event_id=event.event_id,
         native_projection_digest=event.source_digest,
-        raw_record_digest=fields["raw_record_digest"],
+        raw_record_digest=dict(event.normalized_fields)["raw_record_digest"],
         authentication_source_digest=source.content_digest,
         admission=admission,
         provenance=build_receipt(store, incident_id=incident_id, sources=(source,)),

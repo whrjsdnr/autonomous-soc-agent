@@ -205,6 +205,8 @@ def test_cursor_probe_and_restart_use_digest_not_just_id(monkeypatch):
 
     collector = object.__new__(LinuxAuthenticationCollector)
     collector.native = SimpleNamespace(command="journalctl")
+    collector.include_pam_failures = False
+    collector.collector_id = module.COLLECTOR
     responses = [json.dumps(row()).encode(), b""]
 
     def command(args):

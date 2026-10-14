@@ -6,6 +6,8 @@ from uuid import UUID
 from soc_agent.realtime.queue import EventQueue
 from soc_agent.security_ai.external.models import content_digest_payload
 from soc_agent.security_ai.operational.native_authentication import (
+    COLLECTOR,
+    PAM_COLLECTOR,
     LinuxAuthenticationCollector,
     NativeAuthenticationReceipt,
     ingest_authentication,
@@ -21,14 +23,26 @@ class AuthenticationPipeline:
     Source Store deduplication. No exactly-once or cross-database atomicity claim.
     """
 
-    def __init__(self, queue: EventQueue, store: OperationalSourceStore, incident_id: UUID) -> None:
+    def __init__(
+        self,
+        queue: EventQueue,
+        store: OperationalSourceStore,
+        incident_id: UUID,
+        *,
+        collector_identity: str = LinuxAuthenticationCollector.identity,
+    ) -> None:
+        if collector_identity not in (
+            LinuxAuthenticationCollector.identity,
+            "linux:journal:authentication:pam-failure:v1",
+        ):
+            raise ValueError("AUTH_COLLECTOR_IDENTITY_REJECTED")
         self.queue, self.store, self.incident_id = queue, store, incident_id
         self.binding = {
             "contract_version": "soc-auth-pipeline-binding:v1",
             "queue_store_id": str(queue.database.store_id),
             "source_store_id": str(store.database.store_id),
             "incident_id": str(incident_id),
-            "collector": LinuxAuthenticationCollector.identity,
+            "collector": collector_identity,
         }
         self.digest = content_digest_payload(self.binding)
         with queue.database.transaction() as c:
@@ -66,7 +80,10 @@ class AuthenticationPipeline:
             raise ValueError("AUTH_PIPELINE_BINDING_MISMATCH") from error
 
     def collect(self, collector: LinuxAuthenticationCollector, *, limit: int = 16) -> int:
-        if type(collector) is not LinuxAuthenticationCollector:
+        if (
+            type(collector) is not LinuxAuthenticationCollector
+            or collector.identity != self.binding["collector"]
+        ):
             raise ValueError("AUTH_COLLECTOR_TYPE_REJECTED")
         with self.queue.database.transaction(write=False) as c:
             self._binding(c)
@@ -82,6 +99,13 @@ class AuthenticationPipeline:
         if claim is None:
             return "IDLE"
         try:
+            expected_collector = (
+                PAM_COLLECTOR
+                if self.binding["collector"] == "linux:journal:authentication:pam-failure:v1"
+                else COLLECTOR
+            )
+            if claim.event.collector_id != expected_collector:
+                raise ValueError("AUTH_QUEUE_COLLECTOR_BINDING_MISMATCH")
             receipt = ingest_authentication(
                 claim.event,
                 expected_event_digest=claim.event.source_digest,
