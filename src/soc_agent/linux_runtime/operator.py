@@ -25,6 +25,7 @@ from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory, validate_directory
 from soc_agent.security_ai.external.models import Hash, Snapshot, content_digest_payload
 from soc_agent.state.evidence import UTCTimestamp, utc_now
+from soc_agent.tools.errors import ToolError
 
 LIMIT = 8192
 TIMEOUT = 5
@@ -52,6 +53,12 @@ class OperatorRequest(Snapshot):
         "failure-experience",
         "failure-submit",
         "failure-list",
+        "restricted-list",
+        "restricted-request",
+        "restricted-approve",
+        "restricted-reject",
+        "restricted-execute",
+        "restricted-rollback-request",
     ]
     candidate_id: Hash | None = None
     expected_digest: Hash | None = None
@@ -109,6 +116,9 @@ class OperatorServer:
         ):
             raise ValueError("OPERATOR_ALLOWLIST_REJECTED")
         self.monitor = monitor
+        from soc_agent.linux_runtime.restricted_response import RestrictedResponseExecutor
+
+        self.restricted = RestrictedResponseExecutor(monitor)
         self.allowed_uids = frozenset(allowed_uids)
         self.lock = asyncio.Lock()
         self.tasks: set[asyncio.Task] = set()
@@ -118,6 +128,7 @@ class OperatorServer:
         self.closing = False
 
     async def start(self):
+        self.restricted.recover()
         directory = self.monitor.directory
         validate_directory(directory)
         create_private_directory(directory / "operator")
@@ -150,6 +161,7 @@ class OperatorServer:
                 {
                     "allowed_uids": sorted(self.allowed_uids),
                     "actual_response_execution": "DISABLED",
+                    "restricted_test_response": self.restricted.settings(),
                 },
             )
         except BaseException:
@@ -253,6 +265,7 @@ class OperatorServer:
             StorageError,
             ApprovalError,
             ExecutionError,
+            ToolError,
             TimeoutError,
             asyncio.IncompleteReadError,
             asyncio.LimitOverrunError,
@@ -266,6 +279,20 @@ class OperatorServer:
                 self.monitor.request_stop()
                 self.closing = True
             response = {"ok": False, "status": "BLOCKED", "error": type(error).__name__}
+            if "request" in locals() and request.command == "restricted-execute":
+                try:
+                    uncertain = next(
+                        (
+                            r
+                            for r in self.restricted.records()
+                            if r.candidate_id == request.candidate_id
+                        ),
+                        None,
+                    )
+                    if uncertain is not None and uncertain.status in ("STARTED", "UNKNOWN"):
+                        response["status"] = "UNKNOWN"
+                except (ValueError, OSError, StorageError, ExecutionError):
+                    response["status"] = "UNKNOWN"  # An unreadable ledger proves no outcome.
         except asyncio.CancelledError:
             raise
         finally:
@@ -280,6 +307,44 @@ class OperatorServer:
             await writer.wait_closed()
 
     async def dispatch(self, request: OperatorRequest, sock):
+        if request.command.startswith("restricted-"):
+            from soc_agent.linux_runtime.restricted_models import record_view
+
+            executor = self.restricted
+            if request.command == "restricted-list":
+                return {
+                    "records": [record_view(r, executor.clock()) for r in executor.records()],
+                    **executor.settings(),
+                }
+            if request.command in ("restricted-request", "restricted-rollback-request"):
+                if request.finding_id is None:
+                    raise ValueError("RESTRICTED_FINDING_REQUIRED")
+                if (
+                    request.command == "restricted-rollback-request"
+                    and request.candidate_id is None
+                ):
+                    raise ValueError("RESTRICTED_ROLLBACK_REFERENCE_REQUIRED")
+                result = executor.request(
+                    request.finding_id,
+                    sock=sock,
+                    original_candidate=request.candidate_id
+                    if request.command == "restricted-rollback-request"
+                    else None,
+                )
+            elif request.command in ("restricted-approve", "restricted-reject"):
+                result = executor.review(
+                    request.candidate_id,
+                    approve=request.command == "restricted-approve",
+                    sock=sock,
+                    expected_digest=request.expected_digest,
+                )
+            else:
+                result = await executor.execute(
+                    request.candidate_id,
+                    sock=sock,
+                    expected_digest=request.expected_digest,
+                )
+            return record_view(result, executor.clock())
         simulation = self.monitor.simulation
         feedback = RuntimeFeedbackLoop(self.monitor)
         failures = FailureFeedbackLoop(self.monitor)
