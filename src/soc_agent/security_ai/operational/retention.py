@@ -56,7 +56,11 @@ class MaintenanceEntry(Snapshot):
     binding: Hash
     previous: Hash
     operation: Literal[
-        "RETENTION_DRY_RUN", "CLEANUP_DENIED", "COLLECTION_START", "COLLECTION_RESULT"
+        "RETENTION_DRY_RUN",
+        "CLEANUP_DENIED",
+        "COLLECTION_START",
+        "COLLECTION_RESULT",
+        "CAPACITY_OBSERVATION",
     ]
     status: Literal[
         "DRY_RUN",
@@ -71,6 +75,10 @@ class MaintenanceEntry(Snapshot):
         "SOURCE_UNAVAILABLE",
         "BACKPRESSURE",
         "STORE_FAILURE",
+        "NORMAL",
+        "WARNING",
+        "CRITICAL",
+        "UNKNOWN",
     ]
     summary_digest: Hash
     recorded_at: UTCTimestamp = Field(default_factory=utc_now)
@@ -136,6 +144,7 @@ class MaintenanceLog:
                     "CLEANUP_DENIED",
                     "COLLECTION_START",
                     "COLLECTION_RESULT",
+                    "CAPACITY_OBSERVATION",
                 ):
                     raise ValueError
                 previous = row["digest"]
@@ -174,6 +183,7 @@ class MaintenanceLog:
             "CLEANUP_DENIED",
             "COLLECTION_START",
             "COLLECTION_RESULT",
+            "CAPACITY_OBSERVATION",
         ):
             raise RetentionDenied("MAINTENANCE_OPERATION_REJECTED")
         if status not in (
@@ -189,6 +199,10 @@ class MaintenanceLog:
             "SOURCE_UNAVAILABLE",
             "BACKPRESSURE",
             "STORE_FAILURE",
+            "NORMAL",
+            "WARNING",
+            "CRITICAL",
+            "UNKNOWN",
         ):
             raise RetentionDenied("MAINTENANCE_STATUS_REJECTED")
         # Only hash summaries are persisted: no raw events, cursors, credentials or error text.
