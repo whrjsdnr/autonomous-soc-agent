@@ -167,6 +167,23 @@ def _child(root, identity, payload, point, channel, nonce):
         raise AssertionError("CRASH_POINT_NOT_REACHED")
 
 
+def kill_owned_checkpoint(process, channel, nonce, point, lock_path):
+    """Kill only this parent's live Process after PID/nonce/lock ownership handshake."""
+    if not channel.poll(20):
+        raise AssertionError("CRASH_HANDSHAKE_TIMEOUT")
+    pid, received_nonce, reached = channel.recv()
+    assert pid == process.pid and received_nonce == nonce and reached == point
+    assert process.is_alive() and process in multiprocessing.active_children()
+    try:
+        with exclusive_runtime_lock(lock_path):
+            raise AssertionError("CONCURRENT_WRITER_LOCK_GRANTED")
+    except OSError:
+        pass
+    process.kill()
+    process.join(10)
+    assert not process.is_alive() and process.exitcode != 0
+
+
 def crash_case(root: Path, event: CommonEvent, point: str, *, identity=None):
     if point not in POINTS:
         raise ValueError("UNKNOWN_CRASH_POINT")
@@ -182,20 +199,7 @@ def crash_case(root: Path, event: CommonEvent, point: str, *, identity=None):
     process.start()
     child.close()
     try:
-        if not parent.poll(20):
-            raise AssertionError("CRASH_HANDSHAKE_TIMEOUT")
-        pid, received_nonce, reached = parent.recv()
-        assert pid == process.pid and received_nonce == nonce and reached == point
-        assert process.is_alive() and process in multiprocessing.active_children()
-        try:
-            with exclusive_runtime_lock(root / "writer.lock"):
-                raise AssertionError("CONCURRENT_WRITER_LOCK_GRANTED")
-        except OSError:
-            pass
-        # Process object created here, authenticated pipe handshake; never arbitrary PID input.
-        process.kill()
-        process.join(10)
-        assert not process.is_alive() and process.exitcode != 0
+        kill_owned_checkpoint(process, parent, nonce, point, root / "writer.lock")
         p = open_pipeline(root, identity)
         with exclusive_runtime_lock(root / "writer.lock"):
             cursor_before = p.queue.cursor(identity)

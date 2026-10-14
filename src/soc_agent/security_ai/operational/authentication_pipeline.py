@@ -4,6 +4,7 @@ from sqlite3 import Connection
 from uuid import UUID
 
 from soc_agent.realtime.queue import EventQueue
+from soc_agent.review.persistence.models import StorageError
 from soc_agent.security_ai.external.models import content_digest_payload
 from soc_agent.security_ai.operational.native_authentication import (
     COLLECTOR,
@@ -131,6 +132,9 @@ class AuthenticationPipeline:
                 },
             )
             return receipt or "NOT_INFERABLE"
+        except StorageError:
+            self.queue.fail(claim, "STORAGE_FAILURE")
+            raise
         except (ValueError, OSError, RuntimeError):
             # Fixed category, no message/credential dumped; existing finite retry/poison policy.
             self.queue.fail(claim, "INVALID_INPUT")
