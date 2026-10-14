@@ -5,7 +5,10 @@ The existing monitor audit is the durable record: no parallel Incident/Approval 
 """
 
 import json
+import os
 import re
+import socket
+import struct
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Literal, Self
@@ -66,7 +69,9 @@ class SimulationRecord(Snapshot):
     status: Literal[
         "PENDING_REVIEW", "APPROVED", "REJECTED", "STARTED", "SIMULATED", "UNCERTAIN", "DENIED"
     ]
-    actor_assurance: Literal["NO_DECISION", "EXPLICIT_TEST_IDENTITY"] = "NO_DECISION"
+    actor_assurance: Literal["NO_DECISION", "EXPLICIT_TEST_IDENTITY", "OS_PEER_IDENTITY"] = (
+        "NO_DECISION"
+    )
     output: DemoIdentityOutput | None = None
     simulated_handler_calls: int | None = Field(default=0, ge=0, le=1)
     real_os_handler_calls: Literal[0] = 0
@@ -94,11 +99,13 @@ class SimulationRecord(Snapshot):
             and self.output.account_id != self.request.action.input_payload()["account_id"]
         ):
             raise ValueError("SIMULATION_OUTPUT_BINDING_REJECTED")
-        if self.approval.decision is not None and (
-            self.actor_assurance != "EXPLICIT_TEST_IDENTITY"
-            or re.fullmatch(r"test:[A-Za-z0-9_-]{1,48}", self.approval.decision.decided_by) is None
-        ):
-            raise ValueError("SIMULATION_TEST_ACTOR_ASSURANCE_REJECTED")
+        if self.approval.decision is not None:
+            pattern = {
+                "EXPLICIT_TEST_IDENTITY": r"test:[A-Za-z0-9_-]{1,48}",
+                "OS_PEER_IDENTITY": r"os-uid:[0-9]+",
+            }.get(self.actor_assurance)
+            if pattern is None or re.fullmatch(pattern, self.approval.decision.decided_by) is None:
+                raise ValueError("SIMULATION_ACTOR_ASSURANCE_REJECTED")
         return self
 
 
@@ -373,13 +380,36 @@ class RuntimeResponseSimulation:
             )
             raise
 
-    def _review(self, identity: str, *, approve: bool, test_reviewer: str):
+    def review_peer(self, identity: str, *, approve: bool, peer_socket):
+        """Trusted local endpoint only: derive identity again at the approval boundary.
+
+        JSON or actor strings cannot supply peer credentials. Same-UID Python code
+        remains trusted; this is not a sandbox for arbitrary in-process plugins.
+        """
+        _, uid, _ = struct.unpack(
+            "3i", peer_socket.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12)
+        )
+        if uid != os.geteuid():
+            raise ValueError("OPERATOR_UID_DENIED")
+        return self._review(
+            identity, approve=approve, test_reviewer=None, peer_actor=f"os-uid:{uid}"
+        )
+
+    def _review(
+        self,
+        identity: str,
+        *,
+        approve: bool,
+        test_reviewer: str | None,
+        peer_actor: str | None = None,
+    ):
         if not isinstance(identity, str) or re.fullmatch(r"[0-9a-f]{64}", identity) is None:
             raise ValueError("SIMULATION_CANDIDATE_ID_REJECTED")
         if type(approve) is not bool:
             raise ValueError("SIMULATION_REVIEW_DECISION_REJECTED")
-        if not isinstance(test_reviewer, str) or not re.fullmatch(
-            r"test:[A-Za-z0-9_-]{1,48}", test_reviewer
+        if peer_actor is None and (
+            not isinstance(test_reviewer, str)
+            or not re.fullmatch(r"test:[A-Za-z0-9_-]{1,48}", test_reviewer)
         ):
             raise ValueError("EXPLICIT_TEST_REVIEWER_REQUIRED")
         self.store.verify_audit()
@@ -392,12 +422,14 @@ class RuntimeResponseSimulation:
                 raise ValueError("SIMULATION_ALREADY_DECIDED")
             _, approvals = self._executor(record.approval)
             decision = approvals.approve if approve else approvals.reject
-            approval = decision(record.approval.approval_id, actor=test_reviewer)
+            approval = decision(record.approval.approval_id, actor=peer_actor or test_reviewer)
             updated = record.model_copy(
                 update={
                     "approval": approval,
                     "status": "APPROVED" if approve else "REJECTED",
-                    "actor_assurance": "EXPLICIT_TEST_IDENTITY",
+                    "actor_assurance": "OS_PEER_IDENTITY"
+                    if peer_actor
+                    else "EXPLICIT_TEST_IDENTITY",
                 }
             )
             self._save(c, updated)

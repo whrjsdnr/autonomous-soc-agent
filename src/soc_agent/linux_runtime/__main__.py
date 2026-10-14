@@ -98,6 +98,20 @@ def main():
     init.add_argument("--env-file", type=Path)
     start = sub.add_parser("start")
     start.add_argument("--duration-seconds", type=float)
+    start.add_argument(
+        "--operator-uid", type=int, action="append", help="Opt-in same-UID Linux operator socket"
+    )
+    operator = sub.add_parser(
+        "operator", help="Authenticated local request to the running monitor; no DB writes"
+    )
+    op = operator.add_subparsers(dest="operator_command", required=True)
+    for command in ("pending", "audit", "feedback"):
+        op.add_parser(command)
+    for command in ("detail", "approve", "reject", "execute"):
+        request = op.add_parser(command)
+        request.add_argument("candidate_id")
+        if command in ("approve", "reject", "execute"):
+            request.add_argument("--expected-digest", required=True)
     sim = sub.add_parser("simulation", help="Opt-in pure simulator; only explicit test reviewers")
     simsub = sim.add_subparsers(dest="simulation_command", required=True)
     for command in ("enable", "disable", "list"):
@@ -128,6 +142,22 @@ def main():
                 ),
             )
             print(json.dumps({"initialized": True, "response": "DISABLED"}))
+        elif args.command == "operator":
+            from soc_agent.linux_runtime.operator import operator_request
+
+            # Validate the original path before resolution can hide a symlink.
+            directory = args.directory.absolute()
+
+            reply = asyncio.run(
+                operator_request(
+                    directory,
+                    args.operator_command,
+                    candidate_id=getattr(args, "candidate_id", None),
+                    expected_digest=getattr(args, "expected_digest", None),
+                )
+            )
+            print(json.dumps(reply))
+            return 0 if reply["ok"] else 1
         elif args.command == "simulation":
             store = RuntimeStore(directory)
             if args.simulation_command == "list":
@@ -170,6 +200,10 @@ def main():
             RuntimeStore(directory).request_stop()
             print(json.dumps({"stop_requested": True}))
         elif args.command == "start":
+            if args.operator_uid is not None:
+                from soc_agent.review.persistence.secure_storage import validate_directory
+
+                validate_directory(args.directory.absolute())
 
             async def start_runtime():
                 monitor = LinuxMonitor(directory)
@@ -177,7 +211,12 @@ def main():
                 for signum in (signal.SIGINT, signal.SIGTERM):
                     loop.add_signal_handler(signum, monitor.request_stop)
                 try:
-                    await monitor.run(duration_seconds=args.duration_seconds)
+                    await monitor.run(
+                        duration_seconds=args.duration_seconds,
+                        operator_uids=tuple(args.operator_uid)
+                        if args.operator_uid is not None
+                        else None,
+                    )
                 finally:
                     for signum in (signal.SIGINT, signal.SIGTERM):
                         loop.remove_signal_handler(signum)

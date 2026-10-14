@@ -336,7 +336,9 @@ class LinuxMonitor:
         )
         return True
 
-    async def run(self, *, duration_seconds: float | None = None):
+    async def run(
+        self, *, duration_seconds: float | None = None, operator_uids: tuple[int, ...] | None = None
+    ):
         if duration_seconds is not None and (
             not math.isfinite(duration_seconds) or duration_seconds <= 0
         ):
@@ -350,7 +352,13 @@ class LinuxMonitor:
             self.store.event("RUNTIME_STARTED", {"config": self.config.digest})
             start = monotonic()
             task = None
+            operator = None
             try:
+                if operator_uids is not None:
+                    from soc_agent.linux_runtime.operator import OperatorServer
+
+                    operator = OperatorServer(self, operator_uids)
+                    await operator.start()
                 while not self.stop_event.is_set():
                     if duration_seconds is not None and monotonic() - start >= duration_seconds:
                         break
@@ -393,3 +401,6 @@ class LinuxMonitor:
                 self.store.update(state="FAILED", last_error=type(error).__name__)
                 self.store.event("RUNTIME_FAILED", {"failure": type(error).__name__})
                 raise
+            finally:
+                if operator is not None:
+                    await operator.close()
