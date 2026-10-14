@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import threading
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -68,10 +69,15 @@ class OpenAICompatibleClient:
 
     def __init__(self, settings: OpenAICompatibleSettings) -> None:
         self._settings = settings
+        self._transport: threading.Thread | None = None
+        self.last_usage: dict[str, int] | None = None
 
     async def generate_structured[T: BaseModel](
         self, *, request: LLMRequest, response_model: type[T]
     ) -> T:
+        if self._transport is not None and self._transport.is_alive():
+            raise LLMNetworkError("NETWORK: previous transport still active")
+        self.last_usage = None
         body = {
             "model": self._settings.model,
             "messages": [
@@ -90,7 +96,7 @@ class OpenAICompatibleClient:
         }
         try:
             raw = await asyncio.wait_for(
-                asyncio.to_thread(self._post, json.dumps(body).encode()),
+                self._transport_request(json.dumps(body).encode()),
                 timeout=self._settings.timeout_seconds,
             )
         except TimeoutError:
@@ -101,6 +107,12 @@ class OpenAICompatibleClient:
             raise LLMResponseValidationError(
                 "SCHEMA_VALIDATION: invalid response envelope JSON"
             ) from None
+        usage = envelope.get("usage") if isinstance(envelope, dict) else None
+        if isinstance(usage, dict) and all(
+            type(usage.get(k)) is int and usage[k] >= 0
+            for k in ("prompt_tokens", "completion_tokens")
+        ):
+            self.last_usage = {k: usage[k] for k in ("prompt_tokens", "completion_tokens")}
         try:
             choice = envelope["choices"][0]
             finish_reason = choice["finish_reason"]
@@ -129,6 +141,35 @@ class OpenAICompatibleClient:
             # Values, error messages, context and arbitrary extra-field names stay private.
             diagnostic = _schema_diagnostic(error, response_model)
             raise LLMResponseValidationError("SCHEMA_VALIDATION: " + diagnostic) from None
+
+    async def _transport_request(self, body: bytes) -> bytes:
+        # A stuck OS DNS resolver must not hold asyncio's default executor shutdown.
+        # A timed-out client refuses a second transport until this daemon finishes.
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+
+        def deliver(value, error):
+            if future.done():
+                return
+            if error is not None:
+                future.set_exception(error)
+            else:
+                future.set_result(value)
+
+        def worker():
+            try:
+                value, error = self._post(body), None
+            except (LLMError, OSError) as failure:
+                value, error = None, failure
+            try:
+                loop.call_soon_threadsafe(deliver, value, error)
+            except RuntimeError:
+                # A closed loop means the deadline/shutdown already abandoned this reply.
+                return
+
+        self._transport = threading.Thread(target=worker, daemon=True)
+        self._transport.start()
+        return await future
 
     def _post(self, body: bytes) -> bytes:
         request = Request(
