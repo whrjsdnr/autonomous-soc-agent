@@ -30,6 +30,7 @@ from soc_agent.state import IncidentState
 
 if TYPE_CHECKING:
     from soc_agent.api.dashboard.governance_commands import ConfirmationPreview
+    from soc_agent.security_ai.external.package_status import IntegrationStatus
 
 
 class NotFound(ValueError):
@@ -74,6 +75,17 @@ class ApplicationService:
             )
         ):
             raise ValueError("Application dependencies must share authoritative storage")
+
+    def security_ai_status(self) -> "IntegrationStatus":
+        """Read-only local inventory; no inference, capability issuance or DB writes.
+
+        The GUI must retain its existing caller authentication. Checks concern this
+        interpreter, including when inference is configured in a separate interpreter.
+        """
+        from soc_agent.security_ai.external.package_status import inspect_packages
+
+        configured = getattr(self, "external_ai", None)
+        return inspect_packages(artifact_root=configured.artifacts if configured else None)
 
     def analyze_external(self, incident_id: UUID, inputs):
         """Configured offline analysis; no client-chosen artifact root or execution authority."""
