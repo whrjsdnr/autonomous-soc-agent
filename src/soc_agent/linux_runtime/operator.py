@@ -17,6 +17,8 @@ from uuid import UUID, uuid4
 
 from soc_agent.approval.errors import ApprovalError
 from soc_agent.execution.errors import ExecutionError
+from soc_agent.improvement_review.models import ReviewDecision
+from soc_agent.linux_runtime.feedback_loop import RuntimeFeedbackLoop, RuntimeFeedbackRequest
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory, validate_directory
 from soc_agent.security_ai.external.models import Hash, Snapshot, content_digest_payload
@@ -32,9 +34,26 @@ class OperatorRequest(Snapshot):
     request_id: UUID
     challenge: UUID
     created_at: UTCTimestamp
-    command: Literal["pending", "detail", "approve", "reject", "execute", "audit", "feedback"]
+    command: Literal[
+        "pending",
+        "detail",
+        "approve",
+        "reject",
+        "execute",
+        "audit",
+        "feedback",
+        "experience",
+        "feedback-submit",
+        "feedback-list",
+        "candidates",
+        "candidate-review",
+    ]
     candidate_id: Hash | None = None
     expected_digest: Hash | None = None
+    finding_id: Hash | None = None
+    feedback_request: RuntimeFeedbackRequest | None = None
+    review_decision: ReviewDecision | None = None
+    expected_evaluation: Hash | None = None
     # No actor, credential, arbitrary tool, action target, or command field.
 
 
@@ -255,6 +274,37 @@ class OperatorServer:
 
     async def dispatch(self, request: OperatorRequest, sock):
         simulation = self.monitor.simulation
+        feedback = RuntimeFeedbackLoop(self.monitor)
+        if request.command == "experience":
+            from soc_agent.experience.runtime import capture_runtime_experience
+
+            if request.finding_id is None:
+                raise ValueError("FEEDBACK_FINDING_REQUIRED")
+            return capture_runtime_experience(self.monitor, request.finding_id).model_dump(
+                mode="json"
+            )
+        if request.command == "feedback-submit":
+            if request.feedback_request is None:
+                raise ValueError("FEEDBACK_REQUEST_REQUIRED")
+            return feedback.submit(request.feedback_request, sock).model_dump(mode="json")
+        if request.command == "feedback-list":
+            return [v.model_dump(mode="json") for v in feedback.records()]
+        if request.command == "candidates":
+            return {
+                "candidates": [v.model_dump(mode="json") for v in feedback.prepare_candidates()],
+                "reviews": feedback.review_records(),
+                "support_requirement": "TWO_NONOVERLAPPING_HUMAN_FP_OPINIONS",
+            }
+        if request.command == "candidate-review":
+            if (
+                request.candidate_id is None
+                or request.review_decision is None
+                or request.expected_evaluation is None
+            ):
+                raise ValueError("CANDIDATE_REVIEW_BINDING_REQUIRED")
+            return feedback.review(
+                request.candidate_id, request.review_decision, request.expected_evaluation, sock
+            )
         if request.command == "feedback":
             from soc_agent.linux_runtime.feedback_projection import project_feedback
 
@@ -298,7 +348,16 @@ class OperatorServer:
 
 
 async def operator_request(
-    directory: Path, command: str, *, candidate_id=None, expected_digest=None, request_id=None
+    directory: Path,
+    command: str,
+    *,
+    candidate_id=None,
+    expected_digest=None,
+    request_id=None,
+    finding_id=None,
+    feedback_request=None,
+    review_decision=None,
+    expected_evaluation=None,
 ):
     """Client performs no database writes, approvals, local fallbacks, or automatic retries."""
     path = endpoint(directory)
@@ -321,8 +380,12 @@ async def operator_request(
             command=command,
             candidate_id=candidate_id,
             expected_digest=expected_digest,
+            finding_id=finding_id,
+            feedback_request=feedback_request,
+            review_decision=review_decision,
+            expected_evaluation=expected_evaluation,
         )
-        writer.write(request.model_dump_json().encode() + b"\n")
+        writer.write(request.model_dump_json(exclude_none=True).encode() + b"\n")
         await writer.drain()
         return json.loads(await asyncio.wait_for(reader.readuntil(b"\n"), timeout=TIMEOUT))
     finally:

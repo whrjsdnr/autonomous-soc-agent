@@ -27,6 +27,7 @@ async def test_projection_read_only_determinism_restart_and_no_labels(tmp_path, 
     root, monitor, _ = await prepared(tmp_path, monkeypatch)
     before = tables(monitor)
     first = project_feedback(monitor)
+    assert first["contract_version"] == "soc-runtime-feedback-projection:v2"
     assert first == project_feedback(monitor) == project_feedback(LinuxMonitor(root))
     assert tables(monitor) == before
     assert first["items"]
@@ -34,7 +35,8 @@ async def test_projection_read_only_determinism_restart_and_no_labels(tmp_path, 
         item["trust"] == "VERIFIED_TEST_RESULT" and item["diagnostic_label"] == "UNLABELED"
         for item in first["items"]
     )
-    assert first["promotion"] == first["candidate_generation"] == "NOT_CONNECTED"
+    assert first["promotion"] == "NOT_CONNECTED"
+    assert first["candidate_generation"] == "EXPLICIT_OFFLINE_ONLY"
     assert first["write_disposition"] == "WRITE_DENIED"
     assert first["inference_status"] == "NOT_INFERABLE"
     assert first["projection_digest"] == content_digest_payload(

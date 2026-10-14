@@ -27,9 +27,12 @@ from soc_agent.offline_evaluation.models import (
 )
 from soc_agent.offline_evaluation.split import partition
 from soc_agent.review.identity import content_digest
+from soc_agent.review.persistence.models import StoredDataError
 
 
 def measurements(kind: CandidateType) -> tuple[MetricDefinition, ...]:
+    if kind == CandidateType.DETECTION_RULE_REVIEW:
+        raise StoredDataError("Monitor candidate requires its versioned independent-fixture trial")
     common = (
         (
             MetricName.EVALUATED_SAMPLES,
@@ -183,6 +186,8 @@ def specify(
     config: SplitConfig,
 ) -> EvaluationSpecification:
     c = candidate.content
+    if c.candidate_type == CandidateType.DETECTION_RULE_REVIEW:
+        raise StoredDataError("Monitor experience cannot be adopted as a core checkpoint dataset")
     binding = CandidateBinding(
         candidate=ArtifactReference(identity=candidate.candidate_id, digest=content_digest(c)),
         candidate_type=c.candidate_type,

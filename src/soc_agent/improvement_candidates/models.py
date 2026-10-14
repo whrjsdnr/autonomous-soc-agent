@@ -135,6 +135,7 @@ class FailurePattern(Frozen):
 
 
 class CandidateType(StrEnum):
+    DETECTION_RULE_REVIEW = "detection_rule_review"
     PROMPT = "prompt"
     INVESTIGATION_STRATEGY = "investigation_strategy"
     TOOL_SELECTION_STRATEGY = "tool_selection_strategy"
@@ -236,19 +237,37 @@ InvestigationProposalContract = Annotated[
     InvestigationProposal | CoverageProposal, Field(discriminator="operation")
 ]
 
+
+class DetectionReviewProposal(Frozen):
+    candidate_type: Literal[CandidateType.DETECTION_RULE_REVIEW] = (
+        CandidateType.DETECTION_RULE_REVIEW
+    )
+    operation: Literal["REVIEW"] = "REVIEW"
+    target_component: Literal["authentication_detection"] = "authentication_detection"
+    proposed_guidance: Literal[
+        "Compare explicitly supplied thresholds offline; never apply automatically."
+    ] = "Compare explicitly supplied thresholds offline; never apply automatically."
+
+
 Proposal = Annotated[
-    PromptProposal | InvestigationProposalContract | ToolSelectionProposal | RuleProposal,
+    PromptProposal
+    | InvestigationProposalContract
+    | ToolSelectionProposal
+    | RuleProposal
+    | DetectionReviewProposal,
     Field(discriminator="candidate_type"),
 ]
 
 
 class CandidateContent(Frozen):
-    schema_version: Literal["improvement-candidate:v1", "improvement-candidate:v2"] = (
-        "improvement-candidate:v1"
-    )
+    schema_version: Literal[
+        "improvement-candidate:v1", "improvement-candidate:v2", "improvement-candidate:v3"
+    ] = "improvement-candidate:v1"
     dataset: DatasetBinding
     generator_version: Literal[
-        "soc-improvement-candidate-generator:v1", "soc-offline-coverage-proposal-declaration:v1"
+        "soc-improvement-candidate-generator:v1",
+        "soc-offline-coverage-proposal-declaration:v1",
+        "soc-monitor-candidate-generator:v1",
     ] = GENERATOR_VERSION
     candidate_type: CandidateType
     failure_pattern_refs: tuple[ArtifactReference, ...] = Field(min_length=1, max_length=1)
@@ -263,6 +282,11 @@ class CandidateContent(Frozen):
 
     @model_validator(mode="after")
     def structure(self) -> Self:
+        runtime = isinstance(self.proposal, DetectionReviewProposal)
+        if runtime != (self.schema_version == "improvement-candidate:v3") or runtime != (
+            self.generator_version == "soc-monitor-candidate-generator:v1"
+        ):
+            raise ValueError("Explicit runtime candidate source version required")
         executable = isinstance(self.proposal, CoverageProposal)
         if executable != (self.generator_version == DECLARATION_VERSION) or executable != (
             self.schema_version == "improvement-candidate:v2"

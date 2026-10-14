@@ -32,6 +32,11 @@ def artifacts(kind=CandidateType.PROMPT):
 
 @pytest.mark.parametrize("kind", list(CandidateType))
 def test_review_only_types_cannot_construct_patch_or_guess_baseline(kind):
+    if kind == CandidateType.DETECTION_RULE_REVIEW:
+        # A different source contract must fail closed before core source adoption.
+        with pytest.raises(StoredDataError):
+            artifacts(kind)
+        return
     source, facts, spec, plan, result = artifacts(kind)
     v = result.variant
     assert v.content.construction_status == "VARIANT_NOT_CONSTRUCTIBLE"

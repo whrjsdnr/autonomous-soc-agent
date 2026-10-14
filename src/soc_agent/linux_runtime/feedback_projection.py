@@ -107,14 +107,19 @@ def project_feedback(monitor) -> dict:
                 mode="json", exclude={"feedback_id"}
             )
             items.append(OutcomeFeedback(feedback_id=content_digest_payload(normalized), **outcome))
+    from soc_agent.linux_runtime.feedback_loop import RuntimeFeedbackLoop
+
+    loop = RuntimeFeedbackLoop(monitor)
+    loop.active_records()  # Validate current diagnostic feedback source bindings.
     payload = {
-        "contract_version": "soc-runtime-feedback-projection:v1",
+        "contract_version": "soc-runtime-feedback-projection:v2",
         "items": [i.model_dump(mode="json") for i in sorted(items, key=lambda i: i.feedback_id)],
         "automatic_changes": "DISABLED",
         "inference_status": "NOT_INFERABLE",
         "write_disposition": "WRITE_DENIED",
         "ground_truth_generation": "DISABLED",
-        "candidate_generation": "NOT_CONNECTED",
+        "human_diagnostic_feedback": [v.model_dump(mode="json") for v in loop.records()],
+        "candidate_generation": "EXPLICIT_OFFLINE_ONLY",
         "promotion": "NOT_CONNECTED",
     }
     return payload | {"projection_digest": content_digest_payload(payload)}

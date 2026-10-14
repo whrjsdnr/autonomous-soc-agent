@@ -31,6 +31,26 @@ from soc_agent.review.persistence.models import StoredDataError
 
 
 def candidate_for(kind):
+    if kind == CandidateType.DETECTION_RULE_REVIEW:
+        from soc_agent.improvement_candidates.runtime_models import (
+            RuntimeFailurePattern,
+            RuntimePatternContent,
+        )
+
+        facts = tuple(fact(n, labels=(Label.FALSE_POSITIVE,)) for n in (1, 2))
+        content = RuntimePatternContent(
+            dataset=BINDING,
+            supporting_sample_refs=tuple(
+                sorted((f.sample for f in facts), key=lambda r: r.identity)
+            ),
+            supporting_feedback_refs=tuple(
+                sorted((r for f in facts for r in f.sources.feedback), key=lambda r: r.identity)
+            ),
+            occurrence_count=2,
+        )
+        return generate(RuntimeFailurePattern(pattern_id=content_digest(content), content=content))[
+            0
+        ], facts
     options = {
         CandidateType.PROMPT: {"labels": (Label.FALSE_POSITIVE,)},
         CandidateType.INVESTIGATION_STRATEGY: {"labels": (Label.MISSED_INVESTIGATION,)},

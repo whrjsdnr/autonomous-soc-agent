@@ -6,7 +6,7 @@ import json
 import signal
 from datetime import datetime
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from soc_agent.approval.errors import ApprovalError
 from soc_agent.execution.errors import ExecutionError
@@ -107,6 +107,38 @@ def main():
     op = operator.add_subparsers(dest="operator_command", required=True)
     for command in ("pending", "audit", "feedback"):
         op.add_parser(command)
+    for command in ("feedback-list", "candidates"):
+        op.add_parser(command)
+    experience = op.add_parser("experience")
+    experience.add_argument("finding_id")
+    submit = op.add_parser("feedback-submit")
+    submit.add_argument("finding_id")
+    submit.add_argument("--experience-id", required=True)
+    submit.add_argument("--feedback-id", type=UUID, required=True)
+    submit.add_argument(
+        "--label", choices=("TRUE_POSITIVE", "FALSE_POSITIVE", "INCONCLUSIVE"), required=True
+    )
+    submit.add_argument(
+        "--reason-code",
+        choices=(
+            "EXPECTED_ACTIVITY",
+            "SUSPICIOUS_PATTERN",
+            "INSUFFICIENT_CONTEXT",
+            "INVESTIGATION_INACCURATE",
+        ),
+        required=True,
+    )
+    submit.add_argument("--supersedes", type=UUID)
+    review = op.add_parser("candidate-review")
+    review.add_argument("candidate_id")
+    review.add_argument("--decision", choices=("APPROVE", "REJECT", "DEFER"), required=True)
+    review.add_argument("--evaluation-id", required=True)
+    offline = sub.add_parser(
+        "learning-evaluate", help="Offline fixture trial; requires stopped monitor"
+    )
+    offline.add_argument("candidate_id")
+    offline.add_argument("--repeated-failures", type=int, required=True)
+    offline.add_argument("--multiple-accounts", type=int, required=True)
     for command in ("detail", "approve", "reject", "execute"):
         request = op.add_parser(command)
         request.add_argument("candidate_id")
@@ -143,10 +175,24 @@ def main():
             )
             print(json.dumps({"initialized": True, "response": "DISABLED"}))
         elif args.command == "operator":
+            from soc_agent.improvement_review.models import ReviewDecision
+            from soc_agent.linux_runtime.feedback_loop import RuntimeFeedbackRequest
             from soc_agent.linux_runtime.operator import operator_request
 
             # Validate the original path before resolution can hide a symlink.
             directory = args.directory.absolute()
+            feedback_request = (
+                RuntimeFeedbackRequest(
+                    feedback_id=args.feedback_id,
+                    finding_id=args.finding_id,
+                    expected_experience_id=args.experience_id,
+                    label=args.label,
+                    reason_code=args.reason_code,
+                    supersedes=args.supersedes,
+                )
+                if args.operator_command == "feedback-submit"
+                else None
+            )
 
             reply = asyncio.run(
                 operator_request(
@@ -154,10 +200,26 @@ def main():
                     args.operator_command,
                     candidate_id=getattr(args, "candidate_id", None),
                     expected_digest=getattr(args, "expected_digest", None),
+                    finding_id=getattr(args, "finding_id", None),
+                    feedback_request=feedback_request,
+                    review_decision=ReviewDecision(args.decision)
+                    if args.operator_command == "candidate-review"
+                    else None,
+                    expected_evaluation=getattr(args, "evaluation_id", None),
                 )
             )
             print(json.dumps(reply))
             return 0 if reply["ok"] else 1
+        elif args.command == "learning-evaluate":
+            from soc_agent.linux_runtime.feedback_loop import RuntimeFeedbackLoop
+
+            with exclusive_runtime_lock(directory / "writer.lock"):
+                result = RuntimeFeedbackLoop(LinuxMonitor(directory)).evaluate(
+                    args.candidate_id,
+                    repeated_failures=args.repeated_failures,
+                    multiple_accounts=args.multiple_accounts,
+                )
+            print(json.dumps(result))
         elif args.command == "simulation":
             store = RuntimeStore(directory)
             if args.simulation_command == "list":

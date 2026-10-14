@@ -2,6 +2,7 @@
 
 from soc_agent.improvement_candidates.models import (
     CandidateContent,
+    DetectionReviewProposal,
     FailurePattern,
     ImprovementCandidate,
     InvestigationProposal,
@@ -11,11 +12,12 @@ from soc_agent.improvement_candidates.models import (
     RuleProposal,
     ToolSelectionProposal,
 )
+from soc_agent.improvement_candidates.runtime_models import RuntimeFailurePattern
 from soc_agent.improvement_dataset.models import ArtifactReference
 from soc_agent.review.identity import content_digest
 
 
-def generate(pattern: FailurePattern) -> tuple[ImprovementCandidate, ...]:
+def generate(pattern: FailurePattern | RuntimeFailurePattern) -> tuple[ImprovementCandidate, ...]:
     c = pattern.content
     focus = (
         ReviewFocus(c.pattern_type.value.removesuffix("_pattern") + "_label_review")
@@ -36,12 +38,16 @@ def generate(pattern: FailurePattern) -> tuple[ImprovementCandidate, ...]:
         }[c.pattern_type]
     )
     proposals = []
+    runtime = isinstance(pattern, RuntimeFailurePattern)
+    if runtime:
+        proposals.append(DetectionReviewProposal())
     if c.pattern_type in {
         PatternType.INCORRECT,
         PatternType.FALSE_POSITIVE,
         PatternType.FALSE_NEGATIVE,
     }:
-        proposals.append(PromptProposal(focus=focus))
+        if not runtime:
+            proposals.append(PromptProposal(focus=focus))
     if c.pattern_type in {PatternType.UNNECESSARY_INVESTIGATION, PatternType.MISSED_INVESTIGATION}:
         proposals.append(InvestigationProposal(focus=focus))
     if c.pattern_type in {PatternType.FALSE_NEGATIVE, PatternType.MISSED_INVESTIGATION}:
@@ -55,6 +61,10 @@ def generate(pattern: FailurePattern) -> tuple[ImprovementCandidate, ...]:
     candidates = []
     for proposal in proposals:
         content = CandidateContent(
+            schema_version="improvement-candidate:v3" if runtime else "improvement-candidate:v1",
+            generator_version="soc-monitor-candidate-generator:v1"
+            if runtime
+            else "soc-improvement-candidate-generator:v1",
             dataset=c.dataset,
             candidate_type=proposal.candidate_type,
             # Bind logical pattern content, excluding metadata creation time.
