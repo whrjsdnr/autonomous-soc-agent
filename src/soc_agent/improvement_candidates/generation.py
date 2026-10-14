@@ -6,19 +6,37 @@ from soc_agent.improvement_candidates.models import (
     FailurePattern,
     ImprovementCandidate,
     InvestigationProposal,
+    MissedDetectionReviewProposal,
     PatternType,
     PromptProposal,
     ReviewFocus,
     RuleProposal,
+    RuntimeReliabilityProposal,
     ToolSelectionProposal,
 )
-from soc_agent.improvement_candidates.runtime_models import RuntimeFailurePattern
+from soc_agent.improvement_candidates.runtime_models import (
+    RuntimeFailurePattern,
+    RuntimeFailurePatternContent,
+)
 from soc_agent.improvement_dataset.models import ArtifactReference
 from soc_agent.review.identity import content_digest
 
 
 def generate(pattern: FailurePattern | RuntimeFailurePattern) -> tuple[ImprovementCandidate, ...]:
     c = pattern.content
+    if isinstance(c, RuntimeFailurePatternContent):
+        proposal = (
+            MissedDetectionReviewProposal()
+            if c.pattern_type == "SUSPECTED_MISS"
+            else RuntimeReliabilityProposal(
+                category={
+                    "LLM_FAILURE": "LLM_RELIABILITY_REVIEW",
+                    "TOOL_FAILURE": "TOOL_RELIABILITY_REVIEW",
+                    "INVESTIGATION_FAILURE": "INVESTIGATION_STRATEGY_REVIEW",
+                }[c.pattern_type]
+            )
+        )
+        return _build(pattern, (proposal,))
     focus = (
         ReviewFocus(c.pattern_type.value.removesuffix("_pattern") + "_label_review")
         if (
@@ -58,11 +76,24 @@ def generate(pattern: FailurePattern | RuntimeFailurePattern) -> tuple[Improveme
         PatternType.RECOVERY,
     }:
         proposals.append(RuleProposal(focus=focus))
+    return _build(pattern, proposals)
+
+
+def _build(pattern, proposals):
+    c = pattern.content
+    runtime = isinstance(pattern, RuntimeFailurePattern)
+    failure = isinstance(c, RuntimeFailurePatternContent)
     candidates = []
     for proposal in proposals:
         content = CandidateContent(
-            schema_version="improvement-candidate:v3" if runtime else "improvement-candidate:v1",
-            generator_version="soc-monitor-candidate-generator:v1"
+            schema_version="improvement-candidate:v4"
+            if failure
+            else "improvement-candidate:v3"
+            if runtime
+            else "improvement-candidate:v1",
+            generator_version="soc-monitor-candidate-generator:v2"
+            if failure
+            else "soc-monitor-candidate-generator:v1"
             if runtime
             else "soc-improvement-candidate-generator:v1",
             dataset=c.dataset,
@@ -77,7 +108,8 @@ def generate(pattern: FailurePattern | RuntimeFailurePattern) -> tuple[Improveme
             supporting_sample_refs=c.supporting_sample_refs,
             proposal=proposal,
             rationale=(
-                f"{c.occurrence_count} samples support {c.pattern_type.value}. "
+                f"{c.occurrence_count} samples support "
+                f"{c.pattern_type if failure else c.pattern_type.value}. "
                 "This is a review opportunity; root cause remains UNKNOWN."
             ),
             expected_effect=(

@@ -17,7 +17,9 @@ from uuid import UUID, uuid4
 
 from soc_agent.approval.errors import ApprovalError
 from soc_agent.execution.errors import ExecutionError
+from soc_agent.experience.failure import FailureQuery, capture_failure
 from soc_agent.improvement_review.models import ReviewDecision
+from soc_agent.linux_runtime.failure_feedback import FailureFeedbackLoop, FailureFeedbackRequest
 from soc_agent.linux_runtime.feedback_loop import RuntimeFeedbackLoop, RuntimeFeedbackRequest
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory, validate_directory
@@ -47,11 +49,16 @@ class OperatorRequest(Snapshot):
         "feedback-list",
         "candidates",
         "candidate-review",
+        "failure-experience",
+        "failure-submit",
+        "failure-list",
     ]
     candidate_id: Hash | None = None
     expected_digest: Hash | None = None
     finding_id: Hash | None = None
     feedback_request: RuntimeFeedbackRequest | None = None
+    failure_query: FailureQuery | None = None
+    failure_feedback: FailureFeedbackRequest | None = None
     review_decision: ReviewDecision | None = None
     expected_evaluation: Hash | None = None
     # No actor, credential, arbitrary tool, action target, or command field.
@@ -275,6 +282,17 @@ class OperatorServer:
     async def dispatch(self, request: OperatorRequest, sock):
         simulation = self.monitor.simulation
         feedback = RuntimeFeedbackLoop(self.monitor)
+        failures = FailureFeedbackLoop(self.monitor)
+        if request.command == "failure-experience":
+            if request.failure_query is None:
+                raise ValueError("FAILURE_QUERY_REQUIRED")
+            return capture_failure(self.monitor, request.failure_query)
+        if request.command == "failure-submit":
+            if request.failure_feedback is None:
+                raise ValueError("FAILURE_FEEDBACK_REQUIRED")
+            return failures.submit(request.failure_feedback, sock).model_dump(mode="json")
+        if request.command == "failure-list":
+            return [v.model_dump(mode="json") for v in failures.records()]
         if request.command == "experience":
             from soc_agent.experience.runtime import capture_runtime_experience
 
@@ -291,7 +309,10 @@ class OperatorServer:
             return [v.model_dump(mode="json") for v in feedback.records()]
         if request.command == "candidates":
             return {
-                "candidates": [v.model_dump(mode="json") for v in feedback.prepare_candidates()],
+                "candidates": [
+                    v.model_dump(mode="json")
+                    for v in (*feedback.prepare_candidates(), *failures.prepare_candidates())
+                ],
                 "reviews": feedback.review_records(),
                 "support_requirement": "TWO_NONOVERLAPPING_HUMAN_FP_OPINIONS",
             }
@@ -356,6 +377,8 @@ async def operator_request(
     request_id=None,
     finding_id=None,
     feedback_request=None,
+    failure_query=None,
+    failure_feedback=None,
     review_decision=None,
     expected_evaluation=None,
 ):
@@ -382,6 +405,8 @@ async def operator_request(
             expected_digest=expected_digest,
             finding_id=finding_id,
             feedback_request=feedback_request,
+            failure_query=failure_query,
+            failure_feedback=failure_feedback,
             review_decision=review_decision,
             expected_evaluation=expected_evaluation,
         )

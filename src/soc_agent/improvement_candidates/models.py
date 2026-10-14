@@ -249,25 +249,59 @@ class DetectionReviewProposal(Frozen):
     ] = "Compare explicitly supplied thresholds offline; never apply automatically."
 
 
+class MissedDetectionReviewProposal(Frozen):
+    candidate_type: Literal[CandidateType.DETECTION_RULE_REVIEW] = (
+        CandidateType.DETECTION_RULE_REVIEW
+    )
+    operation: Literal["REVIEW_MISSED_DETECTION"] = "REVIEW_MISSED_DETECTION"
+    category: Literal["MISSED_DETECTION_REVIEW"] = "MISSED_DETECTION_REVIEW"
+    proposed_guidance: Literal[
+        "Review suspected misses against independent labels; never assume FN truth."
+    ] = "Review suspected misses against independent labels; never assume FN truth."
+
+
+class RuntimeReliabilityProposal(Frozen):
+    candidate_type: Literal[CandidateType.RULE] = CandidateType.RULE
+    operation: Literal["REVIEW_RELIABILITY"] = "REVIEW_RELIABILITY"
+    category: Literal[
+        "LLM_RELIABILITY_REVIEW", "TOOL_RELIABILITY_REVIEW", "INVESTIGATION_STRATEGY_REVIEW"
+    ]
+    proposed_guidance: Literal[
+        "Review observed failures offline; preserve budgets, permissions and approval."
+    ] = "Review observed failures offline; preserve budgets, permissions and approval."
+
+
+RuntimeDetectionProposalContract = Annotated[
+    DetectionReviewProposal | MissedDetectionReviewProposal, Field(discriminator="operation")
+]
+RuleProposalContract = Annotated[
+    RuleProposal | RuntimeReliabilityProposal, Field(discriminator="operation")
+]
+
+
 Proposal = Annotated[
     PromptProposal
     | InvestigationProposalContract
     | ToolSelectionProposal
-    | RuleProposal
-    | DetectionReviewProposal,
+    | RuleProposalContract
+    | RuntimeDetectionProposalContract,
     Field(discriminator="candidate_type"),
 ]
 
 
 class CandidateContent(Frozen):
     schema_version: Literal[
-        "improvement-candidate:v1", "improvement-candidate:v2", "improvement-candidate:v3"
+        "improvement-candidate:v1",
+        "improvement-candidate:v2",
+        "improvement-candidate:v3",
+        "improvement-candidate:v4",
     ] = "improvement-candidate:v1"
     dataset: DatasetBinding
     generator_version: Literal[
         "soc-improvement-candidate-generator:v1",
         "soc-offline-coverage-proposal-declaration:v1",
         "soc-monitor-candidate-generator:v1",
+        "soc-monitor-candidate-generator:v2",
     ] = GENERATOR_VERSION
     candidate_type: CandidateType
     failure_pattern_refs: tuple[ArtifactReference, ...] = Field(min_length=1, max_length=1)
@@ -282,6 +316,13 @@ class CandidateContent(Frozen):
 
     @model_validator(mode="after")
     def structure(self) -> Self:
+        failure = isinstance(
+            self.proposal, (MissedDetectionReviewProposal, RuntimeReliabilityProposal)
+        )
+        if failure != (self.schema_version == "improvement-candidate:v4") or failure != (
+            self.generator_version == "soc-monitor-candidate-generator:v2"
+        ):
+            raise ValueError("Explicit runtime failure source version required")
         runtime = isinstance(self.proposal, DetectionReviewProposal)
         if runtime != (self.schema_version == "improvement-candidate:v3") or runtime != (
             self.generator_version == "soc-monitor-candidate-generator:v1"

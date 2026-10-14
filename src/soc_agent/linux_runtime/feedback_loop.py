@@ -113,6 +113,13 @@ class RuntimeFeedbackLoop:
 
     def submit(self, request: RuntimeFeedbackRequest, peer_socket) -> RuntimeFeedback:
         uid = authenticated_uid(peer_socket)
+        from soc_agent.linux_runtime.failure_feedback import FailureFeedbackLoop
+
+        if any(
+            v.request.feedback_id == request.feedback_id
+            for v in FailureFeedbackLoop(self.monitor).records()
+        ):
+            raise ValueError("CROSS_FAMILY_FEEDBACK_ID_CONFLICT")
         request = RuntimeFeedbackRequest.model_validate(request.model_dump())
         experience = capture_runtime_experience(self.monitor, request.finding_id)
         if experience.experience_id != request.expected_experience_id:
@@ -261,6 +268,10 @@ class RuntimeFeedbackLoop:
                 for e in self._events(c, "RUNTIME_IMPROVEMENT_CANDIDATE")
                 if e["details"]["candidate"]["candidate_id"] == identity
             ]
+        if not rows:
+            from soc_agent.linux_runtime.failure_feedback import FailureFeedbackLoop
+
+            return FailureFeedbackLoop(self.monitor).candidate(identity)
         if len(rows) != 1:
             raise ValueError("CANDIDATE_MISSING_OR_DUPLICATE")
         candidate = ImprovementCandidate.model_validate(rows[0]["candidate"])
@@ -278,6 +289,10 @@ class RuntimeFeedbackLoop:
 
     def evaluate(self, identity: str, *, repeated_failures: int, multiple_accounts: int):
         candidate = self.candidate(identity)
+        if candidate.content.schema_version == "improvement-candidate:v4":
+            from soc_agent.linux_runtime.failure_feedback import FailureFeedbackLoop
+
+            return FailureFeedbackLoop(self.monitor).evaluate(identity)
         if (
             type(repeated_failures) is not int
             or not 2 <= repeated_failures <= 10000

@@ -3,7 +3,9 @@
 import argparse
 import asyncio
 import json
+import os
 import signal
+import stat
 from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
@@ -18,6 +20,17 @@ from soc_agent.review.persistence.models import StorageError
 from soc_agent.runtime_lock import exclusive_runtime_lock
 from soc_agent.security_ai.operational.retention import MaintenanceLog
 from soc_agent.state.evidence import utc_now
+
+
+def read_contract_file(path: Path, *, limit=1024 * 1024) -> bytes:
+    with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "rb") as stream:
+        info = os.fstat(stream.fileno())
+        if not stat.S_ISREG(info.st_mode) or info.st_uid != os.geteuid() or info.st_size > limit:
+            raise ValueError("CONTRACT_INPUT_FILE_REJECTED")
+        raw = stream.read(limit + 1)
+        if len(raw) > limit:
+            raise ValueError("CONTRACT_INPUT_TOO_LARGE")
+        return raw
 
 
 def status(directory: Path):
@@ -107,8 +120,11 @@ def main():
     op = operator.add_subparsers(dest="operator_command", required=True)
     for command in ("pending", "audit", "feedback"):
         op.add_parser(command)
-    for command in ("feedback-list", "candidates"):
+    for command in ("feedback-list", "failure-list", "candidates"):
         op.add_parser(command)
+    for command in ("failure-experience", "failure-submit"):
+        failure = op.add_parser(command)
+        failure.add_argument("--input", type=Path, required=True)
     experience = op.add_parser("experience")
     experience.add_argument("finding_id")
     submit = op.add_parser("feedback-submit")
@@ -137,6 +153,8 @@ def main():
         "learning-evaluate", help="Offline fixture trial; requires stopped monitor"
     )
     offline.add_argument("candidate_id")
+    offline.add_argument("--holdout-contract", type=Path)
+    offline.add_argument("--holdout-data", type=Path)
     offline.add_argument("--repeated-failures", type=int, required=True)
     offline.add_argument("--multiple-accounts", type=int, required=True)
     for command in ("detail", "approve", "reject", "execute"):
@@ -194,6 +212,18 @@ def main():
                 else None
             )
 
+            from soc_agent.experience.failure import FailureQuery
+            from soc_agent.linux_runtime.failure_feedback import FailureFeedbackRequest
+
+            failure_query = None
+            failure_feedback = None
+            if args.operator_command in ("failure-experience", "failure-submit"):
+                raw = read_contract_file(args.input, limit=8192)
+                if args.operator_command == "failure-experience":
+                    failure_query = FailureQuery.model_validate_json(raw)
+                else:
+                    failure_feedback = FailureFeedbackRequest.model_validate_json(raw)
+
             reply = asyncio.run(
                 operator_request(
                     directory,
@@ -202,6 +232,8 @@ def main():
                     expected_digest=getattr(args, "expected_digest", None),
                     finding_id=getattr(args, "finding_id", None),
                     feedback_request=feedback_request,
+                    failure_query=failure_query,
+                    failure_feedback=failure_feedback,
                     review_decision=ReviewDecision(args.decision)
                     if args.operator_command == "candidate-review"
                     else None,
@@ -214,11 +246,31 @@ def main():
             from soc_agent.linux_runtime.feedback_loop import RuntimeFeedbackLoop
 
             with exclusive_runtime_lock(directory / "writer.lock"):
-                result = RuntimeFeedbackLoop(LinuxMonitor(directory)).evaluate(
-                    args.candidate_id,
-                    repeated_failures=args.repeated_failures,
-                    multiple_accounts=args.multiple_accounts,
-                )
+                monitor = LinuxMonitor(directory)
+                if bool(args.holdout_contract) != bool(args.holdout_data):
+                    raise ValueError("HOLDOUT_CONTRACT_AND_DATA_REQUIRED")
+                if args.holdout_contract:
+                    from soc_agent.evaluation.authentication import EvaluationDataset
+                    from soc_agent.linux_runtime.holdout_evaluation import HoldoutEvaluation
+                    from soc_agent.offline_evaluation.holdout import HoldoutContract
+
+                    result = HoldoutEvaluation(monitor).run(
+                        args.candidate_id,
+                        HoldoutContract.model_validate_json(
+                            read_contract_file(args.holdout_contract)
+                        ),
+                        EvaluationDataset.model_validate_json(
+                            read_contract_file(args.holdout_data)
+                        ),
+                        repeated_failures=args.repeated_failures,
+                        multiple_accounts=args.multiple_accounts,
+                    )
+                else:
+                    result = RuntimeFeedbackLoop(monitor).evaluate(
+                        args.candidate_id,
+                        repeated_failures=args.repeated_failures,
+                        multiple_accounts=args.multiple_accounts,
+                    )
             print(json.dumps(result))
         elif args.command == "simulation":
             store = RuntimeStore(directory)

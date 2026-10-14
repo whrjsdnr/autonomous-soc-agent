@@ -111,8 +111,15 @@ def project_feedback(monitor) -> dict:
 
     loop = RuntimeFeedbackLoop(monitor)
     loop.active_records()  # Validate current diagnostic feedback source bindings.
+    from soc_agent.linux_runtime.failure_feedback import FailureFeedbackLoop
+
+    failures = FailureFeedbackLoop(monitor)
+    failures.active()
+    failure_records = failures.records()
     payload = {
-        "contract_version": "soc-runtime-feedback-projection:v2",
+        "contract_version": "soc-runtime-feedback-projection:v3"
+        if failure_records
+        else "soc-runtime-feedback-projection:v2",
         "items": [i.model_dump(mode="json") for i in sorted(items, key=lambda i: i.feedback_id)],
         "automatic_changes": "DISABLED",
         "inference_status": "NOT_INFERABLE",
@@ -122,4 +129,6 @@ def project_feedback(monitor) -> dict:
         "candidate_generation": "EXPLICIT_OFFLINE_ONLY",
         "promotion": "NOT_CONNECTED",
     }
+    if failure_records:
+        payload["failure_feedback"] = [v.model_dump(mode="json") for v in failure_records]
     return payload | {"projection_digest": content_digest_payload(payload)}

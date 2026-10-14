@@ -186,7 +186,10 @@ def specify(
     config: SplitConfig,
 ) -> EvaluationSpecification:
     c = candidate.content
-    if c.candidate_type == CandidateType.DETECTION_RULE_REVIEW:
+    if (
+        c.candidate_type == CandidateType.DETECTION_RULE_REVIEW
+        or c.schema_version == "improvement-candidate:v4"
+    ):
         raise StoredDataError("Monitor experience cannot be adopted as a core checkpoint dataset")
     binding = CandidateBinding(
         candidate=ArtifactReference(identity=candidate.candidate_id, digest=content_digest(c)),

@@ -80,6 +80,7 @@ class BudgetClient:
 
     async def generate_structured(self, *, request, response_model):
         if self.calls >= self.config.max_llm_calls:
+            self.record("LLM_BUDGET_EXCEEDED", {"calls": self.calls})
             raise LLMResponseValidationError("LLM_CALL_LIMIT")
         details = {
             "call": self.calls + 1,
@@ -118,6 +119,7 @@ class BudgetClient:
         )
         self.invocation_uncertain = False
         if hasattr(response, "steps") and len(response.steps) > self.config.max_tool_calls:
+            self.record("LLM_BUDGET_EXCEEDED", {"limit": "READ_TOOL_CALLS", "calls": self.calls})
             raise LLMResponseValidationError("TOOL_CALL_LIMIT")
         return response
 
@@ -175,6 +177,9 @@ class LinuxMonitor:
                     timeout=self.config.investigation_seconds,
                 )
                 if not all(step.status.value == "completed" for step in investigation.plan.steps):
+                    from soc_agent.experience.failure import record_read_failures
+
+                    record_read_failures(self.store, finding, attempt, investigation)
                     raise ValueError("READ_INVESTIGATION_FAILED")
                 result = {
                     "finding_digest": finding.digest,
@@ -201,6 +206,9 @@ class LinuxMonitor:
                     timeout=self.config.investigation_seconds,
                 )
                 if any(stage.status != "PASS" for stage in stages.values()):
+                    from soc_agent.experience.failure import record_read_failures
+
+                    record_read_failures(self.store, finding, attempt, investigation)
                     failure_code = stages["investigation"].outcome
                     raise ValueError("LLM_INVESTIGATION_BLOCKED")
                 result = {
