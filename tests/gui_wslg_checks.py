@@ -159,8 +159,23 @@ def test_actual_module_command_duplicate_and_graceful_sigterm(tmp_path):
     command = [sys.executable, "-m", "soc_agent.gui", "--data-directory", str(tmp_path / "launch")]
     child = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
-        time.sleep(1)
-        assert child.poll() is None
+        # Startup under load may exceed a second. SIGTERM is graceful only after
+        # Desktop has installed its handler; a fixed sleep did not establish READY.
+        deadline = time.monotonic() + 30
+        ready = False
+        while child.poll() is None and time.monotonic() < deadline:
+            try:
+                status = Path(f"/proc/{child.pid}/status").read_text()
+            except FileNotFoundError:
+                break
+            caught = next(
+                line.split()[1] for line in status.splitlines() if line.startswith("SigCgt:")
+            )
+            if int(caught, 16) & (1 << (signal.SIGTERM - 1)):
+                ready = True
+                break
+            time.sleep(0.01)
+        assert ready and child.poll() is None, "GUI did not install its shutdown handler"
         duplicate = subprocess.run(command, capture_output=True, timeout=15)
         assert duplicate.returncode == 1 and b"BLOCKED" in duplicate.stderr
         child.send_signal(signal.SIGTERM)

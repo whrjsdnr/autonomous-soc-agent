@@ -1,0 +1,319 @@
+{
+  "validated_date": "2026-10-15",
+  "baseline_soc": "3c70170470aa6244f90e93fbdbdb64c8aa15ab5c",
+  "baseline_ml": "9c36c83f9d2a85d7fd91233552cef23f75fd6aa8",
+  "actual_native_model_receipts": [
+    {
+      "profile": "quality",
+      "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "origin": "OFFLINE_PCAP",
+      "score": 0.0,
+      "threshold": 0.35,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-15T10:54:34.056184Z",
+      "inference_latency_ms": 17.105143997468986,
+      "worker_limits": {
+        "address_space_bytes": 3221225472,
+        "cpu_seconds": 15,
+        "network": "DENIED",
+        "result_file_bytes": 131072
+      },
+      "receipt_sha256": "fedbfd63ad68ce6a5c791b02276a1b58df65bdab14e05f1c9ca644f4010b3df6",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "evidence_references": [
+        "77468626-c6dd-457e-9fb7-63f9d2a5ad32"
+      ],
+      "incident_id": "42910903-ec2d-414a-b1c9-5527f5e5727b",
+      "provider_calls": 0,
+      "input_digest": "302165303c6ee54b8505256506dbcd544acaab75c11507c6275e12ee53cc30eb",
+      "producer_parity": "OFFLINE_RESEARCH_ONLY"
+    },
+    {
+      "profile": "edge",
+      "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "origin": "OFFLINE_PCAP",
+      "score": 0.00024273383314721286,
+      "threshold": 0.8,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-15T10:54:36.587878Z",
+      "inference_latency_ms": 6.824385003710631,
+      "worker_limits": {
+        "address_space_bytes": 3221225472,
+        "cpu_seconds": 15,
+        "network": "DENIED",
+        "result_file_bytes": 131072
+      },
+      "receipt_sha256": "abf9cfc10ff9906d00555033f25f6dc28a20f835859b08a7bc03da43227199f1",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "evidence_references": [
+        "f9d0c43d-c53f-4d55-8780-f891a0335351"
+      ],
+      "incident_id": "d85359b2-6076-423f-8921-41954b913a64",
+      "provider_calls": 0,
+      "input_digest": "302165303c6ee54b8505256506dbcd544acaab75c11507c6275e12ee53cc30eb",
+      "producer_parity": "OFFLINE_RESEARCH_ONLY"
+    },
+    {
+      "profile": "quality",
+      "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "origin": "OFFLINE_PCAP",
+      "score": 1.0,
+      "threshold": 0.35,
+      "prediction": "CLASS_1",
+      "inferred_at": "2026-10-15T10:54:39.693407Z",
+      "inference_latency_ms": 18.633623003552202,
+      "worker_limits": {
+        "address_space_bytes": 3221225472,
+        "cpu_seconds": 15,
+        "network": "DENIED",
+        "result_file_bytes": 131072
+      },
+      "receipt_sha256": "2223f5c05562c8693c44b149fd4c0130a19b5aa67f822a504930d5f2138f587b",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "evidence_references": [
+        "ad76f431-f7cd-49cb-b6d7-15f27bbe81d5"
+      ],
+      "incident_id": "171b73dd-7f9f-4ad0-89c4-dd2a72d52d0e",
+      "provider_calls": 0,
+      "input_digest": "3707e59c5309d32c27d47fc59111d342d89478518e84f384d8edd60fbddb2d09",
+      "producer_parity": "OFFLINE_RESEARCH_ONLY"
+    },
+    {
+      "profile": "edge",
+      "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "origin": "OFFLINE_PCAP",
+      "score": 0.9998171925544739,
+      "threshold": 0.8,
+      "prediction": "CLASS_1",
+      "inferred_at": "2026-10-15T10:54:42.247540Z",
+      "inference_latency_ms": 7.499015002395026,
+      "worker_limits": {
+        "address_space_bytes": 3221225472,
+        "cpu_seconds": 15,
+        "network": "DENIED",
+        "result_file_bytes": 131072
+      },
+      "receipt_sha256": "5ae00c5bfb967968210fda198df0a3f0e18813125f30a9f91ea5c1426148eefb",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "evidence_references": [
+        "f0b8b8d9-c3df-4621-b91f-00410b29c7b2"
+      ],
+      "incident_id": "b0264623-d56f-4d39-a4a0-e5cd2bf0c95c",
+      "provider_calls": 0,
+      "input_digest": "3707e59c5309d32c27d47fc59111d342d89478518e84f384d8edd60fbddb2d09",
+      "producer_parity": "OFFLINE_RESEARCH_ONLY"
+    },
+    {
+      "profile": "dns",
+      "artifact_digest": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "origin": "FIXTURE",
+      "score": 0.55859375,
+      "threshold": 0.5,
+      "prediction": "CLASS_1",
+      "inferred_at": "2026-10-15T10:54:44.847738Z",
+      "inference_latency_ms": 20.177248,
+      "worker_limits": {
+        "address_space_bytes": 3221225472,
+        "cpu_seconds": 15,
+        "network": "DENIED",
+        "result_file_bytes": 131072
+      },
+      "receipt_sha256": "f4b58641e0ee8a9558e2892140b41eb19ab2aa6208422e9d564c5c86cde0f93b",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "evidence_references": [
+        "05e8547b-bb31-4779-a32e-e2e2c9de6580"
+      ],
+      "incident_id": "62e39f1d-fec8-40f0-9184-802259d70022",
+      "provider_calls": 0,
+      "input_digest": "bec433d2abb66328cb3e5144e1286d2286fc3be3b062c016dd0ab2577cbd889e",
+      "producer_parity": "UNVERIFIED"
+    },
+    {
+      "profile": "dns",
+      "artifact_digest": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "origin": "FIXTURE",
+      "score": 0.0,
+      "threshold": 0.5,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-15T10:54:47.515152Z",
+      "inference_latency_ms": 20.890147,
+      "worker_limits": {
+        "address_space_bytes": 3221225472,
+        "cpu_seconds": 15,
+        "network": "DENIED",
+        "result_file_bytes": 131072
+      },
+      "receipt_sha256": "1625534cc93873dc975e1d33352feb31a6360c776ddcaedabbdb920a9214179c",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "evidence_references": [
+        "dc0e8417-4358-48c5-922a-0beac066d9c1"
+      ],
+      "incident_id": "605b203b-d599-4157-957d-dd57b4e1a0a8",
+      "provider_calls": 0,
+      "input_digest": "5f6819245325067f0b7487e5b7edc61d5a09f7335c51018ae94533007d52888e",
+      "producer_parity": "UNVERIFIED"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "ML/models/network-research-v1-final/quality_rf/model.joblib",
+      "bytes": 117241,
+      "sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603"
+    },
+    {
+      "path": "ML/models/network-research-v1-final/quality_rf/artifact.json",
+      "bytes": 8164,
+      "sha256": "2c13dbc0f313f81fb88e69fca90ac81d3189c2256e02ee3580e8f2a07b425169"
+    },
+    {
+      "path": "ML/models/network-research-v1-final/edge_lr/model.joblib",
+      "bytes": 1773,
+      "sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882"
+    },
+    {
+      "path": "ML/models/network-research-v1-final/edge_lr/artifact.json",
+      "bytes": 8996,
+      "sha256": "4cf0dc97d1886a4aa09c45de57b69fa23f2f0f10bb7eb5afb66f4907e04ebb79"
+    },
+    {
+      "path": "autonomous-soc-agent/.security-ai-demo/artifacts/dns/model/dnn_int8.tflite",
+      "bytes": 9288,
+      "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33"
+    },
+    {
+      "path": "autonomous-soc-agent/.security-ai-demo/artifacts/dns/preprocessor/scaler.joblib",
+      "bytes": 1135,
+      "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a"
+    },
+    {
+      "path": "ML/src/ml/verified_producers/network_v1_1.py",
+      "bytes": 5028,
+      "sha256": "19fbcd702632b9b86605681b3b3f54a5b759b9ee26c373256dae360cf4b4634f"
+    }
+  ],
+  "authentication": {
+    "source": "RETAINED_WSL_NATIVE_OS",
+    "new_collection": false,
+    "counts": {
+      "authentication_events": 1,
+      "findings_total": 1,
+      "collected_events": 560,
+      "active_findings": 0,
+      "pending_approvals": 0,
+      "investigation_distribution": {
+        "DONE_READ_ONLY": 1
+      },
+      "recent_activity": [
+        {
+          "rule_id": "SUDO_PAM_MODULE_FAILURE",
+          "event_time": "2026-08-28T00:23:24.127892+00:00",
+          "origin": "NATIVE_OS"
+        }
+      ]
+    },
+    "audit": "2dfa233a2e6a72013ab63e0e6a2946d390a5cb89fdeefbada98777911d787b18",
+    "sqlite": {
+      "sources.sqlite": "ok",
+      "monitor.sqlite": "ok",
+      "queue.sqlite": "ok",
+      "collection-audit.sqlite": "ok"
+    },
+    "findings": [
+      {
+        "status": "DONE_READ_ONLY",
+        "origin": "NATIVE_OS",
+        "evidence_references": [
+          "ed75dc726618acd07affd0fdb971fe832cc75d7d6320e024a4f0cdeeccfa8ed0"
+        ],
+        "action_policy": "WRITE_DENIED"
+      }
+    ],
+    "database_bytes_unchanged": true
+  },
+  "legacy_artifact_checks": [
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/resources/top40_features.csv",
+      "size_bytes": 675,
+      "sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d"
+    },
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/resources/label_mapping.json",
+      "size_bytes": 377,
+      "sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd"
+    },
+    {
+      "path": "models/network/lightgbm_top40_v4b2.txt",
+      "size_bytes": 48637456,
+      "sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924"
+    },
+    {
+      "path": "models/network/dnn_top40_v4_best.pt",
+      "size_bytes": 398041,
+      "sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160"
+    },
+    {
+      "path": "models/network/dnn_top40_v4_scaler.joblib",
+      "size_bytes": 1543,
+      "sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32"
+    },
+    {
+      "path": "packages/dns_security_package/dns_security_package/dns_security/model/dnn_int8.tflite",
+      "size_bytes": 9288,
+      "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33"
+    },
+    {
+      "path": "packages/dns_security_package/dns_security_package/dns_security/preprocessor/scaler.joblib",
+      "size_bytes": 1135,
+      "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "matches_reviewed_manifest": true,
+      "current_sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a"
+    }
+  ],
+  "operational_inference": "BLOCKED",
+  "write_policy": "WRITE_DENIED",
+  "new_capture": false,
+  "new_provider_calls": 0,
+  "research_sqlite_integrity": "ok",
+  "research_audit_head": "b13098bd7e7b15d4d1eeae56954a2e8126e0fc522c10831f8c439aa703a303ef",
+  "independent_export_comparison": {
+    "native_results_equal": true,
+    "count": 6,
+    "equal_fields": [
+      "profile",
+      "flow_index",
+      "artifact_digest",
+      "feature_or_input_digest",
+      "score",
+      "prediction",
+      "investigation_status",
+      "checkpoint_restored"
+    ],
+    "different_by_design": [
+      "invocation_id",
+      "incident_id",
+      "inferred_at",
+      "latency",
+      "receipt_digest",
+      "audit_head"
+    ],
+    "fresh_invocation_ids_disjoint": true
+  }
+}

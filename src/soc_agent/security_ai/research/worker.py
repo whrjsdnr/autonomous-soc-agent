@@ -1,7 +1,10 @@
 """One fixed offline replay request; no model/path/module/command from event data."""
 
 import argparse
+import ctypes
+import os
 import resource
+import signal
 import socket
 import sys
 import time
@@ -9,6 +12,24 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 # Limits precede sklearn/numpy/joblib imports; no networking/capture in this worker.
+
+
+def bind_parent(parent_pid: int) -> None:
+    """Linux kills this owned helper if its creating parent thread exits.
+
+    Check both sides of prctl: the parent can exit before the death signal is set.
+    This does not affect the independently running Linux SOC Runtime.
+    """
+    if sys.platform != "linux" or parent_pid <= 1 or os.getppid() != parent_pid:
+        raise ValueError("RESEARCH_PARENT_UNAVAILABLE")
+    libc = ctypes.CDLL(None, use_errno=True)
+    prctl = libc.prctl
+    prctl.argtypes = [ctypes.c_int, *([ctypes.c_ulong] * 4)]
+    prctl.restype = ctypes.c_int
+    if prctl(1, signal.SIGKILL, 0, 0, 0) != 0:  # PR_SET_PDEATHSIG; no privilege change.
+        raise OSError(ctypes.get_errno(), "RESEARCH_PARENT_BINDING_FAILED")
+    if os.getppid() != parent_pid:
+        raise ValueError("RESEARCH_PARENT_UNAVAILABLE")
 
 
 def limits():
@@ -140,16 +161,18 @@ def run(request, paths):
 
 
 def main():
-    limits()
-    from soc_agent.security_ai.research.environment import Paths, read_local
-    from soc_agent.security_ai.research.models import Request
-
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--parent-pid", type=int, required=True)
     parser.add_argument("--request", type=Path, required=True)
     parser.add_argument("--result", type=Path, required=True)
     parser.add_argument("--ml", type=Path, required=True)
     parser.add_argument("--producer-source", type=Path, required=True)
     args = parser.parse_args()
+    bind_parent(args.parent_pid)
+    limits()
+    from soc_agent.security_ai.research.environment import Paths, read_local
+    from soc_agent.security_ai.research.models import Request
+
     request = Request.model_validate_json(read_local(args.request, 4096))
     paths = Paths(
         args.ml, Path(sys.executable), Path(__file__).resolve().parents[3], args.producer_source

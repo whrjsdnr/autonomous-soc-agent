@@ -77,6 +77,8 @@ class ResearchAdapter:
                 str(paths.python),
                 "-m",
                 "soc_agent.security_ai.research.worker",
+                "--parent-pid",
+                str(os.getpid()),
                 "--request",
                 str(source),
                 "--result",

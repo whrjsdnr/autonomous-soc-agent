@@ -36,6 +36,8 @@ class ResearchDemo:
         self.directory = directory / "network-research"
         self.adapter = ResearchAdapter(self.directory, paths=paths, timeout=timeout)
         self.started = False
+        self.starting = False
+        self.start_cancelled = False
         self.running = False
         self.stopping = False
         self.active_key = None
@@ -122,6 +124,8 @@ class ResearchDemo:
             ),
             "demo_state": "STOPPING"
             if self.stopping
+            else "STARTING"
+            if self.starting and not self.start_cancelled
             else "RUNNING"
             if self.running
             else "STARTED"
@@ -173,20 +177,31 @@ class ResearchDemo:
         return metrics
 
     async def start(self, profile="quality"):
-        if self.running:
+        if self.running or self.starting or self.stopping:
             raise ValueError("RESEARCH_DEMO_ALREADY_RUNNING")
-        status = await asyncio.to_thread(self.adapter.status, profile)
-        if status["status"] != "READY":
-            return status
-        if not self.directory.exists():
-            create_private_directory(self.directory, exist_ok=False)
-            RuntimeGovernanceStore.create_isolated(self.directory / "soc")
-            create_private_file(self.directory / "replay.lock")
-        self._records()  # Corrupt/stale records cannot be silently reset.
-        self.started, self.stopping = True, False
+        self.starting, self.start_cancelled = True, False
+        try:
+            status = await asyncio.to_thread(self.adapter.status, profile)
+            if self.start_cancelled:
+                return {
+                    "demo_state": "STOPPED",
+                    "operational_inference": "BLOCKED",
+                    "write_policy": "WRITE_DENIED",
+                }
+            if status["status"] != "READY":
+                return status
+            if not self.directory.exists():
+                create_private_directory(self.directory, exist_ok=False)
+                RuntimeGovernanceStore.create_isolated(self.directory / "soc")
+                create_private_file(self.directory / "replay.lock")
+            self._records()  # Corrupt/stale records cannot be silently reset.
+            self.started, self.stopping = True, False
+        finally:
+            self.starting = False
         return await asyncio.to_thread(self.snapshot)
 
     async def stop(self):
+        self.start_cancelled = True
         self.started, self.stopping = False, self.running
         await self.adapter.cancel()
         if self.investigation_task is not None:
