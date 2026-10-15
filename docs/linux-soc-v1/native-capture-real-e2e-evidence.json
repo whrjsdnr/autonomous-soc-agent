@@ -1,0 +1,187 @@
+{
+  "contract_version": "soc-approved-capture-attempt:v1",
+  "recorded_at": "2026-10-15T03:31:27.767661+00:00",
+  "baseline_commit": "d3d27a0a92c2cbf86feadbdfad398172981d1343",
+  "environment": "WSL2_UBUNTU",
+  "verdict": "BLOCKED",
+  "reason": "NONINTERACTIVE_SUDO_PASSWORD_REQUIRED",
+  "approval_scope": {
+    "interface": "lo",
+    "expected_uid": 1000,
+    "expected_gid": 1000,
+    "maximum_probe_invocations": 2,
+    "maximum_seconds_per_probe": 5,
+    "maximum_packets_per_probe": 128,
+    "capability": "CAP_NET_RAW_ONLY",
+    "permanent_file_capability_change": false,
+    "controlled_traffic": "OWNED_LOOPBACK_UDP_TCP_ONLY"
+  },
+  "preflight": {
+    "privileges": {
+      "euid": 1000,
+      "egid": 1000,
+      "CapEff": 0,
+      "CapPrm": 0,
+      "CapInh": 0,
+      "CapAmb": 0,
+      "CapBnd": 2199023255551,
+      "NoNewPrivs": 0
+    },
+    "real_uid": 1000,
+    "real_gid": 1000,
+    "account_matches_1000": true,
+    "interpreter_sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+    "interpreter_is_symlink": true,
+    "python_version": "3.12.14",
+    "probe_sha256": "59b67d8a7654eebbb7f05e3810b3d3e2da0aea5029872a09ca01ed1e9a12a50d",
+    "lo_identity": "56e317ceb7820400eb8b28ffb199cede578d269caaaf9ac0e621684b206c202d",
+    "lo_ifindex": 1,
+    "sudo_present": true,
+    "setpriv_present": true,
+    "baseline_file_count": 1012,
+    "account_primary_gid_matches": true
+  },
+  "sudo_preflight": {
+    "sudo_preflight_attempts": 1,
+    "sudo_noninteractive_exit_code": 1,
+    "sudo_status": "PASSWORD_REQUIRED",
+    "elapsed_seconds": 0.018156471000111196,
+    "probe_processes_started": 0,
+    "test_traffic_sent": false,
+    "stderr_sha256": "9b3a3b7a78f239c4473bb193476b1a860c91f1c2b4fab9c7639eceea414a60fb"
+  },
+  "postflight": {
+    "privileges_after_sudo_denial": {
+      "euid": 1000,
+      "egid": 1000,
+      "CapEff": 0,
+      "CapPrm": 0,
+      "CapInh": 0,
+      "CapAmb": 0,
+      "CapBnd": 2199023255551,
+      "NoNewPrivs": 0
+    },
+    "lo_identity_after": "56e317ceb7820400eb8b28ffb199cede578d269caaaf9ac0e621684b206c202d",
+    "identities": {
+      "python": {
+        "sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+        "owner_uid": 1000,
+        "owner_gid": 1000,
+        "mode": "0o755",
+        "file_capability": "ABSENT",
+        "file_capability_digest": null
+      },
+      "setpriv": {
+        "sha256": "62ec0120791f3afcfb689fed52384ec2b0accc6e118a6b9a1d6fcfa7450aaf37",
+        "owner_uid": 0,
+        "owner_gid": 0,
+        "mode": "0o755",
+        "file_capability": "ABSENT",
+        "file_capability_digest": null
+      },
+      "probe": {
+        "sha256": "59b67d8a7654eebbb7f05e3810b3d3e2da0aea5029872a09ca01ed1e9a12a50d",
+        "owner_uid": 1000,
+        "owner_gid": 1000,
+        "mode": "0o644",
+        "file_capability": "ABSENT",
+        "file_capability_digest": null
+      }
+    }
+  },
+  "actual_capture": {
+    "privileged_probe_invocations": 0,
+    "started": false,
+    "capture_elapsed_seconds": null,
+    "packet_count": null,
+    "flow_count": null,
+    "dns_event_count": null,
+    "capture_drop_count": null,
+    "capture_gap_count": null,
+    "controlled_traffic_sent": 0,
+    "queue_validation": "NOT_EXECUTED",
+    "source_store_validation": "NOT_EXECUTED",
+    "provenance_validation": "NOT_EXECUTED",
+    "restart_recovery": "NOT_EXECUTED",
+    "capability_transition": "NOT_EXECUTED"
+  },
+  "observed_parent_privileges_unchanged": true,
+  "lo_identity_unchanged": true,
+  "operational_models": {
+    "network-quality": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    },
+    "network-edge": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    },
+    "dns": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    }
+  },
+  "write_disposition": "WRITE_DENIED",
+  "validation_runs": [
+    {
+      "scope": "working_tree_capture_source_provenance_gui_security_regression",
+      "passed": 411,
+      "failed": 0,
+      "elapsed_seconds": 51.46,
+      "origin": "FIXTURE_AND_READ_ONLY_DENIAL_CHECKS",
+      "native_capture_verified": false
+    },
+    {
+      "scope": "approved_identity_and_actual_denial_checks",
+      "passed": 3,
+      "failed": 0,
+      "elapsed_seconds": 0.26,
+      "origin": "REAL_UNPRIVILEGED_PREFLIGHT_ONLY",
+      "native_capture_verified": false
+    },
+    {
+      "scope": "working_tree_runtime_scenario_approval",
+      "passed": 248,
+      "failed": 0,
+      "elapsed_seconds": 86.74,
+      "origin": "EXISTING_FIXTURE_AND_READ_ONLY_TESTS",
+      "native_capture_verified": false
+    },
+    {
+      "scope": "independent_git_export_source_capture_provenance_gui_security",
+      "passed": 404,
+      "failed": 0,
+      "elapsed_seconds": 54.1,
+      "origin": "FIXTURES_AND_REAL_UNPRIVILEGED_PREFLIGHT",
+      "native_capture_verified": false
+    },
+    {
+      "scope": "independent_git_export_runtime_scenario_approval",
+      "passed": 248,
+      "failed": 0,
+      "elapsed_seconds": 97.16,
+      "origin": "EXISTING_FIXTURE_AND_READ_ONLY_TESTS",
+      "native_capture_verified": false
+    }
+  ],
+  "preservation": {
+    "existing_files_sha256_unchanged": 1012,
+    "probe_sha256_unchanged": true,
+    "user_changes_and_replay_excluded": true
+  },
+  "quality": {
+    "ruff_check": "PASS",
+    "format_check": "PASS",
+    "formatted_file_count": 873,
+    "git_diff_check": "PASS"
+  }
+}
