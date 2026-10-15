@@ -1,0 +1,83 @@
+{
+  "network": {
+    "producer_id": "linux-observable-network",
+    "semantic_version": "1.0.0",
+    "feature_names": [
+      "duration_seconds",
+      "forward_packet_count",
+      "backward_packet_count",
+      "forward_ip_bytes",
+      "backward_ip_bytes",
+      "ip_length_min",
+      "ip_length_max",
+      "ip_length_mean",
+      "ip_length_population_std",
+      "tcp_syn_packet_count",
+      "tcp_fin_packet_count",
+      "tcp_rst_packet_count",
+      "iat_mean_seconds",
+      "iat_max_seconds"
+    ],
+    "dtype": "float32",
+    "precision": "binary64 arithmetic; one final IEEE754 binary32 conversion",
+    "missing_value_policy": "REJECT; no imputation; no NaN/Inf",
+    "scaling": "NONE; any future fitted transform requires separate training-only binding",
+    "purpose": "OFFLINE_EXPERIMENTAL; NOT_LEGACY_COMPATIBLE",
+    "source_schema": "ordered-packet-metadata:v1",
+    "source_input_fields": {
+      "event_id": "nonempty bounded reference, unique within window",
+      "interface_id": "64 lowercase SHA256 characters; declaration, not attestation",
+      "capture_session_id": "1..128 characters; cannot combine sessions",
+      "timestamp_ns": "integer 0..2^63-1; real capture requires kernel timestamp binding",
+      "source_address/destination_address": "canonical IP strings of same family",
+      "source_port/destination_port": "integer 0..65535",
+      "transport": "tcp or udp",
+      "ip_length": "full IP bytes, 20..65535; transport minimum enforced",
+      "tcp_flags": "integer 0..511; UDP must be zero"
+    },
+    "direction": "FIRST_OBSERVED_ENDPOINT_PAIR; not host inbound/outbound",
+    "normalization": "canonical IP addresses; IP total lengths; no packet payload",
+    "idle_timeout_ns": 30000000000,
+    "active_timeout_ns": 120000000000,
+    "timeout_policy": "reject interval >= idle or span >= active; caller segments first",
+    "max_packets": 4096,
+    "length_statistics": "population statistics over IP lengths in both directions",
+    "iat": "consecutive ordered packet times in seconds; singleton IAT=0 by definition",
+    "loss_policy": "GAPPED rejected; UNKNOWN allowed only as experimental diagnostic"
+  },
+  "dns": {
+    "producer_id": "linux-observable-dns",
+    "semantic_version": "1.0.0",
+    "feature_names": [
+      "fqdn_length_no_root",
+      "label_count",
+      "max_label_length",
+      "mean_label_length",
+      "ascii_digit_ratio",
+      "ascii_special_ratio",
+      "character_entropy_bits"
+    ],
+    "dtype": "float32",
+    "precision": "binary64 arithmetic; one final IEEE754 binary32 conversion",
+    "missing_value_policy": "REJECT; no imputation; no NaN/Inf",
+    "scaling": "NONE; any future fitted transform requires separate training-only binding",
+    "purpose": "OFFLINE_EXPERIMENTAL; NOT_LEGACY_COMPATIBLE",
+    "source_schema": "ascii-fqdn:v1",
+    "source_input_fields": {
+      "fqdn": "ASCII string 1..254 characters including optional root dot"
+    },
+    "normalization": "ASCII lowercase; remove exactly one terminal dot; no trimming",
+    "accepted_labels": "ASCII letters/digits/hyphen/underscore; 1..63 bytes each",
+    "limits": "253 characters excluding terminal root; empty/root-only rejected",
+    "character_population": "concatenated labels, excluding dots; no public suffix inference",
+    "special": "hyphen and underscore divided by character population length",
+    "entropy": "Shannon log2 over lowercase character population",
+    "idna": "Punycode ASCII accepted literally; Unicode rejected, no IDNA conversion",
+    "query_type": "EXCLUDED; no training query-type dataset available",
+    "timeout_policy": "not applicable; bounded input length",
+    "encrypted_dns": "unobservable; no derivation from DoH/DoT or name digests"
+  },
+  "operational_gate": "NOT_INFERABLE",
+  "model_artifact": null,
+  "training_status": "BLOCKED_RAW_LABELED_DATA_MISSING"
+}

@@ -1,0 +1,234 @@
+{
+  "audit_date": "2026-10-15",
+  "soc_baseline": "4a86db4c0beeef7d6d7d81c1a0f7d543b27183b4",
+  "ml_baseline": "1800bd013edefd448671c97a8b7114409f639481",
+  "new_producers": {
+    "network": {
+      "id": "linux-observable-network",
+      "version": "1.0.0",
+      "configuration_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+      "feature_count": 14,
+      "implementation": "OFFLINE_EXPERIMENTAL",
+      "model_artifact": null
+    },
+    "dns": {
+      "id": "linux-observable-dns",
+      "version": "1.0.0",
+      "configuration_digest": "452769e5e4477fe6e6c5f87a5048424d24abcaabdc79a45e6c40b318e19ea3f5",
+      "feature_count": 7,
+      "implementation": "OFFLINE_EXPERIMENTAL",
+      "model_artifact": null
+    }
+  },
+  "implementation_sha256": {
+    "src/ml/verified_producers/__init__.py": "572e6585516a0c5f8a20f6cfc8db2d95b3810883ec8ba8f7c6530eaa5f831d58",
+    "src/ml/verified_producers/contracts.py": "71d32d4238f88559b2481aaf0314559a54772596d1b5b20b095d2d67fa90564e",
+    "src/ml/verified_producers/dataset.py": "10aaead33303aee7a0405af82243264ef02ded5a1ec116b3048ced704185a81f",
+    "src/ml/verified_producers/dns.py": "45b95dd38089e29443b7ffa1bec0e610051efe03503c09271f8a2242376a8267",
+    "src/ml/verified_producers/network.py": "e9dabdffd1c10673187cc0cc80d28aab3125ad23d88aaa86367ab81074860610"
+  },
+  "golden_sha256": "6f09de36e2e0e12ded927fa0e8fafe968b0f343a8bfb04be912de7b94ebadcf7",
+  "golden_origin": "SYNTHETIC_HAND_CHECKED_NOT_TRAINING_GROUND_TRUTH",
+  "golden_case_counts": {
+    "network": 1,
+    "dns": 2
+  },
+  "pcap_found": 0,
+  "raw_labeled_network_training_samples": 0,
+  "raw_labeled_dns_training_samples": 0,
+  "feature_only_network_csv_files": 10,
+  "feature_only_network_csv_bytes": 6886649507,
+  "dns_notebook_inputs": "REFERENCED_STATELESS_CSV_PATHS_ABSENT",
+  "new_training_invocations": 0,
+  "new_native_model_inference_invocations": 0,
+  "new_model_artifacts": [],
+  "independent_holdout_evaluation": "BLOCKED_RAW_LABELED_DATA_MISSING",
+  "metrics": {
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "pr_auc": null,
+    "confusion_matrix": null,
+    "false_positive_rate": null,
+    "false_negative_rate": null,
+    "inference_latency": null,
+    "memory_usage": null,
+    "training_time": null
+  },
+  "stored_capture_read_only_diagnostic": {
+    "origin": "STORED_USER_LOOPBACK_METADATA_NOT_NEW_CAPTURE",
+    "packet_count": 32,
+    "diagnostic_observation_groups": 4,
+    "dns_events": 0,
+    "read_only_original_unchanged": true,
+    "new_capture_runs": 0,
+    "new_inference_runs": 0,
+    "independent_labels": 0,
+    "training_eligible": false,
+    "capture_quality": "UNKNOWN_WITH_PREEXISTING_GAP",
+    "operational_input": "NOT_INFERABLE",
+    "outputs": [
+      {
+        "source_digest": "49540db4508e8f0a138e3aaaabf275774d00cd378dda682a0b5323bf46b8cd85",
+        "feature_digest": "6f6e0ec4b0ee5b1b1bdcdd72de3e6d6ef62472f9b8a400b714e9b230a4c2883b",
+        "configuration_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+        "packets": 4,
+        "values": [
+          3.580900011002086e-05,
+          2.0,
+          2.0,
+          104.0,
+          104.0,
+          52.0,
+          52.0,
+          52.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.1936333066842053e-05,
+          3.356999877723865e-05
+        ],
+        "quality": "UNKNOWN"
+      },
+      {
+        "source_digest": "bf636bc3e4d05f7c7605894e11e4a1bb3afbd473a0c850bba26284e06ad431df",
+        "feature_digest": "a9f9c18fd3eb02c0e35ff483d6cf09d6b40d45f82adb33c2a9fb425d57f9f331",
+        "configuration_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+        "packets": 20,
+        "values": [
+          0.00010207600280409679,
+          10.0,
+          10.0,
+          584.0,
+          584.0,
+          52.0,
+          76.0,
+          58.400001525878906,
+          9.329523086547852,
+          4.0,
+          4.0,
+          0.0,
+          5.372421128413407e-06,
+          4.4162999984109774e-05
+        ],
+        "quality": "UNKNOWN"
+      },
+      {
+        "source_digest": "25271a08e6c94cc16f9cf948d0cd039004c26b7154e2d370b7f966130464129e",
+        "feature_digest": "00fa9800aa62f0a75b23765091a9cc48e806262356bb4505bb2a176ef2ec70a9",
+        "configuration_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+        "packets": 4,
+        "values": [
+          2.9613000151584856e-05,
+          2.0,
+          2.0,
+          134.0,
+          104.0,
+          52.0,
+          67.0,
+          59.5,
+          7.5,
+          0.0,
+          0.0,
+          0.0,
+          9.870999747363385e-06,
+          2.2046999220037833e-05
+        ],
+        "quality": "UNKNOWN"
+      },
+      {
+        "source_digest": "52541f60abd8def2b9fe4cdce7fe8c0f210100df4eb39c4ce28720f643bb7f8b",
+        "feature_digest": "ff17307b0312e72135549734bcaf3428554583f47a596a5e3a418f52f43dea85",
+        "configuration_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+        "packets": 4,
+        "values": [
+          5.6829998356988654e-05,
+          2.0,
+          2.0,
+          134.0,
+          104.0,
+          52.0,
+          67.0,
+          59.5,
+          7.5,
+          0.0,
+          0.0,
+          0.0,
+          1.8943333998322487e-05,
+          5.007200161344372e-05
+        ],
+        "quality": "UNKNOWN"
+      }
+    ]
+  },
+  "legacy_artifacts": [
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/resources/top40_features.csv",
+      "size_bytes": 675,
+      "sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    },
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/resources/label_mapping.json",
+      "size_bytes": 377,
+      "sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    },
+    {
+      "path": "models/network/lightgbm_top40_v4b2.txt",
+      "size_bytes": 48637456,
+      "sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    },
+    {
+      "path": "models/network/dnn_top40_v4_best.pt",
+      "size_bytes": 398041,
+      "sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    },
+    {
+      "path": "models/network/dnn_top40_v4_scaler.joblib",
+      "size_bytes": 1543,
+      "sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    },
+    {
+      "path": "packages/dns_security_package/dns_security_package/dns_security/model/dnn_int8.tflite",
+      "size_bytes": 9288,
+      "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    },
+    {
+      "path": "packages/dns_security_package/dns_security_package/dns_security/preprocessor/scaler.joblib",
+      "size_bytes": 1135,
+      "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "matches_reviewed_manifest": true,
+      "verified_this_run": true
+    }
+  ],
+  "operational_models": {
+    "network-quality": {
+      "verdict": "BLOCKED",
+      "operational_input": "NOT_INFERABLE",
+      "finding_promotion": "BLOCKED"
+    },
+    "network-edge": {
+      "verdict": "BLOCKED",
+      "operational_input": "NOT_INFERABLE",
+      "finding_promotion": "BLOCKED"
+    },
+    "dns": {
+      "verdict": "BLOCKED",
+      "operational_input": "NOT_INFERABLE",
+      "finding_promotion": "BLOCKED"
+    }
+  },
+  "write_disposition": "WRITE_DENIED"
+}
