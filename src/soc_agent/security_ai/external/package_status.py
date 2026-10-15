@@ -7,8 +7,11 @@ artifacts. Probe success describes this execution only, not producer parity or e
 import argparse
 import importlib
 import importlib.metadata
+import os
+import subprocess
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+from uuid import UUID
 
 from soc_agent.review.models import StoredIncident
 from soc_agent.security_ai.external.assembly import assemble
@@ -22,6 +25,10 @@ from soc_agent.security_ai.external.models import (
 )
 from soc_agent.security_ai.external.projection import project, projection_digest
 from soc_agent.security_ai.external.service import ModelInput
+from soc_agent.state.evidence import UTCTimestamp
+
+if TYPE_CHECKING:
+    from soc_agent.security_ai.external.runtime_guard import RuntimeBoundary
 
 # Existing Gate B reviewed package contract pin, not a pin discovered from current files.
 REVIEWED_CODE = "56293972d069dffaf564a390ab7a4c4554c2a2a5b2ab6be6f6f758b5ea3cce44"
@@ -65,10 +72,27 @@ class AuthenticationStatus(Snapshot):
     external_model_inference: Literal["NOT_INFERABLE"] = "NOT_INFERABLE"
 
 
+class RecordedValidation(Snapshot):
+    status: Literal["PERSISTED_ADVISORY_LINEAGE_REVALIDATED"] = (
+        "PERSISTED_ADVISORY_LINEAGE_REVALIDATED"
+    )
+    input_origin: Literal["SYNTHETIC_PRECOMPUTED_FEATURE_FIXTURE"] = (
+        "SYNTHETIC_PRECOMPUTED_FEATURE_FIXTURE"
+    )
+    context_digest: Hash
+    recorded_at: UTCTimestamp
+    result_digests: tuple[Hash, ...]
+    model_bindings: tuple[Literal["network-quality", "network-edge", "dns"], ...]
+    environment_digests: tuple[Hash, ...]
+    native_inference_this_query: Literal[False] = False
+
+
 class IntegrationStatus(Snapshot):
     contract_version: Literal["soc-security-ai-package-status:v1"] = STATUS_CONTRACT
     packages: tuple[PackageStatus, ...]
-    environment_scope: Literal["CURRENT_INTERPRETER"] = "CURRENT_INTERPRETER"
+    environment_scope: Literal["CURRENT_INTERPRETER", "CONFIGURED_NATIVE_INTERPRETER"] = (
+        "CURRENT_INTERPRETER"
+    )
     authentication: AuthenticationStatus = AuthenticationStatus()
     input_origin: Literal["NOT_SUPPLIED", "SYNTHETIC_PRECOMPUTED_FEATURE_FIXTURE"] = "NOT_SUPPLIED"
     context_digest: Hash | None = None
@@ -77,6 +101,8 @@ class IntegrationStatus(Snapshot):
     cross_domain_correlation: Literal["UNVERIFIED"] = "UNVERIFIED"
     # Results are display data, never a capability or proof of source authenticity.
     execution_authority: Literal[False] = False
+    last_validation: RecordedValidation | None = None
+    last_validation_check: Literal["UNKNOWN", "RECORDED", "BLOCKED"] = "UNKNOWN"
 
 
 def inspect_packages(*, artifact_root: Path | None = None) -> IntegrationStatus:
@@ -197,6 +223,98 @@ def _verify_artifact(root: Path, binding: TrustedExternalModelBinding) -> Check:
         return "VERIFIED"
     except (ValueError, OSError, ArtifactDistributionError):
         return "BLOCKED"
+
+
+def inspect_configured_packages(
+    *, artifact_root: Path, interpreter: Path | None
+) -> IntegrationStatus:
+    """Fixed metadata-only child command, using trusted composition settings only.
+
+    No model inference, inherited provider secrets, runtime writes or caller command
+    fragments. A separate interpreter failure never falls back to parent success.
+    """
+    if interpreter is None:
+        return inspect_packages(artifact_root=artifact_root)
+    if not interpreter.is_absolute():
+        raise ValueError("ABSOLUTE_NATIVE_INTERPRETER_REQUIRED")
+    environment = {
+        key: value
+        for key, value in os.environ.items()
+        if key in {"PATH", "HOME", "LD_LIBRARY_PATH", "TMP", "TEMP"}
+    }
+    environment.update(PYTHONPATH=str(Path(__file__).resolve().parents[3]), RUN_LIVE_LLM_TESTS="0")
+    try:
+        process = subprocess.run(
+            [str(interpreter), "-m", __name__, "--artifact-root", str(artifact_root)],
+            env=environment,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+        if process.returncode != 0 or len(process.stdout) > 64 * 1024:
+            raise ValueError("NATIVE_STATUS_UNAVAILABLE")
+        result = IntegrationStatus.model_validate_json(process.stdout)
+        if (
+            result.input_origin != "NOT_SUPPLIED"
+            or result.last_validation is not None
+            or result.context_digest is not None
+            or result.projection_digest is not None
+            or len(result.packages) != 3
+            or {p.binding_id for p in result.packages} != {"network-quality", "network-edge", "dns"}
+            or any(
+                p.demo_inference != "UNKNOWN" or p.advisory_projection != "UNKNOWN"
+                for p in result.packages
+            )
+        ):
+            raise ValueError("INVENTORY_CANNOT_CLAIM_INFERENCE")
+        return result.model_copy(update={"environment_scope": "CONFIGURED_NATIVE_INTERPRETER"})
+    except (OSError, ValueError, subprocess.TimeoutExpired):
+        current = inspect_packages()
+        return IntegrationStatus(
+            environment_scope="CONFIGURED_NATIVE_INTERPRETER",
+            packages=tuple(
+                p.model_copy(
+                    update={
+                        "version": None,
+                        "installed": "UNKNOWN",
+                        "package_import": "UNKNOWN",
+                        "contract": "UNKNOWN",
+                        "artifact": "UNKNOWN",
+                        "backend_dependencies": "UNKNOWN",
+                        "overall": "BLOCKED",
+                        "blocking_reasons": ("NATIVE_STATUS_UNAVAILABLE",),
+                    }
+                )
+                for p in current.packages
+            ),
+        )
+
+
+def recorded_validation(
+    boundary: "RuntimeBoundary", incident_id: UUID
+) -> RecordedValidation | None:
+    """Existing durable binding/source/digest checks; recorded history, not a fresh prediction."""
+    binding = boundary.binding(incident_id)
+    if binding is None:
+        return None
+    context = boundary.contexts.load_context(binding.context_digest)
+    if not context.results:
+        return None
+    return RecordedValidation(
+        context_digest=context.context_digest,
+        recorded_at=max(r.received_at for r in context.results),
+        result_digests=tuple(r.result_digest for r in context.results),
+        model_bindings=tuple(r.binding.binding_id for r in context.results),
+        environment_digests=tuple(
+            sorted(
+                {
+                    r.provenance.execution_environment_digest
+                    for r in context.results
+                    if r.provenance.execution_environment_digest
+                }
+            )
+        ),
+    )
 
 
 def verify_fixture_demo(

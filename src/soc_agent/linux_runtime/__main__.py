@@ -42,6 +42,9 @@ def status(directory: Path):
     jobs = store.jobs()
     simulation = RuntimeResponseSimulation(store, pipeline)
     records = simulation.records()
+    from soc_agent.linux_runtime.restricted_response import read_restricted_status
+
+    restricted = read_restricted_status(store, simulation)
     queue = pipeline.queue.counts()
     heartbeat_age = (utc_now() - datetime.fromisoformat(state["heartbeat"])).total_seconds()
     active = state["state"] == "RUNNING" and 0 <= heartbeat_age <= max(
@@ -56,7 +59,8 @@ def status(directory: Path):
         or jobs.get("FAILED", 0)
         or state["circuit_open"]
         or state["last_error"]
-        or any(r.status == "UNCERTAIN" for r in records)
+        or any(r.status in ("STARTED", "UNCERTAIN") for r in records)
+        or restricted["state"] in ("UNKNOWN", "BLOCKED")
     )
     return {
         "runtime_state": state["state"],
@@ -86,6 +90,7 @@ def status(directory: Path):
         "pending_response_reviews": sum(r.status == "PENDING_REVIEW" for r in records),
         "completed_simulations": sum(r.status == "SIMULATED" for r in records),
         "uncertain_simulations": sum(r.status == "UNCERTAIN" for r in records),
+        "restricted_response": restricted,
         "last_investigation_time": state["last_investigation"],
         "llm_availability": state["llm"],
         "last_error": state["last_error"],

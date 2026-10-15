@@ -37,7 +37,9 @@ from soc_agent.tools import Tool, ToolMetadata, ToolRegistry
 from soc_agent.tools.errors import ToolError
 
 if TYPE_CHECKING:
+    from soc_agent.linux_runtime.response_simulation import RuntimeResponseSimulation
     from soc_agent.linux_runtime.service import LinuxMonitor
+    from soc_agent.linux_runtime.store import RuntimeStore
 
 PeerSocket = socket.socket | TransportSocket
 
@@ -175,14 +177,16 @@ class RestrictedResponseExecutor:
             }
         )
 
-    def _records(self, c):
+    @staticmethod
+    def read_records(events):
+        """Validate the same append-only history for execution and read-only health."""
         records = {}
         allowed = {
             "PENDING_APPROVAL": {"APPROVED", "REJECTED"},
             "APPROVED": {"STARTED"},
             "STARTED": {"TEST_RESOURCE_CHANGED", "ROLLED_BACK", "UNKNOWN"},
         }
-        for event in self._events(c):
+        for event in events:
             if event["kind"] != "RESTRICTED_RECORD":
                 continue
             record = RestrictedRecord.model_validate(event["details"]["record"])
@@ -217,6 +221,9 @@ class RestrictedResponseExecutor:
                 raise ValueError("RESTRICTED_HISTORY_REJECTED")
             records[record.candidate_id] = record
         return records
+
+    def _records(self, c):
+        return self.read_records(self._events(c))
 
     def _load(self, c, identity):
         record = self._records(c).get(identity)
@@ -558,3 +565,28 @@ class RestrictedResponseExecutor:
                             "automatic_repair": False,
                         },
                     )
+
+
+def read_restricted_status(
+    store: "RuntimeStore", simulation: "RuntimeResponseSimulation"
+) -> dict[str, str | int]:
+    """Read-only response ledger health; never reconcile or retry uncertain effects."""
+    store.verify_audit()
+    with store.database.transaction(write=False) as connection:
+        events = simulation._events(connection)
+        records = RestrictedResponseExecutor.read_records(events)
+    unknown = sum(r.status == "UNKNOWN" for r in records.values())
+    started = sum(r.status == "STARTED" for r in records.values())
+    conflict = any(e["kind"] == "RESTRICTED_RECOVERY_CONFLICT" for e in events)
+    configured = any(e["kind"] == "RESTRICTED_TEST_MODE" for e in events)
+    return {
+        "state": "BLOCKED"
+        if conflict
+        else "UNKNOWN"
+        if unknown or started
+        else "CLEAR"
+        if configured
+        else "DISABLED",
+        "unknown": unknown,
+        "started": started,
+    }

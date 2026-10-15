@@ -76,16 +76,45 @@ class ApplicationService:
         ):
             raise ValueError("Application dependencies must share authoritative storage")
 
-    def security_ai_status(self) -> "IntegrationStatus":
+    def security_ai_status(self, *, incident_id: UUID | None = None) -> "IntegrationStatus":
         """Read-only local inventory; no inference, capability issuance or DB writes.
 
-        The GUI must retain its existing caller authentication. Checks concern this
-        interpreter, including when inference is configured in a separate interpreter.
+        The GUI must retain its existing caller authentication. An optional incident
+        selects revalidated recorded lineage; it never triggers inference or a session.
         """
-        from soc_agent.security_ai.external.package_status import inspect_packages
+        from soc_agent.security_ai.external.package_status import (
+            inspect_configured_packages,
+            inspect_packages,
+            recorded_validation,
+        )
 
         configured = getattr(self, "external_ai", None)
-        return inspect_packages(artifact_root=configured.artifacts if configured else None)
+        result = (
+            inspect_configured_packages(
+                artifact_root=configured.artifacts,
+                interpreter=configured.interpreter,
+            )
+            if configured
+            else inspect_packages()
+        )
+        if incident_id is not None:
+            self.incident(incident_id)
+            boundary = getattr(self.store, "boundary", None)
+            if boundary is not None:
+                from soc_agent.review.persistence.models import StorageError
+
+                try:
+                    previous = recorded_validation(boundary, incident_id)
+                except (StorageError, ValueError):
+                    return result.model_copy(update={"last_validation_check": "BLOCKED"})
+                if previous is not None:
+                    return result.model_copy(
+                        update={
+                            "last_validation": previous,
+                            "last_validation_check": "RECORDED",
+                        }
+                    )
+        return result
 
     def analyze_external(self, incident_id: UUID, inputs):
         """Configured offline analysis; no client-chosen artifact root or execution authority."""
