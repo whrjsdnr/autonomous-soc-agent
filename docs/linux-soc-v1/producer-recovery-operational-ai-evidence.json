@@ -1,0 +1,832 @@
+{
+  "contract_version": "soc-producer-recovery-audit:v1",
+  "execution_authority": false,
+  "overall_status": "BLOCKED",
+  "soc_baseline_commit": "a78a080d863ca383cd1a24931a9bdd3104782330",
+  "ml_commit": "1800bd013edefd448671c97a8b7114409f639481",
+  "search_scope": "LOCAL_ML_TREE_AND_REACHABLE_GIT_PATH_HISTORY; virtual environments and caches excluded",
+  "raw_pcap_count": 0,
+  "raw_feature_golden_pair_count": 0,
+  "ml_notebook_count": 11,
+  "ml_python_file_count": 55,
+  "network_csv_files": 10,
+  "network_csv_total_bytes": 6886649507,
+  "csv_headers": [
+    {
+      "path": "data/raw/cse_cic_ids2018/Friday-02-03-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 352368373,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Friday-16-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 333723605,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Friday-23-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 382840456,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Thuesday-20-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 4054925350,
+      "column_count": 84,
+      "header_digest": "c24ab4c9491351a70d6f0dbc5573dfbdaea6756fa65326149237acfd5e0c3353",
+      "has_flow_id": true,
+      "has_source_ip": true
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Thursday-01-03-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 107842858,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Thursday-15-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 375945899,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Thursday-22-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 382636202,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Wednesday-14-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 358223333,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Wednesday-21-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 328893673,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    },
+    {
+      "path": "data/raw/cse_cic_ids2018/Wednesday-28-02-2018_TrafficForML_CICFlowMeter.csv",
+      "bytes": 209249758,
+      "column_count": 80,
+      "header_digest": "5bc91f0f39c4fb7238c47daa7734f44c2721dcdbf9c5de5575ffc9c9417df170",
+      "has_flow_id": false,
+      "has_source_ip": false
+    }
+  ],
+  "dns_training_csv_available": false,
+  "parquet_metadata": [
+    {
+      "path": "data/processed/network_ml_dev_v4/validation/valid_v2_top40.parquet",
+      "rows": 2390002,
+      "row_groups": 20,
+      "column_count": 41,
+      "top40_column_count": 40,
+      "top40_relative_order_matches": true
+    },
+    {
+      "path": "data/processed/network_ml_dev_v4/training/train_v4a.parquet",
+      "rows": 1946494,
+      "row_groups": 17,
+      "column_count": 43,
+      "top40_column_count": 40,
+      "top40_relative_order_matches": true
+    },
+    {
+      "path": "data/processed/network_ml_dev_v4/training/train_v4b1.parquet",
+      "rows": 1946494,
+      "row_groups": 17,
+      "column_count": 43,
+      "top40_column_count": 40,
+      "top40_relative_order_matches": true
+    },
+    {
+      "path": "data/processed/network_ml_dev_v4/training/train_v4b2.parquet",
+      "rows": 1946494,
+      "row_groups": 17,
+      "column_count": 43,
+      "top40_column_count": 40,
+      "top40_relative_order_matches": true
+    }
+  ],
+  "artifacts_and_resources": [
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/resources/top40_features.csv",
+      "size_bytes": 675,
+      "sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "matches_reviewed_manifest": true
+    },
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/resources/label_mapping.json",
+      "size_bytes": 377,
+      "sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "matches_reviewed_manifest": true
+    },
+    {
+      "path": "models/network/lightgbm_top40_v4b2.txt",
+      "size_bytes": 48637456,
+      "sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "matches_reviewed_manifest": true
+    },
+    {
+      "path": "models/network/dnn_top40_v4_best.pt",
+      "size_bytes": 398041,
+      "sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "matches_reviewed_manifest": true
+    },
+    {
+      "path": "models/network/dnn_top40_v4_scaler.joblib",
+      "size_bytes": 1543,
+      "sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "matches_reviewed_manifest": true
+    },
+    {
+      "path": "packages/dns_security_package/dns_security_package/dns_security/model/dnn_int8.tflite",
+      "size_bytes": 9288,
+      "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "matches_reviewed_manifest": true
+    },
+    {
+      "path": "packages/dns_security_package/dns_security_package/dns_security/preprocessor/scaler.joblib",
+      "size_bytes": 1135,
+      "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "matches_reviewed_manifest": true
+    }
+  ],
+  "reviewed_file_sha256": {
+    "notebooks/data.ipynb": "3ee78adce879a45a33b6432086564c1e0caed2519da26bb675aca3482dbd3626",
+    "notebooks/preprocessing.ipynb": "4b362a680b71fbd5f192ce530680ff444dffd36a62e048c9512a6712d1ab21b9",
+    "notebooks/model_sample_v4.ipynb": "53e1b5624890bb11a1b84f7e215f09e254673cac61022e1f86953781b343c027",
+    "notebooks/dnn_top40_v4.ipynb": "daaa733a1c8288974da79821c0378e8cf1c80ed6e9b716227580a23ac49d6b29",
+    "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_EDA.ipynb": "c767afd549cf0f383338b0d33c2845752c7e09ba4a38fd9de1c4a62fef223225",
+    "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_ML.ipynb": "16585061430566be3ab70bba30b56872a296db07d1e8f5dbaba303f958c5ca1b",
+    "packages/network-security-ai/src/network_security_ai/contracts.py": "27cd553a42fef436017cba797fe52baab41ec447c89eb89fe19ab24c57b0b32e",
+    "packages/network-security-ai/src/network_security_ai/preprocessing.py": "ae2f56bfd68a2471e3bc10deb28818a947d8915bce2448f05dc321c9a6625cca",
+    "packages/dns-security-ai/src/dns_security_ai/feature_contract.json": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+    "packages/dns-security-ai/src/dns_security_ai/preprocessing.py": "42638114e4f6ed39e9c63f6b7f9f61cb04d810ececb64cddd451c11cdf726165",
+    "packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+    "docs/security_ai/source_inventory.md": "b13bc2d87e74697f225d08e12d8a13769988f65def08173f07aff90a7dca86c1"
+  },
+  "models": [
+    {
+      "binding_id": "network-quality",
+      "model_id": "network_cse2018_lightgbm_v4b2",
+      "model_version": "v4-b2",
+      "producer_recovery": "INSUFFICIENT_EVIDENCE",
+      "post_feature_preprocessing": "RECOVERABLE_FROM_REVIEWED_PACKAGE_CODE",
+      "producer_revision": null,
+      "producer_configuration": null,
+      "raw_feature_golden_pair": "MISSING",
+      "formula_parity": "BLOCKED",
+      "feature_schema": "cse-cic-ids2018-top40-v1",
+      "feature_names_digest": "ac252fd93d3c5504803695fc609e8209701c74c812b163508b001490cb31b649",
+      "ordered_features": [
+        "Fwd Act Data Pkts",
+        "Fwd Seg Size Min",
+        "Fwd Header Len",
+        "ECE Flag Cnt",
+        "Init Fwd Win Byts",
+        "URG Flag Cnt",
+        "RST Flag Cnt",
+        "Dst Port",
+        "Fwd PSH Flags",
+        "Fwd Pkts/s",
+        "Fwd Pkt Len Mean",
+        "Pkt Len Max",
+        "SYN Flag Cnt",
+        "Fwd Seg Size Avg",
+        "Bwd Header Len",
+        "Init Bwd Win Byts",
+        "Fwd IAT Std",
+        "Fwd IAT Max",
+        "Pkt Size Avg",
+        "Fwd IAT Tot",
+        "Bwd Pkt Len Max",
+        "PSH Flag Cnt",
+        "Flow IAT Mean",
+        "Bwd IAT Min",
+        "Bwd Pkt Len Std",
+        "Pkt Len Mean",
+        "Bwd IAT Max",
+        "Fwd Pkt Len Std",
+        "ACK Flag Cnt",
+        "TotLen Bwd Pkts",
+        "Pkt Len Std",
+        "FIN Flag Cnt",
+        "Bwd IAT Mean",
+        "Flow Duration",
+        "Flow IAT Max",
+        "Subflow Bwd Byts",
+        "Idle Max",
+        "Fwd URG Flags",
+        "Bwd Pkts/s",
+        "Bwd IAT Std"
+      ],
+      "dtype": "float32-before-model-specific-preprocessing",
+      "package_import": "VERIFIED",
+      "artifact_integrity": "VERIFIED",
+      "backend_distribution_metadata": "VERIFIED",
+      "native_inference_this_audit": "NOT_EXECUTED_PRODUCER_GATE_BLOCKED",
+      "advisory_adapter_binding": "EXISTING_SYNTHETIC_V2_CONTRACT_ONLY",
+      "operational_gate": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "formula_coverage": [
+        {
+          "feature": "Fwd Act Data Pkts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Seg Size Min",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Header Len",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "ECE Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Init Fwd Win Byts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "URG Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "RST Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Dst Port",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd PSH Flags",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Pkts/s",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Pkt Len Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Len Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "SYN Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Seg Size Avg",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Header Len",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Init Bwd Win Byts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd IAT Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd IAT Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Size Avg",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd IAT Tot",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Pkt Len Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "PSH Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Flow IAT Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Min",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Pkt Len Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Len Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Pkt Len Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "ACK Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "TotLen Bwd Pkts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Len Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "FIN Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Flow Duration",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Flow IAT Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Subflow Bwd Byts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Idle Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd URG Flags",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Pkts/s",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Std",
+          "training_producer_formula_parity": "MISSING"
+        }
+      ]
+    },
+    {
+      "binding_id": "network-edge",
+      "model_id": "network_cse2018_dnn_fp32",
+      "model_version": "v4-fp32-epoch13",
+      "producer_recovery": "INSUFFICIENT_EVIDENCE",
+      "post_feature_preprocessing": "RECOVERABLE_FROM_REVIEWED_PACKAGE_CODE",
+      "producer_revision": null,
+      "producer_configuration": null,
+      "raw_feature_golden_pair": "MISSING",
+      "formula_parity": "BLOCKED",
+      "feature_schema": "cse-cic-ids2018-top40-v1",
+      "feature_names_digest": "ac252fd93d3c5504803695fc609e8209701c74c812b163508b001490cb31b649",
+      "ordered_features": [
+        "Fwd Act Data Pkts",
+        "Fwd Seg Size Min",
+        "Fwd Header Len",
+        "ECE Flag Cnt",
+        "Init Fwd Win Byts",
+        "URG Flag Cnt",
+        "RST Flag Cnt",
+        "Dst Port",
+        "Fwd PSH Flags",
+        "Fwd Pkts/s",
+        "Fwd Pkt Len Mean",
+        "Pkt Len Max",
+        "SYN Flag Cnt",
+        "Fwd Seg Size Avg",
+        "Bwd Header Len",
+        "Init Bwd Win Byts",
+        "Fwd IAT Std",
+        "Fwd IAT Max",
+        "Pkt Size Avg",
+        "Fwd IAT Tot",
+        "Bwd Pkt Len Max",
+        "PSH Flag Cnt",
+        "Flow IAT Mean",
+        "Bwd IAT Min",
+        "Bwd Pkt Len Std",
+        "Pkt Len Mean",
+        "Bwd IAT Max",
+        "Fwd Pkt Len Std",
+        "ACK Flag Cnt",
+        "TotLen Bwd Pkts",
+        "Pkt Len Std",
+        "FIN Flag Cnt",
+        "Bwd IAT Mean",
+        "Flow Duration",
+        "Flow IAT Max",
+        "Subflow Bwd Byts",
+        "Idle Max",
+        "Fwd URG Flags",
+        "Bwd Pkts/s",
+        "Bwd IAT Std"
+      ],
+      "dtype": "float32-before-model-specific-preprocessing",
+      "package_import": "VERIFIED",
+      "artifact_integrity": "VERIFIED",
+      "backend_distribution_metadata": "VERIFIED",
+      "native_inference_this_audit": "NOT_EXECUTED_PRODUCER_GATE_BLOCKED",
+      "advisory_adapter_binding": "EXISTING_SYNTHETIC_V2_CONTRACT_ONLY",
+      "operational_gate": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "formula_coverage": [
+        {
+          "feature": "Fwd Act Data Pkts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Seg Size Min",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Header Len",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "ECE Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Init Fwd Win Byts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "URG Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "RST Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Dst Port",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd PSH Flags",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Pkts/s",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Pkt Len Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Len Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "SYN Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Seg Size Avg",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Header Len",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Init Bwd Win Byts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd IAT Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd IAT Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Size Avg",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd IAT Tot",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Pkt Len Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "PSH Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Flow IAT Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Min",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Pkt Len Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Len Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd Pkt Len Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "ACK Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "TotLen Bwd Pkts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Pkt Len Std",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "FIN Flag Cnt",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Mean",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Flow Duration",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Flow IAT Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Subflow Bwd Byts",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Idle Max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Fwd URG Flags",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd Pkts/s",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "Bwd IAT Std",
+          "training_producer_formula_parity": "MISSING"
+        }
+      ]
+    },
+    {
+      "binding_id": "dns",
+      "model_id": "dns_cicbell_dnn_int8",
+      "model_version": "int8-sha256-28e089af363d",
+      "producer_recovery": "INSUFFICIENT_EVIDENCE",
+      "post_feature_preprocessing": "RECOVERABLE_FROM_REVIEWED_PACKAGE_CODE",
+      "producer_revision": null,
+      "producer_configuration": null,
+      "raw_feature_golden_pair": "MISSING",
+      "formula_parity": "BLOCKED",
+      "feature_schema": "cic-bell-dns-stateless9-v1",
+      "feature_names_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+      "ordered_features": [
+        "FQDN_count",
+        "subdomain_length",
+        "numeric",
+        "entropy",
+        "special",
+        "labels",
+        "labels_max",
+        "labels_average",
+        "len"
+      ],
+      "dtype": "float32-before-model-specific-preprocessing",
+      "package_import": "VERIFIED",
+      "artifact_integrity": "VERIFIED",
+      "backend_distribution_metadata": "VERIFIED",
+      "native_inference_this_audit": "NOT_EXECUTED_PRODUCER_GATE_BLOCKED",
+      "advisory_adapter_binding": "EXISTING_SYNTHETIC_V2_CONTRACT_ONLY",
+      "operational_gate": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "formula_coverage": [
+        {
+          "feature": "FQDN_count",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "subdomain_length",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "numeric",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "entropy",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "special",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "labels",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "labels_max",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "labels_average",
+          "training_producer_formula_parity": "MISSING"
+        },
+        {
+          "feature": "len",
+          "training_producer_formula_parity": "MISSING"
+        }
+      ]
+    }
+  ],
+  "stored_wsl_capture_revalidation": {
+    "status": "VERIFIED",
+    "origin": "USER_EXECUTED_NATIVE_AF_PACKET_LOOPBACK_STORED_SESSION",
+    "packets": 32,
+    "flows": 4,
+    "dns_events": 0,
+    "queue_counts": {
+      "DONE": 36
+    },
+    "sqlite_integrity": true,
+    "duplicate_effect_prevented": true,
+    "audit_digest": "a65e1ec434cf3f6bfc7bf69c3d4d799e38517ffe33c5540d0acb3194d21d75b1",
+    "source_receipts": 36,
+    "gaps": 1,
+    "operational_models": {
+      "network-quality": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "network-edge": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "dns": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      }
+    },
+    "write_disposition": "WRITE_DENIED",
+    "new_capture_runs": 0,
+    "new_inference_runs": 0,
+    "original_evidence_sha_unchanged": true
+  },
+  "retraining_executed": false,
+  "retraining_compute_cost": "UNKNOWN_NOT_BENCHMARKED",
+  "retraining_blockers": [
+    "NO_ORIGINAL_NETWORK_PACKET_CORPUS_WITH_PRODUCER_BINDING",
+    "DNS_CSV_RAW_QUERIES_AND_DNN_TRAINING_EXPORT_MISSING",
+    "NO_APPROVAL_TO_TRAIN_OR_DOWNLOAD_DATA"
+  ],
+  "production_changes": false,
+  "new_capture_runs": 0,
+  "operational_inference_runs": 0,
+  "gui_window_validation_this_audit": "NOT_EXECUTED",
+  "write_disposition": "WRITE_DENIED",
+  "real_llm_provider_calls": 0,
+  "validation_runs": [
+    {
+      "scope": "new_producer_recovery_gate_tests",
+      "passed": 9,
+      "failed": 0,
+      "seconds": 3.01
+    },
+    {
+      "scope": "working_tree_security_regression",
+      "passed": 756,
+      "failed": 0,
+      "seconds": 250.76
+    },
+    {
+      "scope": "independent_head_export_security_regression",
+      "passed": 756,
+      "failed": 0,
+      "seconds": 243.83
+    }
+  ],
+  "inference_library_versions": {
+    "python": "3.12.14",
+    "distributions": {
+      "network-security-ai": "0.1.0",
+      "dns-security-ai": "0.1.0",
+      "security-ai": "0.1.0",
+      "lightgbm": "4.7.0",
+      "torch": "2.14.1",
+      "ai-edge-litert": "2.3.0",
+      "numpy": "2.5.3",
+      "pandas": "3.0.6",
+      "scikit-learn": "1.9.1",
+      "joblib": "1.6.0"
+    },
+    "scope": "CURRENT_REVIEWED_INFERENCE_ENVIRONMENT_NOT_ORIGINAL_RAW_PRODUCER"
+  },
+  "data_inspection_scope": "FILE_NAMES_SIZES_CSV_HEADERS_PARQUET_FOOTERS_ONLY; NO_FULL_DATASET_DIGEST_OR_ROW_EXPORT",
+  "resource_planning_reference": {
+    "existing_v4b2_training_rows": 1946494,
+    "feature_columns": 40,
+    "float32_bytes_per_value": 4,
+    "logical_feature_matrix_bytes": 311439040,
+    "measurement_kind": "ARITHMETIC_ONLY_NOT_PROCESS_RSS_OR_RETRAINING_COST",
+    "new_producer_training_cost": "UNKNOWN"
+  },
+  "quality_checks": {
+    "ruff": "PASS",
+    "format": "PASS",
+    "formatted_files_checked": 878,
+    "git_diff_check": "PASS"
+  }
+}
