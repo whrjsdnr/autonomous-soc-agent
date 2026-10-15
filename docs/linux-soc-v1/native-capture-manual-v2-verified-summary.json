@@ -1,0 +1,155 @@
+{
+  "schema_version": "soc-user-executed-capture-verification:v1",
+  "verification_scope": "USER_EXECUTED_NATIVE_AF_PACKET_LOOPBACK_SAVED_EVIDENCE",
+  "baseline_commit": "d336693bc73298f5be72d32e9374595ba1d11cb1",
+  "approved_manual_sha256": "1f52fcd13c3eabd025bb7a810db4b9709b6c85ea065fed103e9eabd055fc17ba",
+  "original_probe_sha256": "59b67d8a7654eebbb7f05e3810b3d3e2da0aea5029872a09ca01ed1e9a12a50d",
+  "status": "VERIFIED",
+  "capture_origin": "NATIVE_AF_PACKET_LOOPBACK_OWNED_TEST",
+  "interface": "lo",
+  "packets": 32,
+  "flows": 4,
+  "dns_events": 0,
+  "queue_counts": {
+    "DONE": 36
+  },
+  "source_record_count": 36,
+  "provenance_receipts_verified": 36,
+  "capture_elapsed_seconds": 2.2856369100009033,
+  "watchdog_configured_seconds": 4,
+  "packet_limit": 128,
+  "capture_gap_count": 1,
+  "kernel_packets_sampled": 44,
+  "kernel_packets_terminal_sample": 4,
+  "capture_drops_sampled": 0,
+  "capture_drops_terminal_sample": 0,
+  "timestamp_origin": "KERNEL_SO_TIMESTAMPNS",
+  "kernel_timestamp_ns_min": 1792039854676359909,
+  "kernel_timestamp_ns_max": 1792039854724498862,
+  "packet_protocol_counts": {
+    "tcp": 28,
+    "udp": 4
+  },
+  "packet_direction_counts": {
+    "INBOUND": 16,
+    "OUTBOUND": 16
+  },
+  "interface_binding_verified": true,
+  "own_loopback_tcp_udp_observed": true,
+  "session_digest": "60ea66d87c02456359c3e4d10697164960e82e35a032be04d2728f6ba8efb4dc",
+  "source_provenance_links_digest": "911144591a3b25f55af70280b57321723310b2395a4b19d055a7d57f3848603b",
+  "audit_digest": "a65e1ec434cf3f6bfc7bf69c3d4d799e38517ffe33c5540d0acb3194d21d75b1",
+  "capture_audit_matches_recovered_audit": true,
+  "capabilities_after_socket_open": {
+    "effective": 0,
+    "permitted": 0,
+    "inheritable": 0,
+    "ambient": 0,
+    "bounding": 8192,
+    "no_new_privs": 1
+  },
+  "capabilities_after_capture": {
+    "CapEff": 0,
+    "CapPrm": 0,
+    "CapInh": 0,
+    "CapAmb": 0,
+    "CapBnd": 8192,
+    "NoNewPrivs": 1
+  },
+  "terminal_A_saved_traffic_status": "COMPLETED",
+  "terminal_A_saved_peer_verified": true,
+  "terminal_B_saved_capture_state": "STOPPED",
+  "terminal_A_B_original_console_exit_codes": "NOT_PROVIDED",
+  "terminal_C_revalidation_exit_codes": [
+    0,
+    0
+  ],
+  "sqlite_integrity": true,
+  "duplicate_effect_prevented": true,
+  "revalidation_processes": 2,
+  "identical_revalidation_results": true,
+  "original_evidence_files_preserved": 16,
+  "saved_successful_sessions_verified": 1,
+  "total_user_attempt_count": "NOT_INDEPENDENTLY_ESTABLISHED",
+  "codex_new_capture_runs": 0,
+  "codex_privilege_commands": 0,
+  "codex_test_traffic_runs": 0,
+  "payload_stored": false,
+  "dns_names_retained": false,
+  "operational_models": {
+    "network-quality": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    },
+    "network-edge": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    },
+    "dns": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    }
+  },
+  "write_disposition": "WRITE_DENIED",
+  "limitations": [
+    "DNS_SERVICE_QUERY_NOT_OBSERVED",
+    "PHYSICAL_LINUX_NOT_VALIDATED",
+    "NO_EXACTLY_ONCE_WIRE_CAPTURE_CLAIM",
+    "SAME_UID_DIGEST_RECORDS_ARE_NOT_SIGNED_ATTESTATIONS",
+    "KERNEL_PACKET_COUNTER_IS_NOT_PERSISTED_PACKET_COUNT",
+    "HISTORICAL_SOURCE_CONTEXT_REQUIRED_FOR_STRICT_SESSION_REVALIDATION"
+  ],
+  "negative_copy_checks": [
+    {
+      "case": "receipt_digest",
+      "rejected": true,
+      "failure": "SESSION_RECORD_DIGEST_MISMATCH"
+    },
+    {
+      "case": "audit_chain",
+      "rejected": true,
+      "failure": "RUNTIME_AUDIT_INTEGRITY_REJECTED"
+    }
+  ],
+  "original_evidence_files_digest": "f03ca5dd4a349026605a97e0e717e841fb2f5bd59334ea3b676150fbbc4caf95",
+  "current_interpreter_and_manual_source_have_no_file_capabilities": true,
+  "regression_runs": [
+    {
+      "scope": "initial_temporary_launcher",
+      "passed": 392,
+      "failed": 6,
+      "seconds": 231.84,
+      "failure_cause": "MISSING_MULTIPROCESSING_MAIN_GUARD_IN_TEMPORARY_TEST_LAUNCHER"
+    },
+    {
+      "scope": "working_tree_fixed_launcher",
+      "passed": 398,
+      "failed": 0,
+      "seconds": 128.83
+    },
+    {
+      "scope": "independent_export_fixed_launcher",
+      "passed": 398,
+      "failed": 0,
+      "seconds": 127.07
+    },
+    {
+      "scope": "final_self_contained_export_with_committed_guard",
+      "passed": 398,
+      "failed": 0,
+      "seconds": 113.52
+    }
+  ],
+  "owned_traffic_port_pair_packet_count": 24,
+  "other_observed_loopback_packet_count": 8,
+  "all_packet_endpoints_loopback": true
+}
