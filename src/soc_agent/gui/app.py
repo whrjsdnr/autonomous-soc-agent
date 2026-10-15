@@ -10,7 +10,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from soc_agent.gui.backend import Backend, GUIConfig
-from soc_agent.gui.charts import Comparison, Distribution, MetricHistory, Trend
+from soc_agent.gui.charts import Comparison, Distribution, MetricHistory, ModelLatency, Trend
 from soc_agent.gui.components import Button, Hero, Label, Table, color
 from soc_agent.gui.presentation import sections, short
 from soc_agent.gui.queries import display_data
@@ -74,6 +74,7 @@ class Desktop:
         self.history = MetricHistory()
         self.history_scope = None
         self.last_probe = None
+        self.ai_environment = {"status": "UNKNOWN"}
         self.last_dashboard = {}
         self.last_updated = "UNKNOWN"
         self.last_details = None
@@ -92,9 +93,23 @@ class Desktop:
         self._build()
         root.protocol("WM_DELETE_WINDOW", self.close)
         root.after(50, self._drain)
-        root.after(150, self.refresh)
+        root.after(150, self._startup)
         self.poll_timer = root.after(config.refresh_seconds * 1000, self._poll)
         root.bind("<Configure>", self._on_resize, add="+")
+
+    def _startup(self):
+        if self.busy:
+            self.root.after(100, self._startup)
+            return
+        self.call("models", callback=self._startup_models)
+
+    def _startup_models(self, value):
+        self.ai_environment = value.get("environment", {"status": "UNKNOWN"})
+        self.ai_status.set("AI: " + self.ai_environment["status"])
+        if self.page == "Security AI Models":
+            self.render_models(value)
+        else:
+            self.refresh()
 
     def _on_resize(self, event):
         if event.widget is not self.root:
@@ -205,6 +220,8 @@ class Desktop:
         Label(header, text="INPUT: " + self.config.source_label, size=11, fg=ACCENT).pack(
             side="right", padx=(12, 0)
         )
+        self.ai_status = tk.StringVar(value="AI: CHECKING")
+        Label(header, textvariable=self.ai_status, size=11, fg=ACCENT).pack(side="right", padx=12)
         Label(header, textvariable=self.status_var, style="Muted.TLabel").pack(side="right")
         Label(body, textvariable=self.notice, style="Muted.TLabel", wraplength=1200).pack(
             fill="x", pady=(12, 18)
@@ -261,13 +278,27 @@ class Desktop:
         elif name == "Response & Approval":
             self._response_layout()
         elif name == "Security AI Models":
+            self.ai_explanation = tk.StringVar(value="Checking AI environment…")
+            Label(self.content, textvariable=self.ai_explanation, size=13, max_width=1100).pack(
+                fill="x", pady=(0, 12)
+            )
+            self.loading = ttk.Progressbar(self.content, mode="indeterminate")
+            self.loading.pack(fill="x", pady=(0, 8))
             self.model_grid = ttk.Frame(self.content)
             self.model_grid.pack(fill="x", pady=(0, 12))
             self.model_cards = []
+            Button(self.toolbar, text="AI environment check", command=self.refresh).pack(
+                side="left", padx=(0, 8)
+            )
             Button(self.toolbar, text="Run native Fixture demo", command=self.model_probe).pack(
                 side="left"
             )
+            self.latency_chart = ModelLatency(self.content)
+            self.latency_chart.pack(fill="x", pady=(0, 12))
+            if self.last_probe:
+                self.latency_chart.update_models(self.last_probe.get("models", []))
             self._table(("model", "import", "artifact", "backend", "demo", "operational"))
+            self.detail_parent.pack(before=self.table_top, fill="x", pady=(8, 0))
         elif name == "Investigations":
             self.investigation_hero = tk.Frame(self.content, bg=PANEL, padx=16, pady=12)
             self.investigation_hero.pack(fill="x", pady=(0, 12))
@@ -715,10 +746,19 @@ class Desktop:
 
     def call(self, operation, *args, callback=None, **kwargs):
         if self.busy or self.closing:
+            self.notice.set(
+                "작업 진행 중입니다. 완료 후 다시 시도하세요. / Operation already running"
+            )
             return
         self.busy = True
         self.notice.set("WORKING • " + operation + " • response only after backend confirmation")
-        if operation == "scenario" and hasattr(self, "loading") and self.loading.winfo_exists():
+        if (
+            operation in ("scenario", "models", "fixture_probe")
+            and hasattr(self, "loading")
+            and self.loading.winfo_exists()
+        ):
+            if self.page == "Security AI Models":
+                self.loading.pack(fill="x", pady=(0, 8), before=self.model_grid)
             self.loading.start(12)
         future = self.worker.submit(operation, *args, **kwargs)
         self.pending = (future, callback)
@@ -731,12 +771,25 @@ class Desktop:
             self.busy = False
             if hasattr(self, "loading") and self.loading.winfo_exists():
                 self.loading.stop()
+                if self.page == "Security AI Models":
+                    self.loading.pack_forget()
             try:
                 result = future.result()
             except Exception as error:
                 code = str(error)
                 safe = code if re.fullmatch(r"[A-Z0-9_]{1,100}", code) else type(error).__name__
                 self.notice.set("BLOCKED • " + safe + " • No automatic retry")
+                if self.pending_operation in ("models", "fixture_probe"):
+                    self.last_probe = None
+                    self.ai_environment = {"status": "VALIDATION_FAILED"}
+                    self.ai_status.set("AI: VALIDATION_FAILED")
+                    if self.page == "Security AI Models":
+                        self.ai_explanation.set(
+                            "AI 점검/분석 실패: " + safe + " — 환경 점검 후 다시 시도하세요."
+                        )
+                        self.latency_chart.update_models([])
+                        self._invalidate_model_cards()
+                        self.show_detail({"status": "BLOCKED", "error": safe})
                 if self.pending_operation == "dashboard":
                     self.status_var.set("UNKNOWN / NOT_READY")
                     self.last_dashboard = {
@@ -864,8 +917,30 @@ class Desktop:
         )
 
     def render_models(self, value):
+        self.ai_environment = value.get("environment", {"status": "UNKNOWN"})
+        self.ai_status.set("AI: " + self.ai_environment["status"])
         if self.page != "Security AI Models":
             return
+        explanation = {
+            "READY": (
+                "AI 환경 준비 완료 · 사전 점검만 수행했습니다. "
+                "Fixture 분석 버튼으로 실제 모델을 실행합니다."
+            ),
+            "SETUP_REQUIRED": (
+                "AI 실행 환경 설정이 필요합니다. 관리자에게 프로젝트 전용 환경 구성을 요청하세요."
+            ),
+            "ARTIFACT_MISSING": "검증된 모델 Artifact가 없거나 무결성 확인에 실패했습니다.",
+            "BACKEND_UNAVAILABLE": (
+                "AI 실행 환경을 찾지 못했거나 Native Backend를 사용할 수 없습니다."
+            ),
+            "VALIDATION_FAILED": (
+                "환경 무결성 검증에 실패했습니다. 임의 경로는 자동으로 신뢰하지 않습니다."
+            ),
+            "UNKNOWN": "AI 환경 상태를 확인할 수 없습니다. 환경 점검을 다시 실행하세요.",
+        }
+        self.ai_explanation.set(
+            explanation.get(self.ai_environment["status"], explanation["UNKNOWN"])
+        )
         self.current_records = value["packages"] + [value["authentication"]]
         rows = [
             (
@@ -898,6 +973,15 @@ class Desktop:
         self._rows(rows)
         self._model_cards(value, rows)
         self.show_detail(value)
+
+    def _invalidate_model_cards(self):
+        if self.last_model_view:
+            value, rows = self.last_model_view
+            rows = [
+                (r[0], "UNKNOWN", "UNKNOWN", "UNKNOWN", "UNKNOWN", r[5]) if i < 3 else r
+                for i, r in enumerate(rows)
+            ]
+            self._model_cards(value, rows)
 
     def _model_cards(self, value, rows):
         self.last_model_view = (value, rows)
@@ -1235,6 +1319,22 @@ class Desktop:
     def _probe_result(self, value):
         if value.get("status") == "VERIFIED":
             self.last_probe = value
+            if self.page == "Security AI Models":
+                self.render_models(value["inventory"])
+                self.latency_chart.update_models(value["models"])
+                self.ai_explanation.set(
+                    "실제 Native Fixture 분석 완료 · SCRIPTED 조사 · "
+                    "운영 입력 NOT_INFERABLE · WRITE_DENIED"
+                )
+        else:
+            self.last_probe = None
+            if self.page == "Security AI Models":
+                self.ai_explanation.set(
+                    "분석 차단 — 환경 점검 후 다시 시도하세요. "
+                    + str(value.get("environment", {}).get("status", "UNKNOWN"))
+                )
+                self.latency_chart.update_models([])
+                self._invalidate_model_cards()
         if self.page == "Security AI Models":
             self.show_detail(value)
 

@@ -1,6 +1,8 @@
 """Explicit synthetic fixture through existing native service and guarded SOC runtime."""
 
 import asyncio
+import json
+import time
 from uuid import uuid4
 
 from soc_agent._json import canonical_json_object
@@ -12,6 +14,7 @@ from soc_agent.security_ai.external.projection import project, projection_digest
 
 
 async def probe(service) -> dict:
+    started = time.monotonic()
     event = scenario_event("b").model_copy(update={"event_id": uuid4()})
     receipt = service.ingest(event)
     rows = []
@@ -59,8 +62,31 @@ async def probe(service) -> dict:
     restored = service.runtime_factory()
     if restored.restore(receipt.incident_id) != runtime.checkpoint(receipt.incident_id).result:
         raise ValueError("PROBE_RESUME_MISMATCH")
+    models = []
+    for result in context.results:
+        envelope = json.loads(result.original_envelope)
+        models.append(
+            {
+                "binding_id": result.binding.binding_id,
+                "status": result.validation.status,
+                "model_id": result.binding.model_id,
+                "model_version": result.binding.model_version,
+                "artifact_catalog_digest": result.binding.artifact_identity.catalog_digest,
+                "inference_latency_ms": envelope["payload"]["prediction"].get(
+                    "inference_latency_ms"
+                ),
+                "output": envelope["payload"]["prediction"],
+                "score_semantics": result.score_semantics,
+                "result_digest": result.result_digest,
+            }
+        )
     return {
         "status": "VERIFIED",
+        "elapsed_seconds": time.monotonic() - started,
+        "timing_scope": (
+            "Per model: package-reported inference_latency_ms; total includes transport and Runtime"
+        ),
+        "models": models,
         "input_origin": "SYNTHETIC_PRECOMPUTED_FEATURE_FIXTURE",
         "assessment_mode": "SCRIPTED",
         "incident_id": str(receipt.incident_id),

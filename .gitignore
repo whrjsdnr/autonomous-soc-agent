@@ -40,3 +40,6 @@ Thumbs.db
 *.sqlite3
 *.sqlite3-*
 /governance-data/
+
+# Owner-controlled local native demo environment; never commit models or dependencies
+/.security-ai-demo/

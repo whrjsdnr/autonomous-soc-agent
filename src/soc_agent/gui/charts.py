@@ -326,3 +326,59 @@ class Comparison(tk.Canvas):
             anchor="e",
             width=330,
         )
+
+
+class ModelLatency(tk.Canvas):
+    """Package-observed inference times; probabilities are deliberately not combined."""
+
+    def __init__(self, parent):
+        super().__init__(parent, bg=SURFACE, height=188, highlightthickness=0)
+        self.models = []
+        self.bind("<Configure>", lambda _: self.redraw())
+
+    def update_models(self, models):
+        self.models = models
+        self.redraw()
+
+    def redraw(self):
+        self.delete("all")
+        self.text_images = []
+        width = max(300, self.winfo_width())
+        text(
+            self,
+            16,
+            20,
+            "FIXTURE • native model execution time (ms)",
+            size=14,
+            bold=True,
+            width=width - 32,
+        )
+        if not self.models:
+            text(self, 16, 90, "NO_DATA • run the explicit Fixture demo", size=13, width=width - 32)
+            return
+        values = [m.get("inference_latency_ms") for m in self.models]
+        valid = [v for v in values if type(v) in (int, float) and math.isfinite(v) and v >= 0]
+        scale = max(valid, default=0) or 1
+        for i, (model, value) in enumerate(zip(self.models[:3], values, strict=False)):
+            y = 55 + i * 40
+            text(self, 16, y, model["binding_id"], size=12, width=160)
+            measured = type(value) in (int, float) and math.isfinite(value) and value >= 0
+            if measured:
+                self.create_rectangle(
+                    180,
+                    y - 8,
+                    180 + (width - 310) * value / scale,
+                    y + 8,
+                    fill=PRIMARY,
+                    outline="",
+                    tags="latency-bar",
+                )
+            text(
+                self,
+                width - 16,
+                y,
+                f"{value:.2f} ms" if measured else "UNKNOWN",
+                size=12,
+                anchor="e",
+                width=120,
+            )

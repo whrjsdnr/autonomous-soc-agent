@@ -48,6 +48,8 @@ class Backend:
         self.process_log = None
         self.model_service = None
         self.model_incident = None
+        self.model_paths = (config.native_python, config.artifacts)
+        self.busy_probe = False
         self.closed = False
         self.busy_scenario = False
         self.scenario_results = []
@@ -282,31 +284,98 @@ class Backend:
                 registry=registry,
                 llm_client=OfflineDesktopClient(),
                 ingestion=ingestion,
-                external_artifacts=self.config.artifacts,
-                external_interpreter=self.config.native_python,
+                external_artifacts=self.model_paths[1],
+                external_interpreter=self.model_paths[0],
             ).service
             self.model_incident = None
         return self.model_service
 
+    def _environment(self):
+        from soc_agent.gui.environment import environment_root, verified_paths
+
+        paths = (self.config.native_python, self.config.artifacts)
+        state = {"status": "UNKNOWN", "reason": "ENVIRONMENT_CHECK_PENDING"}
+        if paths == (None, None):
+            try:
+                paths = verified_paths()
+            except FileNotFoundError:
+                state = {
+                    "status": "ARTIFACT_MISSING"
+                    if (environment_root() / "receipt.json").is_file()
+                    and not (environment_root() / "artifacts").is_dir()
+                    else "SETUP_REQUIRED",
+                    "reason": "PERSISTENT_ENVIRONMENT_OR_ARTIFACT_MISSING",
+                }
+            except (ValueError, OSError):
+                state = {"status": "VALIDATION_FAILED", "reason": "ENVIRONMENT_INTEGRITY_FAILED"}
+        elif paths[0] is None or paths[1] is None:
+            state = {"status": "SETUP_REQUIRED", "reason": "BOTH_NATIVE_PATHS_REQUIRED"}
+            paths = (None, None)
+        if paths != self.model_paths:
+            self.model_service = None
+            self.model_incident = None
+            self.model_paths = paths
+        return state
+
     async def models(self):
         def query():
-            return (
+            state = self._environment()
+            value = (
                 self._models()
                 .security_ai_status(incident_id=self.model_incident)
                 .model_dump(mode="json")
             )
+            if self.model_paths != (None, None):
+                packages = value["packages"]
+                if any("NATIVE_STATUS_UNAVAILABLE" in p["blocking_reasons"] for p in packages):
+                    state = {"status": "BACKEND_UNAVAILABLE", "reason": "NATIVE_STATUS_UNAVAILABLE"}
+                elif any(p["artifact"] != "VERIFIED" for p in packages):
+                    state = {"status": "ARTIFACT_MISSING", "reason": "ARTIFACT_NOT_VERIFIED"}
+                elif any(p["backend_dependencies"] != "VERIFIED" for p in packages):
+                    state = {
+                        "status": "BACKEND_UNAVAILABLE",
+                        "reason": "NATIVE_BACKEND_NOT_VERIFIED",
+                    }
+                elif any(
+                    p["package_import"] != "VERIFIED" or p["contract"] != "VERIFIED"
+                    for p in packages
+                ):
+                    state = {
+                        "status": "VALIDATION_FAILED",
+                        "reason": "PACKAGE_CONTRACT_NOT_VERIFIED",
+                    }
+                else:
+                    state = {"status": "READY", "reason": "PREFLIGHT_ONLY_NO_INFERENCE"}
+            value["environment"] = state
+            return value
 
         return await asyncio.to_thread(query)
 
     async def fixture_probe(self):
         from soc_agent.gui.probe import probe
 
-        if self.config.artifacts is None:
-            raise ValueError("ARTIFACT_CONFIGURATION_REQUIRED")
-        service = self._models(fresh=True)
-        result = await probe(service)
-        self.model_incident = UUID(result["incident_id"])
-        return result
+        if self.busy_probe:
+            raise ValueError("FIXTURE_DEMO_ALREADY_RUNNING")
+        self.busy_probe = True
+        try:
+            inventory = await self.models()
+            if inventory["environment"]["status"] != "READY":
+                return {
+                    "status": "BLOCKED",
+                    "environment": inventory["environment"],
+                    "input_origin": "SYNTHETIC_PRECOMPUTED_FEATURE_FIXTURE",
+                    "operational_input": "NOT_INFERABLE",
+                    "action_policy": "WRITE_DENIED",
+                }
+            service = self._models(fresh=True)
+            result = await probe(service)
+            self.model_incident = UUID(result["incident_id"])
+            result["inventory"] = await self.models()
+            if result["inventory"]["environment"]["status"] != "READY":
+                raise ValueError("ENVIRONMENT_CHANGED_DURING_DEMO")
+            return result
+        finally:
+            self.busy_probe = False
 
     @staticmethod
     def scenario_catalog():

@@ -23,6 +23,33 @@ def sections(page, value):
                 f"{len(data) if isinstance(data, list) else 'UNKNOWN'} records • select a row",
             )
         ]
+    if "models" in data and "context_digest" in data:
+        panels = []
+        for model in data["models"]:
+            output = model["output"]
+            label = output.get("predicted_class", output.get("label", "UNKNOWN"))
+            score = output.get("confidence", output.get("probability", "UNKNOWN"))
+            panels.append(
+                (
+                    model["binding_id"] + " • " + model["status"],
+                    str(label)
+                    + " | uncalibrated output: "
+                    + str(score)
+                    + "\n"
+                    + model["model_version"],
+                )
+            )
+        return panels + [
+            ("Advisory Context", short(data["context_digest"]) + " • 3 models / 2 observations"),
+            (
+                "Fixture only / SCRIPTED investigation",
+                "NOT_INFERABLE • 실제 네트워크 원본 데이터 분석은 아직 검증되지 않았습니다.",
+            ),
+            (
+                "Measured total execution",
+                str(round(data["elapsed_seconds"], 3)) + " seconds • WRITE_DENIED",
+            ),
+        ]
     if "packages" in data:
         return [
             ("Fixture validation history", str(data.get("last_validation_check", "UNKNOWN"))),
