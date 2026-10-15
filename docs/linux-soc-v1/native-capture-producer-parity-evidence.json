@@ -1,0 +1,1423 @@
+{
+  "contract_version": "soc-native-capture-parity-audit:v1",
+  "audited_at": "2026-10-15T03:12:36.636490+00:00",
+  "baseline_commit": "b8cc23598cd2e3b3c870fe4a127a1bb39820023c",
+  "ml_commit": "1800bd013edefd448671c97a8b7114409f639481",
+  "permission_audit": {
+    "capture": "PERMISSION_DENIED",
+    "privileges": {
+      "euid": 1000,
+      "egid": 1000,
+      "CapEff": 0,
+      "CapPrm": 0,
+      "CapInh": 0,
+      "CapAmb": 0,
+      "CapBnd": 2199023255551,
+      "NoNewPrivs": 0
+    },
+    "cap_net_raw": false,
+    "cap_net_admin": false,
+    "requires_net_admin_for_bound_receive": false,
+    "actual_packets_verified": false,
+    "capture_drops": null,
+    "automatic_privilege_escalation": false,
+    "privileges_unchanged": true,
+    "operational_models": {
+      "network-quality": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "network-edge": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      },
+      "dns": {
+        "operational_input": "NOT_INFERABLE",
+        "inference": "BLOCKED",
+        "finding_promotion": "BLOCKED",
+        "feature_generation": "DIAGNOSTIC_ONLY",
+        "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+      }
+    }
+  },
+  "probe_permission_approval": "PENDING_NOT_EXECUTED",
+  "real_packets_verified": false,
+  "real_dns_verified": false,
+  "real_capture_drop_count": null,
+  "training_notebooks_scanned": 11,
+  "original_producer_candidate_files": [],
+  "pcap_files": [],
+  "notebook_inventory": [
+    {
+      "path": "notebooks/model_diversity_v3.ipynb",
+      "sha256": "37dd22410bee0b2f7b88b76aaa1c37a9398da4c2ca45b4a284d89d29c650dccf"
+    },
+    {
+      "path": "notebooks/EDA.ipynb",
+      "sha256": "1fb1be2d1f46f3c723006147a6e4e1c49e3dcc56ee6f040b4153fac6a8985fe4"
+    },
+    {
+      "path": "notebooks/dnn_top40_v4.ipynb",
+      "sha256": "daaa733a1c8288974da79821c0378e8cf1c80ed6e9b716227580a23ac49d6b29"
+    },
+    {
+      "path": "notebooks/model_sample_v4.ipynb",
+      "sha256": "53e1b5624890bb11a1b84f7e215f09e254673cac61022e1f86953781b343c027"
+    },
+    {
+      "path": "notebooks/preprocessing.ipynb",
+      "sha256": "4b362a680b71fbd5f192ce530680ff444dffd36a62e048c9512a6712d1ab21b9"
+    },
+    {
+      "path": "notebooks/final_evaluation.ipynb",
+      "sha256": "1ad88f8492f2ddb8dcc1865420e00542191627291911e5907451033c036b292b"
+    },
+    {
+      "path": "notebooks/data.ipynb",
+      "sha256": "3ee78adce879a45a33b6432086564c1e0caed2519da26bb675aca3482dbd3626"
+    },
+    {
+      "path": "notebooks/statistical_analysis_v4.ipynb",
+      "sha256": "eac41f01942e50a6672c8f7edfb753a81cd9909f71e2648ea62ff90182ae4120"
+    },
+    {
+      "path": "notebooks/ondevice_benchmark_v4.ipynb",
+      "sha256": "44361c5df10f8a68a8de5ebe6023fc5b3cc885927fa6f0182545d1b89e0d1843"
+    },
+    {
+      "path": "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_EDA.ipynb",
+      "sha256": "c767afd549cf0f383338b0d33c2845752c7e09ba4a38fd9de1c4a62fef223225"
+    },
+    {
+      "path": "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_ML.ipynb",
+      "sha256": "16585061430566be3ab70bba30b56872a296db07d1e8f5dbaba303f958c5ca1b"
+    }
+  ],
+  "bindings": {
+    "detection_quality": {
+      "binding_id": "network-quality",
+      "source_package": "network-security-ai",
+      "package_version": "0.1.0",
+      "package_code_identity": "56293972d069dffaf564a390ab7a4c4554c2a2a5b2ab6be6f6f758b5ea3cce44",
+      "model_id": "network_cse2018_lightgbm_v4b2",
+      "model_version": "v4-b2",
+      "profile": "detection_quality",
+      "artifact_identity": {
+        "release_version": "security-ai-artifacts-v1",
+        "catalog_digest": "c0764aa7e32a92e0baf3b271fc48ce50c1ac0a1c68084744de06677213a14a23",
+        "loader_manifest_digest": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657",
+        "files": [
+          {
+            "path": "metadata/network/artifact_manifest.json",
+            "size_bytes": 514,
+            "sha256": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657"
+          },
+          {
+            "path": "metadata/network/label_mapping.json",
+            "size_bytes": 377,
+            "sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd"
+          },
+          {
+            "path": "metadata/network/top40_features.csv",
+            "size_bytes": 675,
+            "sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d"
+          },
+          {
+            "path": "models/network/lightgbm_top40_v4b2.txt",
+            "size_bytes": 48637456,
+            "sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924"
+          }
+        ]
+      },
+      "feature_identity": {
+        "schema_version": "cse-cic-ids2018-top40-v1",
+        "ordered_names": [
+          "Fwd Act Data Pkts",
+          "Fwd Seg Size Min",
+          "Fwd Header Len",
+          "ECE Flag Cnt",
+          "Init Fwd Win Byts",
+          "URG Flag Cnt",
+          "RST Flag Cnt",
+          "Dst Port",
+          "Fwd PSH Flags",
+          "Fwd Pkts/s",
+          "Fwd Pkt Len Mean",
+          "Pkt Len Max",
+          "SYN Flag Cnt",
+          "Fwd Seg Size Avg",
+          "Bwd Header Len",
+          "Init Bwd Win Byts",
+          "Fwd IAT Std",
+          "Fwd IAT Max",
+          "Pkt Size Avg",
+          "Fwd IAT Tot",
+          "Bwd Pkt Len Max",
+          "PSH Flag Cnt",
+          "Flow IAT Mean",
+          "Bwd IAT Min",
+          "Bwd Pkt Len Std",
+          "Pkt Len Mean",
+          "Bwd IAT Max",
+          "Fwd Pkt Len Std",
+          "ACK Flag Cnt",
+          "TotLen Bwd Pkts",
+          "Pkt Len Std",
+          "FIN Flag Cnt",
+          "Bwd IAT Mean",
+          "Flow Duration",
+          "Flow IAT Max",
+          "Subflow Bwd Byts",
+          "Idle Max",
+          "Fwd URG Flags",
+          "Bwd Pkts/s",
+          "Bwd IAT Std"
+        ],
+        "ordered_names_digest": "ac252fd93d3c5504803695fc609e8209701c74c812b163508b001490cb31b649",
+        "metadata_digest": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+        "label_mapping_digest": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+        "ordered_labels": [
+          "Benign",
+          "Bot",
+          "Brute Force -Web",
+          "Brute Force -XSS",
+          "DDOS attack-HOIC",
+          "DDOS attack-LOIC-UDP",
+          "DDoS attacks-LOIC-HTTP",
+          "DoS attacks-GoldenEye",
+          "DoS attacks-Hulk",
+          "DoS attacks-SlowHTTPTest",
+          "DoS attacks-Slowloris",
+          "FTP-BruteForce",
+          "Infilteration",
+          "SQL Injection",
+          "SSH-Bruteforce"
+        ]
+      },
+      "runtime_contract_digest": "05567299d0c0f0e51f1fa84adfafc5ae23df04febce03aa51652ba78b7f2a89e",
+      "limitations": [
+        "Class probabilities are uncalibrated and never authorize actions.",
+        "DNS training/scaler pairing and efficacy remain UNVERIFIED."
+      ]
+    },
+    "edge": {
+      "binding_id": "network-edge",
+      "source_package": "network-security-ai",
+      "package_version": "0.1.0",
+      "package_code_identity": "56293972d069dffaf564a390ab7a4c4554c2a2a5b2ab6be6f6f758b5ea3cce44",
+      "model_id": "network_cse2018_dnn_fp32",
+      "model_version": "v4-fp32-epoch13",
+      "profile": "edge",
+      "artifact_identity": {
+        "release_version": "security-ai-artifacts-v1",
+        "catalog_digest": "c0764aa7e32a92e0baf3b271fc48ce50c1ac0a1c68084744de06677213a14a23",
+        "loader_manifest_digest": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657",
+        "files": [
+          {
+            "path": "metadata/network/artifact_manifest.json",
+            "size_bytes": 514,
+            "sha256": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657"
+          },
+          {
+            "path": "metadata/network/label_mapping.json",
+            "size_bytes": 377,
+            "sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd"
+          },
+          {
+            "path": "metadata/network/top40_features.csv",
+            "size_bytes": 675,
+            "sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d"
+          },
+          {
+            "path": "models/network/dnn_top40_v4_best.pt",
+            "size_bytes": 398041,
+            "sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160"
+          },
+          {
+            "path": "models/network/dnn_top40_v4_scaler.joblib",
+            "size_bytes": 1543,
+            "sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32"
+          }
+        ]
+      },
+      "feature_identity": {
+        "schema_version": "cse-cic-ids2018-top40-v1",
+        "ordered_names": [
+          "Fwd Act Data Pkts",
+          "Fwd Seg Size Min",
+          "Fwd Header Len",
+          "ECE Flag Cnt",
+          "Init Fwd Win Byts",
+          "URG Flag Cnt",
+          "RST Flag Cnt",
+          "Dst Port",
+          "Fwd PSH Flags",
+          "Fwd Pkts/s",
+          "Fwd Pkt Len Mean",
+          "Pkt Len Max",
+          "SYN Flag Cnt",
+          "Fwd Seg Size Avg",
+          "Bwd Header Len",
+          "Init Bwd Win Byts",
+          "Fwd IAT Std",
+          "Fwd IAT Max",
+          "Pkt Size Avg",
+          "Fwd IAT Tot",
+          "Bwd Pkt Len Max",
+          "PSH Flag Cnt",
+          "Flow IAT Mean",
+          "Bwd IAT Min",
+          "Bwd Pkt Len Std",
+          "Pkt Len Mean",
+          "Bwd IAT Max",
+          "Fwd Pkt Len Std",
+          "ACK Flag Cnt",
+          "TotLen Bwd Pkts",
+          "Pkt Len Std",
+          "FIN Flag Cnt",
+          "Bwd IAT Mean",
+          "Flow Duration",
+          "Flow IAT Max",
+          "Subflow Bwd Byts",
+          "Idle Max",
+          "Fwd URG Flags",
+          "Bwd Pkts/s",
+          "Bwd IAT Std"
+        ],
+        "ordered_names_digest": "ac252fd93d3c5504803695fc609e8209701c74c812b163508b001490cb31b649",
+        "metadata_digest": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+        "label_mapping_digest": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+        "ordered_labels": [
+          "Benign",
+          "Bot",
+          "Brute Force -Web",
+          "Brute Force -XSS",
+          "DDOS attack-HOIC",
+          "DDOS attack-LOIC-UDP",
+          "DDoS attacks-LOIC-HTTP",
+          "DoS attacks-GoldenEye",
+          "DoS attacks-Hulk",
+          "DoS attacks-SlowHTTPTest",
+          "DoS attacks-Slowloris",
+          "FTP-BruteForce",
+          "Infilteration",
+          "SQL Injection",
+          "SSH-Bruteforce"
+        ]
+      },
+      "runtime_contract_digest": "05567299d0c0f0e51f1fa84adfafc5ae23df04febce03aa51652ba78b7f2a89e",
+      "limitations": [
+        "Class probabilities are uncalibrated and never authorize actions.",
+        "DNS training/scaler pairing and efficacy remain UNVERIFIED."
+      ]
+    },
+    "litert": {
+      "binding_id": "dns",
+      "source_package": "dns-security-ai",
+      "package_version": "0.1.0",
+      "package_code_identity": "56293972d069dffaf564a390ab7a4c4554c2a2a5b2ab6be6f6f758b5ea3cce44",
+      "model_id": "dns_cicbell_dnn_int8",
+      "model_version": "int8-sha256-28e089af363d",
+      "profile": "litert",
+      "artifact_identity": {
+        "release_version": "security-ai-artifacts-v1",
+        "catalog_digest": "c0764aa7e32a92e0baf3b271fc48ce50c1ac0a1c68084744de06677213a14a23",
+        "loader_manifest_digest": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+        "files": [
+          {
+            "path": "dns/model/dnn_int8.tflite",
+            "size_bytes": 9288,
+            "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33"
+          },
+          {
+            "path": "dns/preprocessor/scaler.joblib",
+            "size_bytes": 1135,
+            "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a"
+          },
+          {
+            "path": "metadata/dns/artifact_manifest.json",
+            "size_bytes": 2081,
+            "sha256": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740"
+          },
+          {
+            "path": "metadata/dns/feature_contract.json",
+            "size_bytes": 2700,
+            "sha256": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a"
+          }
+        ]
+      },
+      "feature_identity": {
+        "schema_version": "cic-bell-dns-stateless9-v1",
+        "ordered_names": [
+          "FQDN_count",
+          "subdomain_length",
+          "numeric",
+          "entropy",
+          "special",
+          "labels",
+          "labels_max",
+          "labels_average",
+          "len"
+        ],
+        "ordered_names_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+        "metadata_digest": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+        "label_mapping_digest": "22a18bfee85062f75af5f1cc0e33270f6341b3e9004a3a1120072f53eb997373",
+        "ordered_labels": [
+          "NORMAL",
+          "MALICIOUS"
+        ]
+      },
+      "runtime_contract_digest": "05567299d0c0f0e51f1fa84adfafc5ae23df04febce03aa51652ba78b7f2a89e",
+      "limitations": [
+        "Class probabilities are uncalibrated and never authorize actions.",
+        "DNS training/scaler pairing and efficacy remain UNVERIFIED."
+      ]
+    }
+  },
+  "artifact_checks": {
+    "metadata/network/artifact_manifest.json": {
+      "expected_sha256": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657",
+      "actual_sha256": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657",
+      "size_bytes": 514,
+      "verified": true
+    },
+    "metadata/network/label_mapping.json": {
+      "expected_sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "actual_sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "size_bytes": 377,
+      "verified": true
+    },
+    "metadata/network/top40_features.csv": {
+      "expected_sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "actual_sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "size_bytes": 675,
+      "verified": true
+    },
+    "models/network/lightgbm_top40_v4b2.txt": {
+      "expected_sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "actual_sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "size_bytes": 48637456,
+      "verified": true
+    },
+    "models/network/dnn_top40_v4_best.pt": {
+      "expected_sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "actual_sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "size_bytes": 398041,
+      "verified": true
+    },
+    "models/network/dnn_top40_v4_scaler.joblib": {
+      "expected_sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "actual_sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "size_bytes": 1543,
+      "verified": true
+    },
+    "dns/model/dnn_int8.tflite": {
+      "expected_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "actual_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "size_bytes": 9288,
+      "verified": true
+    },
+    "dns/preprocessor/scaler.joblib": {
+      "expected_sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "actual_sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "size_bytes": 1135,
+      "verified": true
+    },
+    "metadata/dns/artifact_manifest.json": {
+      "expected_sha256": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+      "actual_sha256": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+      "size_bytes": 2081,
+      "verified": true
+    },
+    "metadata/dns/feature_contract.json": {
+      "expected_sha256": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+      "actual_sha256": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+      "size_bytes": 2700,
+      "verified": true
+    }
+  },
+  "feature_parity": {
+    "detection_quality": [
+      {
+        "position": 1,
+        "name": "Fwd Act Data Pkts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 2,
+        "name": "Fwd Seg Size Min",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 3,
+        "name": "Fwd Header Len",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 4,
+        "name": "ECE Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 5,
+        "name": "Init Fwd Win Byts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 6,
+        "name": "URG Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 7,
+        "name": "RST Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 8,
+        "name": "Dst Port",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 9,
+        "name": "Fwd PSH Flags",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 10,
+        "name": "Fwd Pkts/s",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 11,
+        "name": "Fwd Pkt Len Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 12,
+        "name": "Pkt Len Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 13,
+        "name": "SYN Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 14,
+        "name": "Fwd Seg Size Avg",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 15,
+        "name": "Bwd Header Len",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 16,
+        "name": "Init Bwd Win Byts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 17,
+        "name": "Fwd IAT Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 18,
+        "name": "Fwd IAT Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 19,
+        "name": "Pkt Size Avg",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 20,
+        "name": "Fwd IAT Tot",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 21,
+        "name": "Bwd Pkt Len Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 22,
+        "name": "PSH Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 23,
+        "name": "Flow IAT Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 24,
+        "name": "Bwd IAT Min",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 25,
+        "name": "Bwd Pkt Len Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 26,
+        "name": "Pkt Len Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 27,
+        "name": "Bwd IAT Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 28,
+        "name": "Fwd Pkt Len Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 29,
+        "name": "ACK Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 30,
+        "name": "TotLen Bwd Pkts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 31,
+        "name": "Pkt Len Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 32,
+        "name": "FIN Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 33,
+        "name": "Bwd IAT Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 34,
+        "name": "Flow Duration",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 35,
+        "name": "Flow IAT Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 36,
+        "name": "Subflow Bwd Byts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 37,
+        "name": "Idle Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 38,
+        "name": "Fwd URG Flags",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 39,
+        "name": "Bwd Pkts/s",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 40,
+        "name": "Bwd IAT Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      }
+    ],
+    "edge": [
+      {
+        "position": 1,
+        "name": "Fwd Act Data Pkts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 2,
+        "name": "Fwd Seg Size Min",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 3,
+        "name": "Fwd Header Len",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 4,
+        "name": "ECE Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 5,
+        "name": "Init Fwd Win Byts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 6,
+        "name": "URG Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 7,
+        "name": "RST Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 8,
+        "name": "Dst Port",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 9,
+        "name": "Fwd PSH Flags",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 10,
+        "name": "Fwd Pkts/s",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 11,
+        "name": "Fwd Pkt Len Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 12,
+        "name": "Pkt Len Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 13,
+        "name": "SYN Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 14,
+        "name": "Fwd Seg Size Avg",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 15,
+        "name": "Bwd Header Len",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 16,
+        "name": "Init Bwd Win Byts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 17,
+        "name": "Fwd IAT Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 18,
+        "name": "Fwd IAT Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 19,
+        "name": "Pkt Size Avg",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 20,
+        "name": "Fwd IAT Tot",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 21,
+        "name": "Bwd Pkt Len Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 22,
+        "name": "PSH Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 23,
+        "name": "Flow IAT Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 24,
+        "name": "Bwd IAT Min",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 25,
+        "name": "Bwd Pkt Len Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 26,
+        "name": "Pkt Len Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 27,
+        "name": "Bwd IAT Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 28,
+        "name": "Fwd Pkt Len Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 29,
+        "name": "ACK Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 30,
+        "name": "TotLen Bwd Pkts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 31,
+        "name": "Pkt Len Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 32,
+        "name": "FIN Flag Cnt",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 33,
+        "name": "Bwd IAT Mean",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 34,
+        "name": "Flow Duration",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 35,
+        "name": "Flow IAT Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 36,
+        "name": "Subflow Bwd Byts",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 37,
+        "name": "Idle Max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 38,
+        "name": "Fwd URG Flags",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 39,
+        "name": "Bwd Pkts/s",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 40,
+        "name": "Bwd IAT Std",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      }
+    ],
+    "litert": [
+      {
+        "position": 1,
+        "name": "FQDN_count",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 2,
+        "name": "subdomain_length",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 3,
+        "name": "numeric",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 4,
+        "name": "entropy",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 5,
+        "name": "special",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 6,
+        "name": "labels",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 7,
+        "name": "labels_max",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 8,
+        "name": "labels_average",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      },
+      {
+        "position": 9,
+        "name": "len",
+        "model_column_order": "VERIFIED",
+        "input_dtype": "float32",
+        "training_formula_parity": "MISSING",
+        "original_producer_revision": "MISSING",
+        "configuration": "MISSING",
+        "raw_feature_golden_pair": "MISSING"
+      }
+    ]
+  },
+  "operational_gates": {
+    "network-quality": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    },
+    "network-edge": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    },
+    "dns": {
+      "operational_input": "NOT_INFERABLE",
+      "inference": "BLOCKED",
+      "finding_promotion": "BLOCKED",
+      "feature_generation": "DIAGNOSTIC_ONLY",
+      "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+    }
+  },
+  "validation_runs": [
+    {
+      "scope": "working_tree_focused_security_native_fixture",
+      "passed": 434,
+      "failed": 0,
+      "elapsed_seconds": 97.78,
+      "input": "EXPLICIT_FIXTURES",
+      "llm": "SCRIPTED"
+    },
+    {
+      "scope": "working_tree_runtime_scenario_approval",
+      "passed": 304,
+      "failed": 0,
+      "elapsed_seconds": 190.42,
+      "input": "FIXTURE_AND_EXISTING_READ_ONLY_RUNTIME_TESTS"
+    },
+    {
+      "scope": "probe_contract_final",
+      "passed": 24,
+      "failed": 0,
+      "elapsed_seconds": 6.05,
+      "input": "EXPLICIT_SOCKET_FIXTURES_AND_UNPRIVILEGED_CHILD"
+    },
+    {
+      "scope": "actual_wslg_permission_denied",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 5.29,
+      "input": "REAL_WSL_PERMISSION_DENIED"
+    },
+    {
+      "scope": "independent_git_export_focused_security_native_fixture",
+      "passed": 425,
+      "failed": 0,
+      "elapsed_seconds": 95.45,
+      "input": "EXPLICIT_FIXTURES",
+      "llm": "SCRIPTED"
+    },
+    {
+      "scope": "independent_git_export_wslg_permission_denied",
+      "passed": 1,
+      "failed": 0,
+      "elapsed_seconds": 2.73,
+      "input": "REAL_WSL_PERMISSION_DENIED"
+    },
+    {
+      "scope": "independent_git_export_runtime_scenario_approval",
+      "passed": 304,
+      "failed": 0,
+      "elapsed_seconds": 194.2,
+      "input": "FIXTURE_AND_EXISTING_READ_ONLY_RUNTIME_TESTS"
+    }
+  ],
+  "baseline_preservation": {
+    "existing_files_unchanged_outside_scope": 1000,
+    "fusion_support_sha256": "e5f9d10f706f71b82e80261f7633a1504e27ba24499be948d04adb6eeb3a21c9"
+  }
+}

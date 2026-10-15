@@ -44,6 +44,10 @@ class PacketCapture:
     def open(self):
         if self.config.origin != "NATIVE_AF_PACKET":
             raise CaptureUnavailable("LIVE_COLLECTOR_REQUIRES_NATIVE_CONFIG")
+        if self.socket is not None:
+            raise CaptureUnavailable("CAPTURE_ALREADY_OPEN")
+        if interface_identity(self.config.interface) != self.identity:
+            raise CaptureUnavailable("CAPTURE_INTERFACE_CHANGED")
         try:
             stream = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(3))
         except PermissionError:
@@ -55,6 +59,11 @@ class PacketCapture:
             stream.bind((self.config.interface, 0))
             stream.setsockopt(socket.SOL_SOCKET, 35, 1)  # Linux SO_TIMESTAMPNS, native timespec
             stream.setblocking(False)
+            if interface_identity(self.config.interface) != self.identity:
+                raise CaptureUnavailable("CAPTURE_INTERFACE_CHANGED")
+        except CaptureUnavailable:
+            self.close()
+            raise
         except OSError:
             self.close()
             raise CaptureUnavailable("CAPTURE_CONFIGURATION_FAILED") from None

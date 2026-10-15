@@ -84,3 +84,50 @@ def test_no_native_source_claim_without_kernel_clock():
 def test_invalid_interface_is_not_adopted():
     with pytest.raises(CaptureUnavailable, match="INTERFACE"):
         PacketCapture(CaptureConfig(interface="not-real0"))
+
+
+@pytest.mark.parametrize("phase", ["before_open", "after_bind"])
+def test_interface_replacement_during_open_is_rejected(monkeypatch, phase):
+    from soc_agent.security_ai.operational.network_capture import capture as module
+
+    calls = []
+
+    class Stream(SocketFixture):
+        def bind(self, address):
+            calls.append("bind")
+
+        def setsockopt(self, *args):
+            pass
+
+        def setblocking(self, value):
+            pass
+
+    stream = Stream()
+    identities = iter(
+        [IDENTITY, "b" * 64] if phase == "before_open" else [IDENTITY, IDENTITY, "b" * 64]
+    )
+    monkeypatch.setattr(module, "interface_identity", lambda name: next(identities))
+
+    def socket_factory(*args):
+        calls.append("socket")
+        return stream
+
+    monkeypatch.setattr(module.socket, "socket", socket_factory)
+    capture = PacketCapture(CaptureConfig(interface="lo"))
+    with pytest.raises(CaptureUnavailable, match="INTERFACE_CHANGED"):
+        capture.open()
+    assert capture.socket is None
+    if phase == "before_open":
+        assert not calls
+    else:
+        assert calls == ["socket", "bind"] and stream.closed
+
+
+def test_open_cannot_overwrite_an_existing_capture():
+    capture = PacketCapture(CaptureConfig(interface="lo"))
+    stream = SocketFixture()
+    capture.socket = stream
+    with pytest.raises(CaptureUnavailable, match="ALREADY_OPEN"):
+        capture.open()
+    assert capture.socket is stream and not stream.closed
+    capture.close()

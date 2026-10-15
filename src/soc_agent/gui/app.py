@@ -902,6 +902,8 @@ class Desktop:
         self.network_summary.set(
             "Network / DNS: "
             + str(network.get("state", "UNKNOWN"))
+            + " • Permission / error: "
+            + str(network.get("last_error") or "UNKNOWN")
             + " • Capture drops: "
             + known(network.get("capture_drops"))
             + " • Queue: "

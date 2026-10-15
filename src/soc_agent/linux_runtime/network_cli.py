@@ -6,11 +6,8 @@ from pathlib import Path
 
 from soc_agent.linux_runtime.network_monitor import configure, network_status
 from soc_agent.linux_runtime.store import RuntimeStore
-from soc_agent.security_ai.operational.network_capture.capture import (
-    CaptureUnavailable,
-    PacketCapture,
-)
 from soc_agent.security_ai.operational.network_capture.models import CaptureConfig, model_gates
+from soc_agent.security_ai.operational.network_capture.permissions import capture_permission
 
 
 def main():
@@ -26,24 +23,7 @@ def main():
     query.add_argument("--directory", type=Path, required=True)
     args = parser.parse_args()
     if args.command == "diagnose":
-        capture = None
-        try:
-            capture = PacketCapture(CaptureConfig(interface=args.interface))
-            capture.open()
-            result = {
-                "capture": "AVAILABLE",
-                "actual_packets_verified": False,
-                "operational_models": model_gates(),
-            }
-        except CaptureUnavailable as error:
-            result = {
-                "capture": str(error),
-                "actual_packets_verified": False,
-                "operational_models": model_gates(),
-            }
-        finally:
-            if capture is not None:
-                capture.close()
+        result = capture_permission(args.interface)
     elif args.command == "configure":
         configure(
             args.directory,
