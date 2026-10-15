@@ -7,6 +7,7 @@ import sqlite3
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 from uuid import UUID, uuid4
 
 from pydantic import Field
@@ -32,6 +33,7 @@ class GUIConfig(Snapshot):
     artifacts: Path | None = None
     native_python: Path | None = None
     refresh_seconds: int = Field(default=15, ge=10, le=300)
+    source_label: Literal["UNVERIFIED", "LIVE_WSL", "FIXTURE"] = "UNVERIFIED"
 
 
 class Backend:
@@ -189,6 +191,7 @@ class Backend:
             }
         # A view may reconnect to a different store; never join unrelated chart histories.
         result["metric_scope"] = str(self.runtime)
+        result["display_source"] = self.config.source_label
         result["ownership"] = (
             "GUI_CHILD" if self.child and self.child.returncode is None else "EXTERNAL"
         )

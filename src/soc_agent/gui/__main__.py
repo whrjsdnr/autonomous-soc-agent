@@ -25,6 +25,12 @@ def main() -> int:
     parser.add_argument("--runtime", type=Path)
     parser.add_argument("--artifacts", type=Path)
     parser.add_argument("--native-python", type=Path)
+    parser.add_argument(
+        "--source-label",
+        choices=("UNVERIFIED", "LIVE_WSL", "FIXTURE"),
+        default="UNVERIFIED",
+        help="Display label only; never source attestation or inference authority",
+    )
     args = parser.parse_args()
     try:
         import tkinter as tk
@@ -39,6 +45,7 @@ def main() -> int:
             runtime_directory=args.runtime,
             artifacts=args.artifacts,
             native_python=args.native_python,
+            source_label=args.source_label,
         )
         create_private_directory(config.data_directory)
         lock = config.data_directory / "desktop.lock"
@@ -66,7 +73,7 @@ def main() -> int:
         print(
             "SOC GUI BLOCKED: "
             + type(error).__name__
-            + " — check WSLg display, private directory and duplicate GUI.",
+            + " — check WSLg, system Pango/Cairo, private directory and duplicate GUI.",
             file=sys.stderr,
         )
         return 1

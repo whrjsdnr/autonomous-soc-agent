@@ -90,7 +90,12 @@ async def test_actual_gui_peer_approval_reject_marker_rollback_and_no_external_s
         monitor.simulation.set_enabled(True)
         monitor.simulation.prepare_completed()
         root = tk.Tk()
-        app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui", runtime_directory=directory))
+        app = Desktop(
+            root,
+            GUIConfig(
+                data_directory=tmp_path / "gui", runtime_directory=directory, source_label="FIXTURE"
+            ),
+        )
         monkeypatch.setattr("soc_agent.gui.app.messagebox.askyesno", lambda *args, **kwargs: True)
         monkeypatch.setattr(
             "soc_agent.gui.app.simpledialog.askstring", lambda *args, **kwargs: finding
@@ -177,7 +182,12 @@ async def test_chart_changes_follow_actual_fixture_queue(tmp_path, monkeypatch):
     await monitor.tick()
     root = tk.Tk()
     app = Desktop(
-        root, GUIConfig(data_directory=tmp_path / "chart-gui", runtime_directory=directory)
+        root,
+        GUIConfig(
+            data_directory=tmp_path / "chart-gui",
+            runtime_directory=directory,
+            source_label="FIXTURE",
+        ),
     )
     try:
         await idle(root, app)
@@ -222,6 +232,9 @@ async def test_chart_changes_follow_actual_fixture_queue(tmp_path, monkeypatch):
                 "FIXTURE · measured queue 4 → 0 × 3 · investigation count increased · no animation"
             )
             capture(root, Path(os.environ["SOC_GUI_SCREENSHOTS"]) / "queue-trend-fixture.png")
+            from tests.gui_visual_checks import screenshot_sizes
+
+            await screenshot_sizes(root, app, "queue-store-fixture")
         app.render_dashboard({"metric_scope": "different-store", "queue_backlog": 2})
         assert len(app.history.samples) == 1
         assert app.history.samples[-1].completed is None

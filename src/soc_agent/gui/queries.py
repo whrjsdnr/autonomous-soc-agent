@@ -46,12 +46,16 @@ def display_data(value):
     return value
 
 
-def investigation_rows(directory: Path) -> list[dict]:
+def investigation_rows(directory: Path, limit: int = 100) -> list[dict]:
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise ValueError("VIEW_LIMIT")
     store = RuntimeStore(directory)
     pipeline = open_pipeline(directory, store.config)
     with store.database.transaction(write=False) as connection:
         rows = list(
-            connection.execute("SELECT * FROM monitor_findings ORDER BY rowid DESC LIMIT 100")
+            connection.execute(
+                "SELECT * FROM monitor_findings ORDER BY rowid DESC LIMIT ?", (limit,)
+            )
         )
     items = []
     for row in rows:
@@ -66,6 +70,7 @@ def investigation_rows(directory: Path) -> list[dict]:
                     "incident_id": str(finding.incident_id),
                     "status": row["status"],
                     "rule_id": finding.rule_id,
+                    "severity": finding.severity,
                     "origin": finding.input_origin,
                     "assessment_mode": result.get("mode", store.config.assessment_mode),
                     "evidence_references": finding.evidence_references,
@@ -76,6 +81,13 @@ def investigation_rows(directory: Path) -> list[dict]:
                         "meaning": "Source references; finding is advisory, not attack fact",
                     },
                     "advisory_assessment": assessment,
+                    "tool_steps": [
+                        {
+                            "tool_name": step.get("tool_name", "UNKNOWN"),
+                            "status": step.get("status", "UNKNOWN"),
+                        }
+                        for step in result.get("investigation", {}).get("plan", {}).get("steps", [])
+                    ],
                     "investigation_reference": result.get("investigation_digest"),
                     "error_category": result.get("failure"),
                     "result_digest": row["result_digest"],
@@ -98,7 +110,28 @@ def stored_counts(directory: Path) -> dict:
             "AND status='ACCEPTED' AND json_extract(payload,'$.kind')='authentication'",
             (str(store.config.incident_id),),
         ).fetchone()[0]
-    return {"authentication_events": count, "findings_total": sum(store.jobs().values())}
+    jobs = store.jobs()
+    queue = pipeline.queue.counts()
+    recent = investigation_rows(directory, 4)
+    approvals = approval_rows(directory, False) + approval_rows(directory, True)
+    return {
+        "authentication_events": count,
+        "findings_total": sum(jobs.values()),
+        "collected_events": sum(queue.values()),
+        "active_findings": sum(jobs.get(k, 0) for k in ("PENDING", "RUNNING")),
+        "pending_approvals": None
+        if len(approvals) >= 100
+        else sum(r.get("status") == "PENDING_APPROVAL" for r in approvals),
+        "investigation_distribution": jobs,
+        "recent_activity": [
+            {
+                "rule_id": r["rule_id"],
+                "event_time": r["observations"]["last_seen"],
+                "origin": r["origin"],
+            }
+            for r in recent
+        ],
+    }
 
 
 def approval_rows(directory: Path, restricted: bool) -> list[dict]:

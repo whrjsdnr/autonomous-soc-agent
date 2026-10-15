@@ -18,6 +18,7 @@ from soc_agent.linux_runtime.service import LinuxMonitor
 from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.runtime_lock import exclusive_runtime_lock
 from tests.gui_screen_capture import capture
+from tests.gui_visual_checks import screenshot_sizes
 from tests.gui_wslg_checks import close, idle
 from tests.gui_wslg_checks import (
     release_display_objects_on_creator_thread as release_display_objects_on_creator_thread,
@@ -36,6 +37,7 @@ async def test_native_models_and_actual_model_view(tmp_path, monkeypatch):
         data_directory=tmp_path / "gui",
         artifacts=Path(os.environ["SOC_EXTERNAL_ARTIFACT_ROOT"]),
         native_python=Path(os.environ["SOC_EXTERNAL_INFERENCE_PYTHON"]),
+        source_label="FIXTURE",
     )
     root = tk.Tk()
     app = Desktop(root, config)
@@ -60,6 +62,8 @@ async def test_native_models_and_actual_model_view(tmp_path, monkeypatch):
             "ACTUAL native models · SYNTHETIC features · SCRIPTED assessment · advisory only"
         )
         screenshot(root, "models-native-fixture.png")
+        assert all("VERIFIED (prior Fixture)" in str(row) for row in app.model_cards[:3])
+        await screenshot_sizes(root, app, "models-native-fixture")
         (tmp_path / "native-result.json").write_text(json.dumps(probe, indent=2))
     finally:
         await close(root, app)
@@ -68,7 +72,7 @@ async def test_native_models_and_actual_model_view(tmp_path, monkeypatch):
 @pytest.mark.asyncio
 async def test_actual_wsl_owned_runtime_start_collect_restart_and_gui_close(tmp_path):
     root = tk.Tk()
-    app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui"))
+    app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui", source_label="LIVE_WSL"))
     directory = tmp_path / "live-runtime"
     try:
         await idle(root, app)
@@ -90,11 +94,16 @@ async def test_actual_wsl_owned_runtime_start_collect_restart_and_gui_close(tmp_
         assert state["cursor_health"] in ("INITIAL_READ", "RESUMED_EXACT", "RESUMED_WITH_REPLAY")
         app.notice.set("LIVE_LINUX · existing WSL journal · READ_ONLY · no provider or OS response")
         screenshot(root, "dashboard-live-wsl.png")
+        await screenshot_sizes(root, app, "dashboard-live-wsl")
         app.navigate("Investigations")
         await idle(root, app)
         real_rows = app.current_records
         assert all(r["origin"] != "FIXTURE" for r in real_rows)
         screenshot(root, "investigations-live-wsl.png")
+        if app.current_records:
+            app.tree.selection_set("0")
+            root.update()
+        await screenshot_sizes(root, app, "investigation-live-wsl")
         app.call("stop")
         await idle(root, app)
         assert RuntimeStore(directory).state()["state"] == "STOPPED"
@@ -149,7 +158,12 @@ async def test_feedback_candidate_evaluation_visible_without_promotion(tmp_path,
         )
         assert review["ok"]
         root = tk.Tk()
-        app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui", runtime_directory=directory))
+        app = Desktop(
+            root,
+            GUIConfig(
+                data_directory=tmp_path / "gui", runtime_directory=directory, source_label="FIXTURE"
+            ),
+        )
         try:
             await idle(root, app)
             app.navigate("Self-Improvement")
@@ -169,6 +183,8 @@ async def test_feedback_candidate_evaluation_visible_without_promotion(tmp_path,
             assert app.current_records[0]["promotion"] == "BLOCKED"
             app.notice.set("FIXTURE feedback · offline result INCONCLUSIVE · promotion BLOCKED")
             screenshot(root, "self-improvement-fixture.png")
+            assert app.improvement_chart.result["evaluation_id"] == evaluation["evaluation_id"]
+            await screenshot_sizes(root, app, "self-improvement-fixture")
             app.operation("reviews")
             await idle(root, app)
             assert app.current_records[0]["status"] == "INCONCLUSIVE"
