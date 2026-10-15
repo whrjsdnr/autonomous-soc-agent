@@ -62,7 +62,17 @@ def status(directory: Path):
         or any(r.status in ("STARTED", "UNCERTAIN") for r in records)
         or restricted["state"] in ("UNKNOWN", "BLOCKED")
     )
+    from soc_agent.linux_runtime.network_monitor import network_status
+
+    network = network_status(directory, store)
+    if network["state"] != "DISABLED":
+        ready = (
+            ready
+            and network.get("state") == "RUNNING"
+            and network.get("readiness") == "COLLECTING_DIAGNOSTIC_ONLY"
+        )
     return {
+        "network": network,
         "runtime_state": state["state"],
         "health": "FAILED" if state["state"] == "FAILED" else "HEALTHY" if ready else "DEGRADED",
         "readiness": "READY" if ready else "NOT_READY",

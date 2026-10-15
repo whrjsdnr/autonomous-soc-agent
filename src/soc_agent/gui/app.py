@@ -105,7 +105,7 @@ class Desktop:
 
     def _startup_models(self, value):
         self.ai_environment = value.get("environment", {"status": "UNKNOWN"})
-        self.ai_status.set("AI: " + self.ai_environment["status"])
+        self.ai_status.set("AI Fixture env: " + self.ai_environment["status"])
         if self.page == "Security AI Models":
             self.render_models(value)
         else:
@@ -220,7 +220,7 @@ class Desktop:
         Label(header, text="INPUT: " + self.config.source_label, size=11, fg=ACCENT).pack(
             side="right", padx=(12, 0)
         )
-        self.ai_status = tk.StringVar(value="AI: CHECKING")
+        self.ai_status = tk.StringVar(value="AI Fixture env: CHECKING")
         Label(header, textvariable=self.ai_status, size=11, fg=ACCENT).pack(side="right", padx=12)
         Label(header, textvariable=self.status_var, style="Muted.TLabel").pack(side="right")
         Label(body, textvariable=self.notice, style="Muted.TLabel", wraplength=1200).pack(
@@ -392,6 +392,30 @@ class Desktop:
         ]
         for chart in self.trends:
             chart.pack(side="left", fill="both", expand=True, padx=(0, 8))
+        self.network_summary = tk.StringVar(
+            value="Network / DNS UNKNOWN • operational inference NOT_INFERABLE"
+        )
+        Label(self.content, textvariable=self.network_summary, size=12, max_width=1200).pack(
+            fill="x", pady=(0, 10)
+        )
+        network_charts = ttk.Frame(self.content)
+        network_charts.pack(fill="x", pady=(0, 12))
+        extra = [
+            Trend(
+                network_charts, self.history, "network_rate", "NETWORK TRAFFIC", ACCENT, "packets/s"
+            ),
+            Trend(
+                network_charts, self.history, "dns_rate", "DNS QUERIES", "#A78BFA", "queries/min"
+            ),
+            Trend(network_charts, self.history, "ai_count", "OPERATIONAL AI INVOCATIONS", ACCENT),
+        ]
+        for chart in extra:
+            chart.pack(side="left", fill="both", expand=True, padx=(0, 8))
+        self.trends.extend(extra)
+        self.network_distribution = Distribution(
+            self.content, "OPERATIONAL model results • no fixture mixing"
+        )
+        self.network_distribution.pack(fill="x", pady=(0, 12))
         lower = ttk.Frame(self.content)
         lower.pack(fill="x", pady=(0, 10))
         self.activity = tk.Frame(lower, bg=PANEL, padx=16, pady=12)
@@ -782,7 +806,7 @@ class Desktop:
                 if self.pending_operation in ("models", "fixture_probe"):
                     self.last_probe = None
                     self.ai_environment = {"status": "VALIDATION_FAILED"}
-                    self.ai_status.set("AI: VALIDATION_FAILED")
+                    self.ai_status.set("AI Fixture env: VALIDATION_FAILED")
                     if self.page == "Security AI Models":
                         self.ai_explanation.set(
                             "AI 점검/분석 실패: " + safe + " — 환경 점검 후 다시 시도하세요."
@@ -835,6 +859,9 @@ class Desktop:
 
     def render_dashboard(self, value, record=True):
         scope = value.get("metric_scope")
+        capture_generation = value.get("network", {}).get("capture_generation")
+        if capture_generation:
+            scope = str(scope) + ":capture:" + capture_generation
         if record:
             if scope != self.history_scope:
                 self.history.samples.clear()
@@ -860,9 +887,30 @@ class Desktop:
         for key, var in self.cards.items():
             var.set(str(value[key]) if value.get(key) is not None else "UNKNOWN")
         for chart in self.trends:
-            chart.source = value["display_source"]
+            chart.source = (
+                value.get("network", {}).get("input_origin", "UNKNOWN")
+                if chart.metric in ("network_rate", "dns_rate", "ai_count")
+                else value["display_source"]
+            )
             chart.redraw()
         self.distribution.update_counts(value.get("investigation_distribution"))
+        network = value.get("network", {})
+
+        def known(item):
+            return "UNKNOWN" if item is None else str(item)
+
+        self.network_summary.set(
+            "Network / DNS: "
+            + str(network.get("state", "UNKNOWN"))
+            + " • Capture drops: "
+            + known(network.get("capture_drops"))
+            + " • Queue: "
+            + known(network.get("queue_backlog"))
+            + " • Authentication: "
+            + str(value.get("collector_state", "UNKNOWN"))
+            + " • Models: NOT_INFERABLE"
+        )
+        self.network_distribution.update_counts({} if network.get("inference_count") == 0 else None)
         for child in self.activity.winfo_children():
             child.destroy()
         Label(self.activity, text="Recent security findings", size=16, bold=True, bg=PANEL).pack(
@@ -918,7 +966,7 @@ class Desktop:
 
     def render_models(self, value):
         self.ai_environment = value.get("environment", {"status": "UNKNOWN"})
-        self.ai_status.set("AI: " + self.ai_environment["status"])
+        self.ai_status.set("AI Fixture env: " + self.ai_environment["status"])
         if self.page != "Security AI Models":
             return
         explanation = {
@@ -1367,7 +1415,7 @@ class Desktop:
             self.root.after(150, self.close)
             return
         self.closing = True
-        self.notice.set("Closing · graceful shutdown of owned Runtime only")
+        self.notice.set("Closing · Runtime keeps running; use Stop explicitly")
         future = self.worker.submit("close")
 
         def check():

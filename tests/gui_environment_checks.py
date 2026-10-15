@@ -129,6 +129,13 @@ async def test_actual_wsl_owned_runtime_start_collect_restart_and_gui_close(tmp_
         )
     finally:
         await close(root, app)
+        child = app.worker.backend.child
+        if child is not None and child.returncode is None:
+            # User-started monitoring now deliberately outlives the GUI. The test
+            # explicitly stops only its own Runtime after verifying the boundary.
+            assert RuntimeStore(directory).state()["state"] == "RUNNING"
+            stopped = await app.worker.backend.stop()
+            assert stopped["status"] == "STOPPED"
     assert app.worker.backend.child.returncode == 0
     store = RuntimeStore(directory)
     assert store.state()["state"] == "STOPPED" and store.verify_audit()

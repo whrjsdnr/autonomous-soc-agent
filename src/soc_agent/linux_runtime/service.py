@@ -361,7 +361,14 @@ class LinuxMonitor:
             start = monotonic()
             task = None
             operator = None
+            network = None
+            network_task = None
             try:
+                from soc_agent.linux_runtime.network_monitor import NetworkMonitor, configuration
+
+                if configuration(self.directory, self.store) is not None:
+                    network = NetworkMonitor(self.directory, self.store)
+                    network_task = asyncio.create_task(network.run())
                 if operator_uids is not None:
                     from soc_agent.linux_runtime.operator import OperatorServer
 
@@ -410,5 +417,11 @@ class LinuxMonitor:
                 self.store.event("RUNTIME_FAILED", {"failure": type(error).__name__})
                 raise
             finally:
+                if network is not None and network_task is not None:
+                    network.stopped.set()
+                    try:
+                        await asyncio.wait_for(network_task, timeout=self.config.shutdown_seconds)
+                    except TimeoutError:
+                        self.store.event("NETWORK_SHUTDOWN_UNCERTAIN", {})
                 if operator is not None:
                     await operator.close()

@@ -15,6 +15,9 @@ class Sample:
     measured_at: float
     queue: int | None
     completed: int | None
+    network_rate: float | None = None
+    dns_rate: float | None = None
+    ai_count: int | None = None
 
 
 def count(value) -> int | None:
@@ -38,7 +41,24 @@ class MetricHistory:
             for k in ("completed_read_only", "completed_llm", "completed_scripted")
         ]
         completed = sum(parts) if all(p is not None for p in parts) else None
-        sample = Sample(when, count(snapshot.get("queue_backlog")), completed)
+        network = snapshot.get("network", {})
+
+        def rate(key):
+            value = network.get(key)
+            return (
+                round(value, 3)
+                if type(value) in (int, float) and math.isfinite(value) and value >= 0
+                else None
+            )
+
+        sample = Sample(
+            when,
+            count(snapshot.get("queue_backlog")),
+            completed,
+            rate("packets_per_second"),
+            rate("dns_queries_per_minute"),
+            count(network.get("inference_count")),
+        )
         if self.samples and when == self.samples[-1].measured_at:
             if sample != self.samples[-1]:
                 raise ValueError("CONFLICTING_MEASUREMENT")
@@ -47,7 +67,9 @@ class MetricHistory:
 
 
 class Trend(tk.Canvas):
-    def __init__(self, parent, history: MetricHistory, metric: str, title: str, color: str):
+    def __init__(
+        self, parent, history: MetricHistory, metric: str, title: str, color: str, units="counts"
+    ):
         super().__init__(
             parent,
             bg=SURFACE,
@@ -57,6 +79,7 @@ class Trend(tk.Canvas):
             takefocus=True,
         )
         self.history, self.metric, self.heading, self.color = history, metric, title, color
+        self.units = units
         self.source = "UNVERIFIED SOURCE"
         self.hover = None
         self.bind("<Configure>", lambda _: self.redraw())
@@ -166,7 +189,7 @@ class Trend(tk.Canvas):
             self,
             left,
             height - 16,
-            self.source + " • measured elapsed time • counts",
+            self.source + " • measured elapsed time • " + self.units,
             size=10,
             width=width - 65,
         )

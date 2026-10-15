@@ -57,14 +57,18 @@ class CommonEvent(Frozen):
                 self.schema_version == "soc-common-event:v2"
                 and self.platform == "validated_fixture"
                 and self.provenance == "explicit_log_fixture"
-                and self.collector_id == "scenario-auth-pam:v1"
+                and self.collector_id in ("scenario-auth-pam:v1", "scenario-network-capture:v1")
+                and (
+                    self.collector_id != "scenario-network-capture:v1"
+                    or self.source.namespace.startswith("scenario:network:")
+                )
                 and self.source.namespace.startswith("scenario:")
             )
             native = (
                 self.schema_version == "soc-common-event:v1"
                 and self.provenance == "native_read_only"
                 and self.platform != "validated_fixture"
-                and self.collector_id != "scenario-auth-pam:v1"
+                and self.collector_id not in ("scenario-auth-pam:v1", "scenario-network-capture:v1")
                 and not self.source.namespace.startswith("scenario:")
             )
             if not (fixture or native):

@@ -18,6 +18,7 @@ from soc_agent.demo.scenario_models import scenarios
 from soc_agent.deployment import DeploymentDescriptor
 from soc_agent.desktop import OfflineDesktopClient, source_report_tool
 from soc_agent.gui.queries import investigation_rows
+from soc_agent.gui.runtime_process import PersistentRuntimeProcess
 from soc_agent.ingestion import EventIngestor
 from soc_agent.linux_runtime.__main__ import status
 from soc_agent.linux_runtime.operator import OperatorRequest, operator_request
@@ -44,7 +45,7 @@ class Backend:
         self.directory = config.data_directory.absolute()
         create_private_directory(self.directory)
         self.runtime = config.runtime_directory.absolute() if config.runtime_directory else None
-        self.child: asyncio.subprocess.Process | None = None
+        self.child: PersistentRuntimeProcess | None = None
         self.process_log = None
         self.model_service = None
         self.model_incident = None
@@ -121,17 +122,19 @@ class Backend:
             raise ValueError("RUNTIME_ALREADY_OWNED")
         log = self.directory / ("runtime-" + str(uuid4()) + ".log")
         self.process_log = log.open("xb")
-        self.child = await asyncio.create_subprocess_exec(
-            sys.executable,
-            "-m",
-            "soc_agent.linux_runtime",
-            "--directory",
-            str(self.runtime),
-            "start",
-            "--operator-uid",
-            str(os.geteuid()),
-            stdout=self.process_log,
-            stderr=self.process_log,
+        self.child = await asyncio.to_thread(
+            PersistentRuntimeProcess,
+            [
+                sys.executable,
+                "-m",
+                "soc_agent.linux_runtime",
+                "--directory",
+                str(self.runtime),
+                "start",
+                "--operator-uid",
+                str(os.geteuid()),
+            ],
+            self.process_log,
         )
         await asyncio.sleep(0.15)
         if self.child.returncode is not None:
@@ -162,10 +165,17 @@ class Backend:
         }
 
     async def close(self):
-        result = await self.stop()
-        if result["status"] != "UNKNOWN":
-            self.closed = True
-        return result
+        # GUI lifetime is not Runtime lifetime. A file-backed log and new session
+        # keep this explicitly started Runtime independent; no transport destructor kills it.
+        alive = self.child is not None and self.child.returncode is None
+        if self.process_log:
+            self.process_log.close()
+        self.closed = True
+        return {
+            "status": "DETACHED",
+            "runtime_continues": alive,
+            "external_runtime_untouched": True,
+        }
 
     async def dashboard(self):
         if self.runtime is None or not (self.runtime / "monitor.sqlite").is_file():
