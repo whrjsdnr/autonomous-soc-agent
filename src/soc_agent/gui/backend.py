@@ -51,6 +51,9 @@ class Backend:
         self.model_incident = None
         self.model_paths = (config.native_python, config.artifacts)
         self.busy_probe = False
+        from soc_agent.security_ai.research.service import ResearchDemo
+
+        self.research_demo = ResearchDemo(self.directory)
         self.closed = False
         self.busy_scenario = False
         self.scenario_results = []
@@ -170,6 +173,7 @@ class Backend:
         alive = self.child is not None and self.child.returncode is None
         if self.process_log:
             self.process_log.close()
+        await self.research_demo.stop()
         self.closed = True
         return {
             "status": "DETACHED",
@@ -386,6 +390,34 @@ class Backend:
             return result
         finally:
             self.busy_probe = False
+
+    async def research_status(self):
+        value = await asyncio.to_thread(self.research_demo.snapshot)
+        value["runtime"] = await self.dashboard()
+        return value
+
+    async def research_start(self):
+        await self.research_demo.start()
+        return await self.research_status()
+
+    async def research_stop(self):
+        await self.research_demo.stop()
+        return await self.research_status()
+
+    async def research_replay(self, profile: str, flow_index: int):
+        if profile not in {"quality", "edge", "both"}:
+            raise ValueError("INVALID_RESEARCH_PROFILE")
+        if not self.research_demo.started:
+            raise ValueError("EXPLICIT_RESEARCH_START_REQUIRED")
+        outcomes = []
+        for selected in ("quality", "edge") if profile == "both" else (profile,):
+            if not self.research_demo.started:
+                break
+            outcome = await self.research_demo.replay(selected, flow_index)
+            outcomes.append(outcome["status"])
+        value = await self.research_status()
+        value["replay_outcomes"] = outcomes
+        return value
 
     @staticmethod
     def scenario_catalog():

@@ -1,0 +1,132 @@
+{
+  "contract": "soc-research-replay:v1",
+  "origin": "OFFLINE_PCAP",
+  "session": "8-1_TRAIN_RESEARCH_DEMO_NOT_EVALUATION",
+  "raw_relative_path": "data/raw/acquisition/iot23-network14-3sessions-v1/CTU-IoT-Malware-Capture-8-1/2018-07-31-15-15-09-192.168.100.113.pcap",
+  "raw_sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+  "raw_bytes": 2098362,
+  "label_relative_path": "data/raw/acquisition/iot23-network14-3sessions-v1/CTU-IoT-Malware-Capture-8-1/bro/conn.log.labeled",
+  "label_sha256": "4877ca8f0f01902fbd18d28b7d06cb3d0be082355b7f2c8862c9deef1782eb8a",
+  "label_bytes": 1431000,
+  "samples": [
+    {
+      "flow_id": "2bb485953f8cde3065f488964989c1af9b2ecc9e9d9a51002c4985dc4a71582b",
+      "packet_indices": [
+        1,
+        2
+      ],
+      "source_digest": "8c4b71c076d3caa81b258e071eade08c00bc513ad2aa5520b8a7c2f36fa68ffe",
+      "feature_digest": "302165303c6ee54b8505256506dbcd544acaab75c11507c6275e12ee53cc30eb",
+      "feature_values_digest": "1cdbc6f116d14acbb06ebdba9445bb9cd948c04401ac6a6c62b5619613032bdd",
+      "label_references": [
+        "2207c978c667a3348d84f0eb79bd3765e41391595df4561d4a1ea13b9228ca06"
+      ],
+      "start_ns": 1533042911474174000,
+      "packet_count": 2
+    },
+    {
+      "flow_id": "e7003b73e04c29f0c08852a6876f9dba329fd0aefdb3e78a2424392a86207e72",
+      "packet_indices": [
+        8,
+        9
+      ],
+      "source_digest": "686f8b610185d950a42528672eeac65ffe6c6d24d8dfe9caaaf6c9e20c9f7781",
+      "feature_digest": "409d5a24918812e0363cd802f1d56a20a5109edabde7b2bc65a2a429af968acf",
+      "feature_values_digest": "5f6d8a1e913d961676842b0908d2530549f08e6dde64f6d196a3115ce90b5385",
+      "label_references": [
+        "46732d7a2e30a18d4940ad645c31a029c427b8e78201f02e6c19653fafa60b59"
+      ],
+      "start_ns": 1533042921474234000,
+      "packet_count": 2
+    },
+    {
+      "flow_id": "454c5a25cab0d54ffdabc230db1938bada8b7a537f16c6d18d739c9031decd6e",
+      "packet_indices": [
+        488,
+        489,
+        492,
+        495,
+        496,
+        497
+      ],
+      "source_digest": "770855585496cf8ffb61c5eea15d4f08350841ff031d6bdaeb210b95680c6df6",
+      "feature_digest": "3707e59c5309d32c27d47fc59111d342d89478518e84f384d8edd60fbddb2d09",
+      "feature_values_digest": "0ad8e9e148267c14740e8568974198424389933d3b358b1ca9531c8a29a922cc",
+      "label_references": [
+        "ad69a4b81e28d1bd32ac444b7b7559948c1e2c953b4dc89f025bc79e43d54974",
+        "ed001f210a6136e7381b935d7689552bac29d35c111865fdc2cb93c92adc9023",
+        "091eefbc997495a0d7fc2bb0589b14252f9742a6ede66a2f88ad65496fa2a8c5",
+        "77a341f1fd319c5f3f517bd6ddd653f915d029c91014b1bf358809b2e3b09d91"
+      ],
+      "start_ns": 1533047044299948000,
+      "packet_count": 6
+    },
+    {
+      "flow_id": "ed0af459382ed5f3265b0b9dd100438caff54b488a43cb45f1e5bd01e92c60a6",
+      "packet_indices": [
+        498,
+        499,
+        500,
+        501,
+        502,
+        505
+      ],
+      "source_digest": "d23b4c232ba2098747007a8119f9849a5f5d91ef617391bd4a5470d7ccfa96a5",
+      "feature_digest": "ef3a93fe854d24a71176ae9de775c64a7399d3e9ee23b0e1d2e7970b62910fd1",
+      "feature_values_digest": "c7bc8724e41a3e6be1146a7f10730bbaa6277539edf46ae96c70dd11710272da",
+      "label_references": [
+        "573658519775ffa468b4faa6014068da1cc7ed873b8bc43046ccd12f004053a8",
+        "e091247ff882db6b494ad164113f3695fb26f4773c01f72db4c15af5f779f0e7",
+        "25a1c04e6e4f2c4f4c1d1a720c7231f31ef392522208eabfbe28e358238f12d0",
+        "ba491a84e8557b811d34853328b38b8067669ff5baf6b279660596a7b7a7cdfb"
+      ],
+      "start_ns": 1533047079330235000,
+      "packet_count": 6
+    }
+  ],
+  "source_code_sha256": {
+    "src/ml/__init__.py": "3da4e9e25831dced33127f3b87ff6f6eaba88f7ea3a610f1c29cf94bd63c583b",
+    "src/ml/verified_producers/__init__.py": "572e6585516a0c5f8a20f6cfc8db2d95b3810883ec8ba8f7c6530eaa5f831d58",
+    "src/ml/verified_producers/contracts.py": "71d32d4238f88559b2481aaf0314559a54772596d1b5b20b095d2d67fa90564e",
+    "src/ml/verified_producers/network.py": "e9dabdffd1c10673187cc0cc80d28aab3125ad23d88aaa86367ab81074860610",
+    "src/ml/verified_producers/network_v1_1.py": "19fbcd702632b9b86605681b3b3f54a5b759b9ee26c373256dae360cf4b4634f",
+    "src/ml/ctu13/pcap.py": "90065fef249c2b7ee9210c53499dbd8f8037ea737d34d398e3f5ff4532a21980",
+    "src/ml/ctu13/flows.py": "1ef7b7c9ad4011057843f043df95bcabc5e01c5911345f5b3078631452cf72f9",
+    "src/ml/ctu13/labels.py": "e68df1795d326aa22ca2299ea7bd05b9baaa1f4515d2de58128a3c3e0796ad45",
+    "src/ml/iot23/recovery.py": "820d2e292dedfe76041e1e5ff264806cb8297c4805a56294e35e373a7c053740",
+    "src/ml/iot23/wire_reference.py": "76caaa2ba2c5ba2448fd98c4f2a6a270543454a3e481c1e55fe1c8e11b706d24",
+    "src/ml/iot23/zeek.py": "1963a303ffa9468cb8b3fda92877d7fe42276de3539de0805ba5cd820e0e531e",
+    "src/ml/network_research/artifacts.py": "4d1cc539312dd462ae2f37ce2104cb019abf0e451241aaef63c7cb7ac1008e81",
+    "src/ml/iot23/inspect.py": "bc56a58b3173b728983d3fd0d7ded5141b345dfb2f3f0330dc2ee621745a3431",
+    "src/ml/network_research/dataset.py": "c9b0ea8c743a15ba8ad588e89c57e89e3287b52580ab0389f9ee08b2ed4ea4f9",
+    "src/ml/network_research/evaluation.py": "e9c62af230b9d3d8f0982483579c7cf00e8ec9326bfb9ab61fa93ccfae8b286c",
+    "src/ml/verified_producers/dns.py": "45b95dd38089e29443b7ffa1bec0e610051efe03503c09271f8a2242376a8267"
+  },
+  "feature_names": [
+    "duration_seconds",
+    "forward_packet_count",
+    "backward_packet_count",
+    "forward_ip_bytes",
+    "backward_ip_bytes",
+    "ip_length_min",
+    "ip_length_max",
+    "ip_length_mean",
+    "ip_length_population_std",
+    "tcp_syn_packet_count",
+    "tcp_fin_packet_count",
+    "tcp_rst_packet_count",
+    "iat_mean_seconds",
+    "iat_max_seconds"
+  ],
+  "producer_version": "1.1.0",
+  "research_only": true,
+  "reviewed_local_source_variants": {
+    "src/ml/ctu13/pcap.py": [
+      "f6d8d8d26f8f569b459da55d5c3e8cd95b1a1cdf1bc9e60abfd3477995b39df0"
+    ],
+    "src/ml/ctu13/labels.py": [
+      "9a9a37a9fac12a4be56d506c2afa28ecc711ed745f1c2ab2b2ea68026c4b45a6"
+    ]
+  },
+  "manifest_digest": "be717132a184f76d3821087f088f735faf6c4a8b6759863919c81a6411994848"
+}

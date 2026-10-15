@@ -27,6 +27,7 @@ SCREENS = (
     "Security AI Models",
     "Response & Approval",
     "Self-Improvement",
+    "Network Research",
     "Scenario Demo",
 )
 
@@ -273,6 +274,10 @@ class Desktop:
         Button(self.toolbar, text="Refresh", command=self.refresh).pack(side="right")
         if name == "Dashboard":
             self._dashboard_layout()
+        elif name == "Network Research":
+            from soc_agent.gui.research_view import ResearchView
+
+            self.research_view = ResearchView(self)
         elif name == "Scenario Demo":
             self._scenario_layout()
         elif name == "Response & Approval":
@@ -814,6 +819,10 @@ class Desktop:
                         self.latency_chart.update_models([])
                         self._invalidate_model_cards()
                         self.show_detail({"status": "BLOCKED", "error": safe})
+                if self.page == "Network Research" and self.pending_operation.startswith(
+                    "research_"
+                ):
+                    self.research_view.show_error(safe)
                 if self.pending_operation == "dashboard":
                     self.status_var.set("UNKNOWN / NOT_READY")
                     self.last_dashboard = {
@@ -839,6 +848,8 @@ class Desktop:
             self.call("dashboard", callback=self.render_dashboard)
         elif self.page == "Investigations":
             self.call("investigations", callback=self.render_investigations)
+        elif self.page == "Network Research":
+            self.call("research_status", callback=self.research_view.render)
         elif self.page == "Security AI Models":
             self.call("models", callback=self.render_models)
         elif self.page == "Response & Approval":

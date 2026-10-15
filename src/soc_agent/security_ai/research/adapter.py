@@ -1,0 +1,125 @@
+"""Bounded single-request subprocess adapter. Never grants operating authority."""
+
+import asyncio
+import os
+from pathlib import Path
+from uuid import uuid4
+
+from soc_agent.review.persistence.secure_storage import create_private_directory
+from soc_agent.security_ai.research.environment import (
+    Paths,
+    catalogue,
+    defaults,
+    read_local,
+    verify,
+)
+from soc_agent.security_ai.research.models import Receipt, Request, digest
+
+
+class ResearchAdapter:
+    def __init__(self, directory: Path, *, paths: Paths | None = None, timeout: float = 30):
+        if not 0.1 <= timeout <= 30:
+            raise ValueError("RESEARCH_TIMEOUT_LIMIT")
+        self.directory, self.paths, self.timeout = directory, paths, timeout
+        self.process = None
+        self.busy = False
+        self.cancelled = False
+
+    def status(self) -> dict:
+        try:
+            return verify(self.paths or defaults())
+        except (OSError, ValueError, KeyError):
+            return {
+                "status": "BLOCKED",
+                "reason": "RESEARCH_ENVIRONMENT_OR_ARTIFACT_INVALID",
+                "operational_inference": "BLOCKED",
+                "write_policy": "WRITE_DENIED",
+            }
+
+    async def cancel(self):
+        self.cancelled = True
+        process = self.process
+        if process is not None and process.returncode is None:
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait(), 3)
+            except TimeoutError:
+                process.kill()  # Owned helper only, never a SOC Runtime or external PID.
+                await process.wait()
+
+    async def infer(self, request: Request) -> dict:
+        request = Request.model_validate_json(request.model_dump_json())
+        if self.busy:
+            raise ValueError("RESEARCH_WORKER_ALREADY_RUNNING")
+        self.busy = True
+        self.cancelled = False
+        try:
+            paths = self.paths or defaults()
+            await asyncio.to_thread(verify, paths)
+            if self.cancelled:
+                return {"status": "UNKNOWN", "error": "WORKER_CANCELLED_NO_RETRY"}
+            work = self.directory / ("worker-" + str(uuid4()))
+            create_private_directory(work, exist_ok=False)
+            source, result = work / "request.json", work / "result.json"
+            with source.open("x") as stream:
+                stream.write(request.model_dump_json())
+            source.chmod(0o600)
+            self.process = await asyncio.create_subprocess_exec(
+                str(paths.python),
+                "-m",
+                "soc_agent.security_ai.research.worker",
+                "--request",
+                str(source),
+                "--result",
+                str(result),
+                "--ml",
+                str(paths.ml),
+                "--producer-source",
+                str(paths.producer_source or paths.ml),
+                stdout=asyncio.subprocess.DEVNULL,
+                stderr=asyncio.subprocess.DEVNULL,
+                env={
+                    "PATH": os.defpath,
+                    "LANG": "C.UTF-8",
+                    "PYTHONNOUSERSITE": "1",
+                    "PYTHONPATH": str(paths.soc_source)
+                    + os.pathsep
+                    + str((paths.producer_source or paths.ml) / "src"),
+                    "OMP_NUM_THREADS": "1",
+                    "OPENBLAS_NUM_THREADS": "1",
+                    "MKL_NUM_THREADS": "1",
+                },
+            )
+            if self.cancelled:
+                await self.cancel()
+                return {"status": "UNKNOWN", "error": "WORKER_CANCELLED_NO_RETRY"}
+            try:
+                await asyncio.wait_for(self.process.wait(), self.timeout)
+            except TimeoutError:
+                await self.cancel()
+                return {"status": "UNKNOWN", "error": "WORKER_TIMEOUT_NO_RETRY"}
+            if self.process.returncode != 0:
+                return {"status": "UNKNOWN", "error": "WORKER_FAILURE_OR_BUDGET_NO_RETRY"}
+            receipt = Receipt.model_validate_json(read_local(result, 32 * 1024))
+            expected = catalogue()["samples"][request.flow_index]
+            if (
+                receipt.request_digest != digest(request.model_dump(mode="json"))
+                or receipt.invocation_id != request.invocation_id
+                or receipt.profile != request.profile
+                or receipt.flow_index != request.flow_index
+                or receipt.flow_id != expected["flow_id"]
+                or receipt.feature_digest != expected["feature_digest"]
+                or receipt.source_digest != expected["source_digest"]
+                or digest(receipt.feature_values) != expected["feature_values_digest"]
+                or list(receipt.feature_names) != catalogue()["feature_names"]
+            ):
+                raise ValueError("RESEARCH_RECEIPT_BINDING_MISMATCH")
+            return {"status": "SUCCESS", "receipt": receipt.model_dump(mode="json")}
+        except asyncio.CancelledError:
+            await self.cancel()
+            raise
+        except (OSError, ValueError, KeyError):
+            return {"status": "UNKNOWN", "error": "RESEARCH_VALIDATION_FAILED_NO_RETRY"}
+        finally:
+            self.busy = False
+            self.process = None
