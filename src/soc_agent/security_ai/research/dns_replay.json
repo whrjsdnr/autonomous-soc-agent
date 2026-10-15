@@ -1,0 +1,141 @@
+{
+  "model": {
+    "bundle_version": "dns-int8-reviewed-1",
+    "model_id": "dns_cicbell_dnn_int8",
+    "model_version": "int8-sha256-28e089af363d",
+    "training_version": "UNVERIFIED",
+    "feature_schema_version": "cic-bell-dns-stateless9-v1",
+    "feature_names": [
+      "FQDN_count",
+      "subdomain_length",
+      "numeric",
+      "entropy",
+      "special",
+      "labels",
+      "labels_max",
+      "labels_average",
+      "len"
+    ],
+    "feature_contract_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+    "class_mapping": {
+      "NORMAL": 0,
+      "MALICIOUS": 1
+    },
+    "class_mapping_provenance": "legacy detector labels and notebook IDs; DNN training mapping UNVERIFIED",
+    "threshold": 0.5,
+    "threshold_basis": "supplied detector default, not validated/tuned",
+    "score_type": "uncalibrated_malicious_probability",
+    "training_provenance": "UNVERIFIED: DNN training/export code absent",
+    "calibration": "UNVERIFIED: no calibration artifact/code found",
+    "artifacts": {
+      "model_path": {
+        "filename": "model/dnn_int8.tflite",
+        "size_bytes": 9288,
+        "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+        "format": "TFLite INT8"
+      },
+      "scaler_path": {
+        "filename": "preprocessor/scaler.joblib",
+        "size_bytes": 1135,
+        "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+        "format": "trusted joblib StandardScaler",
+        "serialized_sklearn_version": "1.9.1",
+        "n_samples_seen": 162880
+      }
+    },
+    "tensors": {
+      "input": {
+        "shape": [
+          1,
+          9
+        ],
+        "dtype": "int8",
+        "quantization": [
+          0.0387900173664093,
+          -40
+        ]
+      },
+      "output": {
+        "shape": [
+          1,
+          1
+        ],
+        "dtype": "int8",
+        "quantization": [
+          0.00390625,
+          -128
+        ]
+      }
+    },
+    "review_runtime": {
+      "python": "3.12.14",
+      "numpy": "2.5.4",
+      "scikit-learn": "1.9.1",
+      "joblib": "1.6.0",
+      "pandas": "3.0.6",
+      "ai-edge-litert": "2.3.0"
+    },
+    "original_runtime_requirement": {
+      "tensorflow": "2.21.0"
+    }
+  },
+  "package_sha256": {
+    "packages/dns-security-ai/src/dns_security_ai/__init__.py": "cb0d11286077431449b194049a9b8923d3571bc116ec70ed50b1faf65c9478ad",
+    "packages/dns-security-ai/src/dns_security_ai/__main__.py": "001996399d84952bdad8a2c596ba0eab283c562f666a637512f2fe5281b119fd",
+    "packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+    "packages/dns-security-ai/src/dns_security_ai/artifacts.py": "120a1b70835aed49663790ac13ed5ef9a53900ad61d3cf2bc5c67cf657bcfc3f",
+    "packages/dns-security-ai/src/dns_security_ai/cli.py": "b2f457880a9e18963c94fc88abd78bef15442bf28f0f1d0b9d029ef98c40e828",
+    "packages/dns-security-ai/src/dns_security_ai/contracts.py": "da9c7b173127c03913132e2b49aeb8ae0d0ffa21593740f026b45cc57de0273f",
+    "packages/dns-security-ai/src/dns_security_ai/errors.py": "a5a116f374dfb70a21e0700cc8e6962a053faa4b605a5b3b589449ecb99babb0",
+    "packages/dns-security-ai/src/dns_security_ai/evidence.py": "bb454587e0cf3678f97eeca378c65bca283990b6c596d852bf10f20e0bd94657",
+    "packages/dns-security-ai/src/dns_security_ai/feature_contract.json": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+    "packages/dns-security-ai/src/dns_security_ai/predictor.py": "4691fbb0bc236ad757808b00ad04bf1e665bfa48b0f06a8641237f7be6b2740e",
+    "packages/dns-security-ai/src/dns_security_ai/preprocessing.py": "42638114e4f6ed39e9c63f6b7f9f61cb04d810ececb64cddd451c11cdf726165"
+  },
+  "feature_names": [
+    "FQDN_count",
+    "subdomain_length",
+    "numeric",
+    "entropy",
+    "special",
+    "labels",
+    "labels_max",
+    "labels_average",
+    "len"
+  ],
+  "fixtures": [
+    {
+      "id": "existing-gui-dns9-ones",
+      "values": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "source": "soc_agent.gui.probe: existing synthetic precomputed DNS9 fixture",
+      "input_digest": "bec433d2abb66328cb3e5144e1286d2286fc3be3b062c016dd0ab2577cbd889e"
+    },
+    {
+      "id": "existing-package-dns9-example",
+      "values": [
+        14,
+        0,
+        0,
+        2.78,
+        2,
+        2,
+        10,
+        6.5,
+        11
+      ],
+      "source": "dns-security-ai/tests/conftest.py:dns_features",
+      "input_digest": "5f6819245325067f0b7487e5b7edc61d5a09f7335c51018ae94533007d52888e"
+    }
+  ],
+  "catalogue_digest": "7ad734fb9b101cc5529890cb7c4d2dcdc4d3f5224e5f8bb50741ab5c128d6c24"
+}

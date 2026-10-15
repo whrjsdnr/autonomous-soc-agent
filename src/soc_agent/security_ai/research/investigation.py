@@ -10,7 +10,13 @@ from soc_agent.deployment import DeploymentDescriptor
 from soc_agent.desktop import OfflineDesktopClient, ReadReportInput
 from soc_agent.llm import LLMRequest
 from soc_agent.security_ai.external.projection import EXTERNAL_KEY, RULES
-from soc_agent.security_ai.research.models import AdvisoryContext, Frozen, Receipt, digest
+from soc_agent.security_ai.research.models import (
+    AdvisoryContext,
+    DNSReceipt,
+    Frozen,
+    ResearchReceipt,
+    digest,
+)
 from soc_agent.state import IncidentState
 from soc_agent.tools import Tool, ToolMetadata, ToolRegistry
 
@@ -61,14 +67,27 @@ class SourceReport(Frozen):
     meaning: str = "Verified offline packet metadata reference; not an attack finding"
 
 
+class DNSFixtureReport(Frozen):
+    domain: str = "DNS"
+    fixture_id: str
+    input_digest: str
+    origin: str = "FIXTURE"
+    validation_level: str = "FIXTURE_NATIVE_ONLY"
+    meaning: str = "Precomputed DNS9 fixture metadata, not observed DNS traffic"
+
+
 def composition(store, context: AdvisoryContext):
     receipt, incident_id = context.result, context.incident_id
     client = ResearchClient(context)
     registry = ToolRegistry()
 
-    async def read(value: ReadReportInput) -> SourceReport:
+    async def read(value: ReadReportInput) -> SourceReport | DNSFixtureReport:
         if value.incident_id != incident_id:
             raise ValueError("RESEARCH_SOURCE_INCIDENT_MISMATCH")
+        if isinstance(receipt, DNSReceipt):
+            return DNSFixtureReport(
+                fixture_id=receipt.fixture_id, input_digest=receipt.input_digest
+            )
         return SourceReport(
             flow_id=receipt.flow_id,
             source_sha256=receipt.source_sha256,
@@ -86,7 +105,7 @@ def composition(store, context: AdvisoryContext):
                 risk_level="read_only",
             ),
             ReadReportInput,
-            SourceReport,
+            DNSFixtureReport if isinstance(receipt, DNSReceipt) else SourceReport,
             read,
         )
     )
@@ -99,8 +118,11 @@ def composition(store, context: AdvisoryContext):
     return application, client
 
 
-async def investigate(store, receipt: Receipt, incident_id: UUID) -> dict:
+async def investigate(store, receipt: ResearchReceipt, incident_id: UUID) -> dict:
     context = AdvisoryContext(
+        contract="soc-dns-research-advisory:v1"
+        if isinstance(receipt, DNSReceipt)
+        else "soc-network-research-advisory:v1",
         incident_id=incident_id,
         receipt_digest=digest(receipt.model_dump(mode="json")),
         result=receipt,

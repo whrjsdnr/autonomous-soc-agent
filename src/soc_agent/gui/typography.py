@@ -70,7 +70,7 @@ class Typography:
         if key in self.cache:
             self.cache.move_to_end(key)
             return self.cache[key]
-        surface = self.cairo_image_surface_create(0, width + 4, size * 4)
+        surface = self.cairo_image_surface_create(0, width + 4, size * 32)
         context = self.cairo_create(surface)
         options = self.cairo_font_options_create()
         self.cairo_font_options_set_antialias(options, 2)
@@ -101,10 +101,12 @@ class Typography:
             if self.cairo_surface_write_to_png_stream(surface, write, None):
                 raise OSError("TEXT_RENDER_FAILED")
             image = tk.PhotoImage(master=self.root, data=base64.b64encode(b"".join(chunks)))
-            cropped = tk.PhotoImage(master=self.root, width=max(1, w.value), height=max(1, h.value))
-            self.root.tk.call(
-                cropped, "copy", image, "-from", 0, 0, max(1, w.value), max(1, h.value)
-            )
+            # Multiline status cards can exceed four lines; crop only within the
+            # bounded Cairo surface. Untrusted text must never request an oversized copy.
+            crop_width = min(width + 4, max(1, w.value))
+            crop_height = min(size * 32, max(1, h.value))
+            cropped = tk.PhotoImage(master=self.root, width=crop_width, height=crop_height)
+            self.root.tk.call(cropped, "copy", image, "-from", 0, 0, crop_width, crop_height)
             self.cache[key] = cropped
             if len(self.cache) > 192:
                 self.cache.popitem(last=False)

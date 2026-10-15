@@ -1,6 +1,7 @@
 """Bounded single-request subprocess adapter. Never grants operating authority."""
 
 import asyncio
+import json
 import os
 from pathlib import Path
 from uuid import uuid4
@@ -13,7 +14,7 @@ from soc_agent.security_ai.research.environment import (
     read_local,
     verify,
 )
-from soc_agent.security_ai.research.models import Receipt, Request, digest
+from soc_agent.security_ai.research.models import Request, digest, parse_receipt
 
 
 class ResearchAdapter:
@@ -25,10 +26,14 @@ class ResearchAdapter:
         self.busy = False
         self.cancelled = False
 
-    def status(self) -> dict:
+    def status(self, profile="quality") -> dict:
         try:
+            if profile == "dns":
+                from soc_agent.security_ai.research.dns import verify as dns_verify
+
+                return dns_verify(self.paths or defaults())
             return verify(self.paths or defaults())
-        except (OSError, ValueError, KeyError):
+        except (OSError, ValueError, KeyError, ImportError):
             return {
                 "status": "BLOCKED",
                 "reason": "RESEARCH_ENVIRONMENT_OR_ARTIFACT_INVALID",
@@ -55,7 +60,11 @@ class ResearchAdapter:
         self.cancelled = False
         try:
             paths = self.paths or defaults()
-            await asyncio.to_thread(verify, paths)
+            if request.profile == "dns":
+                from soc_agent.security_ai.research.dns import verify as check
+            else:
+                check = verify
+            await asyncio.to_thread(check, paths)
             if self.cancelled:
                 return {"status": "UNKNOWN", "error": "WORKER_CANCELLED_NO_RETRY"}
             work = self.directory / ("worker-" + str(uuid4()))
@@ -84,7 +93,9 @@ class ResearchAdapter:
                     "PYTHONNOUSERSITE": "1",
                     "PYTHONPATH": str(paths.soc_source)
                     + os.pathsep
-                    + str((paths.producer_source or paths.ml) / "src"),
+                    + str((paths.producer_source or paths.ml) / "src")
+                    + os.pathsep
+                    + str((paths.producer_source or paths.ml) / "packages/dns-security-ai/src"),
                     "OMP_NUM_THREADS": "1",
                     "OPENBLAS_NUM_THREADS": "1",
                     "MKL_NUM_THREADS": "1",
@@ -100,7 +111,16 @@ class ResearchAdapter:
                 return {"status": "UNKNOWN", "error": "WORKER_TIMEOUT_NO_RETRY"}
             if self.process.returncode != 0:
                 return {"status": "UNKNOWN", "error": "WORKER_FAILURE_OR_BUDGET_NO_RETRY"}
-            receipt = Receipt.model_validate_json(read_local(result, 32 * 1024))
+            receipt = parse_receipt(json.loads(read_local(result, 32 * 1024)))
+            if request.profile == "dns":
+                if (
+                    receipt.request_digest != digest(request.model_dump(mode="json"))
+                    or receipt.invocation_id != request.invocation_id
+                    or receipt.profile != "dns"
+                    or receipt.flow_index != request.flow_index
+                ):
+                    raise ValueError("DNS_REQUEST_BINDING_MISMATCH")
+                return {"status": "SUCCESS", "receipt": receipt.model_dump(mode="json")}
             expected = catalogue()["samples"][request.flow_index]
             if (
                 receipt.request_digest != digest(request.model_dump(mode="json"))
@@ -118,7 +138,7 @@ class ResearchAdapter:
         except asyncio.CancelledError:
             await self.cancel()
             raise
-        except (OSError, ValueError, KeyError):
+        except (OSError, ValueError, KeyError, ImportError):
             return {"status": "UNKNOWN", "error": "RESEARCH_VALIDATION_FAILED_NO_RETRY"}
         finally:
             self.busy = False

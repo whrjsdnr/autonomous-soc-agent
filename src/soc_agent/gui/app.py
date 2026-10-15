@@ -201,7 +201,11 @@ class Desktop:
         ).pack(pady=(0, 34))
         self.nav_buttons = {}
         for name in SCREENS:
-            button = Button(side, text=name, command=lambda n=name: self.navigate(n))
+            button = Button(
+                side,
+                text="Network / DNS Research" if name == "Network Research" else name,
+                command=lambda n=name: self.navigate(n),
+            )
             button.pack(fill="x", padx=12, pady=6)
             self.nav_buttons[name] = button
         Label(
@@ -356,6 +360,9 @@ class Desktop:
             Button(self.toolbar, text=label, command=cmd).pack(side="left", padx=(0, 6))
         self.hero = Hero(self.content)
         self.hero.pack(fill="x", pady=(0, 14))
+        from soc_agent.gui.unified import UnifiedPanel
+
+        self.unified_panel = UnifiedPanel(self.content, self)
         self.cards = {}
         grid = ttk.Frame(self.content)
         grid.pack(fill="x", pady=(0, 16))
@@ -893,6 +900,7 @@ class Desktop:
         if self.page != "Dashboard":
             return
         self.hero.update_snapshot(value)
+        self.unified_panel.render(value)
         completed = self.history.samples[-1].completed if self.history.samples else None
         value["completed_total"] = completed
         for key, var in self.cards.items():

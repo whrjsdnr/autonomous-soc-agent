@@ -22,7 +22,7 @@ from soc_agent.security_ai.external.runtime_store import (
 from soc_agent.security_ai.research.adapter import ResearchAdapter
 from soc_agent.security_ai.research.environment import Paths, catalogue, read_local
 from soc_agent.security_ai.research.investigation import investigate, verify_restored
-from soc_agent.security_ai.research.models import Profile, Receipt, Request, digest
+from soc_agent.security_ai.research.models import Profile, Request, digest, parse_receipt
 
 
 def write_new(path: Path, value: dict):
@@ -50,7 +50,7 @@ class ResearchDemo:
             return [], []
         validate_directory(self.directory)
         attempts = list(self.directory.glob("attempt-*.json"))
-        if len(attempts) > 8:
+        if len(attempts) > 10:
             raise ValueError("RESEARCH_REPLAY_CAPACITY")
         store = self._store()
         with store.database.transaction(write=False) as connection:
@@ -80,7 +80,7 @@ class ResearchDemo:
             if digest(record) not in completed:
                 raise ValueError("RESEARCH_RECEIPT_AUDIT_MISMATCH")
             if record.get("receipt"):
-                Receipt.model_validate(record["receipt"])
+                parse_receipt(record["receipt"])
             if record.get("investigation"):
                 verify_restored(self._store(), record["investigation"])
             records.append(record)
@@ -93,6 +93,7 @@ class ResearchDemo:
 
     def snapshot(self):
         preflight = self.adapter.status()
+        dns_status = self.adapter.status("dns")
         try:
             records, unknown = self._records()
         except (OSError, ValueError, StorageError, sqlite3.Error):
@@ -111,6 +112,14 @@ class ResearchDemo:
         }
         return {
             **preflight,
+            "dns": dns_status,
+            "model_metrics": self._model_metrics(records, unknown),
+            "worker_running": self.adapter.process is not None
+            and self.adapter.process.returncode is None,
+            "active_model": getattr(self, "active_model", None),
+            "dns_inference_count": sum(
+                bool(r.get("receipt")) and r["receipt"]["profile"] == "dns" for r in records
+            ),
             "demo_state": "STOPPING"
             if self.stopping
             else "RUNNING"
@@ -123,14 +132,50 @@ class ResearchDemo:
             "inference_counts": counts,
             "errors": sum(r["status"] == "UNKNOWN" for r in records) + len(unknown),
             "audit_integrity": "VERIFIED" if self.directory.exists() else "NO_DATA",
-            "flow_count": len({r["receipt"]["flow_id"] for r in records if r.get("receipt")}),
-            "source": "OFFLINE_PCAP_TRAIN8_RESEARCH_DEMO_NOT_OPERATING_TRAFFIC",
+            "flow_count": len(
+                {
+                    r["receipt"]["flow_id"]
+                    for r in records
+                    if r.get("receipt") and r["receipt"]["profile"] != "dns"
+                }
+            ),
+            "source": "RESEARCH_ONLY_SEPARATE_OFFLINE_PCAP_AND_DNS9_FIXTURE_INPUTS",
         }
 
-    async def start(self):
+    def _model_metrics(self, records, unknown):
+        metrics = {}
+        for profile in ("quality", "edge", "dns"):
+            rows = [
+                r
+                for r in records
+                if r.get("profile", (r.get("receipt") or {}).get("profile")) == profile
+            ]
+            successes = [r["receipt"] for r in rows if r.get("receipt")]
+            pending = 0
+            for key in unknown:
+                attempt = json.loads(
+                    read_local(self.directory / ("attempt-" + key + ".json"), 4096)
+                )
+                pending += attempt["request"]["profile"] == profile
+            metrics[profile] = {
+                "successful": len(successes),
+                "unknown": sum(not r.get("receipt") for r in rows) + pending,
+                "last_inference": successes[-1]["inferred_at"] if successes else None,
+                "last_error": next(
+                    (r.get("error") for r in reversed(rows) if r.get("error")), None
+                ),
+                "state": "RUNNING"
+                if getattr(self, "active_model", None) == profile
+                and self.adapter.process is not None
+                and self.adapter.process.returncode is None
+                else "IDLE",
+            }
+        return metrics
+
+    async def start(self, profile="quality"):
         if self.running:
             raise ValueError("RESEARCH_DEMO_ALREADY_RUNNING")
-        status = await asyncio.to_thread(self.adapter.status)
+        status = await asyncio.to_thread(self.adapter.status, profile)
         if status["status"] != "READY":
             return status
         if not self.directory.exists():
@@ -154,17 +199,28 @@ class ResearchDemo:
 
     async def replay(self, profile: Profile, flow_index: int):
         request = Request(
-            research_mode=True, profile=profile, flow_index=flow_index, invocation_id=uuid4()
+            research_mode=True,
+            profile=profile,
+            flow_index=flow_index,
+            invocation_id=uuid4(),
+            origin="FIXTURE" if profile == "dns" else "OFFLINE_PCAP",
         )
         if not self.started or self.stopping:
             raise ValueError("EXPLICIT_RESEARCH_START_REQUIRED")
         if self.running:
             raise ValueError("RESEARCH_REPLAY_ALREADY_RUNNING")
         self.running = True
+        self.active_model = profile
         try:
             with exclusive_runtime_lock(self.directory / "replay.lock"):
-                sample = catalogue()["samples"][flow_index]
-                key = digest({"profile": profile, "flow_id": sample["flow_id"]})
+                if profile == "dns":
+                    from soc_agent.security_ai.research.dns import catalogue as dns_catalogue
+
+                    sample = dns_catalogue()["fixtures"][flow_index]
+                    key = digest({"profile": profile, "fixture_id": sample["id"]})
+                else:
+                    sample = catalogue()["samples"][flow_index]
+                    key = digest({"profile": profile, "flow_id": sample["flow_id"]})
                 records, unknown = self._records()
                 cached = next((r for r in records if r["key"] == key), None)
                 if cached:
@@ -184,6 +240,7 @@ class ResearchDemo:
                 outcome = await self.adapter.infer(request)
                 result = {
                     "key": key,
+                    "profile": profile,
                     "status": "UNKNOWN",
                     "finished_at": datetime.now(UTC).isoformat(),
                     "receipt": None,
@@ -191,7 +248,7 @@ class ResearchDemo:
                     "error": outcome.get("error"),
                 }
                 if outcome["status"] == "SUCCESS":
-                    receipt = Receipt.model_validate(outcome["receipt"])
+                    receipt = parse_receipt(outcome["receipt"])
                     result["receipt"] = receipt.model_dump(mode="json")
                     try:
                         if self.stopping:
@@ -211,6 +268,7 @@ class ResearchDemo:
                 return {"status": result["status"], "record": result}
         finally:
             self.running = False
+            self.active_model = None
             self.stopping = False
             self.active_key = None
             self.investigation_task = None

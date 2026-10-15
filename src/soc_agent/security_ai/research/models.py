@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from soc_agent.review.models import Hash
 from soc_agent.state.evidence import UTCTimestamp
 
-Profile = Literal["quality", "edge"]
+Profile = Literal["quality", "edge", "dns"]
 SPECS = {
     "quality": {
         "directory": "quality_rf",
@@ -43,10 +43,19 @@ class Frozen(BaseModel):
 
 class Request(Frozen):
     research_mode: Literal[True]
-    origin: Literal["OFFLINE_PCAP"] = "OFFLINE_PCAP"
+    origin: Literal["OFFLINE_PCAP", "FIXTURE"] = "OFFLINE_PCAP"
     profile: Profile
     flow_index: int = Field(ge=0, le=3, strict=True)
     invocation_id: UUID
+
+    @model_validator(mode="after")
+    def source_boundary(self) -> Self:
+        if self.profile == "dns":
+            if self.origin != "FIXTURE" or self.flow_index > 1:
+                raise ValueError("DNS_FIXTURE_ONLY")
+        elif self.origin != "OFFLINE_PCAP":
+            raise ValueError("NETWORK_OFFLINE_PCAP_ONLY")
+        return self
 
 
 class WorkerLimits(Frozen):
@@ -59,7 +68,7 @@ class WorkerLimits(Frozen):
 class Receipt(Frozen):
     contract: Literal["soc-network-research-receipt:v1"] = "soc-network-research-receipt:v1"
     status: Literal["RESEARCH_ONLY"] = "RESEARCH_ONLY"
-    profile: Profile
+    profile: Literal["quality", "edge"]
     request_digest: Hash
     invocation_id: UUID
     model_id: str
@@ -117,11 +126,91 @@ class Receipt(Frozen):
         return self
 
 
+class DNSReceipt(Frozen):
+    contract: Literal["soc-dns-research-receipt:v1"] = "soc-dns-research-receipt:v1"
+    domain: Literal["DNS"] = "DNS"
+    status: Literal["RESEARCH_ONLY"] = "RESEARCH_ONLY"
+    profile: Literal["dns"]
+    request_digest: Hash
+    invocation_id: UUID
+    model_id: Literal["dns_cicbell_dnn_int8"] = "dns_cicbell_dnn_int8"
+    model_version: Literal["int8-sha256-28e089af363d"] = "int8-sha256-28e089af363d"
+    artifact_digest: Literal["28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33"] = (
+        "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33"
+    )
+    scaler_digest: Literal["2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a"] = (
+        "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a"
+    )
+    feature_contract_digest: Literal[
+        "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0"
+    ] = "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0"
+    origin: Literal["FIXTURE"] = "FIXTURE"
+    validation_level: Literal["FIXTURE_NATIVE_ONLY"] = "FIXTURE_NATIVE_ONLY"
+    producer_parity: Literal["UNVERIFIED"] = "UNVERIFIED"
+    source_association: Literal["FIXTURE_ONLY_NO_OPERATIONAL_SOURCE"] = (
+        "FIXTURE_ONLY_NO_OPERATIONAL_SOURCE"
+    )
+    flow_index: int = Field(ge=0, le=1, strict=True)
+    fixture_id: str
+    input_digest: Hash
+    feature_names: tuple[str, ...] = Field(min_length=9, max_length=9)
+    provenance_digest: Hash
+    worker_limits: WorkerLimits
+    inferred_at: UTCTimestamp
+    score: float = Field(ge=0, le=1)
+    threshold: Literal[0.5] = 0.5
+    prediction: Literal["CLASS_0", "CLASS_1"]
+    inference_latency_ms: float = Field(ge=0)
+    uncertainty: Literal["UNKNOWN"] = "UNKNOWN"
+    calibration: Literal["UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"] = (
+        "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    )
+    operational_inference: Literal["BLOCKED"] = "BLOCKED"
+    write_policy: Literal["WRITE_DENIED"] = "WRITE_DENIED"
+
+    @model_validator(mode="after")
+    def exact_fixture(self) -> Self:
+        from soc_agent.security_ai.research.dns import PIN, catalogue
+
+        doc = catalogue()
+        item = doc["fixtures"][self.flow_index]
+        if (
+            self.fixture_id != item["id"]
+            or self.input_digest != item["input_digest"]
+            or list(self.feature_names) != doc["feature_names"]
+            or self.prediction != ("CLASS_1" if self.score >= self.threshold else "CLASS_0")
+            or self.provenance_digest
+            != digest(
+                {
+                    "catalogue": PIN,
+                    "input_digest": item["input_digest"],
+                    "model": doc["model"]["artifacts"],
+                    "source": item["source"],
+                }
+            )
+        ):
+            raise ValueError("DNS_FIXTURE_BINDING_MISMATCH")
+        return self
+
+
+ResearchReceipt = Receipt | DNSReceipt
+
+
+def parse_receipt(value):
+    return (
+        DNSReceipt.model_validate(value)
+        if value.get("profile") == "dns"
+        else Receipt.model_validate(value)
+    )
+
+
 class AdvisoryContext(Frozen):
-    contract: Literal["soc-network-research-advisory:v1"] = "soc-network-research-advisory:v1"
+    contract: Literal["soc-network-research-advisory:v1", "soc-dns-research-advisory:v1"] = (
+        "soc-network-research-advisory:v1"
+    )
     incident_id: UUID
     receipt_digest: Hash
-    result: Receipt
+    result: ResearchReceipt
     role: Literal["UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"] = (
         "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
     )
@@ -129,6 +218,13 @@ class AdvisoryContext(Frozen):
 
     @model_validator(mode="after")
     def bind_receipt(self) -> Self:
-        if self.receipt_digest != digest(self.result.model_dump(mode="json")):
+        expected = (
+            "soc-dns-research-advisory:v1"
+            if isinstance(self.result, DNSReceipt)
+            else "soc-network-research-advisory:v1"
+        )
+        if self.contract != expected or self.receipt_digest != digest(
+            self.result.model_dump(mode="json")
+        ):
             raise ValueError("ADVISORY_RECEIPT_TAMPERED")
         return self

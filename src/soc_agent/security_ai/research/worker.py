@@ -32,6 +32,10 @@ def run(request, paths):
     from soc_agent.security_ai.research.environment import catalogue, verify
     from soc_agent.security_ai.research.models import SPECS, Receipt, digest
 
+    if request.profile == "dns":
+        from soc_agent.security_ai.research.dns import run as dns_run
+
+        return dns_run(request, paths)
     verify(paths)
     import ml.verified_producers.network_v1_1 as producer_module
     import numpy as np

@@ -182,8 +182,10 @@ class Backend:
         }
 
     async def dashboard(self):
+        research = await asyncio.to_thread(self.research_demo.snapshot)
         if self.runtime is None or not (self.runtime / "monitor.sqlite").is_file():
             return {
+                "research": research,
                 "runtime_state": "OFFLINE",
                 "health": "UNKNOWN",
                 "readiness": "NOT_READY",
@@ -206,6 +208,7 @@ class Backend:
                 "authentication_events": None,
             }
         # A view may reconnect to a different store; never join unrelated chart histories.
+        result["research"] = research
         result["metric_scope"] = str(self.runtime)
         result["display_source"] = self.config.source_label
         result["ownership"] = (
@@ -392,12 +395,20 @@ class Backend:
             self.busy_probe = False
 
     async def research_status(self):
-        value = await asyncio.to_thread(self.research_demo.snapshot)
-        value["runtime"] = await self.dashboard()
+        runtime = await self.dashboard()
+        value = runtime.pop("research")
+        value["runtime"] = runtime
         return value
 
-    async def research_start(self):
-        await self.research_demo.start()
+    def research_activity(self):
+        process = self.research_demo.adapter.process
+        return {
+            "worker_running": process is not None and process.returncode is None,
+            "active_model": getattr(self.research_demo, "active_model", None),
+        }
+
+    async def research_start(self, profile="quality"):
+        await self.research_demo.start(profile)
         return await self.research_status()
 
     async def research_stop(self):
@@ -405,7 +416,7 @@ class Backend:
         return await self.research_status()
 
     async def research_replay(self, profile: str, flow_index: int):
-        if profile not in {"quality", "edge", "both"}:
+        if profile not in {"quality", "edge", "both", "dns"}:
             raise ValueError("INVALID_RESEARCH_PROFILE")
         if not self.research_demo.started:
             raise ValueError("EXPLICIT_RESEARCH_START_REQUIRED")
