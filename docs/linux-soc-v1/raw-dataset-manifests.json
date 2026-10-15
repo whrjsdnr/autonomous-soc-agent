@@ -1,0 +1,591 @@
+{
+  "audit_date": "2026-10-15",
+  "soc_baseline": "5ed566987d6d03dd6ae8c60d3cf2521da0734990",
+  "ml_baseline": "e564499ffc8cb7682e03876fde82892db89a1305",
+  "manifests": [
+    {
+      "dataset_id": "CSE-CIC-IDS2018",
+      "official_source": "https://www.unb.ca/cic/datasets/ids-2018.html",
+      "version": "UNKNOWN",
+      "license": "Redistribution permitted with dataset attribution and AWS source link",
+      "raw_file_identity": [
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Friday-02-03-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Friday-16-02-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Friday-23-02-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Thursday-01-03-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Thursday-15-02-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Thursday-22-02-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Tuesday-20-02-2018/pcap.rar",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Wednesday-14-02-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Wednesday-21-02-2018/pcap.zip",
+        "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/Original%20Network%20Traffic%20and%20Log%20data/Wednesday-28-02-2018/pcap.zip"
+      ],
+      "label_file_identity": [
+        "local existing TrafficForML CSVs: incomplete tuple/time linkage; official schedule"
+      ],
+      "downloadable_file_list_verified": true,
+      "raw_source_fields_reported": true,
+      "limitations": [
+        "RAW_FILES_NOT_DOWNLOADED",
+        "LABEL_JOIN_UNVERIFIED",
+        "NETWORK_V1_REJECTS_OFFLINE_PCAP",
+        "NO_FROZEN_HOLDOUT",
+        "ONE_RAR_CAPTURE_REQUIRES_SEPARATE_UNSUPPORTED_ARCHIVE_REVIEW"
+      ],
+      "acquisition_state": "ACQUISITION_READY",
+      "raw_sha256": "UNKNOWN",
+      "label_sha256": "UNKNOWN",
+      "producer_version": "1.0.0",
+      "producer_config_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+      "feature_contract_digest": "9c12d34805d0cd3d60c6cf36c6de40f190093f939b322e5d5ac18ce74783272f",
+      "split_identity": "UNKNOWN",
+      "sample_count": "UNKNOWN",
+      "class_distribution": "UNKNOWN",
+      "exclusion_count": "UNKNOWN",
+      "dataset_digest": "UNKNOWN",
+      "readiness": "BLOCKED",
+      "admission": "NOT_ADMITTED",
+      "actual_training_authority": "NONE",
+      "operational_input": "NOT_INFERABLE",
+      "write_disposition": "WRITE_DENIED",
+      "manifest_digest": "7fd56c61bc577f4cc0e45e2eb9b14a59262cc944e1055d9909b8d8c96e2c958b"
+    },
+    {
+      "dataset_id": "CIC-Bell-DNS-EXF-2021",
+      "official_source": "https://www.unb.ca/cic/datasets/dns-exf-2021.html",
+      "version": "UNKNOWN",
+      "license": "Redistribution with dataset and Mahdavifar et al. ICCNS2021 citation",
+      "raw_file_identity": [],
+      "label_file_identity": [],
+      "downloadable_file_list_verified": false,
+      "raw_source_fields_reported": true,
+      "limitations": [
+        "OFFICIAL_DOWNLOAD_FORM_SERVER_ERROR",
+        "NO_VERIFIED_FILE_LIST_OR_FILE_SIZE",
+        "RAW_QUERY_LABEL_BINDING_MISSING"
+      ],
+      "acquisition_state": "INSUFFICIENT_EVIDENCE",
+      "raw_sha256": "UNKNOWN",
+      "label_sha256": "UNKNOWN",
+      "producer_version": "1.0.0",
+      "producer_config_digest": "452769e5e4477fe6e6c5f87a5048424d24abcaabdc79a45e6c40b318e19ea3f5",
+      "feature_contract_digest": "6fef7a8eceac741f054012221ac63313f78be60924681e782d9a6d8d37b4ecb4",
+      "split_identity": "UNKNOWN",
+      "sample_count": "UNKNOWN",
+      "class_distribution": "UNKNOWN",
+      "exclusion_count": "UNKNOWN",
+      "dataset_digest": "UNKNOWN",
+      "readiness": "BLOCKED",
+      "admission": "NOT_ADMITTED",
+      "actual_training_authority": "NONE",
+      "operational_input": "NOT_INFERABLE",
+      "write_disposition": "WRITE_DENIED",
+      "manifest_digest": "c82e98214aa19ffdf9b6a01e8935b2a0ff20d2f977a32c9abcadaf6b5da9fd6c"
+    },
+    {
+      "dataset_id": "CTU-13-scenario7-header-pilot",
+      "official_source": "https://www.stratosphereips.org/datasets-ctu13",
+      "version": "Scenario7 capture 2011-08-16; listed files 2015",
+      "license": "CC-BY per official datasets overview; Garcia et al. 2014 citation",
+      "raw_file_identity": [
+        "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/capture20110816-2.truncated.pcap.bz2"
+      ],
+      "label_file_identity": [
+        "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/detailed-bidirectional-flow-labels/capture20110816-2.binetflow"
+      ],
+      "downloadable_file_list_verified": true,
+      "raw_source_fields_reported": true,
+      "limitations": [
+        "EXPLICIT_DOWNLOAD_APPROVAL_PENDING",
+        "HEADER_ONLY_IMPORT_NOT_IMPLEMENTED",
+        "BACKGROUND_AND_TO_BOTNET_LABELS_ARE_NOT_NEGATIVE_OR_POSITIVE_TRUTH",
+        "NETWORK_V1_REJECTS_OFFLINE_PCAP",
+        "ONE_CAPTURE_CANNOT_ESTABLISH_THREE_WAY_HOLDOUT"
+      ],
+      "acquisition_state": "ACQUISITION_READY",
+      "raw_sha256": "UNKNOWN",
+      "label_sha256": "UNKNOWN",
+      "producer_version": "1.0.0",
+      "producer_config_digest": "fda9b1f4dc860de50d68401468f0e4eef6d117f57a6c06d1fd88b0ebf4059ac0",
+      "feature_contract_digest": "9c12d34805d0cd3d60c6cf36c6de40f190093f939b322e5d5ac18ce74783272f",
+      "split_identity": "UNKNOWN",
+      "sample_count": "UNKNOWN",
+      "class_distribution": "UNKNOWN",
+      "exclusion_count": "UNKNOWN",
+      "dataset_digest": "UNKNOWN",
+      "readiness": "BLOCKED",
+      "admission": "NOT_ADMITTED",
+      "actual_training_authority": "NONE",
+      "operational_input": "NOT_INFERABLE",
+      "write_disposition": "WRITE_DENIED",
+      "manifest_digest": "9bad9055a1919357d468755a94b16e634b389151c162f9435a0174b46e0ac20e"
+    },
+    {
+      "dataset_id": "DomainRadar-2024-Zenodo13330074",
+      "official_source": "https://zenodo.org/records/13330074",
+      "version": "v1 DOI 10.5281/zenodo.13330074",
+      "license": "CC-BY-4.0; metadata export rights and source-specific notices",
+      "raw_file_identity": [
+        "https://zenodo.org/records/13330074/files/malware.json?download=1",
+        "https://zenodo.org/records/13330074/files/benign_umbrella.json?download=1"
+      ],
+      "label_file_identity": [
+        "https://zenodo.org/records/13330074/files/malware.json?download=1",
+        "https://zenodo.org/records/13330074/files/benign_umbrella.json?download=1"
+      ],
+      "downloadable_file_list_verified": true,
+      "raw_source_fields_reported": true,
+      "limitations": [
+        "RAW_FILES_NOT_DOWNLOADED",
+        "MALICIOUS_DOMAIN_LABEL_NOT_DNS_EXFILTRATION_GROUND_TRUTH",
+        "REVIEW_SOURCE_TIME_DOMAIN_GROUPING_AND_PSL",
+        "PII_RICH_ENRICHMENTS_MUST_NOT_BECOME_FEATURES",
+        "ONLY_PUBLISHER_MD5_NOT_SHA256"
+      ],
+      "acquisition_state": "ACQUISITION_READY",
+      "raw_sha256": "UNKNOWN",
+      "label_sha256": "UNKNOWN",
+      "producer_version": "1.0.0",
+      "producer_config_digest": "452769e5e4477fe6e6c5f87a5048424d24abcaabdc79a45e6c40b318e19ea3f5",
+      "feature_contract_digest": "6fef7a8eceac741f054012221ac63313f78be60924681e782d9a6d8d37b4ecb4",
+      "split_identity": "UNKNOWN",
+      "sample_count": "UNKNOWN",
+      "class_distribution": "UNKNOWN",
+      "exclusion_count": "UNKNOWN",
+      "dataset_digest": "UNKNOWN",
+      "readiness": "BLOCKED",
+      "admission": "NOT_ADMITTED",
+      "actual_training_authority": "NONE",
+      "operational_input": "NOT_INFERABLE",
+      "write_disposition": "WRITE_DENIED",
+      "manifest_digest": "43364d009ac7d60296bf52091d0ee5091c8e14b162feada4851960b027804236"
+    },
+    {
+      "dataset_id": "UMUDGA",
+      "official_source": "https://data.mendeley.com/datasets/y8ph45msv8/1",
+      "version": "v1 DOI 10.17632/y8ph45msv8.1",
+      "license": "MIT per dataset record",
+      "raw_file_identity": [],
+      "label_file_identity": [],
+      "downloadable_file_list_verified": false,
+      "raw_source_fields_reported": true,
+      "limitations": [
+        "RAW_LISTS_REPORTED_BUT_INDIVIDUAL_FILE_LIST_AND_DOWNLOAD_SIZE_UNVERIFIED",
+        "AUTHOR_GITHUB_CONTAINS_CODE_NOT_CONFIRMED_RAW_DATA",
+        "DGA_GENERATED_DOMAIN_DISTRIBUTION_DIFFERS_FROM_REAL_EXFILTRATION"
+      ],
+      "acquisition_state": "INSUFFICIENT_EVIDENCE",
+      "raw_sha256": "UNKNOWN",
+      "label_sha256": "UNKNOWN",
+      "producer_version": "1.0.0",
+      "producer_config_digest": "452769e5e4477fe6e6c5f87a5048424d24abcaabdc79a45e6c40b318e19ea3f5",
+      "feature_contract_digest": "6fef7a8eceac741f054012221ac63313f78be60924681e782d9a6d8d37b4ecb4",
+      "split_identity": "UNKNOWN",
+      "sample_count": "UNKNOWN",
+      "class_distribution": "UNKNOWN",
+      "exclusion_count": "UNKNOWN",
+      "dataset_digest": "UNKNOWN",
+      "readiness": "BLOCKED",
+      "admission": "NOT_ADMITTED",
+      "actual_training_authority": "NONE",
+      "operational_input": "NOT_INFERABLE",
+      "write_disposition": "WRITE_DENIED",
+      "manifest_digest": "18bf9445492d2a9e3bb241ab1b751946ad48eb8a8f9f2f2654edd58e92001154"
+    }
+  ],
+  "fallback_shortlist": [
+    "CTU-13-scenario7-header-pilot",
+    "DomainRadar-2024-Zenodo13330074",
+    "UMUDGA"
+  ],
+  "selected_network_pilot": "CTU-13-scenario7-header-pilot",
+  "selected_dns_candidate": "DomainRadar-2024-Zenodo13330074",
+  "new_raw_downloads": 0,
+  "new_training_runs": 0,
+  "producer_change": "NOT_AUTHORIZED_NOT_PERFORMED",
+  "proposed_network_version": "1.1.0 proposal only: OFFLINE_PCAP origin, explicit header-only quality and lineage; unchanged 14 features; separate review required",
+  "model_readiness": {
+    "network-quality": "BLOCKED",
+    "network-edge": "BLOCKED",
+    "dns": "BLOCKED"
+  },
+  "metadata": {
+    "cse_file_catalog": [
+      {
+        "prefix": "Original Network Traffic and Log data/Friday-02-03-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FFriday-02-03-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Friday-02-03-2018/logs.zip",
+            "bytes": 236732757,
+            "etag": "\"8742e4c2be34c131accfb716c73f987d-15\"",
+            "last_modified": "2018-10-10T12:00:39.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Friday-02-03-2018/pcap.zip",
+            "bytes": 44789835888,
+            "etag": "\"290fa7c40359b9fb8cffe29917bbde36-2670\"",
+            "last_modified": "2018-10-10T12:00:51.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Friday-16-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FFriday-16-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Friday-16-02-2018/logs.zip",
+            "bytes": 155242304,
+            "etag": "\"86d41cc2cf5bde3a7640c4e00daf8112-10\"",
+            "last_modified": "2018-10-10T12:45:49.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Friday-16-02-2018/pcap.zip",
+            "bytes": 38535667707,
+            "etag": "\"7ef6f23385e8cafe3427e5c612e41eeb-2297\"",
+            "last_modified": "2018-10-10T12:46:01.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Friday-23-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FFriday-23-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Friday-23-02-2018/logs.zip",
+            "bytes": 209495495,
+            "etag": "\"dcc26c4f0ddfeeb8c8c9273bb9a06d5a-13\"",
+            "last_modified": "2018-10-10T12:46:10.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Friday-23-02-2018/pcap.zip",
+            "bytes": 59093922810,
+            "etag": "\"a39a7470586d7fd0930431980a5b0c31-3523\"",
+            "last_modified": "2018-10-10T12:46:31.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Thursday-01-03-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FThursday-01-03-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Thursday-01-03-2018/logs.zip",
+            "bytes": 227624294,
+            "etag": "\"702659e0e9bba6da0c3f2013b18ead28-14\"",
+            "last_modified": "2018-10-10T13:41:13.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Thursday-01-03-2018/pcap.zip",
+            "bytes": 52358069106,
+            "etag": "\"652d07144e22ca627d2362fa9e77c75e-3121\"",
+            "last_modified": "2018-10-10T13:41:45.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Thursday-15-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FThursday-15-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Thursday-15-02-2018/logs.zip",
+            "bytes": 149507154,
+            "etag": "\"d3e8d67b3bc91178ef95df86c7c1e735-9\"",
+            "last_modified": "2018-10-10T13:41:28.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Thursday-15-02-2018/pcap.zip",
+            "bytes": 41283382768,
+            "etag": "\"e281e31b104af08f1e670e9bd703ff77-2461\"",
+            "last_modified": "2018-10-10T13:41:55.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Thursday-22-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FThursday-22-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Thursday-22-02-2018/logs.zip",
+            "bytes": 204766212,
+            "etag": "\"7f54b3fc323115ff7545268cfa33dded-13\"",
+            "last_modified": "2018-10-10T13:41:42.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Thursday-22-02-2018/pcap.zip",
+            "bytes": 50240938251,
+            "etag": "\"23f6eb47cd517efd60aa86fea92c5264-2995\"",
+            "last_modified": "2018-10-10T13:42:27.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Tuesday-20-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FTuesday-20-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Tuesday-20-02-2018/logs.zip",
+            "bytes": 187634555,
+            "etag": "\"12f67719bcf9be972e6ad167ab42a9b9-12\"",
+            "last_modified": "2018-10-10T14:39:45.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Tuesday-20-02-2018/pcap.rar",
+            "bytes": 44391980380,
+            "etag": "\"8aa242e62fde4eaa43d1ad66d545a213-2646\"",
+            "last_modified": "2018-10-10T14:40:40.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Wednesday-14-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FWednesday-14-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Wednesday-14-02-2018/logs.zip",
+            "bytes": 140178796,
+            "etag": "\"c9f6140104a25505cfaf3c5e335937f9-9\"",
+            "last_modified": "2018-10-10T16:44:20.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Wednesday-14-02-2018/pcap.zip",
+            "bytes": 39913353098,
+            "etag": "\"845cbc33e555f5906ea5c9bc520113ab-2380\"",
+            "last_modified": "2018-10-11T12:22:03.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Wednesday-21-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FWednesday-21-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Wednesday-21-02-2018/logs.zip",
+            "bytes": 194615081,
+            "etag": "\"48803241581458ec79f3d371be2f07dd-12\"",
+            "last_modified": "2018-10-10T16:44:34.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Wednesday-21-02-2018/pcap.zip",
+            "bytes": 53462820707,
+            "etag": "\"d8e019df7ae51d9fefb558f57cdfb5f9-3187\"",
+            "last_modified": "2018-10-11T13:35:15.000Z"
+          }
+        ]
+      },
+      {
+        "prefix": "Original Network Traffic and Log data/Wednesday-28-02-2018/",
+        "metadata_url": "https://cse-cic-ids2018.s3.ca-central-1.amazonaws.com/?list-type=2&prefix=Original+Network+Traffic+and+Log+data%2FWednesday-28-02-2018%2F&max-keys=10",
+        "truncated": false,
+        "files": [
+          {
+            "key": "Original Network Traffic and Log data/Wednesday-28-02-2018/logs.zip",
+            "bytes": 226631826,
+            "etag": "\"ae55e390c18e171c6b15bceee8cb04a6-14\"",
+            "last_modified": "2018-10-10T16:44:47.000Z"
+          },
+          {
+            "key": "Original Network Traffic and Log data/Wednesday-28-02-2018/pcap.zip",
+            "bytes": 53251694487,
+            "etag": "\"b688b1c7c529c8754fe11aec1a963270-3175\"",
+            "last_modified": "2018-10-11T14:21:03.000Z"
+          }
+        ]
+      }
+    ],
+    "selected_file_heads": [
+      {
+        "url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/capture20110816-2.truncated.pcap.bz2",
+        "final_url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/capture20110816-2.truncated.pcap.bz2",
+        "status": 200,
+        "content_type": "application/x-bzip2",
+        "content_length": "111664996",
+        "etag": "\"6a7df64-51b4e42e116c0\"",
+        "last_modified": "Mon, 20 Jul 2015 13:10:27 GMT"
+      },
+      {
+        "url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/detailed-bidirectional-flow-labels/capture20110816-2.binetflow",
+        "final_url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/detailed-bidirectional-flow-labels/capture20110816-2.binetflow",
+        "status": 200,
+        "content_type": null,
+        "content_length": "15630512",
+        "etag": "\"ee80b0-50de103cb2180\"",
+        "last_modified": "Fri, 30 Jan 2015 16:22:46 GMT"
+      },
+      {
+        "url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/botnet-capture-20110816-sogou.pcap",
+        "final_url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/botnet-capture-20110816-sogou.pcap",
+        "status": 200,
+        "content_type": "application/vnd.tcpdump.pcap",
+        "content_length": "18868213",
+        "etag": "\"11fe7f5-4aa9e5c3e8b00\"",
+        "last_modified": "Tue, 16 Aug 2011 12:17:16 GMT"
+      },
+      {
+        "url": "https://zenodo.org/records/13330074/files/malware.json?download=1",
+        "final_url": "https://zenodo.org/records/13330074/files/malware.json?download=1",
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "content_length": "1081784233",
+        "etag": null,
+        "last_modified": "Thu, 20 Nov 2025 20:36:05 GMT"
+      },
+      {
+        "url": "https://zenodo.org/records/13330074/files/benign_umbrella.json?download=1",
+        "final_url": "https://zenodo.org/records/13330074/files/benign_umbrella.json?download=1",
+        "status": 200,
+        "content_type": "text/plain; charset=utf-8",
+        "content_length": "6075400719",
+        "etag": null,
+        "last_modified": "Thu, 20 Aug 2026 14:24:41 GMT"
+      }
+    ],
+    "domainradar_version": null,
+    "domainradar_license": [
+      {
+        "description": {
+          "en": "The Creative Commons Attribution license allows re-distribution and re-use of a licensed work on the condition that the creator is appropriately credited."
+        },
+        "icon": "cc-by-icon",
+        "id": "cc-by-4.0",
+        "props": {
+          "scheme": "spdx",
+          "url": "https://creativecommons.org/licenses/by/4.0/legalcode"
+        },
+        "title": {
+          "en": "Creative Commons Attribution 4.0 International"
+        }
+      }
+    ],
+    "domainradar_files": [
+      {
+        "checksum": "md5:cea8cbe33ec308f76c5ecf3ef6a6219e",
+        "key": "benign_cesnet.json",
+        "size": 6437047412
+      },
+      {
+        "checksum": "md5:41e340c0714d7455494c0f893193cb5e",
+        "key": "benign_umbrella.json",
+        "size": 6075400719
+      },
+      {
+        "checksum": "md5:d19f7acb4d449f34141616055271007c",
+        "key": "malware.json",
+        "size": 1081784233
+      },
+      {
+        "checksum": "md5:77a4be494ae696371190a1f7724dc3d9",
+        "key": "phishing.json",
+        "size": 2247046745
+      }
+    ]
+  },
+  "metadata_identity": [
+    {
+      "file": "cse_day.txt",
+      "bytes": 1101,
+      "sha256": "468b44780a6b6bbbf50e6b0c9a919966ae2183bf761e14e4c70b3f8b0d608022"
+    },
+    {
+      "file": "cse_day_files.json",
+      "bytes": 493,
+      "sha256": "8a382aa522eacdb9e2083e0a63d5c800c32952482528f8040e15d9eac12232f8"
+    },
+    {
+      "file": "cse_file_catalog.json",
+      "bytes": 7854,
+      "sha256": "1c2bc4e88ae2e5e6ec74a2a665a96df88a077d4506bdc365bde9f00766211a62"
+    },
+    {
+      "file": "cse_original.txt",
+      "bytes": 1615,
+      "sha256": "24c809eb0674b7df6748751f9d837ed132e288d1d29ebf26441d402e1d33c12b"
+    },
+    {
+      "file": "cse_root.txt",
+      "bytes": 447,
+      "sha256": "8d14ce64d7084c5d251a6c43dc4f59ec326b09e3c624ec493c3fb21ad0269076"
+    },
+    {
+      "file": "ctu48_index.txt",
+      "bytes": 9705,
+      "sha256": "a8bd69678c7c62c9f43826b94db1b6df8f7e16e6906d66e021a25e24c32686b8"
+    },
+    {
+      "file": "ctu48_labels_index.txt",
+      "bytes": 1745,
+      "sha256": "64b03f2be4b378c298ff56451c20e56abf241fd94b3115610c10eaf546d59cc6"
+    },
+    {
+      "file": "ctu_extended.txt",
+      "bytes": 115400,
+      "sha256": "cec008ad7cb88ba2b059d84aa81d3ac3f7b6461365e1ad91122e1461d9903380"
+    },
+    {
+      "file": "ctu_labels_index.txt",
+      "bytes": 1737,
+      "sha256": "cf06a2916672caef35bf41937034154ee4c53e8835e326ca0056900e1f01e8db"
+    },
+    {
+      "file": "ctu_readme.txt",
+      "bytes": 5137,
+      "sha256": "218f8941e3842dc060feec044689733af22e78495b6ab291f7396ea460fa392a"
+    },
+    {
+      "file": "ctu_root.txt",
+      "bytes": 9148,
+      "sha256": "ec238776b2b5da0bbdf5b9686d6189c4de2a728708a44bf861a76e40d3bdb1aa"
+    },
+    {
+      "file": "dns_actual_form.txt",
+      "bytes": 10535,
+      "sha256": "6df6a49b408a057ac2e43fcb76d8745e92ce40ab7500d66d5fcbf6d95c35a67e"
+    },
+    {
+      "file": "domainradar_export.txt",
+      "bytes": 25731,
+      "sha256": "b0ad08af6fad1ca55a17efff86cf0f85abcdabd0690444e944e1991597ab28fb"
+    },
+    {
+      "file": "heads.json",
+      "bytes": 2105,
+      "sha256": "7db35ece0cb1c915bf46f4190da8ec39e536b8ba9d1efa1088e63fc0be0aea58"
+    },
+    {
+      "file": "requests.json",
+      "bytes": 1431,
+      "sha256": "8fc2ff06c9e08d1bffca6ba8682d871fbfe6c9d6d20addab75685d2fb2d6e798"
+    },
+    {
+      "file": "requests2.json",
+      "bytes": 1737,
+      "sha256": "4b604bf669d298be3e464a3723713e4f7ec43ab8886b570b96097056951b8f2f"
+    },
+    {
+      "file": "requests3.json",
+      "bytes": 1148,
+      "sha256": "98fa4d514c823fe53043eb3f4a4cd1f4ff9d36d767d6631a8f9f1175cddc7d02"
+    },
+    {
+      "file": "umudga_repo.txt",
+      "bytes": 4717,
+      "sha256": "b6188e71d7fa19288f63d3d9f9a860c5d25dad356a3b4bf637d7bfab6019a017"
+    }
+  ],
+  "limitations": [
+    "Metadata bytes are acquired, raw corpus files are not",
+    "No SHA256 invented from ETag/MD5",
+    "No label or source authority from this pending manifest",
+    "No training, model artifact, producer version or operational gate change"
+  ],
+  "catalog_digest": "6f3b7d8d27c708d60231708f4dbcc8c5485d0886fb6dfb7be670178fcc514000"
+}

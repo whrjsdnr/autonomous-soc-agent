@@ -1,0 +1,38 @@
+{
+  "plan_id": "ctu13-s07-header-pilot-v1",
+  "status": "AWAITING_EXPLICIT_DOWNLOAD_APPROVAL",
+  "purpose": "RAW_LABEL_BINDING_PILOT_NOT_RETRAINING",
+  "source": "https://www.stratosphereips.org/datasets-ctu13",
+  "terms": "CC-BY attribution per dataset overview; cite Garcia et al. 2014",
+  "storage": "data/raw/acquisition/ctu13-s07-header-pilot-v1",
+  "max_files": 2,
+  "max_total_download_bytes": 268435456,
+  "max_expanded_bytes": 536870912,
+  "request_timeout_seconds": 300,
+  "max_retries": 0,
+  "expected_download_bytes": 127295508,
+  "files": [
+    {
+      "url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/capture20110816-2.truncated.pcap.bz2",
+      "filename": "capture20110816-2.truncated.pcap.bz2",
+      "expected_bytes": 111664996,
+      "head_content_type": "application/x-bzip2",
+      "publisher_sha256": "UNKNOWN",
+      "etag": "\"6a7df64-51b4e42e116c0\""
+    },
+    {
+      "url": "https://mcfp.felk.cvut.cz/publicDatasets/CTU-Malware-Capture-Botnet-48/detailed-bidirectional-flow-labels/capture20110816-2.binetflow",
+      "filename": "capture20110816-2.binetflow",
+      "expected_bytes": 15630512,
+      "head_content_type": "UNKNOWN",
+      "publisher_sha256": "UNKNOWN",
+      "etag": "\"ee80b0-50de103cb2180\""
+    }
+  ],
+  "notes": [
+    "No payload replay or network capture",
+    "Source groups/time/label binding not yet verified",
+    "Single session cannot establish independent three-way holdout",
+    "No training, model artifact creation or gate change"
+  ]
+}
