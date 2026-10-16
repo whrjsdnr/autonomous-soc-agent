@@ -1,0 +1,366 @@
+{
+  "validation": "ACTUAL_NETWORK_MODELS_SYNTHETIC_TOTAL_FIXTURE_NO_NATIVE_CAPTURE",
+  "soc_baseline": "1c1fd27b82b7e967bc3c23936681d8d9629c4c31",
+  "document_digest": "20cd79e6a13f580f24c40d07349ec5afff14dfff93e57f57fdccd5a32c1eb2e1",
+  "result": {
+    "contract": "soc-total-export:v1",
+    "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+    "input_origin": "FIXTURE",
+    "runtime_state": "STOPPED",
+    "finalization": "VERIFIED",
+    "audit_digest": "a511b25736ddb4e37871e3f24411a1773fb7e1c5bce16f623e8dd20e13a92357",
+    "records": [
+      {
+        "event_identity": "bc5b3037407fedc9ae009db167567b5025633bc6ba5e4d88eece400b038ab820",
+        "input_origin": "FIXTURE",
+        "model_receipt": {
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "profile": "quality",
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "producer_version": "1.1.0",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "source_digest": "8046700615472fa201152c9fc936ac77f8655ceb8c708148324d4bf6bcf33d07",
+          "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+          "flow_id": "bc5b3037407fedc9ae009db167567b5025633bc6ba5e4d88eece400b038ab820",
+          "feature_digest": "c769d397bbb9536dc070c5fa6ff71e2e7d891650b67fcc232af9803a91890b09",
+          "prediction": "CLASS_0",
+          "score": 0.140625,
+          "threshold": 0.35,
+          "inferred_at": "2026-10-16T10:53:08.235464Z",
+          "provenance_digest": "5fd79d9f4aac19d86a4bbdad8ec675eea26feaf8953bb13e8a061adf5ac84358",
+          "inference_latency_ms": 9.613996997359209,
+          "worker_peak_rss_bytes": 233820160,
+          "worker_cpu_seconds": 1.462904
+        },
+        "receipt_digest": "f9611c843052a1eb12ece6bf6a72ac2768bd37f999449ce2b8b7ff3f9f95470b",
+        "risk_assessment": {
+          "incident_state": {
+            "confidence": null,
+            "created_at": "2026-10-16T10:53:08.611189Z",
+            "evidence": [
+              {
+                "collected_at": "2026-10-16T10:53:08.739211Z",
+                "evidence_id": "0c7de17f-6056-429d-9604-06851490f45a",
+                "incident_id": "38b8e6d1-6a8f-48c7-8516-97c3471ef76e",
+                "observed_at": "2026-10-16T10:53:08.739167Z",
+                "raw_data": "{\"output\":{\"capture_session\":\"15127d03-2325-4e90-9b86-f1341c63b007\",\"flow_id\":\"bc5b3037407fedc9ae009db167567b5025633bc6ba5e4d88eece400b038ab820\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"FIXTURE\",\"packet_count\":3,\"provenance_digest\":\"5fd79d9f4aac19d86a4bbdad8ec675eea26feaf8953bb13e8a061adf5ac84358\",\"source_digest\":\"8046700615472fa201152c9fc936ac77f8655ceb8c708148324d4bf6bcf33d07\"},\"tool_name\":\"read_local_source_report\"}",
+                "reliability": null,
+                "source": "tool:read_local_source_report",
+                "summary": "read_local_source_report investigation result",
+                "tool_name": "read_local_source_report"
+              }
+            ],
+            "hypotheses": [],
+            "incident_id": "38b8e6d1-6a8f-48c7-8516-97c3471ef76e",
+            "observations": [],
+            "severity": "info",
+            "status": "new",
+            "updated_at": "2026-10-16T10:53:08.742896Z"
+          },
+          "threat_assessment": {
+            "assessment_id": "3066107d-e27d-4168-a29b-f0acc6e4cde5",
+            "confidence": 0.0,
+            "created_at": "2026-10-16T10:53:08.821965Z",
+            "incident_id": "38b8e6d1-6a8f-48c7-8516-97c3471ef76e",
+            "severity": "info",
+            "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+            "supporting_evidence_ids": [
+              "0c7de17f-6056-429d-9604-06851490f45a"
+            ],
+            "supporting_hypothesis_ids": [],
+            "supporting_observation_ids": []
+          }
+        },
+        "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
+        "investigation_summary": {
+          "incident_id": "38b8e6d1-6a8f-48c7-8516-97c3471ef76e",
+          "status": "ASSESSED_READ_ONLY",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true,
+          "evidence_references": [
+            "0c7de17f-6056-429d-9604-06851490f45a"
+          ],
+          "context_digest": "b0689cec249bbc56e4adb6915ddd74f425eba5697604bef96bde59c5b09850bb"
+        },
+        "score_meaning": "UNCALIBRATED_RESEARCH_SCORE_NOT_CONFIRMED_ATTACK"
+      },
+      {
+        "event_identity": "bc5b3037407fedc9ae009db167567b5025633bc6ba5e4d88eece400b038ab820",
+        "input_origin": "FIXTURE",
+        "model_receipt": {
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "profile": "edge",
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "producer_version": "1.1.0",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "source_digest": "8046700615472fa201152c9fc936ac77f8655ceb8c708148324d4bf6bcf33d07",
+          "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+          "flow_id": "bc5b3037407fedc9ae009db167567b5025633bc6ba5e4d88eece400b038ab820",
+          "feature_digest": "c769d397bbb9536dc070c5fa6ff71e2e7d891650b67fcc232af9803a91890b09",
+          "prediction": "CLASS_0",
+          "score": 0.08766025304794312,
+          "threshold": 0.8,
+          "inferred_at": "2026-10-16T10:53:10.341562Z",
+          "provenance_digest": "5fd79d9f4aac19d86a4bbdad8ec675eea26feaf8953bb13e8a061adf5ac84358",
+          "inference_latency_ms": 11.98765099979937,
+          "worker_peak_rss_bytes": 232726528,
+          "worker_cpu_seconds": 1.396608
+        },
+        "receipt_digest": "94aa82373e3491438e60c3828c8d53f25dc4d26589cdf3f8e085c85f6bbfa37d",
+        "risk_assessment": {
+          "incident_state": {
+            "confidence": null,
+            "created_at": "2026-10-16T10:53:10.650003Z",
+            "evidence": [
+              {
+                "collected_at": "2026-10-16T10:53:10.800449Z",
+                "evidence_id": "5a16cc48-25d7-4e9d-8556-b3ceb6e64d46",
+                "incident_id": "789da574-2d04-47f5-8661-2a23c2c8b6b0",
+                "observed_at": "2026-10-16T10:53:10.800380Z",
+                "raw_data": "{\"output\":{\"capture_session\":\"15127d03-2325-4e90-9b86-f1341c63b007\",\"flow_id\":\"bc5b3037407fedc9ae009db167567b5025633bc6ba5e4d88eece400b038ab820\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"FIXTURE\",\"packet_count\":3,\"provenance_digest\":\"5fd79d9f4aac19d86a4bbdad8ec675eea26feaf8953bb13e8a061adf5ac84358\",\"source_digest\":\"8046700615472fa201152c9fc936ac77f8655ceb8c708148324d4bf6bcf33d07\"},\"tool_name\":\"read_local_source_report\"}",
+                "reliability": null,
+                "source": "tool:read_local_source_report",
+                "summary": "read_local_source_report investigation result",
+                "tool_name": "read_local_source_report"
+              }
+            ],
+            "hypotheses": [],
+            "incident_id": "789da574-2d04-47f5-8661-2a23c2c8b6b0",
+            "observations": [],
+            "severity": "info",
+            "status": "new",
+            "updated_at": "2026-10-16T10:53:10.804119Z"
+          },
+          "threat_assessment": {
+            "assessment_id": "f81f4548-62bb-4ce9-a30f-88d43211ab12",
+            "confidence": 0.0,
+            "created_at": "2026-10-16T10:53:10.891247Z",
+            "incident_id": "789da574-2d04-47f5-8661-2a23c2c8b6b0",
+            "severity": "info",
+            "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+            "supporting_evidence_ids": [
+              "5a16cc48-25d7-4e9d-8556-b3ceb6e64d46"
+            ],
+            "supporting_hypothesis_ids": [],
+            "supporting_observation_ids": []
+          }
+        },
+        "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
+        "investigation_summary": {
+          "incident_id": "789da574-2d04-47f5-8661-2a23c2c8b6b0",
+          "status": "ASSESSED_READ_ONLY",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true,
+          "evidence_references": [
+            "5a16cc48-25d7-4e9d-8556-b3ceb6e64d46"
+          ],
+          "context_digest": "f3e834fe25c3682496633a9220acb65c14aa582d64eefe534da9e00bf1b47bb5"
+        },
+        "score_meaning": "UNCALIBRATED_RESEARCH_SCORE_NOT_CONFIRMED_ATTACK"
+      },
+      {
+        "event_identity": "9cb0a8e1a1df11b16f1b0bc4dd6bdeaa6e4a15c4c29034d1792ebdd92457225e",
+        "input_origin": "FIXTURE",
+        "model_receipt": {
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "profile": "quality",
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "producer_version": "1.1.0",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "source_digest": "9580e9fb56053ff5ed0a9b6ad6cd26389a732eef974fe3fbc1bb0df2758f2c04",
+          "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+          "flow_id": "9cb0a8e1a1df11b16f1b0bc4dd6bdeaa6e4a15c4c29034d1792ebdd92457225e",
+          "feature_digest": "34a688e6bc4704c75bd833510e380f42d49a8fe9a4f888dbfa10f6cdefe2023e",
+          "prediction": "CLASS_0",
+          "score": 0.2265625,
+          "threshold": 0.35,
+          "inferred_at": "2026-10-16T10:53:12.697324Z",
+          "provenance_digest": "9121f5a11066616851fc9e32ed39576536934387cca83de7fbe88b3db7ad228b",
+          "inference_latency_ms": 16.297225003654603,
+          "worker_peak_rss_bytes": 233484288,
+          "worker_cpu_seconds": 1.605626
+        },
+        "receipt_digest": "929bec1d08944d06d75113a9aff300ed688d629cf2a3d50fe77d76f3e040e515",
+        "risk_assessment": {
+          "incident_state": {
+            "confidence": null,
+            "created_at": "2026-10-16T10:53:12.995656Z",
+            "evidence": [
+              {
+                "collected_at": "2026-10-16T10:53:13.126141Z",
+                "evidence_id": "2cc41674-b8ac-4ddc-8603-7a23430b3232",
+                "incident_id": "a7b087e7-a64a-40b9-bd2a-4406eb894bf6",
+                "observed_at": "2026-10-16T10:53:13.126086Z",
+                "raw_data": "{\"output\":{\"capture_session\":\"15127d03-2325-4e90-9b86-f1341c63b007\",\"flow_id\":\"9cb0a8e1a1df11b16f1b0bc4dd6bdeaa6e4a15c4c29034d1792ebdd92457225e\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"FIXTURE\",\"packet_count\":2,\"provenance_digest\":\"9121f5a11066616851fc9e32ed39576536934387cca83de7fbe88b3db7ad228b\",\"source_digest\":\"9580e9fb56053ff5ed0a9b6ad6cd26389a732eef974fe3fbc1bb0df2758f2c04\"},\"tool_name\":\"read_local_source_report\"}",
+                "reliability": null,
+                "source": "tool:read_local_source_report",
+                "summary": "read_local_source_report investigation result",
+                "tool_name": "read_local_source_report"
+              }
+            ],
+            "hypotheses": [],
+            "incident_id": "a7b087e7-a64a-40b9-bd2a-4406eb894bf6",
+            "observations": [],
+            "severity": "info",
+            "status": "new",
+            "updated_at": "2026-10-16T10:53:13.129238Z"
+          },
+          "threat_assessment": {
+            "assessment_id": "d86b8fbd-3ae2-4b16-a3fd-d5e4e4785aaa",
+            "confidence": 0.0,
+            "created_at": "2026-10-16T10:53:13.208176Z",
+            "incident_id": "a7b087e7-a64a-40b9-bd2a-4406eb894bf6",
+            "severity": "info",
+            "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+            "supporting_evidence_ids": [
+              "2cc41674-b8ac-4ddc-8603-7a23430b3232"
+            ],
+            "supporting_hypothesis_ids": [],
+            "supporting_observation_ids": []
+          }
+        },
+        "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
+        "investigation_summary": {
+          "incident_id": "a7b087e7-a64a-40b9-bd2a-4406eb894bf6",
+          "status": "ASSESSED_READ_ONLY",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true,
+          "evidence_references": [
+            "2cc41674-b8ac-4ddc-8603-7a23430b3232"
+          ],
+          "context_digest": "cb5788f236066472a940a1d0d33802dca945894199b3200981dc24db4323d8db"
+        },
+        "score_meaning": "UNCALIBRATED_RESEARCH_SCORE_NOT_CONFIRMED_ATTACK"
+      },
+      {
+        "event_identity": "9cb0a8e1a1df11b16f1b0bc4dd6bdeaa6e4a15c4c29034d1792ebdd92457225e",
+        "input_origin": "FIXTURE",
+        "model_receipt": {
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "profile": "edge",
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "producer_version": "1.1.0",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "source_digest": "9580e9fb56053ff5ed0a9b6ad6cd26389a732eef974fe3fbc1bb0df2758f2c04",
+          "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+          "flow_id": "9cb0a8e1a1df11b16f1b0bc4dd6bdeaa6e4a15c4c29034d1792ebdd92457225e",
+          "feature_digest": "34a688e6bc4704c75bd833510e380f42d49a8fe9a4f888dbfa10f6cdefe2023e",
+          "prediction": "CLASS_0",
+          "score": 0.025285685434937477,
+          "threshold": 0.8,
+          "inferred_at": "2026-10-16T10:53:15.056530Z",
+          "provenance_digest": "9121f5a11066616851fc9e32ed39576536934387cca83de7fbe88b3db7ad228b",
+          "inference_latency_ms": 6.450843000493478,
+          "worker_peak_rss_bytes": 232939520,
+          "worker_cpu_seconds": 1.599126
+        },
+        "receipt_digest": "50aa2a464e2e56fd62958a2275cf19f3695472f87f94acbb2a3c4d14dd7c7626",
+        "risk_assessment": {
+          "incident_state": {
+            "confidence": null,
+            "created_at": "2026-10-16T10:53:15.357340Z",
+            "evidence": [
+              {
+                "collected_at": "2026-10-16T10:53:15.491553Z",
+                "evidence_id": "eb69c64d-1b84-4ad0-af0a-5fb4e28cda3d",
+                "incident_id": "8466584d-b04b-4d9c-bf7f-302b25b6f160",
+                "observed_at": "2026-10-16T10:53:15.491506Z",
+                "raw_data": "{\"output\":{\"capture_session\":\"15127d03-2325-4e90-9b86-f1341c63b007\",\"flow_id\":\"9cb0a8e1a1df11b16f1b0bc4dd6bdeaa6e4a15c4c29034d1792ebdd92457225e\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"FIXTURE\",\"packet_count\":2,\"provenance_digest\":\"9121f5a11066616851fc9e32ed39576536934387cca83de7fbe88b3db7ad228b\",\"source_digest\":\"9580e9fb56053ff5ed0a9b6ad6cd26389a732eef974fe3fbc1bb0df2758f2c04\"},\"tool_name\":\"read_local_source_report\"}",
+                "reliability": null,
+                "source": "tool:read_local_source_report",
+                "summary": "read_local_source_report investigation result",
+                "tool_name": "read_local_source_report"
+              }
+            ],
+            "hypotheses": [],
+            "incident_id": "8466584d-b04b-4d9c-bf7f-302b25b6f160",
+            "observations": [],
+            "severity": "info",
+            "status": "new",
+            "updated_at": "2026-10-16T10:53:15.495059Z"
+          },
+          "threat_assessment": {
+            "assessment_id": "bad11496-2291-4326-8feb-946969451c1f",
+            "confidence": 0.0,
+            "created_at": "2026-10-16T10:53:15.570631Z",
+            "incident_id": "8466584d-b04b-4d9c-bf7f-302b25b6f160",
+            "severity": "info",
+            "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+            "supporting_evidence_ids": [
+              "eb69c64d-1b84-4ad0-af0a-5fb4e28cda3d"
+            ],
+            "supporting_hypothesis_ids": [],
+            "supporting_observation_ids": []
+          }
+        },
+        "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
+        "investigation_summary": {
+          "incident_id": "8466584d-b04b-4d9c-bf7f-302b25b6f160",
+          "status": "ASSESSED_READ_ONLY",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true,
+          "evidence_references": [
+            "eb69c64d-1b84-4ad0-af0a-5fb4e28cda3d"
+          ],
+          "context_digest": "72ff5d34acda7e171c6ba6f8d76726caad4070d994cd3e5ff56f467be217984a"
+        },
+        "score_meaning": "UNCALIBRATED_RESEARCH_SCORE_NOT_CONFIRMED_ATTACK"
+      }
+    ],
+    "dns": {
+      "counts": {
+        "QUERY": 1,
+        "MATCHED_RESPONSE": 1
+      },
+      "pending": 0,
+      "recent_events": [
+        {
+          "status": "QUERY",
+          "event_ns": 1767225602000000000,
+          "source_reference": "d3ce93e0bd5d29c51b021c0f6606398219f1a4b758004823a5f08ea5c1ae51de",
+          "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+          "dns9_inference": "BLOCKED",
+          "validation": "DNS_METADATA_DIAGNOSTIC_ONLY",
+          "transport": "udp",
+          "query_type": 1,
+          "query_digest": "15e079cf4d789db5847e20409d5611969f5a84eece35e93775c97c9b36a18d5b",
+          "response_code": 0,
+          "event_id": "a97da24ebb116e7575a02ad63264f3d4e111b0f899b93e45cd214bac05031cb0"
+        },
+        {
+          "status": "MATCHED_RESPONSE",
+          "event_ns": 1767225602250000000,
+          "source_reference": "f1f9ff5537721dd253e39121c3099c720a193030689bfdf5278d8a38a7edef22",
+          "capture_session": "15127d03-2325-4e90-9b86-f1341c63b007",
+          "dns9_inference": "BLOCKED",
+          "validation": "DNS_METADATA_DIAGNOSTIC_ONLY",
+          "query_reference": "d3ce93e0bd5d29c51b021c0f6606398219f1a4b758004823a5f08ea5c1ae51de",
+          "latency_seconds": 0.25,
+          "transport": "udp",
+          "query_type": 1,
+          "query_digest": "15e079cf4d789db5847e20409d5611969f5a84eece35e93775c97c9b36a18d5b",
+          "response_code": 0,
+          "event_id": "1a49ad219638d2305d3452c7a22dff6b49884f54081af939939b75d972f72725"
+        }
+      ],
+      "dns9_inference": "BLOCKED",
+      "producer_parity": "UNVERIFIED",
+      "names_retained": false,
+      "tcp_support": "SINGLE_COMPLETE_MESSAGE_ONLY_NO_REASSEMBLY",
+      "encrypted_dns": "UNKNOWN_NOT_DECRYPTED"
+    },
+    "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+    "write_policy": "WRITE_DENIED",
+    "validation": "FIXTURE_ONLY",
+    "research_status": "RESEARCH_ONLY"
+  },
+  "network_socket_attempts_blocked": 0
+}

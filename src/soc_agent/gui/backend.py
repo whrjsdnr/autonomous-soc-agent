@@ -30,6 +30,7 @@ from soc_agent.tools import ToolRegistry
 
 
 class GUIConfig(Snapshot):
+    total_approved_sha: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     data_directory: Path
     runtime_directory: Path | None = None
     artifacts: Path | None = None
@@ -69,6 +70,10 @@ class Backend:
 
         self.streaming_monitoring = StreamingMonitoring(self.directory)
         self.streaming_auth = OSAuthentication()
+        from soc_agent.security_ai.research.total_auth import TerminalAuthentication
+
+        self.total_monitoring = StreamingMonitoring(self.directory, total=True)
+        self.total_auth = TerminalAuthentication()
         self.closed = False
         self.busy_scenario = False
         self.scenario_results = []
@@ -192,6 +197,8 @@ class Backend:
         await self.live_monitoring.stop()
         await self.streaming_monitoring.stop()
         await self.streaming_auth.cancel()
+        await self.total_monitoring.stop()
+        await self.total_auth.cancel()
         self.closed = True
         return {
             "status": "DETACHED",
@@ -203,11 +210,13 @@ class Backend:
         research = await asyncio.to_thread(self.research_demo.snapshot)
         live = await asyncio.to_thread(self.live_monitoring.snapshot)
         streaming = await asyncio.to_thread(self.streaming_monitoring.snapshot)
+        total = await asyncio.to_thread(self.total_monitoring.snapshot)
         if self.runtime is None or not (self.runtime / "monitor.sqlite").is_file():
             return {
                 "research": research,
                 "live_network": live,
                 "streaming_network": streaming,
+                "total_monitoring": total,
                 "runtime_state": "OFFLINE",
                 "health": "UNKNOWN",
                 "readiness": "NOT_READY",
@@ -233,6 +242,7 @@ class Backend:
         result["research"] = research
         result["live_network"] = live
         result["streaming_network"] = streaming
+        result["total_monitoring"] = total
         result["metric_scope"] = str(self.runtime)
         result["display_source"] = self.config.source_label
         result["ownership"] = (
@@ -241,6 +251,8 @@ class Backend:
         return result
 
     async def live_start(self, selection="both"):
+        if self.total_monitoring.snapshot()["prepare_active"]:
+            raise ValueError("TOTAL_CAPTURE_SESSION_ACTIVE")
         choices = {"both": ("quality", "edge"), "quality": ("quality",), "edge": ("edge",)}
         if selection not in choices:
             raise ValueError("LIVE_NETWORK_MODEL_SELECTION_INVALID")
@@ -261,6 +273,8 @@ class Backend:
         return observed_snapshot(self.live_monitoring.snapshot)
 
     async def stream_start(self, selection="both", dns_headers=True):
+        if self.total_monitoring.snapshot()["prepare_active"]:
+            raise ValueError("TOTAL_CAPTURE_SESSION_ACTIVE")
         from soc_agent.security_ai.operational.network_capture.stream_session import StreamPolicy
 
         choices = {"both": ("quality", "edge"), "quality": ("quality",), "edge": ("edge",)}
@@ -274,6 +288,50 @@ class Backend:
             "os_auth": self.streaming_auth.snapshot(),
             "observation_started_ns": time.monotonic_ns(),
         }
+
+    async def total_start(self, selection="both", dns_headers=True):
+        if selection != "both" or dns_headers is not True:
+            raise ValueError("TOTAL_BOTH_MODELS_AND_DNS_REQUIRED")
+        if any(
+            getattr(owner, "preparing", False) or bool(owner.task and not owner.task.done())
+            for owner in (self.streaming_monitoring, self.live_monitoring)
+        ):
+            raise ValueError("TOTAL_OTHER_CAPTURE_SESSION_ACTIVE")
+        result = await self.total_monitoring.start()
+        return {
+            **result,
+            "observation_started_ns": time.monotonic_ns(),
+            "os_auth": self.total_auth.snapshot(),
+        }
+
+    async def total_status(self):
+        value = await asyncio.to_thread(observed_snapshot, self.total_monitoring.snapshot)
+        return {**value, "os_auth": self.total_auth.snapshot()}
+
+    async def total_command(self, session_id):
+        return {
+            **self.total_monitoring.command(session_id),
+            "observation_started_ns": time.monotonic_ns(),
+        }
+
+    async def total_authenticate(self, session_id, approved_sha):
+        if self.total_monitoring.command(session_id).get("listener_ready") is not True:
+            raise ValueError("TOTAL_AUTH_STALE_SESSION")
+        return await self.total_auth.start(self.total_monitoring, approved_sha)
+
+    async def total_stop(self, abort=False):
+        await self.total_monitoring.stop(abort=abort)
+        await self.total_auth.cancel()
+        return await self.total_status()
+
+    async def total_restore(self):
+        await self.total_monitoring.restore_latest()
+        return await self.total_status()
+
+    async def total_export(self, path: str, format="json"):
+        from soc_agent.security_ai.research.total_export import export
+
+        return await asyncio.to_thread(export, self.total_monitoring, Path(path), format)
 
     async def stream_status(self):
         value = await asyncio.to_thread(observed_snapshot, self.streaming_monitoring.snapshot)

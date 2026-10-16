@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from soc_agent.security_ai.operational.network_capture.total_session import verify_bundle
+
 
 def test_clock_evidence_bindings_and_limits():
     root = Path(__file__).resolve().parents[3]
@@ -14,7 +16,13 @@ def test_clock_evidence_bindings_and_limits():
     for name, expected in data["source_sha256"].items():
         assert hashlib.sha256((root / name).read_bytes()).hexdigest() == expected
     helper = root / "src/soc_agent/security_ai/operational/network_capture/stream_helper.py"
-    assert hashlib.sha256(helper.read_bytes()).hexdigest() == data["helper"]["sha256"]
+    # This immutable evidence belongs to the prior helper, not the new DNS scope.
+    assert data["helper"]["sha256"] == (
+        "1cc1c1f39007d1e8f53207dcd5f79f2128b12ea8077d5d09fcb6a72c5d037c84"
+    )
+    current = hashlib.sha256(helper.read_bytes()).hexdigest()
+    assert current == verify_bundle()["stream_helper.py"]
+    assert current != data["helper"]["sha256"]  # Old approval is explicitly invalidated.
     assert data["clock_observation"]["backward_steps"] == []
     assert data["historical_failure_causality"] == "UNKNOWN"
     assert data["limited_fixture_soak"]["source"] == "FIXTURE"

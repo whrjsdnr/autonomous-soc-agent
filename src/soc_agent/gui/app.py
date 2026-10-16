@@ -30,6 +30,7 @@ SCREENS = (
     "Network Research",
     "Live Network",
     "Streaming Network",
+    "Total Monitoring",
     "Scenario Demo",
 )
 
@@ -69,6 +70,7 @@ class Desktop:
         self.pending = None
         self.busy = False
         self.closing = False
+        self.startup_complete = False
         self.page = "Dashboard"
         self.records = {}
         self.current_records = []
@@ -107,12 +109,34 @@ class Desktop:
         self.call("models", callback=self._startup_models)
 
     def _startup_models(self, value):
+        self.startup_complete = True
         self.ai_environment = value.get("environment", {"status": "UNKNOWN"})
         self.ai_status.set("AI Fixture env: " + self.ai_environment["status"])
+        if self.config.total_approved_sha:
+            self.navigate("Total Monitoring", refresh=False)
+            self.call("total_start", callback=self._total_prepared)
+            return
         if self.page == "Security AI Models":
             self.render_models(value)
         else:
             self.refresh()
+
+    def _total_prepared(self, result):
+        if self.page == "Total Monitoring":
+            self.live_view.prepared(result)
+        if result.get("listener_ready") is True:
+            self.call(
+                "total_authenticate",
+                result["session_id"],
+                self.config.total_approved_sha,
+                callback=lambda value: self.notice.set(
+                    value.get("status", value.get("state", "UNKNOWN"))
+                ),
+            )
+        else:
+            self.notice.set(
+                "Total monitoring BLOCKED: " + result.get("last_error", "listener unavailable")
+            )
 
     def _on_resize(self, event):
         if event.widget is not self.root:
@@ -282,10 +306,12 @@ class Desktop:
             from soc_agent.gui.research_view import ResearchView
 
             self.research_view = ResearchView(self)
-        elif name in ("Live Network", "Streaming Network"):
+        elif name in ("Live Network", "Streaming Network", "Total Monitoring"):
             from soc_agent.gui.live_view import LiveView
 
-            self.live_view = LiveView(self, streaming=name == "Streaming Network")
+            self.live_view = LiveView(
+                self, streaming=name != "Live Network", total=name == "Total Monitoring"
+            )
         elif name == "Scenario Demo":
             self._scenario_layout()
         elif name == "Response & Approval":
@@ -740,7 +766,7 @@ class Desktop:
             data = self.result_by_scenario.get(data["id"], data)
         if self.page == "Network Research":
             self.research_view.show_record(data)
-        elif self.page in ("Live Network", "Streaming Network"):
+        elif self.page in ("Live Network", "Streaming Network", "Total Monitoring"):
             self.live_view.show_record(data)
         else:
             self.show_detail(data)
@@ -892,7 +918,7 @@ class Desktop:
             self.call("investigations", callback=self.render_investigations)
         elif self.page == "Network Research":
             self.call("research_status", callback=self.research_view.render)
-        elif self.page in ("Live Network", "Streaming Network"):
+        elif self.page in ("Live Network", "Streaming Network", "Total Monitoring"):
             self.call(self.live_view.prefix + "_status", callback=self.live_view.render)
         elif self.page == "Security AI Models":
             self.call("models", callback=self.render_models)
@@ -951,6 +977,13 @@ class Desktop:
             + " · Research calls "
             + str(streaming.get("network", {}).get("inference_count", "UNKNOWN"))
             + " · Operational AI BLOCKED"
+            + "\nTotal Monitoring "
+            + value.get("total_monitoring", {}).get("state", "UNKNOWN")
+            + " · Network "
+            + value.get("total_monitoring", {}).get("collectors", {}).get("network", "UNKNOWN")
+            + " · DNS "
+            + value.get("total_monitoring", {}).get("collectors", {}).get("dns", "UNKNOWN")
+            + " · DNS9 BLOCKED"
         )
         self.unified_panel.render(value)
         completed = self.history.samples[-1].completed if self.history.samples else None

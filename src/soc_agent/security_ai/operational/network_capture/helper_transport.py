@@ -69,7 +69,11 @@ class Message(Frozen):
 
 
 def validate_peer(channel, ready: Message, session: Session, directory: Path, *, module=MODULE):
-    if module not in {MODULE, "soc_agent.security_ai.operational.network_capture.stream_helper"}:
+    if module not in {
+        MODULE,
+        "soc_agent.security_ai.operational.network_capture.stream_helper",
+        "soc_agent.security_ai.operational.network_capture.total_helper",
+    }:
         raise CaptureUnavailable("HELPER_MODULE_NOT_ALLOWLISTED")
     pid, uid, gid = struct.unpack(
         "3i", channel.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12)

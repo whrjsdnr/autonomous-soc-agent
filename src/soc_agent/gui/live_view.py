@@ -1,7 +1,7 @@
 """Live-research presentation. Permission commands are displayed/copied, never executed."""
 
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from soc_agent.gui.charts import Distribution, MetricHistory, Trend
 from soc_agent.gui.components import Button, Label
@@ -15,11 +15,14 @@ def display_state(value):
 
 
 class LiveView:
-    def __init__(self, app, *, streaming=False):
+    def __init__(self, app, *, streaming=False, total=False):
         self.app = app
+        self.total = total
         self.streaming = streaming
-        self.page = "Streaming Network" if streaming else "Live Network"
-        self.prefix = "stream" if streaming else "live"
+        self.page = (
+            "Total Monitoring" if total else "Streaming Network" if streaming else "Live Network"
+        )
+        self.prefix = "total" if total else "stream" if streaming else "live"
         self.history = MetricHistory()
         self.session = None
         self.command = ""
@@ -51,7 +54,7 @@ class LiveView:
         ttk.Combobox(
             controls,
             textvariable=self.profile,
-            values=("both", "quality", "edge"),
+            values=("both",) if total else ("both", "quality", "edge"),
             state="readonly",
             width=12,
         ).pack(side="left", padx=(0, 10))
@@ -73,20 +76,28 @@ class LiveView:
             options = ttk.Frame(app.content)
             options.pack(fill="x", pady=4)
             self.dns_headers = tk.BooleanVar(value=True)
-            ttk.Checkbutton(options, text="DNS headers only", variable=self.dns_headers).pack(
-                side="left", padx=8
-            )
+            ttk.Checkbutton(
+                options,
+                text="DNS diagnostics (DNS9 blocked)" if total else "DNS headers only",
+                state="disabled" if total else "normal",
+                variable=self.dns_headers,
+            ).pack(side="left", padx=8)
             Button(options, text="Restart", command=self.restart).pack(side="left", padx=8)
             Button(
                 options,
                 text="Recover retained",
-                command=lambda: app.call("stream_restore", callback=self.render),
+                command=lambda: app.call(self.prefix + "_restore", callback=self.render),
             ).pack(side="left")
             Button(
                 options,
                 text="Abort now",
-                command=lambda: app.call("stream_stop", True, callback=self.render),
+                command=lambda: app.call(self.prefix + "_stop", True, callback=self.render),
             ).pack(side="left", padx=8)
+            if total:
+                for format in ("json", "markdown"):
+                    Button(
+                        options, text="Export " + format, command=lambda f=format: self.export(f)
+                    ).pack(side="left", padx=4)
         self.instructions = tk.Text(
             app.content,
             height=6,
@@ -207,6 +218,23 @@ class LiveView:
         self.app.call(self.prefix + "_stop", callback=lambda _: self.start())
 
     def request_authentication(self, result):
+        if self.total:
+            sha = result.get("helper_sha256")
+            if sha != self.app.config.total_approved_sha:
+                self.app.notice.set(
+                    "New Total helper approval required. Launch "
+                    "soc-agent start --gui --monitor total from terminal."
+                )
+                return
+            self.app.call(
+                "total_authenticate",
+                result["session_id"],
+                sha,
+                callback=lambda value: self.app.notice.set(
+                    value.get("status", value.get("state", "UNKNOWN"))
+                ),
+            )
+            return
         assessment = result.get("os_auth", {})
         if assessment.get("status") != "OS_AUTH_UI_AVAILABLE_UNTESTED":
             self.app.notice.set(
@@ -399,13 +427,34 @@ class LiveView:
                 + " · Runtime audit "
                 + value.get("runtime_audit_integrity", "UNKNOWN")
             )
-        records = research.get("records", [])
+        records = list(research.get("records", []))
+        if self.total:
+            records += [
+                {
+                    "profile": "dns-diagnostic",
+                    "input_origin": value.get("input_origin", "UNKNOWN"),
+                    "status": "DIAGNOSTIC_ONLY",
+                    "dns_event": event,
+                }
+                for event in value.get("dns", {}).get("recent_events", [])[-8:]
+            ]
+        if self.total:
+            dns = value.get("dns", {})
+            self.metrics.set(
+                self.metrics.get()
+                + "\nDNS diagnostics "
+                + str(dns.get("counts", {}))
+                + " · pending "
+                + str(dns.get("pending", "UNKNOWN"))
+                + " · DNS9 BLOCKED / PRODUCER_PARITY_UNVERIFIED"
+                + " · Rate 128 raw frames/s / burst 256 / token balance UNKNOWN"
+            )
         self.app.current_records = records
         self.app._rows(
             [
                 (
                     r.get("profile", "UNKNOWN"),
-                    (r.get("receipt") or {}).get("origin", "UNKNOWN"),
+                    (r.get("receipt") or {}).get("origin", r.get("input_origin", "UNKNOWN")),
                     (r.get("receipt") or {}).get("score", "UNKNOWN"),
                     (r.get("receipt") or {}).get("prediction", "UNKNOWN"),
                     (r.get("investigation") or {}).get("status", r.get("status", "UNKNOWN")),
@@ -413,6 +462,21 @@ class LiveView:
                 for r in records
             ]
         )
+
+    def export(self, format):
+        extension = ".json" if format == "json" else ".md"
+        path = filedialog.asksaveasfilename(
+            parent=self.app.root,
+            defaultextension=extension,
+            filetypes=[("SOC report", "*" + extension)],
+        )
+        if path:
+            self.app.call(
+                "total_export",
+                path,
+                format,
+                callback=lambda value: self.app.notice.set(value["status"]),
+            )
 
     def show_record(self, record=None, *, mode="investigation"):
         record = record or self.app.selected_result

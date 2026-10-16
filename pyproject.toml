@@ -17,6 +17,9 @@ dependencies = [
     "xgboost>=3.4.1",
 ]
 
+[project.scripts]
+soc-agent = "soc_agent.cli:main"
+
 [build-system]
 requires = ["uv_build>=0.12.8,<0.13.0"]
 build-backend = "uv_build"

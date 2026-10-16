@@ -71,8 +71,26 @@ class StreamingMonitoring:
     expiry and legacy per-flow limits are preserved; old sessions are untouched.
     """
 
-    def __init__(self, directory, *, paths=None):
-        self.root = directory / "streaming-network"
+    def __init__(self, directory, *, paths=None, total=False):
+        self.total = total
+        self.root = directory / ("total-monitoring" if total else "streaming-network")
+        self.session_prepare, self.session_load, self.session_instructions = (
+            prepare,
+            load,
+            instructions,
+        )
+        self.capture_type = StreamingCapture
+        if total:
+            from soc_agent.security_ai.operational.network_capture import total_session
+            from soc_agent.security_ai.operational.network_capture.total_transport import (
+                TotalCapture,
+            )
+
+            self.session_prepare = total_session.prepare
+            self.session_load = total_session.load
+            self.session_instructions = total_session.instructions
+            self.capture_type = TotalCapture
+        self.dns_diagnostics = None
         self.paths = paths
         self.directory = self.session = self.capture = self.store = self.demo = self.task = None
         self.consumer = None
@@ -121,7 +139,7 @@ class StreamingMonitoring:
                 await self._prepare_failed()
                 self.state = "STOPPED"
                 return {"status": "STOPPED", "listener_ready": False}
-            self.capture = StreamingCapture(self.directory, self.session)
+            self.capture = self.capture_type(self.directory, self.session)
             self.stop_sent = False
             self.state = "AUTHENTICATION_REQUIRED"
             self.task = asyncio.create_task(self._native())
@@ -148,7 +166,11 @@ class StreamingMonitoring:
         self.policy = StreamPolicy.model_validate(policy.model_dump())
         self.fixture = fixture
         self.capture = None
-        self.session = prepare(self.directory, self.policy)
+        self.session = self.session_prepare(self.directory, self.policy)
+        if self.total:
+            from soc_agent.security_ai.research.total_dns import DNSDiagnostics
+
+            self.dns_diagnostics = DNSDiagnostics(self.session.session_id)
         self.profiles = profiles
         self.aborted = self.stop_requested = False
         self.last_error = None
@@ -287,9 +309,12 @@ class StreamingMonitoring:
         if (
             packet.interface_id != self.session.interface_id
             or (packet.timestamp_origin == "FIXTURE") != self.fixture
-            or packet.dns is not None
+            or (packet.dns is not None and not self.total)
         ):
             raise ValueError("STREAM_SOURCE_ORIGIN_MISMATCH")
+        dns_packet = packet
+        if self.total:
+            packet = packet.model_copy(update={"dns": None})
         self.sequence += 1
         self.metrics["packet_sequence"] = self.sequence
         identity = uuid5(self.session.session_id, str(self.sequence))
@@ -316,6 +341,10 @@ class StreamingMonitoring:
             raise
         self.metrics["timestamp_integrity"] = "ORDERED_PREFIX_ONLY"
         self.metrics["packets_collected"] += 1
+        if self.total:
+            for event in self.dns_diagnostics.observe(dns_packet, self.sequence):
+                await asyncio.to_thread(self.store.runtime.event, "TOTAL_DNS_EVENT", event)
+            self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
         for item in completed:
             self.flow_count += 1
             window = (1, counter_sequence)
@@ -469,6 +498,10 @@ class StreamingMonitoring:
         await asyncio.to_thread(self.store.runtime.update, network=dict(self.metrics))
 
     async def _finalize(self):
+        if self.total:
+            for event in self.dns_diagnostics.finish():
+                await asyncio.to_thread(self.store.runtime.event, "TOTAL_DNS_EVENT", event)
+            self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
         self.state = "STREAM_DRAINING"
         for item in self.aggregator.close():
             self.excluded += 1
@@ -513,6 +546,9 @@ class StreamingMonitoring:
         self.metrics["abort_reason"] = self.last_error
         self.metrics["finalization"] = "BLOCKED"
         self.metrics["gap_count"] += 1
+        if self.total and self.dns_diagnostics is not None:
+            self.dns_diagnostics.finish(aborted=True)
+            self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
         self.aggregator.close("RESTART_GAP")
         self.windows.clear()
         self.done.set()
@@ -616,11 +652,11 @@ class StreamingMonitoring:
         ):
             return {"status": "BLOCKED", "error": "STREAM_LISTENER_NOT_READY"}
         try:
-            if load(self.directory) != self.session:
+            if self.session_load(self.directory) != self.session:
                 raise ValueError("STREAM_SESSION_POLICY_CHANGED")
         except (ValueError, OSError, StorageError):
             return {"status": "BLOCKED", "error": "STREAM_SESSION_IDENTITY_CHANGED"}
-        return {**instructions(self.directory, self.session), "listener_ready": True}
+        return {**self.session_instructions(self.directory, self.session), "listener_ready": True}
 
     async def restore_latest(self):
         """Explicit no-retry recovery of this managed mode only; never starts capture."""
@@ -630,7 +666,7 @@ class StreamingMonitoring:
         if not directories:
             return self.snapshot()
         self.directory = directories[-1]
-        self.session = load(self.directory)
+        self.session = self.session_load(self.directory)
         self.policy = self.session.policy
         from soc_agent.linux_runtime.store import RuntimeStore
 
@@ -735,6 +771,17 @@ class StreamingMonitoring:
             and audit_valid
         )
         return dict(
+            total_monitoring=self.total,
+            dns=self.metrics.get(
+                "dns_diagnostics",
+                {
+                    "dns9_inference": "BLOCKED",
+                    "producer_parity": "UNVERIFIED",
+                    "counts": {},
+                    "pending": None,
+                    "recent_events": [],
+                },
+            ),
             state=self.state if audit_valid else "UNKNOWN",
             collection_live=live,
             prepare_active=self.preparing or bool(self.task and not self.task.done()),

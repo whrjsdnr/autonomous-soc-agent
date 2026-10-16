@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from soc_agent.security_ai.operational.network_capture.total_session import verify_bundle
 from soc_agent.security_ai.research.models import SPECS, digest, parse_receipt
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -34,7 +35,12 @@ def test_actual_model_fixture_evidence_binding():
     assert data["recovery_state"] == "RETAINED_STREAM_NOT_LIVE"
     assert data["native_continuous_capture"] == "PENDING_USER_APPROVAL"
     helper = ROOT / "src/soc_agent/security_ai/operational/network_capture/stream_helper.py"
-    assert hashlib.sha256(helper.read_bytes()).hexdigest() == data["helper_sha256"]
+    assert data["helper_sha256"] == (
+        "1cc1c1f39007d1e8f53207dcd5f79f2128b12ea8077d5d09fcb6a72c5d037c84"
+    )
+    current = hashlib.sha256(helper.read_bytes()).hexdigest()
+    assert current == verify_bundle()["stream_helper.py"]
+    assert current != data["helper_sha256"]  # Historical fixture evidence is not a new approval.
 
 
 def test_resource_evidence_preserves_fixture_and_known_limitations():

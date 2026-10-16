@@ -29,6 +29,7 @@ from soc_agent.security_ai.research.models import digest
         "closed_send_failure",
         "loopback_regression",
         "raw_burst",
+        "total_dns",
     ],
 )
 def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
@@ -148,8 +149,9 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         "deadline",
         "closed_send_failure",
         "loopback_regression",
+        "total_dns",
     ):
-        helper.run(tmp_path, approval)
+        helper.run(tmp_path, approval, dns_metadata=case == "total_dns")
     else:
         with pytest.raises((ValueError, OSError)):
             helper.run(tmp_path, approval)
@@ -165,6 +167,9 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         assert [m["kind"] for m in messages] == ["READY", "HEARTBEAT", "PACKET", "CLOSED"]
         assert messages[2]["counter_sequence"] == 2
         assert messages[2]["packet"]["dns"] is None
+    if case == "total_dns":
+        assert messages[2]["packet"]["dns"]["query_name"] is None
+        assert messages[2]["packet"]["dns"]["query_type"] == 1
     if case == "loopback_regression":
         packets = [m for m in messages if m["kind"] == "PACKET"]
         assert [m["sequence"] for m in packets] == [1, 2]

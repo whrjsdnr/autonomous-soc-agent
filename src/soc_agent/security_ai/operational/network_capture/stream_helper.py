@@ -30,9 +30,9 @@ from soc_agent.security_ai.operational.network_capture.stream_session import Rat
 from soc_agent.security_ai.research.models import digest
 
 
-def run(directory: Path, approved_digest: str):
+def run(directory: Path, approved_digest: str, *, session_loader=None, dns_metadata=False):
     check_privileges()  # Reject before constructing/opening any AF_PACKET socket.
-    session = load(directory)
+    session = (session_loader or load)(directory)
     if digest(session.model_dump(mode="json")) != approved_digest:
         raise ValueError("STREAM_APPROVED_SESSION_DIGEST_MISMATCH")
     resource.setrlimit(resource.RLIMIT_AS, (512 * 1024**2, 512 * 1024**2))
@@ -133,13 +133,17 @@ def run(directory: Path, approved_digest: str):
                                 dns_responses += int(packet.dns.response)
                             elif 53 in (packet.source_port, packet.destination_port):
                                 dns_failures += 1
-                        packet = packet.model_copy(
-                            update={
-                                "dns": None,
-                                "dns_status": "DNS_HEADERS_ONLY"
-                                if session.policy.dns_headers
-                                else "NOT_COLLECTED_NETWORK_ONLY",
-                            }
+                        packet = (
+                            packet
+                            if dns_metadata
+                            else packet.model_copy(
+                                update={
+                                    "dns": None,
+                                    "dns_status": "DNS_HEADERS_ONLY"
+                                    if session.policy.dns_headers
+                                    else "NOT_COLLECTED_NETWORK_ONLY",
+                                }
+                            )
                         )
             stats = counters.sample()
             send(

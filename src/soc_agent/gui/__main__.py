@@ -14,7 +14,7 @@ from soc_agent.review.persistence.secure_storage import (
 from soc_agent.runtime_lock import exclusive_runtime_lock
 
 
-def main() -> int:
+def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--data-directory",
@@ -31,7 +31,8 @@ def main() -> int:
         default="UNVERIFIED",
         help="Display label only; never source attestation or inference authority",
     )
-    args = parser.parse_args()
+    parser.add_argument("--total-approved-sha", help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
     if hasattr(os, "geteuid") and os.geteuid() == 0:
         print("SOC_GUI_REQUIRES_UNPRIVILEGED_USER", file=sys.stderr)
         return 1
@@ -44,6 +45,7 @@ def main() -> int:
         from soc_agent.gui.app import Desktop
 
         config = GUIConfig(
+            total_approved_sha=args.total_approved_sha,
             data_directory=args.data_directory.absolute(),
             runtime_directory=args.runtime,
             artifacts=args.artifacts,

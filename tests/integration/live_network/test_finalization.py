@@ -4,6 +4,7 @@ import asyncio
 import json
 import sqlite3
 import threading
+import time
 from datetime import timedelta
 from types import SimpleNamespace
 from uuid import uuid4
@@ -325,7 +326,9 @@ async def test_service_dispatches_only_after_clean_closed_persistence_and_audit(
     )
     service = LiveMonitoring(tmp_path)
     service.capture, service.session, service.directory = capture, session, capture.directory
-    capture.handshake = lambda: None  # Attestation is substituted; no real helper.
+    # Attestation is substituted. Deliver the Mock READY at handshake, not before
+    # potentially slow SQLite setup, which must not consume its 2s heartbeat lease.
+    capture.handshake = lambda: setattr(capture, "last_heartbeat", time.monotonic())
     dispatched = []
 
     class MockModel:

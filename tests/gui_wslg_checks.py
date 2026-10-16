@@ -34,7 +34,7 @@ async def idle(root, app, timeout=60):
     while time.monotonic() < end:
         root.update()
         await asyncio.sleep(0.02)
-        if not app.busy:
+        if not app.busy and app.startup_complete:
             root.update()
             if not app.busy:
                 return
