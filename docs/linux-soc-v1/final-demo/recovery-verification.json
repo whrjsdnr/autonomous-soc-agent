@@ -1,0 +1,176 @@
+{
+  "contract": "soc-final-demo-recovery:v1",
+  "run_id": "3c2a6d3d-3499-4d2c-9ac4-126ab4905086",
+  "validation_timestamp": "2026-10-16T02:21:15.266364+00:00",
+  "collection_run_id": "4640687a-bbd7-47eb-8cc4-c82f6a6f6157",
+  "collection_validation_timestamp": "2026-10-16T01:14:25.012250+00:00",
+  "soc_head": "3704814fd6c888369af9a55aa919060878aacb73",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "collected_manifest_file": "history/evidence-manifest-collected.json",
+  "collected_manifest_sha256": "d8546713be92a468aa716cd01c5f0070fe71e02fe02d53c69dd3ed3c43ec7963",
+  "collected_manifest_digest": "a31dc1dc67399ce4548c2a724cee58899330b1a8037168288705e8255a138a3b",
+  "final_manifest_sha256": "50a599b70165ea2544992a20c11109f9d9400283865d56dc6e8cdf6630f24100",
+  "final_manifest_digest": "1a02792c6662eeba9fb5018ee6d03de1944ee156ae879d4aae4933dc85ac3dfc",
+  "screenshot_count": 20,
+  "screenshot_integrity": "PASS",
+  "model_artifact_integrity": "PASS",
+  "artifact_references": [
+    {
+      "profile": "quality",
+      "path": "$ML/models/network-research-v1-final/quality_rf/model.joblib",
+      "bytes": 117241,
+      "sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "verification": "MATCH_REVIEWED_PIN"
+    },
+    {
+      "profile": "edge",
+      "path": "$ML/models/network-research-v1-final/edge_lr/model.joblib",
+      "bytes": 1773,
+      "sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "verification": "MATCH_REVIEWED_PIN"
+    },
+    {
+      "profile": "dns",
+      "path": "$SOC/.security-ai-demo/artifacts/dns/model/dnn_int8.tflite",
+      "bytes": 9288,
+      "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "verification": "MATCH_REVIEWED_PIN"
+    },
+    {
+      "profile": "dns_scaler",
+      "path": "$SOC/.security-ai-demo/artifacts/dns/preprocessor/scaler.joblib",
+      "bytes": 1135,
+      "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "verification": "MATCH_REVIEWED_PIN"
+    }
+  ],
+  "source_identity_verification": "PASS_CATALOGUE_AND_LOCAL_RAW_DIGESTS_NOT_RECEIPT_RECONSTRUCTION",
+  "raw_receipt_files": "MISSING",
+  "research_audit_database": "MISSING",
+  "investigation_checkpoints": "MISSING",
+  "authentication_databases": "MISSING",
+  "original_test_logs": "MISSING",
+  "original_sigill_log": "MISSING",
+  "new_native_inferences": 0,
+  "new_os_captures": 0,
+  "new_os_security_writes": 0,
+  "new_journal_collections": 0,
+  "sigill": {
+    "root_cause": "ROOT_CAUSE_UNKNOWN",
+    "historical_recovery": "RECOVERY_VERIFIED",
+    "recurrence": "RECURRENCE_NOT_EXCLUDED",
+    "failure_timestamp": "UNKNOWN",
+    "exit_signal": "SIGILL (-4)",
+    "python_version": "3.12.14",
+    "faulting_native_extension": "UNKNOWN",
+    "post_outage_reproduction_attempts": 0
+  },
+  "current_runtime_state": "NOT_QUERIED",
+  "historical_runtime_state": "STOPPED",
+  "operational_gate": "BLOCKED",
+  "operational_inference": "NOT_INFERABLE",
+  "status": "RESEARCH_ONLY",
+  "action_policy": "WRITE_DENIED",
+  "validation_result": "PARTIAL",
+  "source_files": [
+    {
+      "path": "$ML/data/raw/acquisition/iot23-network14-3sessions-v1/CTU-IoT-Malware-Capture-8-1/2018-07-31-15-15-09-192.168.100.113.pcap",
+      "bytes": 2098362,
+      "sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2"
+    },
+    {
+      "path": "$ML/data/raw/acquisition/iot23-network14-3sessions-v1/CTU-IoT-Malware-Capture-8-1/bro/conn.log.labeled",
+      "bytes": 1431000,
+      "sha256": "4877ca8f0f01902fbd18d28b7d06cb3d0be082355b7f2c8862c9deef1782eb8a"
+    }
+  ],
+  "network_feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+  "network_producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+  "screenshot_review": {
+    "reviewed": 20,
+    "recaptured": 0,
+    "sensitive_information_found": false,
+    "limitations": [
+      "One-command capture shows mapped window during CHECKING; backend data-ready latency is UNKNOWN.",
+      "At 1366x768 some result rows and lower cards require scrolling; Edge results are visible in the 1920 capture.",
+      "Recovery snapshots retain WAITING progress text while native worker is idle; final STOPPED state is asserted by the historical recovery test. Unified 1366 screenshot has WORKING header during refresh."
+    ]
+  },
+  "preservation": {
+    "soc": {
+      "unrelated_files": 118,
+      "sha256_unchanged_since_post_outage_baseline": true,
+      "staged_baseline_empty": true
+    },
+    "ml": {
+      "unrelated_files": 10,
+      "sha256_unchanged_since_post_outage_baseline": true,
+      "staged_baseline_empty": true
+    }
+  },
+  "protected_model_and_replay_source_sha256_unchanged": true,
+  "tests": [
+    {
+      "phase": "POST_OUTAGE_INITIAL",
+      "suite": "tests/unit/final_demo",
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "phase": "POST_OUTAGE_FINALIZATION",
+      "suite": "tests/unit/final_demo",
+      "passed": 30,
+      "failed": 0
+    },
+    {
+      "phase": "INDEPENDENT_EXPORT",
+      "suite": "tests/unit/final_demo",
+      "passed": 30,
+      "failed": 0
+    }
+  ],
+  "quality": {
+    "ruff_check_src_tests": "PASS",
+    "ruff_format_check_all": "PASS",
+    "git_diff_check": "PASS",
+    "note": "One new test assertion initially exceeded 100 columns; formatting that test resolved lint/format. Final checks passed. ML unchanged; historical ML formatting violations were not modified."
+  },
+  "independent_export": {
+    "result": "PASS_EVIDENCE_SCOPE",
+    "soc_source_head": "3704814fd6c888369af9a55aa919060878aacb73",
+    "ml_source_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+    "excluded_soc_user_files": 118,
+    "excluded_ml_user_files": 10,
+    "exported_test_and_product_imports_verified": true,
+    "public_document_links": "PASS",
+    "public_screenshots": 20,
+    "external_artifacts_verified_in_place": true,
+    "binary_copy": false,
+    "native_inference_repeated": false,
+    "gui_repeated": false,
+    "scope_limit": "Missing primary receipts, Authentication DB, research audit DB and checkpoints cannot be verified or restored by the export."
+  },
+  "historical_test_results": [
+    {
+      "suite": "Runtime",
+      "passed": 266,
+      "log_availability": "MISSING"
+    },
+    {
+      "suite": "Core / Self-Improvement",
+      "passed": 491,
+      "log_availability": "MISSING"
+    },
+    {
+      "suite": "Governance / GUI / Model",
+      "passed": 351,
+      "deselected": 1,
+      "log_availability": "MISSING"
+    },
+    {
+      "suite": "Evidence Manifest",
+      "passed": 27,
+      "log_availability": "MISSING"
+    }
+  ]
+}

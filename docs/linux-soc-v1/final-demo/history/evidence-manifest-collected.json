@@ -1,0 +1,532 @@
+{
+  "contract": "soc-final-demo-evidence:v1",
+  "soc_head": "3704814fd6c888369af9a55aa919060878aacb73",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "environment": {
+    "os": "Ubuntu 24.04.4 LTS",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "wsl_kernel_family": "WSL2",
+    "wsl_application_version": "UNKNOWN",
+    "wslg": "1.0.73.2",
+    "soc_python": "3.12.14",
+    "gui_framework": "Tkinter",
+    "tk_version": "9.0",
+    "tcl_patchlevel": "9.0.4",
+    "soc_package": "0.1.0",
+    "ml_project": {
+      "name": "ml",
+      "version": "0.1.0",
+      "identity_kind": "SOURCE_PROJECT_METADATA"
+    },
+    "security_ai_packages": {
+      "network-security-ai": "0.1.0",
+      "dns-security-ai": "0.1.0",
+      "security-ai": "0.1.0"
+    },
+    "native_runtime": {
+      "python": "3.12.14",
+      "numpy": "2.5.3",
+      "scikit-learn": "1.9.1",
+      "joblib": "1.6.0",
+      "ai-edge-litert": "2.3.0"
+    },
+    "native_interpreter": "$SOC/.security-ai-demo/inference/bin/python",
+    "artifacts": [
+      {
+        "profile": "quality",
+        "path": "$ML/models/network-research-v1-final/quality_rf/model.joblib",
+        "bytes": 117241,
+        "sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "verification": "MATCH_REVIEWED_PIN"
+      },
+      {
+        "profile": "edge",
+        "path": "$ML/models/network-research-v1-final/edge_lr/model.joblib",
+        "bytes": 1773,
+        "sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "verification": "MATCH_REVIEWED_PIN"
+      },
+      {
+        "profile": "dns",
+        "path": "$SOC/.security-ai-demo/artifacts/dns/model/dnn_int8.tflite",
+        "bytes": 9288,
+        "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+        "verification": "MATCH_REVIEWED_PIN"
+      },
+      {
+        "profile": "dns_scaler",
+        "path": "$SOC/.security-ai-demo/artifacts/dns/preprocessor/scaler.joblib",
+        "bytes": 1135,
+        "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+        "verification": "MATCH_REVIEWED_PIN"
+      }
+    ],
+    "producer": "Network Producer 1.1.0 / Network14 / float32; DNS9 fixture producer UNVERIFIED",
+    "source_policy": "OFFLINE_PCAP, FIXTURE, RETAINED_NATIVE_OS are separate; no live capture",
+    "ml_installed_distribution_version": "0.1.0"
+  },
+  "launch": {
+    "command": ".venv/bin/python -m soc_agent.gui",
+    "mapped_window_and_registered_shutdown_seconds": 2.563733051007148,
+    "backend_data_ready_latency": "UNKNOWN",
+    "mapped_window": true,
+    "auto_research_invocations": 0,
+    "graceful_exit_code": 0,
+    "data_scope": "isolated XDG_DATA_HOME; no extra CLI arguments"
+  },
+  "run_id": "4640687a-bbd7-47eb-8cc4-c82f6a6f6157",
+  "validation_date": "2026-10-16T01:14:25.012250+00:00",
+  "initial_gui": {
+    "runtime_state": "STOPPED",
+    "queue_backlog": 0,
+    "network_research": "READY",
+    "dns_research": "READY",
+    "inference_counts": {
+      "quality": 0,
+      "edge": 0,
+      "dns": 0
+    },
+    "worker_running": false,
+    "operational_gate": "BLOCKED"
+  },
+  "authentication": {
+    "input_origin": "RETAINED_NATIVE_OS",
+    "runtime_state": "STOPPED",
+    "health": "DEGRADED",
+    "readiness": "NOT_READY",
+    "collector_checkpoint": "RESUMED_EXACT",
+    "queue_backlog": 0,
+    "retained_queue_records": 560,
+    "authentication_events": 1,
+    "sources": [
+      {
+        "event_identity_digest": "c9bd5221674cbb30eaf224bca5105e85745c986b6cab60c36b94d5bcf5160ed8",
+        "event_timestamp": "2026-08-28T00:23:24.127892Z",
+        "source_identity_digest": "5013fec08878afd152cb60a01371ad16ed36b0f7ddf8170e1a0f865844340abd",
+        "source_digest": "ed75dc726618acd07affd0fdb971fe832cc75d7d6320e024a4f0cdeeccfa8ed0"
+      }
+    ],
+    "authentication_windows": 1,
+    "findings": [
+      {
+        "finding_id": "fd5024530b3debef1cf3f7279e602fb865b13351d91aa359532c486a69f1711d",
+        "incident_id": "846208af-a317-447d-b57b-6d01c5a60f9f",
+        "origin": "NATIVE_OS",
+        "status": "DONE_READ_ONLY",
+        "event_timestamp": "2026-08-28T00:23:24.127892+00:00",
+        "evidence_references": [
+          "ed75dc726618acd07affd0fdb971fe832cc75d7d6320e024a4f0cdeeccfa8ed0"
+        ],
+        "provenance_digest": "f72c6fe88cee3d62a3324c0fed0ff19e763b981c66ff02c9af66f582f6f796e6",
+        "investigation_reference": "3c98708ae16f6b3cfc19b49f0b2acb9b3e5a8c72bb1f57aabb12fb5af968f2f5",
+        "audit_reference_digest": "b423c0f81e6fd6b0aaa77223c25a85e3cd9e13c4f5e0140094e2f114b860a566"
+      }
+    ],
+    "audit_integrity": "VERIFIED_LOCAL",
+    "audit_digest": "2dfa233a2e6a72013ab63e0e6a2946d390a5cb89fdeefbada98777911d787b18",
+    "sqlite_integrity": {
+      "sources.sqlite": "ok",
+      "monitor.sqlite": "ok",
+      "queue.sqlite": "ok",
+      "collection-audit.sqlite": "ok"
+    },
+    "database_sha256_before": {
+      "collection-audit.sqlite": "728fcccd63fe938cfe7eec9c56274e984ef74c137fa66ef106f410ebae804d24",
+      "monitor.sqlite": "accdb457ea939c0f39ccae5c21fa5f2fcb3ac34603630cc8d67b3a77d771692a",
+      "queue.sqlite": "35f6fe4b23499b98dcc80d15edf021b1b795141ce672ff4b45aff5cb3619cee3",
+      "sources.sqlite": "f337ffd373a4f3a0be9f2e35155bf01ac2ead67dda97482684511eb6359a8efa"
+    },
+    "database_sha256_after": {
+      "collection-audit.sqlite": "728fcccd63fe938cfe7eec9c56274e984ef74c137fa66ef106f410ebae804d24",
+      "monitor.sqlite": "accdb457ea939c0f39ccae5c21fa5f2fcb3ac34603630cc8d67b3a77d771692a",
+      "queue.sqlite": "35f6fe4b23499b98dcc80d15edf021b1b795141ce672ff4b45aff5cb3619cee3",
+      "sources.sqlite": "f337ffd373a4f3a0be9f2e35155bf01ac2ead67dda97482684511eb6359a8efa"
+    },
+    "database_unchanged": true,
+    "new_journal_collection": false,
+    "operational_inference": "NOT_INFERABLE",
+    "action_policy": "WRITE_DENIED"
+  },
+  "invocations": [
+    {
+      "invocation_id": "0b2a9b10-f7d8-4b6c-a7f0-b771eb27a447",
+      "model_identity": "linux-network14-research-v1-quality_rf",
+      "profile": "quality",
+      "artifact_sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+      "input_origin": "OFFLINE_PCAP",
+      "input_digest": "1cdbc6f116d14acbb06ebdba9445bb9cd948c04401ac6a6c62b5619613032bdd",
+      "source_identity": "8c4b71c076d3caa81b258e071eade08c00bc513ad2aa5520b8a7c2f36fa68ffe",
+      "source_file_sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+      "feature_digest": "302165303c6ee54b8505256506dbcd544acaab75c11507c6275e12ee53cc30eb",
+      "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+      "feature_order_digest": "047161f0114b667a1b4a3450af28e14390457b8ccbf320b1695e1e27aee32d67",
+      "producer_version": "1.1.0",
+      "validation_level": "OFFLINE_VERIFIED_FLOW",
+      "score": 0.0,
+      "threshold": 0.35,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-16T01:13:52.162120Z",
+      "inference_latency_ms": 10.601628993754275,
+      "inference_receipt_digest": "b842f3c6d83d6e0aa26fbfc3ca8c8ae7405d390ba80e7be137d516e784e49d04",
+      "completed_record_digest": "e1643c53c570fbe57c16c21a3f64b3293e0c39300f57c6d6ed684986b01e3288",
+      "incident_id": "ad3d50dd-ecdd-4688-b19c-de7d42250261",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "context_digest": "1c1442c7edf713b6cccd4ab41b52d16d9e5f5618360602e91f1224d0e5214efc",
+      "evidence_references": [
+        "116ef937-f800-4eb2-a911-119ca8d9e57e"
+      ],
+      "checkpoint_restored": true,
+      "provider_calls": 0,
+      "status": "RESEARCH_ONLY",
+      "operational_gate": "BLOCKED",
+      "action_policy": "WRITE_DENIED",
+      "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    },
+    {
+      "invocation_id": "1aefb771-0326-44a9-9585-be7602d498ad",
+      "model_identity": "linux-network14-research-v1-quality_rf",
+      "profile": "quality",
+      "artifact_sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+      "input_origin": "OFFLINE_PCAP",
+      "input_digest": "0ad8e9e148267c14740e8568974198424389933d3b358b1ca9531c8a29a922cc",
+      "source_identity": "770855585496cf8ffb61c5eea15d4f08350841ff031d6bdaeb210b95680c6df6",
+      "source_file_sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+      "feature_digest": "3707e59c5309d32c27d47fc59111d342d89478518e84f384d8edd60fbddb2d09",
+      "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+      "feature_order_digest": "047161f0114b667a1b4a3450af28e14390457b8ccbf320b1695e1e27aee32d67",
+      "producer_version": "1.1.0",
+      "validation_level": "OFFLINE_VERIFIED_FLOW",
+      "score": 1.0,
+      "threshold": 0.35,
+      "prediction": "CLASS_1",
+      "inferred_at": "2026-10-16T01:13:54.662972Z",
+      "inference_latency_ms": 10.254168999381363,
+      "inference_receipt_digest": "f7158357daf029c43e454215820f53f92ecb68d69404add7ebe1a2a03ced212a",
+      "completed_record_digest": "f9981c653cd04f1871a5337f34f74eae2dde3b8fdf77c73ff12182a0e40676f1",
+      "incident_id": "cb7b7312-f990-41ec-86fd-37c046a6adbb",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "context_digest": "98633992514265697168a55161472a0edbac5572e9cc1fff8cec0171339effdc",
+      "evidence_references": [
+        "d83ae0df-4a2e-4e26-913a-8a250abb7bc6"
+      ],
+      "checkpoint_restored": true,
+      "provider_calls": 0,
+      "status": "RESEARCH_ONLY",
+      "operational_gate": "BLOCKED",
+      "action_policy": "WRITE_DENIED",
+      "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    },
+    {
+      "invocation_id": "3c569d37-f67e-4cb4-b2b3-24c02c7706ae",
+      "model_identity": "linux-network14-research-v1-edge_lr",
+      "profile": "edge",
+      "artifact_sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+      "input_origin": "OFFLINE_PCAP",
+      "input_digest": "1cdbc6f116d14acbb06ebdba9445bb9cd948c04401ac6a6c62b5619613032bdd",
+      "source_identity": "8c4b71c076d3caa81b258e071eade08c00bc513ad2aa5520b8a7c2f36fa68ffe",
+      "source_file_sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+      "feature_digest": "302165303c6ee54b8505256506dbcd544acaab75c11507c6275e12ee53cc30eb",
+      "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+      "feature_order_digest": "047161f0114b667a1b4a3450af28e14390457b8ccbf320b1695e1e27aee32d67",
+      "producer_version": "1.1.0",
+      "validation_level": "OFFLINE_VERIFIED_FLOW",
+      "score": 0.00024273383314721286,
+      "threshold": 0.8,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-16T01:13:58.003338Z",
+      "inference_latency_ms": 6.743938007275574,
+      "inference_receipt_digest": "a9d8b6281124ea53f97615364bbf3c0b1f8fc5e44cda062e8b207a18282cc816",
+      "completed_record_digest": "205ea32b3d3a000b4cb7057edc12753da3027c249fbeae87647669efb1ab5111",
+      "incident_id": "20325927-2f90-492e-8df2-0e1664bab79b",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "context_digest": "8509dcc36507fe1c23b9c90be64cb78ed847ec0ce1776071566a93dc17fa5dec",
+      "evidence_references": [
+        "df97554f-7a38-4dfb-bf40-1d4ce1f7cace"
+      ],
+      "checkpoint_restored": true,
+      "provider_calls": 0,
+      "status": "RESEARCH_ONLY",
+      "operational_gate": "BLOCKED",
+      "action_policy": "WRITE_DENIED",
+      "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    },
+    {
+      "invocation_id": "63960b63-9683-42a5-99a0-eaa29c01512e",
+      "model_identity": "linux-network14-research-v1-edge_lr",
+      "profile": "edge",
+      "artifact_sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+      "input_origin": "OFFLINE_PCAP",
+      "input_digest": "0ad8e9e148267c14740e8568974198424389933d3b358b1ca9531c8a29a922cc",
+      "source_identity": "770855585496cf8ffb61c5eea15d4f08350841ff031d6bdaeb210b95680c6df6",
+      "source_file_sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+      "feature_digest": "3707e59c5309d32c27d47fc59111d342d89478518e84f384d8edd60fbddb2d09",
+      "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+      "feature_order_digest": "047161f0114b667a1b4a3450af28e14390457b8ccbf320b1695e1e27aee32d67",
+      "producer_version": "1.1.0",
+      "validation_level": "OFFLINE_VERIFIED_FLOW",
+      "score": 0.9998171925544739,
+      "threshold": 0.8,
+      "prediction": "CLASS_1",
+      "inferred_at": "2026-10-16T01:14:00.408203Z",
+      "inference_latency_ms": 7.047029008390382,
+      "inference_receipt_digest": "c7bbd19204768ef0881df59bd2d94937bdb68f395587b49a40b9123355960f97",
+      "completed_record_digest": "d546898cc42f1defb53502c5bc16c26b43e3172a03880e638dc93eddd2a847cd",
+      "incident_id": "ad188903-614a-437d-a874-43f4d7ad981f",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "context_digest": "4600472eee74a9eb79b8ce8cf8d1edd38c8dc8a323a7a9fae3fa0a8d256bf8ae",
+      "evidence_references": [
+        "91bfed94-3c40-420a-8b41-a480a774ea2f"
+      ],
+      "checkpoint_restored": true,
+      "provider_calls": 0,
+      "status": "RESEARCH_ONLY",
+      "operational_gate": "BLOCKED",
+      "action_policy": "WRITE_DENIED",
+      "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    },
+    {
+      "invocation_id": "2f9e2290-96ce-4ab6-a417-3866f16c38d2",
+      "model_identity": "dns_cicbell_dnn_int8",
+      "profile": "dns",
+      "artifact_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "model_manifest_digest": "UNKNOWN",
+      "input_origin": "FIXTURE",
+      "input_digest": "bec433d2abb66328cb3e5144e1286d2286fc3be3b062c016dd0ab2577cbd889e",
+      "source_identity": "existing-gui-dns9-ones",
+      "source_file_sha256": "UNKNOWN",
+      "feature_digest": "UNKNOWN",
+      "feature_contract_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+      "feature_order_digest": "dcc9ece1b47d5dceb3be70124312fd088b21c68dee2297bf921cec47a4215439",
+      "producer_version": "UNKNOWN",
+      "validation_level": "FIXTURE_NATIVE_ONLY",
+      "score": 0.55859375,
+      "threshold": 0.5,
+      "prediction": "CLASS_1",
+      "inferred_at": "2026-10-16T01:14:03.248683Z",
+      "inference_latency_ms": 19.331278,
+      "inference_receipt_digest": "42119c87fcd21f469b88d58051fd9581dba9885596fa213c14c84b592a18cd02",
+      "completed_record_digest": "8581ec259024722291e4d87f215abdaa48aafa11a1766600d8e6629db2efa414",
+      "incident_id": "ef788697-6b42-4456-8b94-e1d37444416a",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "context_digest": "ae699fc77842a2721a9f197027f1fc524120421fec8ef76f39477e28d1e79dfe",
+      "evidence_references": [
+        "9f4b7b60-bd5d-4d13-9dc0-82bb1a9f8856"
+      ],
+      "checkpoint_restored": true,
+      "provider_calls": 0,
+      "status": "RESEARCH_ONLY",
+      "operational_gate": "BLOCKED",
+      "action_policy": "WRITE_DENIED",
+      "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    },
+    {
+      "invocation_id": "fbe1cf60-1a32-4f75-b6ca-b0e5612cea23",
+      "model_identity": "dns_cicbell_dnn_int8",
+      "profile": "dns",
+      "artifact_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "model_manifest_digest": "UNKNOWN",
+      "input_origin": "FIXTURE",
+      "input_digest": "5f6819245325067f0b7487e5b7edc61d5a09f7335c51018ae94533007d52888e",
+      "source_identity": "existing-package-dns9-example",
+      "source_file_sha256": "UNKNOWN",
+      "feature_digest": "UNKNOWN",
+      "feature_contract_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+      "feature_order_digest": "dcc9ece1b47d5dceb3be70124312fd088b21c68dee2297bf921cec47a4215439",
+      "producer_version": "UNKNOWN",
+      "validation_level": "FIXTURE_NATIVE_ONLY",
+      "score": 0.0,
+      "threshold": 0.5,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-16T01:14:05.407503Z",
+      "inference_latency_ms": 17.203753,
+      "inference_receipt_digest": "483dc30f7b99e8448def6bd4bdf59c7735590a6933a22529dc4ddac9b7b4d2c7",
+      "completed_record_digest": "aa73a87ca0d8f7d79f05f8757f98745b4df8ab1ce724f0c058f2ce0b3ecef916",
+      "incident_id": "8d26ba1d-6cd7-4ae8-ae0c-c7a9eb99de3b",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "context_digest": "8037d6dbccac3893f0b7a73861f0cf724104b63c2555e0a0bddb2e191a223a17",
+      "evidence_references": [
+        "8fa80bdd-3c7b-452e-b9d6-a01144d72d78"
+      ],
+      "checkpoint_restored": true,
+      "provider_calls": 0,
+      "status": "RESEARCH_ONLY",
+      "operational_gate": "BLOCKED",
+      "action_policy": "WRITE_DENIED",
+      "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    }
+  ],
+  "audit": {
+    "integrity": "VERIFIED",
+    "sqlite_integrity": "ok",
+    "digest": "811d3d38be19b418d04dd5855f8b07c2d7c24ed507b30443483c16a2c817259d",
+    "events": 12
+  },
+  "recovery": {
+    "process_boundary": "NEW_PYTHON_PROCESS",
+    "demo_state": "STOPPED",
+    "worker_running": false,
+    "same_invocation_ids": true,
+    "same_audit_head": true,
+    "new_inferences_after_cached_replay": 0,
+    "confirmed_by_model": {
+      "quality": 2,
+      "edge": 2,
+      "dns": 2
+    },
+    "actual_worker_profiles_observed": [
+      "dns",
+      "edge",
+      "quality"
+    ]
+  },
+  "runtime_state": "STOPPED",
+  "operational_gate": "BLOCKED",
+  "screenshots": [
+    {
+      "filename": "screenshots/audit-1366.png",
+      "sha256": "1fddc8091faf0fac85aa0098b462326220e196614a36c012f718f8189823db0f",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/audit-1920.png",
+      "sha256": "3e652024f765fbbeb2c89488b27e02180f65fa362fe0598bea811fa6078a1e98",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/authentication-1366.png",
+      "sha256": "3965dcfc3758ba74491f1be128a59a9d0ab7d1edc84435b0953fd803d3b94dd4",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/authentication-1920.png",
+      "sha256": "21608f0e1becf11d1bb230cddd271a9b0d5e29b227c253bd9df8b9c249c89ecd",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/dashboard-initial-1366.png",
+      "sha256": "3041103161a0d3fd7e31bc27f7154abebf2cea180e08b4cb8ea0402ba117dc0f",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/dashboard-initial-1920.png",
+      "sha256": "0d9a685da234f8f5ca54897d50a097dc83cd50c3c308fe0e27bb0074cdb945d8",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/dns-security-1366.png",
+      "sha256": "6cea45f5bc34e900edda407504dd2ee7d7d84061f6fd9210e24a6d77a32e7201",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/dns-security-1920.png",
+      "sha256": "3d9afd60a68995ba9104bac1b5fe5ce58c36656d8f9364fb01b14cae0cf1bb41",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/investigation-1366.png",
+      "sha256": "378c0283330ff6377129d3b4bc870906ce3967edcd851e4e3528009f6935fd85",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/investigation-1920.png",
+      "sha256": "5a584b23fec19049123ae9634e3989bdd6552c09114057a1bfa51fdf36c7e4b2",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/network-edge-1366.png",
+      "sha256": "5c5a38246e1167a9a020bd35a56abe36ca1917ec9ecd9fc0205925184077a65a",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/network-edge-1920.png",
+      "sha256": "08f0156d117e448ef4390d1bacb75b2bd73cf3b6d25afc52b4bf5310d95bf0a4",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/network-quality-1366.png",
+      "sha256": "4fa2907239fce344cfc72f6d4c5c297f09573a8877c0bc0e737db90a8df3937b",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/network-quality-1920.png",
+      "sha256": "cb1bbe596ade22cee2fe23c12bbc274a3f82556e5d16daf8122c0fa841465a0c",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/one-command-1600.png",
+      "sha256": "08c72cd4c00c439b3ef9214aac82a44beb67bea24351ac8eaa6718fedf2bef89",
+      "width": 1600,
+      "height": 940,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/runtime-recovery-1366.png",
+      "sha256": "1386acaf675f52eb4c603573b251b8111641d90b17773e35f3895a039e8a311f",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/runtime-recovery-1920.png",
+      "sha256": "3df3f99ff95fb5cfaed1fc0112303cd2cb79e453c6128ac6d9c2c8dd3303ae3d",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/unified-dashboard-1280.png",
+      "sha256": "301551090d92388a3f879e32332ad3ba990eba9af7e1b9b5253b09e3daa5e95d",
+      "width": 1280,
+      "height": 720,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/unified-dashboard-1366.png",
+      "sha256": "255715ac0b0f31c6f4d533c72685ddeb89e81dbf594d583d73d9e5838409eeee",
+      "width": 1366,
+      "height": 768,
+      "source": "ACTUAL_WSLG_WINDOW"
+    },
+    {
+      "filename": "screenshots/unified-dashboard-1920.png",
+      "sha256": "74a225b1678c8b9fae7fdef5a18dd9bd06c427eb9e4e731566fea717ac2bf98d",
+      "width": 1920,
+      "height": 1080,
+      "source": "ACTUAL_WSLG_WINDOW"
+    }
+  ],
+  "validation_result": "VERIFIED",
+  "manifest_digest": "a31dc1dc67399ce4548c2a724cee58899330b1a8037168288705e8255a138a3b"
+}
