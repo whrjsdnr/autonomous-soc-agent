@@ -8,7 +8,7 @@ from soc_agent.gui.typography import text, typography
 
 BG, SIDE, SURFACE, ELEVATED = "#0B1220", "#111C2E", "#17243A", "#20314A"
 PRIMARY, TEXT, SECONDARY = "#38BDF8", "#F1F5F9", "#94A3B8"
-HEALTHY, WARNING, CRITICAL, UNKNOWN = "#22C55E", "#F59E0B", "#EF4444", "#64748B"
+HEALTHY, WARNING, CRITICAL, UNKNOWN = "#34D399", "#FBBF24", "#FB7185", "#64748B"
 
 
 def color(value):
@@ -20,7 +20,7 @@ def color(value):
         for v in ("NOT_READY", "NOT_INFERABLE", "DEGRADED", "PENDING", "EXPIRED", "INCONCLUSIVE")
     ):
         return WARNING
-    if any(v in word for v in ("FAILED", "FAIL", "BLOCKED", "REGRESS", "REJECTED")):
+    if any(v in word for v in ("FAILED", "FAIL", "ERROR", "BLOCKED", "REGRESS", "REJECTED")):
         return CRITICAL
     if any(
         v in word
@@ -44,12 +44,19 @@ def color(value):
             "HEALTHY",
             "READY",
             "COMPLETED",
+            "LIVE",
             "DONE",
             "SIMULATED",
             "ROLLED_BACK",
         )
     ):
         return HEALTHY
+    if word.startswith("EDGE"):
+        return "#A78BFA"
+    if word.startswith("DNS"):
+        return "#FBBF24"
+    if "AUTHENTICATION" in word:
+        return "#34D399"
     return PRIMARY
 
 
@@ -70,10 +77,17 @@ def Label(parent, **kwargs):
 
 def Button(parent, *, text: str, command, style="TButton", **kwargs):
     image = typography(parent).photo(text, 13, TEXT, bold=False, width=240)
+    disabled = typography(parent).photo(text, 13, SECONDARY, width=240)
     button = ttk.Button(
-        parent, text=text, image=image, command=command, style=style, takefocus=True, **kwargs
+        parent,
+        text=text,
+        image=(image, "disabled", disabled),
+        command=command,
+        style=style,
+        takefocus=True,
+        **kwargs,
     )
-    button.soc_image = image
+    button.soc_image, button.soc_disabled_image = image, disabled
     return button
 
 
@@ -315,4 +329,132 @@ class Table(tk.Canvas):
     def destroy(self):
         if self.timer is not None:
             self.after_cancel(self.timer)
+        super().destroy()
+
+
+def rounded(canvas, x, y, right, bottom, *, fill=SURFACE, outline=ELEVATED, radius=10):
+    """One small Canvas primitive shared by status cards, not a widget framework."""
+    r = min(radius, (right - x) / 2, (bottom - y) / 2)
+    return canvas.create_polygon(
+        x + r,
+        y,
+        right - r,
+        y,
+        right,
+        y,
+        right,
+        y + r,
+        right,
+        bottom - r,
+        right,
+        bottom,
+        right - r,
+        bottom,
+        x + r,
+        bottom,
+        x,
+        bottom,
+        x,
+        bottom - r,
+        x,
+        y + r,
+        x,
+        y,
+        smooth=True,
+        fill=fill,
+        outline=outline,
+    )
+
+
+class StatusRibbon(tk.Canvas):
+    def __init__(self, parent):
+        super().__init__(parent, bg=BG, height=84, highlightthickness=0)
+        self.items = []
+        self.bind("<Configure>", lambda _: self.redraw())
+
+    def update_items(self, items):
+        self.items = items
+        self.redraw()
+
+    def redraw(self):
+        self.delete("all")
+        self.text_images = []
+        width = max(600, self.winfo_width())
+        # Two rows on a smaller window keep eight essential statuses visible.
+        columns = 8 if width >= 1450 else 4
+        rows = (len(self.items) + columns - 1) // columns
+        height = 74 if columns == 8 else 116
+        if int(self.cget("height")) != height:
+            self.configure(height=height)
+        for i, (name, state, detail) in enumerate(self.items):
+            x = (i % columns) * width / columns
+            y = (i // columns) * height / max(1, rows)
+            cell = width / columns
+            tone = "#A78BFA" if state == "RESEARCH" else color(state)
+            text(self, x + 10, y + 12, name, size=10, width=int(cell - 18))
+            self.create_oval(x + 10, y + 28, x + 15, y + 33, fill=tone, outline="")
+            text(self, x + 22, y + 31, state, size=13, bold=True, fill=tone, width=int(cell - 28))
+            if columns == 8:
+                text(self, x + 10, y + 53, detail, size=10, width=int(cell - 18))
+            if i % columns:
+                self.create_line(x, y + 6, x, y + height / max(1, rows) - 6, fill=ELEVATED)
+
+
+class ModelCard(tk.Canvas):
+    def __init__(
+        self, parent, variable, *, title, metric=None, unit="confirmed calls", accent=PRIMARY
+    ):
+        super().__init__(parent, bg=BG, height=216, highlightthickness=0, takefocus=True)
+        self.variable, self.title, self.accent = variable, title, accent
+        self.metric, self.unit = metric, unit
+        self.metric_trace = (
+            metric.trace_add("write", lambda *_: self.redraw()) if metric is not None else None
+        )
+        self.focused = False
+        self.trace = variable.trace_add("write", lambda *_: self.redraw())
+        self.bind("<Configure>", lambda _: self.redraw())
+        self.bind("<FocusIn>", lambda _: self.highlight(True))
+        self.bind("<FocusOut>", lambda _: self.highlight(False))
+        self.bind("<Enter>", lambda _: self.highlight(True))
+        self.bind("<Leave>", lambda _: self.highlight(False))
+
+    def highlight(self, active):
+        self.focused = active
+        self.redraw()
+
+    def redraw(self):
+        self.delete("all")
+        self.text_images = []
+        width = max(180, self.winfo_width())
+        rounded(self, 1, 1, width - 2, 213, outline=self.accent if self.focused else ELEVATED)
+        self.create_line(16, 18, 32, 18, fill=self.accent, width=3)
+        text(self, 40, 19, self.title, size=12, bold=True, fill=TEXT, width=width - 54)
+        if self.metric is not None:
+            value = self.metric.get()
+            text(
+                self,
+                16,
+                54,
+                value,
+                size=17 if value == "UNKNOWN" else 30,
+                bold=True,
+                fill=TEXT,
+                width=120,
+            )
+            text(self, 145, 54, self.unit, size=10, width=max(24, width - 160))
+        for i, line in enumerate(self.variable.get().splitlines()[:7]):
+            text(
+                self,
+                16,
+                86 + i * 17,
+                line,
+                size=11,
+                fill=TEXT if i == 0 else SECONDARY,
+                width=width - 30,
+            )
+
+    def destroy(self):
+        self.variable.trace_remove("write", self.trace)
+        if self.metric_trace is not None:
+            self.metric.trace_remove("write", self.metric_trace)
         super().destroy()

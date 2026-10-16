@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk
 from soc_agent.gui.backend import Backend, GUIConfig
 from soc_agent.gui.charts import Comparison, Distribution, MetricHistory, ModelLatency, Trend
 from soc_agent.gui.components import Button, Hero, Label, Table, color
-from soc_agent.gui.presentation import sections, short
+from soc_agent.gui.presentation import screen_data, sections, short
 from soc_agent.gui.queries import display_data
 
 BG = "#0B1220"
@@ -136,15 +136,13 @@ class Desktop:
         style.configure("Muted.TLabel", foreground=MUTED)
         style.configure("Title.TLabel", font=("DejaVu Sans", 28, "bold"))
         style.configure("Header.TLabel", font=("DejaVu Sans", 15, "bold"))
-        style.configure(
-            "TButton", background=EDGE, foreground=TEXT, padding=(12, 10), borderwidth=0
-        )
+        style.configure("TButton", background=EDGE, foreground=TEXT, padding=(12, 9), borderwidth=0)
         style.map(
             "TButton",
             background=[("active", "#35465b"), ("disabled", PANEL)],
             foreground=[("disabled", MUTED)],
         )
-        style.configure("Accent.TButton", background="#164E63", foreground=TEXT)
+        style.configure("Accent.TButton", background="#155E75", foreground=TEXT)
         style.configure("Approve.TButton", background="#14532D", foreground=TEXT)
         style.configure("Reject.TButton", background="#7F1D1D", foreground=TEXT)
         style.configure(
@@ -190,7 +188,7 @@ class Desktop:
     def _build(self):
         shell = ttk.Frame(self.root)
         shell.pack(fill="both", expand=True)
-        side = tk.Frame(shell, bg="#111C2E", width=216)
+        side = tk.Frame(shell, bg="#111C2E", width=204)
         side.pack(side="left", fill="y")
         side.pack_propagate(False)
         Label(
@@ -198,12 +196,12 @@ class Desktop:
         ).pack(pady=(28, 4))
         Label(
             side, text="LINUX SECURITY  /  v1", fg=MUTED, bg="#111C2E", font=("DejaVu Sans", 10)
-        ).pack(pady=(0, 34))
+        ).pack(pady=(0, 24))
         self.nav_buttons = {}
         for name in SCREENS:
             button = Button(
                 side,
-                text="Network / DNS Research" if name == "Network Research" else name,
+                text="Research Demo" if name == "Network Research" else name,
                 command=lambda n=name: self.navigate(n),
             )
             button.pack(fill="x", padx=12, pady=6)
@@ -217,7 +215,7 @@ class Desktop:
             font=("DejaVu Sans", 9),
         ).pack(side="bottom", padx=14, pady=24)
         body = ttk.Frame(shell)
-        body.pack(side="left", fill="both", expand=True, padx=20, pady=18)
+        body.pack(side="left", fill="both", expand=True, padx=20, pady=14)
         header = ttk.Frame(body)
         header.pack(fill="x")
         self.title = Label(header, text=self.page, style="Title.TLabel")
@@ -229,10 +227,10 @@ class Desktop:
         Label(header, textvariable=self.ai_status, size=11, fg=ACCENT).pack(side="right", padx=12)
         Label(header, textvariable=self.status_var, style="Muted.TLabel").pack(side="right")
         Label(body, textvariable=self.notice, style="Muted.TLabel", wraplength=1200).pack(
-            fill="x", pady=(12, 18)
+            fill="x", pady=(8, 10)
         )
         self.toolbar = ttk.Frame(body)
-        self.toolbar.pack(fill="x", pady=(0, 16))
+        self.toolbar.pack(fill="x", pady=(0, 10))
         scroll = ttk.Frame(body)
         scroll.pack(fill="both", expand=True)
         self.content_canvas = tk.Canvas(scroll, bg=BG, highlightthickness=0)
@@ -498,7 +496,7 @@ class Desktop:
             self.raw_container.pack_forget()
 
     def show_detail(self, data):
-        self.last_details = display_data(data)
+        self.last_details = screen_data(display_data(data))
         self.detail.configure(state="normal")
         self.detail.delete("1.0", "end")
         self.detail.insert(
@@ -724,13 +722,32 @@ class Desktop:
         data = self.selected_result
         if self.page == "Scenario Demo":
             data = self.result_by_scenario.get(data["id"], data)
-        self.show_detail(data)
+        if self.page == "Network Research":
+            self.research_view.show_record(data)
+        else:
+            self.show_detail(data)
 
     def copy_reference(self, digest=False):
         if not self.selected_result and not self.last_details:
             return
         data = self.selected_result or self.last_details
         if not isinstance(data, dict):
+            return
+        research = data.get("research_record", data)
+        if isinstance(research, dict) and research.get("receipt"):
+            receipt = research["receipt"]
+            value = (
+                receipt.get("feature_digest", receipt.get("input_digest"))
+                if digest
+                else (
+                    research.get("investigation", {}).get("incident_id")
+                    or receipt.get("invocation_id")
+                )
+            )
+            if value:
+                self.root.clipboard_clear()
+                self.root.clipboard_append(str(value))
+                self.notice.set("Selected research reference copied.")
             return
         value = (
             data.get("finding_id")
@@ -923,8 +940,12 @@ class Desktop:
             + str(network.get("state", "UNKNOWN"))
             + " • Permission / error: "
             + str(network.get("last_error") or "UNKNOWN")
+            + " • Packets: "
+            + known(network.get("packets_collected"))
             + " • Capture drops: "
             + known(network.get("capture_drops"))
+            + " • Gaps: "
+            + known(network.get("gap_count"))
             + " • Queue: "
             + known(network.get("queue_backlog"))
             + " • Authentication: "

@@ -1,11 +1,115 @@
 """Read-only formatting of existing DTOs. These labels do not grant authority."""
 
 import json
+import re
 
 
 def short(value):
     value = str(value) if value is not None else "UNKNOWN"
     return value if len(value) <= 28 else value[:16] + "…" + value[-8:]
+
+
+def screen_data(value):
+    """Presentation-only masking; backend DTOs and their bound digests stay unchanged."""
+    if isinstance(value, dict):
+        return {
+            k: "[REDACTED]"
+            if str(k).lower()
+            in {"username", "user_name", "hostname", "operator_identity", "subject_id"}
+            else screen_data(v)
+            for k, v in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [screen_data(v) for v in value[:512]]
+    if isinstance(value, str):
+        return re.sub(r"/home/[^/\s\"']+", "$HOME", value)
+    return value
+
+
+def research_sections(value):
+    record = value.get("research_record")
+    if not record:
+        return [
+            ("No advisory selected", "Run an explicit demo, then select a result."),
+            ("Operational boundary", "RESEARCH_ONLY · no operational promotion or security WRITE"),
+        ]
+    receipt = record.get("receipt") or {}
+    inv = record.get("investigation") or {}
+    if value.get("research_view") == "audit":
+        return [
+            ("Audit integrity", str(value.get("audit_integrity", "UNKNOWN"))),
+            ("Model invocation · UTC", str(receipt.get("inferred_at", "UNKNOWN"))),
+            (
+                "Source / receipt type",
+                str(receipt.get("origin", "UNKNOWN"))
+                + "\n"
+                + str(receipt.get("contract", "UNKNOWN")),
+            ),
+            ("Model identity", str(receipt.get("model_id", "UNKNOWN"))),
+            (
+                "Artifact / input binding",
+                short(receipt.get("artifact_digest"))
+                + "\n"
+                + short(receipt.get("feature_digest", receipt.get("input_digest"))),
+            ),
+            (
+                "Stored outcome",
+                str(record.get("status", "UNKNOWN"))
+                + " · "
+                + str(record.get("error") or "No recorded error"),
+            ),
+            (
+                "Checkpoint / provenance",
+                "Restored "
+                + str(inv.get("checkpoint_restored", "UNKNOWN"))
+                + "\nContext "
+                + short(inv.get("context", {}).get("receipt_digest")),
+            ),
+        ]
+    assessment = inv.get("assessment", {})
+    draft = assessment.get("threat_assessment", assessment.get("assessment", {}))
+    validation = receipt.get("validation_level", "UNKNOWN")
+    if (
+        receipt.get("contract") == "soc-network-research-receipt:v1"
+        and receipt.get("origin") == "OFFLINE_PCAP"
+        and receipt.get("producer_version") == "1.1.0"
+        and record.get("status") == "COMPLETE"
+    ):
+        validation = "OFFLINE_VERIFIED_FLOW"
+    return [
+        (
+            "Incident · READ-only",
+            short(inv.get("incident_id")) + "\n" + str(inv.get("status", "UNKNOWN")),
+        ),
+        (
+            "Input / validation",
+            str(receipt.get("origin", "UNKNOWN")) + "\n" + str(validation),
+        ),
+        (
+            "Model advisory · uncalibrated",
+            str(receipt.get("profile", "UNKNOWN")).title()
+            + " · score "
+            + str(receipt.get("score", "UNKNOWN"))
+            + "\nThreshold "
+            + str(receipt.get("threshold", "UNKNOWN"))
+            + " · "
+            + str(receipt.get("prediction", "UNKNOWN")),
+        ),
+        (
+            "Verified source references",
+            "\n".join(short(x) for x in inv.get("evidence_references", [])) or "UNKNOWN",
+        ),
+        (
+            "Assessment · not observed fact",
+            str(draft.get("summary", "No stored assessment summary")),
+        ),
+        (
+            "Recommended action / boundary",
+            str(draft.get("recommended_action", "No stored response recommendation"))
+            + "\n"
+            + str(inv.get("action_policy", "UNKNOWN")),
+        ),
+    ]
 
 
 def sections(page, value):
@@ -23,6 +127,8 @@ def sections(page, value):
                 f"{len(data) if isinstance(data, list) else 'UNKNOWN'} records • select a row",
             )
         ]
+    if "research_view" in data:
+        return research_sections(data)
     if "models" in data and "context_digest" in data:
         panels = []
         for model in data["models"]:

@@ -10,14 +10,14 @@ from soc_agent.gui.typography import text
 
 class ReplayChart(tk.Canvas):
     def __init__(self, parent):
-        super().__init__(parent, bg="#17243A", height=175, highlightthickness=0)
+        super().__init__(parent, bg="#17243A", height=210, highlightthickness=0)
         self.rows = []
         self.bind("<Configure>", lambda _: self.redraw())
 
     def update_records(self, records):
         seen = set()
-        self.rows = []
-        for item in records:
+        self.rows = None if records is None else []
+        for item in records or []:
             receipt = item.get("receipt")
             if receipt and receipt["profile"] != "dns" and receipt["flow_id"] not in seen:
                 seen.add(receipt["flow_id"])
@@ -41,15 +41,18 @@ class ReplayChart(tk.Canvas):
                 self,
                 16,
                 90,
-                "NO_DATA • Start demo, then run an offline replay",
+                "UNKNOWN • source unavailable"
+                if self.rows is None
+                else "NO_DATA • run an explicit offline demo",
                 size=13,
                 width=width - 32,
             )
             return
-        highest = max(r["packet_count"] for r in self.rows)
+        self.create_line(48, 163, width - 28, 163, fill="#20314A")
+        highest = max(r["packet_count"] for r in self.rows) or 1
         for i, row in enumerate(self.rows):
             x = 60 + (width - 130) * i / max(1, len(self.rows) - 1)
-            y = 130 - 70 * row["packet_count"] / highest
+            y = 163 - 85 * row["packet_count"] / highest
             self.create_oval(
                 x - 4, y - 4, x + 4, y + 4, fill="#38BDF8", outline="", tags="replay-point"
             )
@@ -57,7 +60,7 @@ class ReplayChart(tk.Canvas):
             text(
                 self,
                 x,
-                151,
+                187,
                 "Flow " + str(row["flow_index"] + 1),
                 size=11,
                 anchor="center",
@@ -66,105 +69,159 @@ class ReplayChart(tk.Canvas):
             if i:
                 previous = self.rows[i - 1]
                 px = 60 + (width - 130) * (i - 1) / max(1, len(self.rows) - 1)
-                py = 130 - 70 * previous["packet_count"] / highest
+                py = 163 - 85 * previous["packet_count"] / highest
                 self.create_line(px, py, x, y, fill="#38BDF8", width=2)
 
 
 class ResearchView:
     def __init__(self, app):
         self.app = app
-        self.polling = False
         style = ttk.Style(app.root)
+        style.configure(
+            "Research.TCombobox", fieldbackground="#17243A", foreground="#F1F5F9", padding=8
+        )
         style.map(
             "Research.TCombobox",
-            fieldbackground=[("readonly", "#17243A")],
-            foreground=[("readonly", "#F1F5F9")],
+            fieldbackground=[("disabled", "#111C2E"), ("readonly", "#20314A")],
+            foreground=[("disabled", "#64748B"), ("readonly", "#F1F5F9")],
             selectbackground=[("readonly", "#20314A")],
             selectforeground=[("readonly", "#F1F5F9")],
         )
+        self.polling = False
+        self.last_snapshot = {}
+        self.detail_mode = "investigation"
         self.profile = tk.StringVar(value="both")
         self.flow = tk.StringVar(value="1")
-        self.headline = tk.StringVar(
-            value="Checking research models… Operating inference remains BLOCKED"
+        self.choices = {
+            "Network · Quality + Edge": "both",
+            "Network · Quality": "quality",
+            "Network · Edge": "edge",
+            "DNS · Security": "dns",
+        }
+        self.selection = tk.StringVar(value="Network · Quality + Edge")
+        self.headline = tk.StringVar(value="Checking current environment…")
+        self.model_state = tk.StringVar(value="UNKNOWN")
+        self.health = tk.StringVar(value="Runtime UNKNOWN · Audit UNKNOWN")
+        self.cards = tk.StringVar(value="UNKNOWN · no confirmed measurements yet")
+        self.progress = tk.StringVar(value="STOPPED · explicit user action required")
+        self.investigation = tk.StringVar(value="NO_DATA · no stored investigation")
+        self.origin = tk.StringVar(
+            value="OFFLINE_PCAP · preselected verified training flows · RESEARCH_ONLY"
         )
-        self.model_state = tk.StringVar(value="Quality / Edge artifact verification pending")
-        self.health = tk.StringVar(value="Runtime health UNKNOWN • Queue UNKNOWN")
-        self.cards = tk.StringVar(value="Confirmed inference counts: Quality 0 · Edge 0")
-        self.progress = tk.StringVar(value="STOPPED • no automatic inference")
-        self.investigation = tk.StringVar(value="No offline investigation stored")
-        self.warning = Label(
+        self.warning = Label(app.content, text="Research workspace", size=22, bold=True)
+        self.warning.pack(anchor="w", pady=(0, 4))
+        Label(
             app.content,
-            text="NETWORK / DNS RESEARCH · OFFLINE / FIXTURE · WRITE_DENIED",
-            size=17,
-            fg="#F59E0B",
-            bold=True,
-            max_width=1250,
-        )
-        self.warning.pack(fill="x", pady=(0, 10))
-        Label(app.content, textvariable=self.headline, size=14, max_width=1250).pack(
-            fill="x", pady=(0, 5)
-        )
-        Label(app.content, textvariable=self.health, size=12, max_width=1250).pack(
-            fill="x", pady=(0, 8)
-        )
-        Label(app.content, textvariable=self.model_state, size=12, max_width=1250).pack(
-            fill="x", pady=(0, 8)
-        )
-        controls = ttk.Frame(app.content)
-        controls.pack(fill="x", pady=(0, 10))
-        self.start_button = Button(controls, text="Start Research Demo", command=self.start)
-        self.start_button.pack(side="left", padx=(0, 8))
-        profile_box = ttk.Combobox(
-            controls,
-            textvariable=self.profile,
-            values=("both", "quality", "edge", "dns"),
+            text="Offline evidence → native model → advisory → READ-only investigation",
+            size=12,
+            fg="#94A3B8",
+        ).pack(anchor="w", pady=(0, 14))
+        controls = tk.Frame(app.content, bg="#17243A", padx=14, pady=14)
+        controls.pack(fill="x", pady=(0, 12))
+        row = tk.Frame(controls, bg="#17243A")
+        row.pack(fill="x")
+        Label(row, text="Model", bg="#17243A", size=12).pack(side="left", padx=(0, 8))
+        self.profile_box = ttk.Combobox(
+            row,
+            textvariable=self.selection,
+            values=tuple(self.choices),
             state="readonly",
             style="Research.TCombobox",
-            width=10,
+            width=27,
         )
-        profile_box.pack(side="left", padx=5)
-        profile_box.bind("<<ComboboxSelected>>", lambda _: self.profile_changed())
-        Label(controls, text="Flow / DNS fixture 1–2", size=12).pack(side="left")
+        self.profile_box.pack(side="left", padx=(0, 12))
+        self.profile_box.bind("<<ComboboxSelected>>", lambda _: self.choose_model())
+        Label(row, text="Input", bg="#17243A", size=12).pack(side="left", padx=(0, 6))
         self.input_box = ttk.Combobox(
-            controls,
+            row,
             textvariable=self.flow,
             values=("1", "2", "3", "4"),
             state="readonly",
             style="Research.TCombobox",
             width=4,
         )
-        self.input_box.pack(side="left", padx=5)
-        self.replay_button = Button(controls, text="Run Offline Replay", command=self.replay)
-        self.replay_button.pack(side="left", padx=8)
+        self.input_box.pack(side="left", padx=(0, 12))
+        self.replay_button = Button(
+            row, text="Run Demo", command=self.replay, style="Accent.TButton"
+        )
+        self.replay_button.pack(side="left", padx=(0, 8))
         self.replay_button.configure(state="disabled")
-        self.stop_button = Button(controls, text="Stop Demo", command=self.stop)
+        self.start_button = Button(row, text="Prepare / Restart", command=self.start)
+        self.start_button.pack(side="left", padx=(0, 8))
+        self.stop_button = Button(row, text="Stop research", command=self.stop)
         self.stop_button.pack(side="left")
-        Label(app.content, textvariable=self.progress, size=12, max_width=1250).pack(
-            fill="x", pady=(0, 8)
+        Label(controls, textvariable=self.origin, size=12, fg="#A78BFA", bg="#17243A").pack(
+            fill="x", pady=(12, 0)
         )
-        Label(app.content, textvariable=self.cards, size=18, bold=True, max_width=1250).pack(
-            fill="x", pady=(0, 10)
+        Label(app.content, textvariable=self.progress, size=13, fg="#38BDF8").pack(
+            fill="x", pady=(0, 5)
         )
-        self.trend = ReplayChart(app.content)
-        self.trend.pack(fill="x", pady=(0, 10))
+        Label(app.content, textvariable=self.headline, size=11, fg="#94A3B8").pack(
+            fill="x", pady=(0, 5)
+        )
+        Label(app.content, textvariable=self.cards, size=16, bold=True).pack(fill="x", pady=(0, 12))
         charts = ttk.Frame(app.content)
-        charts.pack(fill="x", pady=(0, 12))
-        self.count_chart = Distribution(charts, "REAL RESEARCH INFERENCE COUNT")
-        self.count_chart.pack(side="left", fill="x", expand=True, padx=(0, 8))
-        self.scores = Distribution(charts, "UNCALIBRATED SCORES • no probability fusion")
-        self.scores.pack(side="left", fill="x", expand=True)
-        Label(app.content, textvariable=self.investigation, size=12, max_width=1250).pack(
-            fill="x", pady=(0, 10)
-        )
+        charts.pack(fill="x", pady=(0, 14))
+        self.trend = ReplayChart(charts)
+        self.trend.pack(side="left", fill="both", expand=True, padx=(0, 10))
         from soc_agent.gui.unified import MeasuredSeries
 
-        self.dns_chart = MeasuredSeries(
-            app.content, "DNS FIXTURE SCORE • uncalibrated / replay order"
+        self.dns_chart = MeasuredSeries(charts, "DNS SCORE · FIXTURE / UNCALIBRATED")
+        self.dns_chart.pack(side="left", fill="both", expand=True)
+        Label(app.content, text="Advisory results", size=19, bold=True).pack(
+            anchor="w", pady=(0, 8)
         )
-        self.dns_chart.pack(fill="x", pady=10)
         app._table(("model", "source", "score", "threshold", "prediction", "investigation"))
+        buttons = ttk.Frame(app.detail_parent)
+        buttons.pack(before=app.summary_frame, fill="x", pady=(4, 6))
+        Button(
+            buttons, text="Investigation", command=lambda: self.show_record(mode="investigation")
+        ).pack(side="left", padx=(0, 8))
+        Button(
+            buttons, text="Audit / receipt", command=lambda: self.show_record(mode="audit")
+        ).pack(side="left")
+        Label(
+            buttons,
+            text="READ-only · source-bound · no operational promotion",
+            size=11,
+            fg="#94A3B8",
+        ).pack(side="right")
+        extras = ttk.Frame(app.content)
+        extras.pack(fill="x", pady=(14, 0))
+        self.count_chart = Distribution(extras, "CONFIRMED NATIVE INVOCATIONS")
+        self.count_chart.pack(side="left", fill="both", expand=True, padx=(0, 10))
+        self.scores = Distribution(extras, "SCORE BINS · separate model thresholds")
+        self.scores.pack(side="left", fill="both", expand=True)
+
+    def choose_model(self):
+        self.profile.set(self.choices[self.selection.get()])
+        self.profile_changed()
+
+    def show_record(self, record=None, *, mode=None):
+        if mode:
+            self.detail_mode = mode
+        if record is None:
+            record = self.app.selected_result
+        if not isinstance(record, dict) or not record.get("receipt"):
+            rows = [r for r in self.last_snapshot.get("records", []) if r.get("receipt")]
+            record = rows[-1] if rows else None
+        self.app.show_detail(
+            {
+                "research_view": self.detail_mode,
+                "research_record": record,
+                "audit_integrity": self.last_snapshot.get("audit_integrity", "UNKNOWN"),
+            }
+        )
 
     def profile_changed(self):
+        name = next((k for k, v in self.choices.items() if v == self.profile.get()), None)
+        if name:
+            self.selection.set(name)
+        self.origin.set(
+            "FIXTURE · precomputed DNS9 · producer parity UNVERIFIED · RESEARCH_ONLY"
+            if self.profile.get() == "dns"
+            else "OFFLINE_PCAP · preselected verified training flows · RESEARCH_ONLY"
+        )
         values = ("1", "2") if self.profile.get() == "dns" else ("1", "2", "3", "4")
         self.input_box.configure(values=values)
         if self.flow.get() not in values:
@@ -173,6 +230,9 @@ class ResearchView:
             self.render(self.last_snapshot)
 
     def start(self):
+        if self.app.busy or self.app.closing:
+            return
+        self.set_busy()
         self.progress.set("START REQUESTED • no inference yet")
         self.app.call(
             "research_start",
@@ -184,14 +244,45 @@ class ResearchView:
         self.progress.set("WORKING • " + name + " • bounded request, no automatic retry")
         self.app.call(name, callback=self.render)
 
+    def set_busy(self):
+        self.start_button.configure(state="disabled")
+        self.replay_button.configure(state="disabled")
+        self.profile_box.configure(state="disabled")
+        self.input_box.configure(state="disabled")
+
     def replay(self):
-        self.progress.set("RUNNING • selected model → advisory → READ-only investigation")
-        self.app.call(
-            "research_replay", self.profile.get(), int(self.flow.get()) - 1, callback=self.render
-        )
-        if not self.polling:
-            self.polling = True
-            self.app.root.after(200, self.poll_work)
+        if self.app.busy or self.app.closing:
+            return
+        profile, index = self.profile.get(), int(self.flow.get()) - 1
+        self.set_busy()
+
+        def run():
+            self.set_busy()
+            self.progress.set("RUNNING · native model → advisory → READ-only investigation")
+            self.app.call("research_replay", profile, index, callback=self.render)
+            if not self.polling:
+                self.polling = True
+                self.app.root.after(200, self.poll_work)
+
+        if self.last_snapshot.get("demo_state") == "STOPPED":
+            self.progress.set("PREPARING · verifying environment; explicit demo request")
+
+            def prepared(value):
+                if (
+                    self.app.closing
+                    or self.app.page != "Network Research"
+                    or not self.warning.winfo_exists()
+                ):
+                    return
+                self.render(value)
+                if value.get("demo_state") == "STARTED":
+                    run()
+
+            self.app.call(
+                "research_start", "dns" if profile == "dns" else "quality", callback=prepared
+            )
+        else:
+            run()
 
     def poll_work(self):
         if (
@@ -247,8 +338,14 @@ class ResearchView:
         self.app.root.after(50, finish)
 
     def show_error(self, code):
-        self.headline.set("UNKNOWN • " + code + " • check artifact/environment; no automatic retry")
-        self.progress.set("BLOCKED • previous measurements retained")
+        self.headline.set(
+            "UNKNOWN · " + code + " · check environment, then retry only a new confirmed request"
+        )
+        self.profile_box.configure(state="readonly")
+        self.input_box.configure(state="readonly")
+        self.progress.set(
+            "UNKNOWN · Refresh to inspect the outcome; previous measurements are retained"
+        )
 
     def render(self, value):
         if self.app.page != "Network Research" or not self.warning.winfo_exists():
@@ -267,10 +364,30 @@ class ResearchView:
         ready = (value.get("dns", {}) if self.profile.get() == "dns" else value).get(
             "status"
         ) == "READY"
-        self.replay_button.configure(state="normal" if state == "STARTED" and ready else "disabled")
-        self.start_button.configure(state="normal" if state == "STOPPED" and ready else "disabled")
+        self.replay_button.configure(
+            state="normal"
+            if state in ("STARTED", "STOPPED") and ready and not self.app.busy
+            else "disabled"
+        )
+        self.start_button.configure(
+            state="normal" if state == "STOPPED" and ready and not self.app.busy else "disabled"
+        )
+        self.profile_box.configure(state="disabled" if self.app.busy else "readonly")
+        self.input_box.configure(state="disabled" if self.app.busy else "readonly")
         if value.get("replay_outcomes"):
-            self.progress.set(self.progress.get() + " · " + " / ".join(value["replay_outcomes"]))
+            outcomes = value["replay_outcomes"]
+            if "UNKNOWN" in outcomes:
+                self.progress.set(
+                    "UNKNOWN · no retry; review Investigation / Audit before a new request"
+                )
+            elif all(v == "CACHED_NO_NEW_INFERENCE" for v in outcomes):
+                self.progress.set(
+                    "RETAINED · no new inference · original receipt and investigation restored"
+                )
+            else:
+                self.progress.set(
+                    "COMPLETE · confirmed result received · review Investigation / Audit below"
+                )
         self.headline.set(
             "Network environment "
             + value.get("status", "UNKNOWN")
@@ -314,6 +431,12 @@ class ResearchView:
         if counts is None:
             self.cards.set("UNKNOWN • research audit/storage failed; counts not replaced with zero")
             self.count_chart.update_counts(None)
+            self.trend.update_records(None)
+            self.scores.update_counts(None)
+            self.dns_chart.update_points(None)
+            self.app.current_records = []
+            self.app._rows([])
+            self.show_record()
             return
         self.cards.set(
             f"Quality {counts['quality']}  ·  Edge {counts['edge']}  ·  "
@@ -383,4 +506,4 @@ class ResearchView:
                 + "\nSCRIPTED assessment; model score is not an observed fact. "
                 + " → ".join(str(v) for v in stages if v)
             )
-        self.app.show_detail(value)
+        self.show_record()

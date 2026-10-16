@@ -354,7 +354,8 @@ class Comparison(tk.Canvas):
 class ModelLatency(tk.Canvas):
     """Package-observed inference times; probabilities are deliberately not combined."""
 
-    def __init__(self, parent):
+    def __init__(self, parent, *, heading="FIXTURE • native model execution time (ms)", caption=""):
+        self.heading, self.caption = heading, caption
         super().__init__(parent, bg=SURFACE, height=188, highlightthickness=0)
         self.models = []
         self.bind("<Configure>", lambda _: self.redraw())
@@ -371,13 +372,22 @@ class ModelLatency(tk.Canvas):
             self,
             16,
             20,
-            "FIXTURE • native model execution time (ms)",
-            size=14,
+            self.heading,
+            size=13,
             bold=True,
             width=width - 32,
         )
         if not self.models:
-            text(self, 16, 90, "NO_DATA • run the explicit Fixture demo", size=13, width=width - 32)
+            text(
+                self,
+                16,
+                90,
+                "UNKNOWN • measurements unavailable"
+                if self.models is None
+                else "NO_DATA • run an explicit research / Fixture demo",
+                size=13,
+                width=width - 32,
+            )
             return
         values = [m.get("inference_latency_ms") for m in self.models]
         valid = [v for v in values if type(v) in (int, float) and math.isfinite(v) and v >= 0]
@@ -392,7 +402,7 @@ class ModelLatency(tk.Canvas):
                     y - 8,
                     180 + (width - 310) * value / scale,
                     y + 8,
-                    fill=PRIMARY,
+                    fill=model.get("tone", PRIMARY),
                     outline="",
                     tags="latency-bar",
                 )
@@ -405,3 +415,6 @@ class ModelLatency(tk.Canvas):
                 anchor="e",
                 width=120,
             )
+
+        if self.caption:
+            text(self, 16, 172, self.caption, size=10, width=width - 32)
