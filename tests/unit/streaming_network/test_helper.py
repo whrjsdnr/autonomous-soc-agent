@@ -15,7 +15,20 @@ from soc_agent.security_ai.operational.network_capture.capture import PacketCapt
 from soc_agent.security_ai.research.models import digest
 
 
-@pytest.mark.parametrize("case", ["normal", "unknown", "drop", "send_timeout", "stop", "rate"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        "normal",
+        "unknown",
+        "drop",
+        "send_timeout",
+        "stop",
+        "rate",
+        "deadline",
+        "disconnect",
+        "closed_send_failure",
+    ],
+)
 def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     messages = []
     controls = []
@@ -64,12 +77,14 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
 
         def sendall(self, body):
             message = json.loads(body)
+            if case == "closed_send_failure" and message["kind"] == "CLOSED":
+                raise BrokenPipeError("MOCK_CONTROLLER_DISCONNECT")
             if case == "send_timeout" and message["kind"] == "PACKET":
                 raise TimeoutError()
             messages.append(message)
 
         def recv(self, _):
-            return b"STOP"
+            return b"" if case == "disconnect" else b"STOP"
 
         def close(self):
             controls.append("CHANNEL_CLOSED")
@@ -88,28 +103,39 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     monkeypatch.setattr(
         helper.select,
         "select",
-        lambda readers, *a: ([readers[1] if case == "stop" else readers[0]], [], []),
+        lambda readers, *a: (
+            [readers[1] if case in ("stop", "disconnect") else readers[0]],
+            [],
+            [],
+        ),
     )
+    if case == "deadline":
+        clock = iter((0, 0, 299, 299))
+        monkeypatch.setattr(helper, "time", SimpleNamespace(monotonic=lambda: next(clock)))
     if case == "rate":
 
         def exceeded(*a):
             raise ValueError("STREAM_RATE_BUDGET_EXCEEDED")
 
         monkeypatch.setattr(helper.RateBudget, "consume", exceeded)
-    if case in ("normal", "stop"):
+    if case in ("normal", "stop", "disconnect", "deadline", "closed_send_failure"):
         helper.run(tmp_path, approval)
     else:
         with pytest.raises((ValueError, OSError)):
             helper.run(tmp_path, approval)
     assert messages[0]["kind"] == "READY"
-    assert messages[-1]["kind"] == "CLOSED"
+    if case == "closed_send_failure":
+        # Existing approved helper returns normally even if final send fails.
+        assert not any(m["kind"] == "CLOSED" for m in messages)
+    else:
+        assert messages[-1]["kind"] == "CLOSED"
     assert streams[0].raw.closed
     assert controls == ["CHECK_MOCK", "DROP_MOCK", "CHANNEL_CLOSED"]
     if case == "normal":
         assert [m["kind"] for m in messages] == ["READY", "HEARTBEAT", "PACKET", "CLOSED"]
         assert messages[2]["counter_sequence"] == 2
         assert messages[2]["packet"]["dns"] is None
-    if case in ("unknown", "drop", "rate", "stop"):
+    if case in ("unknown", "drop", "rate", "stop", "disconnect", "deadline"):
         assert not any(m["kind"] == "PACKET" for m in messages)
     assert "private" not in str(messages)
 

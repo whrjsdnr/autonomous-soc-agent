@@ -190,7 +190,7 @@ class Backend:
             self.process_log.close()
         await self.research_demo.stop()
         await self.live_monitoring.stop()
-        await self.streaming_monitoring.stop(abort=True)
+        await self.streaming_monitoring.stop()
         await self.streaming_auth.cancel()
         self.closed = True
         return {

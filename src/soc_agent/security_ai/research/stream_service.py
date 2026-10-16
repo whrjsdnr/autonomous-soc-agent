@@ -22,7 +22,7 @@ from soc_agent.security_ai.operational.network_capture.stream_session import (
 from soc_agent.security_ai.operational.network_capture.stream_transport import StreamingCapture
 from soc_agent.security_ai.operational.network_capture.streaming_flow import StreamingFlows
 from soc_agent.security_ai.research.adapter import ResearchAdapter
-from soc_agent.security_ai.research.live_input import lifecycle_eligible
+from soc_agent.security_ai.research.live_input import lifecycle_eligible, timestamp_ns
 from soc_agent.security_ai.research.live_service import LiveResearch
 from soc_agent.security_ai.research.models import digest
 from soc_agent.security_ai.research.stream_store import StreamStore
@@ -88,6 +88,8 @@ class StreamingMonitoring:
         self.cpu_start = 0
         self.windows = {}
         self.current = None
+        self.stop_sent = False
+        self.failure_context = None
 
     def _release_lock(self):
         if getattr(self, "writer_lock", None) is not None:
@@ -147,6 +149,8 @@ class StreamingMonitoring:
         self.profiles = profiles
         self.aborted = self.stop_requested = False
         self.last_error = None
+        self.stop_sent = False
+        self.failure_context = None
         self.done = asyncio.Event()
         self.current = None
         self.aggregator = StreamingFlows(
@@ -242,6 +246,11 @@ class StreamingMonitoring:
                 if packet is not None:
                     await self.observe(packet, self.capture.last_seal[1])
                 elif self.capture.terminal is not None:
+                    # Reader may have enqueued PACKETs and CLOSED after receive()
+                    # returned an empty queue. Drain that prefix before validating
+                    # completion; CLOSED alone is not a persistence acknowledgement.
+                    if not self.capture.packets.empty():
+                        continue
                     if not self.capture.completion_verified():
                         raise ValueError("STREAM_CAPTURE_COMPLETION_UNVERIFIED")
                     break
@@ -261,7 +270,10 @@ class StreamingMonitoring:
             self.done.set()
             self._release_lock()
             if self.capture is not None:
-                await asyncio.to_thread(self.capture.close)
+                await asyncio.to_thread(
+                    self.capture.close,
+                    reason="STREAM_COMPLETED" if self.state == "STOPPED" else "STREAM_TASK_EXIT",
+                )
 
     async def observe(self, packet, counter_sequence):
         if self.aborted:
@@ -274,7 +286,17 @@ class StreamingMonitoring:
             raise ValueError("STREAM_SOURCE_ORIGIN_MISMATCH")
         self.sequence += 1
         identity = uuid5(self.session.session_id, str(self.sequence))
-        completed = self.aggregator.add(packet, identity)
+        try:
+            completed = self.aggregator.add(packet, identity)
+        except ValueError as error:
+            if str(error) == "STREAM_TIME_REVERSED":
+                # Time evidence only, no addresses, payload, correction or reordering.
+                self.failure_context = dict(
+                    packet_sequence=self.sequence,
+                    previous_event_ns=self.aggregator.last_ns,
+                    rejected_event_ns=timestamp_ns(packet),
+                )
+            raise
         self.metrics["packets_collected"] += 1
         for item in completed:
             self.flow_count += 1
@@ -402,6 +424,8 @@ class StreamingMonitoring:
         if disk > self.policy.disk_bytes:
             raise ValueError("STREAM_DISK_RETENTION_LIMIT")
         self.metrics.update(
+            last_error=self.last_error,
+            collection_state=self.state,
             flow_records=self.flow_count,
             eligible_flows=self.eligible,
             rejected_flows=self.excluded,
@@ -447,7 +471,6 @@ class StreamingMonitoring:
         if self.aborted:
             return
         self.metrics["finalization"] = "VERIFIED" if not self.last_error else "PARTIAL"
-        await self.publish(force=True)
         self.store.runtime.event(
             "STREAM_STOPPED",
             dict(
@@ -459,6 +482,7 @@ class StreamingMonitoring:
         self.windows.clear()
         await self.demo.stop()
         self.state = "STOPPED"
+        await self.publish(force=True)
 
     async def _failure(self, error, *, from_consumer=False):
         self.aborted = True
@@ -474,7 +498,19 @@ class StreamingMonitoring:
         self.windows.clear()
         self.done.set()
         if self.capture is not None:
-            await asyncio.to_thread(self.capture.close)
+            self.metrics.update(self.capture.extra_metrics())
+            self.metrics["unprocessed_packets_at_abort"] = self.capture.packets.qsize()
+            self.metrics["closed_status"] = (
+                "VERIFIED" if self.capture.terminal is not None else "MISSING_OR_REJECTED"
+            )
+            self.metrics["final_counter_status"] = (
+                self.capture.terminal.counter_status
+                if self.capture.terminal is not None
+                else "UNKNOWN"
+            )
+            await asyncio.to_thread(
+                self.capture.close, reason="CONTROLLER_ABORT:" + self.last_error
+            )
         await self.demo.stop()
         if (
             not from_consumer
@@ -485,12 +521,29 @@ class StreamingMonitoring:
             await asyncio.gather(self.consumer, return_exceptions=True)
         self.store.runtime.event(
             "STREAM_ABORTED",
-            dict(error=self.last_error, active_metadata_released=True, automatic_retry=False),
+            dict(
+                error=self.last_error,
+                active_metadata_released=True,
+                automatic_retry=False,
+                time_context=self.failure_context,
+            ),
         )
         try:
             self.store.recover_no_retry()
         except (ValueError, OSError, StorageError):
             self.last_error = "STREAM_RECOVERY_REVIEW_REQUIRED"
+        # Persist the terminal failure, not the last periodic RUNNING sample.
+        # Do not call publish(): the failure itself may be a resource budget breach.
+        self.metrics.update(
+            last_error=self.last_error,
+            collection_state=self.state,
+            active_flows=0,
+            retained_metadata_bytes=0,
+            queue_backlog=sum(
+                v for k, v in self.store.queue.counts().items() if k in ("PENDING", "CLAIMED")
+            ),
+        )
+        await asyncio.to_thread(self.store.runtime.update, network=dict(self.metrics))
 
     async def stop(self, *, abort=False):
         self.stop_requested = True
@@ -505,10 +558,22 @@ class StreamingMonitoring:
                 self.state = "STOPPED"
                 self.last_error = None
                 self.metrics["finalization"] = "CANCELLED_NOT_CAPTURE_VERIFIED"
+                self.metrics.update(last_error=None, collection_state=self.state)
                 self.store.runtime.event(
                     "STREAM_PREPARATION_CANCELLED", {"capture_verified": False}
                 )
+                await asyncio.to_thread(self.store.runtime.update, network=dict(self.metrics))
         else:
+            if not self.fixture and not self.stop_sent:
+                # Stop new capture promptly, even while observe() is awaiting SQLite.
+                # Keep the reader/channel open for CLOSED and already queued metadata.
+                self.stop_sent = True
+                try:
+                    self.capture.request_stop()
+                except (OSError, ValueError) as error:
+                    await self._failure(error)
+                else:
+                    self.store.runtime.event("STREAM_STOP_DRAIN_REQUESTED", {})
             try:
                 await asyncio.wait_for(asyncio.shield(self.task), self.policy.graceful_seconds + 3)
             except TimeoutError:
@@ -550,6 +615,15 @@ class StreamingMonitoring:
 
         runtime = RuntimeStore(self.directory / "runtime")
         with runtime.database.transaction(write=False) as c:
+            lifecycle = [
+                json.loads(r[0])
+                for r in c.execute(
+                    "SELECT payload FROM monitor_audit WHERE "
+                    "json_extract(payload,'$.kind') IN "
+                    "('STREAM_ABORTED','STREAM_STOPPED','STREAM_PREPARATION_CANCELLED') "
+                    "ORDER BY sequence"
+                )
+            ]
             started = [
                 json.loads(r[0])["details"]
                 for r in c.execute(
@@ -569,6 +643,14 @@ class StreamingMonitoring:
             await self.demo.start()
             await self.demo.stop()
         self.metrics = runtime.state().get("network", {})
+        # Older versions could leave the periodic RUNNING sample after an abort.
+        # Downgrade the retained view from verified audit; never restamp old DBs.
+        if lifecycle and lifecycle[-1]["kind"] == "STREAM_ABORTED":
+            self.metrics.update(
+                last_error=lifecycle[-1]["details"]["error"],
+                finalization="BLOCKED",
+                collection_state="ERROR",
+            )
         self.flow_count = self.metrics.get("flow_records", 0)
         self.eligible = self.metrics.get("eligible_flows", 0)
         self.excluded = self.metrics.get("rejected_flows", 0)
@@ -590,7 +672,7 @@ class StreamingMonitoring:
             restart_gap=True,
         )
         self.state = "RETAINED_STREAM_NOT_LIVE"
-        self.last_error = None
+        self.last_error = self.metrics.get("last_error")
         return self.snapshot()
 
     def snapshot(self):

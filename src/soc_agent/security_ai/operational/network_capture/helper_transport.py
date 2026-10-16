@@ -476,8 +476,9 @@ class HelperCapture:
                     }
                     else "HELPER_UNCLEAN_SHUTDOWN"
                 )
-            self.terminal = message
             write_private(self.directory / "verified-closed.json", message.model_dump(mode="json"))
+            # Publish terminal readiness only after the evidence write succeeds.
+            self.terminal = message
             self.alive = False
             if self.stop and self.reader_thread is None:
                 self.stop.set()

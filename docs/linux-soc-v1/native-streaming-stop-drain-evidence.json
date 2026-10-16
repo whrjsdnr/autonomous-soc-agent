@@ -1,0 +1,212 @@
+{
+  "contract": "soc-native-streaming-stop-drain-diagnostic:v1",
+  "baseline_head": "0ee341b2ef19d08b3fd0e7ec868848f69e3e08d0",
+  "session_directory_name": "session-57b97b62b6124766a211e6c712aac9fd",
+  "protocol_session_id": "10f7c294-c6d7-48ea-8695-156fc8ee9f33",
+  "session_digest": "59d90bc64770b38e05e543cdd423cf4df4c9265a18d4bd93b0fb1d94c1b56c27",
+  "helper_sha256": "1cc1c1f39007d1e8f53207dcd5f79f2128b12ea8077d5d09fcb6a72c5d037c84",
+  "helper_exit": {
+    "value": 0,
+    "source": "USER_REPORTED",
+    "independent_process_exit_record": "MISSING"
+  },
+  "ready": {
+    "counter_sequence": 1,
+    "counter_status": "COUNTER_VERIFIED",
+    "kernel_packets_total": 0,
+    "capture_drops_total": 0,
+    "capabilities": {
+      "euid": 1000,
+      "egid": 1000,
+      "CapEff": 0,
+      "CapPrm": 0,
+      "CapInh": 0,
+      "CapAmb": 0,
+      "CapBnd": 8192,
+      "NoNewPrivs": 1
+    }
+  },
+  "closed": "MISSING",
+  "closed_failure_stage": "UNKNOWN",
+  "transport": {
+    "queued_packets": 4,
+    "delivered_packets": 248,
+    "reason": "EXPLICIT_STOP_BEFORE_PERSISTENCE"
+  },
+  "last_persisted_network_metrics": {
+    "packets_collected": 202,
+    "flow_records": 0,
+    "queue_backlog": 0,
+    "gap_count": 0,
+    "capture_drops": 0,
+    "finalization": "RUNNING",
+    "input_origin": "NATIVE_AF_PACKET",
+    "inference_count": 0,
+    "advisory_latency_seconds": null,
+    "eligible_flows": 0,
+    "rejected_flows": 0,
+    "active_flows": 4,
+    "retained_metadata_bytes": 126158,
+    "peak_metadata_bytes": 126158,
+    "capture_uptime_seconds": 5.028746926000167,
+    "packets_per_second": 40.16905264323363,
+    "flows_per_minute": 0.0,
+    "eligible_flows_per_minute": 0.0,
+    "inferences_per_minute": 0.0,
+    "runtime_rss_bytes": 298905600,
+    "runtime_cpu_seconds": 1.6016651890000002,
+    "disk_bytes": 1587515,
+    "helper_rss_peak_bytes": 196157440,
+    "helper_cpu_seconds": 3.737282,
+    "received_frames": 404,
+    "metadata_packets": 202,
+    "counter_sequence": 418,
+    "capture_counter_issue": null,
+    "transport_reader_running": true,
+    "transport_error": null,
+    "transport_queue_depth": 0,
+    "transport_queue_capacity": 512,
+    "transport_queue_high_water": 12,
+    "transport_delivered_packets": 202,
+    "transport_final_counter_verified": false,
+    "dns_queries": 0,
+    "dns_responses": 0,
+    "dns_parse_failures": 0,
+    "dns_collection": "HEADERS_ONLY_NO_FQDN",
+    "dns_operational_inference": "BLOCKED",
+    "dns9_producer_parity": "UNVERIFIED",
+    "kernel_packets_total": 404,
+    "counter_status": "COUNTER_VERIFIED"
+  },
+  "runtime_audit": {
+    "entries": 6,
+    "digest": "6008709e248e319f5e9b5abf745de9fc84a819a5c0369c1406548467c24e39b2",
+    "integrity": "VERIFIED",
+    "abort_error": "STREAM_TIME_REVERSED"
+  },
+  "sqlite": {
+    "runtime/monitor.sqlite": {
+      "integrity": "ok",
+      "monitor_audit": 6,
+      "audit_digest": "6008709e248e319f5e9b5abf745de9fc84a819a5c0369c1406548467c24e39b2"
+    },
+    "runtime/collection-audit.sqlite": {
+      "integrity": "ok"
+    },
+    "runtime/network/sources.sqlite": {
+      "integrity": "ok",
+      "operational_sources": 0
+    },
+    "runtime/network/queue.sqlite": {
+      "integrity": "ok",
+      "realtime_events": 0
+    },
+    "runtime/sources.sqlite": {
+      "integrity": "ok",
+      "operational_sources": 0
+    },
+    "runtime/queue.sqlite": {
+      "integrity": "ok",
+      "realtime_events": 0
+    },
+    "network-research/soc/external-validation.sqlite": {
+      "integrity": "ok",
+      "external_security_audit": 0,
+      "workflow_checkpoints": 0,
+      "workflow_trace": 0
+    }
+  },
+  "collection_audit_table_counts": {
+    "metadata": 1,
+    "incidents": 0,
+    "snapshots": 0,
+    "decisions": 0,
+    "review_requests": 0,
+    "reviews": 0,
+    "requests": 0,
+    "authorizations": 0,
+    "applications": 0,
+    "audit_events": 0,
+    "sqlite_sequence": 0,
+    "auth_maintenance_config": 1,
+    "auth_maintenance_events": 0
+  },
+  "quality_receipts": 0,
+  "edge_receipts": 0,
+  "investigation_checkpoints": 0,
+  "final_helper_elapsed_seconds": "UNKNOWN",
+  "final_kernel_packets": "UNKNOWN",
+  "final_capture_drops": "UNKNOWN",
+  "operational_gate": "BLOCKED",
+  "new_capture": false,
+  "sensitive_raw_data_included": false,
+  "evidence_sha256": {
+    "verified-ready.json": "5a7382f1ae33ddf96cee7dc86bd4329458c86d01efb2abfd2edd4d3fa432b3d9",
+    "transport-unprocessed.json": "a502a2870d1d574d5fe901119cb65c5e755892fdb9d7978ea34498fdd7551a72",
+    "session.json": "300b56103e3206b19ae67639770195ca10c2e11f4fd471509a7a60e43818e689",
+    "helper.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "network-research/replay.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/sources.sqlite": "68b4b43d84cf8c30b62698f8b16ac7ead8b5d4a55752debd60f57aa4128fa3f8",
+    "runtime/monitor.sqlite": "cb01ca7f32d6c93fdd3707000a3db7a3ddf9cb810feb58a8f1bd3677eb70264a",
+    "runtime/writer.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/queue.sqlite": "7173de46913382dd5d0e2e9e47de89b38ea5e8e5f736638f0dd45a8967bfd15d",
+    "runtime/collection-audit.sqlite": "0db16685ab88e180f46b746b8d87b2fc8e02b9b70d0cb3462e8b0504ba2d6dd3",
+    "network-research/soc/external-validation.sqlite": "9e93752bebef8af55016832342fd835fea3d1e0b645c55044d8f88c0c47bab21",
+    "runtime/network/sources.sqlite": "3e95935d9493224e6ecf2d5f5722d2d11aa0659fa70030bac23e27edb8d0ca09",
+    "runtime/network/config.json": "fbe1958500c338827d63cf3afdf1c8a011874601f10d08d393468c859c54530d",
+    "runtime/network/queue.sqlite": "7e07910406abb8dc999f1d3c0a478760e054681eaeeef370f39fc00d37c6d0b1"
+  },
+  "user_reports_manual_stop": false,
+  "code_sha256": {
+    "src/soc_agent/gui/backend.py": "cdbb4740d368c24b08eb01dfbfc8be4862b4e7d42628ebdd4c76552ad0d43f01",
+    "src/soc_agent/security_ai/operational/network_capture/helper_transport.py": "4b7f806b8429dd9c8d1b3fd4ad5d19055aae37311aa20ff58514a2245aec5e66",
+    "src/soc_agent/security_ai/research/stream_service.py": "7e9928e70c2c12e1a126eb55d829795d7ea6a8e6c9fa6d7ad4f1577a6308698a",
+    "tests/unit/streaming_network/test_helper.py": "b1d45eb284c98c28d77b4a7fe0553dca6acfd0a752da20925ae6f82e93c06ba1",
+    "tests/integration/streaming_network/test_shutdown.py": "8e52039ed20ffe2f179e4fc43148b0153ed6a48629f32978d4f0716bfb51453f"
+  },
+  "validation": {
+    "new_capture": false,
+    "privileged_execution": false,
+    "operational_promotion": false,
+    "original_regression": {
+      "passed": 2,
+      "failed": 2
+    },
+    "deterministic_race_before_fix": {
+      "failed": 1
+    },
+    "initial_extended_targeted": {
+      "passed": 24,
+      "failed": 0
+    },
+    "final_shutdown": {
+      "passed": 15,
+      "failed": 0,
+      "seconds": 15.15
+    },
+    "workspace_broader": {
+      "passed": 312,
+      "failed": 1,
+      "skipped": 1,
+      "seconds": 199.32,
+      "failure": "Authentication 1.5-second lifecycle timing assertion; unresolved intermittent failure"
+    },
+    "wslg": {
+      "passed": 2,
+      "failed": 0,
+      "seconds": 41.26
+    },
+    "clean_baseline_auth_isolated": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 3.26
+    },
+    "independent_export": {
+      "passed": 317,
+      "failed": 0,
+      "skipped": 1,
+      "seconds": 233.81
+    },
+    "coverage_is_overlapping": true
+  }
+}
