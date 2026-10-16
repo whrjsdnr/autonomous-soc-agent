@@ -2,6 +2,8 @@
 
 import hashlib
 import os
+import queue
+import select
 import socket
 import struct
 import threading
@@ -142,6 +144,105 @@ class HelperCapture:
         self.counter_sequence = 0
         self.counter_totals = [0, 0]
         self.counter_issue = None
+        self.reader_thread: threading.Thread | None = None
+        self.reader_error: str | None = None
+        # At most 512 metadata records (4 MiB encoded upper bound), tied to the
+        # already approved frame budget. This is not a second persistent queue.
+        self.packets: queue.Queue[PacketObservation] = queue.Queue(maxsize=session.max_packets)
+        self.reader_lock = threading.RLock()
+        self.queue_high_water = 0
+        self.delivered = 0
+        self.records_read = 0
+
+    def start_reader(self):
+        """One bounded metadata reader, independent of SQLite/model/event-loop work."""
+        with self.reader_lock:
+            if (
+                self.reader_thread is not None
+                or self.closed.is_set()
+                or self.ready is None
+                or self.channel is None
+            ):
+                raise CaptureUnavailable("HELPER_READER_START_INVALID")
+            self.reader_thread = threading.Thread(
+                target=self._read_loop, name="soc-live-metadata-reader", daemon=True
+            )
+            try:
+                self.reader_thread.start()
+            except RuntimeError:
+                self.reader_thread = None
+                self.reader_error = "HELPER_READER_START_FAILED"
+                raise CaptureUnavailable(self.reader_error) from None
+
+    def _read_loop(self):
+        try:
+            while not self.closed.is_set():
+                if time.monotonic() - self.last_heartbeat > 2:
+                    raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
+                readable, _, _ = select.select([self.channel], [], [], 0.05)
+                if not readable:
+                    continue
+                with self.reader_lock:
+                    try:
+                        message = self.message()
+                    except BlockingIOError:
+                        continue
+                    self.records_read += 1
+                    packet = self._receive_record(message)
+                    if packet is not None:
+                        try:
+                            self.packets.put_nowait(packet)
+                        except queue.Full:
+                            raise CaptureUnavailable("HELPER_TRANSPORT_BACKPRESSURE") from None
+                        self.queue_high_water = max(self.queue_high_water, self.packets.qsize())
+                    if self.terminal is not None:
+                        return
+        except (OSError, ValueError, RuntimeError, TypeError) as error:
+            if not self.closed.is_set():
+                code = (
+                    str(error) if isinstance(error, CaptureUnavailable) else "HELPER_READER_FAILED"
+                )
+                with self.reader_lock:
+                    self.reader_error = code
+                    self.alive = False
+                    try:
+                        write_private(
+                            self.directory / "transport-failure.json",
+                            {
+                                "error": code,
+                                "queue_depth": self.packets.qsize(),
+                                "queue_capacity": self.packets.maxsize,
+                                "queue_high_water": self.queue_high_water,
+                                "records_read": self.records_read,
+                                "delivered_packets": self.delivered,
+                                "last_packet_sequence": self.sequence,
+                                "last_counter_sequence": self.counter_sequence,
+                                "counter_issue": self.counter_issue,
+                                "unadmitted_packets": self.sequence
+                                - self.delivered
+                                - self.packets.qsize(),
+                            },
+                        )
+                    except (OSError, ValueError):
+                        self.reader_error = "HELPER_TRANSPORT_DIAGNOSTIC_WRITE_FAILED"
+                    finally:
+                        # Disconnect is a bounded helper stop condition. No retry/reconnect.
+                        try:
+                            self.channel.shutdown(socket.SHUT_RDWR)
+                        except OSError:
+                            pass
+
+    def reader_failed(self):
+        with self.reader_lock:
+            if (
+                self.reader_thread is not None
+                and not self.reader_thread.is_alive()
+                and self.terminal is None
+                and not self.closed.is_set()
+            ):
+                self.reader_error = self.reader_error or "HELPER_READER_EXITED_UNEXPECTEDLY"
+                self.alive = False
+            return self.reader_error is not None
 
     def accept_counters(self, message):
         """Validate each kernel reset interval exactly once before exposing deltas."""
@@ -260,10 +361,26 @@ class HelperCapture:
         return value
 
     def open(self):
-        if not self.alive or self.ready is None:
+        if self.reader_failed():
+            raise CaptureUnavailable(self.reader_error)
+        if self.ready is None or (not self.alive and self.terminal is None):
             raise CaptureUnavailable("HELPER_VERIFIED_READY_REQUIRED")
 
     def receive(self):
+        if self.closed.is_set():
+            return None
+        if self.reader_thread is not None:
+            with self.reader_lock:
+                if self.reader_failed():
+                    raise CaptureUnavailable(self.reader_error)
+                try:
+                    packet = self.packets.get_nowait()
+                except queue.Empty:
+                    if self.terminal is not None and self.stop:
+                        self.stop.set()
+                    return None
+                self.delivered += 1
+                return packet
         if not self.alive:
             return None
         # Control records are not an empty input queue. Drain a bounded number
@@ -309,17 +426,33 @@ class HelperCapture:
         }
         if message.kind == "CLOSED":
             if message.error or message.capabilities != self.ready.capabilities:
-                raise CaptureUnavailable("HELPER_UNCLEAN_SHUTDOWN")
+                raise CaptureUnavailable(
+                    message.error
+                    if message.error
+                    in {
+                        "HELPER_TRANSPORT_TIMEOUT",
+                        "HELPER_WATCHDOG_EXPIRED",
+                    }
+                    else "HELPER_UNCLEAN_SHUTDOWN"
+                )
             self.terminal = message
             write_private(self.directory / "verified-closed.json", message.model_dump(mode="json"))
             self.alive = False
-            if self.stop:
+            if self.stop and self.reader_thread is None:
                 self.stop.set()
         return None
 
     def statistics(self):
+        with self.reader_lock:
+            if self.reader_failed():
+                raise CaptureUnavailable(self.reader_error)
+            return self._statistics()
+
+    def _statistics(self):
         if self.counter_issue:
             raise CaptureUnavailable(self.counter_issue["error"])
+        if self.closed.is_set() and self.terminal is None:
+            raise CaptureUnavailable("HELPER_FINAL_COUNTERS_MISSING")
         if self.last_heartbeat is None or (
             self.alive and time.monotonic() - self.last_heartbeat > 2
         ):
@@ -330,7 +463,8 @@ class HelperCapture:
     def is_live(self):
         try:
             return bool(
-                self.alive
+                not self.reader_failed()
+                and self.alive
                 and self.ready
                 and self.last_heartbeat
                 and time.monotonic() - self.last_heartbeat <= 2
@@ -342,11 +476,21 @@ class HelperCapture:
             return False
 
     def extra_metrics(self):
-        return {
-            **self.usage,
-            "counter_sequence": self.counter_sequence,
-            "capture_counter_issue": self.counter_issue,
-        }
+        with self.reader_lock:
+            return {
+                **self.usage,
+                "counter_sequence": self.counter_sequence,
+                "capture_counter_issue": self.counter_issue,
+                "transport_reader_running": bool(
+                    self.reader_thread and self.reader_thread.is_alive()
+                ),
+                "transport_error": self.reader_error,
+                "transport_queue_depth": self.packets.qsize(),
+                "transport_queue_capacity": self.packets.maxsize,
+                "transport_queue_high_water": self.queue_high_water,
+                "transport_delivered_packets": self.delivered,
+                "transport_final_counter_verified": self.terminal is not None,
+            }
 
     def close(self):
         with self.transport_lock:
@@ -360,3 +504,21 @@ class HelperCapture:
                     pass  # Disconnect is itself a stop condition for the bounded helper.
                 self.channel.close()
             self.listener.close()
+        if self.reader_thread is not None:
+            self.reader_thread.join(2)
+            if self.reader_thread.is_alive():
+                raise CaptureUnavailable("HELPER_READER_SHUTDOWN_UNCERTAIN")
+        with self.transport_lock:
+            if self.packets.empty():
+                return
+            # Unpersisted metadata is explicitly accounted for, never called delivered.
+            path = self.directory / "transport-unprocessed.json"
+            if not path.exists():
+                write_private(
+                    path,
+                    {
+                        "queued_packets": self.packets.qsize(),
+                        "delivered_packets": self.delivered,
+                        "reason": self.reader_error or "EXPLICIT_STOP_BEFORE_PERSISTENCE",
+                    },
+                )

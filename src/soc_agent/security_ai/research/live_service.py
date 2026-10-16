@@ -236,6 +236,8 @@ class LiveMonitoring:
             self.capture is None
             or self.capture.ready is None
             or self.capture.counter_issue is not None
+            or self.capture.reader_failed()
+            or (self.capture.closed.is_set() and self.capture.terminal is None)
             or self.monitor is None
             or request.capture_session != self.session.session_id
             or self.monitor.metrics["last_error"]
@@ -302,6 +304,8 @@ class LiveMonitoring:
             # Own and join the thread-backed accept, even when the parent is cancelled.
             self.handshake_task = asyncio.create_task(asyncio.to_thread(self.capture.handshake))
             await asyncio.shield(self.handshake_task)
+            # Start reading before synchronous Runtime/SQLite initialization.
+            self.capture.start_reader()
             self.state = "LIVE_COLLECTION"
             runtime = self.directory / "runtime"
             with exclusive_runtime_lock(runtime / "writer.lock"):
@@ -353,28 +357,36 @@ class LiveMonitoring:
                     self.last_error = "LIVE_LISTENER_CLOSED_STOP_AND_PREPARE_NEW_SESSION"
             if self.capture.counter_issue:
                 self.last_error = self.capture.counter_issue["error"]
+                if self.capture.counter_issue.get("helper_error") == "HELPER_TRANSPORT_TIMEOUT":
+                    self.last_error = "HELPER_TRANSPORT_TIMEOUT_COUNTER_INTEGRITY_FAILED"
+            elif self.capture.reader_error:
+                self.last_error = self.capture.reader_error
             self.state = "ERROR"
         finally:
-            self.capture.close()
-            if self.handshake_task is not None:
-                await asyncio.gather(self.handshake_task, return_exceptions=True)
-            await self.demo.stop()
-            if consumer is not None and not consumer.done():
-                consumer.cancel()
-                await asyncio.gather(consumer, return_exceptions=True)
+            try:
+                self.capture.close()
+            finally:
+                if self.handshake_task is not None:
+                    await asyncio.gather(self.handshake_task, return_exceptions=True)
+                await self.demo.stop()
+                if consumer is not None and not consumer.done():
+                    consumer.cancel()
+                    await asyncio.gather(consumer, return_exceptions=True)
 
     async def stop(self):
         self.start_cancelled = True
         self.collection_done.set()
-        if self.capture is not None:
-            self.capture.close()
-        if self.monitor is not None:
-            self.monitor.stopped.set()
-        if self.demo is not None:
-            await self.demo.stop()
-        if self.task is not None and not self.task.done():
-            self.task.cancel()
-            await asyncio.gather(self.task, return_exceptions=True)
+        try:
+            if self.capture is not None:
+                self.capture.close()
+        finally:
+            if self.monitor is not None:
+                self.monitor.stopped.set()
+            if self.demo is not None:
+                await self.demo.stop()
+            if self.task is not None and not self.task.done():
+                self.task.cancel()
+                await asyncio.gather(self.task, return_exceptions=True)
         self.state = "STOPPED"
         return await asyncio.to_thread(self.snapshot)
 
@@ -388,7 +400,10 @@ class LiveMonitoring:
                 and self.state == "AUTHENTICATION_REQUIRED"
             )
             state = self.state
-            last_error = self.last_error
+            last_error = self.last_error or (self.capture.reader_error if self.capture else None)
+            if self.capture is not None and self.capture.reader_failed():
+                state = "ERROR"
+                last_error = last_error or self.capture.reader_error
             if state == "AUTHENTICATION_REQUIRED" and not listener_ready:
                 if (
                     self.capture is not None
@@ -399,6 +414,12 @@ class LiveMonitoring:
                 else:
                     state = "ERROR"
                     last_error = "LIVE_LISTENER_CLOSED_STOP_AND_PREPARE_NEW_SESSION"
+            if (
+                state == "LIVE_COLLECTION"
+                and self.capture is not None
+                and self.capture.terminal is not None
+            ):
+                state = "COLLECTION_STOPPED_RESEARCH_DRAINING"
             live = bool(
                 self.capture is not None
                 and self.capture.is_live()
