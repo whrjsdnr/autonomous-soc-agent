@@ -25,7 +25,12 @@ from soc_agent.security_ai.operational.network_capture.capture import (
     PacketCapture,
     interface_identity,
 )
-from soc_agent.security_ai.operational.network_capture.models import CaptureConfig, model_gates
+from soc_agent.security_ai.operational.network_capture.models import (
+    CaptureConfig,
+    FlowSummary,
+    PacketObservation,
+    model_gates,
+)
 from soc_agent.security_ai.operational.network_capture.parsing import PacketRejected, parse_packet
 from soc_agent.security_ai.operational.network_capture.pipeline import NetworkPipeline
 from soc_agent.security_ai.operational.source_store import OperationalSourceStore
@@ -91,7 +96,15 @@ def configuration(directory: Path, store: RuntimeStore):
 
 
 class NetworkMonitor:
-    def __init__(self, directory: Path, store: RuntimeStore, *, capture=None):
+    def __init__(
+        self,
+        directory: Path,
+        store: RuntimeStore,
+        *,
+        capture=None,
+        flow_handler=None,
+        generation=None,
+    ):
         self.directory, self.store = directory, store
         saved = configuration(directory, store)
         if saved is None:
@@ -113,7 +126,8 @@ class NetworkMonitor:
             self.identity,
             store,
         )
-        self.generation = str(uuid4())
+        self.generation = generation or str(uuid4())
+        self.flow_handler = flow_handler
         self.sequence = 0
         self.stopped = asyncio.Event()
         self.metrics = {
@@ -148,10 +162,21 @@ class NetworkMonitor:
         self.samples = deque([(self.since, 0, 0, 0)], maxlen=601)
         self._publish()
 
+    def _step(self):
+        state = self.pipeline.step()
+        item = self.pipeline.last_committed
+        if self.flow_handler is not None and item is not None:
+            event, record, receipt = item
+            if isinstance(record, FlowSummary) and event.source.generation == self.generation:
+                self.flow_handler(event, record, receipt)
+        return state
+
     def _publish(self):
         usage = resource.getrusage(resource.RUSAGE_SELF)
         self.metrics["runtime_rss_peak_bytes"] = usage.ru_maxrss * 1024
         self.metrics["runtime_cpu_seconds"] = usage.ru_utime + usage.ru_stime
+        if hasattr(self.capture, "extra_metrics"):
+            self.metrics.update(self.capture.extra_metrics())
         self.metrics["flow_records"] = self.pipeline.generated_flows
         self.metrics["measured_at"] = utc_now().isoformat()
         counts = self.pipeline.queue.counts()
@@ -200,14 +225,14 @@ class NetworkMonitor:
                 },
             )
             for _ in range(256):
-                if self.pipeline.step() == "IDLE":
+                if self._step() == "IDLE":
                     break
             self.capture.open()
             opened = True
             self.metrics.update(state="RUNNING", readiness="COLLECTING_DIAGNOSTIC_ONLY")
             while not self.stopped.is_set():
                 for _ in range(64):
-                    if self.pipeline.step() == "IDLE":
+                    if self._step() == "IDLE":
                         break
                 for _ in range(self.config.packet_batch):
                     if self.stopped.is_set():
@@ -220,17 +245,25 @@ class NetworkMonitor:
                         break
                     self.metrics["packets_collected"] += 1
                     self.sequence += 1
-                    frame, stamp, direction, *native_time = value
                     try:
-                        packet = parse_packet(
-                            frame,
-                            interface_id=self.identity,
-                            timestamp=stamp,
-                            direction=direction,
-                            native=self.config.origin == "NATIVE_AF_PACKET",
-                            retain_name=self.config.retain_query_names,
-                            capture_timestamp_ns=native_time[0] if native_time else None,
-                        )
+                        if isinstance(value, PacketObservation):
+                            packet = PacketObservation.model_validate(value.model_dump())
+                            if (
+                                packet.interface_id != self.identity
+                                or self.config.origin != "NATIVE_AF_PACKET"
+                            ):
+                                raise CaptureUnavailable("HELPER_METADATA_SOURCE_MISMATCH")
+                        else:
+                            frame, stamp, direction, *native_time = value
+                            packet = parse_packet(
+                                frame,
+                                interface_id=self.identity,
+                                timestamp=stamp,
+                                direction=direction,
+                                native=self.config.origin == "NATIVE_AF_PACKET",
+                                retain_name=self.config.retain_query_names,
+                                capture_timestamp_ns=native_time[0] if native_time else None,
+                            )
                     except PacketRejected:
                         self.metrics["packets_rejected"] += 1
                         continue
@@ -242,7 +275,7 @@ class NetworkMonitor:
                         self.metrics["dns_parse_failures"] += 1
                 self.pipeline.flush(utc_now())
                 for _ in range(64):
-                    if self.pipeline.step() == "IDLE":
+                    if self._step() == "IDLE":
                         break
                 self._sample()
                 self._publish()
@@ -264,7 +297,7 @@ class NetworkMonitor:
             if opened and self.metrics["state"] == "RUNNING":
                 try:
                     self.pipeline.flush(utc_now(), "SHUTDOWN")
-                    while self.pipeline.step() != "IDLE":
+                    while self._step() != "IDLE":
                         pass
                     self.metrics.update(state="STOPPED", readiness="NOT_READY")
                 except (ValueError, OSError, StorageError, sqlite3.Error):

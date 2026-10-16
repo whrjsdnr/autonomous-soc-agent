@@ -1,0 +1,195 @@
+{
+  "run_id": "4ca0143b-4f6d-42d5-b34c-4193f49d4f97",
+  "input": "SYNTHETIC_AF_PACKET_SHAPED_FIXTURE_NOT_LIVE",
+  "capture_executed": false,
+  "network_traffic_generated": false,
+  "ipc": "AF_UNIX_ONLY",
+  "python": "3.12.14",
+  "kernel": "6.18.33.2-microsoft-standard-WSL2",
+  "fixture_frame_sha256": "b5f6a1a3850e2a6fec4817b01988f6a842c68c92ac498ebc236091533f9fae72",
+  "packet_count": 16,
+  "rounds": 3,
+  "packet_batch": 16,
+  "control_batch": 64,
+  "monitor_idle_sleep_seconds": 0.1,
+  "stages": {
+    "mock_single_recvmsg": {
+      "median_us": 2.196379,
+      "rounds_us": [
+        2.196379,
+        2.28777,
+        2.1080360000000002
+      ],
+      "iterations_per_round": 1000
+    },
+    "mock_statistics_reset_read": {
+      "median_us": 0.157478,
+      "rounds_us": [
+        0.177073,
+        0.157478,
+        0.157018
+      ],
+      "iterations_per_round": 1000
+    },
+    "parse_80_byte_frame": {
+      "median_us": 17.155335,
+      "rounds_us": [
+        17.140841,
+        18.556388,
+        17.155335
+      ],
+      "iterations_per_round": 1000
+    },
+    "json_serialize_packet": {
+      "median_us": 12.234952999999999,
+      "rounds_us": [
+        12.234952999999999,
+        14.292851,
+        11.841083000000001
+      ],
+      "iterations_per_round": 1000
+    },
+    "message_validate_json": {
+      "median_us": 14.477563,
+      "rounds_us": [
+        17.721688999999998,
+        14.477563,
+        10.039927
+      ],
+      "iterations_per_round": 1000
+    },
+    "interface_identity_readonly": {
+      "median_us": 35.62655,
+      "rounds_us": [
+        39.30092,
+        33.83285,
+        35.62655
+      ],
+      "iterations_per_round": 100
+    },
+    "mock_batch_16_receives": {
+      "median_us": 33.28689,
+      "rounds_us": [
+        34.767019999999995,
+        33.28689,
+        32.297779999999996
+      ],
+      "iterations_per_round": 100
+    },
+    "unix_send_receive_roundtrip": {
+      "median_us": 1.7188510000000001,
+      "rounds_us": [
+        1.7188510000000001,
+        1.950501,
+        1.6715250000000001
+      ],
+      "iterations_per_round": 1000
+    },
+    "unix_backpressure": {
+      "queued_records_before_eagain": 93,
+      "payload_bytes": 1079,
+      "send_buffer_bytes": 212992,
+      "receive_buffer_bytes": 212992
+    },
+    "persistent_queue_backpressure": {
+      "seconds_for_two_commits_and_rejection": 0.016786428001068998,
+      "counts": {
+        "PENDING": 2
+      },
+      "overflow_rejected": true
+    }
+  },
+  "trials": [
+    {
+      "baseline": {
+        "seconds": 3.1878790319988184,
+        "cpu_seconds": 0.35737599499999995,
+        "packets": 16,
+        "packets_per_second": 5.019011022500408,
+        "message_reads": 33,
+        "queue": {
+          "DONE": 17
+        },
+        "kernel_packets": 16,
+        "capture_drops": 0,
+        "audit_verified": true
+      },
+      "candidate": {
+        "seconds": 1.7803495940006542,
+        "cpu_seconds": 0.37969404999999945,
+        "packets": 16,
+        "packets_per_second": 8.986998988241474,
+        "message_reads": 33,
+        "queue": {
+          "DONE": 17
+        },
+        "kernel_packets": 16,
+        "capture_drops": 0,
+        "audit_verified": true
+      }
+    },
+    {
+      "candidate": {
+        "seconds": 1.793057131999376,
+        "cpu_seconds": 0.3157301419999996,
+        "packets": 16,
+        "packets_per_second": 8.923307414169761,
+        "message_reads": 33,
+        "queue": {
+          "DONE": 17
+        },
+        "kernel_packets": 16,
+        "capture_drops": 0,
+        "audit_verified": true
+      },
+      "baseline": {
+        "seconds": 3.2301334800013137,
+        "cpu_seconds": 0.36621308399999997,
+        "packets": 16,
+        "packets_per_second": 4.95335567370841,
+        "message_reads": 33,
+        "queue": {
+          "DONE": 17
+        },
+        "kernel_packets": 16,
+        "capture_drops": 0,
+        "audit_verified": true
+      }
+    },
+    {
+      "baseline": {
+        "seconds": 3.490223679000337,
+        "cpu_seconds": 0.3523989269999994,
+        "packets": 16,
+        "packets_per_second": 4.584233410674323,
+        "message_reads": 33,
+        "queue": {
+          "DONE": 17
+        },
+        "kernel_packets": 16,
+        "capture_drops": 0,
+        "audit_verified": true
+      },
+      "candidate": {
+        "seconds": 1.924232817000302,
+        "cpu_seconds": 0.3296387280000008,
+        "packets": 16,
+        "packets_per_second": 8.31500214456507,
+        "message_reads": 33,
+        "queue": {
+          "DONE": 17
+        },
+        "kernel_packets": 16,
+        "capture_drops": 0,
+        "audit_verified": true
+      }
+    }
+  ],
+  "summary": {
+    "baseline_median_seconds": 3.2301334800013137,
+    "candidate_median_seconds": 1.793057131999376,
+    "fixture_speedup": 1.801467126928356,
+    "peak_rss_process_bytes": 206049280,
+    "rss_note": "Whole diagnostic process high-water mark, not per-variant helper memory"
+  }
+}

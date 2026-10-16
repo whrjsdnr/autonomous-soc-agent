@@ -40,6 +40,7 @@ class PacketCapture:
         self.config = config
         self.identity = interface_identity(config.interface)
         self.socket = None
+        self.statistics_error: str | None = None
 
     def open(self):
         if self.config.origin != "NATIVE_AF_PACKET":
@@ -96,14 +97,24 @@ class PacketCapture:
         return frame, stamp, direction, timestamp_ns
 
     def statistics(self) -> tuple[int, int] | None:
+        self.statistics_error = None
         if self.socket is None:
+            self.statistics_error = "SOCKET_NOT_OPEN"
             return None
         try:
             values = self.socket.getsockopt(
                 263, 6, 12
             )  # SOL_PACKET, PACKET_STATISTICS (resets on read)
-            return struct.unpack_from("II", values) if len(values) >= 8 else None
-        except OSError:
+            # tpacket_stats is 8 bytes; TPACKET_V3 adds a third uint32.
+            # Requesting 12 bytes does not require the kernel to return 12.
+            if len(values) not in (8, 12):
+                self.statistics_error = "INVALID_STATISTICS_LENGTH"
+                return None
+            return struct.unpack_from("=II", values)
+        except OSError as error:
+            self.statistics_error = "GETSOCKOPT_FAILED_ERRNO_" + (
+                str(error.errno) if error.errno is not None else "UNKNOWN"
+            )
             return None
 
     def close(self):

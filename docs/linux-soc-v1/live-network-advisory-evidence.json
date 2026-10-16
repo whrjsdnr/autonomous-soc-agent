@@ -1,0 +1,169 @@
+{
+  "run_id": "d3820c9a-4d83-4254-a452-764a9a23db01",
+  "validation_timestamp": "2026-10-16T03:21:11.588842+00:00",
+  "status": "IMPLEMENTED_BUT_NOT_LIVE_VERIFIED",
+  "soc_base_head": "df96d37d951e0fdf3ba047768aa024dbf353052a",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "fixture_model_receipts": [
+    {
+      "receipt_digest": "13f1a50f360a6ffda715d2ec07147148691a47f9c238d643a8b77d9978d136f4",
+      "invocation_id": "2add2c11-2ce6-4da3-8164-db1273ef2432",
+      "capture_session": "47c76d9b-39a1-4145-8861-89a8df25090f",
+      "profile": "edge",
+      "origin": "FIXTURE",
+      "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+      "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+      "feature_digest": "25cdf2bb0321b4480a0dcca3de734c5fa2e1989e39c1fe13d6ab261d2cae8a17",
+      "source_digest": "adefeb2d2fbe85a75ccfc0c5b0bec3424546ba40343b09c73480e534df47a929",
+      "provenance_digest": "2ed50cec7ccca1982cbbaffbda526307b76c3023a4382a84624c8d09692f4687",
+      "score": 0.08766025304794312,
+      "threshold": 0.8,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-16T03:18:31.559773Z",
+      "inference_latency_ms": 6.179627999699733,
+      "worker_peak_rss_bytes": 233000960,
+      "worker_cpu_seconds": 1.3373950000000001,
+      "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "provider_calls": 0
+    },
+    {
+      "receipt_digest": "1f60ad8ae6f4aa2bd7a206d8bea7a5d0cc71fdc9bbc7654db2d59dcad4a345aa",
+      "invocation_id": "ee93bd7d-e0dd-4dc8-835b-8ff7a22c8fb2",
+      "capture_session": "47c76d9b-39a1-4145-8861-89a8df25090f",
+      "profile": "quality",
+      "origin": "FIXTURE",
+      "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+      "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+      "feature_digest": "25cdf2bb0321b4480a0dcca3de734c5fa2e1989e39c1fe13d6ab261d2cae8a17",
+      "source_digest": "adefeb2d2fbe85a75ccfc0c5b0bec3424546ba40343b09c73480e534df47a929",
+      "provenance_digest": "2ed50cec7ccca1982cbbaffbda526307b76c3023a4382a84624c8d09692f4687",
+      "score": 0.140625,
+      "threshold": 0.35,
+      "prediction": "CLASS_0",
+      "inferred_at": "2026-10-16T03:18:29.610045Z",
+      "inference_latency_ms": 11.262505000559031,
+      "worker_peak_rss_bytes": 233779200,
+      "worker_cpu_seconds": 1.533383,
+      "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+      "investigation_status": "ASSESSED_READ_ONLY",
+      "checkpoint_restored": true,
+      "provider_calls": 0
+    }
+  ],
+  "actual_native_capture_runs": 0,
+  "privileged_helper_runs": 0,
+  "os_security_writes": 0,
+  "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+  "operational_input": "NOT_INFERABLE",
+  "write_policy": "WRITE_DENIED",
+  "producer_parity": "SYNTHETIC_WIRE_METADATA_AND_HAND_REFERENCE_PASS_PHYSICAL_CAPTURE_PENDING",
+  "helper_code_sha256": {
+    "live_helper.py": "9699cd29f14851287d03e8883ddc765c95a89e9e8169281b4be0b949bff4d87d",
+    "live_session.py": "f38463dbce234aa82f54807e64c513d31c5f56756be517197d814972c1489fe4",
+    "capture.py": "2585ffaeac0a0909d70cd18686d371639b64a293bf3ce2cb4345025c5e1ce5e1",
+    "permissions.py": "f45d5c76a9f880fa61be7af07350ac777a07dcc197100f431adf9911e2f7c5ea",
+    "parsing.py": "fe3d5db0c0d0bc30efddf74834ef06072a679b84661b4ffc4322b6bc0edc988a",
+    "models.py": "6c6d1e973f57ee0dbae253c972acf17ae3a864b32a75ccc83d78085bf5a3ff81"
+  },
+  "current_controller_privileges": {
+    "euid": 1000,
+    "egid": 1000,
+    "CapEff": 0,
+    "CapPrm": 0,
+    "CapInh": 0,
+    "CapAmb": 0,
+    "CapBnd": 2199023255551,
+    "NoNewPrivs": 0
+  },
+  "permission_delivery": "STATIC_REVIEW_ONLY_USER_EXECUTION_PENDING",
+  "test_results": [
+    {
+      "suite": "new live unit/integration",
+      "passed": 35,
+      "failed": 0,
+      "note": "Two actual model predictions on FIXTURE metadata, no capture"
+    },
+    {
+      "suite": "WSLg live screen",
+      "passed": 1,
+      "failed": 0,
+      "note": "Unprivileged observer prepared/stopped; no helper execution"
+    },
+    {
+      "suite": "Capture / Adapter / DNS / GUI / evidence regression",
+      "passed": 292,
+      "failed": 0,
+      "socket_attempts_blocked": 1
+    },
+    {
+      "suite": "Runtime / Governance / Self-improvement subset",
+      "passed": 183,
+      "failed": 1,
+      "reason": "Legacy test defaulted to deleted temporary native environment"
+    },
+    {
+      "suite": "Failed legacy native test with verified persistent environment",
+      "passed": 1,
+      "failed": 0
+    },
+    {
+      "suite": "Early new integration negative-test setup",
+      "passed": 4,
+      "failed": 1,
+      "resolution": "Adjusted frame length with IP length so the intended cached-source rejection was exercised; focused rerun passed."
+    },
+    {
+      "suite": "Early retained-session unit fixture",
+      "passed": 29,
+      "failed": 1,
+      "resolution": "Created the required private parent directory in the fixture; final focused suite passed."
+    },
+    {
+      "suite": "Final capture / nanosecond / live-unit regression",
+      "passed": 150,
+      "failed": 0,
+      "socket_attempts_blocked": 1
+    }
+  ],
+  "independent_export": {
+    "status": "SOURCE_AND_FIXTURE_VALIDATED",
+    "base_soc_head": "df96d37d951e0fdf3ba047768aa024dbf353052a",
+    "base_ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+    "excluded_existing_soc_files": 118,
+    "excluded_existing_ml_files": 10,
+    "model_binaries_copied": false,
+    "test_product_and_producer_imports": "EXPORTED_SOURCE",
+    "native_capture": "NOT_EXECUTED",
+    "initial_focused_result": "34 passed",
+    "final_focused_result": "36 passed"
+  },
+  "limitations": [
+    "lo only; 60 second watchdog, normal receive target 59 seconds, 512 raw frames.",
+    "Only idle/active-timeout flows eligible. Shutdown, restart and packet-limit slices remain diagnostic.",
+    "Capture quality UNKNOWN even with zero kernel drops; scores uncalibrated and research only.",
+    "Trusted local Python receive-only implementation, not a kernel sandbox against compromised same-UID code.",
+    "DNS9 and legacy operational Network gates remain closed."
+  ],
+  "python_file_capabilities": {
+    "$SOC/.venv/bin/python": "ABSENT",
+    "$SOC/.security-ai-demo/inference/bin/python": "ABSENT"
+  },
+  "quality": {
+    "ruff_src_tests": "PASS",
+    "ruff_format_all": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "preservation": {
+    "existing_soc_files": 118,
+    "existing_ml_files": 10,
+    "existing_file_sha_unchanged": true,
+    "final_demo_bytes_match_head": true,
+    "original_approved_probe_shas_unchanged": true,
+    "research_artifact_sha_unchanged": true,
+    "index_unchanged_empty": true
+  }
+}

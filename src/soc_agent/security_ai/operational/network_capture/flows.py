@@ -1,7 +1,7 @@
 """First-observed bidirectional diagnostic flows, explicitly not CICFlowMeter features."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 
 from soc_agent.security_ai.external.models import content_digest_payload
 from soc_agent.security_ai.operational.network_capture.models import (
@@ -30,6 +30,9 @@ class Flow:
             return
         if packet.timestamp < self.last.timestamp:
             raise ValueError("PACKET_TIME_REVERSED")
+        if packet.capture_timestamp_ns is not None and self.last.capture_timestamp_ns is not None:
+            if packet.capture_timestamp_ns < self.last.capture_timestamp_ns:
+                raise ValueError("PACKET_KERNEL_TIME_REVERSED")
         forward = (packet.source_address, packet.source_port) == (
             self.first.source_address,
             self.first.source_port,
@@ -89,11 +92,19 @@ class FlowTable:
         )
         return packet.interface_id, packet.transport, endpoints
 
-    def expire(self, now: datetime, reason: str | None = None) -> list[FlowSummary]:
+    def expire(
+        self, now: datetime, reason: str | None = None, *, now_ns: int | None = None
+    ) -> list[FlowSummary]:
         result = []
+        if now_ns is None:
+            delta = now - datetime(1970, 1, 1, tzinfo=UTC)
+            now_ns = (delta.days * 86400 + delta.seconds) * 10**9 + delta.microseconds * 1000
         for key, flow in list(self.flows.items()):
             elapsed = (now - flow.first.timestamp).total_seconds()
             idle = (now - flow.last.timestamp).total_seconds()
+            if flow.first.capture_timestamp_ns is not None:
+                elapsed = (now_ns - flow.first.capture_timestamp_ns) / 1e9
+                idle = (now_ns - flow.last.capture_timestamp_ns) / 1e9
             why = reason or (
                 "ACTIVE_TIMEOUT"
                 if elapsed >= self.config.active_seconds
@@ -107,7 +118,7 @@ class FlowTable:
         return result
 
     def add(self, packet: PacketObservation, event_id: str) -> list[FlowSummary]:
-        expired = self.expire(packet.timestamp)
+        expired = self.expire(packet.timestamp, now_ns=packet.capture_timestamp_ns)
         key = self.key(packet)
         if key not in self.flows:
             if len(self.flows) >= self.config.max_flows:

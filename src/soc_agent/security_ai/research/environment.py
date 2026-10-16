@@ -57,7 +57,7 @@ def catalogue() -> dict:
     return doc
 
 
-def verify(paths: Paths) -> dict:
+def verify(paths: Paths, *, offline: bool = True) -> dict:
     doc = catalogue()
     explicit_path(paths.ml)
     if (
@@ -75,7 +75,7 @@ def verify(paths: Paths) -> dict:
             *doc.get("reviewed_local_source_variants", {}).get(rel, []),
         ]:
             raise ValueError("RESEARCH_PRODUCER_SOURCE_CHANGED")
-    for kind in ("raw", "label"):
+    for kind in ("raw", "label") if offline else ():
         body = read_local(paths.ml / doc[kind + "_relative_path"], doc[kind + "_bytes"])
         if (
             len(body) != doc[kind + "_bytes"]

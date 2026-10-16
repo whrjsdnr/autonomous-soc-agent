@@ -32,6 +32,9 @@ def write_new(path: Path, value: dict):
 
 
 class ResearchDemo:
+    attempt_limit = 4096
+    capacity = 10
+
     def __init__(self, directory: Path, *, paths: Paths | None = None, timeout=30):
         self.directory = directory / "network-research"
         self.adapter = ResearchAdapter(self.directory, paths=paths, timeout=timeout)
@@ -52,7 +55,7 @@ class ResearchDemo:
             return [], []
         validate_directory(self.directory)
         attempts = list(self.directory.glob("attempt-*.json"))
-        if len(attempts) > 10:
+        if len(attempts) > self.capacity:
             raise ValueError("RESEARCH_REPLAY_CAPACITY")
         store = self._store()
         with store.database.transaction(write=False) as connection:
@@ -73,7 +76,8 @@ class ResearchDemo:
                 )
             ]
         if len(dispatched) != len(attempts) or any(
-            digest(json.loads(read_local(p, 4096))) not in dispatched for p in attempts
+            digest(json.loads(read_local(p, self.attempt_limit))) not in dispatched
+            for p in attempts
         ):
             raise ValueError("RESEARCH_ATTEMPT_AUDIT_MISMATCH")
         records = []
@@ -158,7 +162,7 @@ class ResearchDemo:
             pending = 0
             for key in unknown:
                 attempt = json.loads(
-                    read_local(self.directory / ("attempt-" + key + ".json"), 4096)
+                    read_local(self.directory / ("attempt-" + key + ".json"), self.attempt_limit)
                 )
                 pending += attempt["request"]["profile"] == profile
             metrics[profile] = {
@@ -220,6 +224,18 @@ class ResearchDemo:
             invocation_id=uuid4(),
             origin="FIXTURE" if profile == "dns" else "OFFLINE_PCAP",
         )
+        if profile == "dns":
+            from soc_agent.security_ai.research.dns import catalogue as dns_catalogue
+
+            sample = dns_catalogue()["fixtures"][flow_index]
+            key = digest({"profile": profile, "fixture_id": sample["id"]})
+        else:
+            sample = catalogue()["samples"][flow_index]
+            key = digest({"profile": profile, "flow_id": sample["flow_id"]})
+        return await self.dispatch(request, key)
+
+    async def dispatch(self, request, key: str):
+        profile = request.profile
         if not self.started or self.stopping:
             raise ValueError("EXPLICIT_RESEARCH_START_REQUIRED")
         if self.running:
@@ -228,20 +244,14 @@ class ResearchDemo:
         self.active_model = profile
         try:
             with exclusive_runtime_lock(self.directory / "replay.lock"):
-                if profile == "dns":
-                    from soc_agent.security_ai.research.dns import catalogue as dns_catalogue
-
-                    sample = dns_catalogue()["fixtures"][flow_index]
-                    key = digest({"profile": profile, "fixture_id": sample["id"]})
-                else:
-                    sample = catalogue()["samples"][flow_index]
-                    key = digest({"profile": profile, "flow_id": sample["flow_id"]})
                 records, unknown = self._records()
                 cached = next((r for r in records if r["key"] == key), None)
                 if cached:
                     return {"status": "CACHED_NO_NEW_INFERENCE", "record": cached}
                 if key in unknown:
                     return {"status": "UNKNOWN", "error": "PREVIOUS_OUTCOME_UNKNOWN_NO_RETRY"}
+                if len(records) + len(unknown) >= self.capacity:
+                    raise ValueError("RESEARCH_INVOCATION_BUDGET_EXHAUSTED")
                 self.active_key = key
                 attempt = {
                     "key": key,

@@ -54,6 +54,9 @@ class Backend:
         from soc_agent.security_ai.research.service import ResearchDemo
 
         self.research_demo = ResearchDemo(self.directory)
+        from soc_agent.security_ai.research.live_service import LiveMonitoring
+
+        self.live_monitoring = LiveMonitoring(self.directory)
         self.closed = False
         self.busy_scenario = False
         self.scenario_results = []
@@ -174,6 +177,7 @@ class Backend:
         if self.process_log:
             self.process_log.close()
         await self.research_demo.stop()
+        await self.live_monitoring.stop()
         self.closed = True
         return {
             "status": "DETACHED",
@@ -183,9 +187,11 @@ class Backend:
 
     async def dashboard(self):
         research = await asyncio.to_thread(self.research_demo.snapshot)
+        live = await asyncio.to_thread(self.live_monitoring.snapshot)
         if self.runtime is None or not (self.runtime / "monitor.sqlite").is_file():
             return {
                 "research": research,
+                "live_network": live,
                 "runtime_state": "OFFLINE",
                 "health": "UNKNOWN",
                 "readiness": "NOT_READY",
@@ -209,12 +215,28 @@ class Backend:
             }
         # A view may reconnect to a different store; never join unrelated chart histories.
         result["research"] = research
+        result["live_network"] = live
         result["metric_scope"] = str(self.runtime)
         result["display_source"] = self.config.source_label
         result["ownership"] = (
             "GUI_CHILD" if self.child and self.child.returncode is None else "EXTERNAL"
         )
         return result
+
+    async def live_start(self, selection="both"):
+        choices = {"both": ("quality", "edge"), "quality": ("quality",), "edge": ("edge",)}
+        if selection not in choices:
+            raise ValueError("LIVE_NETWORK_MODEL_SELECTION_INVALID")
+        return await self.live_monitoring.start(choices[selection])
+
+    async def live_status(self):
+        return await asyncio.to_thread(self.live_monitoring.snapshot)
+
+    async def live_command(self, session_id):
+        return self.live_monitoring.helper_command(session_id)
+
+    async def live_stop(self):
+        return await self.live_monitoring.stop()
 
     async def investigations(self):
         if self.runtime is None:

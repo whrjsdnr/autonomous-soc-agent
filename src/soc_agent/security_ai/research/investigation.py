@@ -14,6 +14,7 @@ from soc_agent.security_ai.research.models import (
     AdvisoryContext,
     DNSReceipt,
     Frozen,
+    LiveReceipt,
     ResearchReceipt,
     digest,
 )
@@ -76,17 +77,43 @@ class DNSFixtureReport(Frozen):
     meaning: str = "Precomputed DNS9 fixture metadata, not observed DNS traffic"
 
 
+class LiveSourceReport(Frozen):
+    capture_session: UUID
+    flow_id: str
+    source_digest: str
+    provenance_digest: str
+    packet_count: int
+    origin: str
+    meaning: str = (
+        "Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact"
+    )
+
+
 def composition(store, context: AdvisoryContext):
     receipt, incident_id = context.result, context.incident_id
     client = ResearchClient(context)
     registry = ToolRegistry()
 
-    async def read(value: ReadReportInput) -> SourceReport | DNSFixtureReport:
+    async def read(value: ReadReportInput) -> SourceReport | DNSFixtureReport | LiveSourceReport:
         if value.incident_id != incident_id:
             raise ValueError("RESEARCH_SOURCE_INCIDENT_MISMATCH")
         if isinstance(receipt, DNSReceipt):
             return DNSFixtureReport(
                 fixture_id=receipt.fixture_id, input_digest=receipt.input_digest
+            )
+        if isinstance(receipt, LiveReceipt):
+            return LiveSourceReport(
+                **{
+                    k: getattr(receipt, k)
+                    for k in (
+                        "capture_session",
+                        "flow_id",
+                        "source_digest",
+                        "provenance_digest",
+                        "packet_count",
+                        "origin",
+                    )
+                }
             )
         return SourceReport(
             flow_id=receipt.flow_id,
@@ -105,7 +132,11 @@ def composition(store, context: AdvisoryContext):
                 risk_level="read_only",
             ),
             ReadReportInput,
-            DNSFixtureReport if isinstance(receipt, DNSReceipt) else SourceReport,
+            DNSFixtureReport
+            if isinstance(receipt, DNSReceipt)
+            else LiveSourceReport
+            if isinstance(receipt, LiveReceipt)
+            else SourceReport,
             read,
         )
     )
@@ -120,12 +151,21 @@ def composition(store, context: AdvisoryContext):
 
 async def investigate(store, receipt: ResearchReceipt, incident_id: UUID) -> dict:
     context = AdvisoryContext(
-        contract="soc-dns-research-advisory:v1"
+        contract="soc-live-network-research-advisory:v1"
+        if isinstance(receipt, LiveReceipt)
+        else "soc-dns-research-advisory:v1"
         if isinstance(receipt, DNSReceipt)
         else "soc-network-research-advisory:v1",
         incident_id=incident_id,
         receipt_digest=digest(receipt.model_dump(mode="json")),
         result=receipt,
+        mode=(
+            "LIVE_RESEARCH_ADVISORY"
+            if receipt.origin == "NATIVE_AF_PACKET"
+            else "FIXTURE_RESEARCH_ADVISORY"
+        )
+        if isinstance(receipt, LiveReceipt)
+        else "OFFLINE_RESEARCH_DEMO",
     )
     application, client = composition(store, context)
     state = IncidentState(incident_id=incident_id)
@@ -152,7 +192,9 @@ async def investigate(store, receipt: ResearchReceipt, incident_id: UUID) -> dic
     if restored.restore(incident_id) != runtime.checkpoint(incident_id).result:
         raise ValueError("RESEARCH_CHECKPOINT_RESTORE_FAILED")
     return {
-        "mode": "SCRIPTED_OFFLINE_RESEARCH",
+        "mode": "SCRIPTED_LIVE_RESEARCH"
+        if isinstance(receipt, LiveReceipt) and receipt.origin == "NATIVE_AF_PACKET"
+        else "SCRIPTED_OFFLINE_RESEARCH",
         "status": "ASSESSED_READ_ONLY",
         "incident_id": str(incident_id),
         "context": context.model_dump(mode="json"),

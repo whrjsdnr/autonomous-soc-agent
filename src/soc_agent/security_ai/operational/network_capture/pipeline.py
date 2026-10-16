@@ -209,6 +209,7 @@ class NetworkPipeline:
         self.committed[key] = payload
 
     def step(self):
+        self.last_committed = None
         claim = self.queue.claim()
         if claim is None:
             return "IDLE"
@@ -258,6 +259,7 @@ class NetworkPipeline:
                     "human_boundary": "WRITE_DENIED",
                 },
             )
+            self.last_committed = (claim.event, record, receipt)
             return "STORED"
         except (ValueError, OSError):
             self.queue.fail(claim, "INVALID_INPUT")

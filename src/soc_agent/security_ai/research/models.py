@@ -193,10 +193,75 @@ class DNSReceipt(Frozen):
         return self
 
 
-ResearchReceipt = Receipt | DNSReceipt
+class LiveReceipt(Frozen):
+    contract: Literal["soc-live-network-research-receipt:v1"] = (
+        "soc-live-network-research-receipt:v1"
+    )
+    profile: Literal["quality", "edge"]
+    origin: Literal["NATIVE_AF_PACKET", "FIXTURE"]
+    status: Literal["RESEARCH_ONLY"] = "RESEARCH_ONLY"
+    validation_level: Literal["METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL"] = (
+        "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL"
+    )
+    request_digest: Hash
+    invocation_id: UUID
+    capture_session: UUID
+    flow_id: Hash
+    source_digest: Hash
+    provenance_digest: Hash
+    artifact_digest: Hash
+    model_manifest_digest: Hash
+    model_id: str
+    producer_version: Literal["1.1.0"] = "1.1.0"
+    feature_contract_digest: Literal[
+        "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e"
+    ] = "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e"
+    producer_configuration_digest: Literal[
+        "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7"
+    ] = "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7"
+    feature_names: tuple[str, ...] = Field(min_length=14, max_length=14)
+    feature_values: tuple[float, ...] = Field(min_length=14, max_length=14)
+    feature_digest: Hash
+    packet_count: int = Field(ge=1, le=128)
+    event_time: UTCTimestamp
+    inferred_at: UTCTimestamp
+    score: float = Field(ge=0, le=1)
+    threshold: float = Field(gt=0, lt=1)
+    prediction: Literal["CLASS_0", "CLASS_1"]
+    inference_latency_ms: float = Field(ge=0)
+    worker_limits: WorkerLimits
+    worker_peak_rss_bytes: int = Field(gt=0)
+    worker_cpu_seconds: float = Field(ge=0)
+    calibration: Literal["UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"] = (
+        "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY"
+    )
+    capture_quality: Literal["UNKNOWN"] = "UNKNOWN"
+    operational_inference: Literal["BLOCKED"] = "BLOCKED"
+    write_policy: Literal["WRITE_DENIED"] = "WRITE_DENIED"
+
+    @model_validator(mode="after")
+    def binding(self) -> Self:
+        from soc_agent.security_ai.research.environment import catalogue
+
+        spec = SPECS[self.profile]
+        if (
+            self.model_id != spec["model_id"]
+            or self.artifact_digest != spec["sha256"]
+            or self.model_manifest_digest != spec["manifest"]
+            or self.threshold != spec["threshold"]
+            or self.prediction != ("CLASS_1" if self.score >= self.threshold else "CLASS_0")
+            or list(self.feature_names) != catalogue()["feature_names"]
+        ):
+            raise ValueError("LIVE_MODEL_OR_FEATURE_BINDING_MISMATCH")
+        return self
+
+
+ResearchReceipt = Receipt | DNSReceipt | LiveReceipt
 
 
 def parse_receipt(value):
+    if value.get("contract") == "soc-live-network-research-receipt:v1":
+        return LiveReceipt.model_validate(value)
     return (
         DNSReceipt.model_validate(value)
         if value.get("profile") == "dns"
@@ -205,24 +270,38 @@ def parse_receipt(value):
 
 
 class AdvisoryContext(Frozen):
-    contract: Literal["soc-network-research-advisory:v1", "soc-dns-research-advisory:v1"] = (
-        "soc-network-research-advisory:v1"
-    )
+    contract: Literal[
+        "soc-network-research-advisory:v1",
+        "soc-dns-research-advisory:v1",
+        "soc-live-network-research-advisory:v1",
+    ] = "soc-network-research-advisory:v1"
     incident_id: UUID
     receipt_digest: Hash
     result: ResearchReceipt
     role: Literal["UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"] = (
         "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
     )
-    mode: Literal["OFFLINE_RESEARCH_DEMO"] = "OFFLINE_RESEARCH_DEMO"
+    mode: Literal[
+        "OFFLINE_RESEARCH_DEMO", "LIVE_RESEARCH_ADVISORY", "FIXTURE_RESEARCH_ADVISORY"
+    ] = "OFFLINE_RESEARCH_DEMO"
 
     @model_validator(mode="after")
     def bind_receipt(self) -> Self:
         expected = (
-            "soc-dns-research-advisory:v1"
+            "soc-live-network-research-advisory:v1"
+            if isinstance(self.result, LiveReceipt)
+            else "soc-dns-research-advisory:v1"
             if isinstance(self.result, DNSReceipt)
             else "soc-network-research-advisory:v1"
         )
+        if isinstance(self.result, LiveReceipt) and self.mode != (
+            "LIVE_RESEARCH_ADVISORY"
+            if self.result.origin == "NATIVE_AF_PACKET"
+            else "FIXTURE_RESEARCH_ADVISORY"
+        ):
+            raise ValueError("LIVE_ADVISORY_ORIGIN_MISMATCH")
+        if not isinstance(self.result, LiveReceipt) and self.mode != "OFFLINE_RESEARCH_DEMO":
+            raise ValueError("OFFLINE_ADVISORY_CANNOT_CLAIM_LIVE")
         if self.contract != expected or self.receipt_digest != digest(
             self.result.model_dump(mode="json")
         ):

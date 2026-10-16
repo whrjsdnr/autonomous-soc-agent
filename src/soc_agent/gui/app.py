@@ -28,6 +28,7 @@ SCREENS = (
     "Response & Approval",
     "Self-Improvement",
     "Network Research",
+    "Live Network",
     "Scenario Demo",
 )
 
@@ -280,6 +281,10 @@ class Desktop:
             from soc_agent.gui.research_view import ResearchView
 
             self.research_view = ResearchView(self)
+        elif name == "Live Network":
+            from soc_agent.gui.live_view import LiveView
+
+            self.live_view = LiveView(self)
         elif name == "Scenario Demo":
             self._scenario_layout()
         elif name == "Response & Approval":
@@ -408,6 +413,11 @@ class Desktop:
         Label(self.content, textvariable=self.network_summary, size=12, max_width=1200).pack(
             fill="x", pady=(0, 10)
         )
+        self.live_summary = tk.StringVar(value="Live Network UNKNOWN · operational gate BLOCKED")
+        Label(self.content, textvariable=self.live_summary, size=12, max_width=1200).pack(fill="x")
+        Button(
+            self.content, text="Open Live Network", command=lambda: self.navigate("Live Network")
+        ).pack(anchor="e", pady=(0, 10))
         network_charts = ttk.Frame(self.content)
         network_charts.pack(fill="x", pady=(0, 12))
         extra = [
@@ -724,6 +734,8 @@ class Desktop:
             data = self.result_by_scenario.get(data["id"], data)
         if self.page == "Network Research":
             self.research_view.show_record(data)
+        elif self.page == "Live Network":
+            self.live_view.show_record(data)
         else:
             self.show_detail(data)
 
@@ -874,6 +886,8 @@ class Desktop:
             self.call("investigations", callback=self.render_investigations)
         elif self.page == "Network Research":
             self.call("research_status", callback=self.research_view.render)
+        elif self.page == "Live Network":
+            self.call("live_status", callback=self.live_view.render)
         elif self.page == "Security AI Models":
             self.call("models", callback=self.render_models)
         elif self.page == "Response & Approval":
@@ -917,6 +931,13 @@ class Desktop:
         if self.page != "Dashboard":
             return
         self.hero.update_snapshot(value)
+        live = value.get("live_network", {})
+        self.live_summary.set(
+            "Live Network "
+            + live.get("state", "UNKNOWN")
+            + " · "
+            + live.get("operational_gate", "UNKNOWN")
+        )
         self.unified_panel.render(value)
         completed = self.history.samples[-1].completed if self.history.samples else None
         value["completed_total"] = completed

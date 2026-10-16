@@ -18,13 +18,22 @@ from soc_agent.security_ai.research.models import Request, digest, parse_receipt
 
 
 class ResearchAdapter:
-    def __init__(self, directory: Path, *, paths: Paths | None = None, timeout: float = 30):
+    def __init__(
+        self,
+        directory: Path,
+        *,
+        paths: Paths | None = None,
+        timeout: float = 30,
+        live_metadata: bool = False,
+    ):
         if not 0.1 <= timeout <= 30:
             raise ValueError("RESEARCH_TIMEOUT_LIMIT")
         self.directory, self.paths, self.timeout = directory, paths, timeout
         self.process = None
         self.busy = False
         self.cancelled = False
+        self.live_metadata = live_metadata
+        self.authorize_live = None
 
     def status(self, profile="quality") -> dict:
         try:
@@ -32,7 +41,7 @@ class ResearchAdapter:
                 from soc_agent.security_ai.research.dns import verify as dns_verify
 
                 return dns_verify(self.paths or defaults())
-            return verify(self.paths or defaults())
+            return verify(self.paths or defaults(), offline=not self.live_metadata)
         except (OSError, ValueError, KeyError, ImportError):
             return {
                 "status": "BLOCKED",
@@ -53,18 +62,34 @@ class ResearchAdapter:
                 await process.wait()
 
     async def infer(self, request: Request) -> dict:
-        request = Request.model_validate_json(request.model_dump_json())
+        from soc_agent.security_ai.research.live_input import LiveRequest, validate_result
+
+        live = isinstance(request, LiveRequest)
+        if live:
+            from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
+
+            unprivileged()
+        if live != self.live_metadata:
+            raise ValueError("EXPLICIT_LIVE_RESEARCH_MODE_REQUIRED")
+        request = (LiveRequest if live else Request).model_validate_json(request.model_dump_json())
         if self.busy:
             raise ValueError("RESEARCH_WORKER_ALREADY_RUNNING")
         self.busy = True
         self.cancelled = False
         try:
+            if live and request.origin == "NATIVE_AF_PACKET":
+                if self.authorize_live is None:
+                    return {"status": "UNKNOWN", "error": "NATIVE_CAPTURE_SOURCE_NOT_VERIFIED"}
+                await asyncio.to_thread(self.authorize_live, request)
             paths = self.paths or defaults()
             if request.profile == "dns":
                 from soc_agent.security_ai.research.dns import verify as check
             else:
                 check = verify
-            await asyncio.to_thread(check, paths)
+            if live:
+                await asyncio.to_thread(verify, paths, offline=False)
+            else:
+                await asyncio.to_thread(check, paths)
             if self.cancelled:
                 return {"status": "UNKNOWN", "error": "WORKER_CANCELLED_NO_RETRY"}
             work = self.directory / ("worker-" + str(uuid4()))
@@ -87,6 +112,7 @@ class ResearchAdapter:
                 str(paths.ml),
                 "--producer-source",
                 str(paths.producer_source or paths.ml),
+                *(["--live-metadata"] if live else []),
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
                 env={
@@ -114,6 +140,9 @@ class ResearchAdapter:
             if self.process.returncode != 0:
                 return {"status": "UNKNOWN", "error": "WORKER_FAILURE_OR_BUDGET_NO_RETRY"}
             receipt = parse_receipt(json.loads(read_local(result, 32 * 1024)))
+            if live:
+                validate_result(request, receipt)
+                return {"status": "SUCCESS", "receipt": receipt.model_dump(mode="json")}
             if request.profile == "dns":
                 if (
                     receipt.request_digest != digest(request.model_dump(mode="json"))

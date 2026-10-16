@@ -160,6 +160,84 @@ def run(request, paths):
     )
 
 
+def run_live(request, paths):
+    """Same bounded worker and reviewed artifacts; metadata input never grants authority."""
+    from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
+    from soc_agent.security_ai.research.environment import verify
+    from soc_agent.security_ai.research.live_input import parity_check, produce
+    from soc_agent.security_ai.research.models import SPECS, LiveReceipt, digest
+
+    unprivileged()
+    verify(paths, offline=False)
+    parity_check()
+    vector = produce(request)
+    import ml.verified_producers.network_v1_1 as producer
+    import numpy as np
+    import sklearn
+    from ml.network_research.artifacts import load_research
+    from ml.network_research.evaluation import probabilities
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    if (
+        Path(producer.__file__).resolve()
+        != (paths.producer_source or paths.ml) / "src/ml/verified_producers/network_v1_1.py"
+        or sys.version_info[:3] != (3, 12, 14)
+        or sklearn.__version__ != "1.9.1"
+    ):
+        raise ValueError("LIVE_PRODUCER_OR_BACKEND_MISMATCH")
+    spec = SPECS[request.profile]
+    model, manifest = load_research(
+        paths.ml / "models/network-research-v1-final" / spec["directory"],
+        trusted_manifest_digest=spec["manifest"],
+    )
+    valid = (
+        type(model) is RandomForestClassifier
+        if request.profile == "quality"
+        else type(model) is Pipeline
+        and [type(v) for _, v in model.steps] == [StandardScaler, LogisticRegression]
+    )
+    if not valid or model.n_features_in_ != 14 or manifest["threshold"] != spec["threshold"]:
+        raise ValueError("LIVE_MODEL_TYPE_MISMATCH")
+    started = time.perf_counter()
+    score = float(probabilities(model, np.asarray([vector.values], dtype=np.float32))[0])
+    elapsed = (time.perf_counter() - started) * 1000
+    usage = resource.getrusage(resource.RUSAGE_SELF)
+    return LiveReceipt(
+        profile=request.profile,
+        origin=request.origin,
+        invocation_id=request.invocation_id,
+        request_digest=digest(request.model_dump(mode="json")),
+        worker_peak_rss_bytes=usage.ru_maxrss * 1024,
+        worker_cpu_seconds=usage.ru_utime + usage.ru_stime,
+        capture_session=request.capture_session,
+        flow_id=request.flow_id,
+        source_digest=vector.source_digest,
+        provenance_digest=request.provenance_digest,
+        artifact_digest=spec["sha256"],
+        model_manifest_digest=spec["manifest"],
+        model_id=spec["model_id"],
+        feature_names=vector.feature_names,
+        feature_values=vector.values,
+        feature_digest=vector.feature_digest,
+        packet_count=len(request.packets),
+        event_time=request.packets[0].timestamp,
+        inferred_at=datetime.now(UTC),
+        score=score,
+        threshold=spec["threshold"],
+        prediction="CLASS_1" if score >= spec["threshold"] else "CLASS_0",
+        inference_latency_ms=elapsed,
+        worker_limits={
+            "address_space_bytes": resource.getrlimit(resource.RLIMIT_AS)[0],
+            "cpu_seconds": resource.getrlimit(resource.RLIMIT_CPU)[0],
+            "result_file_bytes": resource.getrlimit(resource.RLIMIT_FSIZE)[0],
+            "network": "DENIED",
+        },
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--parent-pid", type=int, required=True)
@@ -167,17 +245,23 @@ def main():
     parser.add_argument("--result", type=Path, required=True)
     parser.add_argument("--ml", type=Path, required=True)
     parser.add_argument("--producer-source", type=Path, required=True)
+    parser.add_argument("--live-metadata", action="store_true")
     args = parser.parse_args()
     bind_parent(args.parent_pid)
     limits()
     from soc_agent.security_ai.research.environment import Paths, read_local
     from soc_agent.security_ai.research.models import Request
 
-    request = Request.model_validate_json(read_local(args.request, 4096))
+    if args.live_metadata:
+        from soc_agent.security_ai.research.live_input import LiveRequest
+
+        request = LiveRequest.model_validate_json(read_local(args.request, 256 * 1024))
+    else:
+        request = Request.model_validate_json(read_local(args.request, 4096))
     paths = Paths(
         args.ml, Path(sys.executable), Path(__file__).resolve().parents[3], args.producer_source
     )
-    result = run(request, paths)
+    result = run_live(request, paths) if args.live_metadata else run(request, paths)
     with args.result.open("x") as stream:
         stream.write(result.model_dump_json())
     args.result.chmod(0o600)
