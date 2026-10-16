@@ -170,6 +170,10 @@ class LiveView:
         if not self.headline.get() or not self.instructions.winfo_exists():
             return
         self.command = result.get("command", "") if result.get("listener_ready") is True else ""
+        if self.command:
+            # A STOPPED poll can render while preparation is still awaiting I/O.
+            # Apply the newer READY control state as well as its command/text.
+            self.start_button.configure(state="disabled")
         self.command_session = result.get("session_id") if self.command else None
         self.copy_button.configure(state="normal" if self.command else "disabled")
         self.instructions.configure(state="normal")
@@ -384,6 +388,9 @@ class LiveView:
                 + f"Sent IP packets {known(network.get('metadata_packets'))} · "
                 + f"Transport queue {known(network.get('transport_queue_depth'))} · "
                 + f"Counter {known(network.get('counter_status'))}\n"
+                + f"Timestamp {known(network.get('timestamp_integrity'))} · "
+                + f"Packet sequence {known(network.get('packet_sequence'))}\n"
+                + f"Abort reason {known(network.get('abort_reason'))}\n"
                 + f"Advisory processing {known(network.get('advisory_latency_seconds'))} s\n"
                 + f"DNS {known(network.get('dns_collection'))} · "
                 + f"Queries {known(network.get('dns_queries'))} · DNS9 AI BLOCKED · "

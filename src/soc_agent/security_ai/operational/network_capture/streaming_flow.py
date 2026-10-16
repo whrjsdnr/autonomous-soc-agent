@@ -3,6 +3,7 @@
 import math
 import struct
 from dataclasses import dataclass
+from typing import Literal
 from uuid import UUID
 
 from soc_agent.security_ai.operational.network_capture.flows import FlowTable
@@ -12,6 +13,16 @@ from soc_agent.security_ai.operational.network_capture.models import (
     PacketObservation,
 )
 from soc_agent.security_ai.research.live_input import timestamp_ns
+
+
+class PacketTimeReversed(ValueError):
+    """Observed comparison failure; does not attribute a kernel or clock cause."""
+
+    def __init__(self, previous_ns: int, rejected_ns: int, scope: Literal["GLOBAL", "FLOW"]):
+        super().__init__("STREAM_TIME_REVERSED")
+        self.previous_ns = previous_ns
+        self.rejected_ns = rejected_ns
+        self.scope = scope
 
 
 @dataclass
@@ -36,7 +47,7 @@ class Statistics:
         ns = timestamp_ns(packet)
         gap = ns - self.last_ns if self.count else 0
         if gap < 0:
-            raise ValueError("STREAM_TIME_REVERSED")
+            raise PacketTimeReversed(self.last_ns, ns, "FLOW")
         forward = (packet.source_address, packet.source_port) == (
             self.first.source_address,
             self.first.source_port,
@@ -116,7 +127,7 @@ class StreamingFlows:
         if key in self.packets:
             raise ValueError("STREAM_DUPLICATE_PACKET")
         if self.last_ns is not None and timestamp_ns(packet) < self.last_ns:
-            raise ValueError("STREAM_TIME_REVERSED")
+            raise PacketTimeReversed(self.last_ns, timestamp_ns(packet), "GLOBAL")
         size = len(packet.model_dump_json().encode())
         if self.bytes + size > self.limit:
             raise ValueError("STREAM_METADATA_MEMORY_BACKPRESSURE")

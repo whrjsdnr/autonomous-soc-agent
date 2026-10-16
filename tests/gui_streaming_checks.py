@@ -14,7 +14,7 @@ from tests.gui_wslg_checks import (
     release_display_objects_on_creator_thread as release_display_objects_on_creator_thread,
 )
 from tests.research_adapter_support import research_paths
-from tests.streaming_network_support import idle_source
+from tests.streaming_network_support import idle_source, packet
 
 
 @pytest.mark.asyncio
@@ -64,6 +64,8 @@ async def test_streaming_gui_auth_fallback_fixture_models_and_restart(tmp_path, 
         assert "BLOCKED" in view.headline.get()
         assert "RESEARCH_ONLY" in view.metrics.get()
         assert "UNKNOWN" in view.metrics.get()  # no fake DNS/kernel counts for fixture
+        assert "Timestamp ORDERED_PREFIX_ONLY" in view.metrics.get()
+        assert "Packet sequence 4" in view.metrics.get()
         for geometry in ("1920x1080", "1366x768", "1280x720"):
             root.geometry(geometry)
             root.update()
@@ -95,3 +97,45 @@ async def test_streaming_gui_auth_fallback_fixture_models_and_restart(tmp_path, 
         assert not snapshot["collection_live"]
     finally:
         await close(second, reopened)
+
+
+@pytest.mark.asyncio
+async def test_timestamp_failure_is_error_not_live_in_actual_tk(tmp_path, monkeypatch):
+    monkeypatch.setattr("soc_agent.security_ai.research.adapter.defaults", research_paths)
+    root = tk.Tk()
+    app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui"))
+    try:
+        await idle(root, app)
+        app.navigate("Streaming Network")
+        owner = app.worker.backend.streaming_monitoring
+
+        async def source():
+            yield packet(owner, 1)
+            yield packet(owner, 0)
+
+        async def rejected():
+            await owner.start_fixture(source())
+            await owner.task
+            return owner.snapshot()
+
+        future = asyncio.run_coroutine_threadsafe(rejected(), app.worker.loop)
+        deadline = asyncio.get_running_loop().time() + 15
+        while not future.done() and asyncio.get_running_loop().time() < deadline:
+            root.update()
+            await asyncio.sleep(0.02)
+        assert future.done()
+        state = future.result()
+        view = app.live_view
+        view.render(state)
+        root.update()
+        assert state["state"] == "ERROR" and not state["collection_live"]
+        assert state["network"]["inference_count"] == 0
+        assert state["runtime_audit_integrity"] == "VERIFIED"
+        assert "ERROR" in view.headline.get()
+        assert "LIVE_COLLECTION" not in view.headline.get()
+        assert "Timestamp FAILED_EVENT_TIME_ORDER" in view.metrics.get()
+        assert "Packet sequence 2" in view.metrics.get()
+        assert "Abort reason STREAM_TIME_REVERSED" in view.metrics.get()
+        assert "FIXTURE" in view.traffic.source
+    finally:
+        await close(root, app)

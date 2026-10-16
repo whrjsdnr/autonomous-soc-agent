@@ -27,6 +27,7 @@ from soc_agent.security_ai.research.models import digest
         "deadline",
         "disconnect",
         "closed_send_failure",
+        "loopback_regression",
     ],
 )
 def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
@@ -37,7 +38,7 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         interface="lo",
         interface_id="a" * 64,
         seconds=300,
-        max_packets=1,
+        max_packets=4 if case == "loopback_regression" else 1,
         socket_address="MOCK_ONLY",
         session_id=uuid4(),
         policy=SimpleNamespace(
@@ -47,6 +48,8 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     session.model_dump = lambda **kwargs: {"mock_session": True}
     approval = digest(session.model_dump())
     samples = [encoded(0, 0), encoded(1, 0), encoded(0, 0)]
+    if case == "loopback_regression":
+        samples = [encoded(0, 0), *(encoded(1, 0) for _ in range(4)), encoded(0, 0)]
     if case == "unknown":
         samples[1] = OSError("private")
     if case == "drop":
@@ -62,6 +65,16 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
             self.socket = self.raw
 
         def receive(self):
+            if case == "loopback_regression":
+                index = getattr(self, "received", 0)
+                self.received = index + 1
+                seconds = 1800000002 if index < 2 else 1800000001
+                return (
+                    frame(),
+                    datetime.fromtimestamp(seconds, UTC),
+                    ("OUTBOUND" if index % 2 == 0 else "INBOUND"),
+                    seconds * 10**9,
+                )
             now = datetime.now(UTC)
             return frame(), now, "OUTBOUND", int(now.timestamp()) * 10**9 + now.microsecond * 1000
 
@@ -118,7 +131,14 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
             raise ValueError("STREAM_RATE_BUDGET_EXCEEDED")
 
         monkeypatch.setattr(helper.RateBudget, "consume", exceeded)
-    if case in ("normal", "stop", "disconnect", "deadline", "closed_send_failure"):
+    if case in (
+        "normal",
+        "stop",
+        "disconnect",
+        "deadline",
+        "closed_send_failure",
+        "loopback_regression",
+    ):
         helper.run(tmp_path, approval)
     else:
         with pytest.raises((ValueError, OSError)):
@@ -135,6 +155,15 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         assert [m["kind"] for m in messages] == ["READY", "HEARTBEAT", "PACKET", "CLOSED"]
         assert messages[2]["counter_sequence"] == 2
         assert messages[2]["packet"]["dns"] is None
+    if case == "loopback_regression":
+        packets = [m for m in messages if m["kind"] == "PACKET"]
+        assert [m["sequence"] for m in packets] == [1, 2]
+        assert [m["packet"]["direction"] for m in packets] == ["OUTBOUND", "OUTBOUND"]
+        assert [m["packet"]["capture_timestamp_ns"] for m in packets] == [
+            1800000002 * 10**9,
+            1800000001 * 10**9,
+        ]
+        assert messages[-1]["received_frames"] == 4 and messages[-1]["sent_packets"] == 2
     if case in ("unknown", "drop", "rate", "stop", "disconnect", "deadline"):
         assert not any(m["kind"] == "PACKET" for m in messages)
     assert "private" not in str(messages)

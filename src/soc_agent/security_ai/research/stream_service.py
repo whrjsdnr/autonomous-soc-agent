@@ -20,9 +20,12 @@ from soc_agent.security_ai.operational.network_capture.stream_session import (
     unprivileged,
 )
 from soc_agent.security_ai.operational.network_capture.stream_transport import StreamingCapture
-from soc_agent.security_ai.operational.network_capture.streaming_flow import StreamingFlows
+from soc_agent.security_ai.operational.network_capture.streaming_flow import (
+    PacketTimeReversed,
+    StreamingFlows,
+)
 from soc_agent.security_ai.research.adapter import ResearchAdapter
-from soc_agent.security_ai.research.live_input import lifecycle_eligible, timestamp_ns
+from soc_agent.security_ai.research.live_input import lifecycle_eligible
 from soc_agent.security_ai.research.live_service import LiveResearch
 from soc_agent.security_ai.research.models import digest
 from soc_agent.security_ai.research.stream_store import StreamStore
@@ -166,6 +169,9 @@ class StreamingMonitoring:
             capture_drops=None,
             finalization="RUNNING",
             input_origin="FIXTURE" if fixture else "NATIVE_AF_PACKET",
+            timestamp_integrity="UNKNOWN",
+            packet_sequence=None,
+            abort_reason=None,
             inference_count=0,
             advisory_latency_seconds=None,
         )
@@ -285,18 +291,30 @@ class StreamingMonitoring:
         ):
             raise ValueError("STREAM_SOURCE_ORIGIN_MISMATCH")
         self.sequence += 1
+        self.metrics["packet_sequence"] = self.sequence
         identity = uuid5(self.session.session_id, str(self.sequence))
         try:
             completed = self.aggregator.add(packet, identity)
-        except ValueError as error:
-            if str(error) == "STREAM_TIME_REVERSED":
-                # Time evidence only, no addresses, payload, correction or reordering.
-                self.failure_context = dict(
-                    packet_sequence=self.sequence,
-                    previous_event_ns=self.aggregator.last_ns,
-                    rejected_event_ns=timestamp_ns(packet),
-                )
+        except PacketTimeReversed as error:
+            # Comparison evidence, not causal attribution. Hash the bidirectional
+            # flow key; do not retain addresses, payload, or corrected timestamps.
+            self.metrics["timestamp_integrity"] = "FAILED_EVENT_TIME_ORDER"
+            self.failure_context = dict(
+                packet_sequence=self.sequence,
+                helper_packet_sequence=self.capture.last_seal[0] if self.capture else None,
+                counter_sequence=counter_sequence,
+                previous_event_ns=error.previous_ns,
+                rejected_event_ns=error.rejected_ns,
+                regression_ns=error.previous_ns - error.rejected_ns,
+                ordering_scope=error.scope,
+                flow_key_digest=digest(self.aggregator.table.key(packet)),
+                direction=packet.direction,
+                timestamp_origin=packet.timestamp_origin,
+                source_origin=self.metrics["input_origin"],
+                root_cause="UNKNOWN",
+            )
             raise
+        self.metrics["timestamp_integrity"] = "ORDERED_PREFIX_ONLY"
         self.metrics["packets_collected"] += 1
         for item in completed:
             self.flow_count += 1
@@ -492,6 +510,7 @@ class StreamingMonitoring:
             else "STREAM_INPUT_OR_STORAGE_VALIDATION_FAILED"
         )
         self.state = "ERROR"
+        self.metrics["abort_reason"] = self.last_error
         self.metrics["finalization"] = "BLOCKED"
         self.metrics["gap_count"] += 1
         self.aggregator.close("RESTART_GAP")
@@ -537,6 +556,7 @@ class StreamingMonitoring:
         self.metrics.update(
             last_error=self.last_error,
             collection_state=self.state,
+            time_context=self.failure_context,
             active_flows=0,
             retained_metadata_bytes=0,
             queue_backlog=sum(
@@ -648,9 +668,15 @@ class StreamingMonitoring:
         if lifecycle and lifecycle[-1]["kind"] == "STREAM_ABORTED":
             self.metrics.update(
                 last_error=lifecycle[-1]["details"]["error"],
+                abort_reason=lifecycle[-1]["details"]["error"],
                 finalization="BLOCKED",
                 collection_state="ERROR",
             )
+            if self.metrics["last_error"] == "STREAM_TIME_REVERSED":
+                self.metrics.update(
+                    timestamp_integrity="FAILED_EVENT_TIME_ORDER",
+                    time_context=lifecycle[-1]["details"].get("time_context"),
+                )
         self.flow_count = self.metrics.get("flow_records", 0)
         self.eligible = self.metrics.get("eligible_flows", 0)
         self.excluded = self.metrics.get("rejected_flows", 0)
@@ -710,7 +736,7 @@ class StreamingMonitoring:
         return dict(
             state=self.state if audit_valid else "UNKNOWN",
             collection_live=live,
-            prepare_active=bool(self.task and not self.task.done()),
+            prepare_active=self.preparing or bool(self.task and not self.task.done()),
             listener_ready=bool(self.capture and self.capture.listener_ready()),
             capture_permission="FIXTURE_NO_CAPTURE"
             if self.fixture
