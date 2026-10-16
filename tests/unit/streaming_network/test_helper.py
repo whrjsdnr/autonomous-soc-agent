@@ -28,6 +28,7 @@ from soc_agent.security_ai.research.models import digest
         "disconnect",
         "closed_send_failure",
         "loopback_regression",
+        "raw_burst",
     ],
 )
 def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
@@ -38,7 +39,7 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         interface="lo",
         interface_id="a" * 64,
         seconds=300,
-        max_packets=4 if case == "loopback_regression" else 1,
+        max_packets=38656 if case == "raw_burst" else 4 if case == "loopback_regression" else 1,
         socket_address="MOCK_ONLY",
         session_id=uuid4(),
         policy=SimpleNamespace(
@@ -50,6 +51,8 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     samples = [encoded(0, 0), encoded(1, 0), encoded(0, 0)]
     if case == "loopback_regression":
         samples = [encoded(0, 0), *(encoded(1, 0) for _ in range(4)), encoded(0, 0)]
+    if case == "raw_burst":
+        samples = [encoded(0, 0), *(encoded(1, 0) for _ in range(257))]
     if case == "unknown":
         samples[1] = OSError("private")
     if case == "drop":
@@ -76,7 +79,12 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
                     seconds * 10**9,
                 )
             now = datetime.now(UTC)
-            return frame(), now, "OUTBOUND", int(now.timestamp()) * 10**9 + now.microsecond * 1000
+            return (
+                frame(),
+                now,
+                "INBOUND" if case == "raw_burst" else "OUTBOUND",
+                int(now.timestamp()) * 10**9 + now.microsecond * 1000,
+            )
 
     class Channel:
         def __init__(self, *args):
@@ -125,6 +133,8 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     if case == "deadline":
         clock = iter((0, 0, 299, 299))
         monkeypatch.setattr(helper, "time", SimpleNamespace(monotonic=lambda: next(clock)))
+    if case == "raw_burst":
+        monkeypatch.setattr(helper, "time", SimpleNamespace(monotonic=lambda: 0.0))
     if case == "rate":
 
         def exceeded(*a):
@@ -166,6 +176,20 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         assert messages[-1]["received_frames"] == 4 and messages[-1]["sent_packets"] == 2
     if case in ("unknown", "drop", "rate", "stop", "disconnect", "deadline"):
         assert not any(m["kind"] == "PACKET" for m in messages)
+    if case == "rate":
+        # The approved helper already sends its explicit error and final counters.
+        assert messages[-1]["error"] == "STREAM_RATE_BUDGET_EXCEEDED"
+        assert messages[-1]["received_frames"] == 1
+        assert messages[-1]["sent_packets"] == 0
+        assert messages[-1]["counter_sequence"] == 2
+        assert messages[-1]["counter_status"] == "COUNTER_VERIFIED"
+    if case == "raw_burst":
+        # 257 raw inbound clones exhaust the real bucket without forwarding any packet.
+        assert [m["kind"] for m in messages] == ["READY", *(["HEARTBEAT"] * 256), "CLOSED"]
+        assert messages[-1]["error"] == "STREAM_RATE_BUDGET_EXCEEDED"
+        assert messages[-1]["received_frames"] == 257
+        assert messages[-1]["sent_packets"] == 0
+        assert messages[-1]["kernel_packets_total"] == 257
     assert "private" not in str(messages)
 
 

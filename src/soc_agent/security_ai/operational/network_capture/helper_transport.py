@@ -28,6 +28,18 @@ from soc_agent.security_ai.operational.network_capture.models import PacketObser
 from soc_agent.security_ai.operational.network_capture.permissions import NET_RAW
 from soc_agent.security_ai.research.models import Frozen, digest
 
+HELPER_ERRORS = frozenset(
+    {
+        "HELPER_CAPTURE_COUNTER_UNAVAILABLE",
+        "HELPER_CAPTURE_DROPS_DETECTED",
+        "HELPER_TRANSPORT_TIMEOUT",
+        "HELPER_WATCHDOG_EXPIRED",
+        "HELPER_INTERFACE_REPLACED",
+        "STREAM_RATE_BUDGET_EXCEEDED",
+        "STREAM_MONOTONIC_CLOCK_REVERSED",
+    }
+)
+
 
 class Message(Frozen):
     kind: Literal["READY", "PACKET", "HEARTBEAT", "CLOSED"]
@@ -165,6 +177,7 @@ class HelperCapture:
         self.records_read = 0
         self.last_delivered_at = None
         self.shutdown_reason = None
+        self.rejected_closed_digest: str | None = None
 
     def start_reader(self):
         """One bounded metadata reader, independent of SQLite/model/event-loop work."""
@@ -294,15 +307,7 @@ class HelperCapture:
                 "capture_drops": message.capture_drops,
                 "kernel_packets_total": message.kernel_packets_total,
                 "capture_drops_total": message.capture_drops_total,
-                "helper_error": message.error
-                if message.error
-                in {
-                    "HELPER_CAPTURE_COUNTER_UNAVAILABLE",
-                    "HELPER_CAPTURE_DROPS_DETECTED",
-                    "HELPER_TRANSPORT_TIMEOUT",
-                    "HELPER_WATCHDOG_EXPIRED",
-                }
-                else None,
+                "helper_error": message.error if message.error in HELPER_ERRORS else None,
             }
             self.alive = False
             raise CaptureUnavailable(error)
@@ -455,8 +460,10 @@ class HelperCapture:
         # Persist authenticated diagnostics before rejection, not a success receipt.
         try:
             self.accept_counters(message)
-        except CaptureUnavailable:
+        except CaptureUnavailable as error:
             write_private(self.directory / "counter-failure.json", self.counter_issue)
+            if message.kind == "CLOSED":
+                self._record_rejected_closed(message, str(error))
             raise
         self.last_heartbeat = time.monotonic()
         self.usage = {
@@ -467,15 +474,15 @@ class HelperCapture:
         }
         if message.kind == "CLOSED":
             if message.error or message.capabilities != self.ready.capabilities:
-                raise CaptureUnavailable(
-                    message.error
-                    if message.error
-                    in {
-                        "HELPER_TRANSPORT_TIMEOUT",
-                        "HELPER_WATCHDOG_EXPIRED",
-                    }
+                error = (
+                    "HELPER_UNCLEAN_SHUTDOWN"
+                    if message.capabilities != self.ready.capabilities
+                    else message.error
+                    if message.error in HELPER_ERRORS
                     else "HELPER_UNCLEAN_SHUTDOWN"
                 )
+                self._record_rejected_closed(message, error)
+                raise CaptureUnavailable(error)
             write_private(self.directory / "verified-closed.json", message.model_dump(mode="json"))
             # Publish terminal readiness only after the evidence write succeeds.
             self.terminal = message
@@ -483,6 +490,36 @@ class HelperCapture:
             if self.stop and self.reader_thread is None:
                 self.stop.set()
         return None
+
+    def _record_rejected_closed(self, message: Message, reason: str) -> None:
+        """Bounded diagnostics after peer/schema checks; never a completion receipt."""
+        fields = (
+            "session_id",
+            "counter_sequence",
+            "counter_status",
+            "counter_detail",
+            "kernel_packets",
+            "capture_drops",
+            "kernel_packets_total",
+            "capture_drops_total",
+            "received_frames",
+            "sent_packets",
+            "elapsed_seconds",
+            "rss_peak_bytes",
+            "cpu_seconds",
+        )
+        value = message.model_dump(mode="json", include=set(fields))
+        value.update(
+            contract="soc-rejected-helper-closed:v1",
+            completion_verified=False,
+            rejection_reason=reason,
+            helper_error=message.error if message.error in HELPER_ERRORS else None,
+            counter_validation="ACCEPTED" if self.counter_issue is None else "REJECTED",
+            capabilities_match=self.ready is not None
+            and message.capabilities == self.ready.capabilities,
+        )
+        write_private(self.directory / "rejected-closed.json", value)
+        self.rejected_closed_digest = digest(value)
 
     def statistics(self):
         with self.reader_lock:
@@ -532,6 +569,7 @@ class HelperCapture:
                 "transport_queue_high_water": self.queue_high_water,
                 "transport_delivered_packets": self.delivered,
                 "transport_final_counter_verified": self.terminal is not None,
+                "rejected_closed_digest": self.rejected_closed_digest,
             }
 
     def close(self, *, reason="EXPLICIT_STOP_BEFORE_PERSISTENCE"):

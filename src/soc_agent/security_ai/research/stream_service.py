@@ -545,6 +545,7 @@ class StreamingMonitoring:
                 active_metadata_released=True,
                 automatic_retry=False,
                 time_context=self.failure_context,
+                rejected_closed_digest=self.metrics.get("rejected_closed_digest"),
             ),
         )
         try:
