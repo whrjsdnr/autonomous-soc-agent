@@ -1,0 +1,171 @@
+{
+  "contract": "soc-native-idle-budget-assessment:v1",
+  "validation_date": "2026-10-16",
+  "soc_baseline": "9477b054070e1a2f7658d10803c5749006c1dca4",
+  "ml_baseline": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "helper_sha256": "a8a0cafe7494922a0296a250129ab5695b681dbbec6febf512509b023ef44856",
+  "artifact_sha256": {
+    "quality": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+    "edge": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882"
+  },
+  "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+  "producer_config_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+  "retained_session": {
+    "session_directory": "session-f360a55750ab48f0ba52098c5b2d0d91",
+    "session_id": "7822a749-0094-4f95-b02e-ee7e09f80667",
+    "capture_status": "CAPTURE_VERIFIED",
+    "persistence_status": "PERSISTENCE_VERIFIED",
+    "transport_status": "VERIFIED",
+    "counter_status": "COUNTER_VERIFIED",
+    "counter_sequence_ready": 1,
+    "counter_sequence_closed": 542,
+    "kernel_packets_total": 512,
+    "capture_drops_total": 0,
+    "received_frames": 512,
+    "sent_packets": 256,
+    "stored_packets": 256,
+    "flows": [
+      {
+        "flow_id": "d406d036ddad3c6ef42c207b62cd4f6c45ff6cbb2b8dc1c2af88185635da1a15",
+        "protocol": "tcp",
+        "packets": 74,
+        "forward": 36,
+        "backward": 38,
+        "duration_seconds": 8.152109,
+        "max_interpacket_seconds": 1.552159994,
+        "close_reason": "SHUTDOWN"
+      },
+      {
+        "flow_id": "26fd0af6a5c0883f66b01bea4f9fe3bbd181ca8b61db8dcc180a6170219b4538",
+        "protocol": "tcp",
+        "packets": 44,
+        "forward": 22,
+        "backward": 22,
+        "duration_seconds": 7.766912,
+        "max_interpacket_seconds": 1.689548114,
+        "close_reason": "SHUTDOWN"
+      },
+      {
+        "flow_id": "fa9c2adcdf044a7ee4ea105db5bb50ab4006b27c750332566bd52ef58dd4fe15",
+        "protocol": "tcp",
+        "packets": 68,
+        "forward": 41,
+        "backward": 27,
+        "duration_seconds": 7.813971,
+        "max_interpacket_seconds": 1.547126956,
+        "close_reason": "SHUTDOWN"
+      },
+      {
+        "flow_id": "13678717c2201b28fa743406b2bdc217385c8d62cd0ed15b90f053b80175a2d1",
+        "protocol": "tcp",
+        "packets": 70,
+        "forward": 42,
+        "backward": 28,
+        "duration_seconds": 7.81391,
+        "max_interpacket_seconds": 1.479808196,
+        "close_reason": "SHUTDOWN"
+      }
+    ],
+    "queue": {
+      "DONE": 260
+    },
+    "source_status_counts": {
+      "ACCEPTED": 260
+    },
+    "finalization": "VERIFIED",
+    "transport_queue_depth": 0,
+    "transport_queue_high_water": 156,
+    "capture_gap_count": 1,
+    "elapsed_seconds": 9.275769664000109,
+    "packet_timestamp_span_seconds": 8.152108646,
+    "observed_frames_per_second": 55.197575893578595,
+    "metadata_one_second_bins": {
+      "0": 66,
+      "1": 4,
+      "2": 50,
+      "3": 14,
+      "4": 18,
+      "5": 63,
+      "6": 10,
+      "7": 26,
+      "8": 5
+    },
+    "ip_versions": {
+      "4": 256
+    },
+    "protocols": {
+      "tcp": 256
+    },
+    "frame_budget": "FRAME_BUDGET_INSUFFICIENT",
+    "projection_assumption": "CONSTANT_OBSERVED_RATE_NOT_A_FUTURE_BOUND",
+    "projections": [
+      {
+        "seconds": 31,
+        "observed_rate_only": 1712,
+        "plus_scenario_16_frames": 1728,
+        "safety_1_5_plus_16": 2583
+      },
+      {
+        "seconds": 33,
+        "observed_rate_only": 1822,
+        "plus_scenario_16_frames": 1838,
+        "safety_1_5_plus_16": 2749
+      },
+      {
+        "seconds": 40,
+        "observed_rate_only": 2208,
+        "plus_scenario_16_frames": 2224,
+        "safety_1_5_plus_16": 3328
+      },
+      {
+        "seconds": 59,
+        "observed_rate_only": 3257,
+        "plus_scenario_16_frames": 3273,
+        "safety_1_5_plus_16": 4901
+      }
+    ],
+    "eligible_flows": 0,
+    "model_receipts": 0,
+    "audit_digest": "13580c248791f3a70c0272c1f929727e2fda3273ca52f05523b2df8181dcfd40",
+    "research_audit": "VERIFIED",
+    "sqlite_integrity": {
+      "runtime/sources.sqlite": "ok",
+      "runtime/monitor.sqlite": "ok",
+      "runtime/queue.sqlite": "ok",
+      "runtime/collection-audit.sqlite": "ok",
+      "network-research/soc/external-validation.sqlite": "ok",
+      "runtime/network/sources.sqlite": "ok",
+      "runtime/network/queue.sqlite": "ok"
+    },
+    "database_unchanged": true,
+    "capabilities": {
+      "CapEff": 0,
+      "CapPrm": 0,
+      "CapInh": 0,
+      "CapAmb": 0,
+      "CapBnd": 8192,
+      "NoNewPrivs": 1
+    },
+    "helper_rss_peak_bytes": 196161536,
+    "helper_cpu_ready_seconds": 3.469121,
+    "helper_cpu_closed_seconds": 3.638013,
+    "runtime_process_rss_peak_bytes": 289730560,
+    "runtime_process_cpu_seconds": 40.74897300000001,
+    "runtime_rate_window_seconds": 36.8943626950022,
+    "runtime_metadata_packets_per_second": 6.938729423687223,
+    "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+    "action_policy": "WRITE_DENIED",
+    "assessment_scope": "RETAINED_NATIVE_READ_ONLY_NO_NEW_INFERENCE"
+  },
+  "new_capture": false,
+  "new_traffic": false,
+  "namespace_created": false,
+  "new_model_inference": false,
+  "counter_interval_history": "NOT_PERSISTED_IN_FULL_READY_CLOSED_AND_AUDIT_VERIFIED",
+  "helper_exit_code": {
+    "value": 0,
+    "basis": "USER_REPORTED_NO_EXIT_STATUS_FILE"
+  },
+  "isolation": "BLOCKED_UNDER_CURRENT_AUTHORIZATION_RUNTIME_UNTESTED",
+  "evidence_digest": "2cb3290788c2ad6bfcec6e5281a8e8aed50cecb8f50e29887debdff9ebcde1a2"
+}
