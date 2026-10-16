@@ -138,7 +138,8 @@ def verify(directory: Path) -> dict:
     if before != after or set(integrity.values()) != {"ok"}:
         raise ValueError("SAVED_LIVE_DATABASE_INTEGRITY_MISMATCH")
     cap = ready.capabilities
-    passed = (
+    network = store.state().get("network", {})
+    capture_verified = (
         bool(packets)
         and all(p.timestamp_origin == "KERNEL_SO_TIMESTAMPNS" for p in packets)
         and ready.session_id == closed.session_id == session.session_id
@@ -148,19 +149,46 @@ def verify(directory: Path) -> dict:
         and cap["CapBnd"] == 8192
         and closed.error is None
         and closed.capture_drops == 0
+        and closed.capture_drops_total == 0
+        and closed.counter_status == "COUNTER_VERIFIED"
+        and ready.counter_status == "COUNTER_VERIFIED"
+        and closed.counter_sequence == network.get("counter_sequence")
+        and network.get("capture_counter_issue") is None
         and closed.received_frames <= session.max_packets
         and closed.elapsed_seconds <= session.seconds
+    )
+    transport_complete = (
+        closed.sent_packets == len(packets)
+        and network.get("transport_queue_depth") == 0
+        and network.get("transport_error") is None
+    )
+    persisted = (
+        transport_complete
+        and network.get("finalization") == "VERIFIED"
+        and network.get("last_error") is None
+        and pipeline.queue.counts() == {"DONE": len(packets) + len(flows)}
+    )
+    passed = (
+        capture_verified
+        and persisted
         and {r["profile"] for r in model_receipts} == {"quality", "edge"}
         and all(
             r["origin"] == "NATIVE_AF_PACKET" and r["investigation_status"] == "ASSESSED_READ_ONLY"
             for r in model_receipts
         )
-        and pipeline.queue.counts() == {"DONE": len(packets) + len(flows)}
     )
     return {
         "status": "VERIFIED" if passed else "PARTIAL",
         "session_id": str(session.session_id),
         "packets": len(packets),
+        "capture_status": "CAPTURE_VERIFIED" if capture_verified else "BLOCKED",
+        "transport_status": "VERIFIED" if transport_complete else "TRANSPORT_PARTIAL",
+        "persistence_status": "PERSISTENCE_VERIFIED" if persisted else "BLOCKED",
+        "stored_source_counts_verified": True,
+        "unpersisted_metadata_packets": closed.sent_packets - len(packets)
+        if closed.sent_packets is not None
+        else None,
+        "finalization": network.get("finalization", "LEGACY_NOT_RECORDED"),
         "flows": len(flows),
         "models": model_receipts,
         "queue": pipeline.queue.counts(),

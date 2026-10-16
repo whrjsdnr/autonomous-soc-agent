@@ -145,6 +145,7 @@ class NetworkMonitor:
             "flows_per_minute": None,
             "last_packet_timestamp": None,
             "last_error": None,
+            "finalization": "PENDING",
             "gates": model_gates(),
             "inference_count": 0,
             "inference_success": 0,
@@ -273,7 +274,10 @@ class NetworkMonitor:
                         self.metrics["dns_queries"] += 1
                     if packet.dns_status.startswith("DNS_") and packet.dns_status != "DNS_PARSED":
                         self.metrics["dns_parse_failures"] += 1
-                self.pipeline.flush(utc_now())
+                now = utc_now()
+                if hasattr(self.capture, "flow_watermark"):
+                    now = self.capture.flow_watermark(now)
+                self.pipeline.flush(now)
                 for _ in range(64):
                     if self._step() == "IDLE":
                         break
@@ -286,27 +290,90 @@ class NetworkMonitor:
                 if isinstance(error, (CaptureUnavailable, PacketRejected))
                 else type(error).__name__
             )
-            self.metrics.update(state="DEGRADED", readiness="NOT_READY", last_error=code)
+            self.metrics.update(
+                state="DEGRADED", readiness="NOT_READY", last_error=code, finalization="BLOCKED"
+            )
+            cause = error.__cause__
+            self.metrics["storage_error_code"] = (
+                getattr(cause, "sqlite_errorname", "UNKNOWN")
+                if isinstance(error, StorageError)
+                else None
+            )
             if opened:
                 self.metrics["gap_count"] += 1
                 if code != "CAPTURE_DROP_DETECTED":
                     self.metrics["capture_drops"] = None
-            self.store.event("NETWORK_COLLECTION_BLOCKED", {"reason": code})
+            self.store.event(
+                "NETWORK_COLLECTION_BLOCKED",
+                {"reason": code, "storage_error_code": self.metrics["storage_error_code"]},
+            )
         finally:
-            self.capture.close()
-            if opened and self.metrics["state"] == "RUNNING":
-                try:
-                    self.pipeline.flush(utc_now(), "SHUTDOWN")
-                    while self._step() != "IDLE":
-                        pass
-                    self.metrics.update(state="STOPPED", readiness="NOT_READY")
-                except (ValueError, OSError, StorageError, sqlite3.Error):
-                    self.metrics.update(
-                        state="DEGRADED",
-                        readiness="NOT_READY",
-                        last_error="NETWORK_SHUTDOWN_INCOMPLETE",
+            try:
+                if opened and self.metrics["state"] == "RUNNING":
+                    verified = (
+                        hasattr(self.capture, "completion_verified")
+                        and not self.capture.closed.is_set()
+                        and self.capture.completion_verified()
                     )
-            self._publish()
+                    if verified:
+                        self._sample()
+                    self.pipeline.flush(utc_now(), "SHUTDOWN")
+                    for _ in range(self.pipeline.queue.capacity + 1):
+                        if self._step() == "IDLE":
+                            break
+                    else:
+                        raise QueueFull("NETWORK_FINALIZATION_BACKPRESSURE")
+                    if verified:
+                        self._verify_finalization()
+                        self.metrics["finalization"] = "VERIFIED"
+                        self.store.event(
+                            "NETWORK_CAPTURE_FINALIZED",
+                            {
+                                "generation": self.generation,
+                                "packets": self.metrics["packets_collected"],
+                                "flows": self.pipeline.generated_flows,
+                                "research": "ELIGIBLE_TIMEOUT_FLOWS_ONLY",
+                            },
+                        )
+                    else:
+                        self.metrics["finalization"] = "NOT_APPROVED_STOP_OR_MISSING_COUNTERS"
+                    self.metrics.update(state="STOPPED", readiness="NOT_READY")
+            except (ValueError, OSError, StorageError, sqlite3.Error):
+                self.metrics.update(
+                    state="DEGRADED",
+                    readiness="NOT_READY",
+                    last_error="NETWORK_SHUTDOWN_INCOMPLETE",
+                    finalization="BLOCKED",
+                )
+            finally:
+                if hasattr(self.capture, "completion_verified"):
+                    self.capture.close(
+                        reason="PERSISTENCE_OR_FINALIZATION_FAILED"
+                        if self.metrics["last_error"]
+                        else "CAPTURE_FINALIZED"
+                        if self.metrics["finalization"] == "VERIFIED"
+                        else "EXPLICIT_STOP_BEFORE_PERSISTENCE"
+                    )
+                else:
+                    self.capture.close()
+                self._publish()
+
+    def _verify_finalization(self):
+        if not self.capture.completion_verified() or self.metrics["capture_drops"] != 0:
+            raise CaptureUnavailable("NETWORK_FINAL_COUNTER_OR_TRANSPORT_MISMATCH")
+        counts = self.pipeline.queue.counts()
+        if any(counts.get(k, 0) for k in ("PENDING", "CLAIMED", "POISON")):
+            raise ValueError("NETWORK_FINAL_QUEUE_NOT_COMMITTED")
+        with self.pipeline.queue.database.transaction(write=False) as c:
+            packets = c.execute(
+                "SELECT count(*) FROM realtime_events WHERE status='DONE' "
+                "AND json_extract(payload,'$.source.generation')=? "
+                "AND json_extract(payload,'$.metadata.code')='packet'",
+                (self.generation,),
+            ).fetchone()[0]
+        if packets != self.capture.delivered or packets != self.metrics["packets_collected"]:
+            raise ValueError("NETWORK_FINAL_PERSISTENCE_COUNT_MISMATCH")
+        self.store.verify_audit()
 
 
 def network_status(directory: Path, store: RuntimeStore):

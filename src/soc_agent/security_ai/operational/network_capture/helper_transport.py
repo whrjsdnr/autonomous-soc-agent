@@ -153,6 +153,8 @@ class HelperCapture:
         self.queue_high_water = 0
         self.delivered = 0
         self.records_read = 0
+        self.last_delivered_at = None
+        self.shutdown_reason = None
 
     def start_reader(self):
         """One bounded metadata reader, independent of SQLite/model/event-loop work."""
@@ -380,6 +382,7 @@ class HelperCapture:
                         self.stop.set()
                     return None
                 self.delivered += 1
+                self.last_delivered_at = packet.timestamp
                 return packet
         if not self.alive:
             return None
@@ -394,6 +397,31 @@ class HelperCapture:
             if packet is not None or not self.alive:
                 return packet
         return None
+
+    def flow_watermark(self, now):
+        """Never expire queued/capture-ended traffic using processor wall time."""
+        with self.reader_lock:
+            if self.reader_thread is not None and self.last_delivered_at is not None:
+                return self.last_delivered_at
+            return now
+
+    def completion_verified(self):
+        with self.reader_lock:
+            end = self.terminal
+            return bool(
+                end is not None
+                and not self.reader_failed()
+                and self.counter_issue is None
+                and end.error is None
+                and end.counter_status == "COUNTER_VERIFIED"
+                and end.capture_drops_total == 0
+                and end.sent_packets == self.sequence == self.delivered
+                and end.received_frames is not None
+                and self.delivered <= end.received_frames <= self.session.max_packets
+                and end.elapsed_seconds is not None
+                and end.elapsed_seconds <= self.session.seconds
+                and self.packets.empty()
+            )
 
     def _receive_record(self, message):
         if message.kind == "PACKET":
@@ -492,8 +520,9 @@ class HelperCapture:
                 "transport_final_counter_verified": self.terminal is not None,
             }
 
-    def close(self):
+    def close(self, *, reason="EXPLICIT_STOP_BEFORE_PERSISTENCE"):
         with self.transport_lock:
+            self.shutdown_reason = self.shutdown_reason or reason
             self.alive = False
             self.closed.set()
             if self.channel is not None:
@@ -519,6 +548,6 @@ class HelperCapture:
                     {
                         "queued_packets": self.packets.qsize(),
                         "delivered_packets": self.delivered,
-                        "reason": self.reader_error or "EXPLICIT_STOP_BEFORE_PERSISTENCE",
+                        "reason": self.reader_error or self.shutdown_reason,
                     },
                 )

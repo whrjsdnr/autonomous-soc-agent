@@ -239,27 +239,33 @@ class LiveMonitoring:
             or self.capture.reader_failed()
             or (self.capture.closed.is_set() and self.capture.terminal is None)
             or self.monitor is None
+            or self.start_cancelled
+            or self.last_error is not None
+            or self.monitor.metrics.get("finalization") != "VERIFIED"
+            or not self.capture.completion_verified()
             or request.capture_session != self.session.session_id
             or self.monitor.metrics["last_error"]
         ):
             raise ValueError("LIVE_AUTHENTICATED_SOURCE_REQUIRED")
         pipeline = self.monitor.pipeline
         with pipeline.queue.database.transaction(write=False) as c:
-            for row in c.execute(
+            rows = c.execute(
                 "SELECT * FROM realtime_events WHERE status='DONE' "
                 "AND json_extract(payload,'$.metadata.code')='flow'"
-            ):
-                event = pipeline.queue._decode(row)
-                flow = pipeline.decode(event)
-                if flow.flow_id == request.flow_id:
-                    expected = bound_request(
-                        self.monitor, self.session.session_id, event, flow, request.profile
-                    )
-                    if expected.model_dump(exclude={"invocation_id"}) != request.model_dump(
-                        exclude={"invocation_id"}
-                    ):
-                        raise ValueError("LIVE_DURABLE_SOURCE_MISMATCH")
-                    return
+            ).fetchall()
+        # Do not retain an outer SQLite read lock across nested provenance reads.
+        for row in rows:
+            event = pipeline.queue._decode(row)
+            flow = pipeline.decode(event)
+            if flow.flow_id == request.flow_id:
+                expected = bound_request(
+                    self.monitor, self.session.session_id, event, flow, request.profile
+                )
+                if expected.model_dump(exclude={"invocation_id"}) != request.model_dump(
+                    exclude={"invocation_id"}
+                ):
+                    raise ValueError("LIVE_DURABLE_SOURCE_MISMATCH")
+                return
         raise ValueError("LIVE_DURABLE_FLOW_MISSING")
 
     def on_flow(self, event, flow, receipt):
@@ -325,7 +331,6 @@ class LiveMonitoring:
                     generation=str(self.session.session_id),
                 )
                 self.capture.stop = self.monitor.stopped
-                consumer = asyncio.create_task(self._consume())
                 await self.monitor.run()
                 store.event(
                     "LIVE_HELPER_CLOSED",
@@ -337,8 +342,11 @@ class LiveMonitoring:
                 )
             if self.monitor.metrics["last_error"]:
                 raise ValueError("LIVE_CAPTURE_GAP_OR_MONITOR_ERROR")
+            if self.start_cancelled or self.monitor.metrics.get("finalization") != "VERIFIED":
+                raise ValueError("LIVE_FINALIZATION_REQUIRED_NO_INFERENCE")
             self.state = "COLLECTION_STOPPED_RESEARCH_DRAINING"
             self.collection_done.set()
+            consumer = asyncio.create_task(self._consume())
             await asyncio.wait_for(consumer, 90)
             self.state = "STOPPED"
         except asyncio.CancelledError:
