@@ -32,6 +32,9 @@ def main() -> int:
         help="Display label only; never source attestation or inference authority",
     )
     args = parser.parse_args()
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        print("SOC_GUI_REQUIRES_UNPRIVILEGED_USER", file=sys.stderr)
+        return 1
     try:
         import tkinter as tk
     except ImportError:

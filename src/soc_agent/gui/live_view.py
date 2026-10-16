@@ -1,7 +1,7 @@
 """Live-research presentation. Permission commands are displayed/copied, never executed."""
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import messagebox, ttk
 
 from soc_agent.gui.charts import Distribution, MetricHistory, Trend
 from soc_agent.gui.components import Button, Label
@@ -15,22 +15,30 @@ def display_state(value):
 
 
 class LiveView:
-    def __init__(self, app):
+    def __init__(self, app, *, streaming=False):
         self.app = app
+        self.streaming = streaming
+        self.page = "Streaming Network" if streaming else "Live Network"
+        self.prefix = "stream" if streaming else "live"
         self.history = MetricHistory()
         self.session = None
         self.command = ""
         self.command_session = None
         self.last_snapshot = {}
         self.pending = False
+        self.observation_started_ns = 0
         self.headline = tk.StringVar(value="STOPPED · no active helper")
         self.metrics = tk.StringVar(value="UNKNOWN · waiting for backend")
-        Label(app.content, text="Live Network · research advisory", size=22, bold=True).pack(
+        Label(app.content, text=self.page + " · research advisory", size=22, bold=True).pack(
             anchor="w"
         )
         Label(
             app.content,
-            text="lo only · up to 60 seconds / 512 frames · no payload · no operational promotion",
+            text=(
+                "lo only · managed 300s session · bounded rate / queues · RESEARCH_ONLY"
+                if streaming
+                else "lo only · up to 60 seconds / 512 frames · no payload"
+            ),
             size=12,
             max_width=1200,
         ).pack(anchor="w", pady=(8, 12))
@@ -47,14 +55,38 @@ class LiveView:
             state="readonly",
             width=12,
         ).pack(side="left", padx=(0, 10))
-        self.start_button = Button(controls, text="Prepare live session", command=self.start)
+        self.start_button = Button(
+            controls,
+            text="Start Monitoring" if streaming else "Prepare live session",
+            command=self.start,
+        )
         self.start_button.pack(side="left", padx=(0, 10))
         self.copy_button = Button(controls, text="Copy helper command", command=self.copy_command)
         self.copy_button.pack(side="left", padx=(0, 10))
         self.copy_button.configure(state="disabled")
         Button(
-            controls, text="Stop live", command=lambda: app.call("live_stop", callback=self.render)
+            controls,
+            text="Stop (drain)" if streaming else "Stop live",
+            command=lambda: app.call(self.prefix + "_stop", callback=self.render),
         ).pack(side="left")
+        if streaming:
+            options = ttk.Frame(app.content)
+            options.pack(fill="x", pady=4)
+            self.dns_headers = tk.BooleanVar(value=True)
+            ttk.Checkbutton(options, text="DNS headers only", variable=self.dns_headers).pack(
+                side="left", padx=8
+            )
+            Button(options, text="Restart", command=self.restart).pack(side="left", padx=8)
+            Button(
+                options,
+                text="Recover retained",
+                command=lambda: app.call("stream_restore", callback=self.render),
+            ).pack(side="left")
+            Button(
+                options,
+                text="Abort now",
+                command=lambda: app.call("stream_stop", True, callback=self.render),
+            ).pack(side="left", padx=8)
         self.instructions = tk.Text(
             app.content,
             height=6,
@@ -84,6 +116,28 @@ class LiveView:
             charts, "CONFIRMED RESEARCH CALLS · separate from operational AI"
         )
         self.counts.pack(side="left", fill="both", expand=True)
+        self.stream_charts = []
+        if streaming:
+            for definitions in (
+                (
+                    ("flow_rate", "Finalized flows / minute", "flows/min"),
+                    ("inference_rate", "Confirmed research calls / minute", "calls/min"),
+                ),
+                (
+                    ("queue", "Inference queue backlog", "flows"),
+                    ("rss_mib", "Controller RSS", "MiB"),
+                ),
+                (
+                    ("cpu_seconds", "Controller CPU", "CPU seconds"),
+                    ("drops", "Kernel capture drops", "frames"),
+                ),
+            ):
+                row = ttk.Frame(app.content)
+                row.pack(fill="x", pady=8)
+                for metric, title, units in definitions:
+                    chart = Trend(row, self.history, metric, title, "#38BDF8", units)
+                    chart.pack(side="left", fill="both", expand=True, padx=(0, 10))
+                    self.stream_charts.append(chart)
         app._table(("model", "source", "score", "prediction", "investigation"))
         row = ttk.Frame(app.detail_parent)
         row.pack(before=app.summary_frame, fill="x")
@@ -98,9 +152,21 @@ class LiveView:
             return
         self.clear_command("Preparing listener; no helper command available yet.")
         self.start_button.configure(state="disabled")
-        self.app.call("live_start", self.profile.get(), callback=self.prepared)
+        arguments = (
+            (self.profile.get(), self.dns_headers.get())
+            if self.streaming
+            else (self.profile.get(),)
+        )
+        self.app.call(self.prefix + "_start", *arguments, callback=self.started)
+
+    def started(self, result):
+        self.prepared(result)
+        if self.streaming and result.get("listener_ready") is True:
+            self.request_authentication(result)
 
     def prepared(self, result):
+        if not self.accept_observation(result):
+            return
         if not self.headline.get() or not self.instructions.winfo_exists():
             return
         self.command = result.get("command", "") if result.get("listener_ready") is True else ""
@@ -131,6 +197,42 @@ class LiveView:
             else result.get("status", "UNKNOWN")
         )
 
+    def restart(self):
+        if self.app.busy or self.app.closing:
+            return
+        self.app.call(self.prefix + "_stop", callback=lambda _: self.start())
+
+    def request_authentication(self, result):
+        assessment = result.get("os_auth", {})
+        if assessment.get("status") != "OS_AUTH_UI_AVAILABLE_UNTESTED":
+            self.app.notice.set(
+                "OS authentication UI unavailable. Review and run the helper in a terminal."
+            )
+            return
+        policy = result.get("policy", {})
+        approved = messagebox.askyesno(
+            "Approve new streaming helper",
+            "Use OS authentication to launch this separate capture helper?\n"
+            f"{result.get('interface', 'UNKNOWN')} · {policy.get('seconds', 'UNKNOWN')} seconds · "
+            f"{policy.get('frames_per_second', 'UNKNOWN')} raw frames/s · "
+            f"DNS headers: {policy.get('dns_headers', 'UNKNOWN')}\n"
+            "Temporary CAP_NET_RAW; dropped after socket open. No payload or DNS names.\n"
+            "Research inference only; operational AI remains BLOCKED.\n\nSHA256: "
+            + result.get("helper_sha256", "UNKNOWN")
+            + "\nSession digest: "
+            + result.get("session_digest", "UNKNOWN"),
+            parent=self.app.root,
+        )
+        if approved:
+            self.app.call(
+                "stream_authenticate",
+                result["session_id"],
+                result["helper_sha256"],
+                callback=lambda value: self.app.notice.set(value.get("status", "UNKNOWN")),
+            )
+        else:
+            self.app.call("stream_stop", callback=self.render)
+
     def clear_command(self, reason):
         self.command, self.command_session = "", None
         self.copy_button.configure(state="disabled")
@@ -144,10 +246,10 @@ class LiveView:
             return
         session_id = self.command_session or self.last_snapshot.get("session_id")
         if session_id:
-            self.app.call("live_command", session_id, callback=self.copy_verified_command)
+            self.app.call(self.prefix + "_command", session_id, callback=self.copy_verified_command)
 
     def copy_verified_command(self, result):
-        if self.app.page != "Live Network" or not self.instructions.winfo_exists():
+        if self.app.page != self.page or not self.instructions.winfo_exists():
             return
         self.prepared(result)
         if not self.command:
@@ -160,16 +262,12 @@ class LiveView:
         )
 
     def poll(self):
-        if (
-            self.app.closing
-            or self.app.page != "Live Network"
-            or not self.instructions.winfo_exists()
-        ):
+        if self.app.closing or self.app.page != self.page or not self.instructions.winfo_exists():
             return
         if self.pending:
             return
         self.pending = True
-        future = self.app.worker.submit("live_status")
+        future = self.app.worker.submit(self.prefix + "_status")
 
         def finish():
             if self.app.closing or not self.instructions.winfo_exists():
@@ -188,7 +286,9 @@ class LiveView:
         self.app.root.after(50, finish)
 
     def render(self, value):
-        if self.app.page != "Live Network" or not self.instructions.winfo_exists():
+        if self.app.page != self.page or not self.instructions.winfo_exists():
+            return
+        if not self.accept_observation(value):
             return
         self.last_snapshot = value
         state = display_state(value)
@@ -210,6 +310,8 @@ class LiveView:
                 "LIVE_COLLECTION",
                 "LIVE_RESEARCH_INFERENCE",
                 "COLLECTION_STOPPED_RESEARCH_DRAINING",
+                "STREAM_DRAINING",
+                "FIXTURE_STREAMING",
             )
             else "normal"
         )
@@ -229,8 +331,17 @@ class LiveView:
         self.history.observe({"network": network, "queue_backlog": network.get("queue_backlog")})
         self.traffic.source = value.get("input_origin", "UNKNOWN")
         self.traffic.redraw()
+        for chart in self.stream_charts:
+            chart.source = value.get("input_origin", "UNKNOWN")
+            chart.redraw()
         model_metrics = research.get("model_metrics", {})
         counts = {p: m["successful"] for p, m in model_metrics.items() if p in ("quality", "edge")}
+        if self.streaming:
+            self.counts.heading = (
+                "RETAINED CALLS · no new inference on recovery"
+                if state == "RETAINED_STREAM_NOT_LIVE"
+                else "CONFIRMED RESEARCH CALLS · separate from operational AI"
+            )
         self.counts.update_counts(counts if model_metrics else None)
 
         def known(v):
@@ -258,6 +369,29 @@ class LiveView:
             + (value.get("last_error") or "NONE_RECORDED")
             + " · RESEARCH_ONLY / uncalibrated score / WRITE_DENIED"
         )
+        if self.streaming:
+            auth = value.get("os_auth", {})
+            self.metrics.set(
+                self.metrics.get()
+                + "\n"
+                + f"Network {value.get('collectors', {}).get('network', 'UNKNOWN')} · "
+                + f"DNS {value.get('collectors', {}).get('dns', 'UNKNOWN')}\n"
+                + f"Uptime {known(network.get('capture_uptime_seconds'))} s · "
+                + f"CPU {known(network.get('runtime_cpu_seconds'))} s · "
+                + f"RSS {known(network.get('runtime_rss_bytes'))} bytes · "
+                + f"Metadata {known(network.get('retained_metadata_bytes'))} bytes\n"
+                + f"Raw frames {known(network.get('received_frames'))} · "
+                + f"Sent IP packets {known(network.get('metadata_packets'))} · "
+                + f"Transport queue {known(network.get('transport_queue_depth'))} · "
+                + f"Counter {known(network.get('counter_status'))}\n"
+                + f"Advisory processing {known(network.get('advisory_latency_seconds'))} s\n"
+                + f"DNS {known(network.get('dns_collection'))} · "
+                + f"Queries {known(network.get('dns_queries'))} · DNS9 AI BLOCKED · "
+                + f"OS auth {auth.get('state', 'NOT_REQUESTED')} · "
+                + (auth.get("last_error") or "")
+                + " · Runtime audit "
+                + value.get("runtime_audit_integrity", "UNKNOWN")
+            )
         records = research.get("records", [])
         self.app.current_records = records
         self.app._rows(
@@ -284,3 +418,12 @@ class LiveView:
                 ),
             }
         )
+
+    def accept_observation(self, value):
+        stamp = value.get("observation_started_ns")
+        if stamp is None:
+            return True  # Explicit fixture/detail callers; production replies are stamped.
+        if type(stamp) is not int or stamp < self.observation_started_ns:
+            return False
+        self.observation_started_ns = stamp
+        return True

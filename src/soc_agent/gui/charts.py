@@ -18,6 +18,12 @@ class Sample:
     network_rate: float | None = None
     dns_rate: float | None = None
     ai_count: int | None = None
+    flow_rate: float | None = None
+    inference_rate: float | None = None
+    rss_mib: float | None = None
+    cpu_seconds: float | None = None
+    drops: int | None = None
+    gaps: int | None = None
 
 
 def count(value) -> int | None:
@@ -58,6 +64,12 @@ class MetricHistory:
             rate("packets_per_second"),
             rate("dns_queries_per_minute"),
             count(network.get("inference_count")),
+            rate("flows_per_minute"),
+            rate("inferences_per_minute"),
+            rate("runtime_rss_bytes") / 1024**2 if rate("runtime_rss_bytes") is not None else None,
+            rate("runtime_cpu_seconds"),
+            count(network.get("capture_drops")),
+            count(network.get("gap_count")),
         )
         if self.samples and when == self.samples[-1].measured_at:
             if sample != self.samples[-1]:

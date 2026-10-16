@@ -25,6 +25,7 @@ class ResearchAdapter:
         paths: Paths | None = None,
         timeout: float = 30,
         live_metadata: bool = False,
+        transient_inputs: bool = False,
     ):
         if not 0.1 <= timeout <= 30:
             raise ValueError("RESEARCH_TIMEOUT_LIMIT")
@@ -34,6 +35,7 @@ class ResearchAdapter:
         self.cancelled = False
         self.live_metadata = live_metadata
         self.authorize_live = None
+        self.transient_inputs = transient_inputs
 
     def status(self, profile="quality") -> dict:
         try:
@@ -76,6 +78,7 @@ class ResearchAdapter:
             raise ValueError("RESEARCH_WORKER_ALREADY_RUNNING")
         self.busy = True
         self.cancelled = False
+        work = source = result = None
         try:
             if live and request.origin == "NATIVE_AF_PACKET":
                 if self.authorize_live is None:
@@ -172,5 +175,18 @@ class ResearchAdapter:
         except (OSError, ValueError, KeyError, ImportError):
             return {"status": "UNKNOWN", "error": "RESEARCH_VALIDATION_FAILED_NO_RETRY"}
         finally:
-            self.busy = False
-            self.process = None
+            try:
+                if self.transient_inputs and work is not None:
+                    # Only this newly-created worker directory, never legacy input,
+                    # model binaries or source-store records. Authoritative queued
+                    # flow input survives until its durable no-retry outcome.
+                    for path in (source, result):
+                        if path is not None and path.exists():
+                            from soc_agent.review.persistence.secure_storage import validate_file
+
+                            validate_file(path)
+                            path.unlink()
+                    work.rmdir()
+            finally:
+                self.busy = False
+                self.process = None

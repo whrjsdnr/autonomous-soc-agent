@@ -234,6 +234,16 @@ class ResearchDemo:
             key = digest({"profile": profile, "flow_id": sample["flow_id"]})
         return await self.dispatch(request, key)
 
+    def attempt_document(self, request, key):
+        return {
+            "key": key,
+            "request": request.model_dump(mode="json"),
+            "created_at": datetime.now(UTC).isoformat(),
+        }
+
+    def validate_receipt(self, request, receipt):
+        """Optional stricter input binding; the existing adapter validates every receipt."""
+
     async def dispatch(self, request, key: str):
         profile = request.profile
         if not self.started or self.stopping:
@@ -253,11 +263,7 @@ class ResearchDemo:
                 if len(records) + len(unknown) >= self.capacity:
                     raise ValueError("RESEARCH_INVOCATION_BUDGET_EXHAUSTED")
                 self.active_key = key
-                attempt = {
-                    "key": key,
-                    "request": request.model_dump(mode="json"),
-                    "created_at": datetime.now(UTC).isoformat(),
-                }
+                attempt = self.attempt_document(request, key)
                 write_new(self.directory / ("attempt-" + key + ".json"), attempt)
                 store = self._store()
                 with store.database.transaction() as connection:
@@ -274,6 +280,7 @@ class ResearchDemo:
                 }
                 if outcome["status"] == "SUCCESS":
                     receipt = parse_receipt(outcome["receipt"])
+                    self.validate_receipt(request, receipt)
                     result["receipt"] = receipt.model_dump(mode="json")
                     try:
                         if self.stopping:

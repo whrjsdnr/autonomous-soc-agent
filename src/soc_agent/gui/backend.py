@@ -5,6 +5,7 @@ import json
 import os
 import sqlite3
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
@@ -37,6 +38,12 @@ class GUIConfig(Snapshot):
     source_label: Literal["UNVERIFIED", "LIVE_WSL", "FIXTURE"] = "UNVERIFIED"
 
 
+def observed_snapshot(reader):
+    # Stamp before reading: a slow old poll must never outrank a completed Stop.
+    started = time.monotonic_ns()
+    return {**reader(), "observation_started_ns": started}
+
+
 class Backend:
     """One instance belongs to one GUI worker event loop, never the Tk thread."""
 
@@ -57,6 +64,11 @@ class Backend:
         from soc_agent.security_ai.research.live_service import LiveMonitoring
 
         self.live_monitoring = LiveMonitoring(self.directory)
+        from soc_agent.security_ai.research.stream_auth import OSAuthentication
+        from soc_agent.security_ai.research.stream_service import StreamingMonitoring
+
+        self.streaming_monitoring = StreamingMonitoring(self.directory)
+        self.streaming_auth = OSAuthentication()
         self.closed = False
         self.busy_scenario = False
         self.scenario_results = []
@@ -178,6 +190,8 @@ class Backend:
             self.process_log.close()
         await self.research_demo.stop()
         await self.live_monitoring.stop()
+        await self.streaming_monitoring.stop(abort=True)
+        await self.streaming_auth.cancel()
         self.closed = True
         return {
             "status": "DETACHED",
@@ -188,10 +202,12 @@ class Backend:
     async def dashboard(self):
         research = await asyncio.to_thread(self.research_demo.snapshot)
         live = await asyncio.to_thread(self.live_monitoring.snapshot)
+        streaming = await asyncio.to_thread(self.streaming_monitoring.snapshot)
         if self.runtime is None or not (self.runtime / "monitor.sqlite").is_file():
             return {
                 "research": research,
                 "live_network": live,
+                "streaming_network": streaming,
                 "runtime_state": "OFFLINE",
                 "health": "UNKNOWN",
                 "readiness": "NOT_READY",
@@ -216,6 +232,7 @@ class Backend:
         # A view may reconnect to a different store; never join unrelated chart histories.
         result["research"] = research
         result["live_network"] = live
+        result["streaming_network"] = streaming
         result["metric_scope"] = str(self.runtime)
         result["display_source"] = self.config.source_label
         result["ownership"] = (
@@ -227,16 +244,65 @@ class Backend:
         choices = {"both": ("quality", "edge"), "quality": ("quality",), "edge": ("edge",)}
         if selection not in choices:
             raise ValueError("LIVE_NETWORK_MODEL_SELECTION_INVALID")
-        return await self.live_monitoring.start(choices[selection])
+        result = await self.live_monitoring.start(choices[selection])
+        return {**result, "observation_started_ns": time.monotonic_ns()}
 
     async def live_status(self):
-        return await asyncio.to_thread(self.live_monitoring.snapshot)
+        return await asyncio.to_thread(observed_snapshot, self.live_monitoring.snapshot)
 
     async def live_command(self, session_id):
-        return self.live_monitoring.helper_command(session_id)
+        return {
+            **self.live_monitoring.helper_command(session_id),
+            "observation_started_ns": time.monotonic_ns(),
+        }
 
     async def live_stop(self):
-        return await self.live_monitoring.stop()
+        await self.live_monitoring.stop()
+        return observed_snapshot(self.live_monitoring.snapshot)
+
+    async def stream_start(self, selection="both", dns_headers=True):
+        from soc_agent.security_ai.operational.network_capture.stream_session import StreamPolicy
+
+        choices = {"both": ("quality", "edge"), "quality": ("quality",), "edge": ("edge",)}
+        if selection not in choices or type(dns_headers) is not bool:
+            raise ValueError("STREAM_SELECTION_INVALID")
+        result = await self.streaming_monitoring.start(
+            choices[selection], policy=StreamPolicy(dns_headers=dns_headers)
+        )
+        return {
+            **result,
+            "os_auth": self.streaming_auth.snapshot(),
+            "observation_started_ns": time.monotonic_ns(),
+        }
+
+    async def stream_status(self):
+        value = await asyncio.to_thread(observed_snapshot, self.streaming_monitoring.snapshot)
+        return {**value, "os_auth": self.streaming_auth.snapshot()}
+
+    async def stream_command(self, session_id):
+        return {
+            **self.streaming_monitoring.command(session_id),
+            "observation_started_ns": time.monotonic_ns(),
+        }
+
+    async def stream_authenticate(self, session_id, approved_sha):
+        if self.streaming_monitoring.command(session_id).get("listener_ready") is not True:
+            raise ValueError("OS_AUTH_STALE_SESSION")
+        return await self.streaming_auth.start(self.streaming_monitoring, approved_sha)
+
+    async def stream_stop(self, abort=False):
+        # Close listener before cancelling a pending OS prompt, so a late approval
+        # cannot open capture through a stopped session.
+        await self.streaming_monitoring.stop(abort=abort)
+        await self.streaming_auth.cancel()
+        return {
+            **observed_snapshot(self.streaming_monitoring.snapshot),
+            "os_auth": self.streaming_auth.snapshot(),
+        }
+
+    async def stream_restore(self):
+        await self.streaming_monitoring.restore_latest()
+        return observed_snapshot(self.streaming_monitoring.snapshot)
 
     async def investigations(self):
         if self.runtime is None:

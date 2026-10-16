@@ -26,7 +26,7 @@ from soc_agent.security_ai.operational.network_capture.live_session import (
 )
 from soc_agent.security_ai.operational.network_capture.models import PacketObservation
 from soc_agent.security_ai.operational.network_capture.permissions import NET_RAW
-from soc_agent.security_ai.research.models import Frozen
+from soc_agent.security_ai.research.models import Frozen, digest
 
 
 class Message(Frozen):
@@ -56,7 +56,9 @@ class Message(Frozen):
     cpu_seconds: float | None = Field(default=None, ge=0)
 
 
-def validate_peer(channel, ready: Message, session: Session, directory: Path):
+def validate_peer(channel, ready: Message, session: Session, directory: Path, *, module=MODULE):
+    if module not in {MODULE, "soc_agent.security_ai.operational.network_capture.stream_helper"}:
+        raise CaptureUnavailable("HELPER_MODULE_NOT_ALLOWLISTED")
     pid, uid, gid = struct.unpack(
         "3i", channel.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12)
     )
@@ -79,7 +81,10 @@ def validate_peer(channel, ready: Message, session: Session, directory: Path):
     ):
         raise CaptureUnavailable("HELPER_READY_PEER_MISMATCH")
     arguments = Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0")
-    if arguments[1:-1] != [b"-I", b"-m", MODULE.encode(), b"--directory", os.fsencode(directory)]:
+    expected = [b"-I", b"-m", module.encode(), b"--directory", os.fsencode(directory)]
+    if module != MODULE:
+        expected.extend([b"--session-digest", digest(session.model_dump(mode="json")).encode()])
+    if arguments[1:-1] != expected:
         raise CaptureUnavailable("HELPER_COMMAND_MISMATCH")
     if hashlib.sha256(Path(f"/proc/{pid}/exe").read_bytes()).hexdigest() != session.python_sha256:
         raise CaptureUnavailable("HELPER_INTERPRETER_MISMATCH")
@@ -118,8 +123,9 @@ def validate_peer(channel, ready: Message, session: Session, directory: Path):
 
 class HelperCapture:
     control_batch = 64
+    helper_module = MODULE
 
-    def __init__(self, directory: Path, session: Session):
+    def __init__(self, directory: Path, session: Session, *, queue_capacity=None):
         self.directory, self.session = directory, session
         self.identity = session.interface_id
         self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
@@ -148,7 +154,11 @@ class HelperCapture:
         self.reader_error: str | None = None
         # At most 512 metadata records (4 MiB encoded upper bound), tied to the
         # already approved frame budget. This is not a second persistent queue.
-        self.packets: queue.Queue[PacketObservation] = queue.Queue(maxsize=session.max_packets)
+        capacity = session.max_packets if queue_capacity is None else queue_capacity
+        if not 1 <= capacity <= 512:
+            self.listener.close()
+            raise CaptureUnavailable("HELPER_TRANSPORT_QUEUE_LIMIT")
+        self.packets: queue.Queue[PacketObservation] = queue.Queue(maxsize=capacity)
         self.reader_lock = threading.RLock()
         self.queue_high_water = 0
         self.delivered = 0
@@ -332,7 +342,10 @@ class HelperCapture:
             self.listener.close()
         channel.settimeout(2)
         ready = self.message()
-        validate_peer(channel, ready, self.session, self.directory)
+        if self.helper_module == MODULE:
+            validate_peer(channel, ready, self.session, self.directory)
+        else:
+            validate_peer(channel, ready, self.session, self.directory, module=self.helper_module)
         try:
             self.accept_counters(ready)
         except CaptureUnavailable:
