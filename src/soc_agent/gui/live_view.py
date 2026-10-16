@@ -225,6 +225,7 @@ class LiveView:
             self.session = value.get("session_id")
             self.history.samples.clear()
         network, research = value.get("network", {}), value.get("research", {})
+        eligibility = value.get("flow_eligibility", {})
         self.history.observe({"network": network, "queue_backlog": network.get("queue_backlog")})
         self.traffic.source = value.get("input_origin", "UNKNOWN")
         self.traffic.redraw()
@@ -242,6 +243,10 @@ class LiveView:
             f"Drops {known(network.get('capture_drops'))} · "
             f"Gaps {known(network.get('gap_count'))} · "
             f"Queue {known(network.get('queue_backlog'))}\n"
+            + f"Eligible (timeout only) {known(eligibility.get('eligible'))} · "
+            + f"Excluded {known(eligibility.get('rejected'))} · "
+            + f"Pending {known(eligibility.get('pending'))} · "
+            + f"Finalization {known(network.get('finalization'))}\n"
             + " · ".join(
                 f"{p}: {m['state']} / confirmed {m['successful']} / unknown {m['unknown']}"
                 for p, m in model_metrics.items()

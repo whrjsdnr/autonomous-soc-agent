@@ -10,7 +10,7 @@ from soc_agent.linux_runtime.models import RuntimeConfig
 from soc_agent.linux_runtime.network_monitor import NetworkMonitor, configure
 from soc_agent.linux_runtime.service import initialize
 from soc_agent.linux_runtime.store import RuntimeStore
-from soc_agent.realtime.queue import QueueFull
+from soc_agent.realtime.queue import EventQueue, QueueFull
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory, validate_directory
 from soc_agent.runtime_lock import exclusive_runtime_lock
@@ -23,11 +23,17 @@ from soc_agent.security_ai.operational.network_capture.live_session import (
 )
 from soc_agent.security_ai.operational.network_capture.models import (
     CaptureConfig,
+    FlowSummary,
     PacketObservation,
 )
 from soc_agent.security_ai.operational.provenance import build_receipt, verify_receipt
 from soc_agent.security_ai.research.adapter import ResearchAdapter
-from soc_agent.security_ai.research.live_input import LiveRequest, expected_source
+from soc_agent.security_ai.research.live_input import (
+    FlowEligibilityCounts,
+    LiveRequest,
+    expected_source,
+    lifecycle_eligible,
+)
 from soc_agent.security_ai.research.models import digest
 from soc_agent.security_ai.research.service import ResearchDemo
 
@@ -83,10 +89,7 @@ class LiveResearch(ResearchDemo):
 def bound_request(monitor: NetworkMonitor, session_id: UUID, event, flow, profile) -> LiveRequest:
     """Load durable packet/source references; never accepts an arbitrary feature vector."""
     monitor.store.verify_audit()
-    if event.source.generation != str(session_id) or flow.close_reason not in {
-        "IDLE_TIMEOUT",
-        "ACTIVE_TIMEOUT",
-    }:
+    if event.source.generation != str(session_id) or not lifecycle_eligible(flow.close_reason):
         raise ValueError("LIVE_SESSION_OR_RESTART_GAP_MISMATCH")
     if monitor.config.idle_seconds != 30 or monitor.config.active_seconds != 120:
         raise ValueError("LIVE_FLOW_PRODUCER_TIMEOUT_MISMATCH")
@@ -271,7 +274,7 @@ class LiveMonitoring:
     def on_flow(self, event, flow, receipt):
         # Native packet-budget/shutdown/restart slices differ from the training
         # flow window. Keep them diagnostic, never pad or infer a complete flow.
-        if flow.close_reason not in {"IDLE_TIMEOUT", "ACTIVE_TIMEOUT"}:
+        if not lifecycle_eligible(flow.close_reason):
             return
         if self.pending.full():
             raise QueueFull("LIVE_INFERENCE_BACKPRESSURE")
@@ -398,6 +401,45 @@ class LiveMonitoring:
         self.state = "STOPPED"
         return await asyncio.to_thread(self.snapshot)
 
+    def flow_eligibility(self) -> FlowEligibilityCounts:
+        """Read-only committed-flow counts, explicitly not inference authorization."""
+        path = self.directory / "runtime/network/queue.sqlite" if self.directory else None
+        if path is None or not path.is_file() or self.session is None:
+            return {"eligible": None, "rejected": None, "pending": None, "by_close_reason": {}}
+        queue = EventQueue(path)
+        with queue.database.transaction(write=False) as c:
+            rows = c.execute(
+                "SELECT * FROM realtime_events WHERE json_extract(payload,'$.metadata.code')='flow'"
+            ).fetchall()
+        eligible = rejected = pending = 0
+        reasons: dict[str, int] = {}
+        for row in rows:
+            event = queue._decode(row)
+            if event.source.generation != str(self.session.session_id):
+                raise ValueError("FLOW_ELIGIBILITY_SESSION_MISMATCH")
+            if [k for k, _ in event.normalized_fields] != [
+                f"record_{i:02}" for i in range(len(event.normalized_fields))
+            ]:
+                raise ValueError("FLOW_ELIGIBILITY_CHUNK_MISMATCH")
+            flow = FlowSummary.model_validate_json("".join(v for _, v in event.normalized_fields))
+            if flow.interface_id != self.session.interface_id:
+                raise ValueError("FLOW_ELIGIBILITY_INTERFACE_MISMATCH")
+            if row["status"] in {"PENDING", "CLAIMED"}:
+                pending += 1
+                continue
+            if row["status"] == "DONE" and lifecycle_eligible(flow.close_reason):
+                eligible += 1
+            else:
+                rejected += 1
+            reason = "POISON" if row["status"] == "POISON" else flow.close_reason
+            reasons[reason] = reasons.get(reason, 0) + 1
+        return {
+            "eligible": eligible,
+            "rejected": rejected,
+            "pending": pending,
+            "by_close_reason": reasons,
+        }
+
     def snapshot(self):
         try:
             listener_ready = bool(
@@ -482,6 +524,7 @@ class LiveMonitoring:
                     ),
                 },
                 "research": research,
+                "flow_eligibility": self.flow_eligibility(),
                 "last_error": last_error or network.get("last_error"),
                 "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
                 "operational_input": "NOT_INFERABLE",

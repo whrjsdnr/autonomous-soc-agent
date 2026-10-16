@@ -1,6 +1,6 @@
 """Packet metadata bridge to Network14; no capture, privilege or model loading."""
 
-from typing import Literal, Self
+from typing import Literal, Self, TypedDict
 from uuid import UUID
 
 from pydantic import Field, model_validator
@@ -10,6 +10,19 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 FEATURE_CONTRACT = "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e"
 PRODUCER_CONFIG = "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7"
+TIMEOUT_CLOSURES = frozenset({"IDLE_TIMEOUT", "ACTIVE_TIMEOUT"})
+
+
+class FlowEligibilityCounts(TypedDict):
+    eligible: int | None
+    rejected: int | None
+    pending: int | None
+    by_close_reason: dict[str, int]
+
+
+def lifecycle_eligible(close_reason: str) -> bool:
+    """Timeout candidacy only; never substitutes for source/counter/finalization gates."""
+    return close_reason in TIMEOUT_CLOSURES
 
 
 class LiveRequest(Frozen):

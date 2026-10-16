@@ -99,6 +99,12 @@ async def test_selected_native_session_retained_gui_and_readonly_reopen(tmp_path
         assert snapshot["last_error"] is None
         assert network["capture_generation"] == saved["session_id"]
         assert network["finalization"] == "VERIFIED"
+        assert snapshot["flow_eligibility"] == {
+            "eligible": 0,
+            "rejected": 4,
+            "pending": 0,
+            "by_close_reason": {"SHUTDOWN": 4},
+        }
         assert network["packets_collected"] == 256 and network["flow_records"] == 4
         assert network["capture_drops"] == 0 and network["gap_count"] == 1
         assert network["queue_backlog"] == 0 and network["transport_queue_depth"] == 0
@@ -117,6 +123,9 @@ async def test_selected_native_session_retained_gui_and_readonly_reopen(tmp_path
             "Drops 0",
             "Gaps 1",
             "Queue 0",
+            "Eligible (timeout only) 0",
+            "Excluded 4",
+            "Finalization VERIFIED",
             "quality: IDLE / confirmed 0 / unknown 0",
             "edge: IDLE / confirmed 0 / unknown 0",
             "Audit VERIFIED",

@@ -20,7 +20,7 @@ from soc_agent.security_ai.operational.network_capture.pipeline import NetworkPi
 from soc_agent.security_ai.operational.provenance import build_receipt, verify_receipt
 from soc_agent.security_ai.operational.source_store import OperationalSourceStore
 from soc_agent.security_ai.research.environment import read_local
-from soc_agent.security_ai.research.live_input import validate_result
+from soc_agent.security_ai.research.live_input import lifecycle_eligible, validate_result
 from soc_agent.security_ai.research.live_service import LiveResearch, bound_request
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
@@ -190,6 +190,11 @@ def verify(directory: Path) -> dict:
         else None,
         "finalization": network.get("finalization", "LEGACY_NOT_RECORDED"),
         "flows": len(flows),
+        "flow_eligibility": {
+            "eligible": sum(lifecycle_eligible(f.close_reason) for _, f in flows.values()),
+            "rejected": sum(not lifecycle_eligible(f.close_reason) for _, f in flows.values()),
+            "scope": "LIFECYCLE_ONLY_SOURCE_AND_FINALIZATION_REQUIRED",
+        },
         "models": model_receipts,
         "queue": pipeline.queue.counts(),
         "audit_digest": store.verify_audit(),
