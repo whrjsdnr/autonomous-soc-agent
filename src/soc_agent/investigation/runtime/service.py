@@ -20,6 +20,7 @@ from soc_agent.investigation.runtime.models import (
     WorkflowStep,
 )
 from soc_agent.investigation.runtime.persistence.models import (
+    CheckpointClockRollback,
     WorkflowAuthorityUnavailable,
     WorkflowCheckpoint,
     WorkflowInFlight,
@@ -241,6 +242,8 @@ class SOCRuntime:
     def _checkpoint(self, workflow: _Workflow, *, revision: int) -> WorkflowCheckpoint:
         old = workflow.checkpoint
         now = utc_now()
+        if old is not None and now < old.updated_at:
+            raise CheckpointClockRollback()
         return WorkflowCheckpoint(
             run_id=old.run_id if old else uuid4(),
             incident_id=workflow.anchor.incident_id,
@@ -404,6 +407,10 @@ class SOCRuntime:
             raise WorkflowInFlight("Persistence must be reconciled in a fresh runtime")
         expected = workflow.checkpoint
         try:
+            # Refuse known rollback before claiming or beginning any external work.
+            # Check again at publication: time may change while a step is running.
+            if utc_now() < expected.updated_at:
+                raise CheckpointClockRollback()
             claim = self._checkpoints.claim(expected)
             result = await self._advance_local(
                 incident_id,

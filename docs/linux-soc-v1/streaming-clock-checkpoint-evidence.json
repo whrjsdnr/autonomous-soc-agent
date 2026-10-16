@@ -1,0 +1,145 @@
+{
+  "contract": "soc-streaming-clock-checkpoint-evidence:v1",
+  "baseline": {
+    "soc": "872ec3ade420426f6ed24a8ce793830f1b50ccb2",
+    "ml": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde"
+  },
+  "clock_observation": {
+    "observed_at": "2026-10-16T08:58:52.054362+00:00",
+    "elapsed_monotonic": 30.000849519998155,
+    "samples": 14309,
+    "backward_steps": [],
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "clock_info": {
+      "time": "namespace(implementation='clock_gettime(CLOCK_REALTIME)', monotonic=False, adjustable=True, resolution=1e-09)",
+      "monotonic": "namespace(implementation='clock_gettime(CLOCK_MONOTONIC)', monotonic=True, adjustable=False, resolution=1e-09)"
+    },
+    "proc_uptime": "26780.31 295464.65",
+    "clocksource": "tsc",
+    "synchronization_observation": {
+      "NTP": true,
+      "NTPSynchronized": true,
+      "root_cause": "UNKNOWN"
+    },
+    "boot_epoch_seconds": 1792114351
+  },
+  "prior_clock_observation": {
+    "seconds": 10,
+    "samples": 9181,
+    "backward_steps": 1,
+    "max_backward_seconds": 0.470687
+  },
+  "historical_failure_causality": "UNKNOWN",
+  "fixture_checkpoint_mechanism": "VERIFIED",
+  "pre_fix_regression": {
+    "passed": 3,
+    "failed": 1,
+    "reason": "Store accepted updated_at regression above created_at"
+  },
+  "limited_fixture_soak": {
+    "contract": "soc-streaming-clock-fixture-probe:v1",
+    "source": "FIXTURE",
+    "elapsed_monotonic": 61.30243771499954,
+    "cpu_seconds": 2.2124096189999998,
+    "peak_rss_bytes": 204570624,
+    "utc_backward_samples": [],
+    "utc_sample_interval_seconds": 1,
+    "state": "STOPPED",
+    "metrics": {
+      "packets_collected": 122,
+      "flow_records": 3,
+      "queue_backlog": 0,
+      "gap_count": 0,
+      "capture_drops": null,
+      "finalization": "VERIFIED",
+      "input_origin": "FIXTURE",
+      "inference_count": 2,
+      "advisory_latency_seconds": 2.2525203980003425,
+      "eligible_flows": 1,
+      "rejected_flows": 2,
+      "active_flows": 0,
+      "retained_metadata_bytes": 0,
+      "peak_metadata_bytes": 69490,
+      "capture_uptime_seconds": 60.522928386002604,
+      "packets_per_second": 2.0157649878061,
+      "flows_per_minute": 2.974079490205721,
+      "eligible_flows_per_minute": 0.9913598300685738,
+      "inferences_per_minute": 1.9827196601371475,
+      "runtime_rss_bytes": 179761152,
+      "runtime_cpu_seconds": 1.9606621429999995,
+      "disk_bytes": 1644421
+    },
+    "queue": {
+      "DONE": 1
+    },
+    "actual_inferences": 2,
+    "read_only_investigations": 2,
+    "worker_failures": 0,
+    "audit_digest": "d33efca337017c7baae281127d4917f7b2066d351a9a2b6cfc065ec1a93e00ce",
+    "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+    "new_capture": false,
+    "blocked_network_socket_attempts": 0
+  },
+  "prior_30_minute_fixture_soak": {
+    "elapsed_seconds": 1800.9789049669998,
+    "requested_seconds": 1800,
+    "actual_model_inferences": 0,
+    "mock_unknown_calls": 1,
+    "audit_digest": "5eec8c1d92adf37bd777b08c254a84d5e4cb3c7fff1f28f9f1202863f2b8f8e6",
+    "network_socket_attempts": 0
+  },
+  "helper": {
+    "sha256": "1cc1c1f39007d1e8f53207dcd5f79f2128b12ea8077d5d09fcb6a72c5d037c84",
+    "proposed_native_seconds": 300,
+    "schema_max_seconds": 1800,
+    "raw_rate_per_second": 128,
+    "burst": 256,
+    "proposed_frame_budget": 38656,
+    "actual_capture": false
+  },
+  "artifacts": {
+    "quality": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+    "edge": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882"
+  },
+  "source_sha256": {
+    "src/soc_agent/investigation/runtime/persistence/models.py": "2678249bf14d263f1304397ebf711c69764e2e1a37673474958fa91f32fd65ed",
+    "src/soc_agent/investigation/runtime/persistence/store.py": "6ee5a53443d8f35b9ae75fa1c29ef07d1d8057a52cc9cf6491c39131c9476535",
+    "src/soc_agent/investigation/runtime/service.py": "9b7b93c130d39d2d243a2ca0dc004631c2d9e8db8f1e2c4bdc0a0cd4eb6b34ba",
+    "src/soc_agent/security_ai/research/service.py": "022a4f4a95911285093af66dff124a3eda8a187bc90a4e4b45e6d1d20b6a6f1d",
+    "tests/integration/checkpoints/test_clock.py": "c1cf2453a57c8399fc4e185e12ea3dca39293ae76ae3e226fb8c3777fdbb806c",
+    "tests/integration/research_adapter/test_clock.py": "79f1b96267abd027e3cdcb96eb08f56e6f4ed5a7cbb7044c3e98e5cce371d78b",
+    "tests/unit/streaming_network/test_clock.py": "a77df8da75daa8d413ddca61fec9c0751d4b42a44d508ceac591c5e38f6c2921",
+    "tests/streaming_clock_stability.py": "436f1f7a14b6d12130b05c6e1734672e56c16655c1a31251d722be8c4bc8dba9"
+  },
+  "native_validation": "PENDING_SEPARATE_USER_APPROVAL",
+  "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+  "tests": {
+    "checkpoint_suite": {
+      "passed": 34,
+      "failed": 0,
+      "seconds": 11.0
+    },
+    "streaming_research_checkpoint": {
+      "passed": 134,
+      "failed": 0,
+      "seconds": 56.53
+    },
+    "runtime_governance": {
+      "passed": 149,
+      "failed": 0,
+      "seconds": 43.47
+    },
+    "actual_wslg": {
+      "passed": 1,
+      "failed": 0,
+      "seconds": 20.08
+    },
+    "independent_export": {
+      "passed": 247,
+      "failed": 0,
+      "seconds": 80.49
+    },
+    "unique_coverage_summed": false,
+    "existing_ml_format_violations": 24
+  }
+}

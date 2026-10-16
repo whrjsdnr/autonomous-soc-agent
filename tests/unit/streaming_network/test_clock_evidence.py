@@ -1,0 +1,28 @@
+"""Portable committed evidence verifies hashes, scope and fail-closed limitations."""
+
+import hashlib
+import json
+from pathlib import Path
+
+
+def test_clock_evidence_bindings_and_limits():
+    root = Path(__file__).resolve().parents[3]
+    data = json.loads(
+        (root / "docs/linux-soc-v1/streaming-clock-checkpoint-evidence.json").read_text()
+    )
+    assert data["contract"] == "soc-streaming-clock-checkpoint-evidence:v1"
+    for name, expected in data["source_sha256"].items():
+        assert hashlib.sha256((root / name).read_bytes()).hexdigest() == expected
+    helper = root / "src/soc_agent/security_ai/operational/network_capture/stream_helper.py"
+    assert hashlib.sha256(helper.read_bytes()).hexdigest() == data["helper"]["sha256"]
+    assert data["clock_observation"]["backward_steps"] == []
+    assert data["historical_failure_causality"] == "UNKNOWN"
+    assert data["limited_fixture_soak"]["source"] == "FIXTURE"
+    assert data["limited_fixture_soak"]["new_capture"] is False
+    assert data["limited_fixture_soak"]["metrics"]["capture_drops"] is None
+    assert data["limited_fixture_soak"]["actual_inferences"] == 2
+    assert data["limited_fixture_soak"]["read_only_investigations"] == 2
+    assert data["helper"]["proposed_native_seconds"] == 300
+    assert data["helper"]["schema_max_seconds"] == 1800
+    assert data["native_validation"] == "PENDING_SEPARATE_USER_APPROVAL"
+    assert data["operational_gate"] == "OPERATIONAL_INFERENCE_BLOCKED"

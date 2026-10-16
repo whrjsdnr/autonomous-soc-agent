@@ -24,6 +24,13 @@ class WorkflowAuthorityUnavailable(ValueError):
     """Required promotion/approval must be revalidated by the existing live bridge."""
 
 
+class CheckpointClockRollback(ValueError):
+    """Observed UTC precedes committed progress; never clamp, retry or clear a claim."""
+
+    def __init__(self) -> None:
+        super().__init__("CHECKPOINT_CLOCK_ROLLBACK")
+
+
 class WorkflowCheckpoint(Frozen):
     run_id: UUID
     incident_id: UUID

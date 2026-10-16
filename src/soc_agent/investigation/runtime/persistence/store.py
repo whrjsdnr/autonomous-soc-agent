@@ -4,6 +4,7 @@ from sqlite3 import Connection
 from uuid import UUID, uuid4
 
 from soc_agent.investigation.runtime.persistence.models import (
+    CheckpointClockRollback,
     StaleCheckpoint,
     WorkflowCheckpoint,
     WorkflowInFlight,
@@ -154,6 +155,8 @@ class CheckpointStore:
             current, old_trace, token = self._read(connection, expected.incident_id)
             if current != expected or token != str(claim):
                 raise StaleCheckpoint("Checkpoint publication CAS conflict")
+            if updated.updated_at < expected.updated_at:
+                raise CheckpointClockRollback()
             if (
                 updated.run_id != expected.run_id
                 or updated.incident_id != expected.incident_id

@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from soc_agent.investigation.runtime.persistence.models import CheckpointClockRollback
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import (
     create_private_directory,
@@ -292,6 +293,8 @@ class ResearchDemo:
                             self.investigation_task, 20
                         )
                         result["status"] = "COMPLETE"
+                    except CheckpointClockRollback:
+                        result["error"] = "RESEARCH_CHECKPOINT_CLOCK_ROLLBACK_NO_RETRY"
                     except (ValueError, TimeoutError, asyncio.CancelledError):
                         result["error"] = "RESEARCH_INVESTIGATION_FAILED_NO_RETRY"
                 write_new(self.directory / ("receipt-" + key + ".json"), result)
