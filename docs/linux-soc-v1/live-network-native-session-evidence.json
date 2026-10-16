@@ -1,0 +1,146 @@
+{
+  "contract": "soc-native-session-verification:v1",
+  "validation_date": "2026-10-16",
+  "soc_head": "fcff821fdd8f1ac5cee76b4e53baa7ccfc938d7a",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "session_directory_name": "session-0f9e538dad3d4531bcc9e3e322cb3538",
+  "session_id": "cf6000a7-3085-4948-b12c-bfb4a144e86b",
+  "origin": "NATIVE_AF_PACKET",
+  "helper_sha256": "a8a0cafe7494922a0296a250129ab5695b681dbbec6febf512509b023ef44856",
+  "capture": {
+    "ready_counter_sequence": 1,
+    "closed_counter_sequence": 524,
+    "kernel_packets_total": 516,
+    "received_frames": 512,
+    "sent_packets": 256,
+    "capture_drops_total": 0,
+    "elapsed_seconds": 5.032110403000843,
+    "helper_error": null,
+    "capabilities": {
+      "euid": 1000,
+      "egid": 1000,
+      "CapEff": 0,
+      "CapPrm": 0,
+      "CapInh": 0,
+      "CapAmb": 0,
+      "CapBnd": 8192,
+      "NoNewPrivs": 1
+    },
+    "heartbeat_history": "MISSING_LAST_ACCEPTED_PROJECTION_ONLY"
+  },
+  "transport": {
+    "delivered_packets": 256,
+    "queue_depth": 0,
+    "queue_high_water": 208,
+    "reader_running": false,
+    "reader_error": null,
+    "unprocessed_file": "MISSING",
+    "missing_persisted_packets": 0
+  },
+  "persistence": {
+    "packets": 256,
+    "flows": 4,
+    "queue": {
+      "DONE": 260
+    },
+    "sources": {
+      "ACCEPTED": 260
+    },
+    "finalization": "VERIFIED",
+    "capture_gap_count": 1,
+    "last_error": null,
+    "flow_close_reasons": {
+      "SHUTDOWN": 4
+    },
+    "packet_sequence_contiguous": true,
+    "duplicate_observation_keys": 0,
+    "duplicate_flow_references": 0,
+    "flow_reference_coverage_packets": 256,
+    "rebuilt_flows_verified": 4
+  },
+  "producer": {
+    "version": "1.1.0",
+    "feature_count": 14,
+    "dtype": "float32",
+    "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+    "configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+    "eligible_flows": 0,
+    "actual_feature_vectors": 0
+  },
+  "model_artifacts": {
+    "quality": {
+      "model_id": "linux-network14-research-v1-quality_rf",
+      "sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "status": "VERIFIED_PREFLIGHT_ONLY_NO_LOADING_OR_INFERENCE",
+      "receipt_count": 0,
+      "prediction": "UNKNOWN",
+      "score": "UNKNOWN"
+    },
+    "edge": {
+      "model_id": "linux-network14-research-v1-edge_lr",
+      "sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "status": "VERIFIED_PREFLIGHT_ONLY_NO_LOADING_OR_INFERENCE",
+      "receipt_count": 0,
+      "prediction": "UNKNOWN",
+      "score": "UNKNOWN"
+    }
+  },
+  "models": [],
+  "audit": {
+    "runtime_head": "926664b1dba33e40689ce5ab300297df0317a6ac3507e84283204aac979826c1",
+    "research_integrity": "VERIFIED",
+    "event_counts": {
+      "INITIALIZED": 1,
+      "NETWORK_CONFIGURED": 1,
+      "LIVE_HELPER_VERIFIED": 1,
+      "NETWORK_CAPTURE_GAP": 1,
+      "NETWORK_SOURCE_COMMITTED": 260,
+      "NETWORK_CAPTURE_FINALIZED": 1,
+      "LIVE_HELPER_CLOSED": 1
+    },
+    "research_table_counts": {
+      "workflow_checkpoints": 0,
+      "external_receipts": 0,
+      "external_contexts": 0,
+      "external_assessment_runs": 0,
+      "external_security_audit": 0
+    },
+    "checkpoint_recovery": "NOT_EXERCISED_NO_NATIVE_MODEL_CHECKPOINT",
+    "duplicate_inference_recovery": "NOT_EXERCISED_NO_NATIVE_MODEL_RECEIPT"
+  },
+  "sqlite_integrity": {
+    "runtime/sources.sqlite": "ok",
+    "runtime/monitor.sqlite": "ok",
+    "runtime/queue.sqlite": "ok",
+    "runtime/collection-audit.sqlite": "ok",
+    "network-research/soc/external-validation.sqlite": "ok",
+    "runtime/network/sources.sqlite": "ok",
+    "runtime/network/queue.sqlite": "ok"
+  },
+  "database_sha256": {
+    "runtime/sources.sqlite": "da5cb5b9d06835dd1aa2385cc1646f264a32991caf349a625893aae8f7c29df9",
+    "runtime/monitor.sqlite": "f1bd91999a3e7c751fa03b70647e5e0167358ac79c15dd79ee94bb5dca49cdc9",
+    "runtime/queue.sqlite": "088b2d9bbfff76726348832c482512d8a1602c452c2dbd1bcdd90d8cfa886f04",
+    "runtime/collection-audit.sqlite": "b6a8800a79f6b71bea20d4468009908925254b840a24194a6a2467349cc013a6",
+    "network-research/soc/external-validation.sqlite": "6c8cd88fd8f6a5988e9cdb66731faffc608f94c6a695dcaebffcf4451a9d371d",
+    "runtime/network/sources.sqlite": "cfd005d91d2ce062820782fa8deab8517f16dcae5aa23be23670d7f0a875cda8",
+    "runtime/network/queue.sqlite": "0f9d4b1a62e7c69d6057ac489ce70ccf884d31797f24601aaf6511ca30c1e797"
+  },
+  "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+  "operational_input": "NOT_INFERABLE",
+  "action_policy": "WRITE_DENIED",
+  "source_assurance": "LOCAL_CHAIN_NOT_REMOTE_ATTESTATION",
+  "verdicts": {
+    "capture": "CAPTURE_VERIFIED",
+    "counter": "COUNTER_VERIFIED",
+    "transport": "TRANSPORT_VERIFIED",
+    "persistence": "PERSISTENCE_VERIFIED",
+    "finalization": "FINALIZATION_VERIFIED",
+    "quality_inference": "BLOCKED",
+    "edge_inference": "BLOCKED",
+    "investigation": "BLOCKED",
+    "audit_recovery": "BLOCKED",
+    "overall": "PARTIAL"
+  },
+  "manifest_digest": "eb0abe59196738d453eb88b7276c31d96245e7e8c0d511d71cbad1638a798735"
+}
