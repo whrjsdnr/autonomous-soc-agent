@@ -51,6 +51,15 @@ class LiveView:
         controls = ttk.Frame(app.content)
         controls.pack(fill="x", pady=8)
         self.profile = tk.StringVar(value="both")
+        self.rate_policy = tk.StringVar(value=app.config.total_rate_policy)
+        if total:
+            ttk.Combobox(
+                controls,
+                textvariable=self.rate_policy,
+                values=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+                state="readonly",
+                width=18,
+            ).pack(side="left", padx=(0, 10))
         ttk.Combobox(
             controls,
             textvariable=self.profile,
@@ -168,6 +177,8 @@ class LiveView:
             if self.streaming
             else (self.profile.get(),)
         )
+        if self.total:
+            arguments += (self.rate_policy.get(),)
         self.app.call(self.prefix + "_start", *arguments, callback=self.started)
 
     def started(self, result):
@@ -220,7 +231,9 @@ class LiveView:
     def request_authentication(self, result):
         if self.total:
             sha = result.get("helper_sha256")
-            if sha != self.app.config.total_approved_sha:
+            if sha != self.app.config.total_approved_sha or (
+                result.get("policy_name", "legacy") != self.app.config.total_rate_policy
+            ):
                 self.app.notice.set(
                     "New Total helper approval required. Launch "
                     "soc-agent start --gui --monitor total from terminal."
@@ -453,7 +466,17 @@ class LiveView:
                 + " · pending "
                 + str(dns.get("pending", "UNKNOWN"))
                 + " · DNS9 BLOCKED / PRODUCER_PARITY_UNVERIFIED"
-                + "\nApproved rate "
+                + "\nPolicy "
+                + known(network.get("selected_rate_policy"))
+                + " · Approval "
+                + known(network.get("policy_approval"))
+                + " · total frame cap "
+                + known(network.get("policy_total_frames"))
+                + (
+                    "\nConfigured rate "
+                    if network.get("selected_rate_policy", "legacy") != "legacy"
+                    else "\nApproved rate "
+                )
                 + known(network.get("approved_raw_frames_per_second"))
                 + " raw frames/s · burst "
                 + known(network.get("approved_burst_frames"))

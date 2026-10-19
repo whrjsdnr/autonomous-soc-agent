@@ -114,7 +114,13 @@ class Desktop:
         self.ai_status.set("AI Fixture env: " + self.ai_environment["status"])
         if self.config.total_approved_sha:
             self.navigate("Total Monitoring", refresh=False)
-            self.call("total_start", callback=self._total_prepared)
+            self.call(
+                "total_start",
+                "both",
+                True,
+                self.config.total_rate_policy,
+                callback=self._total_prepared,
+            )
             return
         if self.page == "Security AI Models":
             self.render_models(value)

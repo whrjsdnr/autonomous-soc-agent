@@ -28,11 +28,19 @@ class Partition:
 
 
 class IsolatedFlows:
-    def __init__(self, *, max_flows=128, metadata_bytes=8 * 1024**2, records=1024, packets=38656):
+    def __init__(
+        self,
+        *,
+        max_flows=128,
+        metadata_bytes=8 * 1024**2,
+        records=1024,
+        packets=38656,
+        extended_reference_budget=False,
+    ):
         if (
             not 1 <= max_flows <= 128
             or not 1 <= records <= 1024
-            or not 1 <= packets <= 38656
+            or not 1 <= packets <= (154112 if extended_reference_budget else 38656)
             or not 8192 <= metadata_bytes <= 16 * 1024**2
         ):
             raise ValueError("TOTAL_ISOLATION_BUDGET_INVALID")

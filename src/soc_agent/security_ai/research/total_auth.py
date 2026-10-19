@@ -27,16 +27,31 @@ class TerminalAuthentication(OSAuthentication):
             },
         )
 
-    async def start(self, owner, approved_sha):
+    async def start(self, owner, approved_sha, *, approved_bundle=None, approved_policy=None):
         if self.task is not None and not self.task.done():
             raise ValueError("OS_AUTH_ALREADY_PENDING")
         if owner.command(str(owner.session.session_id)).get("listener_ready") is not True:
             raise ValueError("OS_AUTH_CURRENT_LISTENER_REQUIRED")
-        session = total_session.load(owner.directory)
-        if session != owner.session or approved_sha != session.code_sha256["total_helper.py"]:
+        session = owner.session_load(owner.directory)
+        calibrated = hasattr(session.policy, "policy_name")
+        helper = "calibrated_helper.py" if calibrated else "total_helper.py"
+        if session != owner.session or approved_sha != session.code_sha256[helper]:
             raise ValueError("NEW_TOTAL_HELPER_EXPLICIT_APPROVAL_REQUIRED")
+        if calibrated and (
+            approved_bundle != digest(session.code_sha256)
+            or approved_policy != session.policy.policy_name
+        ):
+            raise ValueError("CALIBRATED_SCOPE_EXPLICIT_APPROVAL_REQUIRED")
         argv = arguments(session)
-        argv[-1] = total_session.MODULE
+        argv[-1] = owner.session_module.MODULE if calibrated else total_session.MODULE
+        extra = []
+        if calibrated:
+            from soc_agent.security_ai.operational.network_capture.calibrated_session import (
+                approval_digest,
+            )
+
+            extra = ["--approval-digest", approval_digest(session)]
+        owner.metrics["policy_approval"] = "USER_APPROVED_SESSION_BOUND"
         self.state = "AUTHENTICATING"
         self.error = self.exit_code = None
         self.cancel_requested = False
@@ -46,6 +61,8 @@ class TerminalAuthentication(OSAuthentication):
                 "helper_sha256": approved_sha,
                 "password_received": False,
                 "session_digest": digest(session.model_dump(mode="json")),
+                "policy_name": getattr(session.policy, "policy_name", "legacy"),
+                "bundle_digest": digest(session.code_sha256),
             },
         )
         try:
@@ -57,6 +74,7 @@ class TerminalAuthentication(OSAuthentication):
                 str(owner.directory),
                 "--session-digest",
                 digest(session.model_dump(mode="json")),
+                *extra,
                 stdin=asyncio.subprocess.DEVNULL,
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,

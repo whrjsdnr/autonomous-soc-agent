@@ -32,6 +32,12 @@ def main(argv=None) -> int:
         help="Display label only; never source attestation or inference authority",
     )
     parser.add_argument("--total-approved-sha", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--total-rate-policy",
+        default="legacy",
+        choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+    )
+    parser.add_argument("--calibrated-approved-bundle", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if hasattr(os, "geteuid") and os.geteuid() == 0:
         print("SOC_GUI_REQUIRES_UNPRIVILEGED_USER", file=sys.stderr)
@@ -46,6 +52,8 @@ def main(argv=None) -> int:
 
         config = GUIConfig(
             total_approved_sha=args.total_approved_sha,
+            total_rate_policy=args.total_rate_policy,
+            calibrated_approved_bundle=args.calibrated_approved_bundle,
             data_directory=args.data_directory.absolute(),
             runtime_directory=args.runtime,
             artifacts=args.artifacts,

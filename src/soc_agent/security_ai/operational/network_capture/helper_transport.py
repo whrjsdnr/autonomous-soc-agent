@@ -73,6 +73,7 @@ def validate_peer(channel, ready: Message, session: Session, directory: Path, *,
         MODULE,
         "soc_agent.security_ai.operational.network_capture.stream_helper",
         "soc_agent.security_ai.operational.network_capture.total_helper",
+        "soc_agent.security_ai.operational.network_capture.calibrated_helper",
     }:
         raise CaptureUnavailable("HELPER_MODULE_NOT_ALLOWLISTED")
     pid, uid, gid = struct.unpack(
@@ -100,6 +101,12 @@ def validate_peer(channel, ready: Message, session: Session, directory: Path, *,
     expected = [b"-I", b"-m", module.encode(), b"--directory", os.fsencode(directory)]
     if module != MODULE:
         expected.extend([b"--session-digest", digest(session.model_dump(mode="json")).encode()])
+    if module == "soc_agent.security_ai.operational.network_capture.calibrated_helper":
+        from soc_agent.security_ai.operational.network_capture.calibrated_session import (
+            approval_digest,
+        )
+
+        expected.extend([b"--approval-digest", approval_digest(session).encode()])
     if arguments[1:-1] != expected:
         raise CaptureUnavailable("HELPER_COMMAND_MISMATCH")
     if hashlib.sha256(Path(f"/proc/{pid}/exe").read_bytes()).hexdigest() != session.python_sha256:

@@ -31,6 +31,10 @@ from soc_agent.tools import ToolRegistry
 
 class GUIConfig(Snapshot):
     total_approved_sha: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    total_rate_policy: Literal["legacy", "conservative-v2", "balanced-v2", "performance-v2"] = (
+        "legacy"
+    )
+    calibrated_approved_bundle: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     data_directory: Path
     runtime_directory: Path | None = None
     artifacts: Path | None = None
@@ -289,7 +293,7 @@ class Backend:
             "observation_started_ns": time.monotonic_ns(),
         }
 
-    async def total_start(self, selection="both", dns_headers=True):
+    async def total_start(self, selection="both", dns_headers=True, rate_policy="legacy"):
         if selection != "both" or dns_headers is not True:
             raise ValueError("TOTAL_BOTH_MODELS_AND_DNS_REQUIRED")
         if any(
@@ -297,7 +301,11 @@ class Backend:
             for owner in (self.streaming_monitoring, self.live_monitoring)
         ):
             raise ValueError("TOTAL_OTHER_CAPTURE_SESSION_ACTIVE")
-        result = await self.total_monitoring.start()
+        from soc_agent.security_ai.operational.network_capture.calibrated_policy import policy
+
+        result = await self.total_monitoring.start(
+            policy=None if rate_policy == "legacy" else policy(rate_policy)
+        )
         return {
             **result,
             "observation_started_ns": time.monotonic_ns(),
@@ -317,6 +325,18 @@ class Backend:
     async def total_authenticate(self, session_id, approved_sha):
         if self.total_monitoring.command(session_id).get("listener_ready") is not True:
             raise ValueError("TOTAL_AUTH_STALE_SESSION")
+        if hasattr(self.total_monitoring.policy, "policy_name"):
+            if (
+                self.config.total_approved_sha != approved_sha
+                or self.config.total_rate_policy != self.total_monitoring.policy.policy_name
+            ):
+                raise ValueError("CALIBRATED_SCOPE_EXPLICIT_APPROVAL_REQUIRED")
+            return await self.total_auth.start(
+                self.total_monitoring,
+                approved_sha,
+                approved_policy=self.config.total_rate_policy,
+                approved_bundle=self.config.calibrated_approved_bundle,
+            )
         return await self.total_auth.start(self.total_monitoring, approved_sha)
 
     async def total_stop(self, abort=False):

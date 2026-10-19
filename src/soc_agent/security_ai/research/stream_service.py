@@ -106,6 +106,7 @@ class StreamingMonitoring:
             instructions,
         )
         self.capture_type = StreamingCapture
+        self.session_module = None
         if total:
             from soc_agent.security_ai.operational.network_capture import total_session
             from soc_agent.security_ai.operational.network_capture.total_transport import (
@@ -116,6 +117,7 @@ class StreamingMonitoring:
             self.session_load = total_session.load
             self.session_instructions = total_session.instructions
             self.capture_type = TotalCapture
+            self.session_module = total_session
         self.dns_diagnostics = None
         self.paths = paths
         self.directory = self.session = self.capture = self.store = self.demo = self.task = None
@@ -168,14 +170,21 @@ class StreamingMonitoring:
                 self.state = "STOPPED"
                 return {"status": "STOPPED", "listener_ready": False}
             self.capture = self.capture_type(self.directory, self.session)
+            if self.session_module is not None:
+                self.capture.helper_module = self.session_module.MODULE
             self.stop_sent = False
             self.state = "AUTHENTICATION_REQUIRED"
             self.task = asyncio.create_task(self._native())
             return self.command(str(self.session.session_id))
-        except (OSError, ValueError, StorageError):
+        except (OSError, ValueError, StorageError) as error:
             await self._prepare_failed()
             self.state = "ERROR"
-            self.last_error = "STREAM_PREPARE_FAILED"
+            self.last_error = (
+                str(error)
+                if str(error).startswith("CALIBRATED_")
+                and re.fullmatch(r"[A-Z_]{1,128}", str(error))
+                else "STREAM_PREPARE_FAILED"
+            )
             return {"status": "BLOCKED", "last_error": self.last_error, "listener_ready": False}
         finally:
             self.preparing = False
@@ -191,7 +200,22 @@ class StreamingMonitoring:
         if len(list(self.root.glob("session-*"))) >= 8:
             raise ValueError("STREAM_ARCHIVAL_REQUIRED")
         self.directory = self.root / ("session-" + uuid4().hex)
-        self.policy = StreamPolicy.model_validate(policy.model_dump())
+        if self.total:
+            from soc_agent.security_ai.operational.network_capture import (
+                calibrated_session,
+                total_session,
+            )
+            from soc_agent.security_ai.operational.network_capture.calibrated_policy import (
+                CalibratedPolicy,
+            )
+
+            self.session_module = (
+                calibrated_session if isinstance(policy, CalibratedPolicy) else total_session
+            )
+            self.session_prepare = self.session_module.prepare
+            self.session_load = self.session_module.load
+            self.session_instructions = self.session_module.instructions
+        self.policy = type(policy).model_validate(policy.model_dump())
         self.fixture = fixture
         self.capture = None
         self.session = self.session_prepare(self.directory, self.policy)
@@ -212,6 +236,7 @@ class StreamingMonitoring:
                 metadata_bytes=policy.metadata_bytes,
                 records=policy.max_flow_records,
                 packets=policy.frame_budget,
+                extended_reference_budget=hasattr(policy, "policy_name"),
             )
             if self.total
             else StreamingFlows(max_flows=policy.active_flows, metadata_bytes=policy.metadata_bytes)
@@ -261,6 +286,13 @@ class StreamingMonitoring:
         self.ingestion_pressure = QueuePressure(policy.transport_capacity)
         self.raw_rate = ObservedRate()
         self.metrics.update(
+            selected_rate_policy=getattr(policy, "policy_name", "legacy"),
+            policy_total_frames=policy.frame_budget,
+            policy_approval="FIXTURE_NO_CAPTURE" if fixture else "APPROVAL_REQUIRED",
+            helper_sha256=self.session.code_sha256.get(
+                "calibrated_helper.py" if hasattr(policy, "policy_name") else "total_helper.py"
+            ),
+            helper_bundle_digest=digest(self.session.code_sha256),
             approved_raw_frames_per_second=policy.frames_per_second,
             approved_burst_frames=policy.burst_frames,
             rate_budget_state="FIXTURE_NO_CAPTURE" if fixture else "AWAITING_CAPTURE",
@@ -330,6 +362,8 @@ class StreamingMonitoring:
             await asyncio.wait_for(asyncio.to_thread(self.capture.handshake), 120)
             self.capture.start_reader()
             self.state = "LIVE_COLLECTION"
+            if hasattr(self.policy, "policy_name"):
+                self.metrics["policy_approval"] = "EXPLICIT_APPROVAL_ARGUMENT_ATTESTED"
             if self.total:
                 self.metrics["capture_integrity"] = "VERIFIED_PREFIX_ONLY"
                 self.metrics["integrity_state"] = "HEALTHY"
@@ -906,6 +940,20 @@ class StreamingMonitoring:
         if not directories:
             return self.snapshot()
         self.directory = directories[-1]
+        if self.total:
+            from soc_agent.security_ai.operational.network_capture import (
+                calibrated_session,
+                total_session,
+            )
+            from soc_agent.security_ai.research.environment import read_local
+
+            if json.loads(read_local(self.directory / "session.json", 16384)).get("contract") == (
+                "soc-total-calibrated-session:v2"
+            ):
+                self.session_module = calibrated_session
+            else:
+                self.session_module = total_session
+            self.session_load = self.session_module.load
         self.session = self.session_load(self.directory)
         self.policy = self.session.policy
         from soc_agent.linux_runtime.store import RuntimeStore
@@ -975,6 +1023,7 @@ class StreamingMonitoring:
             current_raw_frame_rate=None,
             backpressure="RETAINED_NOT_LIVE",
             worker_health="STOPPED",
+            policy_approval="RETAINED_NOT_CURRENT_AUTHORIZATION",
             retained_previous_active_flows=self.metrics.get("active_flows"),
             active_flows=0,
             retained_metadata_bytes=0,

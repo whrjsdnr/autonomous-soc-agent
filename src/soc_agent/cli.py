@@ -28,12 +28,39 @@ def main(argv=None) -> int:
     start.add_argument("--gui", required=True, action="store_true")
     start.add_argument("--monitor", required=True, choices=("total",))
     start.add_argument("--data-directory", type=Path)
+    start.add_argument(
+        "--rate-policy",
+        default="legacy",
+        choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+    )
+    start.add_argument("--approve-calibrated-sha")
     args = parser.parse_args(argv)
     try:
         from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
 
         unprivileged()
         hashes = verify_bundle()
+        helper = "total_helper.py"
+        selected = None
+        if args.rate_policy != "legacy":
+            from soc_agent.security_ai.operational.network_capture import calibrated_session
+            from soc_agent.security_ai.operational.network_capture.calibrated_policy import (
+                policy,
+                require_headroom,
+            )
+
+            selected = policy(args.rate_policy)
+            hashes = calibrated_session.verify_bundle()
+            helper = "calibrated_helper.py"
+            print("FIXTURE_CALIBRATED / NATIVE_CALIBRATION_PENDING / APPROVAL_REQUIRED")
+            print("Policy: " + selected.model_dump_json())
+            print("New Helper SHA256: " + hashes[helper])
+            from soc_agent.security_ai.research.models import digest
+
+            print("New Bundle Digest: " + digest(hashes))
+            if args.approve_calibrated_sha != hashes[helper]:
+                raise ValueError("CALIBRATED_NEW_SHA_APPROVAL_REQUIRED")
+            require_headroom()
         if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
             raise ValueError("TOTAL_WSLG_DISPLAY_REQUIRED")
         import tkinter  # noqa: F401
@@ -45,10 +72,13 @@ def main(argv=None) -> int:
         )
         if ResearchAdapter(data, live_metadata=True).status().get("status") != "READY":
             raise ValueError("TOTAL_RESEARCH_ARTIFACT_OR_ENVIRONMENT_BLOCKED")
-        print("NEW TOTAL HELPER APPROVAL: lo / 300s / 128 raw frames/s / burst 256 / max 38656.")
+        if selected is None:
+            print(
+                "NEW TOTAL HELPER APPROVAL: lo / 300s / 128 raw frames/s / burst 256 / max 38656."
+            )
         print("Temporary CAP_NET_RAW; drops after socket open; DNS metadata digests only.")
         print("RESEARCH_ONLY; DNS9 and operational AI BLOCKED; no security WRITE.")
-        print("Total Helper SHA256: " + hashes["total_helper.py"])
+        print("Total Helper SHA256: " + hashes[helper])
         from soc_agent.security_ai.research.models import digest
 
         print("Helper bundle digest: " + digest(hashes))
@@ -57,9 +87,15 @@ def main(argv=None) -> int:
         terminal_authenticate()
         from soc_agent.gui.__main__ import main as gui_main
 
-        return gui_main(
-            ["--data-directory", str(data), "--total-approved-sha", hashes["total_helper.py"]]
-        )
+        gui_args = ["--data-directory", str(data), "--total-approved-sha", hashes[helper]]
+        if selected is not None:
+            gui_args += [
+                "--total-rate-policy",
+                args.rate_policy,
+                "--calibrated-approved-bundle",
+                digest(hashes),
+            ]
+        return gui_main(gui_args)
     except (
         ValueError,
         OSError,
