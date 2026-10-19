@@ -122,6 +122,14 @@ def dashboard(app):
         max_width=1100,
     )
     app.capture_summary.pack(anchor="w", pady=(0, 12))
+    app.collector_summary = Label(
+        app.content,
+        text="Collector: existing capture · no observed input",
+        size=11,
+        fg=SECONDARY,
+        max_width=1100,
+    )
+    app.collector_summary.pack(anchor="w", pady=(0, 10))
     app.dashboard_charts = visual_charts.grid(
         app.content,
         (
@@ -187,6 +195,40 @@ def dashboard(app):
 
 def render_dashboard(app, value, rows):
     net, collectors = value.get("network", {}), value.get("collectors", {})
+    collector = value.get("collector", {})
+    metrics = collector.get("metrics", {})
+    chart = app.dashboard_charts[0]
+    chart.title = "ZEEK OFFLINE LOG EVENTS" if collector else "NETWORK TRAFFIC · DISTINCT COUNTERS"
+    chart.series = (
+        (("zeek_network", "Connection records"), ("zeek_dns", "DNS transactions"))
+        if collector
+        else (
+            ("raw", "Raw"),
+            ("normalized", "Normalized"),
+            ("delivered", "Delivered"),
+            ("limit", "Raw limit"),
+            ("analysis_limit", "Analysis limit"),
+        )
+    )
+    chart.units = (
+        "offline adapter records / second · not live packet rate"
+        if collector
+        else "frames or packets / second · monotonic interval"
+    )
+    if hasattr(app, "collector_summary"):
+        app.collector_summary.configure(
+            text=(
+                "Zeek OFFLINE · Network events "
+                + str(metrics.get("network_events", "UNKNOWN"))
+                + " · DNS transactions "
+                + str(metrics.get("dns_events", "UNKNOWN"))
+                + " · Queue "
+                + str(metrics.get("queue_depth", "UNKNOWN"))
+                + " · Network14/DNS9 BLOCKED · Native log lag UNKNOWN"
+            )
+            if collector
+            else "Existing capture · separate Raw / Normalized / Delivered counters"
+        )
     models = value.get("research", {}).get("model_metrics", {})
     origin = value.get("input_origin", "NO_DATA")
     app.status_cards["Network"].update_value(collectors.get("network", "UNKNOWN"), origin)
@@ -375,15 +417,33 @@ def system(app):
         state="readonly",
         width=20,
     ).pack(side="left", padx=(0, 12))
+    collector_bar = ttk.Frame(app.content)
+    collector_bar.pack(fill="x", pady=(0, 10))
+    Label(collector_bar, text="Collector", size=11).pack(side="left", padx=(0, 8))
+    ttk.Combobox(
+        collector_bar,
+        textvariable=app.collector_type,
+        values=("existing-capture", "zeek-offline"),
+        state="readonly",
+        width=24,
+    ).pack(side="left")
+    Label(
+        collector_bar,
+        text="Zeek = experimental OFFLINE PCAP / model parity BLOCKED",
+        size=11,
+        fg=SECONDARY,
+    ).pack(side="left", padx=12)
     app.start_button = Button(
         bar, text="Prepare monitoring", command=app.start, style="Accent.TButton"
     )
     app.start_button.pack(side="left", padx=(0, 8))
     Button(
-        bar, text="Stop & drain", command=lambda: app.call("total_stop", callback=app.render)
+        bar, text="Stop & drain", command=lambda: app.call("collector_stop", callback=app.render)
     ).pack(side="left", padx=(0, 8))
     Button(
-        bar, text="Recover retained", command=lambda: app.call("total_restore", callback=app.render)
+        bar,
+        text="Recover retained",
+        command=lambda: app.call("collector_recover", callback=app.render),
     ).pack(side="left")
     app.copy_button = Button(bar, text="Copy helper command", command=app.copy_command)
     app.copy_button.pack(side="left", padx=8)
@@ -477,9 +537,18 @@ def render_system(app, value):
     )
     app.copy_button.configure(state="normal" if app.command else "disabled")
     app.start_button.configure(
-        state="disabled" if value.get("prepare_active") or value.get("listener_ready") else "normal"
+        state="disabled"
+        if value.get("prepare_active")
+        or value.get("listener_ready")
+        or value.get("state") == "OFFLINE_PROCESSING"
+        else "normal"
     )
+    collector = value.get("collector", {})
     details = {
+        "collector_type": collector.get("type", "existing-capture"),
+        "collector_health": collector.get("health", "NOT_OBSERVED"),
+        "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
+        "feature_parity": collector.get("parity", "EXISTING_CAPTURE_CONTRACT"),
         "helper": "READY" if app.command else "NOT_PREPARED",
         "last_error": value.get("last_error"),
         "selected_policy": net.get("selected_rate_policy", app.policy.get()),
@@ -500,6 +569,10 @@ def render_system(app, value):
     models = value.get("research", {}).get("model_metrics", {})
     lines = [
         "SESSION & MODEL HEALTH",
+        "Collector   " + str(details["collector_type"]),
+        "Collector health   " + str(details["collector_health"]),
+        "Collector metrics   " + str(details["collector_metrics"]),
+        "Feature parity   " + ("BLOCKED: Network14 / DNS9" if collector else "Existing contract"),
         "Helper   " + details["helper"],
         "Policy   " + str(details["selected_policy"]),
         "Observation frames/s   " + str(details["observation_budget"]),

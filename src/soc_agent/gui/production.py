@@ -43,6 +43,18 @@ def event_rows(snapshot, search=""):
         )
         if search.casefold() in str(row).casefold():
             result.append((row, record))
+    for event in snapshot.get("collector", {}).get("events", [])[:128]:
+        row = (
+            str(event.get("event_ns", "UNKNOWN")),
+            "Zeek " + event.get("kind", "event"),
+            event.get("diagnostic", "UNKNOWN"),
+            "UNKNOWN",
+            "DIAGNOSTIC_ONLY",
+            event.get("source", {}).get("origin", "UNKNOWN"),
+            "NOT_STARTED_PARITY_BLOCKED",
+        )
+        if search.casefold() in str(row).casefold():
+            result.append((row, {"collector_event": event}))
     return result
 
 
@@ -76,6 +88,7 @@ class Desktop:
         self.last_render = None
         self.status = tk.StringVar(value="Starting local status view…")
         self.policy = tk.StringVar(value=config.total_rate_policy)
+        self.collector_type = tk.StringVar(value=config.collector_type)
         self.search = tk.StringVar()
         root.title("SOC Command Center · Research advisory / WRITE_DENIED")
         root.geometry("1366x768")
@@ -173,7 +186,9 @@ class Desktop:
     def _started(self, value):
         self.startup_complete = True
         self.render(value)
-        if self.config.total_approved_sha:
+        if self.config.collector_type == "zeek-offline":
+            self.navigate("System", refresh=False)
+        elif self.config.total_approved_sha:
             self.navigate("System", refresh=False)
             self.start()
 
@@ -298,6 +313,7 @@ class Desktop:
         if self.page in ("Security Events", "Investigation"):
             projection = {
                 "records": value.get("research", {}).get("records", []),
+                "collector": value.get("collector"),
                 "audit": value.get("runtime_audit_integrity"),
                 "origin": value.get("input_origin"),
             }
@@ -311,7 +327,9 @@ class Desktop:
             return
         self.last_render = marker
         if self.page == "Dashboard":
-            operator_view.render_dashboard(self, value, event_rows(value))
+            operator_view.render_dashboard(
+                self, value, [row for row in event_rows(value) if "collector_event" not in row[1]]
+            )
         elif self.page in ("Security Events", "Investigation"):
             self.records = event_rows(
                 value, self.search.get() if self.page == "Security Events" else ""
@@ -341,6 +359,16 @@ class Desktop:
         selected = self.tree.selection()
         if selected:
             record = display_data(self.records[int(selected[0])][1])
+            if "collector_event" in record:
+                self.detail_title.configure(text="Zeek diagnostic · AI BLOCKED")
+                self._text(
+                    self.detail,
+                    "SOURCE / DIAGNOSTIC ONLY · NOT AN AI FINDING\n"
+                    + json.dumps(record["collector_event"], indent=2)
+                    + "\nREAD-only investigation pending verified model input. "
+                    "No receipt generated.",
+                )
+                return
             receipt = record.get("receipt") or {}
             investigation = record.get("investigation") or {}
             self.detail_title.configure(text=friendly_model(receipt.get("profile")))
@@ -424,6 +452,21 @@ class Desktop:
         )
 
     def start(self):
+        if self.collector_type.get() == "zeek-offline":
+            pcap = self.config.zeek_pcap
+            sha = self.config.zeek_pcap_sha256
+            if pcap is None:
+                chosen = filedialog.askopenfilename(filetypes=(("Offline PCAP", "*.pcap"),))
+                if not chosen:
+                    return
+                from pathlib import Path
+
+                pcap = Path(chosen)
+                sha = None  # The backend validates and hashes bounded files off the Tk thread.
+            self.command = ""
+            self.command_session = None
+            self.call("zeek_start", str(pcap), sha, callback=self.render)
+            return
         self.command = ""
         self.command_session = None
         self.call("total_start", "both", True, self.policy.get(), callback=self.prepared)

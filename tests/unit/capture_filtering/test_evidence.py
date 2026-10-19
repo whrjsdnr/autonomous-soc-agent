@@ -20,7 +20,14 @@ def test_current_sources_unchanged_gui_and_helper_bundle():
     e = evidence()
     for name, sha in {**e["source_sha256"], **e["immutable_gui_sha256"]}.items():
         frozen = ROOT / "tests/fixtures/direction-v3-9619703" / (name.replace("/", "__") + ".txt")
-        source = frozen if frozen.exists() else ROOT / name
+        zeek_frozen = ROOT / "tests/fixtures/zeek-53c378a/production.txt"
+        source = (
+            frozen
+            if frozen.exists()
+            else zeek_frozen
+            if name == "src/soc_agent/gui/production.py"
+            else ROOT / name
+        )
         assert hashlib.sha256(source.read_bytes()).hexdigest() == sha, name
     files = verify_bundle()
     assert files["calibrated_helper.py"] == e["helper_sha256"]

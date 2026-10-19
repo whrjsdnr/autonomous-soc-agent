@@ -46,8 +46,15 @@ class VisualHistory:
             self.identity = identity
         self.state = snapshot.get("state", "UNKNOWN")
         # No stopped/error/degraded/retained sample can extend a live graph.
-        running = self.state == "LIVE_COLLECTION" and (
-            snapshot.get("collection_live") is True or identity[1] == "FIXTURE"
+        offline = (
+            snapshot.get("collector", {}).get("type") == "zeek"
+            and identity[1] in {"ZEEK_OFFLINE_PCAP", "SYNTHETIC_ZEEK_JSON"}
+            and self.state == "OFFLINE_PROCESSING"
+        )
+        running = (
+            offline
+            or self.state == "LIVE_COLLECTION"
+            and (snapshot.get("collection_live") is True or identity[1] == "FIXTURE")
         )
         if not identity[0] or not running or snapshot.get("last_error"):
             self.previous = None
@@ -56,6 +63,8 @@ class VisualHistory:
         publication = tuple(
             number(net.get(key))
             for key in (
+                "collector_network_events",
+                "collector_dns_events",
                 "capture_uptime_seconds",
                 "received_frames",
                 "sent_packets",
@@ -75,6 +84,8 @@ class VisualHistory:
             return False  # Re-polling a cached publication is not a new measurement.
         self.publication = publication
         counts = {
+            "zeek_network": number(net.get("collector_network_events")),
+            "zeek_dns": number(net.get("collector_dns_events")),
             "raw": number(net.get("received_frames")),
             "normalized": number(net.get("normalized_packets"))
             if net.get("accounting_contract") == "soc-direction-accounting:v3"

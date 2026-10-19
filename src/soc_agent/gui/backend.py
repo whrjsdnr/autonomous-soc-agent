@@ -31,6 +31,9 @@ def status(directory):
 
 
 class GUIConfig(Snapshot):
+    collector_type: Literal["existing-capture", "zeek-offline"] = "existing-capture"
+    zeek_pcap: Path | None = None
+    zeek_pcap_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     total_approved_sha: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     total_rate_policy: Literal[
         "legacy", "conservative-v2", "balanced-v2", "performance-v2", "direction-v3"
@@ -55,6 +58,7 @@ class Backend:
 
     def __init__(self, config: GUIConfig):
         self.config = config
+        self.collector_selection = config.collector_type
         self.directory = config.data_directory.absolute()
         create_private_directory(self.directory)
         self.runtime = config.runtime_directory.absolute() if config.runtime_directory else None
@@ -81,6 +85,10 @@ class Backend:
                 from soc_agent.security_ai.research.live_service import LiveMonitoring
 
                 value = LiveMonitoring(self.directory)
+            elif name == "zeek_collector":
+                from soc_agent.security_ai.collectors.zeek import ZeekCollector
+
+                value = ZeekCollector(self.directory)
             elif name in ("streaming_monitoring", "total_monitoring"):
                 from soc_agent.security_ai.research.stream_service import StreamingMonitoring
 
@@ -248,7 +256,11 @@ class Backend:
         }
 
     async def production_status(self):
-        if "total_monitoring" in self._owners:
+        if self.collector_selection == "zeek-offline" and "zeek_collector" in self._owners:
+            value = await asyncio.to_thread(
+                observed_snapshot, self._owners["zeek_collector"].snapshot
+            )
+        elif "total_monitoring" in self._owners:
             value = await self.total_status()
         else:
             value = {
@@ -290,6 +302,8 @@ class Backend:
         return value
 
     async def archive_sessions(self):
+        if self.collector_selection == "zeek-offline":
+            raise ValueError("ZEEK_ARCHIVAL_REQUIRES_VERIFIED_MANUAL_REVIEW")
         from soc_agent.security_ai.research.session_archive import Archive
 
         owner = self.total_monitoring
@@ -386,7 +400,44 @@ class Backend:
             "observation_started_ns": time.monotonic_ns(),
         }
 
+    async def zeek_start(self, pcap: str, sha256: str | None):
+        for name, owner in self._owners.items():
+            if name in {
+                "live_monitoring",
+                "streaming_monitoring",
+                "total_monitoring",
+                "zeek_collector",
+            } and (
+                getattr(owner, "preparing", False) or bool(owner.task and not owner.task.done())
+            ):
+                raise ValueError("COLLECTOR_ALREADY_ACTIVE")
+        if sha256 is None:
+            from soc_agent.security_ai.collectors.offline import pcap_digest
+
+            sha256 = await asyncio.to_thread(pcap_digest, Path(pcap))
+        owner = self._owner("zeek_collector")
+        await owner.prepare(pcap=Path(pcap), sha256=sha256)
+        self.collector_selection = "zeek-offline"
+        return await owner.start()
+
+    async def collector_stop(self):
+        if self.collector_selection == "zeek-offline" and "zeek_collector" in self._owners:
+            await self._owners["zeek_collector"].stop()
+            return await self.production_status()
+        return await self.total_stop()
+
+    async def collector_recover(self):
+        if self.collector_selection == "zeek-offline":
+            await self._owner("zeek_collector").recover()
+            return await self.production_status()
+        return await self.total_restore()
+
     async def total_start(self, selection="both", dns_headers=True, rate_policy="legacy"):
+        zeek = self._owners.get("zeek_collector")
+        if zeek is not None and (
+            zeek.preparing or (zeek.task is not None and not zeek.task.done())
+        ):
+            raise ValueError("COLLECTOR_ALREADY_ACTIVE")
         if selection != "both" or dns_headers is not True:
             raise ValueError("TOTAL_BOTH_MODELS_AND_DNS_REQUIRED")
         if any(
@@ -400,7 +451,10 @@ class Backend:
             DirectionPolicy,
         )
 
-        result = await self.total_monitoring.start(
+        self.collector_selection = "existing-capture"
+        from soc_agent.security_ai.collectors.interface import ExistingCaptureCollectorAdapter
+
+        result = await ExistingCaptureCollectorAdapter(self.total_monitoring).prepare(
             policy=DirectionPolicy()
             if rate_policy == "direction-v3"
             else None
@@ -450,6 +504,13 @@ class Backend:
         return await self.total_status()
 
     async def total_export(self, path: str, format="json"):
+        if self.collector_selection == "zeek-offline":
+            owner = self._owners.get("zeek_collector")
+            if owner is None or owner.store is None:
+                raise ValueError("ZEEK_NO_EXPORTABLE_SOURCE")
+            from soc_agent.security_ai.collectors.export import export
+
+            return await asyncio.to_thread(export, owner, Path(path), format)
         from soc_agent.security_ai.research.total_export import export
 
         return await asyncio.to_thread(export, self.total_monitoring, Path(path), format)

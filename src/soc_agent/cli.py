@@ -35,11 +35,39 @@ def main(argv=None) -> int:
     )
     start.add_argument("--approve-calibrated-sha")
     start.add_argument("--approve-direction-sha")
+    start.add_argument(
+        "--collector", choices=("existing-capture", "zeek-offline"), default="existing-capture"
+    )
+    start.add_argument("--pcap", type=Path)
+    start.add_argument("--pcap-sha256")
     args = parser.parse_args(argv)
     try:
         from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
 
         unprivileged()
+        if args.collector == "zeek-offline":
+            from soc_agent.gui.__main__ import main as gui_main
+            from soc_agent.security_ai.collectors.offline import OfflineZeek, pcap_digest
+
+            if (
+                args.pcap is None
+                or args.pcap_sha256 is None
+                or pcap_digest(args.pcap) != args.pcap_sha256
+            ):
+                raise ValueError("ZEEK_EXPLICIT_PCAP_DIGEST_REQUIRED")
+            OfflineZeek().environment()
+            gui_args = [
+                "--collector",
+                "zeek-offline",
+                "--zeek-pcap",
+                str(args.pcap.absolute()),
+                "--zeek-pcap-sha256",
+                args.pcap_sha256,
+            ]
+            if args.data_directory:
+                gui_args += ["--data-directory", str(args.data_directory)]
+            print("ZEEK OFFLINE ONLY / NETWORK14 + DNS9 BLOCKED / NO AUTHENTICATION OR CAPTURE")
+            return gui_main(gui_args)
         hashes = verify_bundle()
         helper = "total_helper.py"
         selected = None

@@ -38,6 +38,11 @@ def main(argv=None) -> int:
         choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2", "direction-v3"),
     )
     parser.add_argument("--calibrated-approved-bundle", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--collector", choices=("existing-capture", "zeek-offline"), default="existing-capture"
+    )
+    parser.add_argument("--zeek-pcap", type=Path)
+    parser.add_argument("--zeek-pcap-sha256")
     parser.add_argument("--developer", action="store_true", help="Open research/replay tools")
     args = parser.parse_args(argv)
     if hasattr(os, "geteuid") and os.geteuid() == 0:
@@ -55,6 +60,9 @@ def main(argv=None) -> int:
             from soc_agent.gui.production import Desktop
 
         config = GUIConfig(
+            collector_type=args.collector,
+            zeek_pcap=args.zeek_pcap,
+            zeek_pcap_sha256=args.zeek_pcap_sha256,
             total_approved_sha=args.total_approved_sha,
             total_rate_policy=args.total_rate_policy,
             calibrated_approved_bundle=args.calibrated_approved_bundle,

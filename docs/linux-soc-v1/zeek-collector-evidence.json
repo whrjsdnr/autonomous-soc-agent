@@ -1,0 +1,1259 @@
+{
+  "schema": "soc-zeek-validation:v1",
+  "validation_timestamp": "2026-10-19T07:10:40.892532+00:00",
+  "soc_baseline": "53c378ab511353c5775f436d24656652c84fc694",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "verdict": "PARTIAL",
+  "native_capture_executed": false,
+  "privilege_command_executed": false,
+  "environment": {
+    "os": "Ubuntu 24.04.4 WSL2",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "python": "3.12.14",
+    "cpu_affinity": 12,
+    "zeek": "9.0.0",
+    "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019"
+  },
+  "actual_offline": {
+    "scope": "ACTUAL_ZEEK_9_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+    "pcap_sha256": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+    "snapshot": {
+      "state": "STOPPED",
+      "collection_live": false,
+      "listener_ready": false,
+      "session_id": "9bca8b05-b57f-4a01-b084-08c83ea5c2ce",
+      "input_origin": "ZEEK_OFFLINE_PCAP",
+      "last_error": null,
+      "collector": {
+        "type": "zeek",
+        "health": {
+          "state": "STOPPED",
+          "last_error": null,
+          "live": false,
+          "experimental": true
+        },
+        "metrics": {
+          "network_events": 2,
+          "dns_events": 1,
+          "queue_depth": 0,
+          "queue_capacity": 32,
+          "backpressure": "NORMAL",
+          "queue_peak": 2,
+          "rows_read": 3,
+          "duplicates": 0,
+          "out_of_order_start_times": 1,
+          "log_to_adapter_ms": 10.306746989954263,
+          "capture_to_log_ms": null,
+          "feature_generation_ms": null,
+          "inference_latency_ms": null,
+          "investigation_latency_ms": null,
+          "log_lag_seconds": null,
+          "inference_count": 0
+        },
+        "parity": {
+          "network14": "BLOCKED",
+          "dns9": "BLOCKED",
+          "quality": "BLOCKED",
+          "edge": "BLOCKED",
+          "feature_producer": "ZEEK_CONN_SUMMARY_NOT_NETWORK14_PRODUCER_1_1_0",
+          "network_mapping": [
+            {
+              "name": "duration_seconds",
+              "classification": "SEMANTIC_MISMATCH",
+              "reason": "Zeek connection lifetime differs from 30s/120s packet windows"
+            },
+            {
+              "name": "forward_packet_count",
+              "classification": "SEMANTIC_MISMATCH",
+              "reason": "orig_pkts; Zeek originator is not proven first-seen direction"
+            },
+            {
+              "name": "backward_packet_count",
+              "classification": "SEMANTIC_MISMATCH",
+              "reason": "resp_pkts; window/direction parity unverified"
+            },
+            {
+              "name": "forward_ip_bytes",
+              "classification": "SEMANTIC_MISMATCH",
+              "reason": "orig_ip_bytes; direction/window parity unverified"
+            },
+            {
+              "name": "backward_ip_bytes",
+              "classification": "SEMANTIC_MISMATCH",
+              "reason": "resp_ip_bytes; direction/window parity unverified"
+            },
+            {
+              "name": "ip_length_min",
+              "classification": "MISSING",
+              "reason": "Packet IP lengths absent"
+            },
+            {
+              "name": "ip_length_max",
+              "classification": "MISSING",
+              "reason": "Packet IP lengths absent"
+            },
+            {
+              "name": "ip_length_mean",
+              "classification": "DERIVED",
+              "reason": "IP byte totals / packet count; only if complete same-window counts"
+            },
+            {
+              "name": "ip_length_population_std",
+              "classification": "MISSING",
+              "reason": "Second moment absent"
+            },
+            {
+              "name": "tcp_syn_packet_count",
+              "classification": "MISSING",
+              "reason": "history does not enumerate every SYN packet"
+            },
+            {
+              "name": "tcp_fin_packet_count",
+              "classification": "MISSING",
+              "reason": "history does not enumerate every FIN packet"
+            },
+            {
+              "name": "tcp_rst_packet_count",
+              "classification": "MISSING",
+              "reason": "history does not enumerate every RST packet"
+            },
+            {
+              "name": "iat_mean_seconds",
+              "classification": "DERIVED",
+              "reason": "duration/(packets-1), conditional on identical complete packet window"
+            },
+            {
+              "name": "iat_max_seconds",
+              "classification": "MISSING",
+              "reason": "Per-packet arrival times absent"
+            }
+          ],
+          "dns_mapping": [
+            {
+              "name": "FQDN_count",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "subdomain_length",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "numeric",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "entropy",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "special",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "labels",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "labels_max",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "labels_average",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            },
+            {
+              "name": "len",
+              "classification": "MISSING",
+              "reason": "FQDN excluded; DNS9 training producer parity unverified"
+            }
+          ],
+          "producer_version": "1.1.0",
+          "dtype": "float32",
+          "feature_digest": null,
+          "investigation": "BLOCKED_NO_VERIFIED_AI_RECEIPT"
+        },
+        "version": "9.0.0",
+        "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+        "events": [
+          {
+            "contract": "soc-zeek-event:v1",
+            "event_id": "8ef022d4fce326a3fc42d0ebccb8977c09ae29a93c93a501b2698a40f47597d7",
+            "record_digest": "37da684ea844ab0bcbbddfe153a90e07f944d320f21a64544c374a96cf95c251",
+            "source": {
+              "session_id": "9bca8b05-b57f-4a01-b084-08c83ea5c2ce",
+              "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+              "origin": "ZEEK_OFFLINE_PCAP",
+              "version": "9.0.0",
+              "log_schema": "zeek-conn-dns-json:v1",
+              "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED"
+            },
+            "kind": "network",
+            "uid": "CHzfoDwoTXtswX0x8",
+            "event_ns": 1800000002000000000,
+            "source_ip": "192.0.2.1",
+            "destination_ip": "192.0.2.2",
+            "source_port": 45678,
+            "destination_port": 53,
+            "protocol": "udp",
+            "duration_seconds": 0.04999995231628418,
+            "forward_packets": 1,
+            "backward_packets": 1,
+            "forward_ip_bytes": 64,
+            "backward_ip_bytes": 80,
+            "missed_bytes": 0,
+            "connection_state": "SF",
+            "transaction_id": null,
+            "query_type": null,
+            "response_code": null,
+            "response_latency_seconds": null,
+            "ttl_seconds": null,
+            "truncated": null,
+            "diagnostic": "CONNECTION_SUMMARY",
+            "dns_visibility": "UNKNOWN",
+            "timestamp_provenance": "ZEEK_LOG_EVENT_TIME_DECIMAL",
+            "network14_parity": "BLOCKED",
+            "dns9_parity": "BLOCKED",
+            "collector_sequence": 1
+          },
+          {
+            "contract": "soc-zeek-event:v1",
+            "event_id": "e1fb5edd2119a2250b844467b115dda96202cec82d28f888efc967fe64daec1b",
+            "record_digest": "6761df071b0a7e379238edb24ebfb727a33e30b98cc98732a0ff70180bedccf3",
+            "source": {
+              "session_id": "9bca8b05-b57f-4a01-b084-08c83ea5c2ce",
+              "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+              "origin": "ZEEK_OFFLINE_PCAP",
+              "version": "9.0.0",
+              "log_schema": "zeek-conn-dns-json:v1",
+              "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED"
+            },
+            "kind": "network",
+            "uid": "Cc0y42VMwqJXwLXch",
+            "event_ns": 1800000000000000000,
+            "source_ip": "192.0.2.1",
+            "destination_ip": "192.0.2.2",
+            "source_port": 1000,
+            "destination_port": 2000,
+            "protocol": "udp",
+            "duration_seconds": 1.0,
+            "forward_packets": 2,
+            "backward_packets": 1,
+            "forward_ip_bytes": 120,
+            "backward_ip_bytes": 60,
+            "missed_bytes": 0,
+            "connection_state": "SF",
+            "transaction_id": null,
+            "query_type": null,
+            "response_code": null,
+            "response_latency_seconds": null,
+            "ttl_seconds": null,
+            "truncated": null,
+            "diagnostic": "CONNECTION_SUMMARY",
+            "dns_visibility": "UNKNOWN",
+            "timestamp_provenance": "ZEEK_LOG_EVENT_TIME_DECIMAL",
+            "network14_parity": "BLOCKED",
+            "dns9_parity": "BLOCKED",
+            "collector_sequence": 2
+          },
+          {
+            "contract": "soc-zeek-event:v1",
+            "event_id": "bb6391f83eb36d794b6688f238856a18f56004a0da578b5db08c899bad138e66",
+            "record_digest": "59200a46a5f1b83de0e4816d7a64cd489673c0f04ba246f0e11a626cfb452d46",
+            "source": {
+              "session_id": "9bca8b05-b57f-4a01-b084-08c83ea5c2ce",
+              "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+              "origin": "ZEEK_OFFLINE_PCAP",
+              "version": "9.0.0",
+              "log_schema": "zeek-conn-dns-json:v1",
+              "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED"
+            },
+            "kind": "dns",
+            "uid": "CHzfoDwoTXtswX0x8",
+            "event_ns": 1800000002000000000,
+            "source_ip": "192.0.2.1",
+            "destination_ip": "192.0.2.2",
+            "source_port": 45678,
+            "destination_port": 53,
+            "protocol": "udp",
+            "duration_seconds": null,
+            "forward_packets": null,
+            "backward_packets": null,
+            "forward_ip_bytes": null,
+            "backward_ip_bytes": null,
+            "missed_bytes": null,
+            "connection_state": null,
+            "transaction_id": 7,
+            "query_type": 1,
+            "response_code": 0,
+            "response_latency_seconds": 0.04999995231628418,
+            "ttl_seconds": [
+              60.0
+            ],
+            "truncated": false,
+            "diagnostic": "MATCHED_TRANSACTION",
+            "dns_visibility": "PLAINTEXT_DNS_METADATA",
+            "timestamp_provenance": "ZEEK_LOG_EVENT_TIME_DECIMAL",
+            "network14_parity": "BLOCKED",
+            "dns9_parity": "BLOCKED",
+            "collector_sequence": 3
+          }
+        ]
+      },
+      "collectors": {
+        "network": "ZEEK_OFFLINE_DIAGNOSTIC",
+        "dns": "ZEEK_OFFLINE_DIAGNOSTIC",
+        "dns9_ai": "BLOCKED_PRODUCER_PARITY_UNVERIFIED"
+      },
+      "network": {
+        "collector_network_events": 2,
+        "collector_dns_events": 1,
+        "queue_backlog": 0,
+        "capture_drops": null,
+        "gap_count": null,
+        "finalization": "DIAGNOSTICS_ONLY"
+      },
+      "research": {
+        "records": [],
+        "worker_running": false,
+        "model_metrics": {
+          "quality": {
+            "state": "BLOCKED",
+            "successful": 0,
+            "reason": "ZEEK_NETWORK14_PARITY_BLOCKED"
+          },
+          "edge": {
+            "state": "BLOCKED",
+            "successful": 0,
+            "reason": "ZEEK_NETWORK14_PARITY_BLOCKED"
+          }
+        }
+      },
+      "runtime_audit_integrity": "VERIFIED",
+      "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+      "write_policy": "WRITE_DENIED",
+      "observation_started_ns": 279252745754321
+    },
+    "audit_digest": "0a77bd3796d82fbea2a0de64c049bb3f01df264f3ef6dccbe1f122964cff1c6d",
+    "recovered_audit_digest": "34727fcd077fb26426ee12f405ff86a6c3d2b5d9c1a69960f1b7d9f99081e97a",
+    "recovered_new_rows": 0,
+    "container_removed": true
+  },
+  "performance": {
+    "before": {
+      "idle_fresh_process_runs": 3,
+      "idle_seconds_per_run": 3,
+      "medians": {
+        "startup_seconds": 2.5660404980299063,
+        "idle_rss_bytes": 183750656,
+        "idle_cpu_one_core_percent": 0.32764845809923704,
+        "response_p50_ms": 0.021692,
+        "response_p95_ms": 0.062612,
+        "widgets": 68,
+        "idle_child_processes": 0,
+        "created_runtime_owners": 0,
+        "controller_sqlite_statements_total": 0
+      },
+      "active_fixture_runs": 1,
+      "active_fixture": {
+        "scope": "ACTUAL_RF_LR_SAME_FOUR_SYNTHETIC_PACKETS_NOT_NATIVE",
+        "elapsed_seconds": 5.4173850120278075,
+        "sampled_peak_gui_rss_bytes": 234377216,
+        "sampled_peak_subtree_rss_bytes": 440111104,
+        "maximum_owned_child_processes": 1,
+        "final_queue_backlog": 0,
+        "inference_queue": {
+          "depth": 0,
+          "capacity": 8,
+          "high_watermark": 6,
+          "low_watermark": 2,
+          "peak": 1,
+          "state": "NORMAL"
+        },
+        "finalization": "VERIFIED",
+        "audit_integrity": "VERIFIED",
+        "models": [
+          {
+            "profile": "quality",
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "prediction": "CLASS_0",
+            "score": 0.140625,
+            "inference_latency_ms": 13.034460949711502
+          },
+          {
+            "profile": "edge",
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "prediction": "CLASS_0",
+            "score": 0.08766025304794312,
+            "inference_latency_ms": 6.944372958969325
+          }
+        ]
+      },
+      "worker_stopped": true,
+      "remaining_children": 0
+    },
+    "after": {
+      "idle_fresh_process_runs": 3,
+      "idle_seconds_per_run": 3,
+      "medians": {
+        "startup_seconds": 2.3404728610184975,
+        "idle_rss_bytes": 183500800,
+        "idle_cpu_one_core_percent": 0.27800888531252194,
+        "response_p50_ms": 0.019028,
+        "response_p95_ms": 0.027696,
+        "widgets": 69,
+        "idle_child_processes": 0,
+        "created_runtime_owners": 0,
+        "controller_sqlite_statements_total": 0
+      },
+      "active_fixture_runs": 1,
+      "active_fixture": {
+        "scope": "ACTUAL_RF_LR_SAME_FOUR_SYNTHETIC_PACKETS_NOT_NATIVE",
+        "elapsed_seconds": 5.098938574024942,
+        "sampled_peak_gui_rss_bytes": 231165952,
+        "sampled_peak_subtree_rss_bytes": 442552320,
+        "maximum_owned_child_processes": 1,
+        "final_queue_backlog": 0,
+        "inference_queue": {
+          "depth": 0,
+          "capacity": 8,
+          "high_watermark": 6,
+          "low_watermark": 2,
+          "peak": 1,
+          "state": "NORMAL"
+        },
+        "finalization": "VERIFIED",
+        "audit_integrity": "VERIFIED",
+        "models": [
+          {
+            "profile": "quality",
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "prediction": "CLASS_0",
+            "score": 0.140625,
+            "inference_latency_ms": 10.546953999437392
+          },
+          {
+            "profile": "edge",
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "prediction": "CLASS_0",
+            "score": 0.08766025304794312,
+            "inference_latency_ms": 10.039075976237655
+          }
+        ]
+      },
+      "worker_stopped": true,
+      "remaining_children": 0
+    }
+  },
+  "adapter_benchmark": {
+    "scope": "SYNTHETIC_STAGE_COSTS_NOT_NATIVE_NOT_EQUIVALENT_FULL_PIPELINES",
+    "includes_zeek_engine": false,
+    "feature_parity": "BLOCKED",
+    "results": {
+      "existing_three_packet_parser": {
+        "completed_flow_operations": 5000,
+        "rounds": 5,
+        "operations_per_round": 1000,
+        "warmup_operations": 100,
+        "elapsed_seconds": 0.21880864293780178,
+        "flow_operations_per_second": 22851.016910795854,
+        "latency_p50_ms": 0.031096,
+        "latency_p95_ms": 0.069911,
+        "latency_p99_ms": 0.131751,
+        "cpu_seconds": 0.21943157700000038,
+        "process_peak_rss_bytes": 171114496,
+        "queue_depth": "NOT_APPLICABLE_SYNCHRONOUS_STAGE_ONLY",
+        "errors": 0
+      },
+      "zeek_one_summary_adapter": {
+        "completed_flow_operations": 5000,
+        "rounds": 5,
+        "operations_per_round": 1000,
+        "warmup_operations": 100,
+        "elapsed_seconds": 0.11508359003346413,
+        "flow_operations_per_second": 43446.68078694881,
+        "latency_p50_ms": 0.017089,
+        "latency_p95_ms": 0.038429,
+        "latency_p99_ms": 0.065019,
+        "cpu_seconds": 0.11555125199999994,
+        "process_peak_rss_bytes": 171245568,
+        "queue_depth": "NOT_APPLICABLE_SYNCHRONOUS_STAGE_ONLY",
+        "errors": 0
+      }
+    }
+  },
+  "screenshots": [
+    {
+      "filename": "zeek-collector-screenshots/dashboard-actual-zeek-offline-1366.png",
+      "sha256": "c439919e3bd187ecbba1767e6f1aefddc4726a2c48b0b363821d8f2d84ccc026",
+      "origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/dashboard-actual-zeek-offline-1920.png",
+      "sha256": "b0a70230c538a311473dc2c23d76ccd25b8437893fb470037dd0521fe48e7ea2",
+      "origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/dashboard-synthetic-1366.png",
+      "sha256": "9062c185e792f8c1f14f0ba0dbdef8a61eb30eb1529a27b5cb725878e6a0388d",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/dashboard-synthetic-1920.png",
+      "sha256": "e7acb674759ac29c1060851ce132f49e17cf82c15fa231a3f2be91bbf3246ac2",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/investigation-synthetic-1366.png",
+      "sha256": "86a5e527c8cd070cec19f947857b17644dd66c81ee4d9faf963a573db2cc6766",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/investigation-synthetic-1920.png",
+      "sha256": "494ecbd87392711fa2cef40b050b90048ea0e9af5375f89ec7accabae5825aeb",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/security-events-synthetic-1366.png",
+      "sha256": "7636ef50700cf99a4525185f1609d2b80ee343c4c7e8243c20d033b468f8db00",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/security-events-synthetic-1920.png",
+      "sha256": "4f94100d46791c90db7326d4d80e5b42d699b01747f9b86b4aa4a2f6288c1667",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/system-actual-zeek-offline-1366.png",
+      "sha256": "c21e25dc0fa18a23a4016965ce06e57d59005a061ceb7b4e6ec64faf2ed84151",
+      "origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/system-actual-zeek-offline-1920.png",
+      "sha256": "257e62923954445e05943b19940fc4e6da93147a32cd026a337349fade92dca6",
+      "origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/system-synthetic-1366.png",
+      "sha256": "b59890ebedadc196dd4dac22ff52eaa38186077e72ba50ca1c5185d460e47f72",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-collector-screenshots/system-synthetic-1920.png",
+      "sha256": "c7a20a86b6e94e0c527a20dc8f656969e864a8d0407d8dbab4b0ec1fcc396dea",
+      "origin": "SYNTHETIC_ZEEK_JSON",
+      "actual_wslg": true,
+      "native_capture": false
+    }
+  ],
+  "security": {
+    "network14_parity": "BLOCKED",
+    "dns9_parity": "BLOCKED",
+    "operational_promotion": "BLOCKED",
+    "write_policy": "WRITE_DENIED",
+    "historical_sigill_root_cause": "UNKNOWN"
+  },
+  "validation_runs": {
+    "workspace_contract": {
+      "passed": 48,
+      "log": "workspace-final.txt"
+    },
+    "workspace_gui": {
+      "passed": 7,
+      "log": "gui-final.txt"
+    },
+    "earlier_workspace_regression": {
+      "passed": 531,
+      "scope": "earlier run before final recovery/display changes; not added to final export counts"
+    },
+    "final_screenshot_collection": {
+      "passed": 2,
+      "scope": "WSLg synthetic and actual Zeek offline; final recovery label; overlapping GUI tests not summed"
+    }
+  },
+  "independent_export": {
+    "status": "VERIFIED",
+    "runs": {
+      "unit": {
+        "exit_code": 0,
+        "elapsed_seconds": 49.83774141600588,
+        "suite": [
+          "tests/unit/zeek_collector",
+          "tests/unit/direction_v3",
+          "tests/unit/capture_filtering",
+          "tests/unit/loopback_visual",
+          "tests/unit/production_slimming",
+          "tests/unit/gui",
+          "tests/unit/streaming_network",
+          "tests/unit/network_capture",
+          "tests/unit/live_network/test_parity.py",
+          "tests/unit/research_adapter"
+        ],
+        "result": "............. [ 13%]\n........................................................................ [ 27%]\n........................................................................ [ 40%]\n........................................................................ [ 54%]\n........................................................................ [ 67%]\n........................................................................ [ 81%]\n........................................................................ [ 94%]\n.............................                                            [100%]\n533 passed in 47.66s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4494553088,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=164752359\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=157167875\n"
+      },
+      "offline": {
+        "exit_code": 0,
+        "elapsed_seconds": 3.378296046052128,
+        "suite": [
+          "tests/integration/zeek_collector"
+        ],
+        "result": ".                                                                        [100%]\n1 passed in 1.54s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4728918016,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=164791974\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=157207374\n"
+      },
+      "models": {
+        "exit_code": 0,
+        "elapsed_seconds": 13.20428876997903,
+        "suite": [
+          "tests/integration/direction_v3"
+        ],
+        "result": ".                                                                        [100%]\n1 passed in 11.26s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4497428480,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=164798408\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=157213762\n"
+      },
+      "gui": {
+        "exit_code": 0,
+        "elapsed_seconds": 28.46560908399988,
+        "suite": [
+          "tests/gui_zeek_collector_checks.py",
+          "tests/gui_visual_dashboard_checks.py",
+          "tests/gui_production_checks.py"
+        ],
+        "result": ".......                                                                  [100%]\n7 passed in 26.54s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4518653952,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=164805755\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=157221106\n"
+      },
+      "governance-recovery": {
+        "exit_code": 0,
+        "elapsed_seconds": 15.18174370599445,
+        "suite": [
+          "tests/unit/policy",
+          "tests/unit/approval",
+          "tests/unit/investigation_runtime",
+          "tests/integration/linux_runtime/test_final_integration_audit.py",
+          "tests/integration/research_adapter/test_lifecycle.py",
+          "tests/integration/streaming_network/test_total_transport.py"
+        ],
+        "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 13.24s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4503851008,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=164807180\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=157222523\n"
+      }
+    },
+    "actual_offline": {
+      "scope": "ACTUAL_ZEEK_9_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+      "pcap_sha256": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+      "snapshot": {
+        "state": "STOPPED",
+        "collection_live": false,
+        "listener_ready": false,
+        "session_id": "1dd874fe-e908-4af9-8bc6-5337e6fc1c89",
+        "input_origin": "ZEEK_OFFLINE_PCAP",
+        "last_error": null,
+        "collector": {
+          "type": "zeek",
+          "health": {
+            "state": "STOPPED",
+            "last_error": null,
+            "live": false,
+            "experimental": true
+          },
+          "metrics": {
+            "network_events": 2,
+            "dns_events": 1,
+            "queue_depth": 0,
+            "queue_capacity": 32,
+            "backpressure": "NORMAL",
+            "queue_peak": 2,
+            "rows_read": 3,
+            "duplicates": 0,
+            "out_of_order_start_times": 1,
+            "log_to_adapter_ms": 9.064215992111713,
+            "capture_to_log_ms": null,
+            "feature_generation_ms": null,
+            "inference_latency_ms": null,
+            "investigation_latency_ms": null,
+            "log_lag_seconds": null,
+            "inference_count": 0
+          },
+          "parity": {
+            "network14": "BLOCKED",
+            "dns9": "BLOCKED",
+            "quality": "BLOCKED",
+            "edge": "BLOCKED",
+            "feature_producer": "ZEEK_CONN_SUMMARY_NOT_NETWORK14_PRODUCER_1_1_0",
+            "network_mapping": [
+              {
+                "name": "duration_seconds",
+                "classification": "SEMANTIC_MISMATCH",
+                "reason": "Zeek connection lifetime differs from 30s/120s packet windows"
+              },
+              {
+                "name": "forward_packet_count",
+                "classification": "SEMANTIC_MISMATCH",
+                "reason": "orig_pkts; Zeek originator is not proven first-seen direction"
+              },
+              {
+                "name": "backward_packet_count",
+                "classification": "SEMANTIC_MISMATCH",
+                "reason": "resp_pkts; window/direction parity unverified"
+              },
+              {
+                "name": "forward_ip_bytes",
+                "classification": "SEMANTIC_MISMATCH",
+                "reason": "orig_ip_bytes; direction/window parity unverified"
+              },
+              {
+                "name": "backward_ip_bytes",
+                "classification": "SEMANTIC_MISMATCH",
+                "reason": "resp_ip_bytes; direction/window parity unverified"
+              },
+              {
+                "name": "ip_length_min",
+                "classification": "MISSING",
+                "reason": "Packet IP lengths absent"
+              },
+              {
+                "name": "ip_length_max",
+                "classification": "MISSING",
+                "reason": "Packet IP lengths absent"
+              },
+              {
+                "name": "ip_length_mean",
+                "classification": "DERIVED",
+                "reason": "IP byte totals / packet count; only if complete same-window counts"
+              },
+              {
+                "name": "ip_length_population_std",
+                "classification": "MISSING",
+                "reason": "Second moment absent"
+              },
+              {
+                "name": "tcp_syn_packet_count",
+                "classification": "MISSING",
+                "reason": "history does not enumerate every SYN packet"
+              },
+              {
+                "name": "tcp_fin_packet_count",
+                "classification": "MISSING",
+                "reason": "history does not enumerate every FIN packet"
+              },
+              {
+                "name": "tcp_rst_packet_count",
+                "classification": "MISSING",
+                "reason": "history does not enumerate every RST packet"
+              },
+              {
+                "name": "iat_mean_seconds",
+                "classification": "DERIVED",
+                "reason": "duration/(packets-1), conditional on identical complete packet window"
+              },
+              {
+                "name": "iat_max_seconds",
+                "classification": "MISSING",
+                "reason": "Per-packet arrival times absent"
+              }
+            ],
+            "dns_mapping": [
+              {
+                "name": "FQDN_count",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "subdomain_length",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "numeric",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "entropy",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "special",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "labels",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "labels_max",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "labels_average",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              },
+              {
+                "name": "len",
+                "classification": "MISSING",
+                "reason": "FQDN excluded; DNS9 training producer parity unverified"
+              }
+            ],
+            "producer_version": "1.1.0",
+            "dtype": "float32",
+            "feature_digest": null,
+            "investigation": "BLOCKED_NO_VERIFIED_AI_RECEIPT"
+          },
+          "version": "9.0.0",
+          "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+          "events": [
+            {
+              "contract": "soc-zeek-event:v1",
+              "event_id": "e952307321bd5c1b7e4c956e030f00157c52542cdd13d5b60a9671585fea9220",
+              "record_digest": "cca8fa86b04cbf2d8c9dac82e9570a3e89aa32ea4dbbaba9c002cbfcc0e06b38",
+              "source": {
+                "session_id": "1dd874fe-e908-4af9-8bc6-5337e6fc1c89",
+                "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+                "origin": "ZEEK_OFFLINE_PCAP",
+                "version": "9.0.0",
+                "log_schema": "zeek-conn-dns-json:v1",
+                "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED"
+              },
+              "kind": "network",
+              "uid": "CejBzf4XcvYk3hYrHe",
+              "event_ns": 1800000002000000000,
+              "source_ip": "192.0.2.1",
+              "destination_ip": "192.0.2.2",
+              "source_port": 45678,
+              "destination_port": 53,
+              "protocol": "udp",
+              "duration_seconds": 0.04999995231628418,
+              "forward_packets": 1,
+              "backward_packets": 1,
+              "forward_ip_bytes": 64,
+              "backward_ip_bytes": 80,
+              "missed_bytes": 0,
+              "connection_state": "SF",
+              "transaction_id": null,
+              "query_type": null,
+              "response_code": null,
+              "response_latency_seconds": null,
+              "ttl_seconds": null,
+              "truncated": null,
+              "diagnostic": "CONNECTION_SUMMARY",
+              "dns_visibility": "UNKNOWN",
+              "timestamp_provenance": "ZEEK_LOG_EVENT_TIME_DECIMAL",
+              "network14_parity": "BLOCKED",
+              "dns9_parity": "BLOCKED",
+              "collector_sequence": 1
+            },
+            {
+              "contract": "soc-zeek-event:v1",
+              "event_id": "f23efddb5f72e55bcfadc2866b0d29e4ad6da1c461c0c388bd0027b48f488709",
+              "record_digest": "329a867723ca100525aa585b3ac6b377de7bd0e0501c8b18005867b87189724d",
+              "source": {
+                "session_id": "1dd874fe-e908-4af9-8bc6-5337e6fc1c89",
+                "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+                "origin": "ZEEK_OFFLINE_PCAP",
+                "version": "9.0.0",
+                "log_schema": "zeek-conn-dns-json:v1",
+                "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED"
+              },
+              "kind": "network",
+              "uid": "CZ7iGE2EhPsO30W0c3",
+              "event_ns": 1800000000000000000,
+              "source_ip": "192.0.2.1",
+              "destination_ip": "192.0.2.2",
+              "source_port": 1000,
+              "destination_port": 2000,
+              "protocol": "udp",
+              "duration_seconds": 1.0,
+              "forward_packets": 2,
+              "backward_packets": 1,
+              "forward_ip_bytes": 120,
+              "backward_ip_bytes": 60,
+              "missed_bytes": 0,
+              "connection_state": "SF",
+              "transaction_id": null,
+              "query_type": null,
+              "response_code": null,
+              "response_latency_seconds": null,
+              "ttl_seconds": null,
+              "truncated": null,
+              "diagnostic": "CONNECTION_SUMMARY",
+              "dns_visibility": "UNKNOWN",
+              "timestamp_provenance": "ZEEK_LOG_EVENT_TIME_DECIMAL",
+              "network14_parity": "BLOCKED",
+              "dns9_parity": "BLOCKED",
+              "collector_sequence": 2
+            },
+            {
+              "contract": "soc-zeek-event:v1",
+              "event_id": "6f76d45dd5652b809105947fd2a068cce691e5b48d61bf842937fd0e76fab6a8",
+              "record_digest": "d6df82cf993cac01cbcd42f2fe559595c50db4051148a2303fc75bd9dfb0e8db",
+              "source": {
+                "session_id": "1dd874fe-e908-4af9-8bc6-5337e6fc1c89",
+                "source_digest": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+                "origin": "ZEEK_OFFLINE_PCAP",
+                "version": "9.0.0",
+                "log_schema": "zeek-conn-dns-json:v1",
+                "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED"
+              },
+              "kind": "dns",
+              "uid": "CejBzf4XcvYk3hYrHe",
+              "event_ns": 1800000002000000000,
+              "source_ip": "192.0.2.1",
+              "destination_ip": "192.0.2.2",
+              "source_port": 45678,
+              "destination_port": 53,
+              "protocol": "udp",
+              "duration_seconds": null,
+              "forward_packets": null,
+              "backward_packets": null,
+              "forward_ip_bytes": null,
+              "backward_ip_bytes": null,
+              "missed_bytes": null,
+              "connection_state": null,
+              "transaction_id": 7,
+              "query_type": 1,
+              "response_code": 0,
+              "response_latency_seconds": 0.04999995231628418,
+              "ttl_seconds": [
+                60.0
+              ],
+              "truncated": false,
+              "diagnostic": "MATCHED_TRANSACTION",
+              "dns_visibility": "PLAINTEXT_DNS_METADATA",
+              "timestamp_provenance": "ZEEK_LOG_EVENT_TIME_DECIMAL",
+              "network14_parity": "BLOCKED",
+              "dns9_parity": "BLOCKED",
+              "collector_sequence": 3
+            }
+          ]
+        },
+        "collectors": {
+          "network": "ZEEK_OFFLINE_DIAGNOSTIC",
+          "dns": "ZEEK_OFFLINE_DIAGNOSTIC",
+          "dns9_ai": "BLOCKED_PRODUCER_PARITY_UNVERIFIED"
+        },
+        "network": {
+          "collector_network_events": 2,
+          "collector_dns_events": 1,
+          "queue_backlog": 0,
+          "capture_drops": null,
+          "gap_count": null,
+          "finalization": "DIAGNOSTICS_ONLY",
+          "recovery_state": "NOT_ATTEMPTED"
+        },
+        "research": {
+          "records": [],
+          "worker_running": false,
+          "model_metrics": {
+            "quality": {
+              "state": "BLOCKED",
+              "successful": 0,
+              "reason": "ZEEK_NETWORK14_PARITY_BLOCKED"
+            },
+            "edge": {
+              "state": "BLOCKED",
+              "successful": 0,
+              "reason": "ZEEK_NETWORK14_PARITY_BLOCKED"
+            }
+          }
+        },
+        "runtime_audit_integrity": "VERIFIED",
+        "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+        "write_policy": "WRITE_DENIED",
+        "observation_started_ns": 279390123069715
+      },
+      "audit_digest": "b74fd80b7e01c940b32c5958b3eadfbe3672bd7049d079074133123551d1247f",
+      "recovered_audit_digest": "847666c3aed1a282c7193bf171be1e2d17df779b738beaf8b5c8502885872970",
+      "recovered_new_rows": 0,
+      "container_removed": true
+    },
+    "scope": "HEAD plus task allowlist; clean ML source; unchanged external artifact/interpreter; no user files or Replay",
+    "wheel": {
+      "exit_code": 0,
+      "privacy_script_packaged": true,
+      "build": "uv build --offline --wheel; no installation"
+    }
+  },
+  "existing_packet_pipeline_model_regression": {
+    "scope": "ACTUAL_RF_LR_DNS_SYNTHETIC_FIXTURE_NOT_NATIVE",
+    "elapsed_seconds": 10.034749459009618,
+    "cpu_seconds": 1.4732270010000006,
+    "receipts": [
+      {
+        "profile": "quality",
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "feature_digest": "70dfef6f3ba3587dd22a2f1a9125d0090e88db20850224a2cd84b202dbd4d978",
+        "feature_values": [
+          1.0,
+          2.0,
+          1.0,
+          120.0,
+          60.0,
+          40.0,
+          80.0,
+          60.0,
+          16.329931259155273,
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          0.5
+        ],
+        "origin": "FIXTURE",
+        "producer_version": "1.1.0",
+        "prediction": "CLASS_0",
+        "score": 0.140625,
+        "invocation_id": "7b7cef44-cae9-4fb6-9f2d-75a1f66910b7",
+        "inferred_at": "2026-10-19T07:09:06.341232Z",
+        "inference_latency_ms": 10.232219996396452,
+        "worker_peak_rss_bytes": 234541056
+      },
+      {
+        "profile": "edge",
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "feature_digest": "70dfef6f3ba3587dd22a2f1a9125d0090e88db20850224a2cd84b202dbd4d978",
+        "feature_values": [
+          1.0,
+          2.0,
+          1.0,
+          120.0,
+          60.0,
+          40.0,
+          80.0,
+          60.0,
+          16.329931259155273,
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          0.5
+        ],
+        "origin": "FIXTURE",
+        "producer_version": "1.1.0",
+        "prediction": "CLASS_0",
+        "score": 0.08766025304794312,
+        "invocation_id": "15c85efb-822a-46af-9b45-4e2f8142bc3d",
+        "inferred_at": "2026-10-19T07:09:08.783948Z",
+        "inference_latency_ms": 6.96260598488152,
+        "worker_peak_rss_bytes": 233046016
+      },
+      {
+        "profile": "quality",
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "feature_digest": "1b60a860adaa5ece24b3d1e2e7b4b6c3fea33a4d85bd2bec4c7e760a1acdf733",
+        "feature_values": [
+          0.25,
+          1.0,
+          1.0,
+          61.0,
+          61.0,
+          61.0,
+          61.0,
+          61.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.25,
+          0.25
+        ],
+        "origin": "FIXTURE",
+        "producer_version": "1.1.0",
+        "prediction": "CLASS_0",
+        "score": 0.2265625,
+        "invocation_id": "d7657ffc-a986-49d2-802d-fd5118e76aa5",
+        "inferred_at": "2026-10-19T07:09:11.243921Z",
+        "inference_latency_ms": 9.8014060058631,
+        "worker_peak_rss_bytes": 234024960
+      },
+      {
+        "profile": "edge",
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "feature_digest": "1b60a860adaa5ece24b3d1e2e7b4b6c3fea33a4d85bd2bec4c7e760a1acdf733",
+        "feature_values": [
+          0.25,
+          1.0,
+          1.0,
+          61.0,
+          61.0,
+          61.0,
+          61.0,
+          61.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.25,
+          0.25
+        ],
+        "origin": "FIXTURE",
+        "producer_version": "1.1.0",
+        "prediction": "CLASS_0",
+        "score": 0.025285685434937477,
+        "invocation_id": "574072ee-f3c6-4f64-a37b-c507ed93daa0",
+        "inferred_at": "2026-10-19T07:09:13.498025Z",
+        "inference_latency_ms": 9.986217017285526,
+        "worker_peak_rss_bytes": 232890368
+      }
+    ],
+    "receipt_digests": [
+      "5ac446af0e9313a01de8aa23d6579a964b026510134d40a886619c8003bfad0b",
+      "9a037e200b99ee1087634904864d1226a4fa7e97e3a8ed6fe89963e5960972ed",
+      "cb45dd5bfc3d1ab57d673f2e6a5ac7a36338da4f9e6de152192e34c3e0db3fad",
+      "a94e19f070a4b80d3cf7ae387aaa8522488158ebd964766ca3118a43245cfc57"
+    ],
+    "read_only_investigations": 4,
+    "audit_digest": "70c29ef3ffe84c49a7fad63e11bac8b22f720d05a33d29bd6949226c04385100",
+    "recovered_audit_digest": "ae016a12e046179056067b7ce870c467265b35fdb0c8a5f3e45e32eee31a205e",
+    "original_audit_prefix_unchanged": true,
+    "recovery": "VERIFIED_NO_NEW_INFERENCE",
+    "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED"
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 214,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "unchanged_helpers": {
+    "direction_v3_helper_sha256": "aca215a347dfff3ada09e8605d0d490e4fcaa51c83c4f40318f5d916a45020a9",
+    "direction_v3_bundle_digest": "b072ab20ba3e08e74a3ba7e392ad5515ca65b60e8f6a094ec5c8d0b4f909cd96",
+    "calibrated_v2_helper_sha256": "375c06dbeb4e14c881fa496459182677b4efaa293845ecfac0dab0da663c4703",
+    "calibrated_v2_bundle_digest": "56ec48caac56a248fc0eeb5bb09c4fae4176482ed19ea8c48526f7638ae8bb31"
+  },
+  "documentation_validation": "VERIFIED",
+  "final_quality_checks": {
+    "workspace": {
+      "evidence": {
+        "exit_code": 0,
+        "result": "..                                                                       [100%]\n2 passed in 0.03s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n"
+      },
+      "ruff": {
+        "exit_code": 0,
+        "result": "All checks passed!\n"
+      },
+      "format": {
+        "exit_code": 0,
+        "result": "1117 files already formatted\n"
+      },
+      "diff": {
+        "exit_code": 0,
+        "result": ""
+      }
+    },
+    "export": {
+      "evidence": {
+        "exit_code": 0,
+        "result": "..                                                                       [100%]\n2 passed in 0.04s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n"
+      },
+      "ruff": {
+        "exit_code": 0,
+        "result": "All checks passed!\n"
+      },
+      "format": {
+        "exit_code": 0,
+        "result": "1073 files already formatted\n"
+      }
+    }
+  }
+}
