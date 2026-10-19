@@ -8,7 +8,6 @@ The identical stream reader can be verified against a full offline PCAP referenc
 import asyncio
 import json
 import os
-import re
 import sqlite3
 import time
 from pathlib import Path
@@ -18,12 +17,16 @@ from soc_agent.review.persistence.secure_storage import (
     create_private_file,
 )
 from soc_agent.runtime_lock import exclusive_runtime_lock
-from soc_agent.security_ai.collectors.live_contract import LivePlan, command, new_plan, verify
-from soc_agent.security_ai.collectors.live_process import (
-    StreamProcess,
+from soc_agent.security_ai.collectors.handoff import (
+    Handoff,
+    StopReason,
+    exchange,
     process_identity,
+    safe_code,
     same_process,
 )
+from soc_agent.security_ai.collectors.live_contract import LivePlan, command, new_plan, verify
+from soc_agent.security_ai.collectors.live_process import StreamProcess
 from soc_agent.security_ai.collectors.live_stream import Stream, decode
 from soc_agent.security_ai.collectors.models import Source
 from soc_agent.security_ai.collectors.offline import OfflineZeek, file_digest, pcap_digest
@@ -45,14 +48,29 @@ class LiveZeekCollector(ZeekCollector):
         self.watch_started = None
         self.result = None
         self.audit_failed = False
+        self.handoff = None
+        self.controller_ended = False
+        self.stop_reason = None
+        self.stop_audited = False
+        self.collector_started = False
 
     async def prepare(self, *, pcap: Path | None = None, sha256: str | None = None):
-        if self.preparing or self.task is not None and not self.task.done():
+        if (
+            self.preparing
+            or self.state
+            in {"PREPARED", "AUTHENTICATION_REQUIRED", "STARTING", "LAUNCHER_STARTING"}
+            or self.task is not None
+            and not self.task.done()
+        ):
             raise ValueError("ZEEK_ALREADY_ACTIVE_OR_PREPARING")
         self.preparing = True
+        new_store = False
         self.state = "PREPARING"
         try:
             self._release()
+            if self.handoff:
+                await self.handoff.close()
+            self.handoff = None
             await asyncio.to_thread(OfflineZeek().environment)
             self.plan = new_plan()
             self.fixture = pcap is not None
@@ -80,9 +98,14 @@ class LiveZeekCollector(ZeekCollector):
                 capture_integrity="OFFLINE_FILE_DIGEST_VERIFIED" if self.fixture else "UNVERIFIED",
             )
             self.store = CollectorStore(self.directory, source)
+            new_store = True
             self.stream = Stream(source)
             write_new(self.directory / "plan.json", self.plan.model_dump(mode="json"))
-            write_new(self.directory / "controller.json", process_identity(os.getpid()))
+            self.handoff = Handoff(self.plan, self._control_event, self._validate_handoff)
+            await self.handoff.start()
+            write_new(
+                self.directory / "controller.json", self.handoff.identity.model_dump(mode="json")
+            )
             self.store.runtime.event(
                 "ZEEK_LIVE_PLAN_PREPARED",
                 dict(
@@ -95,6 +118,13 @@ class LiveZeekCollector(ZeekCollector):
                 ),
             )
             self.stop_requested = False
+            self.started = self.watch_started = None
+            self.process_task = None
+            self.stop_reason = None
+            self.stop_audited = False
+            self.controller_ended = self.collector_started = False
+            self.state = "PREPARED"
+            self._control_event("TERMINAL_HANDOFF_READY", dict(listener_ready=True))
             self.producer = self.result = self.process_runner = None
             self.queue_depth = self.queue_peak = self.rows_read = self.duplicates = 0
             self.last_error = None
@@ -104,13 +134,80 @@ class LiveZeekCollector(ZeekCollector):
             return self.snapshot()
         except (OSError, ValueError, sqlite3.Error):
             self.state, self.last_error = "ERROR", "ZEEK_LIVE_PREPARATION_FAILED"
+            if new_store:
+                self._request_stop("PREPARATION_CANCELLED")
+            if self.handoff:
+                await self.handoff.close()
             self._release()
             raise
         finally:
             self.preparing = False
 
+    def _validate_handoff(self):
+        if self.stop_requested or self.state in {"ERROR", "UNKNOWN", "STOPPING", "STOPPED"}:
+            raise ValueError("ZEEK_SESSION_STOP_REQUESTED")
+        try:
+            self.store.verify()
+        except (OSError, ValueError, sqlite3.Error) as error:
+            raise ValueError("ZEEK_AUDIT_PERSISTENCE_FAILED") from error
+
+    def _control_event(self, kind, details):
+        self.store.verify()
+        self.store.runtime.event(
+            kind,
+            dict(
+                **details,
+                session_id=str(self.plan.session_id),
+                plan_digest=self.plan.identity,
+                generation=str(self.plan.controller_generation),
+            ),
+        )
+        if kind == "LAUNCHER_ACCEPTED":
+            self.state = "LAUNCHER_STARTING"
+
+    async def command_snapshot(self, session: str, plan_digest: str, generation: str):
+        if (
+            not self.plan
+            or str(self.plan.session_id) != session
+            or self.plan.identity != plan_digest
+            or str(self.plan.controller_generation) != generation
+        ):
+            raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH")
+        verify(self.plan, self.plan.identity)
+        if not self.handoff or not self.handoff.command_valid or self.stop_requested:
+            raise ValueError("ZEEK_LISTENER_UNAVAILABLE")
+        await asyncio.to_thread(exchange, self.directory, self.plan, "probe")
+        return self.snapshot()
+
+    async def _end_controller(self):
+        listener_closed = True
+        if self.handoff:
+            try:
+                await self.handoff.close()
+            except (OSError, TimeoutError):
+                listener_closed = False
+                self.state, self.last_error = "ERROR", "ZEEK_LISTENER_UNAVAILABLE"
+        if self.store and self.plan and not self.controller_ended:
+            self.controller_ended = True
+            try:
+                self._control_event(
+                    "CONTROLLER_EXITED",
+                    dict(
+                        reason=self.stop_reason or "COLLECTOR_EXIT",
+                        scope="SESSION_CONTROLLER",
+                        os_process_exit_observed=False,
+                        listener_closed=listener_closed,
+                    ),
+                )
+            except (OSError, ValueError, sqlite3.Error):
+                self.audit_failed = True
+                self.last_error = "ZEEK_AUDIT_PERSISTENCE_FAILED"
+                self.state = "ERROR"
+
     async def start(self):
-        if self.state not in {"AUTHENTICATION_REQUIRED", "STARTING"}:
+        if self.task and not self.task.done():
+            raise ValueError("ZEEK_ALREADY_ACTIVE")
+        if self.state not in {"AUTHENTICATION_REQUIRED", "STARTING", "LAUNCHER_STARTING"}:
             raise ValueError("ZEEK_NOT_PREPARED")
         self.watch_started = time.monotonic()
         if self.fixture:
@@ -125,10 +222,25 @@ class LiveZeekCollector(ZeekCollector):
         if not path.exists():
             return None
         value = json.loads(read_local(path, 8192))
+        accepted = self.handoff.accepted if self.handoff else None
+        if not self.fixture and self.handoff is None:
+            with self.store.runtime.database.transaction(write=False) as db:
+                claims = [
+                    json.loads(r[0])["details"]
+                    for r in db.execute(
+                        "SELECT payload FROM monitor_audit "
+                        "WHERE json_extract(payload,'$.kind')='LAUNCHER_ACCEPTED' LIMIT 2"
+                    )
+                ]
+            if len(claims) != 1 or claims[0].get("plan_digest") != self.plan.identity:
+                raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH")
+            accepted = claims[0]["launcher"]
         if (
             value.get("plan_digest") != self.plan.identity
             or value.get("image") != self.plan.image
             or value.get("native_capture") != (not self.fixture)
+            or value.get("generation") != str(self.plan.controller_generation)
+            or (not self.fixture and value.get("launcher") != accepted)
         ):
             raise ValueError("ZEEK_PROCESS_IDENTITY_MISMATCH")
         return value
@@ -173,12 +285,18 @@ class LiveZeekCollector(ZeekCollector):
         try:
             while True:
                 verify(self.plan, self.plan.identity)
+                if self.handoff and self.handoff.failure:
+                    raise ValueError(self.handoff.failure)
+                if not self.stop_requested and (not self.handoff or not self.handoff.ready):
+                    raise ValueError("ZEEK_LISTENER_UNAVAILABLE")
                 failure = self.directory / "launch-failure.json"
                 if failure.exists():
                     reason = json.loads(read_local(failure, 8192))
                     if reason.get("plan_digest") != self.plan.identity:
                         raise ValueError("ZEEK_AUTH_FAILURE_IDENTITY_INVALID")
-                    raise ValueError(reason.get("error", "ZEEK_AUTHENTICATION_FAILED"))
+                    code = safe_code(reason.get("error"))
+                    self._control_event("LAUNCHER_REJECTED", dict(error=code))
+                    raise ValueError(code)
                 process = self._process()
                 if (
                     self.process_task
@@ -192,14 +310,17 @@ class LiveZeekCollector(ZeekCollector):
                         self.started = time.monotonic()
                     await asyncio.to_thread(self._poll, reader)
                     if self.stream.ready:
+                        if not self.collector_started:
+                            self.collector_started = True
+                            self._control_event(
+                                "COLLECTOR_STARTED", dict(native_capture=not self.fixture)
+                            )
                         self.state = (
                             "ERROR"
                             if self.last_error
                             else "STOPPING"
                             if self.stop_requested
                             else "ACTIVE"
-                            if self.fixture
-                            else "DEGRADED"
                         )
                 if (self.directory / "exit.json").exists():
                     # Process exit is not EOF: consume every bounded batch before finalizing.
@@ -219,6 +340,15 @@ class LiveZeekCollector(ZeekCollector):
                     ):
                         raise ValueError("ZEEK_CLOSED_OR_PROCESS_INTEGRITY_UNVERIFIED")
                     self.result = result
+                    self._control_event(
+                        "COLLECTOR_CLOSED",
+                        dict(
+                            stream_sha256=result["stream_sha256"],
+                            exit_code=result["exit_code"],
+                            capture_integrity="UNVERIFIED",
+                            queue_final=0,
+                        ),
+                    )
                     self.store.runtime.event("ZEEK_STREAM_PROCESS_COMPLETED", result)
                     if self.fixture and not self.stop_requested:
                         from soc_agent.security_ai.collectors.producer_service import (
@@ -253,28 +383,48 @@ class LiveZeekCollector(ZeekCollector):
                             write_policy="WRITE_DENIED",
                         ),
                     )
+                    self._request_stop("COLLECTOR_EXIT")
                     break
                 if self.stop_requested and not process:
-                    self.state = "STOPPED"
+                    self.state = "ERROR" if self.last_error or self.audit_failed else "STOPPED"
                     break
                 if process and not same_process(process["launcher"]):
                     raise ValueError("ZEEK_LAUNCHER_EXIT_WITHOUT_CLOSED")
-                if time.monotonic() - self.watch_started > self.plan.duration_seconds + 20:
-                    raise ValueError("ZEEK_AUTH_OR_CAPTURE_DEADLINE_EXCEEDED")
+                # Approval wait has no capture deadline. Only accepted/started work is bounded.
+                if (
+                    self.started
+                    and time.monotonic() - self.started > self.plan.duration_seconds + 20
+                ):
+                    raise ValueError("ZEEK_PROCESS_DEADLINE_EXCEEDED")
+                if (
+                    not process
+                    and self.handoff
+                    and self.handoff.accepted
+                    and not same_process(self.handoff.accepted)
+                ):
+                    raise ValueError("ZEEK_LAUNCHER_EXIT_WITHOUT_CLOSED")
+                if (
+                    not process
+                    and self.handoff
+                    and self.handoff.claimed_at
+                    and asyncio.get_running_loop().time() - self.handoff.claimed_at > 90
+                ):
+                    raise ValueError("ZEEK_PROCESS_DEADLINE_EXCEEDED")
                 await asyncio.sleep(0.05)
         except (OSError, ValueError, sqlite3.Error) as error:
-            code = str(error)
-            self.last_error = (
-                code
-                if re.fullmatch(r"ZEEK_[A-Z0-9_]{1,110}", code)
-                else "ZEEK_LIVE_INTEGRITY_FAILED"
-            )
+            self.last_error = safe_code(error)
             self.state = "ERROR"
             try:
-                self._request_stop()
-            except OSError:
+                reason = (
+                    "TIMEOUT"
+                    if self.last_error == "ZEEK_PROCESS_DEADLINE_EXCEEDED"
+                    else "LAUNCH_FAILED"
+                )
+                self._request_stop(reason)
+            except (OSError, ValueError, sqlite3.Error):
                 self.last_error = "ZEEK_STOP_SIGNAL_PERSISTENCE_FAILED"
             try:
+                self.store.verify()
                 self.store.runtime.event(
                     "ZEEK_LIVE_ABORT", dict(error=self.last_error, inference_allowed=False)
                 )
@@ -292,31 +442,79 @@ class LiveZeekCollector(ZeekCollector):
                         "ERROR",
                         self.last_error or "ZEEK_PROCESS_STOP_UNVERIFIED",
                     )
+            await self._end_controller()
             self._release()
 
-    def _request_stop(self):
+    def _request_stop(self, reason: StopReason):
+        from pydantic import TypeAdapter
+
+        reason = TypeAdapter(StopReason).validate_python(reason)
+        if self.plan is None:
+            return  # Legacy read-only recovery is never reactivated or rewritten.
         self.stop_requested = True
+        if self.handoff:
+            self.handoff.stopped = True
+            if self.handoff.server:
+                self.handoff.server.close()
         if self.process_runner:
             self.process_runner.stop()
         if self.directory and not (self.directory / "stop.request").exists():
-            create_private_file(self.directory / "stop.request")
+            self.stop_reason = reason
+            value = dict(
+                reason=reason,
+                session_id=str(self.plan.session_id),
+                plan_digest=self.plan.identity,
+                generation=str(self.plan.controller_generation),
+                actor=process_identity(os.getpid()),
+                at_monotonic_ns=time.monotonic_ns(),
+            )
+            write_new(self.directory / "stop.request", value)
+        if self.directory and self.plan:
+            value = json.loads(read_local(self.directory / "stop.request", 8192))
+            if value.get("plan_digest") != self.plan.identity or value.get("generation") != str(
+                self.plan.controller_generation
+            ):
+                raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH")
+            self.stop_reason = TypeAdapter(StopReason).validate_python(value.get("reason"))
+            if not self.stop_audited:
+                try:
+                    self._control_event(
+                        "COLLECTOR_STOP_REQUESTED",
+                        dict(
+                            reason=self.stop_reason,
+                            stop_digest=file_digest(self.directory / "stop.request"),
+                        ),
+                    )
+                    self.stop_audited = True
+                except (OSError, ValueError, sqlite3.Error):
+                    self.stop_audited = True  # No retry of an uncertain audit append.
+                    self.audit_failed = True
+                    self.state, self.last_error = "ERROR", "ZEEK_AUDIT_PERSISTENCE_FAILED"
+                    raise
 
-    async def stop(self):
-        self._request_stop()
+    async def stop(self, reason: StopReason = "USER_STOP"):
+        try:
+            self._request_stop(reason)
+        except (OSError, ValueError, sqlite3.Error):
+            self.audit_failed = True
+            self.state, self.last_error = "ERROR", "ZEEK_AUDIT_PERSISTENCE_FAILED"
         if self.producer:
             await self.producer.demo.stop()
         if self.task and not self.task.done():
-            self.state = "STOPPING"
+            if self.state != "ERROR":
+                self.state = "STOPPING"
             try:
                 await asyncio.wait_for(asyncio.shield(self.task), 15)
             except TimeoutError:
                 self.state, self.last_error = "ERROR", "ZEEK_STOP_DEADLINE_UNVERIFIED"
-        if self.producer:
-            await self.producer.demo.stop()
         if self.state not in {"ERROR", "STOPPED"}:
             self.state = "STOPPED"
+        await self._end_controller()
         self._release()
         return self.snapshot()
+
+    async def close(self, reason: StopReason = "GUI_CLOSE"):
+        return await self.stop(reason)
 
     async def recover(self):
         if self.task and not self.task.done():
@@ -325,8 +523,15 @@ class LiveZeekCollector(ZeekCollector):
         if not candidates:
             return self.snapshot()
         self.directory = candidates[-1]
-        self.plan = LivePlan.model_validate_json(read_local(self.directory / "plan.json", 8192))
+        raw_plan = read_local(self.directory / "plan.json", 8192)
         self.store = CollectorStore(self.directory)
+        if json.loads(raw_plan).get("contract") != "soc-zeek-native-plan:v2":
+            self.plan = None
+            self.state = "ERROR"
+            self.last_error = "ZEEK_CONTROLLER_IDENTITY_MISMATCH"
+            self.recovery_state = "LEGACY_SESSION_READ_ONLY_NO_RESTART"
+            return self.snapshot()
+        self.plan = LivePlan.model_validate_json(raw_plan)
         self.fixture = self.store.source.origin == "ZEEK_OFFLINE_PCAP"
         self.state = "ERROR"
         self.recovery_state = "BLOCKED_NO_AUTOMATIC_RESTART"
@@ -338,6 +543,27 @@ class LiveZeekCollector(ZeekCollector):
                     "WHERE json_extract(payload,'$.kind')='ZEEK_STREAM_PROCESS_COMPLETED'"
                 )
             ]
+        if not completed and not (self.directory / "process.json").exists():
+            stop = self.directory / "stop.request"
+            with self.store.runtime.database.transaction(write=False) as db:
+                requests = [
+                    json.loads(r[0])["details"]
+                    for r in db.execute(
+                        "SELECT payload FROM monitor_audit "
+                        "WHERE json_extract(payload,'$.kind')='COLLECTOR_STOP_REQUESTED' LIMIT 2"
+                    )
+                ]
+            if (
+                stop.exists()
+                and len(requests) == 1
+                and requests[0].get("stop_digest") == file_digest(stop)
+                and requests[0].get("plan_digest") == self.plan.identity
+            ):
+                self.stop_reason = requests[0]["reason"]
+                self.stop_requested = True
+                self.state = "STOPPED"
+                self.recovery_state = "RESTORED_CANCELLED_NO_CAPTURE_OR_RESTART"
+                return self.snapshot()
         if len(completed) != 1 or completed[0]["stream_sha256"] != file_digest(
             self.directory / "stream.jsonl"
         ):
@@ -417,11 +643,23 @@ class LiveZeekCollector(ZeekCollector):
             gap_count=None,
             recovery_state=self.recovery_state,
         )
-        value["collector_command"] = (
-            command(self.directory, self.plan)
-            if self.plan and self.state == "AUTHENTICATION_REQUIRED" and not self.fixture
-            else None
+        ready = bool(self.handoff and self.handoff.ready and not self.stop_requested)
+        valid = bool(
+            ready
+            and self.handoff.command_valid
+            and not self.fixture
+            and self.state == "AUTHENTICATION_REQUIRED"
         )
+        value.update(
+            handoff_listener_ready=ready,
+            controller_alive=ready,
+            command_valid=valid,
+            controller_generation=str(self.plan.controller_generation) if self.plan else None,
+            plan_digest=self.plan.identity if self.plan else None,
+            handoff_state="COMMAND_VALID" if valid else self.state,
+            stop_reason=self.stop_reason,
+        )
+        value["collector_command"] = command(self.directory, self.plan) if valid else None
         if not self.fixture:
             for model in value["research"]["model_metrics"].values():
                 model["reason"] = "ZEEK_NATIVE_CAPTURE_INTEGRITY_UNVERIFIED"

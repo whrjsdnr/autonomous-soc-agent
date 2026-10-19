@@ -247,7 +247,7 @@ class Backend:
             "stop_request": result["ok"],
         }
 
-    async def close(self):
+    async def close(self, reason="GUI_CLOSE"):
         # GUI lifetime is not Runtime lifetime. A file-backed log and new session
         # keep this explicitly started Runtime independent; no transport destructor kills it.
         alive = self.child is not None and self.child.returncode is None
@@ -256,6 +256,8 @@ class Backend:
         for name, owner in self._owners.items():
             if name.endswith("auth"):
                 await owner.cancel()
+            elif name == "zeek_collector" and self.collector_selection == "zeek-live":
+                await owner.close(reason=reason)
             else:
                 await owner.stop()
         self.closed = True
@@ -449,6 +451,13 @@ class Backend:
         owner = self._owner("zeek_collector")
         await owner.prepare()
         return await owner.start()
+
+    async def zeek_live_command(self, session, plan_digest, generation):
+        if self.collector_selection != "zeek-live" or "zeek_collector" not in self._owners:
+            raise ValueError("ZEEK_LISTENER_UNAVAILABLE")
+        return await self._owners["zeek_collector"].command_snapshot(
+            session, plan_digest, generation
+        )
 
     async def collector_stop(self):
         if self.collector_selection.startswith("zeek-") and "zeek_collector" in self._owners:

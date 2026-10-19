@@ -1,0 +1,780 @@
+{
+  "schema": "soc-zeek-controller-evidence:v1",
+  "validation_timestamp": "2026-10-19T09:09:30.291446+00:00",
+  "soc_baseline_head": "4f1c9cf3c20a9cd9da6eeda879da169fb3304caf",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "scope": "NON_PRIVILEGED_LIFECYCLE_FIXTURE_AND_OFFLINE_MODEL_VERIFICATION",
+  "verdict": "PARTIAL",
+  "native_capture_executed": false,
+  "privileged_commands_executed": false,
+  "test_traffic_generated": false,
+  "native_inference": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_promotion": "BLOCKED",
+  "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+  "approval_contract": "soc-zeek-native-plan:v2",
+  "launcher_sha256": "576309afd409f14b8fd6002710bdd59fe375e82ad895e163b25b4727ce7fa66c",
+  "bundle_digest": "bbd017c2ba8f3a7903270ec67c1e06a63ba53ae6aa04c1aa1ba2f6fc413e46bb",
+  "bundle": {
+    "live.py": "e14b367b0077679b22c98f0e6f695cb6fbfa517cde2e20655cfce44b513abeaf",
+    "handoff.py": "f4220a4547d9201eaebad9d54bc3a46a9b802a22998d71495ea6ce89e18fce8d",
+    "live_contract.py": "bc7b26397e3e9e29f1fcda240e5dfe20ea892633623a2a589ad8b5fe4c49e5ac",
+    "live_process.py": "576309afd409f14b8fd6002710bdd59fe375e82ad895e163b25b4727ce7fa66c",
+    "live_stream.py": "c91773f971af5fc5127e9520acd59503c0359443c56dde292194f11e4098332e",
+    "live.zeek": "9d593eda5ab3d8b77317e1080040295d8d2dc1049bf3c7fa5d72de77b892bfb9",
+    "network14.zeek": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+    "packet_input.py": "daf9f4112a889b34f84303c890654304b44c9307bb81172626c127df101235b8",
+    "packet_producer.py": "be509dfa57bda1589938e43fb00d488225d4d2c133439fd67cb1b3dbaca6a5e3",
+    "privacy.zeek": "265d960bc0123bbd314c529972376f74999fc5beb574f81afb448d2550a77942",
+    "offline.py": "e0cc9252bd51b73679fc07adfb63c84321574a014118ecb39443d239acd4e581",
+    "reader.py": "245cb5a00886ec21e0e6237cba782f19240f7f796f648b1287b8ee1d73f3f6cc",
+    "models.py": "133a6bfde01f1ac68ee3fd4547a23f2cfabd771462c5b2078b88cf6f936eab84",
+    "adapter.py": "047da2c71ce896a433377bcfd0e6d1ee17a98ae681bf4040786e39cbba41a9e2",
+    "soc_agent/cli.py": "aa38b3815ee7e1f5d3385e29735a407186dab6f003dc03aa5b7e6cd6a505570e",
+    "research/total_auth.py": "f233676c97e40c60f9478417315fb7db151204e6e8fcbcb66cb947363405ccb8",
+    "producer_service.py": "4f41c654c51cbcdeabbc138d5f0d62cf54f7fa4534511d515e9536bec4b9e620"
+  },
+  "source_sha256": {
+    "src/soc_agent/gui/__main__.py": "2a92f9430b7a084de5ae355383eb51cc50f5809d664b7cde3a65ad58d20c3757",
+    "src/soc_agent/gui/backend.py": "8d8c67bbf7bb369a84d592386eda8054631fdd858fb51f8973c11220d5199b1b",
+    "src/soc_agent/gui/operator_view.py": "584e46f215d39edefc4cbdf7542a23f69231ea53f643b6632d74994a15aa9ed9",
+    "src/soc_agent/gui/production.py": "f26f9f181edc2a0eaab00c4e9e746c027b8f2b06126688ceecd492d9ea2e52b1",
+    "src/soc_agent/security_ai/collectors/handoff.py": "f4220a4547d9201eaebad9d54bc3a46a9b802a22998d71495ea6ce89e18fce8d",
+    "src/soc_agent/security_ai/collectors/live.py": "e14b367b0077679b22c98f0e6f695cb6fbfa517cde2e20655cfce44b513abeaf",
+    "src/soc_agent/security_ai/collectors/live_contract.py": "bc7b26397e3e9e29f1fcda240e5dfe20ea892633623a2a589ad8b5fe4c49e5ac",
+    "src/soc_agent/security_ai/collectors/live_process.py": "576309afd409f14b8fd6002710bdd59fe375e82ad895e163b25b4727ce7fa66c"
+  },
+  "historical": {
+    "session_id": "2a98f1b4-5f67-4ff8-a7c6-3dd6f140f232",
+    "controller": {
+      "pid": 2810358,
+      "start_ticks": "28471151"
+    },
+    "controller_exit_cause": "UNKNOWN",
+    "stop_request_origin": "UNKNOWN",
+    "launcher_start_before_controller_exit": "UNKNOWN",
+    "sqlite_integrity": "ok",
+    "audit_digest": "fc6379e79d78b83458e45b362dddfe347b7215fb0f3fa56a0c237279b2a4accd",
+    "audit_integrity": "VERIFIED",
+    "audit_records": 3,
+    "files": {
+      "controller.json": {
+        "sha256": "1a390bdccdd7c885b1a63cacfbeb7346a3f8f9bc265a9ae9690e89945bc3f5c8",
+        "bytes": 43,
+        "mtime_ns": 1792399068713131448
+      },
+      "launcher.lock": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mtime_ns": 1792399150857212025
+      },
+      "monitor.sqlite": {
+        "sha256": "44b2e079cf70229867070ee21fbe80ca9d02f7e55fefec8f07d6c20191a8c23c",
+        "bytes": 180224,
+        "mtime_ns": 1792399068718481080
+      },
+      "plan.json": {
+        "sha256": "202c33e300066c8e2d4ce71fc10f1bee75aa29e5e50f2a603251312ec3bc952b",
+        "bytes": 586,
+        "mtime_ns": 1792399068712976076
+      },
+      "stop.request": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mtime_ns": 1792399149013309299
+      },
+      "writer.lock": {
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "mtime_ns": 1792399068671446450
+      }
+    },
+    "missing": [
+      "process.json",
+      "launch-failure.json",
+      "stream.jsonl"
+    ],
+    "native_success_evidence": "NONE"
+  },
+  "independent_export": {
+    "baseline_plus_allowlisted_files": true,
+    "excluded": [
+      "existing user changes",
+      "Reliability Replay",
+      "native sessions",
+      "model binaries",
+      "raw datasets"
+    ],
+    "source_sha256_matches_final_tested_export": true,
+    "main_runs": {
+      "unit": {
+        "exit_code": 0,
+        "elapsed_seconds": 36.68080726201879,
+        "suite": [
+          "tests/unit/zeek_lifecycle",
+          "tests/unit/zeek_live",
+          "tests/unit/zeek_producer",
+          "tests/unit/zeek_collector",
+          "tests/unit/gui",
+          "tests/unit/production_slimming",
+          "tests/unit/loopback_visual",
+          "tests/unit/research_adapter",
+          "tests/unit/streaming_network"
+        ],
+        "result": "........................................................................ [ 16%]\n........................................................................ [ 32%]\n........................................................................ [ 48%]\n........................................................................ [ 65%]\n........................................................................ [ 81%]\n........................................................................ [ 97%]\n...........                                                              [100%]\n443 passed in 34.50s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4595625984,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168207573\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160573260\n"
+      },
+      "stream-controller": {
+        "exit_code": 0,
+        "elapsed_seconds": 18.891512270027306,
+        "suite": [
+          "tests/integration/zeek_lifecycle",
+          "tests/integration/zeek_live/test_stream.py",
+          "tests/integration/zeek_producer/test_packets.py"
+        ],
+        "result": ".............                                                            [100%]\n13 passed in 16.99s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4655374336,
+        "preflight_memory_psi": "some avg10=0.03 avg60=0.02 avg300=0.00 total=168279269\nfull avg10=0.03 avg60=0.02 avg300=0.00 total=160644929\n"
+      },
+      "model": {
+        "exit_code": 0,
+        "elapsed_seconds": 10.044478249037638,
+        "suite": [
+          "tests/integration/zeek_live/test_models.py"
+        ],
+        "result": ".                                                                        [100%]\n1 passed in 8.23s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4510326784,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.01 avg300=0.00 total=168288181\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=160652805\n"
+      },
+      "gui": {
+        "exit_code": 0,
+        "elapsed_seconds": 39.739790298976004,
+        "suite": [
+          "tests/gui_zeek_lifecycle_checks.py",
+          "tests/gui_zeek_live_checks.py",
+          "tests/gui_zeek_collector_checks.py",
+          "tests/gui_visual_dashboard_checks.py",
+          "tests/gui_production_checks.py"
+        ],
+        "result": ".........                                                                [100%]\n9 passed in 37.81s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4634271744,
+        "preflight_memory_psi": "some avg10=0.24 avg60=0.07 avg300=0.01 total=168364012\nfull avg10=0.24 avg60=0.07 avg300=0.01 total=160728458\n"
+      },
+      "audit-governance": {
+        "exit_code": 0,
+        "elapsed_seconds": 17.778703456977382,
+        "suite": [
+          "tests/unit/policy",
+          "tests/unit/approval",
+          "tests/unit/investigation_runtime",
+          "tests/integration/linux_runtime/test_final_integration_audit.py",
+          "tests/integration/research_adapter/test_lifecycle.py",
+          "tests/integration/streaming_network/test_total_transport.py"
+        ],
+        "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 15.63s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4613853184,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.03 avg300=0.00 total=168372971\nfull avg10=0.00 avg60=0.03 avg300=0.00 total=160737328\n"
+      }
+    },
+    "final_affected_runs": {
+      "final-lifecycle": {
+        "exit_code": 0,
+        "elapsed_seconds": 30.01762893499108,
+        "suite": [
+          "tests/unit/zeek_lifecycle",
+          "tests/unit/zeek_live",
+          "tests/integration/zeek_lifecycle",
+          "tests/integration/zeek_live/test_stream.py",
+          "tests/gui_zeek_lifecycle_checks.py"
+        ],
+        "result": "...............................................................          [100%]\n63 passed in 28.05s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4627595264,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.03 avg300=0.00 total=168409425\nfull avg10=0.00 avg60=0.03 avg300=0.00 total=160773641\n"
+      },
+      "final-model": {
+        "exit_code": 0,
+        "elapsed_seconds": 10.295902089972515,
+        "suite": [
+          "tests/integration/zeek_live/test_models.py"
+        ],
+        "result": ".                                                                        [100%]\n1 passed in 8.32s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+        "preflight_memavailable_bytes": 4595982336,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.01 avg300=0.00 total=168434553\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=160798288\n"
+      }
+    },
+    "counting": "Runs overlap; do not add repeated tests or inferences. Main matrix precedes final audit authorization guard; final affected runs verify that final source.",
+    "public_contract_and_quality": {
+      "final-public-contract": {
+        "exit_code": 0,
+        "elapsed_seconds": 8.357300363946706,
+        "result": ".........................................................                [100%]\n57 passed in 6.56s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n"
+      },
+      "ruff": {
+        "exit_code": 0,
+        "elapsed_seconds": 0.08059225499164313,
+        "result": "All checks passed!\n"
+      },
+      "format": {
+        "exit_code": 0,
+        "elapsed_seconds": 0.07806966599309817,
+        "result": "1107 files already formatted\n"
+      },
+      "wheel": {
+        "exit_code": 0,
+        "elapsed_seconds": 0.18020792899187654,
+        "result": "Offline wheel build PASS; six final collector/code/script files match exported bytes."
+      }
+    }
+  },
+  "model_run": {
+    "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+    "session_id": "48d512df-c65d-4518-b767-14f32628656f",
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "input_origin": "ZEEK_OFFLINE_PCAP",
+    "collector_metrics": {
+      "network_events": 1,
+      "dns_events": 0,
+      "queue_depth": 0,
+      "queue_capacity": 32,
+      "backpressure": "NORMAL",
+      "queue_peak": 7,
+      "rows_read": 1,
+      "duplicates": 0,
+      "out_of_order_start_times": 0,
+      "log_to_adapter_ms": null,
+      "capture_to_log_ms": null,
+      "feature_generation_ms": null,
+      "inference_latency_ms": null,
+      "investigation_latency_ms": null,
+      "log_lag_seconds": null,
+      "inference_count": 2,
+      "process_alive": false
+    },
+    "packet_count": 4,
+    "flow_count": 2,
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "finalization": "PCAP_REFERENCE_FINALIZED",
+    "audit_digest": "7534bc61a5a73b404a643fcb51ac553cf3131bab75d39a0f60c245843dfd7af2",
+    "recovered_audit_digest": "7534bc61a5a73b404a643fcb51ac553cf3131bab75d39a0f60c245843dfd7af2",
+    "restored_new_inferences": 0,
+    "elapsed_seconds": 7.677738771017175,
+    "cpu_seconds": 1.2295461710000004,
+    "process_peak_rss_bytes": 181342208,
+    "memavailable_before_bytes": 4459167744,
+    "psi_before": "some avg10=0.00 avg60=0.01 avg300=0.00 total=168434553\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=160798288\n",
+    "native_capture": false,
+    "cleanup_verified": true
+  },
+  "research_records": [
+    {
+      "profile": "quality",
+      "status": "COMPLETE",
+      "receipt": {
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+        "capture_quality": "UNKNOWN",
+        "capture_session": "48d512df-c65d-4518-b767-14f32628656f",
+        "contract": "soc-zeek-network14-receipt:v1",
+        "event_time": "2027-01-15T08:00:00Z",
+        "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+        "feature_digest": "adb5310f2294d5ab434d06160ede3ec57f54ba75aeeb401a5f5900c239cfef1d",
+        "feature_names": [
+          "duration_seconds",
+          "forward_packet_count",
+          "backward_packet_count",
+          "forward_ip_bytes",
+          "backward_ip_bytes",
+          "ip_length_min",
+          "ip_length_max",
+          "ip_length_mean",
+          "ip_length_population_std",
+          "tcp_syn_packet_count",
+          "tcp_fin_packet_count",
+          "tcp_rst_packet_count",
+          "iat_mean_seconds",
+          "iat_max_seconds"
+        ],
+        "feature_values": [
+          1.0,
+          2.0,
+          1.0,
+          120.0,
+          60.0,
+          40.0,
+          80.0,
+          60.0,
+          16.329931259155273,
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          0.5
+        ],
+        "flow_id": "94773d7266121a5733a0a9b0fff38c23c1ad816feec7ffe4df4429cb0a14c17c",
+        "inference_latency_ms": 18.582382996100932,
+        "inferred_at": "2026-10-19T09:06:34.671415Z",
+        "invocation_id": "8f369392-e081-412a-82ab-5460b0cb9219",
+        "model_id": "linux-network14-research-v1-quality_rf",
+        "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+        "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+        "operational_inference": "BLOCKED",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "packet_count": 3,
+        "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+        "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+        "prediction": "CLASS_0",
+        "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+        "producer_origin": "OFFLINE_PCAP",
+        "producer_version": "1.1.0",
+        "profile": "quality",
+        "provenance_digest": "0eb4618d731a3a7932787d60a77ae6766d1a3dc1dd3d1ed404137dd093a1c1f0",
+        "request_digest": "9d324f4a096390816b35d16acfae7705042b2c2686ac445812bce32eb3a86e7e",
+        "score": 0.140625,
+        "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+        "source_digest": "1d09ea61e9b53ab2adf896bff59da4fdcf1ed4f8b6b20691708bb60b7332f6a0",
+        "status": "RESEARCH_ONLY",
+        "threshold": 0.35,
+        "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+        "worker_cpu_seconds": 2.0575,
+        "worker_limits": {
+          "address_space_bytes": 3221225472,
+          "cpu_seconds": 15,
+          "network": "DENIED",
+          "result_file_bytes": 131072
+        },
+        "worker_peak_rss_bytes": 234622976,
+        "write_policy": "WRITE_DENIED",
+        "zeek_producer_version": "zeek-packet-network14:v1"
+      },
+      "receipt_digest": "8ca8f931480309e29de1f102d70e33187d6dd40e1604733923cb0bb4a751d872",
+      "investigation": {
+        "status": "ASSESSED_READ_ONLY",
+        "action_policy": "WRITE_DENIED",
+        "incident_id": "11b0f1a5-d8be-495c-b560-a0418ba07b14",
+        "evidence_references": [
+          "e2926deb-eeab-4267-8982-63e819382a95"
+        ],
+        "checkpoint_restored": true,
+        "context_digest": "6b2e9274985dee70337dc3fa0424389390d60347d94a3c0381c59eeb59889d16"
+      }
+    },
+    {
+      "profile": "edge",
+      "status": "COMPLETE",
+      "receipt": {
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+        "capture_quality": "UNKNOWN",
+        "capture_session": "48d512df-c65d-4518-b767-14f32628656f",
+        "contract": "soc-zeek-network14-receipt:v1",
+        "event_time": "2027-01-15T08:00:00Z",
+        "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+        "feature_digest": "adb5310f2294d5ab434d06160ede3ec57f54ba75aeeb401a5f5900c239cfef1d",
+        "feature_names": [
+          "duration_seconds",
+          "forward_packet_count",
+          "backward_packet_count",
+          "forward_ip_bytes",
+          "backward_ip_bytes",
+          "ip_length_min",
+          "ip_length_max",
+          "ip_length_mean",
+          "ip_length_population_std",
+          "tcp_syn_packet_count",
+          "tcp_fin_packet_count",
+          "tcp_rst_packet_count",
+          "iat_mean_seconds",
+          "iat_max_seconds"
+        ],
+        "feature_values": [
+          1.0,
+          2.0,
+          1.0,
+          120.0,
+          60.0,
+          40.0,
+          80.0,
+          60.0,
+          16.329931259155273,
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          0.5
+        ],
+        "flow_id": "94773d7266121a5733a0a9b0fff38c23c1ad816feec7ffe4df4429cb0a14c17c",
+        "inference_latency_ms": 7.401530048809946,
+        "inferred_at": "2026-10-19T09:06:37.368425Z",
+        "invocation_id": "f680268a-aed3-4ab3-ac68-3ae781aa73ae",
+        "model_id": "linux-network14-research-v1-edge_lr",
+        "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+        "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+        "operational_inference": "BLOCKED",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "packet_count": 3,
+        "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+        "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+        "prediction": "CLASS_0",
+        "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+        "producer_origin": "OFFLINE_PCAP",
+        "producer_version": "1.1.0",
+        "profile": "edge",
+        "provenance_digest": "0eb4618d731a3a7932787d60a77ae6766d1a3dc1dd3d1ed404137dd093a1c1f0",
+        "request_digest": "e1d9aff07e87c30fd9c47b8603685162c70d0f507a506b78ed82233df8b528fc",
+        "score": 0.08766025304794312,
+        "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+        "source_digest": "1d09ea61e9b53ab2adf896bff59da4fdcf1ed4f8b6b20691708bb60b7332f6a0",
+        "status": "RESEARCH_ONLY",
+        "threshold": 0.8,
+        "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+        "worker_cpu_seconds": 1.697534,
+        "worker_limits": {
+          "address_space_bytes": 3221225472,
+          "cpu_seconds": 15,
+          "network": "DENIED",
+          "result_file_bytes": 131072
+        },
+        "worker_peak_rss_bytes": 233246720,
+        "write_policy": "WRITE_DENIED",
+        "zeek_producer_version": "zeek-packet-network14:v1"
+      },
+      "receipt_digest": "e509467b190bb11822f04a2b9f0fb5b81b815b126d8e57b6a1c6e8ff3fdc16b0",
+      "investigation": {
+        "status": "ASSESSED_READ_ONLY",
+        "action_policy": "WRITE_DENIED",
+        "incident_id": "a52e5dd4-fe1f-40d3-8d56-6fc131ae0f56",
+        "evidence_references": [
+          "833491f9-3147-4833-8085-e0bf4203fc77"
+        ],
+        "checkpoint_restored": true,
+        "context_digest": "6b826f70e3f43e64243589e7fac7b58e84f99ca4b0943d1b2c3b4428f5654bac"
+      }
+    }
+  ],
+  "model_stream_plan": {
+    "plan_digest": "4c94f3b1a7e5763124897fd57d89e1393ff8dee97105e43715a3021d49ebc68e",
+    "bundle_digest": "bbd017c2ba8f3a7903270ec67c1e06a63ba53ae6aa04c1aa1ba2f6fc413e46bb",
+    "contract": "soc-zeek-native-plan:v2",
+    "session_id": "48d512df-c65d-4518-b767-14f32628656f",
+    "controller_generation": "aba90736-ed63-46c9-8e28-6dc3fe532a95"
+  },
+  "performance": {
+    "environment": {
+      "os": "Linux",
+      "kernel": "6.18.33.2-microsoft-standard-WSL2",
+      "python": "3.12.14",
+      "cpu_affinity": 12
+    },
+    "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+    "samples_per_side": 3,
+    "idle_sample_seconds": 3,
+    "baseline_reference": "clean SOC baseline HEAD; same interpreter and WSLg host",
+    "samples": {
+      "before-idle-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.5370412610354833,
+        "startup_cpu_seconds": 4.339009947999999,
+        "idle_rss_bytes": 184782848,
+        "process_image_peak_rss_bytes": 188731392,
+        "idle_seconds": 3.0045851829927415,
+        "idle_cpu_seconds": 0.009393583999999677,
+        "idle_cpu_one_core_percent": 0.31264162697637754,
+        "response_p50_ms": 0.018259,
+        "response_p95_ms": 0.083763,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4632535040,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168162235\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160529207\n"
+      },
+      "before-idle-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.466278620995581,
+        "startup_cpu_seconds": 4.417859675,
+        "idle_rss_bytes": 183414784,
+        "process_image_peak_rss_bytes": 186847232,
+        "idle_seconds": 3.000291692034807,
+        "idle_cpu_seconds": 0.008159773000000037,
+        "idle_cpu_one_core_percent": 0.2719659898956709,
+        "response_p50_ms": 0.010964,
+        "response_p95_ms": 0.037348,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4498194432,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168162235\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160529207\n"
+      },
+      "before-idle-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2827469760086387,
+        "startup_cpu_seconds": 4.148980958999999,
+        "idle_rss_bytes": 183545856,
+        "process_image_peak_rss_bytes": 187367424,
+        "idle_seconds": 3.0197755309636705,
+        "idle_cpu_seconds": 0.007889209000000008,
+        "idle_cpu_one_core_percent": 0.261251504262716,
+        "response_p50_ms": 0.028237,
+        "response_p95_ms": 0.096982,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4499886080,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168162235\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160529207\n"
+      },
+      "after-idle-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.1524794930010103,
+        "startup_cpu_seconds": 4.175916429,
+        "idle_rss_bytes": 183341056,
+        "process_image_peak_rss_bytes": 187469824,
+        "idle_seconds": 3.0193849229835905,
+        "idle_cpu_seconds": 0.0073288309999997026,
+        "idle_cpu_one_core_percent": 0.24272595866173147,
+        "response_p50_ms": 0.010446,
+        "response_p95_ms": 0.04653,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4611334144,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168459765\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160823485\n"
+      },
+      "after-idle-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2988637990201823,
+        "startup_cpu_seconds": 4.066212151,
+        "idle_rss_bytes": 183488512,
+        "process_image_peak_rss_bytes": 187387904,
+        "idle_seconds": 3.019646137021482,
+        "idle_cpu_seconds": 0.007566175000000008,
+        "idle_cpu_one_core_percent": 0.25056495551704383,
+        "response_p50_ms": 0.010416,
+        "response_p95_ms": 0.016883,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4600549376,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168460061\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160823781\n"
+      },
+      "after-idle-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.1194312350125983,
+        "startup_cpu_seconds": 3.94547732,
+        "idle_rss_bytes": 183353344,
+        "process_image_peak_rss_bytes": 187387904,
+        "idle_seconds": 3.018254095048178,
+        "idle_cpu_seconds": 0.006994747000000245,
+        "idle_cpu_one_core_percent": 0.23174811595471698,
+        "response_p50_ms": 0.020005,
+        "response_p95_ms": 0.045956,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4545429504,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=168460061\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=160823781\n"
+      }
+    },
+    "medians": {
+      "before": {
+        "startup_seconds": 2.466278620995581,
+        "idle_rss_bytes": 183545856,
+        "idle_cpu_one_core_percent": 0.2719659898956709,
+        "response_p95_ms": 0.083763,
+        "threads": 2,
+        "idle_child_processes": 0,
+        "background_async_tasks": 0,
+        "controller_sqlite_statements_total": 0
+      },
+      "after": {
+        "startup_seconds": 2.1524794930010103,
+        "idle_rss_bytes": 183353344,
+        "idle_cpu_one_core_percent": 0.24272595866173147,
+        "response_p95_ms": 0.045956,
+        "threads": 2,
+        "idle_child_processes": 0,
+        "background_async_tasks": 0,
+        "controller_sqlite_statements_total": 0
+      }
+    },
+    "interpretation": "Short idle samples; timing noise and host load apply. No Native performance or causal speedup claim."
+  },
+  "screenshots": [
+    {
+      "filename": "zeek-live-lifecycle-screenshots/dashboard-handoff-ready-1366.png",
+      "sha256": "304b6d17d700f01768a85ec18fe3706da6751a1392dc12c67ba72846834de191",
+      "width": 1366,
+      "height": 768,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/dashboard-handoff-ready-1920.png",
+      "sha256": "379479e92a148a07a8c797d937e286dedefd81038981939005841edde15d7fe0",
+      "width": 1920,
+      "height": 1080,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/investigation-handoff-ready-1366.png",
+      "sha256": "0c0625c9227f3c9a4116e7484323ecf2a005be3b3af0c1e4074a5bfb4dac1ad2",
+      "width": 1366,
+      "height": 768,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/investigation-handoff-ready-1920.png",
+      "sha256": "f5a3f4c78bd28eb1a144157375a835a1c7cd409b1850e8300135464f8a0ec07d",
+      "width": 1920,
+      "height": 1080,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/security-events-handoff-ready-1366.png",
+      "sha256": "ab6a25ac7c8840d8f6c140ac52f9f527a13c1ea19019b8a459a020d83d9592cb",
+      "width": 1366,
+      "height": 768,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/security-events-handoff-ready-1920.png",
+      "sha256": "b7c2a9353bc4985489c5d2c017f9d1140139134d9826fa8a423127be4460dd89",
+      "width": 1920,
+      "height": 1080,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/system-handoff-ready-1366.png",
+      "sha256": "216bab159b446988172ba45ab2e5ceaee295b75b2e0b1d4b3fa3f7a0a80e387a",
+      "width": 1366,
+      "height": 768,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    },
+    {
+      "filename": "zeek-live-lifecycle-screenshots/system-handoff-ready-1920.png",
+      "sha256": "3b617c019152dba4b61dfba0e15376155dddca2f67c9a05b784bf6037c98a120",
+      "width": 1920,
+      "height": 1080,
+      "scope": "PREPARATION_MOCK_ENVIRONMENT_NO_AUTHENTICATION_NO_CAPTURE"
+    }
+  ],
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 220,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "unchanged_capture_helpers": {
+    "calibrated_v2_sha256": "375c06dbeb4e14c881fa496459182677b4efaa293845ecfac0dab0da663c4703",
+    "calibrated_v2_bundle": "56ec48caac56a248fc0eeb5bb09c4fae4176482ed19ea8c48526f7638ae8bb31",
+    "direction_v3_sha256": "aca215a347dfff3ada09e8605d0d490e4fcaa51c83c4f40318f5d916a45020a9",
+    "direction_v3_bundle": "b072ab20ba3e08e74a3ba7e392ad5515ca65b60e8f6a094ec5c8d0b4f909cd96"
+  },
+  "policy": {
+    "interface": "lo",
+    "duration_seconds": 300,
+    "cpu_limit": 1,
+    "memory_mib": 512,
+    "disk_mib": 16,
+    "output_bytes": 8388608,
+    "packet_limit": 4096,
+    "event_limit": 8192,
+    "queue_capacity": 32,
+    "native_inference": "BLOCKED"
+  },
+  "known_limitations": [
+    "Historical controller OS exit reason UNKNOWN",
+    "Native capture and permissions not verified",
+    "Native AI BLOCKED",
+    "DNS9 parity BLOCKED",
+    "Operational promotion BLOCKED",
+    "SIGILL root cause UNKNOWN",
+    "SIGKILL cannot emit controller cleanup; launcher sidecar and bounded inner watchdog required",
+    "New launcher SHA and v2 bundle require separate user approval"
+  ],
+  "development_failures": [
+    "Missing old process_identity re-export corrected",
+    "Recovery path with no active handoff corrected",
+    "Repeated cleanup after audit persistence failure corrected; no retry hides uncertain commit"
+  ],
+  "prior_model_run": {
+    "session_id": "5e3c9aaf-bdfa-4c5b-9860-1e1ab18f8f3a",
+    "input_origin": "ZEEK_OFFLINE_PCAP",
+    "packet_count": 4,
+    "flow_count": 2,
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "finalization": "PCAP_REFERENCE_FINALIZED",
+    "audit_digest": "63a5972de87489fff0adfc2fe2c3dc36351254b7ac4dcf41e1fa003d5f99daf6",
+    "recovered_audit_digest": "63a5972de87489fff0adfc2fe2c3dc36351254b7ac4dcf41e1fa003d5f99daf6",
+    "restored_new_inferences": 0,
+    "receipt_digests": [
+      "0291cf6e61e63788768e6d34aac0e5d2ee26b214b7249747dd6ab0a76f0ab4e6",
+      "70a01447d4df033ed6aaa539308339f8530fcd01c9f493473630dbcd8a9e0b8a"
+    ],
+    "counting": "Prior matrix run before final audit authorization guard. Separate session; not added to final inference count."
+  }
+}

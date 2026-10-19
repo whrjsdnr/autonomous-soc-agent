@@ -82,8 +82,17 @@ def main(argv=None) -> int:
             root = tk.Tk()
             desktop = Desktop(root, config)
             previous = {}
-            for signum in (signal.SIGINT, signal.SIGTERM):
-                previous[signum] = signal.signal(signum, lambda *_: root.after(0, desktop.close))
+
+            def requested_exit(*_):
+                callback = (
+                    desktop.close
+                    if args.developer
+                    else lambda: desktop.close(reason="CONTROLLER_EXIT")
+                )
+                root.after(0, callback)
+
+            for signum in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+                previous[signum] = signal.signal(signum, requested_exit)
             try:
                 root.mainloop()
             finally:

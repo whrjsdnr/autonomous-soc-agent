@@ -6,6 +6,7 @@ Research/replay views remain in ``--developer``; importing this module never imp
 import gc
 import json
 import re
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -213,7 +214,28 @@ class Desktop:
         if refresh:
             self.refresh()
 
+    def _controller_unavailable(self):
+        self.command = ""
+        self.command_session = None
+        self.busy, self.pending = False, None
+        self.generation += 1
+        value = {
+            **self.snapshot,
+            "state": "ERROR",
+            "collection_live": False,
+            "controller_alive": False,
+            "handoff_listener_ready": False,
+            "command_valid": False,
+            "collector_command": None,
+            "last_error": "ZEEK_CONTROLLER_NOT_RUNNING",
+            "observation_started_ns": time.monotonic_ns(),
+        }
+        self.render(value)
+
     def call(self, operation, *args, callback=None, **kwargs):
+        if not self.worker.thread.is_alive():
+            self._controller_unavailable()
+            return
         if self.busy or self.closing:
             return
         self.busy = True
@@ -223,6 +245,9 @@ class Desktop:
 
     def _drain(self):
         self.drain_timer = None
+        if not self.worker.thread.is_alive():
+            self._controller_unavailable()
+            return
         future, callback, generation = self.pending
         if not future.done():
             self.drain_timer = self.root.after(50, self._drain)
@@ -288,7 +313,12 @@ class Desktop:
                 self.history.observe(
                     {"network": net, "queue_backlog": net.get("queue_backlog")}, now=stamp / 1e9
                 )
-        if value.get("collector_command") and value.get("state") == "AUTHENTICATION_REQUIRED":
+        if (
+            value.get("collector_command")
+            and value.get("command_valid") is True
+            and value.get("handoff_listener_ready") is True
+            and value.get("state") == "AUTHENTICATION_REQUIRED"
+        ):
             self.command = value["collector_command"]
             self.command_session = value.get("session_id")
         elif not value.get("listener_ready"):
@@ -522,7 +552,11 @@ class Desktop:
                     command
                     and value.get("session_id") == session
                     and value.get("state") == "AUTHENTICATION_REQUIRED"
+                    and value.get("command_valid") is True
+                    and value.get("handoff_listener_ready") is True
                     and value.get("collector_command") == command
+                    and self.command_session == session
+                    and self.command == command
                 ):
                     self.root.clipboard_clear()
                     self.root.clipboard_append(command)
@@ -531,7 +565,13 @@ class Desktop:
                     self.command_session = None
                     self.status.set("BLOCKED · ZEEK_SESSION_COMMAND_STALE")
 
-            self.call("production_status", callback=checked)
+            self.call(
+                "zeek_live_command",
+                session,
+                self.snapshot.get("plan_digest"),
+                self.snapshot.get("controller_generation"),
+                callback=checked,
+            )
             return
         if not self.command or self.snapshot.get("listener_ready") is not True:
             return
@@ -576,16 +616,24 @@ class Desktop:
                 callback=lambda _: self.status.set("EXPORTED · local only"),
             )
 
-    def close(self):
+    def close(self, reason="GUI_CLOSE"):
+        if not self.worker.thread.is_alive():
+            self.command, self.command_session = "", None
+            if self.poll_timer:
+                self.root.after_cancel(self.poll_timer)
+            self.root.destroy()
+            return
         if self.closing:
             return
         if self.busy:
-            self.root.after(100, self.close)
+            self.root.after(100, lambda: self.close(reason=reason))
             return
         self.closing = True
         if self.poll_timer:
             self.root.after_cancel(self.poll_timer)
-        future = self.worker.submit("close")
+        self.command = ""
+        self.command_session = None
+        future = self.worker.submit("close", reason)
 
         def finish():
             if not future.done():

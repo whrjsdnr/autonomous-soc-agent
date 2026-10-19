@@ -15,6 +15,7 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 FILES = (
     "live.py",
+    "handoff.py",
     "live_contract.py",
     "live_process.py",
     "live_stream.py",
@@ -44,8 +45,9 @@ def bundle() -> dict[str, str]:
 
 
 class LivePlan(Frozen):
-    contract: Literal["soc-zeek-native-plan:v1"] = "soc-zeek-native-plan:v1"
+    contract: Literal["soc-zeek-native-plan:v2"] = "soc-zeek-native-plan:v2"
     session_id: UUID = Field(default_factory=uuid4)
+    controller_generation: UUID = Field(default_factory=uuid4)
     image: Literal[IMAGE] = IMAGE
     interface: Literal["lo"] = "lo"
     duration_seconds: int = Field(default=300, ge=1, le=300, strict=True)
@@ -76,7 +78,7 @@ def new_plan() -> LivePlan:
 
 def verify(plan: LivePlan, approval: str):
     if approval != plan.identity:
-        raise ValueError("ZEEK_SESSION_APPROVAL_REQUIRED")
+        raise ValueError("ZEEK_APPROVAL_DIGEST_MISMATCH")
     if plan.bundle_digest != digest(bundle()):
         raise ValueError("ZEEK_LIVE_BUNDLE_CHANGED")
     if os.geteuid() == 0:

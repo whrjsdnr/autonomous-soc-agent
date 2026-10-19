@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-from soc_agent.security_ai.collectors.live_contract import bundle
 from soc_agent.security_ai.collectors.offline import IMAGE, file_digest
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
@@ -16,7 +15,11 @@ def evidence():
 
 def test_public_run_and_model_identity_not_native_promotion():
     value = evidence()
-    assert value["bundle"] == bundle() and value["bundle_digest"] == digest(bundle())
+    # Immutable evidence from commit 4f1c9cf, not an approval of current launcher code.
+    assert (
+        value["bundle_digest"] == "fd190b1d44f0a5027d110d1395bc4fadaee3c8a32c172f59c9f66d3435ab5144"
+    )
+    assert value["bundle_digest"] == digest(value["bundle"])
     assert value["image"] == IMAGE and value["verdict"] == "PARTIAL"
     assert not value["native_capture_executed"] and not value["privileged_commands_executed"]
     assert value["native_inference"] == value["dns9"] == "BLOCKED"

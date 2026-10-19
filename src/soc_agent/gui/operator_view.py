@@ -575,6 +575,7 @@ def render_system(app, value):
             "PREPARING",
             "AUTHENTICATION_REQUIRED",
             "STARTING",
+            "LAUNCHER_STARTING",
             "ACTIVE",
             "DEGRADED",
             "STOPPING",
@@ -586,6 +587,12 @@ def render_system(app, value):
         "collector_type": collector.get("type", "existing-capture"),
         "collector_health": collector.get("health", "NOT_OBSERVED"),
         "collector_approval": collector.get("approval", "NOT_OBSERVED"),
+        "controller_alive": value.get("controller_alive", "NOT_OBSERVED"),
+        "handoff_listener_ready": value.get("handoff_listener_ready", "NOT_OBSERVED"),
+        "command_valid": value.get("command_valid", False),
+        "controller_generation": value.get("controller_generation", "NOT_OBSERVED"),
+        "handoff_state": value.get("handoff_state", "NOT_OBSERVED"),
+        "stop_reason": value.get("stop_reason", "NOT_OBSERVED"),
         "capture_interface": collector.get("interface", "NOT_OBSERVED"),
         "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
@@ -614,6 +621,15 @@ def render_system(app, value):
         "Collector   " + str(details["collector_type"]),
         "Collector health   " + str(details["collector_health"]),
         "Collector approval   " + str(details["collector_approval"]),
+        "Controller alive / listener   "
+        + str(details["controller_alive"])
+        + " / "
+        + str(details["handoff_listener_ready"]),
+        "Terminal handoff   "
+        + str(details["handoff_state"])
+        + " / command valid "
+        + str(details["command_valid"]),
+        "Stop reason   " + str(details["stop_reason"]),
         "Interface   " + str(details["capture_interface"]),
         "Capture integrity   " + str(details["capture_integrity"]),
         "Collector metrics   " + str(details["collector_metrics"]),

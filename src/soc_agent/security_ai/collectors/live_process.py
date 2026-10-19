@@ -6,7 +6,6 @@ call sudo or open an interface.
 """
 
 import argparse
-import json
 import os
 import selectors
 import subprocess
@@ -15,22 +14,17 @@ import time
 from pathlib import Path
 
 from soc_agent.review.persistence.secure_storage import create_private_file
+from soc_agent.security_ai.collectors.handoff import (
+    exchange,
+    process_identity,
+    read_controller,
+    safe_code,
+)
+from soc_agent.security_ai.collectors.handoff import same_process as same_process
 from soc_agent.security_ai.collectors.live_contract import LivePlan, docker_argv, verify
 from soc_agent.security_ai.collectors.live_stream import decode
 from soc_agent.security_ai.collectors.offline import OfflineZeek, file_digest
 from soc_agent.security_ai.research.service import write_new
-
-
-def process_identity(pid: int) -> dict:
-    stat = Path(f"/proc/{pid}/stat").read_text()
-    return dict(pid=pid, start_ticks=stat.rsplit(")", 1)[1].split()[19])
-
-
-def same_process(identity: dict) -> bool:
-    try:
-        return process_identity(identity["pid"]) == identity
-    except (OSError, ValueError, KeyError):
-        return False
 
 
 class StreamProcess:
@@ -56,19 +50,15 @@ class StreamProcess:
         )
         return p.returncode == 0
 
-    def _controller(self):
-        from soc_agent.security_ai.research.environment import read_local
-
-        identity = json.loads(read_local(self.directory / "controller.json", 8192))
-        if not same_process(identity) or (self.directory / "stop.request").exists():
-            raise ValueError("ZEEK_CONTROLLER_NOT_READY_OR_SESSION_STOPPED")
+    def _controller(self, operation="validate"):
+        return exchange(self.directory, self.plan, operation)
 
     def run(self, *, on_line=None):
         OfflineZeek().environment()
         argv = docker_argv(self.plan, Path(__file__).parent.absolute(), fixture=self.fixture)
         if not self.fixture:
             verify(self.plan, self.plan.identity)
-            self._controller()
+            self._controller("claim")
             # Terminal stdin/stderr inherited. No password PIPE, environment or storage.
             from soc_agent.cli import terminal_authenticate
 
@@ -85,6 +75,7 @@ class StreamProcess:
             dict(
                 contract="soc-zeek-live-process:v1",
                 plan_digest=self.plan.identity,
+                generation=str(self.plan.controller_generation),
                 launcher=identity,
                 image=self.plan.image,
                 native_capture=self.fixture is None,
@@ -95,14 +86,33 @@ class StreamProcess:
         error, sequence, closed, code = None, 0, False, None
         selector = selectors.DefaultSelector()
         try:
-            self.process = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            try:
+                self.process = subprocess.Popen(
+                    argv, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+                )
+            except OSError as error:
+                raise ValueError("ZEEK_DOCKER_START_FAILED") from error
             selector.register(self.process.stdout, selectors.EVENT_READ)
             pending = b""
             stop_sent = False
+            controller_checked = 0.0
+            controller_error = None
             with (self.directory / "stream.jsonl").open("ab", buffering=0) as output:
                 while True:
                     if (self.directory / "stop.request").exists():
                         self.stop_requested = True
+                    now = time.monotonic()
+                    if (
+                        not self.fixture
+                        and not self.stop_requested
+                        and now - controller_checked >= 0.5
+                    ):
+                        try:
+                            self._controller()
+                        except (OSError, ValueError) as failure:
+                            controller_error = safe_code(failure)
+                            self.stop_requested = True
+                        controller_checked = now
                     expired = time.monotonic() - started > self.plan.duration_seconds + 5
                     if (self.stop_requested or expired) and not stop_sent:
                         stop_sent = True
@@ -164,14 +174,16 @@ class StreamProcess:
             code = self.process.wait(timeout=5)
             if pending:
                 raise ValueError("ZEEK_PARTIAL_RECORD_ON_CLOSE")
+            if controller_error:
+                raise ValueError(controller_error)
             if code not in {0, 124} or not closed:
-                raise ValueError("ZEEK_PROCESS_EXIT_OR_CLOSED_UNVERIFIED")
+                raise ValueError("ZEEK_CONTAINER_EXIT_UNVERIFIED")
             if not self.fixture:
                 verify(self.plan, self.plan.identity)
             self.cleanup_verified = True  # --rm exit; no automatic restart.
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             code = self.process.poll() if self.process else None
-            error = str(exc) if str(exc).startswith("ZEEK_") else "ZEEK_PROCESS_FAILED"
+            error = safe_code(exc)
             raise ValueError(error) from exc
         finally:
             selector.close()
@@ -211,52 +223,84 @@ class StreamProcess:
             )
 
 
+def rejection(directory: Path, error: object, plan=None):
+    """Separate sidecar when the GUI cannot append audit; never rewrite existing evidence."""
+    from uuid import uuid4
+
+    from soc_agent.review.persistence.secure_storage import create_private_directory
+
+    if directory.is_symlink() or directory.stat().st_uid != os.getuid():
+        return
+    if directory.stat().st_mode & 0o077:
+        return
+    failures = directory / "launcher-rejections"
+    create_private_directory(failures)
+    if len(list(failures.glob("*.json"))) >= 8:
+        return  # Explicit bounded evidence policy; terminal still reports the reviewed code.
+    value = dict(
+        event="LAUNCHER_REJECTED",
+        error=safe_code(error),
+        automatic_retry=False,
+        session_id=str(plan.session_id) if plan else None,
+        plan_digest=plan.identity if plan else None,
+        generation=str(plan.controller_generation) if plan else None,
+    )
+    write_new(failures / (uuid4().hex + ".json"), value)
+    if plan and not (directory / "stop.request").exists():
+        write_new(
+            directory / "stop.request",
+            dict(
+                reason="CONTROLLER_EXIT"
+                if safe_code(error) == "ZEEK_CONTROLLER_NOT_RUNNING"
+                else "LAUNCH_FAILED",
+                session_id=str(plan.session_id),
+                plan_digest=plan.identity,
+                generation=str(plan.controller_generation),
+                actor=process_identity(os.getpid()),
+                at_monotonic_ns=time.monotonic_ns(),
+            ),
+        )
+    if plan and not (directory / "launch-failure.json").exists():
+        write_new(directory / "launch-failure.json", value)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--session", type=Path, required=True)
     parser.add_argument("--approve", required=True)
     args = parser.parse_args(argv)
-    directory = args.session.absolute()
+    directory, plan = args.session.absolute(), None
+    from soc_agent.runtime_lock import exclusive_runtime_lock
     from soc_agent.security_ai.research.environment import read_local
 
-    plan = LivePlan.model_validate_json(read_local(directory / "plan.json", 8192))
-    verify(plan, args.approve)
-    from soc_agent.runtime_lock import exclusive_runtime_lock
-
-    if directory.is_symlink() or directory.stat().st_uid != os.getuid():
-        raise ValueError("ZEEK_SESSION_OWNER_INVALID")
-    if directory.stat().st_mode & 0o077:
-        raise ValueError("ZEEK_SESSION_PERMISSION_INVALID")
-    with exclusive_runtime_lock(directory / "launcher.lock"):
-        if any(
-            (directory / name).exists()
-            for name in ("process.json", "launch-failure.json", "stop.request")
-        ):
-            raise ValueError("ZEEK_SESSION_REUSE_DENIED")
-        print("USER-APPROVED ZEEK DIAGNOSTICS ONLY / NATIVE AI BLOCKED / NO AUTOMATIC RETRY")
+    try:
         try:
+            plan = LivePlan.model_validate_json(read_local(directory / "plan.json", 8192))
+        except (OSError, ValueError) as error:
+            raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH") from error
+        verify(plan, args.approve)
+        read_controller(directory, plan)
+        if directory.is_symlink() or directory.stat().st_uid != os.getuid():
+            raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH")
+        if directory.stat().st_mode & 0o077:
+            raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH")
+        with exclusive_runtime_lock(directory / "launcher.lock"):
+            if any((directory / name).exists() for name in ("process.json", "launch-failure.json")):
+                raise ValueError("ZEEK_SESSION_REUSE_DENIED")
+            print("USER-APPROVED ZEEK DIAGNOSTICS ONLY / NATIVE AI BLOCKED / NO AUTOMATIC RETRY")
             StreamProcess(directory, plan).run()
-        except (OSError, ValueError, subprocess.SubprocessError) as error:
-            code = str(error)
-            import re
-
-            if not re.fullmatch(r"ZEEK_[A-Z0-9_]{1,110}", code):
-                code = "ZEEK_MANUAL_LAUNCH_FAILED"
-            write_new(
-                directory / "launch-failure.json",
-                dict(
-                    plan_digest=plan.identity,
-                    error=code,
-                    automatic_retry=False,
-                ),
-            )
-            raise
-    return 0
+        return 0
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        try:
+            rejection(directory, error, plan)
+        except (OSError, ValueError):
+            print("ZEEK_REJECTION_EVIDENCE_UNAVAILABLE", file=sys.stderr)
+        raise ValueError(safe_code(error)) from error
 
 
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except (OSError, ValueError, subprocess.SubprocessError):
-        print("ZEEK_MANUAL_LAUNCH_FAILED_CHECK_SESSION", file=sys.stderr)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        print(safe_code(error), file=sys.stderr)
         raise SystemExit(1) from None

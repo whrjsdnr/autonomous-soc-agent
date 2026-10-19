@@ -39,7 +39,7 @@ def test_native_plan_separate_approval_and_limits():
     assert p.native_inference == "BLOCKED"
     assert p.duration_seconds == 300
     verify(p, p.identity)
-    with pytest.raises(ValueError, match="APPROVAL_REQUIRED"):
+    with pytest.raises(ValueError, match="APPROVAL_DIGEST_MISMATCH"):
         verify(p, "a" * 64)
     with pytest.raises(ValueError, match="BUNDLE_CHANGED"):
         bad = p.model_copy(update={"bundle_digest": "0" * 64})
@@ -220,10 +220,14 @@ async def native_mock(tmp_path, monkeypatch):
     )
     c = LiveZeekCollector(tmp_path)
     await c.prepare()
+    c._control_event("LAUNCHER_ACCEPTED", dict(launcher=process_identity(os.getpid())))
+    c.handoff.accepted = process_identity(os.getpid())
+    c.handoff.claimed_at = asyncio.get_running_loop().time()
     write_new(
         c.directory / "process.json",
         dict(
             plan_digest=c.plan.identity,
+            generation=str(c.plan.controller_generation),
             image=c.plan.image,
             native_capture=True,
             launcher=process_identity(os.getpid()),
@@ -251,7 +255,7 @@ async def test_partial_append_drains_after_exit_and_recovers_no_inference(tmp_pa
     with path.open("ab") as f:
         f.write(raw[15:])
     await asyncio.sleep(0.1)
-    assert c.snapshot()["state"] == "DEGRADED"
+    assert c.snapshot()["state"] == "ACTIVE"
     assert c.snapshot()["collection_live"]
     with path.open("ab") as f:
         f.write(b'{"sequence":2,"kind":"closed","data":{"pkts_dropped":0}}\n')
@@ -358,20 +362,21 @@ async def test_terminal_auth_cancel_propagates_and_stale_command_rejected(tmp_pa
     c = await native_mock(tmp_path, monkeypatch)
     # Native mock above writes process.json. A real first terminal launch must not have one.
     (c.directory / "process.json").unlink()
+    c.handoff.accepted = None
 
     def denied():
         raise ValueError("TOTAL_AUTH_DENIED_OR_CANCELLED")
 
     monkeypatch.setattr("soc_agent.cli.terminal_authenticate", denied)
     with pytest.raises(ValueError, match="AUTH_DENIED_CANCELLED_OR_TIMEOUT"):
-        main(["--session", str(c.directory), "--approve", c.plan.identity])
+        await asyncio.to_thread(main, ["--session", str(c.directory), "--approve", c.plan.identity])
     await c.start()
     await asyncio.wait_for(c.task, 3)
     assert c.state == "ERROR" and c.last_error == "ZEEK_AUTH_DENIED_CANCELLED_OR_TIMEOUT"
     assert not c.snapshot()["collection_live"]
     await c.stop()
-    with pytest.raises(ValueError, match="SESSION_REUSE_DENIED"):
-        main(["--session", str(c.directory), "--approve", c.plan.identity])
+    with pytest.raises(ValueError, match="SESSION_STOP_REQUESTED"):
+        await asyncio.to_thread(main, ["--session", str(c.directory), "--approve", c.plan.identity])
 
 
 @pytest.mark.asyncio
