@@ -19,6 +19,10 @@ def test_sources_screenshots_and_unchanged_signed_contract():
     doc = evidence()
     for name, sha in doc["source_sha256"].items():
         historical = {
+            "src/soc_agent/gui/visual_charts.py": "visual_charts.txt",
+            "tests/unit/production_slimming/test_evidence.py": "slimming_test.txt",
+            "src/soc_agent/gui/operator_view.py": "src__soc_agent__gui__operator_view.py.txt",
+            "src/soc_agent/gui/visual_metrics.py": "src__soc_agent__gui__visual_metrics.py.txt",
             "src/soc_agent/security_ai/research/stream_service.py": "stream_service.txt",
             "src/soc_agent/security_ai/research/packet_accounting.py": "packet_accounting.txt",
             "tests/unit/loopback_visual/test_evidence.py": "loopback_evidence_test.txt",

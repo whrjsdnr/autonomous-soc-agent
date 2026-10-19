@@ -31,9 +31,10 @@ def main(argv=None) -> int:
     start.add_argument(
         "--rate-policy",
         default="legacy",
-        choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+        choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2", "direction-v3"),
     )
     start.add_argument("--approve-calibrated-sha")
+    start.add_argument("--approve-direction-sha")
     args = parser.parse_args(argv)
     try:
         from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
@@ -49,17 +50,36 @@ def main(argv=None) -> int:
                 require_headroom,
             )
 
-            selected = policy(args.rate_policy)
-            hashes = calibrated_session.verify_bundle()
-            helper = "calibrated_helper.py"
+            if args.rate_policy == "direction-v3":
+                from soc_agent.security_ai.operational.network_capture import direction_session
+                from soc_agent.security_ai.operational.network_capture.direction_policy import (
+                    DirectionPolicy,
+                )
+
+                selected = DirectionPolicy()
+                hashes = direction_session.verify_bundle()
+                helper = "direction_helper.py"
+            else:
+                selected = policy(args.rate_policy)
+                hashes = calibrated_session.verify_bundle()
+                helper = "calibrated_helper.py"
             print("FIXTURE_CALIBRATED / NATIVE_CALIBRATION_PENDING / APPROVAL_REQUIRED")
             print("Policy: " + selected.model_dump_json())
             print("New Helper SHA256: " + hashes[helper])
             from soc_agent.security_ai.research.models import digest
 
             print("New Bundle Digest: " + digest(hashes))
-            if args.approve_calibrated_sha != hashes[helper]:
-                raise ValueError("CALIBRATED_NEW_SHA_APPROVAL_REQUIRED")
+            approved = (
+                args.approve_direction_sha
+                if args.rate_policy == "direction-v3"
+                else args.approve_calibrated_sha
+            )
+            if approved != hashes[helper]:
+                raise ValueError(
+                    "V3_NEW_SHA_APPROVAL_REQUIRED"
+                    if args.rate_policy == "direction-v3"
+                    else "CALIBRATED_NEW_SHA_APPROVAL_REQUIRED"
+                )
             require_headroom()
         if not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
             raise ValueError("TOTAL_WSLG_DISPLAY_REQUIRED")

@@ -34,7 +34,14 @@ class TerminalAuthentication(OSAuthentication):
             raise ValueError("OS_AUTH_CURRENT_LISTENER_REQUIRED")
         session = owner.session_load(owner.directory)
         calibrated = hasattr(session.policy, "policy_name")
-        helper = "calibrated_helper.py" if calibrated else "total_helper.py"
+        v3 = getattr(session.policy, "policy_name", None) == "direction-v3"
+        helper = (
+            "direction_helper.py"
+            if v3
+            else "calibrated_helper.py"
+            if calibrated
+            else "total_helper.py"
+        )
         if session != owner.session or approved_sha != session.code_sha256[helper]:
             raise ValueError("NEW_TOTAL_HELPER_EXPLICIT_APPROVAL_REQUIRED")
         if calibrated and (
@@ -46,9 +53,7 @@ class TerminalAuthentication(OSAuthentication):
         argv[-1] = owner.session_module.MODULE if calibrated else total_session.MODULE
         extra = []
         if calibrated:
-            from soc_agent.security_ai.operational.network_capture.calibrated_session import (
-                approval_digest,
-            )
+            approval_digest = owner.session_module.approval_digest
 
             extra = ["--approval-digest", approval_digest(session)]
         owner.metrics["policy_approval"] = "USER_APPROVED_SESSION_BOUND"

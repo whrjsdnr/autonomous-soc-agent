@@ -10,7 +10,10 @@ from soc_agent.security_ai.research.total_dns import DNSDiagnostics
 
 
 class IsolatedDNS:
-    def __init__(self, session_id):
+    def __init__(self, session_id, *, max_observations=38656):
+        if type(max_observations) is not int or not 1 <= max_observations <= 77312:
+            raise ValueError("TOTAL_DNS_OBSERVATION_BUDGET_INVALID")
+        self.max_observations = max_observations
         self.session_id = str(session_id)
         self.connections = {}
         self.last_ns = {}
@@ -67,7 +70,7 @@ class IsolatedDNS:
         self.observations += 1
         if packet.dns is not None and packet.dns.query_name is not None:
             raise ValueError("TOTAL_DNS_NAME_RETENTION_DENIED")
-        if self.observations > 38656:
+        if self.observations > self.max_observations:
             raise ValueError("TOTAL_DNS_OBSERVATION_LIMIT")
         if self.blocked:
             self.counts["BLOCKED_PACKET_EXCLUDED"] += 1

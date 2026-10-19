@@ -23,6 +23,8 @@ def test_frozen_source_and_bundle_integrity(evidence):
     # Immutable validation at 89a7989; current preparation/UI behavior has its
     # own regressions. Do not restamp historical proof as newly executed.
     historical = {
+        "src/soc_agent/cli.py": "cli.txt",
+        "src/soc_agent/security_ai/research/total_auth.py": "total_auth.txt",
         "src/soc_agent/gui/__main__.py": "gui-__main__.txt",
         "src/soc_agent/gui/app.py": "gui-app.txt",
         "src/soc_agent/gui/backend.py": "gui-backend.txt",

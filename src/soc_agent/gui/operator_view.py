@@ -129,9 +129,10 @@ def dashboard(app):
                 "NETWORK TRAFFIC · DISTINCT COUNTERS",
                 (
                     ("raw", "Raw"),
-                    ("normalized", "Sent"),
+                    ("normalized", "Normalized"),
                     ("delivered", "Delivered"),
-                    ("limit", "Limit"),
+                    ("limit", "Raw limit"),
+                    ("analysis_limit", "Analysis limit"),
                 ),
                 "frames or packets / second · monotonic interval",
             ),
@@ -370,7 +371,7 @@ def system(app):
     ttk.Combobox(
         bar,
         textvariable=app.policy,
-        values=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+        values=("legacy", "conservative-v2", "balanced-v2", "performance-v2", "direction-v3"),
         state="readonly",
         width=20,
     ).pack(side="left", padx=(0, 12))
@@ -425,7 +426,11 @@ def system(app):
             ),
             (
                 "APPROVED RATE / TOKEN BUDGET",
-                (("raw", "Raw FPS"), ("limit", "Limit"), ("tokens", "Tokens")),
+                (
+                    ("observation_tokens", "Observation tokens"),
+                    ("analysis_tokens", "Analysis tokens"),
+                    ("tokens", "v2 tokens"),
+                ),
                 "distinct units · token balance UNKNOWN unless transmitted",
             ),
         ),
@@ -478,6 +483,10 @@ def render_system(app, value):
         "helper": "READY" if app.command else "NOT_PREPARED",
         "last_error": value.get("last_error"),
         "selected_policy": net.get("selected_rate_policy", app.policy.get()),
+        "direction_filtered": net.get("direction_filtered_frames", "UNKNOWN"),
+        "observation_budget": net.get("approved_raw_frames_per_second", "UNKNOWN"),
+        "analysis_budget": net.get("approved_analysis_packets_per_second", "UNKNOWN"),
+        "budget_error": net.get("budget_failure", "NOT_OBSERVED"),
         "helper_sha256": net.get("helper_sha256", "NOT_PREPARED"),
         "quality_edge_health": value.get("research", {}).get("model_metrics", "NOT_LOADED"),
         "queue_backlog": net.get("queue_backlog", "UNKNOWN"),
@@ -493,6 +502,10 @@ def render_system(app, value):
         "SESSION & MODEL HEALTH",
         "Helper   " + details["helper"],
         "Policy   " + str(details["selected_policy"]),
+        "Observation frames/s   " + str(details["observation_budget"]),
+        "Analysis packets/s   " + str(details["analysis_budget"]),
+        "Direction-filtered frames   " + str(details["direction_filtered"]),
+        "Budget failure   " + str(details["budget_error"]),
         "",
     ]
     for name in ("quality", "edge"):

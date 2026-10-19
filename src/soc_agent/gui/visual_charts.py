@@ -7,7 +7,7 @@ from soc_agent.gui.components import ELEVATED, SECONDARY, SURFACE, TEXT
 from soc_agent.gui.typography import text
 from soc_agent.gui.visual_metrics import record_series
 
-COLORS = ("#38BDF8", "#A78BFA", "#34D399", "#FBBF24")
+COLORS = ("#38BDF8", "#A78BFA", "#34D399", "#FBBF24", "#FB7185")
 
 
 class Chart(tk.Canvas):

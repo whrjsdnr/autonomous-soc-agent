@@ -76,7 +76,9 @@ class VisualHistory:
         self.publication = publication
         counts = {
             "raw": number(net.get("received_frames")),
-            "normalized": number(net.get("sent_packets")),
+            "normalized": number(net.get("normalized_packets"))
+            if net.get("accounting_contract") == "soc-direction-accounting:v3"
+            else number(net.get("sent_packets")),
             "delivered": number(net.get("transport_delivered_packets")),
             "queries": number(net.get("dns_queries")),
             "responses": number(net.get("dns_responses")),
@@ -84,6 +86,10 @@ class VisualHistory:
         }
         values = {
             "limit": number(net.get("approved_raw_frames_per_second")),
+            "analysis_limit": number(net.get("approved_analysis_packets_per_second")),
+            "filtered": number(net.get("direction_filtered_frames")),
+            "observation_tokens": number(net.get("observation_tokens")),
+            "analysis_tokens": number(net.get("analysis_tokens")),
             "queue": number(net.get("queue_backlog")),
             "transport_queue": number(net.get("transport_queue_depth")),
             "rss": number(net.get("runtime_rss_bytes")),

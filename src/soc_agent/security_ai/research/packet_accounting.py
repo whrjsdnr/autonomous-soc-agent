@@ -26,7 +26,7 @@ def packet_accounting(
         scope = "UNKNOWN"
     else:
         scope = "PREFIX_NOT_COMPLETION"
-    return {
+    result = {
         "contract": "soc-packet-accounting:v1",
         "origin": origin,
         "capture_session": session_id,
@@ -51,3 +51,20 @@ def packet_accounting(
         "deduplication": "DIRECTION_SELECTION_ONLY_PAIR_IDENTITY_UNVERIFIED",
         "rate_limit_changed": False,
     }
+
+    if metrics.get("accounting_contract") == "soc-direction-accounting:v3":
+        result.update(
+            contract="soc-packet-accounting:v3",
+            rate_budget_unit="RAW_OBSERVATION_AND_ANALYSIS_INDEPENDENT",
+            accepted_raw_frames=get("accepted_raw_frames"),
+            filtered_raw_frames=get("direction_filtered_frames"),
+            outbound_frames=get("outbound_frames"),
+            inbound_frames=get("inbound_frames"),
+            analysis_accepted=get("analysis_accepted"),
+            observation_tokens=metrics.get("observation_tokens"),
+            analysis_tokens=metrics.get("analysis_tokens"),
+            budget_failure=metrics.get("budget_failure"),
+            analysis_rate_limit=get("approved_analysis_packets_per_second"),
+            rate_limit_changed=True,
+        )
+    return result

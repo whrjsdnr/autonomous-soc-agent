@@ -49,6 +49,7 @@ def preparation_error(error, phase):
     if str(error) in {
         "CALIBRATED_RESOURCE_HEADROOM_REQUIRED",
         "CALIBRATED_HELPER_BUNDLE_MISMATCH",
+        "V3_HELPER_BUNDLE_MISMATCH",
         "STREAM_ARCHIVAL_REQUIRED",
         "STREAM_ARCHIVE_INTEGRITY_BLOCKED",
         "STREAM_PROFILE_INVALID",
@@ -272,15 +273,29 @@ class StreamingMonitoring:
         if self.total:
             from soc_agent.security_ai.operational.network_capture import (
                 calibrated_session,
+                direction_session,
                 total_session,
             )
             from soc_agent.security_ai.operational.network_capture.calibrated_policy import (
                 CalibratedPolicy,
             )
-
-            self.session_module = (
-                calibrated_session if isinstance(policy, CalibratedPolicy) else total_session
+            from soc_agent.security_ai.operational.network_capture.direction_policy import (
+                DirectionPolicy,
             )
+            from soc_agent.security_ai.operational.network_capture.direction_transport import (
+                DirectionCapture,
+            )
+            from soc_agent.security_ai.operational.network_capture.total_transport import (
+                TotalCapture,
+            )
+
+            v3 = isinstance(policy, DirectionPolicy)
+            self.session_module = (
+                direction_session
+                if v3
+                else (calibrated_session if isinstance(policy, CalibratedPolicy) else total_session)
+            )
+            self.capture_type = DirectionCapture if v3 else TotalCapture
             self.session_prepare = self.session_module.prepare
             self.session_load = self.session_module.load
             self.session_instructions = self.session_module.instructions
@@ -292,7 +307,9 @@ class StreamingMonitoring:
         if self.total:
             from soc_agent.security_ai.research.isolated_dns import IsolatedDNS
 
-            self.dns_diagnostics = IsolatedDNS(self.session.session_id)
+            self.dns_diagnostics = IsolatedDNS(
+                self.session.session_id, max_observations=getattr(policy, "analysis_budget", 38656)
+            )
         self.profiles = profiles
         self.aborted = self.stop_requested = False
         self.last_error = None
@@ -305,7 +322,7 @@ class StreamingMonitoring:
                 max_flows=policy.active_flows,
                 metadata_bytes=policy.metadata_bytes,
                 records=policy.max_flow_records,
-                packets=policy.frame_budget,
+                packets=getattr(policy, "analysis_budget", policy.frame_budget),
                 extended_reference_budget=hasattr(policy, "policy_name"),
             )
             if self.total
@@ -367,9 +384,16 @@ class StreamingMonitoring:
         self.metrics.update(
             selected_rate_policy=getattr(policy, "policy_name", "legacy"),
             policy_total_frames=policy.frame_budget,
+            approved_analysis_packets_per_second=getattr(policy, "analysis_per_second", None),
+            approved_analysis_burst=getattr(policy, "analysis_burst", None),
+            policy_analysis_packets=getattr(policy, "analysis_budget", None),
             policy_approval="FIXTURE_NO_CAPTURE" if fixture else "APPROVAL_REQUIRED",
             helper_sha256=self.session.code_sha256.get(
-                "calibrated_helper.py" if hasattr(policy, "policy_name") else "total_helper.py"
+                "direction_helper.py"
+                if getattr(policy, "policy_name", None) == "direction-v3"
+                else "calibrated_helper.py"
+                if hasattr(policy, "policy_name")
+                else "total_helper.py"
             ),
             helper_bundle_digest=digest(self.session.code_sha256),
             approved_raw_frames_per_second=policy.frames_per_second,
@@ -872,13 +896,18 @@ class StreamingMonitoring:
         self.metrics["abort_reason"] = self.last_error
         self.metrics["finalization"] = "BLOCKED"
         self.metrics["gap_count"] += 1
-        if self.last_error == "STREAM_RATE_BUDGET_EXCEEDED":
+        if self.last_error in {
+            "STREAM_RATE_BUDGET_EXCEEDED",
+            "V3_OBSERVATION_BUDGET_EXCEEDED",
+            "V3_ANALYSIS_BUDGET_EXCEEDED",
+        }:
             self.metrics["rate_budget_state"] = "EXCEEDED_CAPTURE_WINDOW_BLOCKED"
         self.metrics.update(current_raw_frame_rate=None, worker_health="BLOCKED_NO_RETRY")
         if self.total:
             capture_wide = self.last_error.startswith(
                 (
                     "HELPER_",
+                    "V3_",
                     "STREAM_PACKET_",
                     "STREAM_SOURCE_",
                     "STREAM_FINAL_COUNTER_",
@@ -1038,13 +1067,17 @@ class StreamingMonitoring:
         if self.total:
             from soc_agent.security_ai.operational.network_capture import (
                 calibrated_session,
+                direction_session,
                 total_session,
             )
             from soc_agent.security_ai.research.environment import read_local
 
-            if json.loads(read_local(self.directory / "session.json", 16384)).get("contract") == (
-                "soc-total-calibrated-session:v2"
-            ):
+            contract = json.loads(read_local(self.directory / "session.json", 16384)).get(
+                "contract"
+            )
+            if contract == "soc-total-direction-session:v3":
+                self.session_module = direction_session
+            elif contract == "soc-total-calibrated-session:v2":
                 self.session_module = calibrated_session
             else:
                 self.session_module = total_session

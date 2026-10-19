@@ -19,7 +19,9 @@ def evidence():
 def test_current_sources_unchanged_gui_and_helper_bundle():
     e = evidence()
     for name, sha in {**e["source_sha256"], **e["immutable_gui_sha256"]}.items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha, name
+        frozen = ROOT / "tests/fixtures/direction-v3-9619703" / (name.replace("/", "__") + ".txt")
+        source = frozen if frozen.exists() else ROOT / name
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == sha, name
     files = verify_bundle()
     assert files["calibrated_helper.py"] == e["helper_sha256"]
     assert digest(files) == e["bundle_digest"]

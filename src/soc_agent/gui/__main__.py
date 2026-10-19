@@ -35,7 +35,7 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--total-rate-policy",
         default="legacy",
-        choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+        choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2", "direction-v3"),
     )
     parser.add_argument("--calibrated-approved-bundle", help=argparse.SUPPRESS)
     parser.add_argument("--developer", action="store_true", help="Open research/replay tools")

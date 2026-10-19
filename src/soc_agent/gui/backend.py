@@ -32,9 +32,9 @@ def status(directory):
 
 class GUIConfig(Snapshot):
     total_approved_sha: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
-    total_rate_policy: Literal["legacy", "conservative-v2", "balanced-v2", "performance-v2"] = (
-        "legacy"
-    )
+    total_rate_policy: Literal[
+        "legacy", "conservative-v2", "balanced-v2", "performance-v2", "direction-v3"
+    ] = "legacy"
     calibrated_approved_bundle: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     data_directory: Path
     runtime_directory: Path | None = None
@@ -396,9 +396,16 @@ class Backend:
         ):
             raise ValueError("TOTAL_OTHER_CAPTURE_SESSION_ACTIVE")
         from soc_agent.security_ai.operational.network_capture.calibrated_policy import policy
+        from soc_agent.security_ai.operational.network_capture.direction_policy import (
+            DirectionPolicy,
+        )
 
         result = await self.total_monitoring.start(
-            policy=None if rate_policy == "legacy" else policy(rate_policy)
+            policy=DirectionPolicy()
+            if rate_policy == "direction-v3"
+            else None
+            if rate_policy == "legacy"
+            else policy(rate_policy)
         )
         return {
             **result,

@@ -78,7 +78,13 @@ class LiveView:
             ttk.Combobox(
                 controls,
                 textvariable=self.rate_policy,
-                values=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
+                values=(
+                    "legacy",
+                    "conservative-v2",
+                    "balanced-v2",
+                    "performance-v2",
+                    "direction-v3",
+                ),
                 state="readonly",
                 width=18,
             ).pack(side="left", padx=(0, 10))

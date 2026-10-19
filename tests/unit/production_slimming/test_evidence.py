@@ -19,6 +19,9 @@ def test_sources_screenshots_and_signed_helper_are_exact():
     doc = evidence()
     for name, expected in doc["source_sha256"].items():
         historic = {
+            "src/soc_agent/gui/live_view.py": "src__soc_agent__gui__live_view.py",
+            "src/soc_agent/gui/__main__.py": "src__soc_agent__gui____main__.py",
+            "src/soc_agent/gui/backend.py": "src__soc_agent__gui__backend.py",
             "src/soc_agent/gui/production.py": "production",
             "src/soc_agent/gui/operator_view.py": "operator_view",
             "src/soc_agent/security_ai/research/stream_service.py": "stream_service",
