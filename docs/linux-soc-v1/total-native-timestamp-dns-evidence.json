@@ -1,0 +1,136 @@
+{
+  "record": {
+    "validation_date_utc": "2026-10-18T23:52:46.058241+00:00",
+    "soc_head": "777914d42829a4adb3331d3c30e3f2534f6b82e5",
+    "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+    "session_directory": "session-efe2ca83d4f543b9befca9abdbfd687a",
+    "session_id": "e344f991-aac8-4c11-aa92-f0dfcb232c72",
+    "session_digest": "a5f7e5a9071a28d505bdb154c8c4eeed8eef867fcac470d9b231624f4699add6",
+    "session_started_utc": "2026-10-18T23:44:17.193526+00:00",
+    "abort_audit_time_utc": "2026-10-18T23:44:19.629811+00:00",
+    "time_context": {
+      "packet_sequence": 18,
+      "helper_packet_sequence": 18,
+      "counter_sequence": 38,
+      "previous_event_ns": 1792367059623629397,
+      "rejected_event_ns": 1792367059623629386,
+      "regression_ns": 11,
+      "ordering_scope": "GLOBAL",
+      "flow_key_digest": "1ab5551e41602bfc0d9d756442eafd4663643b4b833c13a8a010dbaecb60f3a4",
+      "direction": "OUTBOUND",
+      "timestamp_origin": "KERNEL_SO_TIMESTAMPNS",
+      "source_origin": "NATIVE_AF_PACKET",
+      "root_cause": "UNKNOWN"
+    },
+    "counts": {
+      "raw_frames": 36,
+      "helper_sent_ip_packets": 18,
+      "transport_delivered_packets": 18,
+      "controller_accepted_packets": 17,
+      "counter_sequence_last_observed": 40,
+      "kernel_packets_last_observed": 36,
+      "capture_drops_last_observed": 0,
+      "helper_dns_queries": 0,
+      "helper_dns_responses": 0,
+      "helper_dns_parse_failures": 0,
+      "controller_dns_events": 0,
+      "persisted_flows": 0,
+      "inference_receipts": 0,
+      "transport_pending_last_observed": 0
+    },
+    "validation": {
+      "database_integrity": "PASS_7_DATABASES",
+      "database_checks": {
+        "runtime/sources.sqlite": "ok",
+        "runtime/monitor.sqlite": "ok",
+        "runtime/queue.sqlite": "ok",
+        "runtime/collection-audit.sqlite": "ok",
+        "network-research/soc/external-validation.sqlite": "ok",
+        "runtime/network/sources.sqlite": "ok",
+        "runtime/network/queue.sqlite": "ok"
+      },
+      "audit_records": 8,
+      "audit_head": "857b6004a04079af447325c2391d8580cf2c9439f009185f61ef6cd358cce43c",
+      "state_digest": "f0fbe1bbefc5d024fd70742cac6e4d77ae6b5dc9b7fe3a0cbf1cbfb8603e2cfe",
+      "ready_identity": "MATCH",
+      "code_bundle": "MATCH_9_FILES",
+      "helper_exit_code": 0,
+      "closed": "MISSING",
+      "final_counter_status": "UNKNOWN",
+      "counter_prefix_status": "COUNTER_VERIFIED",
+      "finalization": "BLOCKED",
+      "checkpoint_recovery": "NO_CHECKPOINTS_NO_NATIVE_RESUME_PERFORMED"
+    },
+    "durable_counts": {
+      "runtime/sources.sqlite": {
+        "operational_sources": 0
+      },
+      "runtime/monitor.sqlite": {
+        "monitor_findings": 0
+      },
+      "runtime/queue.sqlite": {
+        "realtime_events": 0
+      },
+      "runtime/collection-audit.sqlite": {},
+      "network-research/soc/external-validation.sqlite": {
+        "workflow_checkpoints": 0,
+        "execution_records": 0
+      },
+      "runtime/network/sources.sqlite": {
+        "operational_sources": 0
+      },
+      "runtime/network/queue.sqlite": {
+        "realtime_events": 0
+      }
+    },
+    "source_files_sha256": {
+      "verified-ready.json": "c771d1295db313c14e0e7d270a1f444192cf2ded544b75e2b9254f5fd2e680e8",
+      "session.json": "b706a958ff49aa1506b64d5426a24f56f6b52845e9ca0fbef0bdeac7a3d37895",
+      "helper.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "network-research/replay.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "runtime/sources.sqlite": "e28aff8e45d7ec0c47f0f13ad9ad7a8450d2f742f683611a72b12910d3a358ce",
+      "runtime/monitor.sqlite": "a24ee1557ff45940b7a0070bbfdcb6fa98c6d110fdcc619c429a34f8a271e70e",
+      "runtime/writer.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "runtime/queue.sqlite": "352e8705282b3fa6948a3c4f529bcb96401011acc242b144106e4d4ed8674508",
+      "runtime/collection-audit.sqlite": "32a85ace7d7ba34d079e6cc427baee52339bef371b485b57aacfca1e13df2fdb",
+      "network-research/soc/external-validation.sqlite": "72ddb9474ccd605aca9dc5f17cf00cb553eca782fb5d946f74c8cf77f5aca236",
+      "runtime/network/sources.sqlite": "bcdf22b6f51fc2aee907244b649ba085edb0963f3a49fa270bf45b360c50505a",
+      "runtime/network/config.json": "fbe1958500c338827d63cf3afdf1c8a011874601f10d08d393468c859c54530d",
+      "runtime/network/queue.sqlite": "fff1b113a564b9cf7c894946428e3b3cf68d3aa9a30fe6f78496f4de9328adbc"
+    },
+    "artifact_sha256": {
+      "quality": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "edge": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882"
+    },
+    "classification": {
+      "timestamp_trigger": "GLOBAL_DELIVERED_EVENT_NS_REGRESSION",
+      "timestamp_underlying_cause": "UNKNOWN",
+      "dns_primary": "EARLY_ABORT",
+      "dns_actual_traffic": "UNKNOWN",
+      "dns_not_visible": "POSSIBLE_HOST_TUNNEL_LEG_NOT_PROVED_FOR_LOCAL_LEG",
+      "dns_parse_rejected": "NOT_OBSERVED_IN_PREFIX",
+      "native_total_e2e": "BLOCKED"
+    },
+    "gates": {
+      "network": "RESEARCH_ONLY_OPERATIONAL_INFERENCE_BLOCKED",
+      "dns9": "BLOCKED",
+      "write": "WRITE_DENIED"
+    },
+    "missing": {
+      "previous_flow_identity": "UNKNOWN",
+      "rejected_packet_ports": "UNKNOWN",
+      "kernel_ancillary_bytes": "NOT_RETAINED",
+      "per_packet_receive_monotonic": "NOT_RETAINED",
+      "clock_adjustment_at_failure": "UNKNOWN",
+      "complete_packet_prefix": "NOT_RETAINED"
+    },
+    "sources": [
+      "https://docs.kernel.org/networking/timestamping.html",
+      "https://learn.microsoft.com/en-us/windows/wsl/networking#dns-tunneling",
+      "https://learn.microsoft.com/en-us/windows/wsl/wsl-config#experimental-settings",
+      "https://raw.githubusercontent.com/microsoft/WSL/master/src/linux/init/GnsEngine.cpp",
+      "https://raw.githubusercontent.com/microsoft/WSL/master/src/linux/init/DnsTunnelingManager.cpp"
+    ]
+  },
+  "record_digest": "51aeb49dde1e5d4716a32a7b827ed60b17cf821a80bea37f8ced20fc062ae506"
+}
