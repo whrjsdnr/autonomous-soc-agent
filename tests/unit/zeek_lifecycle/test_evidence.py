@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-from soc_agent.security_ai.collectors.live_contract import bundle
 from soc_agent.security_ai.collectors.offline import file_digest
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
@@ -16,13 +15,15 @@ def evidence():
 
 def test_final_identity_and_historical_uncertainty():
     value = evidence()
-    assert value["bundle"] == bundle()
-    assert value["bundle_digest"] == digest(bundle())
-    assert value["launcher_sha256"] == file_digest(
-        ROOT / "src/soc_agent/security_ai/collectors/live_process.py"
+    # Immutable evidence of commit a7dc0c1; not approval for current launcher code.
+    assert (
+        value["bundle_digest"] == "bbd017c2ba8f3a7903270ec67c1e06a63ba53ae6aa04c1aa1ba2f6fc413e46bb"
     )
-    for name, sha in value["source_sha256"].items():
-        assert file_digest(ROOT / name) == sha
+    assert value["bundle_digest"] == digest(value["bundle"])
+    assert (
+        value["launcher_sha256"]
+        == value["source_sha256"]["src/soc_agent/security_ai/collectors/live_process.py"]
+    )
     assert value["approval_contract"] == "soc-zeek-native-plan:v2"
     assert value["historical"]["controller_exit_cause"] == "UNKNOWN"
     assert value["historical"]["stop_request_origin"] == "UNKNOWN"

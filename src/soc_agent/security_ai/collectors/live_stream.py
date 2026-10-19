@@ -6,6 +6,7 @@ from decimal import Decimal
 from pydantic import Field
 
 from soc_agent.security_ai.collectors.adapter import parse_line
+from soc_agent.security_ai.collectors.finalization import Closed
 from soc_agent.security_ai.collectors.models import Source
 from soc_agent.security_ai.collectors.packet_input import Packet
 from soc_agent.security_ai.collectors.packet_producer import Window
@@ -54,6 +55,8 @@ class Stream:
         self.counters = None
         self.previous_ns = None
         self.out_of_order = 0
+        self.network_count = self.dns_count = 0
+        self.closed_detail = None
 
     def accept(self, envelope: Envelope):
         e = envelope
@@ -120,20 +123,45 @@ class Stream:
             text = json.dumps(row, default=float)
             raw = (text[:-1] + ',"ts":' + str(stamp) + "}\n").encode()
             event = parse_line(raw, e.kind, self.source)
+            if e.kind == "network":
+                self.network_count += 1
+            else:
+                self.dns_count += 1
             self.sequence = e.sequence
             return event
         elif e.kind == "closed":
-            if not set(e.data) <= {"pkts_recvd", "pkts_dropped", "pkts_link", "bytes_recvd"}:
+            counters = e.data
+            if "stop_reason" in e.data:
+                proof = Closed.model_validate(e.data)
+                proof.verify(
+                    sequence=e.sequence,
+                    packets=self.packet_count,
+                    network=self.network_count,
+                    dns=self.dns_count,
+                )
+                self.closed_detail = proof
+                counters = {
+                    key: getattr(proof, key)
+                    for key in ("pkts_recvd", "pkts_dropped", "pkts_link", "bytes_recvd")
+                }
+            elif not set(e.data) <= {"pkts_recvd", "pkts_dropped", "pkts_link", "bytes_recvd"}:
                 raise ValueError("ZEEK_STREAM_COUNTER_SCHEMA")
-            if any(type(v) is not int or v < 0 for v in e.data.values()):
+            if any(type(v) is not int or v < 0 for v in counters.values()):
                 raise ValueError("ZEEK_STREAM_COUNTER_SCHEMA")
-            self.counters = e.data
+            self.counters = counters
             self.closed = True
             self.finalized.extend(
-                w.finish("SHUTDOWN", str(self.source.session_id)) for w in self.active.values()
+                w.finish(
+                    "PACKET_LIMIT"
+                    if self.closed_detail
+                    and self.closed_detail.stop_reason == "PACKET_LIMIT_REACHED"
+                    else "SHUTDOWN",
+                    str(self.source.session_id),
+                )
+                for w in self.active.values()
             )
             self.active.clear()
-            if e.data.get("pkts_dropped", 0):
+            if counters.get("pkts_dropped", 0):
                 raise ValueError("ZEEK_CAPTURE_DROPS_DETECTED")
             # Zero alone is NEVER capture attestation. Native remains UNVERIFIED.
         self.sequence = e.sequence

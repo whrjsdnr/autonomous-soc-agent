@@ -579,6 +579,7 @@ def render_system(app, value):
             "ACTIVE",
             "DEGRADED",
             "STOPPING",
+            "DRAINING",
         }
         else "normal"
     )
@@ -592,7 +593,13 @@ def render_system(app, value):
         "command_valid": value.get("command_valid", False),
         "controller_generation": value.get("controller_generation", "NOT_OBSERVED"),
         "handoff_state": value.get("handoff_state", "NOT_OBSERVED"),
-        "stop_reason": value.get("stop_reason", "NOT_OBSERVED"),
+        "stop_reason": value.get("termination_reason") or value.get("stop_reason", "NOT_OBSERVED"),
+        "packet_budget": value.get("packet_budget", "NOT_OBSERVED"),
+        "event_budget": value.get("event_budget", "NOT_OBSERVED"),
+        "closed_status": value.get("closed_status", "NOT_OBSERVED"),
+        "container_exit": value.get("container_exit", "UNKNOWN"),
+        "cleanup_verified": value.get("cleanup_verified", "UNKNOWN"),
+        "finalization_state": value.get("finalization_state", "NOT_OBSERVED"),
         "capture_interface": collector.get("interface", "NOT_OBSERVED"),
         "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
@@ -630,6 +637,17 @@ def render_system(app, value):
         + " / command valid "
         + str(details["command_valid"]),
         "Stop reason   " + str(details["stop_reason"]),
+        "Packet / event budget   "
+        + str(details["packet_budget"])
+        + " / "
+        + str(details["event_budget"]),
+        "CLOSED / container exit / cleanup   "
+        + str(details["closed_status"])
+        + " / "
+        + str(details["container_exit"])
+        + " / "
+        + str(details["cleanup_verified"]),
+        "Finalization   " + str(details["finalization_state"]),
         "Interface   " + str(details["capture_interface"]),
         "Capture integrity   " + str(details["capture_integrity"]),
         "Collector metrics   " + str(details["collector_metrics"]),

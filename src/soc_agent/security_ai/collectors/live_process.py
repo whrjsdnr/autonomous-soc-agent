@@ -6,6 +6,8 @@ call sudo or open an interface.
 """
 
 import argparse
+import concurrent.futures
+import json
 import os
 import selectors
 import subprocess
@@ -14,6 +16,8 @@ import time
 from pathlib import Path
 
 from soc_agent.review.persistence.secure_storage import create_private_file
+from soc_agent.security_ai.collectors.finalization import Ledger, termination_reason
+from soc_agent.security_ai.collectors.finalization import publish as write_new
 from soc_agent.security_ai.collectors.handoff import (
     exchange,
     process_identity,
@@ -24,7 +28,6 @@ from soc_agent.security_ai.collectors.handoff import same_process as same_proces
 from soc_agent.security_ai.collectors.live_contract import LivePlan, docker_argv, verify
 from soc_agent.security_ai.collectors.live_stream import decode
 from soc_agent.security_ai.collectors.offline import OfflineZeek, file_digest
-from soc_agent.security_ai.research.service import write_new
 
 
 class StreamProcess:
@@ -35,20 +38,59 @@ class StreamProcess:
         self.stop_requested = False
         self.container_name = "soc-zeek-" + plan.session_id.hex
         self.cleanup_verified = False
+        self.container_absent = False
+        self.container_identity = None
 
     def stop(self):
         self.stop_requested = True
 
-    def _stop_container(self):
+    def _docker(self, *args):
         prefix = [] if self.fixture else ["sudo", "-n", "--"]
-        p = subprocess.run(
-            prefix + ["docker", "stop", "--time=2", self.container_name],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            timeout=8,
+        return subprocess.run(
+            prefix + ["docker", *args],
+            capture_output=True,
+            timeout=7 if args[0] == "stop" else 2,
             check=False,
         )
-        return p.returncode == 0
+
+    def _absent(self):
+        # A successful, exact-name query is required. --rm or inspect failure is not proof.
+        result = self._docker(
+            "container",
+            "ls",
+            "--all",
+            "--no-trunc",
+            "--filter",
+            "name=^/" + self.container_name + "$",
+            "--format",
+            "{{.ID}}",
+        )
+        return result.returncode == 0 and result.stdout.strip() == b""
+
+    def _stop_container(self):
+        if self._absent():
+            return True  # Exit raced the stop request; still drain stdout and verify CLOSED.
+        fmt = '{"id":{{json .Id}},"image":{{json .Config.Image}},"labels":{{json .Config.Labels}}}'
+        record = self._docker("inspect", "--format", fmt, self.container_name)
+        if record.returncode or len(record.stdout) > 4096:
+            return False
+        try:
+            identity = json.loads(record.stdout)
+            import re
+
+            if (
+                not re.fullmatch(r"[a-f0-9]{64}", identity["id"])
+                or identity["image"] != self.plan.image
+                or not isinstance(identity["labels"], dict)
+                or identity["labels"].get("soc.plan") != self.plan.identity
+                or identity["labels"].get("soc.generation") != str(self.plan.controller_generation)
+            ):
+                return False
+        except (ValueError, KeyError, TypeError):
+            return False
+        self.container_identity = identity["id"]
+        result = self._docker("stop", "--time=5", identity["id"])
+        return result.returncode == 0 or self._absent()
 
     def _controller(self, operation="validate"):
         return exchange(self.directory, self.plan, operation)
@@ -57,6 +99,11 @@ class StreamProcess:
         OfflineZeek().environment()
         argv = docker_argv(self.plan, Path(__file__).parent.absolute(), fixture=self.fixture)
         if not self.fixture:
+            print(
+                "TERMINAL AUTHENTICATION: scoped Zeek start/stop/cleanup; lo; 300s; "
+                "CPU 1; RSS 512MiB; Native AI BLOCKED",
+                flush=True,
+            )
             verify(self.plan, self.plan.identity)
             self._controller("claim")
             # Terminal stdin/stderr inherited. No password PIPE, environment or storage.
@@ -84,7 +131,17 @@ class StreamProcess:
         started = time.monotonic()
         create_private_file(self.directory / "stream.jsonl")
         error, sequence, closed, code = None, 0, False, None
+        ledger = Ledger()
+        reason = None
+        requested = None
+        drain_started = None
+        controller_error = None
         selector = selectors.DefaultSelector()
+        stopper = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1, thread_name_prefix="zeek-stop"
+        )
+        stop_future = None
+        cleanup_attempted = False
         try:
             try:
                 self.process = subprocess.Popen(
@@ -96,11 +153,16 @@ class StreamProcess:
             pending = b""
             stop_sent = False
             controller_checked = 0.0
-            controller_error = None
             with (self.directory / "stream.jsonl").open("ab", buffering=0) as output:
                 while True:
                     if (self.directory / "stop.request").exists():
                         self.stop_requested = True
+                        tombstone = json.loads((self.directory / "stop.request").read_text())
+                        requested = (
+                            "USER_STOP"
+                            if tombstone.get("reason") == "USER_STOP"
+                            else "CONTROLLER_STOP"
+                        )
                     now = time.monotonic()
                     if (
                         not self.fixture
@@ -111,13 +173,20 @@ class StreamProcess:
                             self._controller()
                         except (OSError, ValueError) as failure:
                             controller_error = safe_code(failure)
+                            requested = "CONTROLLER_STOP"
                             self.stop_requested = True
                         controller_checked = now
                     expired = time.monotonic() - started > self.plan.duration_seconds + 5
                     if (self.stop_requested or expired) and not stop_sent:
+                        requested = requested or ("SESSION_TIMEOUT" if expired else "USER_STOP")
+                        drain_started = time.monotonic()
                         stop_sent = True
-                        if not self._stop_container():
-                            raise ValueError("ZEEK_CONTAINER_STOP_UNVERIFIED")
+                        cleanup_attempted = True
+                        stop_future = stopper.submit(self._stop_container)
+                    if stop_future and stop_future.done() and not stop_future.result():
+                        raise ValueError("ZEEK_CONTAINER_STOP_UNVERIFIED")
+                    if drain_started and time.monotonic() - drain_started > 10:
+                        raise ValueError("ZEEK_STOP_DEADLINE_UNVERIFIED")
                     if time.monotonic() - started > self.plan.duration_seconds + 15:
                         raise ValueError("ZEEK_PROCESS_DEADLINE_EXCEEDED")
                     if not selector.select(0.1):
@@ -157,21 +226,20 @@ class StreamProcess:
                                 raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
                         elif envelope.kind == "ready" and envelope.data:
                             raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
-                        elif envelope.kind == "closed" and not set(envelope.data) <= {
-                            "pkts_recvd",
-                            "pkts_dropped",
-                            "pkts_link",
-                            "bytes_recvd",
-                        }:
-                            raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
+
+                        ledger.accept(envelope, line)
                         output.write(line)
                         sequence = envelope.sequence
                         closed = envelope.kind == "closed"
+                        if closed:
+                            drain_started = drain_started or time.monotonic()
                         if on_line:
                             on_line(line)
                     if len(pending) > 16384:
                         raise ValueError("ZEEK_STREAM_RECORD_BOUND")
             code = self.process.wait(timeout=5)
+            if stop_future and not stop_future.result(timeout=15):
+                raise ValueError("ZEEK_CONTAINER_STOP_UNVERIFIED")
             if pending:
                 raise ValueError("ZEEK_PARTIAL_RECORD_ON_CLOSE")
             if controller_error:
@@ -180,17 +248,38 @@ class StreamProcess:
                 raise ValueError("ZEEK_CONTAINER_EXIT_UNVERIFIED")
             if not self.fixture:
                 verify(self.plan, self.plan.identity)
-            self.cleanup_verified = True  # --rm exit; no automatic restart.
+            reason = termination_reason(ledger.closed, code, requested)
+            if not self.fixture and reason == "INPUT_EXHAUSTED":
+                reason = "ZEEK_RUNTIME_FAILURE"
+                raise ValueError("ZEEK_NATIVE_UNREQUESTED_EXIT")
+            self.container_absent = self._absent()
+            if not self.container_absent:
+                raise ValueError("ZEEK_CONTAINER_CLEANUP_UNVERIFIED")
+            self.cleanup_verified = True
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             code = self.process.poll() if self.process else None
             error = safe_code(exc)
+            reason = (
+                "CONTROLLER_STOP"
+                if controller_error
+                else "DOCKER_FAILURE"
+                if error in {"ZEEK_DOCKER_START_FAILED", "ZEEK_CONTAINER_CLEANUP_UNVERIFIED"}
+                else "ZEEK_RUNTIME_FAILURE"
+                if error == "ZEEK_CONTAINER_EXIT_UNVERIFIED"
+                else "STREAM_PROTOCOL_FAILURE"
+            )
             raise ValueError(error) from exc
         finally:
             selector.close()
             if self.process is not None:
                 if self.process.poll() is None:
                     try:
-                        stopped = self._stop_container()
+                        cleanup_attempted = True
+                        stopped = (
+                            stop_future.result(timeout=15)
+                            if stop_future
+                            else self._stop_container()
+                        )
                     except (OSError, subprocess.SubprocessError):
                         stopped = False
                     finally:
@@ -203,6 +292,25 @@ class StreamProcess:
                         self.cleanup_verified = False
                 else:
                     self.process.stdout.close()
+            try:
+                self.container_absent = self._absent() if self.process is not None else False
+            except (OSError, subprocess.SubprocessError):
+                self.container_absent = False
+            # An exited Docker client does not prove its container has stopped.
+            if self.process is not None and not self.container_absent and not cleanup_attempted:
+                try:
+                    self._stop_container()  # One identity-checked cleanup attempt, never recapture.
+                    self.container_absent = self._absent()
+                except (OSError, subprocess.SubprocessError):
+                    self.container_absent = False
+            stopper.shutdown(wait=True)
+            # Cleanup proof is independent of stream/process success.
+            self.cleanup_verified = self.container_absent
+            if self.process is not None:
+                code = self.process.poll()
+            cleanup_failed_late = error is None and not self.cleanup_verified
+            if cleanup_failed_late:
+                error, reason = "ZEEK_CONTAINER_CLEANUP_UNVERIFIED", "DOCKER_FAILURE"
             write_new(
                 self.directory / "exit.json",
                 dict(
@@ -216,11 +324,21 @@ class StreamProcess:
                     stopped=self.stop_requested,
                     elapsed_seconds=time.monotonic() - started,
                     cleanup_verified=self.cleanup_verified,
+                    container_absent=self.container_absent,
+                    container_id=self.container_identity,
+                    container_exit_source="ATTACHED_DOCKER_RUN_EXIT_STATUS",
+                    termination_reason=reason,
+                    stop_requested_reason=requested,
+                    closed_detail=ledger.closed.model_dump(mode="json") if ledger.closed else None,
+                    drain_seconds=time.monotonic() - drain_started if drain_started else None,
+                    protocol_finalized=ledger.closed is not None and error is None,
                     capture_integrity="UNVERIFIED",
                     native_capture=self.fixture is None,
                     exit_digest_scope="PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
                 ),
             )
+            if cleanup_failed_late:
+                raise ValueError(error)
 
 
 def rejection(directory: Path, error: object, plan=None):

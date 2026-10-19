@@ -19,6 +19,7 @@ FILES = (
     "live_contract.py",
     "live_process.py",
     "live_stream.py",
+    "finalization.py",
     "live.zeek",
     "network14.zeek",
     "packet_input.py",
@@ -45,7 +46,7 @@ def bundle() -> dict[str, str]:
 
 
 class LivePlan(Frozen):
-    contract: Literal["soc-zeek-native-plan:v2"] = "soc-zeek-native-plan:v2"
+    contract: Literal["soc-zeek-native-plan:v3"] = "soc-zeek-native-plan:v3"
     session_id: UUID = Field(default_factory=uuid4)
     controller_generation: UUID = Field(default_factory=uuid4)
     image: Literal[IMAGE] = IMAGE
@@ -111,6 +112,12 @@ def docker_argv(plan: LivePlan, policy: Path, *, fixture: Path | None = None) ->
         "docker",
         "run",
         "--rm",
+        "--stop-signal=SIGINT",
+        "--stop-timeout=5",
+        "--label",
+        "soc.plan=" + plan.identity,
+        "--label",
+        "soc.generation=" + str(plan.controller_generation),
         "--pull=never",
         "--log-driver=none",
         "--name",

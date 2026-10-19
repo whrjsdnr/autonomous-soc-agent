@@ -257,8 +257,24 @@ async def test_partial_append_drains_after_exit_and_recovers_no_inference(tmp_pa
     await asyncio.sleep(0.1)
     assert c.snapshot()["state"] == "ACTIVE"
     assert c.snapshot()["collection_live"]
+    from soc_agent.security_ai.collectors.finalization import Closed
+
+    proof = Closed(
+        stop_reason="ZEEK_DONE",
+        packet_records=0,
+        network_events=0,
+        dns_events=0,
+        messages_before_closed=1,
+        bytes_before_closed=len(raw),
+        omitted_packet_records=0,
+        omitted_events=0,
+        pkts_recvd=0,
+        pkts_dropped=0,
+        pkts_link=0,
+        bytes_recvd=0,
+    )
     with path.open("ab") as f:
-        f.write(b'{"sequence":2,"kind":"closed","data":{"pkts_dropped":0}}\n')
+        f.write((envelope(2, "closed", proof.model_dump()).model_dump_json() + "\n").encode())
     write_new(
         c.directory / "exit.json",
         dict(
@@ -267,6 +283,10 @@ async def test_partial_append_drains_after_exit_and_recovers_no_inference(tmp_pa
             sequence=2,
             exit_code=0,
             cleanup_verified=True,
+            container_absent=True,
+            protocol_finalized=True,
+            termination_reason="USER_STOP",
+            closed_detail=proof.model_dump(),
             error=None,
         ),
     )

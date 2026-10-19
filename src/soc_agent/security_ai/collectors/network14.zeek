@@ -1,6 +1,9 @@
 # Offline-only bounded metadata. No packet payload, names, or answers are logged.
 module SOCNetwork14;
 export {
+    const graceful_limit = F &redef;
+    global omitted_packet_records: count = 0;
+    global packet_limit_reached: event();
     redef enum Log::ID += { PACKETS };
     type Info: record {
         sequence: count &log;
@@ -22,6 +25,10 @@ event zeek_init() {
     Log::create_stream(PACKETS, [$columns=Info, $path="network14_packets"]);
 }
 event raw_packet(p: raw_pkt_hdr) {
+    if ( sequence >= 4096 && graceful_limit ) {
+        ++omitted_packet_records;
+        return;
+    }
     ++sequence;
     if ( sequence > 4096 )
         Reporter::fatal("SOC_ZEEK_PACKET_LIMIT");
@@ -46,4 +53,5 @@ event raw_packet(p: raw_pkt_hdr) {
         }
     }
     Log::write(PACKETS, r);
+    if ( sequence == 4096 && graceful_limit ) event packet_limit_reached();
 }

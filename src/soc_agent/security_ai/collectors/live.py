@@ -17,6 +17,7 @@ from soc_agent.review.persistence.secure_storage import (
     create_private_file,
 )
 from soc_agent.runtime_lock import exclusive_runtime_lock
+from soc_agent.security_ai.collectors.finalization import publish as write_new
 from soc_agent.security_ai.collectors.handoff import (
     Handoff,
     StopReason,
@@ -34,7 +35,6 @@ from soc_agent.security_ai.collectors.reader import LogReader
 from soc_agent.security_ai.collectors.store import CollectorStore
 from soc_agent.security_ai.collectors.zeek import ZeekCollector
 from soc_agent.security_ai.research.environment import read_local
-from soc_agent.security_ai.research.service import write_new
 
 
 class LiveZeekCollector(ZeekCollector):
@@ -50,6 +50,7 @@ class LiveZeekCollector(ZeekCollector):
         self.audit_failed = False
         self.handoff = None
         self.controller_ended = False
+        self.exit_observation = None
         self.stop_reason = None
         self.stop_audited = False
         self.collector_started = False
@@ -120,6 +121,7 @@ class LiveZeekCollector(ZeekCollector):
             self.stop_requested = False
             self.started = self.watch_started = None
             self.process_task = None
+            self.exit_observation = None
             self.stop_reason = None
             self.stop_audited = False
             self.controller_ended = self.collector_started = False
@@ -323,11 +325,14 @@ class LiveZeekCollector(ZeekCollector):
                             else "ACTIVE"
                         )
                 if (self.directory / "exit.json").exists():
+                    self.state = "DRAINING"
                     # Process exit is not EOF: consume every bounded batch before finalizing.
                     while await asyncio.to_thread(self._poll, reader):
                         await asyncio.sleep(0)
                     reader.finish()
                     result = json.loads(read_local(self.directory / "exit.json", 8192))
+                    if result.get("plan_digest") == self.plan.identity:
+                        self.exit_observation = result
                     if (
                         result.get("plan_digest") != self.plan.identity
                         or result.get("stream_sha256")
@@ -335,6 +340,14 @@ class LiveZeekCollector(ZeekCollector):
                         or result.get("sequence") != self.stream.sequence
                         or not self.stream.closed
                         or not result.get("cleanup_verified")
+                        or not result.get("container_absent")
+                        or not result.get("protocol_finalized")
+                        or result.get("closed_detail")
+                        != (
+                            self.stream.closed_detail.model_dump(mode="json")
+                            if self.stream.closed_detail
+                            else None
+                        )
                         or result.get("error")
                         or result.get("exit_code") not in {0, 124}
                     ):
@@ -347,10 +360,18 @@ class LiveZeekCollector(ZeekCollector):
                             exit_code=result["exit_code"],
                             capture_integrity="UNVERIFIED",
                             queue_final=0,
+                            termination_reason=result.get("termination_reason"),
                         ),
                     )
                     self.store.runtime.event("ZEEK_STREAM_PROCESS_COMPLETED", result)
-                    if self.fixture and not self.stop_requested:
+                    if (
+                        self.fixture
+                        and not self.stop_requested
+                        and result.get("termination_reason") == "INPUT_EXHAUSTED"
+                        and self.stream.closed_detail
+                        and not self.stream.closed_detail.omitted_events
+                        and not self.stream.closed_detail.omitted_packet_records
+                    ):
                         from soc_agent.security_ai.collectors.producer_service import (
                             ProducerService,
                         )
@@ -525,7 +546,7 @@ class LiveZeekCollector(ZeekCollector):
         self.directory = candidates[-1]
         raw_plan = read_local(self.directory / "plan.json", 8192)
         self.store = CollectorStore(self.directory)
-        if json.loads(raw_plan).get("contract") != "soc-zeek-native-plan:v2":
+        if json.loads(raw_plan).get("contract") != "soc-zeek-native-plan:v3":
             self.plan = None
             self.state = "ERROR"
             self.last_error = "ZEEK_CONTROLLER_IDENTITY_MISMATCH"
@@ -581,6 +602,7 @@ class LiveZeekCollector(ZeekCollector):
     def snapshot(self):
         # Reuse event/audit/receipt projections and bounded chart schema.
         value = super().snapshot()
+        observed_exit = self.result or self.exit_observation or {}
         alive = False
         if self.plan and self.directory:
             process = self._process()
@@ -658,6 +680,21 @@ class LiveZeekCollector(ZeekCollector):
             plan_digest=self.plan.identity if self.plan else None,
             handoff_state="COMMAND_VALID" if valid else self.state,
             stop_reason=self.stop_reason,
+            termination_reason=observed_exit.get("termination_reason"),
+            packet_budget=dict(used=self.stream.packet_count if self.stream else None, limit=4096),
+            event_budget=dict(used=self.stream.sequence if self.stream else None, limit=8192),
+            closed_status="OBSERVED" if self.stream and self.stream.closed else "NOT_OBSERVED",
+            container_exit=observed_exit.get("exit_code"),
+            cleanup_verified=observed_exit.get("cleanup_verified"),
+            finalization_state=(
+                "DEGRADED"
+                if not self.fixture or self.result.get("termination_reason") != "INPUT_EXHAUSTED"
+                else "VERIFIED_OFFLINE_REFERENCE"
+            )
+            if self.result
+            else "FAILED"
+            if self.last_error
+            else "PENDING",
         )
         value["collector_command"] = command(self.directory, self.plan) if valid else None
         if not self.fixture:
