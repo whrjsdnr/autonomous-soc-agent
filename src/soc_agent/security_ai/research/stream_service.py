@@ -12,6 +12,7 @@ from uuid import uuid4, uuid5
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory
 from soc_agent.runtime_lock import exclusive_runtime_lock
+from soc_agent.security_ai.operational.network_capture.isolated_flow import IsolatedFlows
 from soc_agent.security_ai.operational.network_capture.stream_session import (
     StreamPolicy,
     instructions,
@@ -29,6 +30,11 @@ from soc_agent.security_ai.research.live_input import lifecycle_eligible
 from soc_agent.security_ai.research.live_service import LiveResearch
 from soc_agent.security_ai.research.models import digest
 from soc_agent.security_ai.research.stream_store import StreamStore
+from soc_agent.security_ai.research.total_integrity import (
+    FlowFeatureMismatch,
+    FlowQuarantined,
+    TotalIntegrity,
+)
 
 
 class StreamResearch(LiveResearch):
@@ -41,6 +47,20 @@ class StreamResearch(LiveResearch):
         )
         self.expected_values = None
         self.window = None
+        self.integrity_guard = None
+        self.integrity_seal = None
+
+    async def dispatch(self, request, key):
+        if self.integrity_guard is not None:
+            self.integrity_guard(request)
+        return await super().dispatch(request, key)
+
+    def receipt_integrity(self, request, receipt):
+        return self.integrity_seal(request, receipt) if self.integrity_seal else None
+
+    def validate_completion(self, request, receipt):
+        if self.integrity_guard is not None:
+            self.integrity_guard(request)
 
     def attempt_document(self, request, key):
         return dict(
@@ -57,7 +77,11 @@ class StreamResearch(LiveResearch):
         )
 
     def validate_receipt(self, request, receipt):
+        if self.integrity_guard is not None:
+            self.integrity_guard(request)
         if self.expected_values is None or receipt.feature_values != self.expected_values:
+            if self.integrity_guard is not None:
+                raise FlowFeatureMismatch(request.flow_id)
             raise ValueError("STREAM_INCREMENTAL_PRODUCER_PARITY_FAILED")
         if request.origin == "NATIVE_AF_PACKET":
             self.adapter.authorize_live(request)
@@ -111,6 +135,8 @@ class StreamingMonitoring:
         self.current = None
         self.stop_sent = False
         self.failure_context = None
+        self.retained_integrity = None
+        self.total_integrity = None
 
     def _release_lock(self):
         if getattr(self, "writer_lock", None) is not None:
@@ -168,9 +194,9 @@ class StreamingMonitoring:
         self.capture = None
         self.session = self.session_prepare(self.directory, self.policy)
         if self.total:
-            from soc_agent.security_ai.research.total_dns import DNSDiagnostics
+            from soc_agent.security_ai.research.isolated_dns import IsolatedDNS
 
-            self.dns_diagnostics = DNSDiagnostics(self.session.session_id)
+            self.dns_diagnostics = IsolatedDNS(self.session.session_id)
         self.profiles = profiles
         self.aborted = self.stop_requested = False
         self.last_error = None
@@ -178,9 +204,17 @@ class StreamingMonitoring:
         self.failure_context = None
         self.done = asyncio.Event()
         self.current = None
-        self.aggregator = StreamingFlows(
-            max_flows=policy.active_flows, metadata_bytes=policy.metadata_bytes
+        self.aggregator = (
+            IsolatedFlows(
+                max_flows=policy.active_flows,
+                metadata_bytes=policy.metadata_bytes,
+                records=policy.max_flow_records,
+                packets=policy.frame_budget,
+            )
+            if self.total
+            else StreamingFlows(max_flows=policy.active_flows, metadata_bytes=policy.metadata_bytes)
         )
+        self.retained_integrity = None
         self.windows = {}
         self.flow_count = self.eligible = self.excluded = 0
         self.metrics = dict(
@@ -202,6 +236,16 @@ class StreamingMonitoring:
         self.writer_lock.__enter__()
         self.demo = StreamResearch(self.directory, paths=self.paths)
         self.demo.adapter.authorize_live = self.authorize
+        if self.total:
+            self.total_integrity = TotalIntegrity(self)
+            self.demo.integrity_guard = self.total_integrity.guard
+            self.demo.integrity_seal = self.total_integrity.seal
+            self.metrics.update(
+                capture_integrity="FIXTURE_NO_CAPTURE" if fixture else "AWAITING_ATTESTATION",
+                integrity_state="HEALTHY" if fixture else "RECOVERY_PENDING",
+                recovery_state="NO_RESTART",
+                event_time_policy=self.aggregator.snapshot()["policy"],
+            )
         ready = await self.demo.start()
         if ready.get("status") == "BLOCKED":
             raise ValueError("STREAM_ARTIFACT_ENVIRONMENT_BLOCKED")
@@ -220,6 +264,19 @@ class StreamingMonitoring:
                 origin=self.metrics["input_origin"],
             ),
         )
+        if self.total:
+            self.store.runtime.event(
+                "TOTAL_INTEGRITY_POLICY",
+                dict(
+                    policy=self.aggregator.snapshot()["policy"],
+                    capture_session=str(self.session.session_id),
+                    session_digest=digest(self.session.model_dump(mode="json")),
+                    capture_wide_fail_closed=True,
+                    key_history_limit=policy.max_flow_records,
+                    active_key_limit=policy.active_flows,
+                    dns_connection_limit=128,
+                ),
+            )
 
     async def start_fixture(
         self, source, *, profiles=("quality", "edge"), policy=None, model_adapter=None
@@ -260,6 +317,9 @@ class StreamingMonitoring:
             await asyncio.wait_for(asyncio.to_thread(self.capture.handshake), 120)
             self.capture.start_reader()
             self.state = "LIVE_COLLECTION"
+            if self.total:
+                self.metrics["capture_integrity"] = "VERIFIED_PREFIX_ONLY"
+                self.metrics["integrity_state"] = "HEALTHY"
             self.started_at = time.monotonic()
             self.cpu_start = time.process_time()
             self.store.runtime.event(
@@ -318,6 +378,12 @@ class StreamingMonitoring:
         self.sequence += 1
         self.metrics["packet_sequence"] = self.sequence
         identity = uuid5(self.session.session_id, str(self.sequence))
+        if self.total:
+            # Both domains share the authenticated packet/counter prefix, not each
+            # other's feature state or expiry watermark. No packet time is repaired.
+            for event in self.dns_diagnostics.observe(dns_packet, self.sequence):
+                await asyncio.to_thread(self.store.runtime.event, "TOTAL_DNS_EVENT", event)
+            self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
         try:
             completed = self.aggregator.add(packet, identity)
         except PacketTimeReversed as error:
@@ -342,9 +408,9 @@ class StreamingMonitoring:
         self.metrics["timestamp_integrity"] = "ORDERED_PREFIX_ONLY"
         self.metrics["packets_collected"] += 1
         if self.total:
-            for event in self.dns_diagnostics.observe(dns_packet, self.sequence):
-                await asyncio.to_thread(self.store.runtime.event, "TOTAL_DNS_EVENT", event)
-            self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
+            for event in self.aggregator.last_events:
+                await self._isolation_event(event)
+            self._integrity_metrics()
         for item in completed:
             self.flow_count += 1
             window = (1, counter_sequence)
@@ -367,6 +433,46 @@ class StreamingMonitoring:
                 )
         await self.publish()
 
+    async def _isolation_event(self, event):
+        # Do not yield between an in-memory quarantine and its durable decision.
+        # The socket reader remains independent and bounded during this commit.
+        self.store.runtime.event(
+            "TOTAL_" + event["kind"],
+            dict(
+                event=event,
+                packet_sequence=self.sequence,
+                capture_session=str(self.session.session_id),
+            ),
+        )
+        if event["kind"] == "FLOW_QUARANTINED":
+            self.metrics["gap_count"] += 1
+            self.metrics["last_domain_error"] = event["reason"]
+
+    def _integrity_metrics(self):
+        if not self.total or self.aborted:
+            return
+        domain = self.aggregator.snapshot()
+        dns = self.dns_diagnostics.snapshot()
+        degraded = bool(
+            domain["cross_flow_regressions"]
+            or domain["quarantined_flow_keys"]
+            or dns["diagnostic_status"] != "HEALTHY"
+            or self.inference_blocked
+        )
+        self.metrics.update(
+            flow_integrity=domain,
+            timestamp_integrity="FLOW_LOCAL_QUARANTINE"
+            if domain["quarantined_flow_keys"]
+            else "CROSS_FLOW_NON_MONOTONIC"
+            if domain["cross_flow_regressions"]
+            else "PER_FLOW_ORDERED_PREFIX_ONLY",
+            integrity_state="DEGRADED" if degraded else "HEALTHY",
+            dns_diagnostic_status=dns["diagnostic_status"],
+            healthy_flow_count=domain["healthy_flow_keys"],
+            quarantined_flow_count=domain["quarantined_flow_keys"],
+            model_attempts=self.model_attempts,
+        )
+
     async def _consume(self):
         try:
             while not self.done.is_set() or self.store.queue.counts().get("PENDING", 0):
@@ -387,6 +493,8 @@ class StreamingMonitoring:
                         request, env = await asyncio.to_thread(
                             self.store.load, claim.event, profile
                         )
+                        if self.total:
+                            self.total_integrity.guard(request)
                         self.demo.expected_values = env.values
                         inference_started = time.monotonic()
                         self.demo.window = (env.counter_start, env.counter_end)
@@ -409,12 +517,24 @@ class StreamingMonitoring:
                             )
                         outcomes.append(result["status"])
                         if result.get("status") not in ("COMPLETE", "CACHED_NO_NEW_INFERENCE"):
+                            if self.total and not self.aggregator.allowed(request.flow_id):
+                                raise FlowQuarantined(request.flow_id)
                             raise ValueError("STREAM_MODEL_UNKNOWN_NO_RETRY")
                     await asyncio.to_thread(self.store.finish, claim, "RESEARCH_COMPLETE")
+                except FlowQuarantined as error:
+                    if isinstance(error, FlowFeatureMismatch):
+                        key = self.aggregator.flow_keys[error.flow_id]
+                        quarantine = self.aggregator.quarantine(
+                            key, reason="NETWORK14_PARITY_FAILED"
+                        )
+                        await self._isolation_event(dict(kind="FLOW_QUARANTINED", **quarantine))
+                    await asyncio.to_thread(self.store.finish, claim, "FLOW_QUARANTINED_NO_RETRY")
+                    self._integrity_metrics()
                 except (ValueError, OSError, StorageError) as error:
                     await asyncio.to_thread(self.store.finish, claim, "UNKNOWN_NO_RETRY")
                     self.inference_blocked = True
                     self.last_error = type(error).__name__ + ":STREAM_MODEL_OR_INPUT_FAILURE"
+                    self._integrity_metrics()
                 finally:
                     self.windows.pop(dict(claim.event.normalized_fields)["flow_id"], None)
                     self.current = None
@@ -476,7 +596,9 @@ class StreamingMonitoring:
             flow_records=self.flow_count,
             eligible_flows=self.eligible,
             rejected_flows=self.excluded,
-            active_flows=len(self.aggregator.table.flows),
+            active_flows=self.aggregator.active_count
+            if self.total
+            else len(self.aggregator.table.flows),
             retained_metadata_bytes=self.aggregator.bytes,
             peak_metadata_bytes=self.aggregator.peak_bytes,
             capture_uptime_seconds=elapsed,
@@ -522,6 +644,13 @@ class StreamingMonitoring:
         if self.aborted:
             return
         self.metrics["finalization"] = "VERIFIED" if not self.last_error else "PARTIAL"
+        if self.total:
+            self._integrity_metrics()
+            self.metrics["retained_integrity_health"] = self.metrics["integrity_state"]
+            self.metrics["integrity_state"] = "STOPPED"
+            self.metrics["capture_integrity"] = (
+                "FIXTURE_NO_CAPTURE" if self.fixture else "VERIFIED_CLOSED"
+            )
         self.store.runtime.event(
             "STREAM_STOPPED",
             dict(
@@ -546,8 +675,30 @@ class StreamingMonitoring:
         self.metrics["abort_reason"] = self.last_error
         self.metrics["finalization"] = "BLOCKED"
         self.metrics["gap_count"] += 1
+        if self.total:
+            capture_wide = self.last_error.startswith(
+                (
+                    "HELPER_",
+                    "STREAM_PACKET_",
+                    "STREAM_SOURCE_",
+                    "STREAM_FINAL_COUNTER_",
+                    "STREAM_DNS_COUNTER_",
+                    "STREAM_CAPTURE_",
+                    "TOTAL_DNS_NAME_",
+                    "STREAM_INTERFACE_",
+                    "STREAM_RATE_",
+                    "STREAM_SEAL_",
+                )
+            )
+            self.metrics.update(
+                integrity_scope="CAPTURE_WIDE" if capture_wide else "UNKNOWN",
+                capture_integrity="CAPTURE_INTEGRITY_FAILED" if capture_wide else "UNKNOWN",
+                integrity_state="CAPTURE_INTEGRITY_FAILED" if capture_wide else "RECOVERY_PENDING",
+                recovery_state="NO_AUTOMATIC_RETRY",
+            )
         if self.total and self.dns_diagnostics is not None:
             self.dns_diagnostics.finish(aborted=True)
+            self.dns_diagnostics.blocked = True
             self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
         self.aggregator.close("RESTART_GAP")
         self.windows.clear()
@@ -694,6 +845,9 @@ class StreamingMonitoring:
         self.capture = self.task = None
         self.windows = {}
         self.store = StreamStore(self.directory, self.session, fixture=self.fixture)
+        if self.total:
+            self.total_integrity = TotalIntegrity(self)
+            self.total_integrity.restore()
         with exclusive_runtime_lock(self.directory / "runtime/writer.lock"):
             self.store.recover_no_retry()
             self.demo = StreamResearch(self.directory, paths=self.paths)
@@ -734,6 +888,26 @@ class StreamingMonitoring:
             retained_metadata_bytes=0,
             restart_gap=True,
         )
+        if self.total:
+            terminal_verified = bool(
+                lifecycle
+                and lifecycle[-1]["kind"] == "STREAM_STOPPED"
+                and lifecycle[-1]["details"].get("finalization") == "VERIFIED"
+                and self.metrics.get("finalization") == "VERIFIED"
+            )
+            references = dict(self.total_integrity.quarantines)
+            retained = dict(self.metrics.get("flow_integrity", {}))
+            retained.update(quarantine_references=references, quarantined_flow_keys=len(references))
+            self.metrics.update(
+                flow_integrity=retained,
+                quarantined_flow_count=len(references),
+                retained_healthy_flow_count=self.metrics.get("healthy_flow_count"),
+                healthy_flow_count=None,
+                recovery_terminal_verified=terminal_verified,
+            )
+            self.metrics.update(
+                integrity_state="RECOVERY_PENDING", recovery_state="RETAINED_NO_CAPTURE_NO_RETRY"
+            )
         self.state = "RETAINED_STREAM_NOT_LIVE"
         self.last_error = self.metrics.get("last_error")
         return self.snapshot()
@@ -753,6 +927,8 @@ class StreamingMonitoring:
                     "worker_running": False,
                 }
             )
+            if self.total and self.total_integrity is not None:
+                research = self.total_integrity.project(research)
         except (ValueError, OSError, StorageError):
             audit_valid = False
             research = {

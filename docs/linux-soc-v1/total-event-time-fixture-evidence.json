@@ -1,0 +1,292 @@
+{
+  "evidence": {
+    "validation": "ACTUAL_RF_LR_ON_SYNTHETIC_FIXTURE_NOT_NATIVE",
+    "result": {
+      "contract": "soc-total-export:v1",
+      "research_status": "RESEARCH_ONLY",
+      "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+      "input_origin": "FIXTURE",
+      "runtime_state": "STOPPED",
+      "finalization": "VERIFIED",
+      "capture_integrity": "FIXTURE_NO_CAPTURE",
+      "integrity_state": "STOPPED",
+      "flow_integrity": {
+        "policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+        "healthy_flow_keys": 2,
+        "quarantined_flow_keys": 1,
+        "quarantine_references": {
+          "e9132b50026198648eb2444acbc1021407d03b0cd77a06a9eaaa8c54cf24432e": "894aacb89c80e1af2b9924bc5df29b3dd7b6096b81c281178bbe90bfc826b1b7"
+        },
+        "cross_flow_regressions": 0,
+        "history_keys": 3,
+        "packet_references": 10,
+        "quarantine_metadata_bytes": 509
+      },
+      "audit_digest": "4bf865fa79634d8e93b30cb8a01852c3b054ee30f8a93510da6f790f8363ebb9",
+      "records": [
+        {
+          "event_identity": "318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89",
+          "input_origin": "FIXTURE",
+          "model_receipt": {
+            "model_id": "linux-network14-research-v1-quality_rf",
+            "profile": "quality",
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "producer_version": "1.1.0",
+            "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+            "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+            "source_digest": "347dc45d8a03ea3f220a05595b768c6019c6e15473f785d8c232044922746d62",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "flow_id": "318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89",
+            "feature_digest": "82c79d1a8f2ea28a47850402a7a6cfe680b9b53026cebc86fb29a6f169de0ae2",
+            "prediction": "CLASS_0",
+            "score": 0.140625,
+            "threshold": 0.35,
+            "inferred_at": "2026-10-19T00:24:52.703019Z",
+            "provenance_digest": "5c725ab509a2c4b61b78531b980735273cd2d870cfafb54a5bd3853966b0464a",
+            "inference_latency_ms": 10.95807901583612,
+            "worker_peak_rss_bytes": 233828352,
+            "worker_cpu_seconds": 1.8800729999999999
+          },
+          "receipt_digest": "c392fc74a648026345ed079b8bebc3429ab8799e364927c75d44029b9f66d5c0",
+          "integrity_receipt": {
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "binding_digest": "7417682226ef1cd3618a3c66d9c50d90765ed425f1b9e65d5910645fc416b8ee",
+            "capture_integrity": "FIXTURE_NO_CAPTURE",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "contract": "soc-total-inference-integrity:v1",
+            "event_time_policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+            "feature_digest": "82c79d1a8f2ea28a47850402a7a6cfe680b9b53026cebc86fb29a6f169de0ae2",
+            "flow_id": "318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89",
+            "flow_key_digest": "55b4e594c42b2228b22f6c384a36ce26f7c7a07f661535506b712be354b26c0b",
+            "future_capture_quality": "UNKNOWN",
+            "integrity_status": "FLOW_LOCAL_VERIFIED",
+            "model_receipt_digest": "c392fc74a648026345ed079b8bebc3429ab8799e364927c75d44029b9f66d5c0",
+            "operational_gate": "BLOCKED",
+            "provenance_digest": "5c725ab509a2c4b61b78531b980735273cd2d870cfafb54a5bd3853966b0464a",
+            "quarantine_reference": null,
+            "research_status": "RESEARCH_ONLY",
+            "source_digest": "347dc45d8a03ea3f220a05595b768c6019c6e15473f785d8c232044922746d62",
+            "source_origin": "FIXTURE"
+          },
+          "integrity_status_current": "FLOW_LOCAL_VERIFIED",
+          "quarantine_reference": null,
+          "advisory_current": "RETAINED_RESEARCH_ONLY",
+          "risk_assessment": {
+            "incident_state": {
+              "confidence": null,
+              "created_at": "2026-10-19T00:24:53.243400Z",
+              "evidence": [
+                {
+                  "collected_at": "2026-10-19T00:24:53.383785Z",
+                  "evidence_id": "e1fea4d6-140f-4455-94ac-5163e92f5fe6",
+                  "incident_id": "c87db28c-3fbf-40d1-a944-f3fbab652ef5",
+                  "observed_at": "2026-10-19T00:24:53.383730Z",
+                  "raw_data": "{\"output\":{\"capture_session\":\"b2c93a2c-70dd-4d46-9523-91c8900de4b8\",\"flow_id\":\"318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"FIXTURE\",\"packet_count\":3,\"provenance_digest\":\"5c725ab509a2c4b61b78531b980735273cd2d870cfafb54a5bd3853966b0464a\",\"source_digest\":\"347dc45d8a03ea3f220a05595b768c6019c6e15473f785d8c232044922746d62\"},\"tool_name\":\"read_local_source_report\"}",
+                  "reliability": null,
+                  "source": "tool:read_local_source_report",
+                  "summary": "read_local_source_report investigation result",
+                  "tool_name": "read_local_source_report"
+                }
+              ],
+              "hypotheses": [],
+              "incident_id": "c87db28c-3fbf-40d1-a944-f3fbab652ef5",
+              "observations": [],
+              "severity": "info",
+              "status": "new",
+              "updated_at": "2026-10-19T00:24:53.389497Z"
+            },
+            "threat_assessment": {
+              "assessment_id": "fe621490-e56b-441b-b8fb-ab938f882fcd",
+              "confidence": 0.0,
+              "created_at": "2026-10-19T00:24:53.481199Z",
+              "incident_id": "c87db28c-3fbf-40d1-a944-f3fbab652ef5",
+              "severity": "info",
+              "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+              "supporting_evidence_ids": [
+                "e1fea4d6-140f-4455-94ac-5163e92f5fe6"
+              ],
+              "supporting_hypothesis_ids": [],
+              "supporting_observation_ids": []
+            }
+          },
+          "historical_withdrawn_assessment": null,
+          "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
+          "investigation_summary": {
+            "incident_id": "c87db28c-3fbf-40d1-a944-f3fbab652ef5",
+            "status": "ASSESSED_READ_ONLY",
+            "mode": "SCRIPTED_OFFLINE_RESEARCH",
+            "action_policy": "WRITE_DENIED",
+            "checkpoint_restored": true,
+            "evidence_references": [
+              "e1fea4d6-140f-4455-94ac-5163e92f5fe6"
+            ],
+            "context_digest": "f616080834af604d33da50e53aaedd94f6ab495cacace31fdcf915068e557236"
+          },
+          "score_meaning": "UNCALIBRATED_RESEARCH_SCORE_NOT_CONFIRMED_ATTACK"
+        },
+        {
+          "event_identity": "318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89",
+          "input_origin": "FIXTURE",
+          "model_receipt": {
+            "model_id": "linux-network14-research-v1-edge_lr",
+            "profile": "edge",
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "producer_version": "1.1.0",
+            "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+            "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+            "source_digest": "347dc45d8a03ea3f220a05595b768c6019c6e15473f785d8c232044922746d62",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "flow_id": "318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89",
+            "feature_digest": "82c79d1a8f2ea28a47850402a7a6cfe680b9b53026cebc86fb29a6f169de0ae2",
+            "prediction": "CLASS_0",
+            "score": 0.08766025304794312,
+            "threshold": 0.8,
+            "inferred_at": "2026-10-19T00:24:55.300264Z",
+            "provenance_digest": "5c725ab509a2c4b61b78531b980735273cd2d870cfafb54a5bd3853966b0464a",
+            "inference_latency_ms": 7.739066990325227,
+            "worker_peak_rss_bytes": 232906752,
+            "worker_cpu_seconds": 1.681195
+          },
+          "receipt_digest": "0c47b4683c09288154cf9fc7f7234d9ed206c729c2244282cd4ce1433a8df906",
+          "integrity_receipt": {
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "binding_digest": "74f8ae824372bb41b67a4540b140ba9628dd2642c4fb46036c73bd0c6e305444",
+            "capture_integrity": "FIXTURE_NO_CAPTURE",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "contract": "soc-total-inference-integrity:v1",
+            "event_time_policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+            "feature_digest": "82c79d1a8f2ea28a47850402a7a6cfe680b9b53026cebc86fb29a6f169de0ae2",
+            "flow_id": "318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89",
+            "flow_key_digest": "55b4e594c42b2228b22f6c384a36ce26f7c7a07f661535506b712be354b26c0b",
+            "future_capture_quality": "UNKNOWN",
+            "integrity_status": "FLOW_LOCAL_VERIFIED",
+            "model_receipt_digest": "0c47b4683c09288154cf9fc7f7234d9ed206c729c2244282cd4ce1433a8df906",
+            "operational_gate": "BLOCKED",
+            "provenance_digest": "5c725ab509a2c4b61b78531b980735273cd2d870cfafb54a5bd3853966b0464a",
+            "quarantine_reference": null,
+            "research_status": "RESEARCH_ONLY",
+            "source_digest": "347dc45d8a03ea3f220a05595b768c6019c6e15473f785d8c232044922746d62",
+            "source_origin": "FIXTURE"
+          },
+          "integrity_status_current": "FLOW_LOCAL_VERIFIED",
+          "quarantine_reference": null,
+          "advisory_current": "RETAINED_RESEARCH_ONLY",
+          "risk_assessment": {
+            "incident_state": {
+              "confidence": null,
+              "created_at": "2026-10-19T00:24:55.602742Z",
+              "evidence": [
+                {
+                  "collected_at": "2026-10-19T00:24:55.728345Z",
+                  "evidence_id": "7b15b782-4034-4799-8c6a-981cf1aeb028",
+                  "incident_id": "a55da8d0-7be8-4434-8d77-b1762a5ae5ef",
+                  "observed_at": "2026-10-19T00:24:55.728301Z",
+                  "raw_data": "{\"output\":{\"capture_session\":\"b2c93a2c-70dd-4d46-9523-91c8900de4b8\",\"flow_id\":\"318233761a8f0255abcc56bc742beaf954076be49ca8a24b6e30deeb710e6b89\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"FIXTURE\",\"packet_count\":3,\"provenance_digest\":\"5c725ab509a2c4b61b78531b980735273cd2d870cfafb54a5bd3853966b0464a\",\"source_digest\":\"347dc45d8a03ea3f220a05595b768c6019c6e15473f785d8c232044922746d62\"},\"tool_name\":\"read_local_source_report\"}",
+                  "reliability": null,
+                  "source": "tool:read_local_source_report",
+                  "summary": "read_local_source_report investigation result",
+                  "tool_name": "read_local_source_report"
+                }
+              ],
+              "hypotheses": [],
+              "incident_id": "a55da8d0-7be8-4434-8d77-b1762a5ae5ef",
+              "observations": [],
+              "severity": "info",
+              "status": "new",
+              "updated_at": "2026-10-19T00:24:55.731107Z"
+            },
+            "threat_assessment": {
+              "assessment_id": "32a2f2ac-0e0c-4647-9861-c0d1a219cfa7",
+              "confidence": 0.0,
+              "created_at": "2026-10-19T00:24:55.809609Z",
+              "incident_id": "a55da8d0-7be8-4434-8d77-b1762a5ae5ef",
+              "severity": "info",
+              "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+              "supporting_evidence_ids": [
+                "7b15b782-4034-4799-8c6a-981cf1aeb028"
+              ],
+              "supporting_hypothesis_ids": [],
+              "supporting_observation_ids": []
+            }
+          },
+          "historical_withdrawn_assessment": null,
+          "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
+          "investigation_summary": {
+            "incident_id": "a55da8d0-7be8-4434-8d77-b1762a5ae5ef",
+            "status": "ASSESSED_READ_ONLY",
+            "mode": "SCRIPTED_OFFLINE_RESEARCH",
+            "action_policy": "WRITE_DENIED",
+            "checkpoint_restored": true,
+            "evidence_references": [
+              "7b15b782-4034-4799-8c6a-981cf1aeb028"
+            ],
+            "context_digest": "a571108da78e5cb8e8edcfe0de7a9c943063f6758ac29a80ff2e21c7b9a40e0c"
+          },
+          "score_meaning": "UNCALIBRATED_RESEARCH_SCORE_NOT_CONFIRMED_ATTACK"
+        }
+      ],
+      "dns": {
+        "counts": {
+          "QUERY": 1,
+          "MATCHED_RESPONSE": 1,
+          "PARSE_FAILURE": 1
+        },
+        "pending": 0,
+        "recent_events": [
+          {
+            "status": "QUERY",
+            "event_ns": 1767225604000000000,
+            "source_reference": "fea3c13b919e70e9cec86592fcc9aff40afd492fa0e8fb6f40acd846a61b9a4c",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "dns9_inference": "BLOCKED",
+            "validation": "DNS_METADATA_DIAGNOSTIC_ONLY",
+            "transport": "udp",
+            "query_type": 1,
+            "query_digest": "15e079cf4d789db5847e20409d5611969f5a84eece35e93775c97c9b36a18d5b",
+            "response_code": 0,
+            "event_id": "9991707ddd302addbd5e330cfa135ba9e755fecd9974480de9076b9dbf6f71fd"
+          },
+          {
+            "status": "MATCHED_RESPONSE",
+            "event_ns": 1767225604500000000,
+            "source_reference": "86166fd520706e448bc7a6c439b5d388f0d56a7c4331bb4e39feef4501a2ea1f",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "dns9_inference": "BLOCKED",
+            "validation": "DNS_METADATA_DIAGNOSTIC_ONLY",
+            "query_reference": "fea3c13b919e70e9cec86592fcc9aff40afd492fa0e8fb6f40acd846a61b9a4c",
+            "latency_seconds": 0.5,
+            "transport": "udp",
+            "query_type": 1,
+            "query_digest": "15e079cf4d789db5847e20409d5611969f5a84eece35e93775c97c9b36a18d5b",
+            "response_code": 0,
+            "event_id": "f7791164310f44f87f21e4633aaa5e8ac2703064edd47f446633547a5b29b159"
+          },
+          {
+            "status": "PARSE_FAILURE",
+            "event_ns": 1767225604600000000,
+            "source_reference": "4a338272c472a62cf5e2b8574320068fad2d442d7dd8b135216063e5649f2119",
+            "capture_session": "b2c93a2c-70dd-4d46-9523-91c8900de4b8",
+            "dns9_inference": "BLOCKED",
+            "validation": "DNS_METADATA_DIAGNOSTIC_ONLY",
+            "reason": "DNS_MESSAGE_SIZE",
+            "event_id": "3c7bdc74f2a8cc650ad31d823253c9be2dfc0207dc93209a239828f931feb1af"
+          }
+        ],
+        "dns9_inference": "BLOCKED",
+        "producer_parity": "UNVERIFIED",
+        "names_retained": false,
+        "tcp_support": "SINGLE_COMPLETE_MESSAGE_ONLY_NO_REASSEMBLY",
+        "encrypted_dns": "UNKNOWN_NOT_DECRYPTED",
+        "diagnostic_status": "DEGRADED",
+        "quarantined_connections": 0,
+        "event_time_policy": "CONNECTION_LOCAL_NO_NETWORK_EXPIRY"
+      },
+      "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+      "write_policy": "WRITE_DENIED",
+      "validation": "FIXTURE_ONLY"
+    },
+    "recovered_inference_count": 0,
+    "recovered_quarantines": 1
+  },
+  "evidence_digest": "83ac4999abb25e4800cdb3fab81f9495a744b6ee5169da0e117d840bbe9456c8"
+}

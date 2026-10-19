@@ -245,6 +245,13 @@ class ResearchDemo:
     def validate_receipt(self, request, receipt):
         """Optional stricter input binding; the existing adapter validates every receipt."""
 
+    def receipt_integrity(self, request, receipt):
+        """Optional separately sealed domain proof; never changes a model receipt."""
+        return None
+
+    def validate_completion(self, request, receipt):
+        """Recheck mutable domain eligibility after an asynchronous investigation."""
+
     async def dispatch(self, request, key: str):
         profile = request.profile
         if not self.started or self.stopping:
@@ -283,6 +290,9 @@ class ResearchDemo:
                     receipt = parse_receipt(outcome["receipt"])
                     self.validate_receipt(request, receipt)
                     result["receipt"] = receipt.model_dump(mode="json")
+                    integrity = self.receipt_integrity(request, receipt)
+                    if integrity is not None:
+                        result["integrity_receipt"] = integrity
                     try:
                         if self.stopping:
                             raise ValueError("RESEARCH_DEMO_STOPPED")
@@ -292,6 +302,7 @@ class ResearchDemo:
                         result["investigation"] = await asyncio.wait_for(
                             self.investigation_task, 20
                         )
+                        self.validate_completion(request, receipt)
                         result["status"] = "COMPLETE"
                     except CheckpointClockRollback:
                         result["error"] = "RESEARCH_CHECKPOINT_CLOCK_ROLLBACK_NO_RETRY"

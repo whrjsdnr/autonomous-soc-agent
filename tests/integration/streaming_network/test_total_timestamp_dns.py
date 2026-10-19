@@ -69,46 +69,41 @@ async def test_total_sequence18_orders_before_dns_and_recovers_without_retry(
                 .model_dump_json()
                 .encode()
             )
-        if not regression:
-            # Keep cumulative DNS counts in CLOSED; the common helper defaults to 0.
-            client.sendall(
-                StreamMessage(
-                    kind="CLOSED",
-                    session_id=owner.session.session_id,
-                    counter_sequence=20,
-                    kernel_packets=0,
-                    kernel_packets_total=18,
-                    capture_drops=0,
-                    capture_drops_total=0,
-                    counter_status="COUNTER_VERIFIED",
-                    received_frames=18,
-                    sent_packets=18,
-                    elapsed_seconds=1,
-                    dns_queries=1,
-                )
-                .model_dump_json()
-                .encode()
+        # Keep cumulative DNS counts in CLOSED; the common helper defaults to 0.
+        client.sendall(
+            StreamMessage(
+                kind="CLOSED",
+                session_id=owner.session.session_id,
+                counter_sequence=20,
+                kernel_packets=0,
+                kernel_packets_total=18,
+                capture_drops=0,
+                capture_drops_total=0,
+                counter_status="COUNTER_VERIFIED",
+                received_frames=18,
+                sent_packets=18,
+                elapsed_seconds=1,
+                dns_queries=1,
             )
+            .model_dump_json()
+            .encode()
+        )
         await asyncio.wait_for(owner.task, 8)
         assert owner.metrics["packet_sequence"] == 18, owner.last_error
         assert owner.capture.delivered == 18
-        assert owner.dns_diagnostics.observations == (17 if regression else 18)
+        assert owner.dns_diagnostics.observations == 18
         snapshot = owner.snapshot()
         assert not snapshot["collection_live"]
-        assert snapshot["dns"]["counts"].get("QUERY", 0) == (0 if regression else 1)
+        assert snapshot["dns"]["counts"].get("QUERY", 0) == 1
         assert snapshot["dns"]["dns9_inference"] == "BLOCKED"
         assert owner.metrics["inference_count"] == 0
         assert not list(owner.demo.directory.glob("receipt-*.json"))
         assert owner.store.queue.counts() == {}
         if regression:
-            assert owner.last_error == "STREAM_TIME_REVERSED"
-            assert owner.failure_context["regression_ns"] == 11
-            assert owner.failure_context["ordering_scope"] == "GLOBAL"
-            assert owner.metrics["finalization"] == "BLOCKED"
-            assert owner.capture.shutdown_reason == "CONTROLLER_ABORT:STREAM_TIME_REVERSED"
-        else:
-            assert owner.state == "STOPPED", owner.last_error
-            assert owner.capture.completion_verified()
+            assert owner.metrics["timestamp_integrity"] == "CROSS_FLOW_NON_MONOTONIC"
+            assert owner.metrics["retained_integrity_health"] == "DEGRADED"
+        assert owner.state == "STOPPED", owner.last_error
+        assert owner.capture.completion_verified()
         audit_head = owner.store.runtime.verify_audit()
         assert len(audit_head) == 64
         restored = StreamingMonitoring(tmp_path, total=True, paths=research_paths())
@@ -116,7 +111,7 @@ async def test_total_sequence18_orders_before_dns_and_recovers_without_retry(
         assert not recovered["collection_live"]
         assert recovered["network"]["inference_count"] == 0
         assert recovered["operational_gate"] == "OPERATIONAL_INFERENCE_BLOCKED"
-        assert recovered["last_error"] == ("STREAM_TIME_REVERSED" if regression else None)
+        assert recovered["last_error"] is None
     finally:
         client.close()
         await owner.stop(abort=True)

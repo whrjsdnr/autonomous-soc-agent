@@ -43,7 +43,16 @@ def document(owner):
                     )
                 },
                 "receipt_digest": digest(receipt),
-                "risk_assessment": investigation.get("assessment"),
+                "integrity_receipt": record.get("integrity_receipt"),
+                "integrity_status_current": record.get("integrity_status_current", "UNKNOWN"),
+                "quarantine_reference": record.get("quarantine_reference"),
+                "advisory_current": record.get("advisory_current", "UNKNOWN"),
+                "risk_assessment": None
+                if record.get("advisory_current") == "WITHDRAWN_RESEARCH_ONLY"
+                else investigation.get("assessment"),
+                "historical_withdrawn_assessment": investigation.get("assessment")
+                if record.get("advisory_current") == "WITHDRAWN_RESEARCH_ONLY"
+                else None,
                 "assessment_assurance": "SCRIPTED_READ_ONLY_RESEARCH_NOT_OPERATIONAL",
                 "investigation_summary": {
                     key: investigation.get(key)
@@ -67,6 +76,9 @@ def document(owner):
         "input_origin": snapshot["input_origin"],
         "runtime_state": snapshot["state"],
         "finalization": snapshot["network"].get("finalization"),
+        "capture_integrity": snapshot["network"].get("capture_integrity", "UNKNOWN"),
+        "integrity_state": snapshot["network"].get("integrity_state", "UNKNOWN"),
+        "flow_integrity": snapshot["network"].get("flow_integrity"),
         "audit_digest": owner.store.runtime.verify_audit(),
         "records": records,
         "dns": snapshot["dns"],

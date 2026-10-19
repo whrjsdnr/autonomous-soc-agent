@@ -29,4 +29,6 @@ async def total_source(owner):
     yield packet(owner, 1, length=80, flags=1)
     yield dns_packet(owner, 2)
     yield dns_packet(owner, 2.25, response=True)
-    yield packet(owner, 33, port=9000)
+    # No unrelated key can act as an event-time watermark for another Flow.
+    yield packet(owner, 33)
+    yield dns_packet(owner, 33.25)

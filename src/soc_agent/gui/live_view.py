@@ -359,6 +359,12 @@ class LiveView:
             self.session = value.get("session_id")
             self.history.samples.clear()
         network, research = value.get("network", {}), value.get("research", {})
+        if self.total:
+            self.headline.set(
+                self.headline.get()
+                + " · Integrity "
+                + str(network.get("integrity_state", "UNKNOWN"))
+            )
         eligibility = value.get("flow_eligibility", {})
         self.history.observe({"network": network, "queue_backlog": network.get("queue_backlog")})
         self.traffic.source = value.get("input_origin", "UNKNOWN")
@@ -448,6 +454,20 @@ class LiveView:
                 + str(dns.get("pending", "UNKNOWN"))
                 + " · DNS9 BLOCKED / PRODUCER_PARITY_UNVERIFIED"
                 + " · Rate 128 raw frames/s / burst 256 / token balance UNKNOWN"
+                + "\nCapture integrity "
+                + known(network.get("capture_integrity"))
+                + " · Health "
+                + known(network.get("integrity_state"))
+                + " · Healthy flow keys "
+                + known(network.get("healthy_flow_count"))
+                + " · Quarantined flow keys "
+                + known(network.get("quarantined_flow_count"))
+                + "\nDNS diagnostic status "
+                + known(dns.get("diagnostic_status"))
+                + " · Recovery "
+                + known(network.get("recovery_state"))
+                + " · Domain error "
+                + known(network.get("last_domain_error"))
             )
         self.app.current_records = records
         self.app._rows(
@@ -457,7 +477,9 @@ class LiveView:
                     (r.get("receipt") or {}).get("origin", r.get("input_origin", "UNKNOWN")),
                     (r.get("receipt") or {}).get("score", "UNKNOWN"),
                     (r.get("receipt") or {}).get("prediction", "UNKNOWN"),
-                    (r.get("investigation") or {}).get("status", r.get("status", "UNKNOWN")),
+                    r.get("integrity_status_current", "UNKNOWN") + " / WITHDRAWN"
+                    if r.get("advisory_current") == "WITHDRAWN_RESEARCH_ONLY"
+                    else (r.get("investigation") or {}).get("status", r.get("status", "UNKNOWN")),
                 )
                 for r in records
             ]

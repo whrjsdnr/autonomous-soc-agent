@@ -88,7 +88,7 @@ async def test_total_bounded_unix_replay_to_actual_models_is_explicit_fixture(
 
     await owner.start_fixture(source())
     await asyncio.wait_for(owner.task, 30)
-    assert observed == [1, 2, 3, 4, 5, 6]
+    assert observed == [1, 2, 3, 4, 5, 6, 7]
     assert owner.metrics["inference_count"] == 4, owner.last_error
     assert owner.snapshot()["dns"]["counts"]["MATCHED_RESPONSE"] == 1
     assert owner.snapshot()["input_origin"] == "FIXTURE"

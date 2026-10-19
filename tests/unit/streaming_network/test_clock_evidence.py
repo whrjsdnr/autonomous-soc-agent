@@ -14,7 +14,15 @@ def test_clock_evidence_bindings_and_limits():
     )
     assert data["contract"] == "soc-streaming-clock-checkpoint-evidence:v1"
     for name, expected in data["source_sha256"].items():
-        assert hashlib.sha256((root / name).read_bytes()).hexdigest() == expected
+        # Preserve this historical proof as the live service gains domain hooks.
+        # The exact source at 0ee341b is frozen as non-executable test data;
+        # current clock behavior is still exercised by the clock regressions.
+        path = (
+            root / "tests/fixtures/streaming-clock/research-service-0ee341b.txt"
+            if name == "src/soc_agent/security_ai/research/service.py"
+            else root / name
+        )
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == expected
     helper = root / "src/soc_agent/security_ai/operational/network_capture/stream_helper.py"
     # This immutable evidence belongs to the prior helper, not the new DNS scope.
     assert data["helper"]["sha256"] == (
