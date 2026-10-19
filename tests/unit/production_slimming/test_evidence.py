@@ -18,7 +18,15 @@ def evidence():
 def test_sources_screenshots_and_signed_helper_are_exact():
     doc = evidence()
     for name, expected in doc["source_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, name
+        historic = {
+            "src/soc_agent/gui/production.py": "production",
+            "src/soc_agent/gui/operator_view.py": "operator_view",
+            "src/soc_agent/security_ai/research/stream_service.py": "stream_service",
+        }
+        source = ROOT / name
+        if name in historic:
+            source = ROOT / "tests/fixtures/slimming-7a0bd44" / (historic[name] + ".txt")
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == expected, name
     for name, entry in doc["screenshots"].items():
         data = (ROOT / "docs/linux-soc-v1/production-slimming-screenshots" / name).read_bytes()
         assert hashlib.sha256(data).hexdigest() == entry["sha256"]

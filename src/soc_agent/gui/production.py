@@ -13,6 +13,7 @@ from soc_agent.gui import operator_view
 from soc_agent.gui.charts import MetricHistory
 from soc_agent.gui.components import Button, Label
 from soc_agent.gui.redaction import display_data
+from soc_agent.gui.visual_metrics import VisualHistory
 from soc_agent.gui.worker import Worker
 
 SCREENS = ("Dashboard", "Security Events", "Investigation", "System")
@@ -60,6 +61,7 @@ class Desktop:
         gc.collect()
         self.worker = Worker(config)
         self.history = MetricHistory(capacity=60)
+        self.visual_history = VisualHistory(capacity=60)
         self.history_session = None
         self.history_sample = None
         self.page = "Dashboard"
@@ -250,6 +252,7 @@ class Desktop:
             return
         self.last_stamp = stamp
         self.snapshot = value
+        self.visual_history.observe(value, at=stamp / 1e9)
         session = (value.get("session_id"), value.get("input_origin"))
         if session != self.history_session:
             self.history = MetricHistory(capacity=60)
@@ -313,9 +316,15 @@ class Desktop:
             self.records = event_rows(
                 value, self.search.get() if self.page == "Security Events" else ""
             )
+            operator_view.render_records(self, value)
             self.tree.delete(*self.tree.get_children())
             for i, (row, _) in enumerate(self.records):
-                self.tree.insert("", "end", iid=str(i), values=tuple(str(x)[:160] for x in row))
+                self.tree.insert(
+                    "",
+                    "end",
+                    iid=str(i),
+                    values=tuple(f"{x:.3f}" if isinstance(x, float) else str(x)[:160] for x in row),
+                )
             self.record_count.configure(
                 text=f"{len(self.records)} events · {value.get('input_origin', 'NO_DATA')}"
             )
@@ -335,11 +344,27 @@ class Desktop:
             receipt = record.get("receipt") or {}
             investigation = record.get("investigation") or {}
             self.detail_title.configure(text=friendly_model(receipt.get("profile")))
+            if self.page == "Investigation":
+                self.event_charts[0].update_data(
+                    {**self.snapshot, "research": {"records": [record]}}, self.visual_history
+                )
             assessment = investigation.get("assessment")
+            threat = assessment.get("threat_assessment", {}) if isinstance(assessment, dict) else {}
+            incident = assessment.get("incident_state", {}) if isinstance(assessment, dict) else {}
+            evidence = incident.get("evidence", [])
+            timeline = investigation.get("timeline") or {}
+            entries = timeline.get("entries", []) if isinstance(timeline, dict) else []
+            progress = [
+                str(e.get("content", {}).get("result", {}).get("reason", "UNKNOWN"))[:200]
+                for e in entries[-16:]
+            ]
             sections = [
                 "SOURCE & ADVISORY",
                 str(receipt.get("origin", "UNKNOWN")),
                 str(record.get("advisory_current", "RESEARCH_ONLY")),
+                "Session  " + str(receipt.get("capture_session", "UNKNOWN"))[:36],
+                "Feature  " + str(receipt.get("feature_digest", "UNKNOWN"))[:20],
+                "Artifact  " + str(receipt.get("artifact_digest", "UNKNOWN"))[:20],
                 "",
                 "MODEL RESULT · UNCALIBRATED",
                 str(receipt.get("prediction", "UNKNOWN")),
@@ -351,9 +376,27 @@ class Desktop:
                 str(investigation.get("status", "UNKNOWN")),
                 "",
                 "THREAT ASSESSMENT · RESEARCH ADVISORY",
-                json.dumps(assessment, indent=2, default=str)
-                if assessment
-                else "No assessment available",
+                str(threat.get("severity", "UNKNOWN")).upper()
+                + " · "
+                + str(
+                    threat.get(
+                        "summary",
+                        assessment if isinstance(assessment, str) else "No assessment available",
+                    )
+                )[:1600],
+                "",
+                "OBSERVED PROGRESS · no implied response execution",
+                "\n".join(progress) if progress else "No recorded steps",
+                "",
+                "TOOL EVIDENCE",
+                "\n".join(
+                    str(e.get("tool_name", "UNKNOWN"))
+                    + " · "
+                    + str(e.get("summary", "UNKNOWN"))[:300]
+                    for e in evidence[:16]
+                )
+                if evidence
+                else "No tool evidence recorded",
                 "",
                 "EVIDENCE REFERENCES",
                 json.dumps(investigation.get("evidence_references"), indent=2, default=str),

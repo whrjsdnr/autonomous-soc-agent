@@ -35,6 +35,7 @@ from soc_agent.security_ai.research.backpressure import ObservedRate, QueuePress
 from soc_agent.security_ai.research.live_input import lifecycle_eligible
 from soc_agent.security_ai.research.live_service import LiveResearch
 from soc_agent.security_ai.research.models import digest
+from soc_agent.security_ai.research.packet_accounting import packet_accounting
 from soc_agent.security_ai.research.stream_store import StreamStore
 from soc_agent.security_ai.research.total_integrity import (
     FlowFeatureMismatch,
@@ -507,6 +508,7 @@ class StreamingMonitoring:
             for event in self.dns_diagnostics.observe(dns_packet, self.sequence):
                 await asyncio.to_thread(self.store.runtime.event, "TOTAL_DNS_EVENT", event)
             self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
+            self.metrics["dns_diagnostic_inputs"] = self.sequence
         try:
             completed = self.aggregator.add(packet, identity)
         except PacketTimeReversed as error:
@@ -1190,7 +1192,18 @@ class StreamingMonitoring:
             else "NATIVE_AF_PACKET"
             if self.session
             else "NO_DATA",
-            network=dict(self.metrics),
+            network={
+                **self.metrics,
+                "packet_accounting": packet_accounting(
+                    self.metrics,
+                    session_id=str(self.session.session_id) if self.session else None,
+                    origin="FIXTURE"
+                    if self.fixture
+                    else "NATIVE_AF_PACKET"
+                    if self.session
+                    else "NO_DATA",
+                ),
+            },
             flow_eligibility=dict(
                 eligible=self.eligible,
                 rejected=self.excluded,

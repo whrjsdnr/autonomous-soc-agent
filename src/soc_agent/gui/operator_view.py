@@ -6,7 +6,7 @@ No runtime construction, background task, model load or polling belongs here.
 import tkinter as tk
 from tkinter import ttk
 
-from soc_agent.gui.charts import Trend
+from soc_agent.gui import visual_charts
 from soc_agent.gui.components import (
     ELEVATED,
     PRIMARY,
@@ -114,23 +114,58 @@ def dashboard(app):
             "Authentication",
         ),
     )
-    charts = ttk.Frame(app.content)
-    charts.pack(fill="x", pady=(0, 14))
-    app.traffic_chart = Trend(
-        charts, app.history, "network_rate", "PACKET RATE", PRIMARY, units="packets / second"
+    app.capture_summary = Label(
+        app.content,
+        text="Raw / sent / delivered · NOT OBSERVED",
+        size=11,
+        fg=SECONDARY,
+        max_width=1100,
     )
-    app.inference_chart = Trend(
-        charts,
-        app.history,
-        "inference_rate",
-        "RESEARCH INFERENCE",
-        "#A78BFA",
-        units="inferences / minute",
+    app.capture_summary.pack(anchor="w", pady=(0, 12))
+    app.dashboard_charts = visual_charts.grid(
+        app.content,
+        (
+            (
+                "NETWORK TRAFFIC · DISTINCT COUNTERS",
+                (
+                    ("raw", "Raw"),
+                    ("normalized", "Sent"),
+                    ("delivered", "Delivered"),
+                    ("limit", "Limit"),
+                ),
+                "frames or packets / second · monotonic interval",
+            ),
+            (
+                "DNS METADATA",
+                (("queries", "Queries"), ("responses", "Responses")),
+                "events / second · DNS9 PARITY BLOCKED",
+            ),
+            (
+                "MODEL RECEIPTS",
+                (("quality", "Quality RF"), ("edge", "Edge LR")),
+                "retained verified receipt index · RESEARCH_ONLY",
+                "records",
+            ),
+            (
+                "INFERENCE LATENCY",
+                (("latency", "Worker latency"),),
+                "milliseconds · receipt observations",
+                "records",
+            ),
+            (
+                "RESEARCH ASSESSMENT",
+                (("severity", "Severity"),),
+                "ordinal: 0 Info / 1 Low / 2 Medium / 3 High / 4 Critical · not risk probability",
+                "records",
+            ),
+            (
+                "INVESTIGATION ACTIVITY",
+                (("progress", "Recorded step"),),
+                "checkpoint sequence · READ-only · no implied completion",
+                "records",
+            ),
+        ),
     )
-    for i, chart in enumerate((app.traffic_chart, app.inference_chart)):
-        chart.configure(height=190)
-        chart.grid(row=0, column=i, sticky="nsew", padx=(0 if i == 0 else 12, 0))
-        charts.columnconfigure(i, weight=1, uniform="charts")
     Label(app.content, text="RECENT ADVISORIES", size=12, bold=True, fg=PRIMARY).pack(
         anchor="w", pady=(0, 8)
     )
@@ -158,7 +193,7 @@ def render_dashboard(app, value, rows):
         collectors.get("dns", "UNKNOWN"), "DNS9 model · BLOCKED"
     )
     app.status_cards["Capture integrity"].update_value(
-        net.get("capture_integrity"), "Counter / timestamp / drop validation"
+        net.get("capture_integrity"), "Integrity · " + str(net.get("integrity_state", "UNKNOWN"))
     )
     app.status_cards["Queue backlog"].update_value(
         net.get("queue_backlog"), "Bounded ingestion + inference queues"
@@ -180,10 +215,21 @@ def render_dashboard(app, value, rows):
     app.status_cards["Authentication"].update_value(
         auth.get("runtime_state", "NOT_ATTACHED"), "Retained evidence is not live collection"
     )
-    for chart in (app.traffic_chart, app.inference_chart):
-        chart.source = origin
-        chart.history = app.history
-        chart.redraw()
+    account = net.get("packet_accounting", {})
+
+    def observed(key):
+        result = account.get(key)
+        return str(result) if type(result) is int else "UNKNOWN"
+
+    app.capture_summary.configure(
+        text=f"RAW {observed('received_raw_frames')}  /  "
+        f"SENT {observed('normalized_packets_sent')}  /  "
+        f"DELIVERED {observed('transport_delivered_packets')}    ·    "
+        f"DROPS {observed('capture_drops')} / GAPS {observed('capture_gaps')}    ·    "
+        f"{len(rows)} retained research advisories · "
+        "Uncalibrated / not operational findings"
+    )
+    visual_charts.render(app.dashboard_charts, app, value)
     recent = [row for row, _ in rows[-4:]]
     marker = str(recent)
     if marker != app.recent_marker:
@@ -238,6 +284,29 @@ def records(app):
         Button(bar, text="Apply filter", command=app._render_current).pack(side="left")
     app.record_count = Label(bar, text="No events", fg=SECONDARY, size=12)
     app.record_count.pack(side="right")
+    app.event_charts = visual_charts.grid(
+        app.content,
+        (
+            (
+                "READ-ONLY INVESTIGATION TIMELINE"
+                if investigation
+                else "EVENT ASSESSMENT TIMELINE",
+                (("progress", "Checkpoint sequence"),)
+                if investigation
+                else (("severity", "Research severity"),),
+                "latest / selected incident checkpoints · no completion percentage"
+                if investigation
+                else "event order · ordinal severity, not calibrated risk",
+                "records",
+            ),
+            (
+                "SEVERITY DISTRIBUTION",
+                (("severity", "Research assessments"),),
+                "0 Info / 1 Low / 2 Medium / 3 High / 4 Critical · actual assessment only",
+                "distribution",
+            ),
+        ),
+    )
     split = ttk.Frame(app.content)
     split.pack(fill="both", expand=True)
     left, right = ttk.Frame(split), ttk.Frame(split)
@@ -339,6 +408,28 @@ def system(app):
         command=lambda: app.call("archive_status", callback=app._system_result),
     ).pack(side="left", padx=(0, 8))
     Button(bar2, text="Developer tools", command=app.developer_tools).pack(side="left")
+    app.health_charts = visual_charts.grid(
+        app.content,
+        (
+            ("CONTROLLER CPU", (("cpu", "CPU"),), "% of one CPU · monotonic process delta"),
+            ("CONTROLLER MEMORY", (("rss", "RSS"),), "MiB · excludes isolated model worker"),
+            (
+                "BOUNDED QUEUES",
+                (("queue", "Inference"), ("transport_queue", "Transport")),
+                "pending entries · no silent overflow",
+            ),
+            (
+                "CAPTURE QUALITY",
+                (("drops", "Kernel drops"), ("gaps", "Explicit gaps")),
+                "observed cumulative counts",
+            ),
+            (
+                "APPROVED RATE / TOKEN BUDGET",
+                (("raw", "Raw FPS"), ("limit", "Limit"), ("tokens", "Tokens")),
+                "distinct units · token balance UNKNOWN unless transmitted",
+            ),
+        ),
+    )
     app.system = tk.Text(
         app.content,
         height=10,
@@ -359,7 +450,13 @@ def system(app):
     ).pack(anchor="e", pady=8)
 
 
+def render_records(app, value):
+    projected = {**value, "research": {"records": [record for _, record in app.records]}}
+    visual_charts.render(app.event_charts, app, projected)
+
+
 def render_system(app, value):
+    visual_charts.render(app.health_charts, app, value)
     net = value.get("network", {})
     app.system_cards["Monitoring"].update_value(
         value.get("state", "UNKNOWN"), value.get("input_origin", "NO_DATA")
