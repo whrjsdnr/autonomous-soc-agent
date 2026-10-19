@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4, uuid5
 
+from soc_agent.realtime.queue import QueueFull
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory
 from soc_agent.runtime_lock import exclusive_runtime_lock
@@ -26,6 +27,7 @@ from soc_agent.security_ai.operational.network_capture.streaming_flow import (
     StreamingFlows,
 )
 from soc_agent.security_ai.research.adapter import ResearchAdapter
+from soc_agent.security_ai.research.backpressure import ObservedRate, QueuePressure
 from soc_agent.security_ai.research.live_input import lifecycle_eligible
 from soc_agent.security_ai.research.live_service import LiveResearch
 from soc_agent.security_ai.research.models import digest
@@ -255,6 +257,17 @@ class StreamingMonitoring:
         self.model_attempts = 0
         self.sequence = 0
         self.inference_blocked = False
+        self.inference_pressure = QueuePressure(policy.inference_capacity)
+        self.ingestion_pressure = QueuePressure(policy.transport_capacity)
+        self.raw_rate = ObservedRate()
+        self.metrics.update(
+            approved_raw_frames_per_second=policy.frames_per_second,
+            approved_burst_frames=policy.burst_frames,
+            rate_budget_state="FIXTURE_NO_CAPTURE" if fixture else "AWAITING_CAPTURE",
+            token_balance=None,
+            current_raw_frame_rate=None,
+            inference_capacity_exclusions=0,
+        )
         self.consumer = asyncio.create_task(self._consume())
         self.store.runtime.event(
             "STREAM_STARTED",
@@ -416,10 +429,7 @@ class StreamingMonitoring:
             window = (1, counter_sequence)
             if lifecycle_eligible(item.flow.close_reason):
                 self.eligible += 1
-                event = await asyncio.to_thread(self.store.commit, item, window, enqueue=False)
-                self.windows[item.flow.flow_id] = event.source_digest
-                if not await asyncio.to_thread(self.store.queue.enqueue, event):
-                    raise ValueError("STREAM_DUPLICATE_FLOW_HANDOFF")
+                await self._handoff(item, window)
             else:
                 self.excluded += 1
                 await asyncio.to_thread(
@@ -432,6 +442,31 @@ class StreamingMonitoring:
                     ),
                 )
         await self.publish()
+
+    async def _handoff(self, item, window):
+        # The existing 512-record socket reader is the ingestion queue. Model
+        # work is already a separate consumer/process; never wait for model
+        # capacity here or turn that capacity limit into capture corruption.
+        reason = "STREAM_MODEL_CIRCUIT_OPEN" if self.inference_blocked else None
+        if reason is None:
+            try:
+                event = await asyncio.to_thread(self.store.commit, item, window, enqueue=False)
+            except QueueFull as error:
+                if str(error) != "STREAM_INFERENCE_QUEUE_BACKPRESSURE":
+                    raise
+                self.inference_pressure.sample(self.policy.inference_capacity)
+                reason = str(error)
+            else:
+                self.windows[item.flow.flow_id] = event.source_digest
+                if not await asyncio.to_thread(self.store.queue.enqueue, event):
+                    raise ValueError("STREAM_DUPLICATE_FLOW_HANDOFF")
+                counts = self.store.queue.counts()
+                self.inference_pressure.sample(counts.get("PENDING", 0) + counts.get("CLAIMED", 0))
+        if reason is not None:
+            await asyncio.to_thread(self.store.exclude_capacity, item, window, reason)
+            self.metrics["inference_capacity_exclusions"] += 1
+            self.metrics["last_domain_error"] = reason
+            self._integrity_metrics()
 
     async def _isolation_event(self, event):
         # Do not yield between an in-memory quarantine and its durable decision.
@@ -458,6 +493,8 @@ class StreamingMonitoring:
             or domain["quarantined_flow_keys"]
             or dns["diagnostic_status"] != "HEALTHY"
             or self.inference_blocked
+            or self.metrics.get("inference_capacity_exclusions", 0)
+            or self.metrics.get("backpressure") == "HIGH"
         )
         self.metrics.update(
             flow_integrity=domain,
@@ -617,7 +654,38 @@ class StreamingMonitoring:
         )
         if self.capture is not None:
             self.metrics.update(self.capture.extra_metrics())
+        self._pressure_metrics(now)
+        if self.state not in ("STOPPED", "STREAM_DRAINING"):
+            self._integrity_metrics()
         await asyncio.to_thread(self.store.runtime.update, network=dict(self.metrics))
+
+    def _pressure_metrics(self, now):
+        counts = self.store.queue.counts()
+        backlog = counts.get("PENDING", 0) + counts.get("CLAIMED", 0)
+        inference = self.inference_pressure.sample(backlog)
+        depth = self.metrics.get("transport_queue_depth")
+        ingestion = self.ingestion_pressure.sample(depth) if depth is not None else None
+        self.metrics.update(
+            inference_queue=inference,
+            ingestion_queue=ingestion,
+            backpressure="HIGH"
+            if inference["state"] != "NORMAL" or (ingestion and ingestion["state"] != "NORMAL")
+            else "NORMAL",
+            worker_health="BLOCKED_NO_RETRY"
+            if self.inference_blocked or self.aborted
+            else "PROCESSING_FLOW"
+            if self.current is not None
+            else "STOPPED"
+            if self.done.is_set()
+            else "IDLE",
+        )
+        if self.capture is not None and self.state == "LIVE_COLLECTION" and not self.aborted:
+            self.metrics["current_raw_frame_rate"] = self.raw_rate.sample(
+                self.metrics.get("received_frames"), now
+            )
+            self.metrics["rate_budget_state"] = "HELPER_ENFORCED_PREFIX_ONLY"
+        else:
+            self.metrics["current_raw_frame_rate"] = None
 
     async def _finalize(self):
         if self.total:
@@ -675,6 +743,9 @@ class StreamingMonitoring:
         self.metrics["abort_reason"] = self.last_error
         self.metrics["finalization"] = "BLOCKED"
         self.metrics["gap_count"] += 1
+        if self.last_error == "STREAM_RATE_BUDGET_EXCEEDED":
+            self.metrics["rate_budget_state"] = "EXCEEDED_CAPTURE_WINDOW_BLOCKED"
+        self.metrics.update(current_raw_frame_rate=None, worker_health="BLOCKED_NO_RETRY")
         if self.total:
             capture_wide = self.last_error.startswith(
                 (
@@ -700,6 +771,23 @@ class StreamingMonitoring:
             self.dns_diagnostics.finish(aborted=True)
             self.dns_diagnostics.blocked = True
             self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
+            self.metrics["dns_diagnostic_status"] = "DNS_DIAGNOSTIC_BLOCKED"
+            # Unknown loss scope invalidates the shared window, including DNS.
+            # This is not a claim that the kernel dropped a measured packet.
+            window = dict(
+                capture_session=str(self.session.session_id),
+                error=self.last_error,
+                accepted_packet_prefix=self.sequence,
+                affected_flow_keys=sorted(self.aggregator.partitions),
+                unobserved_packet_count=None,
+                scope="SHARED_CAPTURE_WINDOW",
+                model_eligibility="BLOCKED",
+                automatic_retry=False,
+            )
+            self.store.runtime.event("TOTAL_CAPTURE_WINDOW_QUARANTINED", window)
+            self.metrics["capture_window_quarantine"] = digest(window)
+            self.metrics["capture_window_quarantined_keys"] = len(window["affected_flow_keys"])
+            self.metrics["healthy_flow_count"] = 0
         self.aggregator.close("RESTART_GAP")
         self.windows.clear()
         self.done.set()
@@ -751,6 +839,7 @@ class StreamingMonitoring:
                 v for k, v in self.store.queue.counts().items() if k in ("PENDING", "CLAIMED")
             ),
         )
+        self._pressure_metrics(time.monotonic())
         await asyncio.to_thread(self.store.runtime.update, network=dict(self.metrics))
 
     async def stop(self, *, abort=False):
@@ -883,6 +972,9 @@ class StreamingMonitoring:
             inference_count=0,
             inferences_per_minute=None,
             advisory_latency_seconds=None,
+            current_raw_frame_rate=None,
+            backpressure="RETAINED_NOT_LIVE",
+            worker_health="STOPPED",
             retained_previous_active_flows=self.metrics.get("active_flows"),
             active_flows=0,
             retained_metadata_bytes=0,

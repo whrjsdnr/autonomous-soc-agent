@@ -194,6 +194,41 @@ class StreamStore:
             raise ValueError("STREAM_DUPLICATE_FLOW_HANDOFF")
         return event
 
+    def exclude_capacity(self, completed, window, reason):
+        """Durable disposition, not a source/model receipt or packet-loss claim.
+
+        Only called before commit when the bounded inference queue cannot admit
+        a completed flow. Preserve its vector/summary digests, never its packet
+        list. No automatic replay or later eligibility promotion is scheduled.
+        """
+        env = Envelope(
+            origin="FIXTURE" if self.fixture else "NATIVE_AF_PACKET",
+            capture_session=self.session.session_id,
+            flow=completed.flow,
+            identities=completed.identities,
+            packets=completed.packets,
+            values=completed.values,
+            counter_start=window[0],
+            counter_end=window[1],
+        )
+        if not lifecycle_eligible(env.flow.close_reason):
+            raise ValueError("STREAM_INELIGIBLE_FLOW")
+        self.runtime.event(
+            "STREAM_FLOW_INFERENCE_EXCLUDED",
+            dict(
+                flow_id=env.flow.flow_id,
+                capture_session=str(env.capture_session),
+                origin=env.origin,
+                input_digest=digest(env.model_dump(mode="json")),
+                vector_digest=digest(env.values),
+                packet_count=len(env.packets),
+                counter_window=list(window),
+                reason=reason,
+                disposition="NOT_INFERRED_NO_RETRY",
+                capture_gap=False,
+            ),
+        )
+
     def load(self, event, profile):
         self.runtime.verify_audit()
         fields = dict(event.normalized_fields)

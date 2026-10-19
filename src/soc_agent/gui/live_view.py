@@ -453,7 +453,26 @@ class LiveView:
                 + " · pending "
                 + str(dns.get("pending", "UNKNOWN"))
                 + " · DNS9 BLOCKED / PRODUCER_PARITY_UNVERIFIED"
-                + " · Rate 128 raw frames/s / burst 256 / token balance UNKNOWN"
+                + "\nApproved rate "
+                + known(network.get("approved_raw_frames_per_second"))
+                + " raw frames/s · burst "
+                + known(network.get("approved_burst_frames"))
+                + " · observed raw frames/s "
+                + known(network.get("current_raw_frame_rate"))
+                + " · token balance UNKNOWN · Rate budget "
+                + known(network.get("rate_budget_state"))
+                + "\nBackpressure "
+                + known(network.get("backpressure"))
+                + " · Inference queue "
+                + known(network.get("inference_queue"))
+                + " · Ingestion queue "
+                + known(network.get("ingestion_queue"))
+                + " · Not inferred (capacity/circuit) "
+                + known(network.get("inference_capacity_exclusions"))
+                + " · Worker health "
+                + known(network.get("worker_health"))
+                + " · Shared-window quarantined keys "
+                + known(network.get("capture_window_quarantined_keys"))
                 + "\nCapture integrity "
                 + known(network.get("capture_integrity"))
                 + " · Health "
