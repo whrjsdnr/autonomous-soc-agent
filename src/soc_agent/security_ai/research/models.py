@@ -256,10 +256,23 @@ class LiveReceipt(Frozen):
         return self
 
 
-ResearchReceipt = Receipt | DNSReceipt | LiveReceipt
+class ZeekReceipt(LiveReceipt):
+    contract: Literal["soc-zeek-network14-receipt:v1"] = "soc-zeek-network14-receipt:v1"
+    origin: Literal["ZEEK_OFFLINE_PCAP"] = "ZEEK_OFFLINE_PCAP"
+    pcap_sha256: Hash
+    packet_log_sha256: Hash
+    script_sha256: Hash
+    network14_parity: Literal["VERIFIED_FOR_BOUND_WINDOW"] = "VERIFIED_FOR_BOUND_WINDOW"
+    producer_origin: Literal["OFFLINE_PCAP"] = "OFFLINE_PCAP"
+    zeek_producer_version: Literal["zeek-packet-network14:v1"] = "zeek-packet-network14:v1"
+
+
+ResearchReceipt = Receipt | DNSReceipt | LiveReceipt | ZeekReceipt
 
 
 def parse_receipt(value):
+    if value.get("contract") == "soc-zeek-network14-receipt:v1":
+        return ZeekReceipt.model_validate(value)
     if value.get("contract") == "soc-live-network-research-receipt:v1":
         return LiveReceipt.model_validate(value)
     return (
@@ -271,6 +284,7 @@ def parse_receipt(value):
 
 class AdvisoryContext(Frozen):
     contract: Literal[
+        "soc-zeek-network14-advisory:v1",
         "soc-network-research-advisory:v1",
         "soc-dns-research-advisory:v1",
         "soc-live-network-research-advisory:v1",
@@ -288,16 +302,25 @@ class AdvisoryContext(Frozen):
     @model_validator(mode="after")
     def bind_receipt(self) -> Self:
         expected = (
-            "soc-live-network-research-advisory:v1"
+            "soc-zeek-network14-advisory:v1"
+            if isinstance(self.result, ZeekReceipt)
+            else "soc-live-network-research-advisory:v1"
             if isinstance(self.result, LiveReceipt)
             else "soc-dns-research-advisory:v1"
             if isinstance(self.result, DNSReceipt)
             else "soc-network-research-advisory:v1"
         )
-        if isinstance(self.result, LiveReceipt) and self.mode != (
-            "LIVE_RESEARCH_ADVISORY"
-            if self.result.origin == "NATIVE_AF_PACKET"
-            else "FIXTURE_RESEARCH_ADVISORY"
+        if isinstance(self.result, ZeekReceipt) and self.mode != "OFFLINE_RESEARCH_DEMO":
+            raise ValueError("ZEEK_ADVISORY_CANNOT_CLAIM_NATIVE_OR_FIXTURE")
+        if (
+            isinstance(self.result, LiveReceipt)
+            and not isinstance(self.result, ZeekReceipt)
+            and self.mode
+            != (
+                "LIVE_RESEARCH_ADVISORY"
+                if self.result.origin == "NATIVE_AF_PACKET"
+                else "FIXTURE_RESEARCH_ADVISORY"
+            )
         ):
             raise ValueError("LIVE_ADVISORY_ORIGIN_MISMATCH")
         if not isinstance(self.result, LiveReceipt) and self.mode != "OFFLINE_RESEARCH_DEMO":

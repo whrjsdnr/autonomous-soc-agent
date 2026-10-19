@@ -36,7 +36,9 @@ def main(argv=None) -> int:
     start.add_argument("--approve-calibrated-sha")
     start.add_argument("--approve-direction-sha")
     start.add_argument(
-        "--collector", choices=("existing-capture", "zeek-offline"), default="existing-capture"
+        "--collector",
+        choices=("existing-capture", "zeek-offline", "zeek-network14-offline"),
+        default="existing-capture",
     )
     start.add_argument("--pcap", type=Path)
     start.add_argument("--pcap-sha256")
@@ -45,7 +47,7 @@ def main(argv=None) -> int:
         from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
 
         unprivileged()
-        if args.collector == "zeek-offline":
+        if args.collector.startswith("zeek-"):
             from soc_agent.gui.__main__ import main as gui_main
             from soc_agent.security_ai.collectors.offline import OfflineZeek, pcap_digest
 
@@ -58,7 +60,7 @@ def main(argv=None) -> int:
             OfflineZeek().environment()
             gui_args = [
                 "--collector",
-                "zeek-offline",
+                args.collector,
                 "--zeek-pcap",
                 str(args.pcap.absolute()),
                 "--zeek-pcap-sha256",

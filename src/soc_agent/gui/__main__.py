@@ -39,7 +39,9 @@ def main(argv=None) -> int:
     )
     parser.add_argument("--calibrated-approved-bundle", help=argparse.SUPPRESS)
     parser.add_argument(
-        "--collector", choices=("existing-capture", "zeek-offline"), default="existing-capture"
+        "--collector",
+        choices=("existing-capture", "zeek-offline", "zeek-network14-offline"),
+        default="existing-capture",
     )
     parser.add_argument("--zeek-pcap", type=Path)
     parser.add_argument("--zeek-pcap-sha256")

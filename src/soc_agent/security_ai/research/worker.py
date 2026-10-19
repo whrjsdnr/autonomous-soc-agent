@@ -170,7 +170,15 @@ def run_live(request, paths):
     unprivileged()
     verify(paths, offline=False)
     parity_check()
-    vector = produce(request)
+    from soc_agent.security_ai.research.zeek_input import ZeekRequest
+
+    zeek = isinstance(request, ZeekRequest)
+    if zeek:
+        from soc_agent.security_ai.research.zeek_input import produce as produce_zeek
+
+        vector = produce_zeek(request)
+    else:
+        vector = produce(request)
     import ml.verified_producers.network_v1_1 as producer
     import numpy as np
     import sklearn
@@ -205,8 +213,19 @@ def run_live(request, paths):
     score = float(probabilities(model, np.asarray([vector.values], dtype=np.float32))[0])
     elapsed = (time.perf_counter() - started) * 1000
     usage = resource.getrusage(resource.RUSAGE_SELF)
-    return LiveReceipt(
+    from soc_agent.security_ai.research.models import ZeekReceipt
+
+    return (ZeekReceipt if zeek else LiveReceipt)(
         profile=request.profile,
+        **(
+            dict(
+                pcap_sha256=request.pcap_sha256,
+                packet_log_sha256=request.packet_log_sha256,
+                script_sha256=request.script_sha256,
+            )
+            if zeek
+            else {}
+        ),
         origin=request.origin,
         invocation_id=request.invocation_id,
         request_digest=digest(request.model_dump(mode="json")),
@@ -246,13 +265,18 @@ def main():
     parser.add_argument("--ml", type=Path, required=True)
     parser.add_argument("--producer-source", type=Path, required=True)
     parser.add_argument("--live-metadata", action="store_true")
+    parser.add_argument("--zeek-metadata", action="store_true")
     args = parser.parse_args()
     bind_parent(args.parent_pid)
     limits()
     from soc_agent.security_ai.research.environment import Paths, read_local
     from soc_agent.security_ai.research.models import Request
 
-    if args.live_metadata:
+    if args.zeek_metadata:
+        from soc_agent.security_ai.research.zeek_input import ZeekRequest
+
+        request = ZeekRequest.model_validate_json(read_local(args.request, 256 * 1024))
+    elif args.live_metadata:
         from soc_agent.security_ai.research.live_input import LiveRequest
 
         request = LiveRequest.model_validate_json(read_local(args.request, 256 * 1024))
@@ -261,7 +285,11 @@ def main():
     paths = Paths(
         args.ml, Path(sys.executable), Path(__file__).resolve().parents[3], args.producer_source
     )
-    result = run_live(request, paths) if args.live_metadata else run(request, paths)
+    result = (
+        run_live(request, paths)
+        if args.live_metadata or args.zeek_metadata
+        else run(request, paths)
+    )
     with args.result.open("x") as stream:
         stream.write(result.model_dump_json())
     args.result.chmod(0o600)

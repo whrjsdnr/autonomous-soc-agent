@@ -20,6 +20,11 @@ PROGRAM = (
     "printf '%s\\n' SOC_ZEEK_DNS_V1; if [ -f dns.log ]; then cat dns.log; fi"
 )
 
+PACKET_PROGRAM = (
+    PROGRAM.replace("/policy/privacy.zeek;", "/policy/privacy.zeek /policy/network14.zeek;")
+    + "; printf '%s\\n' SOC_ZEEK_PACKET_V1; cat network14_packets.log"
+)
+
 
 def file_digest(path: Path) -> str:
     h = hashlib.sha256()
@@ -51,7 +56,8 @@ def pcap_digest(path: Path) -> str:
 
 
 class OfflineZeek:
-    def __init__(self):
+    def __init__(self, *, packet_mode=False):
+        self.packet_mode = packet_mode
         self.container = None
         self.process = None
         self.cancelled = threading.Event()
@@ -109,6 +115,8 @@ class OfflineZeek:
         self.environment()
         policy = Path(__file__).with_name("privacy.zeek").absolute()
         policy_digest = file_digest(policy)
+        packet_policy = policy.with_name("network14.zeek")
+        packet_policy_digest = file_digest(packet_policy) if self.packet_mode else None
         started = time.monotonic()
         argv = [
             self._docker(),
@@ -137,11 +145,19 @@ class OfflineZeek:
             f"type=bind,source={pcap},target=/input/input.pcap,readonly",
             "--mount",
             f"type=bind,source={policy},target=/policy/privacy.zeek,readonly",
+            *(
+                [
+                    "--mount",
+                    f"type=bind,source={packet_policy},target=/policy/network14.zeek,readonly",
+                ]
+                if self.packet_mode
+                else []
+            ),
             "--entrypoint",
             "/bin/sh",
             IMAGE,
             "-c",
-            PROGRAM,
+            PACKET_PROGRAM if self.packet_mode else PROGRAM,
         ]
         try:
             with self.lock:
@@ -168,8 +184,11 @@ class OfflineZeek:
             kind = None
             handles = {}
             try:
-                for name in ("network", "dns"):
-                    path = logs / ("conn.log" if name == "network" else "dns.log")
+                filenames = {"network": "conn.log", "dns": "dns.log"}
+                if self.packet_mode:
+                    filenames["packet"] = "network14_packets.log"
+                for name, filename in filenames.items():
+                    path = logs / filename
                     handles[name] = path.open("xb")
                     path.chmod(0o600)
                 for line in iter(lambda: self.process.stdout.readline(16385), b""):
@@ -181,6 +200,9 @@ class OfflineZeek:
                         continue
                     if line == b"SOC_ZEEK_DNS_V1\n":
                         kind = "dns"
+                        continue
+                    if line == b"SOC_ZEEK_PACKET_V1\n" and self.packet_mode:
+                        kind = "packet"
                         continue
                     if kind is None:
                         raise ValueError("ZEEK_OUTPUT_FRAMING_REJECTED")
@@ -210,13 +232,28 @@ class OfflineZeek:
                         "TTLs",
                         "TC",
                     }
+                    if kind == "packet":
+                        allowed = {
+                            "sequence",
+                            "seconds",
+                            "microseconds",
+                            "frame_length",
+                            "captured_length",
+                            "kind",
+                            "source",
+                            "destination",
+                            "source_port",
+                            "destination_port",
+                            "ip_length",
+                            "tcp_flags",
+                        }
                     if not isinstance(row, dict) or not set(row) <= allowed:
                         raise ValueError("ZEEK_PRIVACY_FILTER_FAILED")
                     handles[kind].write(line)
                 code = self.process.wait(timeout=5)
                 if self.cancelled.is_set():
                     raise ValueError("ZEEK_OFFLINE_CANCELLED_OR_TIMEOUT")
-                if code or kind != "dns":
+                if code or kind != ("packet" if self.packet_mode else "dns"):
                     raise ValueError("ZEEK_PROCESS_FAILED")
             finally:
                 deadline.cancel()
@@ -228,6 +265,8 @@ class OfflineZeek:
                 raise ValueError("ZEEK_PRIVACY_POLICY_CHANGED")
             if file_digest(pcap) != approved_sha:
                 raise ValueError("ZEEK_PCAP_CHANGED_DURING_PROCESSING")
+            if self.packet_mode and file_digest(packet_policy) != packet_policy_digest:
+                raise ValueError("ZEEK_PACKET_POLICY_CHANGED")
             self.elapsed_seconds = time.monotonic() - started
             return dict(
                 version=VERSION,
@@ -237,7 +276,12 @@ class OfflineZeek:
                 elapsed_seconds=self.elapsed_seconds,
                 output_bytes=self.peak_output_bytes,
                 native_capture=False,
-                log_sha256={n: file_digest(logs / n) for n in ("conn.log", "dns.log")},
+                log_sha256={n: file_digest(logs / n) for n in filenames.values()},
+                **(
+                    dict(packet_policy_sha256=packet_policy_digest, packet_mode=True)
+                    if self.packet_mode
+                    else {}
+                ),
             )
         finally:
             self._remove()

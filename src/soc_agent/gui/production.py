@@ -186,7 +186,7 @@ class Desktop:
     def _started(self, value):
         self.startup_complete = True
         self.render(value)
-        if self.config.collector_type == "zeek-offline":
+        if self.config.collector_type.startswith("zeek-"):
             self.navigate("System", refresh=False)
         elif self.config.total_approved_sha:
             self.navigate("System", refresh=False)
@@ -452,7 +452,7 @@ class Desktop:
         )
 
     def start(self):
-        if self.collector_type.get() == "zeek-offline":
+        if self.collector_type.get().startswith("zeek-"):
             pcap = self.config.zeek_pcap
             sha = self.config.zeek_pcap_sha256
             if pcap is None:
@@ -465,7 +465,13 @@ class Desktop:
                 sha = None  # The backend validates and hashes bounded files off the Tk thread.
             self.command = ""
             self.command_session = None
-            self.call("zeek_start", str(pcap), sha, callback=self.render)
+            self.call(
+                "zeek_start",
+                str(pcap),
+                sha,
+                self.collector_type.get() == "zeek-network14-offline",
+                callback=self.render,
+            )
             return
         self.command = ""
         self.command_session = None

@@ -35,6 +35,7 @@ class ResearchAdapter:
         self.cancelled = False
         self.live_metadata = live_metadata
         self.authorize_live = None
+        self.authorize_zeek = None
         self.transient_inputs = transient_inputs
 
     def status(self, profile="quality") -> dict:
@@ -65,21 +66,29 @@ class ResearchAdapter:
 
     async def infer(self, request: Request) -> dict:
         from soc_agent.security_ai.research.live_input import LiveRequest, validate_result
+        from soc_agent.security_ai.research.zeek_input import ZeekRequest
 
-        live = isinstance(request, LiveRequest)
+        zeek = isinstance(request, ZeekRequest)
+        live = isinstance(request, LiveRequest) or zeek
         if live:
             from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
 
             unprivileged()
         if live != self.live_metadata:
             raise ValueError("EXPLICIT_LIVE_RESEARCH_MODE_REQUIRED")
-        request = (LiveRequest if live else Request).model_validate_json(request.model_dump_json())
+        request = (ZeekRequest if zeek else LiveRequest if live else Request).model_validate_json(
+            request.model_dump_json()
+        )
         if self.busy:
             raise ValueError("RESEARCH_WORKER_ALREADY_RUNNING")
         self.busy = True
         self.cancelled = False
         work = source = result = None
         try:
+            if zeek:
+                if self.authorize_zeek is None:
+                    return {"status": "UNKNOWN", "error": "ZEEK_SOURCE_NOT_VERIFIED"}
+                await asyncio.to_thread(self.authorize_zeek, request)
             if live and request.origin == "NATIVE_AF_PACKET":
                 if self.authorize_live is None:
                     return {"status": "UNKNOWN", "error": "NATIVE_CAPTURE_SOURCE_NOT_VERIFIED"}
@@ -115,7 +124,7 @@ class ResearchAdapter:
                 str(paths.ml),
                 "--producer-source",
                 str(paths.producer_source or paths.ml),
-                *(["--live-metadata"] if live else []),
+                *(["--zeek-metadata"] if zeek else ["--live-metadata"] if live else []),
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
                 env={
@@ -144,7 +153,14 @@ class ResearchAdapter:
                 return {"status": "UNKNOWN", "error": "WORKER_FAILURE_OR_BUDGET_NO_RETRY"}
             receipt = parse_receipt(json.loads(read_local(result, 32 * 1024)))
             if live:
-                validate_result(request, receipt)
+                if zeek:
+                    from soc_agent.security_ai.research.zeek_input import (
+                        validate_result as validate_zeek,
+                    )
+
+                    validate_zeek(request, receipt)
+                else:
+                    validate_result(request, receipt)
                 return {"status": "SUCCESS", "receipt": receipt.model_dump(mode="json")}
             if request.profile == "dns":
                 if (

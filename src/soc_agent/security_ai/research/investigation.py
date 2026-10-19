@@ -16,6 +16,7 @@ from soc_agent.security_ai.research.models import (
     Frozen,
     LiveReceipt,
     ResearchReceipt,
+    ZeekReceipt,
     digest,
 )
 from soc_agent.state import IncidentState
@@ -151,7 +152,9 @@ def composition(store, context: AdvisoryContext):
 
 async def investigate(store, receipt: ResearchReceipt, incident_id: UUID) -> dict:
     context = AdvisoryContext(
-        contract="soc-live-network-research-advisory:v1"
+        contract="soc-zeek-network14-advisory:v1"
+        if isinstance(receipt, ZeekReceipt)
+        else "soc-live-network-research-advisory:v1"
         if isinstance(receipt, LiveReceipt)
         else "soc-dns-research-advisory:v1"
         if isinstance(receipt, DNSReceipt)
@@ -159,7 +162,9 @@ async def investigate(store, receipt: ResearchReceipt, incident_id: UUID) -> dic
         incident_id=incident_id,
         receipt_digest=digest(receipt.model_dump(mode="json")),
         result=receipt,
-        mode=(
+        mode="OFFLINE_RESEARCH_DEMO"
+        if isinstance(receipt, ZeekReceipt)
+        else (
             "LIVE_RESEARCH_ADVISORY"
             if receipt.origin == "NATIVE_AF_PACKET"
             else "FIXTURE_RESEARCH_ADVISORY"

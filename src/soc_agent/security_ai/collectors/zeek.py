@@ -20,11 +20,16 @@ from soc_agent.security_ai.collectors.store import CollectorStore
 
 
 class ZeekCollector:
-    def __init__(self, directory: Path, *, runner=None):
-        self.root = directory.absolute() / "zeek-collector"
+    def __init__(self, directory: Path, *, runner=None, packet_mode=False, paths=None):
+        self.packet_mode, self.paths = packet_mode, paths
+        self.producer = None
+        self.stop_requested = False
+        self.root = directory.absolute() / (
+            "zeek-network14-collector" if packet_mode else "zeek-collector"
+        )
         self._injected_runner = runner is not None
         self.preparing = False
-        self.runner = runner or OfflineZeek()
+        self.runner = runner or OfflineZeek(packet_mode=packet_mode)
         self.task = None
         self.store = None
         self.state = "STOPPED"
@@ -63,12 +68,16 @@ class ZeekCollector:
             raise ValueError("ZEEK_ALREADY_ACTIVE")
         self._release()
         if not self._injected_runner:
-            self.runner = OfflineZeek()
+            self.runner = OfflineZeek(packet_mode=self.packet_mode)
         await asyncio.to_thread(self.runner.environment)
         from soc_agent.security_ai.collectors.offline import pcap_digest
 
         if await asyncio.to_thread(pcap_digest, pcap) != sha256:
             raise ValueError("ZEEK_PCAP_DIGEST_MISMATCH")
+        if self.packet_mode:
+            from soc_agent.security_ai.collectors.packet_input import reference
+
+            await asyncio.to_thread(reference, pcap)
         create_private_directory(self.root)
         if len(list(self.root.glob("session-*"))) >= 8:
             raise ValueError("ZEEK_SESSION_RETENTION_REVIEW_REQUIRED")
@@ -89,6 +98,8 @@ class ZeekCollector:
         except (OSError, ValueError):
             self._release()
             raise
+        self.producer = None
+        self.stop_requested = False
         self.pcap, self.sha256 = pcap, sha256
         self.state, self.last_error = "READY_OFFLINE", None
         self.queue_peak = self.duplicates = self.rows_read = self.out_of_order = 0
@@ -111,6 +122,16 @@ class ZeekCollector:
             )
             self.store.runtime.event("ZEEK_OFFLINE_PROCESS_EXIT", result)
             await self._ingest()
+            if self.stop_requested:
+                raise ValueError("ZEEK_OFFLINE_CANCELLED")
+            if self.packet_mode:
+                from soc_agent.security_ai.collectors.producer_service import ProducerService
+
+                self.producer = ProducerService(self, paths=self.paths)
+                await self.producer.produce(result)
+                self.last_error = self.producer.last_error
+                if self.stop_requested:
+                    raise ValueError("ZEEK_RESEARCH_STOPPED_PARTIAL_NO_RETRY")
             self.store.verify()
             self.state = "STOPPED"
             self.store.runtime.event(
@@ -119,7 +140,9 @@ class ZeekCollector:
                     rows_read=self.rows_read,
                     duplicates=self.duplicates,
                     queue_final=0,
-                    inference_count=0,
+                    producer_state=self.producer.state if self.producer else None,
+                    last_error=self.last_error,
+                    inference_count=self.producer.new_inferences if self.producer else 0,
                 ),
             )
         except (
@@ -157,13 +180,13 @@ class ZeekCollector:
                     "WHERE json_extract(payload,'$.kind')='ZEEK_OFFLINE_PROCESS_EXIT'"
                 )
             ]
-        if len(records) != 1 or set(records[0].get("log_sha256", {})) != {"conn.log", "dns.log"}:
+        expected_logs = {"conn.log", "dns.log"}
+        if self.packet_mode:
+            expected_logs.add("network14_packets.log")
+        if len(records) != 1 or set(records[0].get("log_sha256", {})) != expected_logs:
             raise ValueError("ZEEK_OUTPUT_MANIFEST_MISSING")
         for name, sha in records[0]["log_sha256"].items():
-            if (
-                name not in {"conn.log", "dns.log"}
-                or file_digest(self.directory / "logs" / name) != sha
-            ):
+            if name not in expected_logs or file_digest(self.directory / "logs" / name) != sha:
                 raise ValueError("ZEEK_OUTPUT_DIGEST_MISMATCH")
         for kind, name in [("network", "conn.log"), ("dns", "dns.log")]:
             reader = LogReader(self.directory / "logs" / name, self.store.cursor(kind))
@@ -196,6 +219,9 @@ class ZeekCollector:
             raise ValueError("ZEEK_SESSION_DISK_BUDGET_EXCEEDED")
 
     async def stop(self) -> dict:
+        self.stop_requested = True
+        if self.producer is not None:
+            await self.producer.demo.stop()
         if self.task is not None and not self.task.done():
             await asyncio.to_thread(self.runner.stop)
             await asyncio.wait_for(asyncio.shield(self.task), 15)
@@ -231,7 +257,7 @@ class ZeekCollector:
             inference_latency_ms=None,
             investigation_latency_ms=None,
             log_lag_seconds=None,
-            inference_count=0,
+            inference_count=self.producer.new_inferences if self.producer else 0,
         )
 
     def snapshot(self) -> dict:
@@ -243,6 +269,16 @@ class ZeekCollector:
             except (OSError, ValueError, StorageError, sqlite3.Error):
                 integrity = "INVALID"
                 self.state, self.last_error = "UNKNOWN", "ZEEK_AUDIT_OR_CHECKPOINT_INVALID"
+        producer = None
+        if self.producer is not None:
+            try:
+                producer = self.producer.snapshot()
+            except (OSError, ValueError, StorageError, sqlite3.Error):
+                integrity = "INVALID"
+                self.state, self.last_error = (
+                    "UNKNOWN",
+                    "ZEEK_PRODUCER_OR_RESEARCH_INTEGRITY_FAILED",
+                )
         metrics = self.metrics()
         origin = self.store.source.origin if self.store else "NO_DATA"
         return dict(
@@ -256,7 +292,17 @@ class ZeekCollector:
                 type="zeek",
                 health=self.health(),
                 metrics=metrics,
-                parity=report(),
+                parity={
+                    **report(),
+                    "network14": producer["network14_parity"],
+                    "quality": producer["network14_parity"],
+                    "edge": producer["network14_parity"],
+                }
+                if producer
+                else report(),
+                producer={k: v for k, v in producer.items() if k != "research"}
+                if producer
+                else None,
                 version=VERSION,
                 source_digest=self.store.source.source_digest if self.store else None,
                 events=self.store.events() if self.store and integrity == "VERIFIED" else [],
@@ -277,13 +323,17 @@ class ZeekCollector:
             network=dict(
                 collector_network_events=metrics["network_events"],
                 collector_dns_events=metrics["dns_events"],
-                queue_backlog=metrics["queue_depth"],
+                queue_backlog=metrics["queue_depth"]
+                + (self.producer.pending if self.producer else 0),
+                inference_queue=producer["inference_queue"] if producer else None,
                 capture_drops=None,
                 gap_count=None,
                 finalization="DIAGNOSTICS_ONLY",
                 recovery_state=self.recovery_state,
             ),
-            research=dict(
+            research=producer["research"]
+            if producer and integrity == "VERIFIED"
+            else dict(
                 records=[],
                 worker_running=False,
                 model_metrics={
@@ -319,6 +369,11 @@ class ZeekCollector:
             if not completed:
                 raise ValueError("ZEEK_PROCESS_COMPLETION_UNVERIFIED_NO_RESTART")
             await self._ingest()
+            if self.packet_mode:
+                from soc_agent.security_ai.collectors.producer_service import ProducerService
+
+                self.producer = ProducerService(self, paths=self.paths)
+                await self.producer.recover()
             self.store.runtime.event(
                 "COLLECTOR_RECOVERED",
                 dict(native_capture=False, inference_count=0, automatic_restart=False),

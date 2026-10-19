@@ -1,0 +1,961 @@
+{
+  "schema": "soc-zeek-network14-validation:v1",
+  "validation_timestamp": "2026-10-19T07:49:13.442707+00:00",
+  "soc_baseline": "3301714923d1f62ba2a1bd28bd47b6fe6a140669",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "verdict": "PARTIAL",
+  "native_capture_executed": false,
+  "privileged_commands_executed": false,
+  "test_network_traffic_generated": false,
+  "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+  "zeek_version": "9.0.0",
+  "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+  "scope": "ETHERNET_CLASSIC_PCAP_USEC_TCP_UDP_NO_FRAGMENTS_EXTENSIONS_OR_NS:v1",
+  "network14_feature_contract": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+  "network14_producer_configuration": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+  "golden_runs": [
+    {
+      "scope": "ACTUAL_ZEEK_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+      "pcap_sha256": "de9711b5b1e628a92c4114a1d3c606207b1354b7d8511350869a82f81e8917b3",
+      "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+      "packet_count": 8,
+      "comparisons": [
+        {
+          "close_reason": "ACTIVE_TIMEOUT",
+          "eligible": true,
+          "values": [
+            119.0,
+            6.0,
+            1.0,
+            340.0,
+            60.0,
+            40.0,
+            80.0,
+            57.14285659790039,
+            16.659862518310547,
+            3.0,
+            2.0,
+            0.0,
+            19.83333396911621,
+            20.0
+          ],
+          "feature_digest": "9d9e27663920df1157bccf7c2c0267e93269307cf944f950290fd4cd064bb502"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "eligible": false,
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            60.0,
+            0.0,
+            60.0,
+            60.0,
+            60.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "feature_digest": "08a7813f31ea3ff9293439acbd97ec6691bafb91b56b847c95d405aaf9e81f3c"
+        }
+      ],
+      "elapsed_seconds": 0.6790898329927586
+    },
+    {
+      "scope": "ACTUAL_ZEEK_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+      "pcap_sha256": "b12ab08a631ac79e6f6ee31429c32f4b26e23930183a6e86f3ae5332815926e7",
+      "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "eligible": true,
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "feature_digest": "a6158aff8a67c5859707f605f0ce71551ab940b7aa2a6b54c2cd3438ac58e6f0"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "eligible": false,
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            40.0,
+            0.0,
+            40.0,
+            40.0,
+            40.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "feature_digest": "182b5b4cff0ba62b0c884525fc9683cfc17310bac5fe827ad7071e19213e3344"
+        }
+      ],
+      "elapsed_seconds": 0.6220557549968362
+    },
+    {
+      "scope": "ACTUAL_ZEEK_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+      "pcap_sha256": "17da3dee6c09f15bbd1b9b5ecd978bd77dc71cd365749274821a322257c88b38",
+      "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "eligible": true,
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            160.0,
+            80.0,
+            60.0,
+            100.0,
+            80.0,
+            16.329931259155273,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "feature_digest": "e44f8f4d86d593c510ea197a8e15fbf24b48b1d6d837ef21a40cabe54bc07b8a"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "eligible": false,
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            60.0,
+            0.0,
+            60.0,
+            60.0,
+            60.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "feature_digest": "8c45d66809a997493d41ba97854fbbcd54724c7d0b6c2fadfcd45be7cfa2078d"
+        }
+      ],
+      "elapsed_seconds": 0.7506501349853352
+    },
+    {
+      "scope": "ACTUAL_ZEEK_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+      "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+      "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "eligible": true,
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "feature_digest": "87ebdfe0106e1582c249c8c6e32bd83bba56125cc60d5896199219130fbf9269"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "eligible": false,
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            40.0,
+            0.0,
+            40.0,
+            40.0,
+            40.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "feature_digest": "fa8c37f34443f5d68d2eb4f120240791e51fecaa57f36aa2d96cb7714a59d574"
+        }
+      ],
+      "elapsed_seconds": 0.6730935560190119
+    },
+    {
+      "scope": "ACTUAL_ZEEK_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+      "pcap_sha256": "ce0353bd0ceeeaa4b3b5ec179608a94054cb8b6f3a125aeba0b13e0f7debc640",
+      "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "eligible": true,
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            160.0,
+            80.0,
+            60.0,
+            100.0,
+            80.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "feature_digest": "8d492875c810dfe65973199d78e509c5b9d0273b1afe9168e48740851482f069"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "eligible": false,
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            60.0,
+            0.0,
+            60.0,
+            60.0,
+            60.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "feature_digest": "d073ee88a4e8a1d9764393cce7f1929f9fbc6f43986c6892a1f05e7a73c32678"
+        }
+      ],
+      "elapsed_seconds": 0.8239736219984479
+    }
+  ],
+  "dns9": {
+    "status": "BLOCKED",
+    "feature_values": null,
+    "feature_contract_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+    "preprocessing": "float32 -> named fitted StandardScaler -> round/clip/int8; unchanged",
+    "raw_names_retained": false,
+    "feature_mapping": [
+      {
+        "position": 0,
+        "name": "FQDN_count",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "FQDN_count unit/aggregation not defined; cannot equate it with query count or name length",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 1,
+        "name": "subdomain_length",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Subdomain boundary/public suffix/normalization undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 2,
+        "name": "numeric",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Count versus ratio, ASCII population and case handling undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 3,
+        "name": "entropy",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Population, case, separators and entropy normalization undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 4,
+        "name": "special",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Special-character population and count/ratio undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 5,
+        "name": "labels",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Label/root-dot/empty-label policy undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 6,
+        "name": "labels_max",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Label length units and root/prefix handling undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 7,
+        "name": "labels_average",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Mean denominator and root-label handling undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      },
+      {
+        "position": 8,
+        "name": "len",
+        "classification": "MISSING",
+        "query_api_candidate": "SEMANTIC_MISMATCH",
+        "reason": "Wire length versus bytes versus textual characters undefined",
+        "unit": "UNVERIFIED_UPSTREAM_EXTRACTION_UNAVAILABLE"
+      }
+    ],
+    "diagnostic_fields": {
+      "query_type": "DIRECT",
+      "response_code": "DIRECT",
+      "TTL": "DIRECT",
+      "response_latency": "DIRECT"
+    },
+    "training_producer": "UNVERIFIED",
+    "native_dns9_inference": "BLOCKED"
+  },
+  "summary_only_baseline": {
+    "scope": "ACTUAL_ZEEK_9_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+    "pcap_sha256": "442e4a47f1345e315005e56c29a95460be40ab97a17caffe0a503adf948c3d80",
+    "session_id": "d6494a5d-6932-4c25-a77b-4afaf8f199aa",
+    "network_events": 2,
+    "dns_events": 1,
+    "inference_count": 0,
+    "network14": "BLOCKED",
+    "dns9": "BLOCKED"
+  },
+  "zeek_model_run": {
+    "scope": "ACTUAL_ZEEK_OFFLINE_PCAP_RF_LR_NOT_NATIVE",
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "session_id": "7183e51d-8f89-425f-a6d3-8350a4ea8b00",
+    "producer": {
+      "state": "VERIFIED_RECEIPT_WINDOWS_RESEARCH_ONLY",
+      "scope": "ETHERNET_CLASSIC_PCAP_USEC_TCP_UDP_NO_FRAGMENTS_EXTENSIONS_OR_NS:v1",
+      "network14_parity": "VERIFIED_FOR_RECEIPT_WINDOWS",
+      "dns9_parity": "BLOCKED",
+      "eligible": 1,
+      "rejected": 1,
+      "packet_count": 4,
+      "peak_packet_references": 3,
+      "inference_queue": {
+        "depth": 0,
+        "capacity": 16,
+        "peak": 2,
+        "worker_concurrency": 1
+      },
+      "new_inferences": 2,
+      "last_error": null
+    },
+    "audit_digest": "b532e3021830cbc38d1a680290d673bf95c11bb6fb7d7eca9f3df5e75c838c3c",
+    "recovered_audit_digest": "28ebe2c21c037440643290688e3ff6f28cd628323bedbab30657a3b8f220bfeb",
+    "recovered_new_inferences": 0,
+    "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+    "collector_metrics": {
+      "network_events": 1,
+      "dns_events": 0,
+      "queue_depth": 0,
+      "queue_capacity": 32,
+      "backpressure": "NORMAL",
+      "queue_peak": 1,
+      "rows_read": 1,
+      "duplicates": 0,
+      "out_of_order_start_times": 0,
+      "log_to_adapter_ms": 9.395439003128558,
+      "capture_to_log_ms": null,
+      "feature_generation_ms": null,
+      "inference_latency_ms": null,
+      "investigation_latency_ms": null,
+      "log_lag_seconds": null,
+      "inference_count": 2
+    },
+    "process_cleanup": true,
+    "model_worker_stopped": true
+  },
+  "zeek_research_records": [
+    {
+      "status": "COMPLETE",
+      "profile": "quality",
+      "error": null,
+      "receipt": {
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+        "capture_quality": "UNKNOWN",
+        "capture_session": "7183e51d-8f89-425f-a6d3-8350a4ea8b00",
+        "contract": "soc-zeek-network14-receipt:v1",
+        "event_time": "2027-01-15T08:00:00Z",
+        "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+        "feature_digest": "6df2edafa493200a2946ea21831a69ba628b2e58684a5a5addee8792fd9b69ea",
+        "feature_names": [
+          "duration_seconds",
+          "forward_packet_count",
+          "backward_packet_count",
+          "forward_ip_bytes",
+          "backward_ip_bytes",
+          "ip_length_min",
+          "ip_length_max",
+          "ip_length_mean",
+          "ip_length_population_std",
+          "tcp_syn_packet_count",
+          "tcp_fin_packet_count",
+          "tcp_rst_packet_count",
+          "iat_mean_seconds",
+          "iat_max_seconds"
+        ],
+        "feature_values": [
+          1.0,
+          2.0,
+          1.0,
+          120.0,
+          60.0,
+          40.0,
+          80.0,
+          60.0,
+          16.329931259155273,
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          0.5
+        ],
+        "flow_id": "e09063db8dd2ce529113b7a6011bb886c495360c1e0ded43e24005a863e9c453",
+        "inference_latency_ms": 10.540354996919632,
+        "inferred_at": "2026-10-19T07:46:46.965754Z",
+        "invocation_id": "38ee7147-e9f6-49d4-9600-72c5f9302c8e",
+        "model_id": "linux-network14-research-v1-quality_rf",
+        "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+        "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+        "operational_inference": "BLOCKED",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "packet_count": 3,
+        "packet_log_sha256": "466d611dd51e8c2d39f1bc3829cb5b2357c91ce747f5aa9c1f8b024cc1056a53",
+        "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+        "prediction": "CLASS_0",
+        "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+        "producer_origin": "OFFLINE_PCAP",
+        "producer_version": "1.1.0",
+        "profile": "quality",
+        "provenance_digest": "07b95c09f1b3fda11117765d04da170b5811f2caf09ee7133e356b43c1ba43f0",
+        "request_digest": "dab7696649a749aaccd022e3f4adce7ac8e961013c94ce6db128a6e96413c3a2",
+        "score": 0.140625,
+        "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+        "source_digest": "7b486942b18d06633248d0dd19755c4d572ddd6c5df2433e7b5b066739e808b8",
+        "status": "RESEARCH_ONLY",
+        "threshold": 0.35,
+        "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+        "worker_cpu_seconds": 1.721647,
+        "worker_limits": {
+          "address_space_bytes": 3221225472,
+          "cpu_seconds": 15,
+          "network": "DENIED",
+          "result_file_bytes": 131072
+        },
+        "worker_peak_rss_bytes": 233709568,
+        "write_policy": "WRITE_DENIED",
+        "zeek_producer_version": "zeek-packet-network14:v1"
+      },
+      "receipt_digest": "192af962a208caf2c755973bf61341015a63863dcb5ae0b7188e148c46b53fdb",
+      "investigation": {
+        "status": "ASSESSED_READ_ONLY",
+        "mode": "SCRIPTED_OFFLINE_RESEARCH",
+        "incident_id": "69863d26-85e6-4ad9-bcfd-65042e2888e2",
+        "context_digest": "143cbf3bfcf2628e36cb15a16c0e20e4cdf163e4187b09d9c41090ec32a73357",
+        "evidence_references": [
+          "a4a0d614-4b7f-419b-b1ad-2b7b668c4e25"
+        ],
+        "checkpoint_restored": true,
+        "action_policy": "WRITE_DENIED",
+        "provider_calls": 0
+      }
+    },
+    {
+      "status": "COMPLETE",
+      "profile": "edge",
+      "error": null,
+      "receipt": {
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+        "capture_quality": "UNKNOWN",
+        "capture_session": "7183e51d-8f89-425f-a6d3-8350a4ea8b00",
+        "contract": "soc-zeek-network14-receipt:v1",
+        "event_time": "2027-01-15T08:00:00Z",
+        "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+        "feature_digest": "6df2edafa493200a2946ea21831a69ba628b2e58684a5a5addee8792fd9b69ea",
+        "feature_names": [
+          "duration_seconds",
+          "forward_packet_count",
+          "backward_packet_count",
+          "forward_ip_bytes",
+          "backward_ip_bytes",
+          "ip_length_min",
+          "ip_length_max",
+          "ip_length_mean",
+          "ip_length_population_std",
+          "tcp_syn_packet_count",
+          "tcp_fin_packet_count",
+          "tcp_rst_packet_count",
+          "iat_mean_seconds",
+          "iat_max_seconds"
+        ],
+        "feature_values": [
+          1.0,
+          2.0,
+          1.0,
+          120.0,
+          60.0,
+          40.0,
+          80.0,
+          60.0,
+          16.329931259155273,
+          1.0,
+          1.0,
+          0.0,
+          0.5,
+          0.5
+        ],
+        "flow_id": "e09063db8dd2ce529113b7a6011bb886c495360c1e0ded43e24005a863e9c453",
+        "inference_latency_ms": 8.03294702200219,
+        "inferred_at": "2026-10-19T07:46:49.371298Z",
+        "invocation_id": "4951a81e-1c62-4f68-a216-0f9a0f204a3b",
+        "model_id": "linux-network14-research-v1-edge_lr",
+        "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+        "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+        "operational_inference": "BLOCKED",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "packet_count": 3,
+        "packet_log_sha256": "466d611dd51e8c2d39f1bc3829cb5b2357c91ce747f5aa9c1f8b024cc1056a53",
+        "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+        "prediction": "CLASS_0",
+        "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+        "producer_origin": "OFFLINE_PCAP",
+        "producer_version": "1.1.0",
+        "profile": "edge",
+        "provenance_digest": "07b95c09f1b3fda11117765d04da170b5811f2caf09ee7133e356b43c1ba43f0",
+        "request_digest": "fc9c15670bc4ee5dbbbaf395f289d30e72ccb7e288252431b491e1572258f5d3",
+        "score": 0.08766025304794312,
+        "script_sha256": "b93fbb1ab28354ead4f9b96cbbf74d2c937024f01452332c77463ac133216dae",
+        "source_digest": "7b486942b18d06633248d0dd19755c4d572ddd6c5df2433e7b5b066739e808b8",
+        "status": "RESEARCH_ONLY",
+        "threshold": 0.8,
+        "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+        "worker_cpu_seconds": 1.7217490000000002,
+        "worker_limits": {
+          "address_space_bytes": 3221225472,
+          "cpu_seconds": 15,
+          "network": "DENIED",
+          "result_file_bytes": 131072
+        },
+        "worker_peak_rss_bytes": 233107456,
+        "write_policy": "WRITE_DENIED",
+        "zeek_producer_version": "zeek-packet-network14:v1"
+      },
+      "receipt_digest": "a379c7f3118d9b2a85fc7a44b33b0c0e02ab00471cfa8000345613857878aa24",
+      "investigation": {
+        "status": "ASSESSED_READ_ONLY",
+        "mode": "SCRIPTED_OFFLINE_RESEARCH",
+        "incident_id": "a7460673-0d0b-4335-b16c-b71f06b5d515",
+        "context_digest": "3651d7716dcc6f824370de6a3cb903831d187921ce1e254ee4197c753ea0f1d2",
+        "evidence_references": [
+          "e9463a4e-c87e-42e7-bba9-3b67a623e3dc"
+        ],
+        "checkpoint_restored": true,
+        "action_policy": "WRITE_DENIED",
+        "provider_calls": 0
+      }
+    }
+  ],
+  "gui_run": {
+    "scope": "ACTUAL_ZEEK_OFFLINE_RF_LR_WSLG_NOT_NATIVE",
+    "sampled_peak_gui_rss_bytes": 218685440,
+    "sampled_peak_owned_subtree_rss_bytes": 454373376,
+    "gui_process_peak_rss_bytes": 244744192,
+    "elapsed_seconds": 12.534027989953756,
+    "controller_cpu_seconds": 6.963818888,
+    "render_update_ms": [
+      770.8279229700565,
+      32.060559024102986,
+      377.5433420087211,
+      27.227028971537948,
+      201.75940199987963,
+      23.692330985795707,
+      483.12829999485984,
+      32.392270979471505
+    ],
+    "collector_metrics": {
+      "network_events": 1,
+      "dns_events": 0,
+      "queue_depth": 0,
+      "queue_capacity": 32,
+      "backpressure": "NORMAL",
+      "queue_peak": 1,
+      "rows_read": 1,
+      "duplicates": 0,
+      "out_of_order_start_times": 0,
+      "log_to_adapter_ms": 8.33218201296404,
+      "capture_to_log_ms": null,
+      "feature_generation_ms": null,
+      "inference_latency_ms": null,
+      "investigation_latency_ms": null,
+      "log_lag_seconds": null,
+      "inference_count": 2
+    },
+    "producer": {
+      "state": "VERIFIED_RECEIPT_WINDOWS_RESEARCH_ONLY",
+      "scope": "ETHERNET_CLASSIC_PCAP_USEC_TCP_UDP_NO_FRAGMENTS_EXTENSIONS_OR_NS:v1",
+      "network14_parity": "VERIFIED_FOR_RECEIPT_WINDOWS",
+      "dns9_parity": "BLOCKED",
+      "eligible": 1,
+      "rejected": 1,
+      "packet_count": 4,
+      "peak_packet_references": 3,
+      "inference_queue": {
+        "depth": 0,
+        "capacity": 16,
+        "peak": 2,
+        "worker_concurrency": 1
+      },
+      "new_inferences": 2,
+      "last_error": null
+    },
+    "inference_latencies_ms": [
+      13.975318986922503,
+      8.242862997576594
+    ],
+    "zeek_container_cpu_rss": "UNKNOWN_NOT_SAMPLED_BY_HOST_PROCESS_TREE",
+    "session_id": "UNKNOWN_NOT_RETAINED_BY_GUI_PROFILER",
+    "source_origin": "ZEEK_OFFLINE_PCAP",
+    "separate_run_from_model_receipts": true
+  },
+  "gui_idle_performance": {
+    "before": {
+      "fresh_process_runs": 3,
+      "idle_seconds_per_run": 3,
+      "medians": {
+        "startup_seconds": 2.36497130402131,
+        "idle_rss_bytes": 184168448,
+        "idle_cpu_one_core_percent": 0.29288853278451066,
+        "response_p95_ms": 0.042825,
+        "widgets": 69,
+        "idle_child_processes": 0,
+        "created_runtime_owners": 0,
+        "controller_sqlite_statements_total": 0
+      }
+    },
+    "after": {
+      "fresh_process_runs": 3,
+      "idle_seconds_per_run": 3,
+      "medians": {
+        "startup_seconds": 2.179310648003593,
+        "idle_rss_bytes": 184049664,
+        "idle_cpu_one_core_percent": 0.2872296038620603,
+        "response_p95_ms": 0.04088,
+        "widgets": 69,
+        "idle_child_processes": 0,
+        "created_runtime_owners": 0,
+        "controller_sqlite_statements_total": 0
+      }
+    }
+  },
+  "producer_performance": {
+    "scope": "SAME_OFFLINE_SYNTHETIC_PCAP_NOT_NATIVE",
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "arithmetic": {
+      "existing_ml_network14_arithmetic": {
+        "warmup": 100,
+        "rounds": 5,
+        "operations_per_round": 1000,
+        "vectors_per_operation": 2,
+        "vectors_per_second": 22354.461879136765,
+        "elapsed_seconds": 0.44733798800734803,
+        "cpu_seconds": 0.447946355,
+        "p50_ms": 0.072094,
+        "p95_ms": 0.145078,
+        "p99_ms": 0.207163,
+        "peak_host_rss_bytes": 172232704
+      },
+      "zeek_incremental_arithmetic_and_windowing": {
+        "warmup": 100,
+        "rounds": 5,
+        "operations_per_round": 1000,
+        "vectors_per_operation": 2,
+        "vectors_per_second": 31515.66583134223,
+        "elapsed_seconds": 0.31730251404223964,
+        "cpu_seconds": 0.317698531,
+        "p50_ms": 0.048844,
+        "p95_ms": 0.101156,
+        "p99_ms": 0.140304,
+        "peak_host_rss_bytes": 172232704
+      }
+    },
+    "official_engine_pipeline": [
+      {
+        "elapsed_seconds": 1.0421740430174395,
+        "controller_cpu_seconds": 0.004402811999999923,
+        "official_engine_and_docker_seconds": 0.7735265090013854,
+        "peak_host_rss_bytes": 172232704,
+        "packet_count": 4,
+        "peak_packet_references": 3,
+        "flow_count": 2,
+        "queue_final": 0
+      },
+      {
+        "elapsed_seconds": 0.8408145139692351,
+        "controller_cpu_seconds": 0.0037955579999997546,
+        "official_engine_and_docker_seconds": 0.7305103479884565,
+        "peak_host_rss_bytes": 172232704,
+        "packet_count": 4,
+        "peak_packet_references": 3,
+        "flow_count": 2,
+        "queue_final": 0
+      },
+      {
+        "elapsed_seconds": 0.7841049500275403,
+        "controller_cpu_seconds": 0.004077432999999964,
+        "official_engine_and_docker_seconds": 0.6783650320139714,
+        "peak_host_rss_bytes": 172232704,
+        "packet_count": 4,
+        "peak_packet_references": 3,
+        "flow_count": 2,
+        "queue_final": 0
+      }
+    ],
+    "engine_warmup_runs": 1,
+    "zeek_container_cpu_rss": "UNKNOWN_NOT_MEASURED_BY_HOST_RUSAGE",
+    "native_throughput": "UNKNOWN",
+    "capture_to_log_latency": "UNKNOWN_NOT_LIVE"
+  },
+  "independent_export": {
+    "status": "VERIFIED",
+    "runs": {
+      "unit": {
+        "exit_code": 0,
+        "elapsed_seconds": 51.98883346701041,
+        "suite": [
+          "tests/unit/zeek_producer",
+          "tests/unit/zeek_collector",
+          "tests/unit/direction_v3",
+          "tests/unit/capture_filtering",
+          "tests/unit/loopback_visual",
+          "tests/unit/production_slimming",
+          "tests/unit/gui",
+          "tests/unit/streaming_network",
+          "tests/unit/network_capture",
+          "tests/unit/live_network/test_parity.py",
+          "tests/unit/research_adapter"
+        ],
+        "result": "............. [ 13%]\n........................................................................ [ 26%]\n........................................................................ [ 39%]\n........................................................................ [ 52%]\n........................................................................ [ 65%]\n........................................................................ [ 78%]\n........................................................................ [ 91%]\n.............................................                            [100%]\n549 passed in 50.03s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4683788288,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.01 avg300=0.00 total=165875331\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=158278375\n"
+      },
+      "offline": {
+        "exit_code": 0,
+        "elapsed_seconds": 7.890734045999125,
+        "suite": [
+          "tests/integration/zeek_collector",
+          "tests/integration/zeek_producer/test_packets.py"
+        ],
+        "result": "......                                                                   [100%]\n6 passed in 6.13s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4700155904,
+        "preflight_memory_psi": "some avg10=0.01 avg60=0.04 avg300=0.00 total=165938721\nfull avg10=0.01 avg60=0.04 avg300=0.00 total=158341740\n"
+      },
+      "models": {
+        "exit_code": 0,
+        "elapsed_seconds": 20.83237136399839,
+        "suite": [
+          "tests/integration/zeek_producer/test_models.py",
+          "tests/integration/direction_v3"
+        ],
+        "result": "..                                                                       [100%]\n2 passed in 18.77s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4580343808,
+        "preflight_memory_psi": "some avg10=0.12 avg60=0.06 avg300=0.01 total=165963331\nfull avg10=0.12 avg60=0.06 avg300=0.01 total=158366124\n"
+      },
+      "gui": {
+        "exit_code": 0,
+        "elapsed_seconds": 41.93285530398134,
+        "suite": [
+          "tests/gui_zeek_producer_checks.py",
+          "tests/gui_zeek_collector_checks.py",
+          "tests/gui_visual_dashboard_checks.py",
+          "tests/gui_production_checks.py"
+        ],
+        "result": "........                                                                 [100%]\n8 passed in 40.04s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4567224320,
+        "preflight_memory_psi": "some avg10=0.01 avg60=0.04 avg300=0.00 total=165967368\nfull avg10=0.01 avg60=0.04 avg300=0.00 total=158370154\n"
+      },
+      "governance-recovery": {
+        "exit_code": 0,
+        "elapsed_seconds": 15.914103211951442,
+        "suite": [
+          "tests/unit/policy",
+          "tests/unit/approval",
+          "tests/unit/investigation_runtime",
+          "tests/integration/linux_runtime/test_final_integration_audit.py",
+          "tests/integration/research_adapter/test_lifecycle.py",
+          "tests/integration/streaming_network/test_total_transport.py"
+        ],
+        "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 13.79s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n",
+        "preflight_memavailable_bytes": 4623282176,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.02 avg300=0.00 total=165969429\nfull avg10=0.00 avg60=0.02 avg300=0.00 total=158372019\n"
+      }
+    },
+    "source": "Git HEAD plus task files; clean ML HEAD; external unchanged interpreter/artifacts",
+    "wheel": {
+      "exit_code": 0,
+      "scripts_packaged": [
+        "privacy.zeek",
+        "network14.zeek"
+      ]
+    }
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 214,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "screenshots": [
+    {
+      "filename": "zeek-network14-screenshots/dashboard-zeek-offline-1366.png",
+      "sha256": "7640ca77c0e221a05561f6941e92809d56ecc7ece691c04066ed26b44dbc5cc7",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/dashboard-zeek-offline-1920.png",
+      "sha256": "af392441baa949469b125286df73d0d6cf8dfc4d26667641e93fada87291ddaa",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/investigation-zeek-offline-1366.png",
+      "sha256": "dfbcece6412e23c99ff246bf3131cb82094916c81de929520270014c67f4bb14",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/investigation-zeek-offline-1920.png",
+      "sha256": "fc1ac182a063076cdcaa4df4eb9d13bb0f9f0b17fb01d229928eccd43df5dbc6",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/security-events-zeek-offline-1366.png",
+      "sha256": "fe5047c2e92104148b360338c2e32c0cbafa81cb9f8ec2c57599e5ecd3409270",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/security-events-zeek-offline-1920.png",
+      "sha256": "97d021c7f578283f73adc00b10380236301eebc1caac825f67bf4ef27ef1e8b5",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/system-zeek-offline-1366.png",
+      "sha256": "0b005b44bbb4d3bb84b06240e0619b2d26e1ac84c392fd0c70e39bcffdc85180",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    },
+    {
+      "filename": "zeek-network14-screenshots/system-zeek-offline-1920.png",
+      "sha256": "91b70ba0253e23ea714c6ebe692d5c4534c1ab4aeabc1f5b64852671b11efb21",
+      "source_origin": "ZEEK_OFFLINE_PCAP",
+      "actual_wslg": true,
+      "native_capture": false
+    }
+  ],
+  "security": {
+    "research_only": true,
+    "dns9": "BLOCKED",
+    "operational_promotion": "BLOCKED",
+    "write_policy": "WRITE_DENIED",
+    "historical_sigill_root_cause": "UNKNOWN"
+  },
+  "quality": "VERIFIED",
+  "final_checks": {
+    "workspace": {
+      "evidence": {
+        "exit_code": 0,
+        "result": "..                                                                       [100%]\n2 passed in 0.04s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n"
+      },
+      "ruff": {
+        "exit_code": 0,
+        "result": "All checks passed!\n"
+      },
+      "format": {
+        "exit_code": 0,
+        "result": "1133 files already formatted\n"
+      },
+      "diff": {
+        "exit_code": 0,
+        "result": ""
+      }
+    },
+    "export": {
+      "evidence": {
+        "exit_code": 0,
+        "result": "..                                                                       [100%]\n2 passed in 0.04s\n{\"network_socket_attempts_blocked_by_test_guard\": 0, \"new_native_capture_or_test_traffic\": false}\n"
+      },
+      "ruff": {
+        "exit_code": 0,
+        "result": "All checks passed!\n"
+      },
+      "format": {
+        "exit_code": 0,
+        "result": "1089 files already formatted\n"
+      }
+    }
+  },
+  "final_distinct_export_tests": 692
+}

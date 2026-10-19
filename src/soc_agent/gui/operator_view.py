@@ -224,7 +224,9 @@ def render_dashboard(app, value, rows):
                 + str(metrics.get("dns_events", "UNKNOWN"))
                 + " · Queue "
                 + str(metrics.get("queue_depth", "UNKNOWN"))
-                + " · Network14/DNS9 BLOCKED · Native log lag UNKNOWN"
+                + " · Network14 "
+                + collector.get("parity", {}).get("network14", "UNKNOWN")
+                + " / DNS9 BLOCKED · Native log lag UNKNOWN"
             )
             if collector
             else "Existing capture · separate Raw / Normalized / Delivered counters"
@@ -423,7 +425,7 @@ def system(app):
     ttk.Combobox(
         collector_bar,
         textvariable=app.collector_type,
-        values=("existing-capture", "zeek-offline"),
+        values=("existing-capture", "zeek-offline", "zeek-network14-offline"),
         state="readonly",
         width=24,
     ).pack(side="left")
@@ -548,6 +550,7 @@ def render_system(app, value):
         "collector_type": collector.get("type", "existing-capture"),
         "collector_health": collector.get("health", "NOT_OBSERVED"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
+        "producer": collector.get("producer", "NOT_PREPARED"),
         "feature_parity": collector.get("parity", "EXISTING_CAPTURE_CONTRACT"),
         "helper": "READY" if app.command else "NOT_PREPARED",
         "last_error": value.get("last_error"),
@@ -572,7 +575,15 @@ def render_system(app, value):
         "Collector   " + str(details["collector_type"]),
         "Collector health   " + str(details["collector_health"]),
         "Collector metrics   " + str(details["collector_metrics"]),
-        "Feature parity   " + ("BLOCKED: Network14 / DNS9" if collector else "Existing contract"),
+        "Zeek producer   " + str(details["producer"]),
+        "Feature parity   "
+        + (
+            ("Network14 " + collector["producer"]["network14_parity"] + " / DNS9 BLOCKED")
+            if collector.get("producer")
+            else "BLOCKED: Network14 / DNS9"
+            if collector
+            else "Existing contract"
+        ),
         "Helper   " + details["helper"],
         "Policy   " + str(details["selected_policy"]),
         "Observation frames/s   " + str(details["observation_budget"]),
