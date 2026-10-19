@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 import os
 import re
 import time
@@ -11,7 +12,10 @@ from uuid import uuid4, uuid5
 
 from soc_agent.realtime.queue import QueueFull
 from soc_agent.review.persistence.models import StorageError
-from soc_agent.review.persistence.secure_storage import create_private_directory
+from soc_agent.review.persistence.secure_storage import (
+    StorageSecurityError,
+    create_private_directory,
+)
 from soc_agent.runtime_lock import exclusive_runtime_lock
 from soc_agent.security_ai.operational.network_capture.isolated_flow import IsolatedFlows
 from soc_agent.security_ai.operational.network_capture.stream_session import (
@@ -37,6 +41,30 @@ from soc_agent.security_ai.research.total_integrity import (
     FlowQuarantined,
     TotalIntegrity,
 )
+
+
+def preparation_error(error, phase):
+    """Expose reviewed codes only; exception text may contain private paths."""
+    if str(error) in {
+        "CALIBRATED_RESOURCE_HEADROOM_REQUIRED",
+        "CALIBRATED_HELPER_BUNDLE_MISMATCH",
+        "STREAM_ARCHIVAL_REQUIRED",
+        "STREAM_PROFILE_INVALID",
+        "STREAM_ARTIFACT_ENVIRONMENT_BLOCKED",
+    }:
+        return str(error)
+    if phase == "RUNTIME_LOCK" and isinstance(error, BlockingIOError):
+        return "STREAM_RUNTIME_LOCK_CONFLICT"
+    if isinstance(error, (OSError, StorageError, StorageSecurityError)) and phase in {
+        "SESSION_DIRECTORY",
+        "SESSION_IDENTITY",
+        "SESSION_STORAGE",
+        "RUNTIME_LOCK",
+    }:
+        return "STREAM_SESSION_STORAGE_FAILED"
+    if phase == "MODEL_ENVIRONMENT":
+        return "STREAM_ARTIFACT_ENVIRONMENT_BLOCKED"
+    return "STREAM_PREPARE_FAILED"
 
 
 class StreamResearch(LiveResearch):
@@ -141,6 +169,9 @@ class StreamingMonitoring:
         self.failure_context = None
         self.retained_integrity = None
         self.total_integrity = None
+        self.preparation_phase = "NOT_STARTED"
+        self.preparation_store_ready = False
+        self.preparation_audit = "NOT_AVAILABLE_BEFORE_SESSION_STORE"
 
     def _release_lock(self):
         if getattr(self, "writer_lock", None) is not None:
@@ -169,6 +200,7 @@ class StreamingMonitoring:
                 await self._prepare_failed()
                 self.state = "STOPPED"
                 return {"status": "STOPPED", "listener_ready": False}
+            self.preparation_phase = "LISTENER"
             self.capture = self.capture_type(self.directory, self.session)
             if self.session_module is not None:
                 self.capture.helper_module = self.session_module.MODULE
@@ -176,20 +208,51 @@ class StreamingMonitoring:
             self.state = "AUTHENTICATION_REQUIRED"
             self.task = asyncio.create_task(self._native())
             return self.command(str(self.session.session_id))
-        except (OSError, ValueError, StorageError) as error:
+        except (OSError, ValueError, StorageError, RuntimeError, ImportError) as error:
+            code = preparation_error(error, self.preparation_phase)
+            # Never append a preparation failure to a prior retained session or
+            # a store whose writer lock this attempt did not acquire.
+            if self.preparation_store_ready:
+                try:
+                    self.store.runtime.event(
+                        "STREAM_PREPARATION_FAILED",
+                        {"code": code, "phase": self.preparation_phase},
+                    )
+                    self.preparation_audit = "RECORDED"
+                except (OSError, ValueError, StorageError):
+                    self.preparation_audit = "FAILED"
+                    code = "STREAM_SESSION_STORAGE_FAILED"
+            logging.getLogger(__name__).warning(
+                "STREAM_PREPARATION_FAILED code=%s phase=%s audit=%s",
+                code,
+                self.preparation_phase,
+                self.preparation_audit,
+            )
             await self._prepare_failed()
             self.state = "ERROR"
-            self.last_error = (
-                str(error)
-                if str(error).startswith("CALIBRATED_")
-                and re.fullmatch(r"[A-Z_]{1,128}", str(error))
-                else "STREAM_PREPARE_FAILED"
-            )
-            return {"status": "BLOCKED", "last_error": self.last_error, "listener_ready": False}
+            self.last_error = code
+            return {
+                "status": "BLOCKED",
+                "last_error": code,
+                "listener_ready": False,
+                "preparation_phase": self.preparation_phase,
+                "preparation_audit": self.preparation_audit,
+            }
         finally:
             self.preparing = False
 
     async def _prepare(self, profiles, policy, *, fixture):
+        # A new attempt must not inherit commands, receipts or audit ownership
+        # from a retained/failed session if it fails before allocating a session.
+        self.directory = self.session = self.capture = self.store = self.demo = None
+        self.consumer = self.total_integrity = self.dns_diagnostics = None
+        self.metrics = {}
+        self.fixture = fixture
+        self.flow_count = self.eligible = self.excluded = 0
+        self.last_error = None
+        self.preparation_phase = "SESSION_DIRECTORY"
+        self.preparation_store_ready = False
+        self.preparation_audit = "NOT_AVAILABLE_BEFORE_SESSION_STORE"
         if (
             not profiles
             or len(set(profiles)) != len(profiles)
@@ -197,6 +260,7 @@ class StreamingMonitoring:
         ):
             raise ValueError("STREAM_PROFILE_INVALID")
         create_private_directory(self.root)
+        self.preparation_phase = "SESSION_ARCHIVE"
         if len(list(self.root.glob("session-*"))) >= 8:
             raise ValueError("STREAM_ARCHIVAL_REQUIRED")
         self.directory = self.root / ("session-" + uuid4().hex)
@@ -218,6 +282,7 @@ class StreamingMonitoring:
         self.policy = type(policy).model_validate(policy.model_dump())
         self.fixture = fixture
         self.capture = None
+        self.preparation_phase = "SESSION_IDENTITY"
         self.session = self.session_prepare(self.directory, self.policy)
         if self.total:
             from soc_agent.security_ai.research.isolated_dns import IsolatedDNS
@@ -258,9 +323,13 @@ class StreamingMonitoring:
             inference_count=0,
             advisory_latency_seconds=None,
         )
+        self.preparation_phase = "SESSION_STORAGE"
         self.store = StreamStore(self.directory, self.session, fixture=fixture, create=True)
+        self.preparation_phase = "RUNTIME_LOCK"
         self.writer_lock = exclusive_runtime_lock(self.directory / "runtime/writer.lock")
         self.writer_lock.__enter__()
+        self.preparation_store_ready = True
+        self.preparation_phase = "MODEL_ENVIRONMENT"
         self.demo = StreamResearch(self.directory, paths=self.paths)
         self.demo.adapter.authorize_live = self.authorize
         if self.total:
@@ -273,6 +342,7 @@ class StreamingMonitoring:
                 recovery_state="NO_RESTART",
                 event_time_policy=self.aggregator.snapshot()["policy"],
             )
+        self.preparation_phase = "MODEL_ENVIRONMENT"
         ready = await self.demo.start()
         if ready.get("status") == "BLOCKED":
             raise ValueError("STREAM_ARTIFACT_ENVIRONMENT_BLOCKED")
@@ -301,6 +371,7 @@ class StreamingMonitoring:
             inference_capacity_exclusions=0,
         )
         self.consumer = asyncio.create_task(self._consume())
+        self.preparation_phase = "SESSION_STORAGE"
         self.store.runtime.event(
             "STREAM_STARTED",
             dict(
@@ -322,6 +393,7 @@ class StreamingMonitoring:
                     dns_connection_limit=128,
                 ),
             )
+        self.preparation_phase = "COMPLETE"
 
     async def start_fixture(
         self, source, *, profiles=("quality", "edge"), policy=None, model_adapter=None
@@ -1139,6 +1211,8 @@ class StreamingMonitoring:
                 "dns9_ai": "BLOCKED_PRODUCER_PARITY_UNVERIFIED",
             },
             last_error=self.last_error if audit_valid else "STREAM_AUDIT_OR_RECEIPT_INVALID",
+            preparation_phase=self.preparation_phase,
+            preparation_audit=self.preparation_audit,
             runtime_audit_integrity="VERIFIED" if self.store and audit_valid else "UNKNOWN",
             policy=self.policy.model_dump(mode="json"),
             operational_gate="OPERATIONAL_INFERENCE_BLOCKED",

@@ -1,10 +1,30 @@
 """Live-research presentation. Permission commands are displayed/copied, never executed."""
 
+import re
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from soc_agent.gui.charts import Distribution, MetricHistory, Trend
 from soc_agent.gui.components import Button, Label
+
+
+def bounded_text(value, default=""):
+    if not isinstance(value, str) or not value.strip() or len(value) > 512:
+        return default
+    return value if all(c.isprintable() for c in value) else default
+
+
+def error_code(value):
+    return value if isinstance(value, str) and re.fullmatch(r"[A-Z][A-Z0-9_:]{0,127}", value) else ""
+
+
+def preparation_message(result):
+    return (
+        bounded_text(result.get("authentication"))
+        or error_code(result.get("last_error"))
+        or error_code(result.get("error"))
+        or "Environment unavailable; inspect model status."
+    )
 
 
 def display_state(value):
@@ -182,20 +202,32 @@ class LiveView:
         self.app.call(self.prefix + "_start", *arguments, callback=self.started)
 
     def started(self, result):
-        self.prepared(result)
-        if self.streaming and result.get("listener_ready") is True:
+        if self.prepared(result) and self.streaming and self.command:
             self.request_authentication(result)
 
     def prepared(self, result):
         if not self.accept_observation(result):
-            return
+            return False
         if not self.headline.get() or not self.instructions.winfo_exists():
-            return
-        self.command = result.get("command", "") if result.get("listener_ready") is True else ""
-        if self.command:
-            # A STOPPED poll can render while preparation is still awaiting I/O.
-            # Apply the newer READY control state as well as its command/text.
-            self.start_button.configure(state="disabled")
+            return False
+        command, sha, session = (
+            result.get("command"),
+            result.get("helper_sha256"),
+            result.get("session_id"),
+        )
+        valid_command = (
+            result.get("listener_ready") is True
+            and isinstance(command, str)
+            and 0 < len(command) <= 8192
+            and isinstance(sha, str)
+            and re.fullmatch(r"[a-f0-9]{64}", sha)
+            and isinstance(session, str)
+            and 0 < len(session) <= 128
+        )
+        self.command = command if valid_command else ""
+        # A STOPPED poll can render while preparation is still awaiting I/O.
+        # Apply the newer preparation control state as well as its command/text.
+        self.start_button.configure(state="disabled" if self.command else "normal")
         self.command_session = result.get("session_id") if self.command else None
         self.copy_button.configure(state="normal" if self.command else "disabled")
         self.instructions.configure(state="normal")
@@ -203,25 +235,33 @@ class LiveView:
         self.instructions.insert(
             "end",
             (
-                result.get(
-                    "authentication",
-                    result.get("error", "Environment unavailable; inspect model status."),
-                )
+                preparation_message(result)
                 + "\n"
                 + self.command
                 + "\n"
-                + result.get("stop", "No capture started.")
+                + (
+                    bounded_text(result.get("stop"), "No capture started.")
+                    if self.command
+                    else "No capture started."
+                )
                 + "\n"
                 + "Review helper SHA256: "
-                + result.get("helper_sha256", "UNKNOWN")
+                + (sha if self.command else "NOT_PREPARED")
             ),
         )
         self.instructions.configure(state="disabled")
         self.headline.set(
             "LISTENER READY · waiting for your terminal authentication"
             if self.command
-            else result.get("status", "UNKNOWN")
+            else (error_code(result.get("status")) or "UNKNOWN")
+            + " · NOT_PREPARED · "
+            + (
+                error_code(result.get("last_error"))
+                or error_code(result.get("error"))
+                or "PREPARATION_UNAVAILABLE"
+            )
         )
+        return True
 
     def restart(self):
         if self.app.busy or self.app.closing:
@@ -229,6 +269,17 @@ class LiveView:
         self.app.call(self.prefix + "_stop", callback=lambda _: self.start())
 
     def request_authentication(self, result):
+        if (
+            result.get("listener_ready") is not True
+            or not self.command
+            or result.get("command") != self.command
+            or not isinstance(result.get("helper_sha256"), str)
+            or not re.fullmatch(r"[a-f0-9]{64}", result["helper_sha256"])
+            or self.command_session != result.get("session_id")
+            or not self.accept_observation(result)
+        ):
+            self.app.notice.set("Listener NOT_PREPARED; no authentication requested.")
+            return
         if self.total:
             sha = result.get("helper_sha256")
             if sha != self.app.config.total_approved_sha or (
@@ -296,7 +347,8 @@ class LiveView:
     def copy_verified_command(self, result):
         if self.app.page != self.page or not self.instructions.winfo_exists():
             return
-        self.prepared(result)
+        if not self.prepared(result):
+            return
         if not self.command:
             self.app.notice.set("Listener unavailable. Stop live, then prepare a new session.")
             return
@@ -417,7 +469,7 @@ class LiveView:
             + "\nAudit "
             + research.get("audit_integrity", "UNKNOWN")
             + " · Last error "
-            + (value.get("last_error") or "NONE_RECORDED")
+            + (error_code(value.get("last_error")) or "NONE_RECORDED")
             + " · RESEARCH_ONLY / uncalibrated score / WRITE_DENIED"
         )
         if self.streaming:

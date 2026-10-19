@@ -20,6 +20,7 @@ def test_ready_reply_disables_start_after_prior_stopped_poll():
         {
             "listener_ready": True,
             "command": "MOCK_ONLY",
+            "helper_sha256": "a" * 64,
             "session_id": "fixture",
             "observation_started_ns": 200,
         }

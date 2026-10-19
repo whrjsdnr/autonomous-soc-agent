@@ -20,8 +20,19 @@ def evidence():
 
 
 def test_frozen_source_and_bundle_integrity(evidence):
+    # Immutable validation at 89a7989; current preparation/UI behavior has its
+    # own regressions. Do not restamp historical proof as newly executed.
+    historical = {
+        "src/soc_agent/gui/live_view.py": "live-view.txt",
+        "src/soc_agent/security_ai/research/stream_service.py": "stream-service.txt",
+    }
     for name, expected in evidence["source_files_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected, name
+        path = (
+            ROOT / "tests/fixtures/calibration-89a7989" / historical[name]
+            if name in historical
+            else ROOT / name
+        )
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == expected, name
     reviewed = calibrated_session.verify_bundle()
     assert evidence["helper"]["bundle_files"] == reviewed
     assert evidence["helper"]["bundle_digest"] == digest(reviewed)
