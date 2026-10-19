@@ -56,6 +56,7 @@ class Stream:
         self.previous_ns = None
         self.out_of_order = 0
         self.network_count = self.dns_count = 0
+        self.port53_metadata_packets = 0
         self.closed_detail = None
 
     def accept(self, envelope: Envelope):
@@ -99,6 +100,7 @@ class Stream:
                 self.finalized.append(
                     self.active.pop(p.key).finish("PACKET_LIMIT", str(self.source.session_id))
                 )
+            self.port53_metadata_packets += int(53 in (p.source_port, p.destination_port))
             self.packet_count += 1
             self.peak = max(self.peak, sum(len(w.packets) for w in self.active.values()))
             if self.peak > 4096 or len(self.finalized) > 1024:

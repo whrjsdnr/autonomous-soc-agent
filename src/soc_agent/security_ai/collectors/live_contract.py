@@ -21,6 +21,8 @@ FILES = (
     "live_process.py",
     "live_stream.py",
     "finalization.py",
+    "integrity.py",
+    "integrity_service.py",
     "live.zeek",
     "network14.zeek",
     "packet_input.py",

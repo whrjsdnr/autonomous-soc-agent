@@ -1,0 +1,1534 @@
+{
+  "contract": "soc-zeek-native-integrity-validation:v1",
+  "source_parent_head": "7dd0f66d0e5621eebaa1af1f0c1f49d970d20217",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "bundle": {
+    "live.py": "543bcdf80f36ff67d167ee76c16478ca5db3585ce541dbc48b881d5cc846a642",
+    "startup.py": "02fcfaf3c53b810a2ae114af1b68422fc24fa0f62e1977e543b04984d58f8386",
+    "handoff.py": "97ae414686152d36c3e55df8d84f2abf0f8067bcac235ce7cdfebb04a0ca8312",
+    "live_contract.py": "565a9eb6954630f35cffb634c7bd2f4571bbc836697b08f0aca61a0ebcc19b90",
+    "live_process.py": "e6fdd36e0b21455c087d1466cba94061e83cb8a0c8dc97533b8649f4be39707a",
+    "live_stream.py": "a4780e314c1f6daad12fc849e3c7e28c1deb26f4c4b5e1a993bf98a36f9749c4",
+    "finalization.py": "c04f7d4f1b8405f601bd3d9e5ebcd69ad5ddb7345a8492b55b5634786217235f",
+    "integrity.py": "6f157ba9a112e0a0bdee37776b726a99d0b86f47a4d31db4647a2287d87dcf5f",
+    "integrity_service.py": "5d7f5d8337e0a697deea7f60a1ed765ceedffd9da619f2b6bf485aa4155dc81f",
+    "live.zeek": "bc01c1e2e8814d370709321acfb211680deab87b5752f33f5e7402fbe5ebd5b9",
+    "network14.zeek": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+    "packet_input.py": "daf9f4112a889b34f84303c890654304b44c9307bb81172626c127df101235b8",
+    "packet_producer.py": "be509dfa57bda1589938e43fb00d488225d4d2c133439fd67cb1b3dbaca6a5e3",
+    "privacy.zeek": "265d960bc0123bbd314c529972376f74999fc5beb574f81afb448d2550a77942",
+    "offline.py": "e0cc9252bd51b73679fc07adfb63c84321574a014118ecb39443d239acd4e581",
+    "reader.py": "245cb5a00886ec21e0e6237cba782f19240f7f796f648b1287b8ee1d73f3f6cc",
+    "models.py": "133a6bfde01f1ac68ee3fd4547a23f2cfabd771462c5b2078b88cf6f936eab84",
+    "adapter.py": "047da2c71ce896a433377bcfd0e6d1ee17a98ae681bf4040786e39cbba41a9e2",
+    "soc_agent/cli.py": "acc0651b80af5763b193a7dcc18bbdd203f1d6e41ae2019a9842f07dfb396351",
+    "research/total_auth.py": "f233676c97e40c60f9478417315fb7db151204e6e8fcbcb66cb947363405ccb8",
+    "producer_service.py": "1bee915a783b4c77c1473886a50acbccba5b388cb445b173cd034c337d3d587e",
+    "gui/__main__.py": "744bfbc66dce2f8eb24d925ceab0d29c1b6a8799b0a937da27350040b20afbb4",
+    "gui/production.py": "4b68dd668be0a88fd608c14092b5de31ce523a55c0e5e8d4eae2d667ebb20e11",
+    "gui/backend.py": "42d42417b95c4fdff4fb3635c2c6eaa61649f225f99c7daecba96779d3fed497",
+    "gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884"
+  },
+  "bundle_digest": "aabfcc24ea719cf40c4d915d36cb05bbc32e99dfd788b254d3e4119b7fa5f34f",
+  "launcher_sha256": "e6fdd36e0b21455c087d1466cba94061e83cb8a0c8dc97533b8649f4be39707a",
+  "source_sha256": {
+    "src/soc_agent/gui/operator_view.py": "8c35b0f5ebb73d6fbd832aecb8c5b08aea8fd1859f55ef874d90059e02b90b83",
+    "src/soc_agent/security_ai/collectors/handoff.py": "97ae414686152d36c3e55df8d84f2abf0f8067bcac235ce7cdfebb04a0ca8312",
+    "src/soc_agent/security_ai/collectors/integrity.py": "6f157ba9a112e0a0bdee37776b726a99d0b86f47a4d31db4647a2287d87dcf5f",
+    "src/soc_agent/security_ai/collectors/integrity_service.py": "5d7f5d8337e0a697deea7f60a1ed765ceedffd9da619f2b6bf485aa4155dc81f",
+    "src/soc_agent/security_ai/collectors/live.py": "543bcdf80f36ff67d167ee76c16478ca5db3585ce541dbc48b881d5cc846a642",
+    "src/soc_agent/security_ai/collectors/live_contract.py": "565a9eb6954630f35cffb634c7bd2f4571bbc836697b08f0aca61a0ebcc19b90",
+    "src/soc_agent/security_ai/collectors/live_stream.py": "a4780e314c1f6daad12fc849e3c7e28c1deb26f4c4b5e1a993bf98a36f9749c4",
+    "src/soc_agent/security_ai/collectors/producer_service.py": "1bee915a783b4c77c1473886a50acbccba5b388cb445b173cd034c337d3d587e",
+    "tests/gui_zeek_integrity_checks.py": "8708c7b792086ef31a5a8f1241ba0b85e70ea6542aa0f0843ea557f72d6c6bf9",
+    "tests/integration/zeek_integrity/test_recovery.py": "00b52237f0d68f17066c8f100aa5a29c1543146c5a5df80b4d817c9124e0c8a1",
+    "tests/unit/zeek_integrity/test_contract.py": "dea3dbb084d0f8460f43de8df1cb429f26f9fa916efac163289ce95ba31c4d1d",
+    "tests/unit/zeek_integrity/test_evidence.py": "7a4d3f4dda2ad6729bdca1c525a6ee009268f747c68a9b2a4225b8b1dba15bae",
+    "tests/unit/zeek_startup/test_evidence.py": "a4b247210d308c7c19494a98813386c673bdd3b8b16240b4037252ac5b2b621f"
+  },
+  "historical": {
+    "session": "session-b9fe165ac83046edb2b6f82f14fc4e10",
+    "files": {
+      "exit.json": {
+        "bytes": 1046,
+        "sha256": "136a20cb083ac7ee685cbf0184ae9f39ee1a6ab4e16cf0c221c3bbab0ff7e25a"
+      },
+      "monitor.sqlite": {
+        "bytes": 765952,
+        "sha256": "4192860f9f4d8f9b4543af1cd8f59150faf11accdbb732993fadfa25b98311d0"
+      },
+      "writer.lock": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stop.request": {
+        "bytes": 309,
+        "sha256": "991d88b7d8d8151a2cc51d023a5f16dda12aa8ce4c0c0820451a78da966a384b"
+      },
+      "launcher.lock": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "process.json": {
+        "bytes": 352,
+        "sha256": "83b0e933c958c257c87a3ad08e55a1d7c7a6f123324898b75ddc51b343419fbd"
+      },
+      "controller.json": {
+        "bytes": 324,
+        "sha256": "e24c3272038056d949df684a2b15ae50b1a5a32f778537b21a5e439a39f85fa9"
+      },
+      "plan.json": {
+        "bytes": 651,
+        "sha256": "8de91bff6658cfdd736446419e253abbcfab517acfc1daaf57d758875c63c6ed"
+      },
+      "stream.jsonl": {
+        "bytes": 1168116,
+        "sha256": "cb484bfaa45a6e81df9f2fea94e92e2e0ccabbce061487c08aab7b52fc440787"
+      },
+      "logs/network14_packets.log": {
+        "bytes": 1061487,
+        "sha256": "49d54a158291e85d9fa0b9f269e3353b90e4d3771cb895c4e37946a7fced9485"
+      }
+    },
+    "summary": {
+      "contract": "soc-zeek-native-integrity-summary:v1",
+      "collector": {
+        "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+        "bundle_digest": "6e240ecbd69908a10676cfe9a300a0eca09aa6ddef0589e47f6b6fd42961a8dd",
+        "interface": "lo",
+        "generation": "5e4f2c7d-1f64-4366-a010-b33bea8ba08a"
+      },
+      "session": {
+        "session_id": "b9fe165a-c830-46ed-b2b6-f82f14fc4e10",
+        "plan_digest": "9e7219412c36fece61ac20dd5008d10e98541c520837d054aade64c555332741",
+        "stream_digest": "cb484bfaa45a6e81df9f2fea94e92e2e0ccabbce061487c08aab7b52fc440787",
+        "process": "VERIFIED",
+        "stream": "VERIFIED",
+        "counter": {
+          "status": "UNVERIFIED",
+          "provenance": "ZEEK_GET_NET_STATS_9_0_0",
+          "reason": "QUERY_SUCCESS_AND_WINDOW_NOT_ATTESTED",
+          "reported_received": 4096,
+          "reported_drops": 0,
+          "reported_link": 8200,
+          "kernel_drops_verified": null,
+          "query_status": "UNKNOWN"
+        },
+        "capture": "UNVERIFIED",
+        "flow_completeness": "DEGRADED",
+        "packet_records": 4096,
+        "network_events": 117,
+        "dns_events": 0,
+        "gaps": null,
+        "network14_parity": "UNVERIFIED",
+        "port53_metadata_packets": 68,
+        "dns_visibility": "UNKNOWN_PORT53_METADATA_WITHOUT_DNS_EVENT",
+        "native_policy": "BLOCKED"
+      },
+      "flow_count": 51,
+      "feature_metadata_verified": 51,
+      "timeout_complete_flows": 0,
+      "flow_reasons": {
+        "PACKET_LIMIT": 51
+      },
+      "flow_decisions_digest": "85f544c543d5195c52b44eb2083942142d59001865866bcc9453598a33de822c",
+      "ai_decision": {
+        "decision": "BLOCKED_CAPTURE_INTEGRITY",
+        "blockers": [
+          "BLOCKED_CAPTURE_INTEGRITY",
+          "BLOCKED_FLOW_INCOMPLETE",
+          "BLOCKED_FEATURE_PARITY",
+          "BLOCKED_ARTIFACT",
+          "BLOCKED_POLICY"
+        ],
+        "authority": "DIAGNOSTIC_ONLY_NO_NATIVE_AUTHORIZATION"
+      },
+      "source_packet_digest": "cb484bfaa45a6e81df9f2fea94e92e2e0ccabbce061487c08aab7b52fc440787",
+      "native_inference": "BLOCKED",
+      "dns9": "BLOCKED",
+      "operational_gate": "BLOCKED",
+      "scope": "STORED_METADATA_ARITHMETIC_NOT_RAW_PACKET_PARITY_OR_CAPTURE_ATTESTATION",
+      "policy_changes": false
+    },
+    "metadata_arithmetic_matched": 51,
+    "native_model_receipts": 0,
+    "native_investigations": 0,
+    "stream_sequence": 4215,
+    "exit": {
+      "capture_integrity": "UNVERIFIED",
+      "cleanup_verified": true,
+      "closed_detail": {
+        "bytes_before_closed": 1167799,
+        "bytes_recvd": 731120,
+        "dns_events": 0,
+        "messages_before_closed": 4214,
+        "network_events": 117,
+        "omitted_events": 0,
+        "omitted_packet_records": 0,
+        "packet_records": 4096,
+        "pkts_dropped": 0,
+        "pkts_link": 8200,
+        "pkts_recvd": 4096,
+        "stop_reason": "PACKET_LIMIT_REACHED"
+      },
+      "closed_observed": true,
+      "container_absent": true,
+      "container_exit_source": "ATTACHED_DOCKER_RUN_EXIT_STATUS",
+      "container_id": null,
+      "drain_seconds": 0.2580112650175579,
+      "elapsed_seconds": 126.71700664999662,
+      "error": null,
+      "exit_code": 0,
+      "exit_digest_scope": "PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
+      "native_capture": true,
+      "output_bytes": 1168116,
+      "plan_digest": "9e7219412c36fece61ac20dd5008d10e98541c520837d054aade64c555332741",
+      "protocol_finalized": true,
+      "sequence": 4215,
+      "stop_requested_reason": null,
+      "stopped": false,
+      "stream_sha256": "cb484bfaa45a6e81df9f2fea94e92e2e0ccabbce061487c08aab7b52fc440787",
+      "termination_reason": "PACKET_LIMIT_REACHED"
+    },
+    "audit_records": 864,
+    "audit_digest": "0f69ead671c1264fc5242f2cc9c0c0ac0e290d8eb60f101eaa242fe780c30cb8",
+    "audit_integrity": "VERIFIED",
+    "source_event_audit_binding": "VERIFIED",
+    "sqlite_integrity": "ok",
+    "packet_protocol_counts": {
+      "port53_metadata": 68,
+      "tcp": 4028,
+      "udp": 68
+    },
+    "flow_arithmetic": [
+      {
+        "flow_id": "6e941cb085bed133f375f82424155e34c33c40a3dc3395ab5ebd4879165df320",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "6df8a0c52345af32422f71c6dfa506a8abffdc64518f67e5188756c15fd3bedc",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "7159f6b66b4768e65619b9711407ac953b75930fb72c29d6aee11845743e8338",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "ce41174c68561c3bbd8d9c86fc5218ee64fc6dea4fb5f0a497b8048dc9d24ca5",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "ceac2aae1ff391e82991924e7b051f40f7a7f17732ff38ae897dd29538a98803",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "e6b7c82cbaab5423220d5ef79f694cc3b59bed3c746fd740224d256d98887e87",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "02e0eb93a7accdea08bb8abc232a8416682a08781b7b5ba86c48658578adf281",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "56c7e33a7d7417c2073fc280161ff16ed623e36fa545fdd97d4b545edd9f0d97",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "fe33c5138d7aad9304998ab5ba8c3948c1d295a98ec9b64ec58fbbe12b9ec4ef",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "b4fc3f4430c1cc9070ffe562307416e11f2623ec89b64ca23279bdf43434947f",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "c8acf62a292b15939fbb2b50f2d048de244380df1e8a62a6f988dab20076c6fb",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "a018863a48579f97e955deb948f4c80dd64966a094f9063780ec6f3ae10e64cc",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "7257a65080cc1442debe4202a4190e8ff294272ffebd6fd2c0cbe4845d36cc18",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "9f60392318c89af76af6ecda16a41f701acd2dfa1c3f20a41683729de55057f0",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "6c4dc420f1efee9b940b7ac1a7f4812fc4f1b7f8cb5b9187d9d7c6de5bae1b57",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "e38f6acb616924de9c36ccbda699ccb7dc1dbc9b8052295a0cc03f6e09d17eb8",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "a97a1b6414998725a07520c52a42b837499d8cec03726d39d59db69288a3cebc",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "ae2c914b2593182f146ea470495c3e5532fcc1345639fec43c5a56b359a5a270",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "53b71c1ed6f98eb0297ba736b1969990f74c720d05a2a5541d4dc28ddf976c56",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "1ad55e05e576562c163aebf3684fe5c797ae2d1311431835f44760315692781c",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "35e53c3b81c038654bed7535c8afb469cda0d0a830dbdcad15734b39fcbc1454",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "bd17e4521bbd2398a5d2cf2c3eef1b68366c20e127e0dea4c265ef2017242e28",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "930ef9404134cb76a32d20b0efff17d04dd659d24800453d1a4806e1986a2603",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "31818ee7479d1896f1d652702594cd36e678b42d3f98fc2df5b5adcc158b2376",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "19f6670d6a013c5086b025e3db49e172beb5a4ed7c6283f43d5704f51943ff9d",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "e2804f81d579defa736a554b659a279758a2b1ba3d5421226184c821f53f45a4",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "13ba2eae249ba6c2bcf7f25c70f1d72fb7d861eec58ca46972072e3b4138ca99",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "0446e1a8bdaff0bcfb063afc311cf292e076c60259c02f292e7213a2de86e0ed",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "0f40ae64b68f06bc06ed88042a9b9663e5be22f2aa280306444a2a9c6a275fe9",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "183d7152b103d9abec459c0e429181f3d8bfec1dc58105af4c1dd938f960c851",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "868b7638f20926c8061877355e0b4e48fd56baa998e32951ff6fe0c5891c4503",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "ad5ad8a899e02922942d6f317e8f29a5e8780724745ef2bb90d68d433373bfdb",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "fa93396e81b1537300154a33fd25890f8459cb4608627da554bba9ca1b13ae2a",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "e447fbe3e24ab00a6d8881b0a0991b8403ebc4d856068a4052e0fd9db3758a3d",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "c4ab55f9749b523ca40dfd8c5bc66bca2617f2dd1df102bcb84631718fadedd8",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "0e912c9d6fb4027867eb3b7a0ec28d7c2ba3080a6486d4ba03954b60eabc5b5a",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "aa287f4e3b6bafbe48dce4de0d04e2551e11837453ed4baa2c7c6fdb7f2081ba",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "6e492daa2882988769ea41cc7809eb44e669d95cb54278fa739a78074dad9a8d",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "d9f17e353a9b0bfa528944b50f04e3de1f599d74364bede186dbd5fc351ba640",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "a555d1531abe9adee785678b3da77165f99a96b03b32be2128692568065fa788",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "43b4ecfa3a4269cde0637d3bf0e63b0388b0d48db5c7d6c9bb6bc1605064b7fe",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "7be55aa5efee55a45c2e049b5dcd4a5d524fc99a4edbbdae538c3a1c7943e011",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "f03c7e133f9896fe4314383468ca73c29667515b63d0d144718c8c3df89a5f0f",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "76f486f63d54b88b5cffaa2b772f4ae715929048eb1a64ac804e57264b211cf1",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "abd742ab2272bc9f15f2fe7bed802dedc3f2e4a704e25cd775916c547555fd26",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "1e19ead083317a86b2814caca7b1713c1005272a778441f7d17cc2a084d47fd2",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "5afa0aa034483d06aa5c11d90f7bd79cba9080637ad6674854555b7a753821a0",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "d5dca9ed33f8709d45ded50f3971c2c5bdc6d4f43d9ea2d249d4e22a5e2eca5b",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "deb4275f098874d9365afe0e9686ebfc0ff3046e38536ef4dd3c1aba6f41a686",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "64b24f3f45dbb7d73c8c4dad896722bc5b5aaaacc489cc5ce2f38fceb25bf13b",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "7857733074910c7823f6d3ed1c99750116b9d1fafa06ee8134c8c01d9abac241",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "0f96f9c542a6485e823b15b3787fdefffd5eb363378d947e87031fe980ed856e",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "b63bd3bce937551cc35da48782ee74c33c5e1ab1dc6737d60dbdacbf4e063e64",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "e151df9113a48f4a42e10bb1398575417c018d0246967d33cc25fbee82b9c67c",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "7ddcc0c74d921ffe4e2dc7195bbf5dbb6783e354f648e2df4e2caf9f698cd654",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "a8b2c381e3d8517680917a6f22b2ab51b72223f06a433be3fff1ec52bf145914",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "e2eea2039a63469fa5cd13e4c405a58653071a2d1befa13d7555ee658831b6a9",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 128,
+        "values_digest": "35130bc42cf7fe3218199a1b9781cb7202c51c8d578604a593c5963ba0370f02",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "d8ddea83197583404a74ea1ffca452a7c2815701de54e4e80cabcb9b701f793b",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 13,
+        "values_digest": "c5e7f117a1db9f34604a4f5346cba2b47909c99ea64eee8d0eb5a9ae85e413ee",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "00fb74f9a4315ed07ec31665bed7f72f502407cd697bfbc16ff9463d81660c0b",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "8e07b19af1e2272bbb2833cb951b8d6f27faf043db9bf7f7f0c0ebcd51a09d95",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "7b8b8f349955c364e30b773c64b06e7ba2d7296728b0415d1e131c90014b5836",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "de03c223810602e99df8b27336a3dca0a0a4b4101fa81bb651a30c051e81004c",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "1b18cd7783ad4a729ae60421144d74dcde4d6a548d9ceff29e84e3c6e0001df6",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "a521a2e7f8967f321244e5acbdcb9af3b1781f395c3983135ec914bb7add0afe",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "97e1b8da51de4230d02764158c30fb89c5c12541a4a4e8589ba3a3b213d9ceb5",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "9890015e31c6a41a17e0296dea8dec4a3ebc7692c806cf869cda18ec854460d5",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "7e66a3101a52a06e372a705ee27170047fed18e990b4f9bb7fc5f5ff111072d0",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "526c1d2d3418721bc7fde1d380762fb6de9ab797038166f65b6a7336422fac26",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "10e0f736f489eea929a560c42272d22409af960f7be4da33b89364b1b3aca0e1",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "56316bbf9b38be3e78e9172e09f4bc4c37af4f102b9e6185abaf3cec0e81cc03",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "44a7926bba23041b68bc4974b3ce95f495a2ef8abd463a3b3cb772ca50cbf444",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "e97268864a58f1f8b6edfeabf512b574acade473c0a0a7945d26b6da098f5aa9",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "057629e3d566dfcbe5068836930648a90dc1a0a821be32679700517f96467d5d",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "b4b9006c71fe1f8c721106b55c1fc650c23ba8628f500e9251e3ab1216e3a01d",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "24fee715b50e3757c0de5f7e62f24a323ae1664b806f7956c6945da4c4861af3",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "f5359f7d8cd583f5b5b93f3cacdeda8fdf09f75ddcdabaac3e84cfc54adf4218",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "a1e40394c92d120ad841c2b6ea30e3ce119339dc45ff8b29514e18eaa1e5a6c6",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "1b05e7fb1cac1f9dc41849065d89e8bf8e71060b4c5685a4b38b10ee1d5fd81c",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "c3ae4dada9a2a6e9e1e818169e56fd24a701392ae77322b0d296196b42c261e4",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "7fbc375cdaee81d856c141a7f8eec902118648c9939ee582882eb33494de34c5",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "2d250bc7b3406264220906491a30daec86b0662716d5375b294dad22638ab003",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "a7abaa2f56c452e0ac1410adcc6a18538c7d14dd6e98e5e0ad9d488dd5bd2714",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "c7e06f7cc38b33c2489bed0992b6e3fee057b1c8241e1593f44dabc4db7a7320",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "8624a45348e4e126677e3b740e8a271a01e51de3fdf8002a8a818bf4b0c6652c",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "59ec068b384477790803753a53d727ed3fcc58540e81714aa355e6df6fa7ecf4",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "b591ffa18f6c61c9dcb468a807fab99392763828b0c80bd0a918cfd1d3bf2266",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "0b8b6bb0dd6888371eded89419534212a874544b611a584304f031ae141d219e",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "59ccfa8b0aa2b72bec15e732e554a2a4a0c7e208f822387ca77fed636c5a4979",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "0baadd220cd3cefbd56dc3893effc133442644685bf3e3d8571d30c1ce5c4db1",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "226c4ead1c9ba07fa890585d5888f13c7d9fecef1679aedf43b96753cace432b",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "32a7cb41b8b84d28da45fc80f2a3e2311085c01799bc296bf05893cf33aace94",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 109,
+        "values_digest": "344dafad573833123f7de15e26c776698788cdc7f92b02c59accc953ffcf748a",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "81f6d5cb042eef248a5f4bb093865e5ddd5b456affc5d8a141c8c9d93b7765a1",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 92,
+        "values_digest": "c058338c0aa726ab5f049c405a52e04811f8c6ccb7845e173fa2ce80e07ce2b9",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "79dff11f7da21af4b867c276e00b0f36c22c15fa2aa8f1520b1b2dc57b738d6b",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 80,
+        "values_digest": "a4b164f6b57427bf0bc30bb97ff8ce9adf85434a73976d75fa5109ec057a66ee",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "aa1f249355114a0dbe272a16f37814d878753f2e62bca684615d5a4748118aa7",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 4,
+        "values_digest": "39eeb527d16e96761126ecee80f7282ec9170c2e48c076938a35167a9ff9e4f6",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      },
+      {
+        "flow_id": "ab0f903a82961e59c90476e9562230d65fb6a25996f7cb0821df49feadaa01fd",
+        "close_reason": "PACKET_LIMIT",
+        "packet_count": 22,
+        "values_digest": "9ad5f8ff75bb1ef88b81c0cf0400199cc44bace0ca93611471ae98311704bdfd",
+        "feature_arithmetic": "VERIFIED",
+        "complete": "DEGRADED",
+        "ml_arithmetic": "MATCH",
+        "independent_packet_parity": "UNVERIFIED_NO_RAW_REFERENCE"
+      }
+    ]
+  },
+  "offline_models": {
+    "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+    "stream_plan": {
+      "contract": "soc-zeek-native-plan:v4",
+      "session_id": "cca545fa-80a3-4cfe-8060-6d9d7f525781",
+      "controller_generation": "0585c1e7-e1da-4170-8e9b-49fda59be846",
+      "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+      "interface": "lo",
+      "duration_seconds": 300,
+      "cpu_limit": 1,
+      "memory_mib": 512,
+      "disk_mib": 16,
+      "output_bytes": 8388608,
+      "queue_capacity": 32,
+      "packet_limit": 4096,
+      "event_limit": 8192,
+      "net_namespace": "net:[4026531833]",
+      "bundle_digest": "aabfcc24ea719cf40c4d915d36cb05bbc32e99dfd788b254d3e4119b7fa5f34f",
+      "capture_integrity": "UNVERIFIED_PCAP_STATS_FAILURE_SIGNAL",
+      "native_inference": "BLOCKED"
+    },
+    "stream_exit": {
+      "capture_integrity": "UNVERIFIED",
+      "cleanup_verified": true,
+      "closed_detail": {
+        "bytes_before_closed": 1389,
+        "bytes_recvd": 276,
+        "dns_events": 0,
+        "messages_before_closed": 6,
+        "network_events": 1,
+        "omitted_events": 0,
+        "omitted_packet_records": 0,
+        "packet_records": 4,
+        "pkts_dropped": 0,
+        "pkts_link": 0,
+        "pkts_recvd": 4,
+        "stop_reason": "ZEEK_DONE"
+      },
+      "closed_observed": true,
+      "container_absent": true,
+      "container_exit_source": "ATTACHED_DOCKER_RUN_EXIT_STATUS",
+      "container_id": null,
+      "drain_seconds": 0.17885617504362017,
+      "elapsed_seconds": 0.769539169035852,
+      "error": null,
+      "exit_code": 0,
+      "exit_digest_scope": "PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
+      "native_capture": false,
+      "output_bytes": 1672,
+      "plan_digest": "37fe51bdc93e93b50a66512ddc4052e40579d5054c8a180c61b7beca34a7a77e",
+      "protocol_finalized": true,
+      "sequence": 7,
+      "stop_requested_reason": null,
+      "stopped": false,
+      "stream_sha256": "af99648bc0caaf5f10debe990d529dbca5cd52b9e46f9fc086f29f08758a0a01",
+      "termination_reason": "INPUT_EXHAUSTED"
+    },
+    "session_id": "cca545fa-80a3-4cfe-8060-6d9d7f525781",
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "input_origin": "ZEEK_OFFLINE_PCAP",
+    "collector_metrics": {
+      "network_events": 1,
+      "dns_events": 0,
+      "queue_depth": 0,
+      "queue_capacity": 32,
+      "backpressure": "NORMAL",
+      "queue_peak": 7,
+      "rows_read": 1,
+      "duplicates": 0,
+      "out_of_order_start_times": 0,
+      "log_to_adapter_ms": null,
+      "capture_to_log_ms": null,
+      "feature_generation_ms": null,
+      "inference_latency_ms": null,
+      "investigation_latency_ms": null,
+      "log_lag_seconds": null,
+      "inference_count": 2,
+      "process_alive": false
+    },
+    "packet_count": 4,
+    "flow_count": 2,
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "finalization": "PCAP_REFERENCE_FINALIZED",
+    "audit_digest": "6880ea5e38260b90564ba1cc8a3ea8bcbf02b1cc2ca73250db2bc8594ec8bca6",
+    "recovered_audit_digest": "6880ea5e38260b90564ba1cc8a3ea8bcbf02b1cc2ca73250db2bc8594ec8bca6",
+    "restored_new_inferences": 0,
+    "elapsed_seconds": 6.936719826015178,
+    "cpu_seconds": 1.0854296570000006,
+    "process_peak_rss_bytes": 182722560,
+    "memavailable_before_bytes": 4112232448,
+    "psi_before": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170652886\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162914470\n",
+    "native_capture": false,
+    "cleanup_verified": true,
+    "records": [
+      {
+        "profile": "quality",
+        "status": "COMPLETE",
+        "receipt": {
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "cca545fa-80a3-4cfe-8060-6d9d7f525781",
+          "contract": "soc-zeek-network14-receipt:v1",
+          "event_time": "2027-01-15T08:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "0726b212d08af1f565a617a3f0a5e5a79ee14626d9c124f6f4ab285c15683b9e",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "d0a8bbc1a97ec4013d7d5a65aebf7fcb76a0c238ae048f3cd349b2f799ea824b",
+          "inference_latency_ms": 10.460689023602754,
+          "inferred_at": "2026-10-19T11:10:47.722972Z",
+          "invocation_id": "3ff9f812-f1ac-4e7c-8572-91513bd6bed5",
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "operational_inference": "BLOCKED",
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "packet_count": 3,
+          "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+          "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_origin": "OFFLINE_PCAP",
+          "producer_version": "1.1.0",
+          "profile": "quality",
+          "provenance_digest": "47301a915a61a95815c92c9d28c303b3f5232c8858b4e27d41071a1817183f3c",
+          "request_digest": "dfb06f5c978c2abc5829875678fffe46a5a827686742416b0660e9091aaffd7a",
+          "score": 0.140625,
+          "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+          "source_digest": "8708b925dbbb08b0dd5aadd3da1685acce3588892f200e2e614e16778ad8f66e",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.35,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 2.157802,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 234684416,
+          "write_policy": "WRITE_DENIED",
+          "zeek_producer_version": "zeek-packet-network14:v1"
+        },
+        "investigation": {
+          "status": "ASSESSED_READ_ONLY",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true,
+          "context_digest": "27b32ea905d966ba846bc703c863a4a36cfb542fa712f0019d5f34c6e7c857b4",
+          "evidence_references": [
+            "d237ee24-2462-4521-94bc-2ef863ac535b"
+          ],
+          "incident_id": "b8dce2f4-1b63-4050-98d0-88c36b6d4725",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "provider_calls": 0
+        }
+      },
+      {
+        "profile": "edge",
+        "status": "COMPLETE",
+        "receipt": {
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "cca545fa-80a3-4cfe-8060-6d9d7f525781",
+          "contract": "soc-zeek-network14-receipt:v1",
+          "event_time": "2027-01-15T08:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "0726b212d08af1f565a617a3f0a5e5a79ee14626d9c124f6f4ab285c15683b9e",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "d0a8bbc1a97ec4013d7d5a65aebf7fcb76a0c238ae048f3cd349b2f799ea824b",
+          "inference_latency_ms": 12.874362000729889,
+          "inferred_at": "2026-10-19T11:10:49.983628Z",
+          "invocation_id": "8666474a-9abc-4c4e-ae32-9dd91c731c29",
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "operational_inference": "BLOCKED",
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "packet_count": 3,
+          "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+          "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_origin": "OFFLINE_PCAP",
+          "producer_version": "1.1.0",
+          "profile": "edge",
+          "provenance_digest": "47301a915a61a95815c92c9d28c303b3f5232c8858b4e27d41071a1817183f3c",
+          "request_digest": "f651fd4877806b7c5b9f17945db97fc687a04616b69df468294ce6dd8bfa14e4",
+          "score": 0.08766025304794312,
+          "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+          "source_digest": "8708b925dbbb08b0dd5aadd3da1685acce3588892f200e2e614e16778ad8f66e",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.8,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 1.621319,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 233054208,
+          "write_policy": "WRITE_DENIED",
+          "zeek_producer_version": "zeek-packet-network14:v1"
+        },
+        "investigation": {
+          "status": "ASSESSED_READ_ONLY",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true,
+          "context_digest": "40039f04493782b6a6483e80d8d47c6b62dc73831daa98a1ae0ad74370bebd5e",
+          "evidence_references": [
+            "a5175890-2a01-404f-a99e-033056fb8ef0"
+          ],
+          "incident_id": "af0b7a30-e2e3-4b14-999a-94eef5687346",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "provider_calls": 0
+        }
+      }
+    ]
+  },
+  "verified_runs": {
+    "unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 47.03659858199535,
+      "suite": [
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/loopback_visual",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "result": "........................................................................ [ 13%]\n........................................................................ [ 26%]\n........................................................................ [ 39%]\n........................................................................ [ 53%]\n........................................................................ [ 66%]\n........................................................................ [ 79%]\n........................................................................ [ 92%]\n......................................                                   [100%]\n542 passed in 44.86s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "preflight_memavailable_bytes": 4170690560,
+      "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170245371\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162514235\n"
+    },
+    "stream-controller": {
+      "exit_code": 0,
+      "elapsed_seconds": 42.095902895962354,
+      "suite": [
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "result": "...........................                                              [100%]\n27 passed in 40.21s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "preflight_memavailable_bytes": 4192636928,
+      "preflight_memory_psi": "some avg10=0.01 avg60=0.02 avg300=0.00 total=170292439\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162559203\n"
+    },
+    "gui": {
+      "exit_code": 0,
+      "elapsed_seconds": 59.00324539199937,
+      "suite": [
+        "tests/gui_zeek_integrity_checks.py",
+        "tests/gui_zeek_startup_checks.py",
+        "tests/gui_zeek_finalization_checks.py",
+        "tests/gui_zeek_lifecycle_checks.py",
+        "tests/gui_zeek_live_checks.py",
+        "tests/gui_zeek_collector_checks.py",
+        "tests/gui_visual_dashboard_checks.py",
+        "tests/gui_production_checks.py"
+      ],
+      "result": ".............                                                            [100%]\n13 passed in 57.03s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "preflight_memavailable_bytes": 4247613440,
+      "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170606159\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162868579\n"
+    },
+    "audit-governance": {
+      "exit_code": 0,
+      "elapsed_seconds": 15.335085302009247,
+      "suite": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/linux_runtime/test_final_integration_audit.py",
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 13.44s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "preflight_memavailable_bytes": 4077891584,
+      "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170623708\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162885407\n"
+    },
+    "final-model": {
+      "exit_code": 0,
+      "elapsed_seconds": 9.49133755301591,
+      "result": ".                                                                        [100%]\n1 passed in 7.73s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "scope": "FINAL_FAILURE_PROJECTION_CODE_VERIFICATION_NEW_FIXTURE_PRIOR_RUNS_PRESERVED",
+      "resource_trend": [
+        {
+          "available_bytes": 4202807296,
+          "psi_some_avg10": 0.0
+        },
+        {
+          "available_bytes": 4174962688,
+          "psi_some_avg10": 0.0
+        },
+        {
+          "available_bytes": 4209127424,
+          "psi_some_avg10": 0.0
+        }
+      ]
+    },
+    "final-recovery-affected": {
+      "exit_code": 0,
+      "result": "........................................................................ [ 83%]\n..............                                                           [100%]\n86 passed in 8.24s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n"
+    }
+  },
+  "known_failures": {
+    "exit_sidecar_race": {
+      "initial_result": "1 failed, 541 passed",
+      "cause": "Validated exit record can precede launch-failure sidecar; generic CLOSED error masked reviewed Docker failure",
+      "regression_added": true,
+      "resolution": "Validate exit plan/digest/sequence then propagate reviewed error before requiring CLOSED"
+    },
+    "resource": {
+      "session": "session-02fd006b950f4e33b17ae70ac14977a3",
+      "failure": "ZEEK_MODEL_HEADROOM_REQUIRED",
+      "guard_condition": "MemAvailable < 2GiB OR memory PSI avg10 >= 1; exact primitive not logged in prior code",
+      "original_failure_unchanged": true,
+      "automatic_retry": false,
+      "receipts": [
+        {
+          "profile": "quality",
+          "status": "COMPLETE",
+          "sha256": "c228f2a2e0df2cae240cba2a981334c5ba41e6af28aca93c93b50d2c9598f4df",
+          "receipt_origin": "ZEEK_OFFLINE_PCAP"
+        }
+      ]
+    },
+    "resource_failure_resolved": false
+  },
+  "resource_observation": [
+    {
+      "elapsed": 0,
+      "available_bytes": 4211691520,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 3,
+      "available_bytes": 4143636480,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 6,
+      "available_bytes": 4234313728,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 9,
+      "available_bytes": 4221644800,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 12,
+      "available_bytes": 4251193344,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 15,
+      "available_bytes": 4209627136,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 18,
+      "available_bytes": 4205350912,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 21,
+      "available_bytes": 4215336960,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 24,
+      "available_bytes": 4166287360,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 27,
+      "available_bytes": 4193841152,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 30,
+      "available_bytes": 4187172864,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 33,
+      "available_bytes": 4183220224,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 36,
+      "available_bytes": 4215283712,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 39,
+      "available_bytes": 4215410688,
+      "swap_free_kib": 1298428,
+      "psi_some_avg10": 0.0
+    },
+    {
+      "elapsed": 42,
+      "available_bytes": 4224430080,
+      "swap_free_kib": 1298444,
+      "psi_some_avg10": 0.18
+    },
+    {
+      "elapsed": 45,
+      "available_bytes": 4259581952,
+      "swap_free_kib": 1298444,
+      "psi_some_avg10": 0.14
+    },
+    {
+      "elapsed": 48,
+      "available_bytes": 4197404672,
+      "swap_free_kib": 1298444,
+      "psi_some_avg10": 0.09
+    },
+    {
+      "elapsed": 51,
+      "available_bytes": 4189446144,
+      "swap_free_kib": 1298448,
+      "psi_some_avg10": 0.08
+    },
+    {
+      "elapsed": 54,
+      "available_bytes": 4180566016,
+      "swap_free_kib": 1298448,
+      "psi_some_avg10": 0.05
+    },
+    {
+      "elapsed": 57,
+      "available_bytes": 4243984384,
+      "swap_free_kib": 1298448,
+      "psi_some_avg10": 0.04
+    }
+  ],
+  "performance": {
+    "samples_per_side": 3,
+    "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+    "raw_samples": {
+      "before-idle-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.4146131789893843,
+        "startup_cpu_seconds": 4.173651102,
+        "idle_rss_bytes": 184979456,
+        "process_image_peak_rss_bytes": 188416000,
+        "idle_seconds": 3.0176975849899463,
+        "idle_cpu_seconds": 0.006491861000000654,
+        "idle_cpu_one_core_percent": 0.21512629470531527,
+        "response_p50_ms": 0.020371,
+        "response_p95_ms": 0.046345,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4155785216,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170623940\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162885592\n"
+      },
+      "before-idle-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2903491639881395,
+        "startup_cpu_seconds": 4.314128626,
+        "idle_rss_bytes": 183250944,
+        "process_image_peak_rss_bytes": 187432960,
+        "idle_seconds": 3.018595599976834,
+        "idle_cpu_seconds": 0.007017798000000575,
+        "idle_cpu_one_core_percent": 0.2324855306903128,
+        "response_p50_ms": 0.011291,
+        "response_p95_ms": 0.060928,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4155924480,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170624142\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162885793\n"
+      },
+      "before-idle-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.0633792339940555,
+        "startup_cpu_seconds": 4.079502138,
+        "idle_rss_bytes": 183029760,
+        "process_image_peak_rss_bytes": 186966016,
+        "idle_seconds": 3.0185536749777384,
+        "idle_cpu_seconds": 0.0070065359999995636,
+        "idle_cpu_one_core_percent": 0.23211566711833392,
+        "response_p50_ms": 0.018213,
+        "response_p95_ms": 0.058739,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented",
+        "preflight_memavailable": 4125167616,
+        "preflight_memory_psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=170624462\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=162886110\n"
+      },
+      "after-idle-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.0352686870028265,
+        "startup_cpu_seconds": 3.6307490689999997,
+        "idle_rss_bytes": 183115776,
+        "process_image_peak_rss_bytes": 187342848,
+        "idle_seconds": 3.017331735987682,
+        "idle_cpu_seconds": 0.005918567000000152,
+        "idle_cpu_one_core_percent": 0.1961523464393878,
+        "response_p50_ms": 0.01811,
+        "response_p95_ms": 0.035911,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-idle-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.1777403670130298,
+        "startup_cpu_seconds": 3.781358,
+        "idle_rss_bytes": 183152640,
+        "process_image_peak_rss_bytes": 186990592,
+        "idle_seconds": 3.017477774003055,
+        "idle_cpu_seconds": 0.006246905000000247,
+        "idle_cpu_one_core_percent": 0.20702406008820273,
+        "response_p50_ms": 0.009905,
+        "response_p95_ms": 0.040443,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-idle-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.354017446981743,
+        "startup_cpu_seconds": 3.781200525,
+        "idle_rss_bytes": 183656448,
+        "process_image_peak_rss_bytes": 187138048,
+        "idle_seconds": 3.0188095530029386,
+        "idle_cpu_seconds": 0.0065236300000002245,
+        "idle_cpu_one_core_percent": 0.216099422155031,
+        "response_p50_ms": 0.014996,
+        "response_p95_ms": 0.128339,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      }
+    },
+    "diagnostics": {
+      "scope": "PURE_CLASSIFIER_FIXTURE_METADATA_AND_TEMP_SQLITE_NOT_NATIVE",
+      "counter_classification": {
+        "samples": 3000,
+        "warmup": 10,
+        "p50_ms": 0.00222,
+        "p95_ms": 0.002859,
+        "p99_ms": 0.00359,
+        "cpu_seconds": 0.007254479000000202,
+        "elapsed_seconds": 0.007254643016494811
+      },
+      "feature_validation": {
+        "samples": 1000,
+        "warmup": 10,
+        "p50_ms": 0.060279,
+        "p95_ms": 0.126127,
+        "p99_ms": 0.210224,
+        "cpu_seconds": 0.07669986900000003,
+        "elapsed_seconds": 0.07670011598384008
+      },
+      "audit_append_and_verify": {
+        "samples": 30,
+        "warmup": 2,
+        "p50_ms": 10.5896,
+        "p95_ms": 15.806668,
+        "p99_ms": 16.496116,
+        "cpu_seconds": 0.049911598,
+        "elapsed_seconds": 0.34901399997761473
+      },
+      "process_peak_rss_bytes": 172892160,
+      "native_counter_query_overhead": "UNKNOWN_NO_NATIVE_QUERY",
+      "packet_fixture_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+      "affinity_cpus": 12
+    },
+    "before": {
+      "startup_seconds": 2.2903491639881395,
+      "idle_rss_bytes": 183250944,
+      "idle_cpu_one_core_percent": 0.23211566711833392,
+      "response_p95_ms": 0.058739,
+      "threads": 2,
+      "idle_child_processes": 0,
+      "background_async_tasks": 0,
+      "controller_sqlite_statements_total": 0
+    },
+    "after": {
+      "startup_seconds": 2.1777403670130298,
+      "idle_rss_bytes": 183152640,
+      "idle_cpu_one_core_percent": 0.20702406008820273,
+      "response_p95_ms": 0.040443,
+      "threads": 2,
+      "idle_child_processes": 0,
+      "background_async_tasks": 0,
+      "controller_sqlite_statements_total": 0
+    }
+  },
+  "screenshots": [
+    {
+      "file": "docs/linux-soc-v1/zeek-native-capture-integrity-screenshots/system-fixture-1366.png",
+      "sha256": "c9c1a0bc03a75eeda30aa0764eeff0ddff7afc509c03e4cb11d13e25ac672a01",
+      "dimensions": [
+        1366,
+        768
+      ],
+      "origin": "NATIVE_PROTOCOL_FIXTURE_NOT_CAPTURE"
+    },
+    {
+      "file": "docs/linux-soc-v1/zeek-native-capture-integrity-screenshots/system-fixture-1920.png",
+      "sha256": "617ebd54126009e36ecfa2d8e668ffad5572e93ac3fff811dd3c18216d1ba187",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "origin": "NATIVE_PROTOCOL_FIXTURE_NOT_CAPTURE"
+    }
+  ],
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 267,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "native_capture_executed": false,
+  "privileged_commands_executed": false,
+  "test_traffic_generated": false,
+  "model_artifacts_modified": false,
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_gate": "BLOCKED",
+  "verdict": "PARTIAL",
+  "sigill_root_cause": "UNKNOWN",
+  "additional_instrumentation": "REVIEWED_SAME_HANDLE_QUERY_SUCCESS_AND_INTERVAL_PROOF_REQUIRED_NOT_IMPLEMENTED",
+  "native_kernel_query_overhead": "UNKNOWN_NOT_EXECUTED",
+  "final_gui_projection": {
+    "exit_code": 0,
+    "elapsed_seconds": 5.791088930040132,
+    "result": ".                                                                        [100%]\n1 passed in 4.13s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n"
+  },
+  "published_export_checks": {
+    "published-contracts": {
+      "exit_code": 0,
+      "elapsed_seconds": 10.693907712993678,
+      "result": "........................................................................ [ 80%]\n.................                                                        [100%]\n89 passed in 8.86s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n"
+    },
+    "ruff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.11457307304954156,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.11676701996475458,
+      "result": "1128 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.11481795500731096,
+      "result": "Building wheel...\nSuccessfully built /home/geonug/kdt-linux/autonomous-soc-agent/.git/zeek-integrity-audit/wheel/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    }
+  },
+  "wheel_verification": {
+    "wheel_sha256": "ffa24ff3ad08a2b6ac31896b417376c60846fa6d8eb540535044cc5991619d7e",
+    "source_files_checked": 471,
+    "entry_points": "[console_scripts]\nsoc-agent = soc_agent.cli:main\n\n",
+    "dependencies": [
+      "Requires-Dist: numpy>=2.5.3",
+      "Requires-Dist: pydantic>=2.13.5",
+      "Requires-Dist: pydantic-settings>=2.15.0",
+      "Requires-Dist: python-dotenv>=1.2.3",
+      "Requires-Dist: scikit-learn>=1.9.1",
+      "Requires-Dist: xgboost>=3.4.1"
+    ]
+  }
+}

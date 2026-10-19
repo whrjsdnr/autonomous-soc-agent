@@ -619,6 +619,8 @@ def render_system(app, value):
         "finalization_state": value.get("finalization_state", "NOT_OBSERVED"),
         "capture_interface": collector.get("interface", "NOT_OBSERVED"),
         "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
+        "integrity_evidence": value.get("capture_integrity_evidence") or {},
+        "last_verified_process_session": value.get("last_verified_process_session"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
         "producer": collector.get("producer", "NOT_PREPARED"),
         "feature_parity": collector.get("parity", "EXISTING_CAPTURE_CONTRACT"),
@@ -639,6 +641,10 @@ def render_system(app, value):
         "write_policy": "WRITE_DENIED",
     }
     app.system_details = details
+    proof = details["integrity_evidence"]
+    session = proof.get("session", {})
+    counter = session.get("counter", {})
+    kernel_drops = counter.get("kernel_drops_verified")
     models = value.get("research", {}).get("model_metrics", {})
     lines = [
         "SESSION & MODEL HEALTH",
@@ -671,6 +677,23 @@ def render_system(app, value):
         "Finalization   " + str(details["finalization_state"]),
         "Interface   " + str(details["capture_interface"]),
         "Capture integrity   " + str(details["capture_integrity"]),
+        "Process / stream / capture   "
+        + " / ".join(str(session.get(k, "NOT_OBSERVED")) for k in ("process", "stream", "capture")),
+        "Counter provenance / query   "
+        + str(counter.get("provenance", "NOT_OBSERVED"))
+        + " / "
+        + str(counter.get("query_status", "UNKNOWN")),
+        "Reported Zeek drops / verified kernel drops   "
+        + str(counter.get("reported_drops", "UNKNOWN"))
+        + " / "
+        + str(kernel_drops if kernel_drops is not None else "UNKNOWN"),
+        "Network14 complete windows / native AI reason   "
+        + str(proof.get("timeout_complete_flows", "NOT_OBSERVED"))
+        + " / "
+        + str(proof.get("ai_decision", {}).get("decision", "BLOCKED_CAPTURE_INTEGRITY")),
+        "DNS visibility   " + str(session.get("dns_visibility", "UNKNOWN")),
+        "Last verified PROCESS session (capture not attested)   "
+        + str(details["last_verified_process_session"] or "NOT_OBSERVED"),
         "Collector metrics   " + str(details["collector_metrics"]),
         "Zeek producer   " + str(details["producer"]),
         "Feature parity   "

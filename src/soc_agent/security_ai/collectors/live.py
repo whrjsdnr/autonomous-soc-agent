@@ -53,6 +53,7 @@ class LiveZeekCollector(ZeekCollector):
         self.exit_observation = None
         self.stop_reason = None
         self.stop_audited = False
+        self.native_integrity = None
         self.startup_phase = None
         self.collector_started = False
 
@@ -122,6 +123,7 @@ class LiveZeekCollector(ZeekCollector):
             self.stop_requested = False
             self.started = self.watch_started = None
             self.process_task = None
+            self.native_integrity = None
             self.exit_observation = None
             self.stop_reason = None
             self.stop_audited = False
@@ -339,7 +341,14 @@ class LiveZeekCollector(ZeekCollector):
                         or result.get("stream_sha256")
                         != file_digest(self.directory / "stream.jsonl")
                         or result.get("sequence") != self.stream.sequence
-                        or not self.stream.closed
+                    ):
+                        raise ValueError("ZEEK_CLOSED_OR_PROCESS_INTEGRITY_UNVERIFIED")
+                    # The atomic exit proof can precede launch-failure.json. Preserve
+                    # its reviewed cause after binding, instead of racing that sidecar.
+                    if result.get("error"):
+                        raise ValueError(safe_code(result["error"]))
+                    if (
+                        not self.stream.closed
                         or not result.get("cleanup_verified")
                         or not result.get("container_absent")
                         or not result.get("protocol_finalized")
@@ -365,6 +374,10 @@ class LiveZeekCollector(ZeekCollector):
                         ),
                     )
                     self.store.runtime.event("ZEEK_STREAM_PROCESS_COMPLETED", result)
+                    if not self.fixture:
+                        from soc_agent.security_ai.collectors.integrity_service import persist
+
+                        self.native_integrity = await asyncio.to_thread(persist, self)
                     if (
                         self.fixture
                         and not self.stop_requested
@@ -436,6 +449,16 @@ class LiveZeekCollector(ZeekCollector):
         except (OSError, ValueError, sqlite3.Error) as error:
             self.last_error = safe_code(error)
             self.state = "ERROR"
+            if not self.fixture and self.plan and self.stream:
+                from soc_agent.security_ai.collectors.integrity_service import summary
+
+                self.native_integrity = summary(
+                    self.plan,
+                    self.stream,
+                    self.exit_observation or {},
+                    queue_depth=self.queue_depth,
+                    failed=True,
+                )
             try:
                 reason = (
                     "TIMEOUT"
@@ -448,7 +471,12 @@ class LiveZeekCollector(ZeekCollector):
             try:
                 self.store.verify()
                 self.store.runtime.event(
-                    "ZEEK_LIVE_ABORT", dict(error=self.last_error, inference_allowed=False)
+                    "ZEEK_LIVE_ABORT",
+                    dict(
+                        error=self.last_error,
+                        inference_allowed=False,
+                        native_integrity=self.native_integrity,
+                    ),
                 )
             except (OSError, ValueError, sqlite3.Error):
                 self.audit_failed = True
@@ -544,6 +572,12 @@ class LiveZeekCollector(ZeekCollector):
         candidates = sorted(self.root.glob("session-*"), key=lambda p: p.stat().st_mtime)
         if not candidates:
             return self.snapshot()
+        # Recover may reuse a stopped controller object. Never project old
+        # in-memory packets/receipts under a newly selected session identity.
+        self.stream = self.producer = self.native_integrity = None
+        self.result = self.exit_observation = self.process_runner = self.process_task = None
+        self.handoff = None
+        self.last_error = None
         self.directory = candidates[-1]
         raw_plan = read_local(self.directory / "plan.json", 8192)
         self.store = CollectorStore(self.directory)
@@ -592,6 +626,14 @@ class LiveZeekCollector(ZeekCollector):
             self.last_error = "ZEEK_RECOVERY_COMPLETION_UNVERIFIED"
             return self.snapshot()
         self.result = completed[0]
+        if not self.fixture:
+            from soc_agent.security_ai.collectors.integrity_service import restore
+
+            try:
+                self.native_integrity = await asyncio.to_thread(restore, self)
+            except (OSError, ValueError, sqlite3.Error):
+                self.state, self.last_error = "ERROR", "ZEEK_NATIVE_INTEGRITY_PROOF_MISMATCH"
+                return self.snapshot()
         if self.fixture and (self.directory / "producer-proof.json").exists():
             from soc_agent.security_ai.collectors.producer_service import ProducerService
 
@@ -604,6 +646,12 @@ class LiveZeekCollector(ZeekCollector):
         # Reuse event/audit/receipt projections and bounded chart schema.
         value = super().snapshot()
         observed_exit = self.result or self.exit_observation or {}
+        retained = self.native_integrity.get("session", {}) if self.native_integrity else {}
+        capture_failed = retained.get("capture") == "FAILED"
+        packet_count = self.stream.packet_count if self.stream else retained.get("packet_records")
+        closed_observed = bool(self.stream and self.stream.closed) or bool(
+            self.result and retained.get("stream") == "VERIFIED"
+        )
         alive = False
         if self.plan and self.directory:
             process = self._process()
@@ -626,6 +674,8 @@ class LiveZeekCollector(ZeekCollector):
             interface="lo",
             capture_integrity="OFFLINE_REFERENCE_ONLY"
             if self.fixture
+            else "FAILED"
+            if capture_failed
             else "UNVERIFIED_PCAP_STATS_FAILURE_SIGNAL",
             approval=dict(
                 state="USER_TERMINAL_REQUIRED"
@@ -643,11 +693,19 @@ class LiveZeekCollector(ZeekCollector):
         value["network"].update(
             collector_network_events=self.store.counts().get("network", 0) if self.store else None,
             collector_dns_events=self.store.counts().get("dns", 0) if self.store else None,
-            packet_metadata_count=self.stream.packet_count if self.stream else None,
-            finalized_flows=len(self.stream.finalized) if self.stream else None,
+            packet_metadata_count=packet_count,
+            finalized_flows=len(self.stream.finalized)
+            if self.stream
+            else (self.native_integrity.get("flow_count") if self.native_integrity else None),
             capture_interface="lo",
-            capture_integrity="UNVERIFIED" if not self.fixture else "OFFLINE_FILE_DIGEST_VERIFIED",
-            integrity_state="DEGRADED_NATIVE_MODELS_BLOCKED"
+            capture_integrity="FAILED"
+            if capture_failed
+            else "UNVERIFIED"
+            if not self.fixture
+            else "OFFLINE_FILE_DIGEST_VERIFIED",
+            integrity_state="CAPTURE_INTEGRITY_FAILED"
+            if capture_failed
+            else "DEGRADED_NATIVE_MODELS_BLOCKED"
             if not self.fixture
             else "OFFLINE_REFERENCE",
             finalization=(
@@ -660,9 +718,11 @@ class LiveZeekCollector(ZeekCollector):
             capture_uptime_seconds=time.monotonic() - self.started
             if self.started and running
             else None,
-            capture_drops=self.stream.counters.get("pkts_dropped")
-            if self.stream and self.stream.counters
-            else None,
+            capture_drops=(
+                self.stream.counters.get("pkts_dropped")
+                if self.fixture and self.stream and self.stream.counters
+                else None
+            ),
             gap_count=None,
             recovery_state=self.recovery_state,
         )
@@ -684,20 +744,27 @@ class LiveZeekCollector(ZeekCollector):
             and self.state in {"APPROVAL_REQUIRED", "AUTHENTICATING", "STARTING"}
             else ("COMMAND_VALID" if valid else self.state),
             startup_phase=self.startup_phase,
-            network_observation="OBSERVED"
-            if self.stream and self.stream.packet_count
-            else "NOT_OBSERVED",
+            network_observation="OBSERVED" if packet_count else "NOT_OBSERVED",
             dns_observation="OBSERVED"
             if self.store and self.store.counts().get("dns", 0)
             else "NOT_OBSERVED",
             stop_reason=self.stop_reason,
             termination_reason=observed_exit.get("termination_reason"),
-            packet_budget=dict(used=self.stream.packet_count if self.stream else None, limit=4096),
-            event_budget=dict(used=self.stream.sequence if self.stream else None, limit=8192),
-            closed_status="OBSERVED" if self.stream and self.stream.closed else "NOT_OBSERVED",
+            packet_budget=dict(used=packet_count, limit=4096),
+            event_budget=dict(
+                used=self.stream.sequence
+                if self.stream
+                else self.result.get("sequence")
+                if self.result
+                else None,
+                limit=8192,
+            ),
+            closed_status="OBSERVED" if closed_observed else "NOT_OBSERVED",
             container_exit=observed_exit.get("exit_code"),
             cleanup_verified=observed_exit.get("cleanup_verified"),
-            finalization_state=(
+            finalization_state="FAILED"
+            if capture_failed
+            else (
                 "DEGRADED"
                 if not self.fixture or self.result.get("termination_reason") != "INPUT_EXHAUSTED"
                 else "VERIFIED_OFFLINE_REFERENCE"
@@ -706,6 +773,12 @@ class LiveZeekCollector(ZeekCollector):
             else "FAILED"
             if self.last_error
             else "PENDING",
+        )
+        value["capture_integrity_evidence"] = self.native_integrity
+        value["last_verified_process_session"] = (
+            str(self.plan.session_id)
+            if self.plan and retained.get("process") == "VERIFIED"
+            else None
         )
         value["collector_command"] = command(self.directory, self.plan) if valid else None
         if not self.fixture:

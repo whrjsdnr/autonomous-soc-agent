@@ -38,6 +38,13 @@ class ProducerService:
         self._source_gate()
         c = self.collector
         p = self.proof
+        from soc_agent.security_ai.collectors.integrity import validate_flow
+
+        checked = validate_flow(flow, c.store.source.session_id)
+        if checked.feature_integrity != "VERIFIED":
+            raise ValueError("ZEEK_FLOW_FEATURE_INTEGRITY_FAILED")
+        if checked.completeness != "VERIFIED":
+            raise ValueError("ZEEK_FLOW_NOT_ELIGIBLE")
         return ZeekRequest(
             research_mode=True,
             profile=profile,
@@ -167,7 +174,13 @@ class ProducerService:
                     self.last_error = "ZEEK_MODEL_HEADROOM_REQUIRED"
                     self.pending = 0
                     c.store.runtime.event(
-                        "ZEEK_MODEL_HEADROOM_BLOCKED", dict(automatic_retry=False)
+                        "ZEEK_MODEL_HEADROOM_BLOCKED",
+                        dict(
+                            automatic_retry=False,
+                            available_memory_bytes=available,
+                            memory_psi_avg10=pressure,
+                            phase="BEFORE_MODEL_DISPATCH",
+                        ),
                     )
                     return
                 self.pending -= 1

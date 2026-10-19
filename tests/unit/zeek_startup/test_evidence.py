@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-from soc_agent.security_ai.collectors.live_contract import bundle
-from soc_agent.security_ai.collectors.offline import file_digest
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -16,11 +14,11 @@ def evidence():
 
 def test_current_bundle_source_and_unmodified_security_scope():
     v = evidence()
-    assert v["bundle"] == bundle() and v["bundle_digest"] == digest(bundle())
-    assert v["launcher_sha256"] == bundle()["live_process.py"]
+    # Immutable evidence of commit 7dd0f66, not authority for later bundles.
+    assert v["bundle_digest"] == digest(v["bundle"])
+    assert v["launcher_sha256"] == v["bundle"]["live_process.py"]
     assert v["approval_contract"] == "soc-zeek-native-plan:v4"
-    for path, sha in v["source_sha256"].items():
-        assert file_digest(ROOT / path) == sha
+    assert v["source_parent_head"] == "604e26508f80f2413fa4645325d528538a8ad818"
     assert not v["preservation"]["errors"]
     assert v["preservation"]["user_files_checked"] == 132
     assert v["preservation"]["protected_files_checked"] == 245
