@@ -38,6 +38,7 @@ def main(argv=None) -> int:
         choices=("legacy", "conservative-v2", "balanced-v2", "performance-v2"),
     )
     parser.add_argument("--calibrated-approved-bundle", help=argparse.SUPPRESS)
+    parser.add_argument("--developer", action="store_true", help="Open research/replay tools")
     args = parser.parse_args(argv)
     if hasattr(os, "geteuid") and os.geteuid() == 0:
         print("SOC_GUI_REQUIRES_UNPRIVILEGED_USER", file=sys.stderr)
@@ -48,7 +49,10 @@ def main(argv=None) -> int:
         print("SOC GUI BLOCKED: Tkinter unavailable", file=sys.stderr)
         return 1
     try:
-        from soc_agent.gui.app import Desktop
+        if args.developer:
+            from soc_agent.gui.app import Desktop
+        else:
+            from soc_agent.gui.production import Desktop
 
         config = GUIConfig(
             total_approved_sha=args.total_approved_sha,

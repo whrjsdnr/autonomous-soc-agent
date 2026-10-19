@@ -15,7 +15,9 @@ def bounded_text(value, default=""):
 
 
 def error_code(value):
-    return value if isinstance(value, str) and re.fullmatch(r"[A-Z][A-Z0-9_:]{0,127}", value) else ""
+    if isinstance(value, str) and re.fullmatch(r"[A-Z][A-Z0-9_:]{0,127}", value):
+        return value
+    return ""
 
 
 def preparation_message(result):

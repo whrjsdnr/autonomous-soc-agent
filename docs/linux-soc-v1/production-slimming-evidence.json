@@ -1,0 +1,1683 @@
+{
+  "baseline_soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "scope": "PRODUCTION_UI_FIXTURE_VALIDATED_NATIVE_PENDING",
+  "idle_comparison": {
+    "before": [
+      {
+        "backend_completion_polls_per_second": 16.30088632132752,
+        "background_async_tasks": 0,
+        "created_runtime_owners": 6,
+        "gui_worker_stopped": true,
+        "idle_child_processes": 0,
+        "idle_cpu_one_core_percent": 0.4516981587720608,
+        "idle_cpu_seconds": 0.013577918000000189,
+        "idle_rss_bytes": 215945216,
+        "idle_seconds": 3.005971517995931,
+        "mode": "developer",
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "model_service_created": true,
+        "process_image_peak_rss_bytes": 215945216,
+        "remaining_child_processes": 0,
+        "response_p50_ms": 0.017262,
+        "response_p95_ms": 0.076745,
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "startup_cpu_seconds": 6.346761456,
+        "startup_seconds": 6.745318830013275,
+        "threads": 3,
+        "widgets": 107,
+        "explicit_identical_native_status_paths": true,
+        "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+        "source_sha256": {
+          "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+          "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+          "src/soc_agent/gui/backend.py": "9b8602837e8d21c83e6ad31c5dba06c796af0c77792fe7334a93cbd68d158a1f",
+          "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+          "src/soc_agent/gui/live_view.py": "5e2a22902f9a548a01158dd0851b982c958342d8c33df0edb7b43de6e5cc3ab2",
+          "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+          "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+          "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+          "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+          "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+          "src/soc_agent/gui/app.py": "c15ef13e3cb9cb7bcd3ae1008557bc40d3550a315b3d21a4a996018e09804fe3",
+          "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+          "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+          "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+          "src/soc_agent/gui/__main__.py": "931ea7a4688f562183ec77767fd5a178184d97bab81274af23bf3c53cc156815",
+          "src/soc_agent/gui/queries.py": "fe5341894b9a4ed26053c8541566353915fe2b4e6ed8646afb460469d486f9c8",
+          "src/soc_agent/security_ai/research/stream_service.py": "7f05a4e6dd8f2d3d2d16f35fac2747e5502561c0eb50add6fa5a23d180706c39"
+        }
+      },
+      {
+        "backend_completion_polls_per_second": 16.30725400083907,
+        "background_async_tasks": 0,
+        "created_runtime_owners": 6,
+        "gui_worker_stopped": true,
+        "idle_child_processes": 0,
+        "idle_cpu_one_core_percent": 0.44450482684048565,
+        "idle_cpu_seconds": 0.013356470999999814,
+        "idle_rss_bytes": 214360064,
+        "idle_seconds": 3.004797742003575,
+        "mode": "developer",
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "model_service_created": true,
+        "process_image_peak_rss_bytes": 214360064,
+        "remaining_child_processes": 0,
+        "response_p50_ms": 0.010882,
+        "response_p95_ms": 0.020849,
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "startup_cpu_seconds": 6.15246694,
+        "startup_seconds": 6.852443796000443,
+        "threads": 3,
+        "widgets": 107,
+        "explicit_identical_native_status_paths": true,
+        "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+        "source_sha256": {
+          "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+          "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+          "src/soc_agent/gui/backend.py": "9b8602837e8d21c83e6ad31c5dba06c796af0c77792fe7334a93cbd68d158a1f",
+          "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+          "src/soc_agent/gui/live_view.py": "5e2a22902f9a548a01158dd0851b982c958342d8c33df0edb7b43de6e5cc3ab2",
+          "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+          "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+          "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+          "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+          "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+          "src/soc_agent/gui/app.py": "c15ef13e3cb9cb7bcd3ae1008557bc40d3550a315b3d21a4a996018e09804fe3",
+          "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+          "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+          "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+          "src/soc_agent/gui/__main__.py": "931ea7a4688f562183ec77767fd5a178184d97bab81274af23bf3c53cc156815",
+          "src/soc_agent/gui/queries.py": "fe5341894b9a4ed26053c8541566353915fe2b4e6ed8646afb460469d486f9c8",
+          "src/soc_agent/security_ai/research/stream_service.py": "7f05a4e6dd8f2d3d2d16f35fac2747e5502561c0eb50add6fa5a23d180706c39"
+        }
+      },
+      {
+        "backend_completion_polls_per_second": 16.231997987146272,
+        "background_async_tasks": 0,
+        "created_runtime_owners": 6,
+        "gui_worker_stopped": true,
+        "idle_child_processes": 0,
+        "idle_cpu_one_core_percent": 0.7079026746326641,
+        "idle_cpu_seconds": 0.021369662000000567,
+        "idle_rss_bytes": 214220800,
+        "idle_seconds": 3.0187288119923323,
+        "mode": "developer",
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "model_service_created": true,
+        "process_image_peak_rss_bytes": 214220800,
+        "remaining_child_processes": 0,
+        "response_p50_ms": 0.019733,
+        "response_p95_ms": 0.047292,
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "startup_cpu_seconds": 6.292395111,
+        "startup_seconds": 6.583648094965611,
+        "threads": 3,
+        "widgets": 107,
+        "explicit_identical_native_status_paths": true,
+        "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+        "source_sha256": {
+          "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+          "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+          "src/soc_agent/gui/backend.py": "9b8602837e8d21c83e6ad31c5dba06c796af0c77792fe7334a93cbd68d158a1f",
+          "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+          "src/soc_agent/gui/live_view.py": "5e2a22902f9a548a01158dd0851b982c958342d8c33df0edb7b43de6e5cc3ab2",
+          "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+          "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+          "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+          "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+          "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+          "src/soc_agent/gui/app.py": "c15ef13e3cb9cb7bcd3ae1008557bc40d3550a315b3d21a4a996018e09804fe3",
+          "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+          "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+          "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+          "src/soc_agent/gui/__main__.py": "931ea7a4688f562183ec77767fd5a178184d97bab81274af23bf3c53cc156815",
+          "src/soc_agent/gui/queries.py": "fe5341894b9a4ed26053c8541566353915fe2b4e6ed8646afb460469d486f9c8",
+          "src/soc_agent/security_ai/research/stream_service.py": "7f05a4e6dd8f2d3d2d16f35fac2747e5502561c0eb50add6fa5a23d180706c39"
+        }
+      }
+    ],
+    "after": [
+      {
+        "backend_completion_polls_per_second": 0.0,
+        "background_async_tasks": 0,
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "idle_child_processes": 0,
+        "idle_cpu_one_core_percent": 0.2640524851664889,
+        "idle_cpu_seconds": 0.00797287599999974,
+        "idle_rss_bytes": 183721984,
+        "idle_seconds": 3.0194285030011088,
+        "mode": "operator",
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "model_service_created": false,
+        "process_image_peak_rss_bytes": 187596800,
+        "remaining_child_processes": 0,
+        "response_p50_ms": 0.010154,
+        "response_p95_ms": 0.020626,
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "startup_cpu_seconds": 3.599959438,
+        "startup_seconds": 2.1441517409984954,
+        "threads": 2,
+        "widgets": 63,
+        "explicit_identical_native_status_paths": true,
+        "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+        "source_sha256": {
+          "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+          "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+          "src/soc_agent/gui/backend.py": "ebc0fcaa7d5a20bdaebcb4c8e82d714881eceea3414bd7236fcff108f83245cf",
+          "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+          "src/soc_agent/gui/live_view.py": "024504116b00dac864bb3b9a48e25e8e1326bcb7a5ac6c1cec5a13b470268b59",
+          "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+          "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+          "src/soc_agent/gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884",
+          "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+          "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+          "src/soc_agent/gui/redaction.py": "06e84dc764b5f5a0030ffb7e5b974f4def9b19b2210b2ea9cc0236165aaff75e",
+          "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+          "src/soc_agent/gui/app.py": "bad1e5acafba767f1b179c6b59979d0517926ab44a3cc3548ac5e5401841c236",
+          "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+          "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+          "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+          "src/soc_agent/gui/__main__.py": "9451c818f49b1e5c27a9b239510598e3d936bb83e436aaab4ff450436888693e",
+          "src/soc_agent/gui/queries.py": "65644c5669abc2dfbcc3c94db3bc94b1f012d58a708e80e5d2e05a684bb31974",
+          "src/soc_agent/gui/production.py": "841927b7c177d9b5e05b1f6b3e950791c807ca0f4cd11c8f02b0c0b3aa9bf596",
+          "src/soc_agent/gui/operator_view.py": "4eafef3cd557640be3e388828aea29a2427e716ae1198e51c84ff6b6bffe877e",
+          "src/soc_agent/security_ai/research/session_archive.py": "d6911c2dbe970399b73ee1155c95a11dbc389642729604963944b4566e313e5a",
+          "src/soc_agent/security_ai/research/stream_service.py": "225e5a912039079221581443884f9520111300f14e61078857fbe903a51eae89"
+        }
+      },
+      {
+        "backend_completion_polls_per_second": 0.0,
+        "background_async_tasks": 0,
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "idle_child_processes": 0,
+        "idle_cpu_one_core_percent": 0.2560646326334401,
+        "idle_cpu_seconds": 0.007731186000000001,
+        "idle_rss_bytes": 184016896,
+        "idle_seconds": 3.0192322619841434,
+        "mode": "operator",
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "model_service_created": false,
+        "process_image_peak_rss_bytes": 187801600,
+        "remaining_child_processes": 0,
+        "response_p50_ms": 0.010174,
+        "response_p95_ms": 0.036791,
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "startup_cpu_seconds": 3.6687048160000004,
+        "startup_seconds": 2.3021184039535,
+        "threads": 2,
+        "widgets": 63,
+        "explicit_identical_native_status_paths": true,
+        "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+        "source_sha256": {
+          "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+          "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+          "src/soc_agent/gui/backend.py": "ebc0fcaa7d5a20bdaebcb4c8e82d714881eceea3414bd7236fcff108f83245cf",
+          "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+          "src/soc_agent/gui/live_view.py": "024504116b00dac864bb3b9a48e25e8e1326bcb7a5ac6c1cec5a13b470268b59",
+          "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+          "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+          "src/soc_agent/gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884",
+          "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+          "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+          "src/soc_agent/gui/redaction.py": "06e84dc764b5f5a0030ffb7e5b974f4def9b19b2210b2ea9cc0236165aaff75e",
+          "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+          "src/soc_agent/gui/app.py": "bad1e5acafba767f1b179c6b59979d0517926ab44a3cc3548ac5e5401841c236",
+          "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+          "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+          "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+          "src/soc_agent/gui/__main__.py": "9451c818f49b1e5c27a9b239510598e3d936bb83e436aaab4ff450436888693e",
+          "src/soc_agent/gui/queries.py": "65644c5669abc2dfbcc3c94db3bc94b1f012d58a708e80e5d2e05a684bb31974",
+          "src/soc_agent/gui/production.py": "841927b7c177d9b5e05b1f6b3e950791c807ca0f4cd11c8f02b0c0b3aa9bf596",
+          "src/soc_agent/gui/operator_view.py": "4eafef3cd557640be3e388828aea29a2427e716ae1198e51c84ff6b6bffe877e",
+          "src/soc_agent/security_ai/research/session_archive.py": "d6911c2dbe970399b73ee1155c95a11dbc389642729604963944b4566e313e5a",
+          "src/soc_agent/security_ai/research/stream_service.py": "225e5a912039079221581443884f9520111300f14e61078857fbe903a51eae89"
+        }
+      },
+      {
+        "backend_completion_polls_per_second": 0.0,
+        "background_async_tasks": 0,
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "idle_child_processes": 0,
+        "idle_cpu_one_core_percent": 0.2735560857983405,
+        "idle_cpu_seconds": 0.008260276000000122,
+        "idle_rss_bytes": 182788096,
+        "idle_seconds": 3.0195913850329816,
+        "mode": "operator",
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "model_service_created": false,
+        "process_image_peak_rss_bytes": 187260928,
+        "remaining_child_processes": 0,
+        "response_p50_ms": 0.022798,
+        "response_p95_ms": 0.057631,
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "startup_cpu_seconds": 3.731730309,
+        "startup_seconds": 2.343242191011086,
+        "threads": 2,
+        "widgets": 63,
+        "explicit_identical_native_status_paths": true,
+        "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+        "source_sha256": {
+          "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+          "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+          "src/soc_agent/gui/backend.py": "ebc0fcaa7d5a20bdaebcb4c8e82d714881eceea3414bd7236fcff108f83245cf",
+          "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+          "src/soc_agent/gui/live_view.py": "024504116b00dac864bb3b9a48e25e8e1326bcb7a5ac6c1cec5a13b470268b59",
+          "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+          "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+          "src/soc_agent/gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884",
+          "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+          "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+          "src/soc_agent/gui/redaction.py": "06e84dc764b5f5a0030ffb7e5b974f4def9b19b2210b2ea9cc0236165aaff75e",
+          "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+          "src/soc_agent/gui/app.py": "bad1e5acafba767f1b179c6b59979d0517926ab44a3cc3548ac5e5401841c236",
+          "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+          "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+          "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+          "src/soc_agent/gui/__main__.py": "9451c818f49b1e5c27a9b239510598e3d936bb83e436aaab4ff450436888693e",
+          "src/soc_agent/gui/queries.py": "65644c5669abc2dfbcc3c94db3bc94b1f012d58a708e80e5d2e05a684bb31974",
+          "src/soc_agent/gui/production.py": "841927b7c177d9b5e05b1f6b3e950791c807ca0f4cd11c8f02b0c0b3aa9bf596",
+          "src/soc_agent/gui/operator_view.py": "4eafef3cd557640be3e388828aea29a2427e716ae1198e51c84ff6b6bffe877e",
+          "src/soc_agent/security_ai/research/session_archive.py": "d6911c2dbe970399b73ee1155c95a11dbc389642729604963944b4566e313e5a",
+          "src/soc_agent/security_ai/research/stream_service.py": "225e5a912039079221581443884f9520111300f14e61078857fbe903a51eae89"
+        }
+      }
+    ]
+  },
+  "active_comparison": {
+    "before": {
+      "active_fixture": {
+        "audit_integrity": "VERIFIED",
+        "elapsed_seconds": 5.875418510986492,
+        "final_queue_backlog": 0,
+        "finalization": "VERIFIED",
+        "inference_queue": {
+          "capacity": 8,
+          "depth": 0,
+          "high_watermark": 6,
+          "low_watermark": 2,
+          "peak": 1,
+          "state": "NORMAL"
+        },
+        "maximum_owned_child_processes": 1,
+        "models": [
+          {
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "inference_latency_ms": 10.453951021190733,
+            "prediction": "CLASS_0",
+            "profile": "quality",
+            "score": 0.140625
+          },
+          {
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "inference_latency_ms": 9.125969023443758,
+            "prediction": "CLASS_0",
+            "profile": "edge",
+            "score": 0.08766025304794312
+          }
+        ],
+        "sampled_peak_gui_rss_bytes": 248623104,
+        "sampled_peak_subtree_rss_bytes": 454852608,
+        "scope": "ACTUAL_RF_LR_SAME_FOUR_SYNTHETIC_PACKETS_NOT_NATIVE"
+      },
+      "backend_completion_polls_per_second": 16.30913673377929,
+      "background_async_tasks": 0,
+      "created_runtime_owners": 6,
+      "gui_worker_stopped": true,
+      "idle_child_processes": 0,
+      "idle_cpu_one_core_percent": 0.428667086601896,
+      "idle_cpu_seconds": 0.01287909200000037,
+      "idle_rss_bytes": 212930560,
+      "idle_seconds": 3.004450867010746,
+      "mode": "developer",
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "model_service_created": true,
+      "process_image_peak_rss_bytes": 212930560,
+      "remaining_child_processes": 0,
+      "response_p50_ms": 0.01533,
+      "response_p95_ms": 0.051369,
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "startup_cpu_seconds": 6.10807724,
+      "startup_seconds": 6.585542067012284,
+      "threads": 3,
+      "widgets": 107,
+      "explicit_identical_native_status_paths": true,
+      "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+      "source_sha256": {
+        "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+        "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+        "src/soc_agent/gui/backend.py": "9b8602837e8d21c83e6ad31c5dba06c796af0c77792fe7334a93cbd68d158a1f",
+        "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+        "src/soc_agent/gui/live_view.py": "5e2a22902f9a548a01158dd0851b982c958342d8c33df0edb7b43de6e5cc3ab2",
+        "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+        "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+        "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+        "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+        "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+        "src/soc_agent/gui/app.py": "c15ef13e3cb9cb7bcd3ae1008557bc40d3550a315b3d21a4a996018e09804fe3",
+        "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+        "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+        "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+        "src/soc_agent/gui/__main__.py": "931ea7a4688f562183ec77767fd5a178184d97bab81274af23bf3c53cc156815",
+        "src/soc_agent/gui/queries.py": "fe5341894b9a4ed26053c8541566353915fe2b4e6ed8646afb460469d486f9c8",
+        "src/soc_agent/security_ai/research/stream_service.py": "7f05a4e6dd8f2d3d2d16f35fac2747e5502561c0eb50add6fa5a23d180706c39"
+      }
+    },
+    "after": {
+      "active_fixture": {
+        "audit_integrity": "VERIFIED",
+        "elapsed_seconds": 5.840035380038898,
+        "final_queue_backlog": 0,
+        "finalization": "VERIFIED",
+        "inference_queue": {
+          "capacity": 8,
+          "depth": 0,
+          "high_watermark": 6,
+          "low_watermark": 2,
+          "peak": 1,
+          "state": "NORMAL"
+        },
+        "maximum_owned_child_processes": 1,
+        "models": [
+          {
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "inference_latency_ms": 10.457878990564495,
+            "prediction": "CLASS_0",
+            "profile": "quality",
+            "score": 0.140625
+          },
+          {
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "inference_latency_ms": 11.29230298101902,
+            "prediction": "CLASS_0",
+            "profile": "edge",
+            "score": 0.08766025304794312
+          }
+        ],
+        "sampled_peak_gui_rss_bytes": 227786752,
+        "sampled_peak_subtree_rss_bytes": 437940224,
+        "scope": "ACTUAL_RF_LR_SAME_FOUR_SYNTHETIC_PACKETS_NOT_NATIVE"
+      },
+      "backend_completion_polls_per_second": 0.0,
+      "background_async_tasks": 0,
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "idle_child_processes": 0,
+      "idle_cpu_one_core_percent": 0.28741388153087727,
+      "idle_cpu_seconds": 0.008624005999999795,
+      "idle_rss_bytes": 184270848,
+      "idle_seconds": 3.0005530540365726,
+      "mode": "operator",
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "model_service_created": false,
+      "process_image_peak_rss_bytes": 187740160,
+      "remaining_child_processes": 0,
+      "response_p50_ms": 0.014375,
+      "response_p95_ms": 0.045421,
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "startup_cpu_seconds": 3.62578678,
+      "startup_seconds": 2.245169067988172,
+      "threads": 2,
+      "widgets": 63,
+      "explicit_identical_native_status_paths": true,
+      "soc_head": "d082511629e806136a385aaf31f7ee3349795832",
+      "source_sha256": {
+        "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+        "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+        "src/soc_agent/gui/backend.py": "ebc0fcaa7d5a20bdaebcb4c8e82d714881eceea3414bd7236fcff108f83245cf",
+        "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+        "src/soc_agent/gui/live_view.py": "024504116b00dac864bb3b9a48e25e8e1326bcb7a5ac6c1cec5a13b470268b59",
+        "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+        "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+        "src/soc_agent/gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884",
+        "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+        "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+        "src/soc_agent/gui/redaction.py": "06e84dc764b5f5a0030ffb7e5b974f4def9b19b2210b2ea9cc0236165aaff75e",
+        "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+        "src/soc_agent/gui/app.py": "bad1e5acafba767f1b179c6b59979d0517926ab44a3cc3548ac5e5401841c236",
+        "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+        "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+        "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+        "src/soc_agent/gui/__main__.py": "9451c818f49b1e5c27a9b239510598e3d936bb83e436aaab4ff450436888693e",
+        "src/soc_agent/gui/queries.py": "65644c5669abc2dfbcc3c94db3bc94b1f012d58a708e80e5d2e05a684bb31974",
+        "src/soc_agent/gui/production.py": "841927b7c177d9b5e05b1f6b3e950791c807ca0f4cd11c8f02b0c0b3aa9bf596",
+        "src/soc_agent/gui/operator_view.py": "4eafef3cd557640be3e388828aea29a2427e716ae1198e51c84ff6b6bffe877e",
+        "src/soc_agent/security_ai/research/session_archive.py": "d6911c2dbe970399b73ee1155c95a11dbc389642729604963944b4566e313e5a",
+        "src/soc_agent/security_ai/research/stream_service.py": "225e5a912039079221581443884f9520111300f14e61078857fbe903a51eae89"
+      }
+    }
+  },
+  "archive_profile": {
+    "scope": "EIGHT_TEMPORARY_FAILED_SESSION_FIXTURES_NO_NATIVE_MOVE",
+    "sessions": 8,
+    "seconds": 0.09665767598198727,
+    "cpu_seconds": 0.03355945500000024,
+    "bytes": 1278592,
+    "active_after": 0
+  },
+  "actual_gui_fixture": {
+    "scope": "ACTUAL_WSLG_RF_LR_SYNTHETIC_FIXTURE_NOT_NATIVE",
+    "elapsed_seconds": 5.9610809839796275,
+    "controller_cpu_seconds": 1.171477018,
+    "render_seconds": 0.17212298000231385,
+    "sampled_peak_gui_rss_bytes": 236572672,
+    "sampled_peak_subtree_rss_bytes": 449839104,
+    "maximum_owned_child_processes": 1,
+    "network": {
+      "packets_collected": 4,
+      "flow_records": 2,
+      "queue_backlog": 0,
+      "gap_count": 0,
+      "capture_drops": null,
+      "finalization": "VERIFIED",
+      "input_origin": "FIXTURE",
+      "timestamp_integrity": "PER_FLOW_ORDERED_PREFIX_ONLY",
+      "packet_sequence": 4,
+      "abort_reason": null,
+      "inference_count": 2,
+      "advisory_latency_seconds": 2.606361319019925,
+      "capture_integrity": "FIXTURE_NO_CAPTURE",
+      "integrity_state": "STOPPED",
+      "recovery_state": "NO_RESTART",
+      "event_time_policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+      "selected_rate_policy": "balanced-v2",
+      "policy_total_frames": 77312,
+      "policy_approval": "FIXTURE_NO_CAPTURE",
+      "helper_sha256": "375c06dbeb4e14c881fa496459182677b4efaa293845ecfac0dab0da663c4703",
+      "helper_bundle_digest": "56ec48caac56a248fc0eeb5bb09c4fae4176482ed19ea8c48526f7638ae8bb31",
+      "approved_raw_frames_per_second": 256,
+      "approved_burst_frames": 512,
+      "rate_budget_state": "FIXTURE_NO_CAPTURE",
+      "token_balance": null,
+      "current_raw_frame_rate": null,
+      "inference_capacity_exclusions": 0,
+      "dns_diagnostics": {
+        "counts": {},
+        "pending": 0,
+        "recent_events": [],
+        "dns9_inference": "BLOCKED",
+        "producer_parity": "UNVERIFIED",
+        "names_retained": false,
+        "tcp_support": "SINGLE_COMPLETE_MESSAGE_ONLY_NO_REASSEMBLY",
+        "encrypted_dns": "UNKNOWN_NOT_DECRYPTED",
+        "diagnostic_status": "HEALTHY",
+        "quarantined_connections": 0,
+        "event_time_policy": "CONNECTION_LOCAL_NO_NETWORK_EXPIRY"
+      },
+      "flow_integrity": {
+        "policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+        "healthy_flow_keys": 1,
+        "quarantined_flow_keys": 0,
+        "quarantine_references": {},
+        "cross_flow_regressions": 0,
+        "history_keys": 1,
+        "packet_references": 4,
+        "quarantine_metadata_bytes": 0
+      },
+      "dns_diagnostic_status": "HEALTHY",
+      "healthy_flow_count": 1,
+      "quarantined_flow_count": 0,
+      "model_attempts": 2,
+      "last_error": null,
+      "collection_state": "STOPPED",
+      "eligible_flows": 1,
+      "rejected_flows": 1,
+      "active_flows": 0,
+      "retained_metadata_bytes": 0,
+      "peak_metadata_bytes": 2312,
+      "capture_uptime_seconds": 5.2401255940203555,
+      "packets_per_second": 0.763340482633566,
+      "flows_per_minute": 22.90021447900698,
+      "eligible_flows_per_minute": 11.45010723950349,
+      "inferences_per_minute": 22.90021447900698,
+      "runtime_rss_bytes": 216686592,
+      "runtime_cpu_seconds": 0.7607313419999997,
+      "disk_bytes": 1647267,
+      "inference_queue": {
+        "depth": 0,
+        "capacity": 8,
+        "high_watermark": 6,
+        "low_watermark": 2,
+        "peak": 1,
+        "state": "NORMAL"
+      },
+      "ingestion_queue": null,
+      "backpressure": "NORMAL",
+      "worker_health": "STOPPED",
+      "retained_integrity_health": "HEALTHY"
+    },
+    "records": [
+      {
+        "error": null,
+        "finished_at": "2026-10-19T03:59:39.170241+00:00",
+        "integrity_receipt": {
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "binding_digest": "e7b1559d385c64fceb31f2b417897635c8c6282989fdae5217fe72ad35463dd7",
+          "capture_integrity": "FIXTURE_NO_CAPTURE",
+          "capture_session": "5f114394-cc2e-4e27-a8c4-b6a34433c32b",
+          "contract": "soc-total-inference-integrity:v1",
+          "event_time_policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+          "feature_digest": "a61f53d1cae509a96dda6d5ef21ed8918cfcc55662f19377326deb8795e7a379",
+          "flow_id": "9cbef2881f2bd5286494b14ce167656ae761b4f7176df3271969207d273759aa",
+          "flow_key_digest": "55b4e594c42b2228b22f6c384a36ce26f7c7a07f661535506b712be354b26c0b",
+          "future_capture_quality": "UNKNOWN",
+          "integrity_status": "FLOW_LOCAL_VERIFIED",
+          "model_receipt_digest": "4de7742ec96a4138557bf387c23c2eb815f9ba42a38b94fb7b73ffd264cc8b7c",
+          "operational_gate": "BLOCKED",
+          "provenance_digest": "e1d61b726b99738a649c59c49e0643b0fdf6ef826ca28a85fcab317b527b8155",
+          "quarantine_reference": null,
+          "research_status": "RESEARCH_ONLY",
+          "source_digest": "395bc9d0987e0530dc914132ad8c0f73afab9034dc2f4465dee459885c812509",
+          "source_origin": "FIXTURE"
+        },
+        "investigation": {
+          "action_policy": "WRITE_DENIED",
+          "assessment": {
+            "incident_state": {
+              "confidence": null,
+              "created_at": "2026-10-19T03:59:39.202458Z",
+              "evidence": [
+                {
+                  "collected_at": "2026-10-19T03:59:39.336412Z",
+                  "evidence_id": "d5c960f7-dda0-401f-b815-e5b3346d9405",
+                  "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                  "observed_at": "2026-10-19T03:59:39.336356Z",
+                  "raw_data": "[REDACTED]",
+                  "reliability": null,
+                  "source": "tool:read_local_source_report",
+                  "summary": "read_local_source_report investigation result",
+                  "tool_name": "read_local_source_report"
+                }
+              ],
+              "hypotheses": [],
+              "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+              "observations": [],
+              "severity": "info",
+              "status": "new",
+              "updated_at": "2026-10-19T03:59:39.340644Z"
+            },
+            "threat_assessment": {
+              "assessment_id": "96a623ec-22b3-46e3-aa86-eae446063a45",
+              "confidence": 0.0,
+              "created_at": "2026-10-19T03:59:39.418766Z",
+              "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+              "severity": "info",
+              "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+              "supporting_evidence_ids": [
+                "d5c960f7-dda0-401f-b815-e5b3346d9405"
+              ],
+              "supporting_hypothesis_ids": [],
+              "supporting_observation_ids": []
+            }
+          },
+          "checkpoint_restored": true,
+          "context": {
+            "contract": "soc-live-network-research-advisory:v1",
+            "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+            "mode": "FIXTURE_RESEARCH_ADVISORY",
+            "receipt_digest": "4de7742ec96a4138557bf387c23c2eb815f9ba42a38b94fb7b73ffd264cc8b7c",
+            "result": {
+              "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+              "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+              "capture_quality": "UNKNOWN",
+              "capture_session": "5f114394-cc2e-4e27-a8c4-b6a34433c32b",
+              "contract": "soc-live-network-research-receipt:v1",
+              "event_time": "2026-01-01T00:00:00Z",
+              "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+              "feature_digest": "a61f53d1cae509a96dda6d5ef21ed8918cfcc55662f19377326deb8795e7a379",
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "feature_values": [
+                1.0,
+                2.0,
+                1.0,
+                120.0,
+                60.0,
+                40.0,
+                80.0,
+                60.0,
+                16.329931259155273,
+                1.0,
+                1.0,
+                0.0,
+                0.5,
+                0.5
+              ],
+              "flow_id": "9cbef2881f2bd5286494b14ce167656ae761b4f7176df3271969207d273759aa",
+              "inference_latency_ms": 19.103700993582606,
+              "inferred_at": "2026-10-19T03:59:38.831358Z",
+              "invocation_id": "2ac04cea-6898-4d2d-a745-166828aa6824",
+              "model_id": "linux-network14-research-v1-quality_rf",
+              "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+              "operational_inference": "BLOCKED",
+              "origin": "FIXTURE",
+              "packet_count": 3,
+              "prediction": "CLASS_0",
+              "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+              "producer_version": "1.1.0",
+              "profile": "quality",
+              "provenance_digest": "e1d61b726b99738a649c59c49e0643b0fdf6ef826ca28a85fcab317b527b8155",
+              "request_digest": "8690f129b24ee9cc37f7b8bfa77ab68a22e474383bfad491265253f2847263de",
+              "score": 0.140625,
+              "source_digest": "395bc9d0987e0530dc914132ad8c0f73afab9034dc2f4465dee459885c812509",
+              "status": "RESEARCH_ONLY",
+              "threshold": 0.35,
+              "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+              "worker_cpu_seconds": 1.731134,
+              "worker_limits": {
+                "address_space_bytes": 3221225472,
+                "cpu_seconds": 15,
+                "network": "DENIED",
+                "result_file_bytes": 131072
+              },
+              "worker_peak_rss_bytes": 242061312,
+              "write_policy": "WRITE_DENIED"
+            },
+            "role": "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
+          },
+          "context_digest": "047e3846d7f2acb038359549cb49d4d1de5ddd96e2d3aa12118b6af3339ce737",
+          "evidence_references": [
+            "d5c960f7-dda0-401f-b815-e5b3346d9405"
+          ],
+          "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "prompt_digests": [
+            "941f6fc2a2129986a31e38900c4b32107edf2c7807d3fd8ce62a46579421a073",
+            "010d29ad44d4f9849512da3d0749da84f230a6ddf9053a077f31b4ee0da94081"
+          ],
+          "provider_calls": 0,
+          "result": {
+            "current_step": "analyze",
+            "failure": null,
+            "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+            "next_step": "decide",
+            "reason": "Assessment completed; severity remains advisory",
+            "references": [
+              {
+                "identity": "2eff628c-29df-4cb1-ae9e-c633ae7619d5",
+                "kind": "investigation"
+              },
+              {
+                "identity": "96a623ec-22b3-46e3-aa86-eae446063a45",
+                "kind": "assessment"
+              }
+            ],
+            "terminal": false,
+            "waiting_for_human": false
+          },
+          "status": "ASSESSED_READ_ONLY",
+          "timeline": {
+            "entries": [
+              {
+                "content": {
+                  "previous_entry_id": null,
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "next_step": "observe",
+                    "reason": "Incident observed; no action dispatched",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 1,
+                  "snapshot": {
+                    "fingerprint": "3f93c982247be3e860a1f17badf52a1371c5c7a6952695173b3eaa6048bc9557",
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "07479cce9c7a5cbd7d297dae510dfb0617e079eeb6d2486c0353648847a2b225"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "07479cce9c7a5cbd7d297dae510dfb0617e079eeb6d2486c0353648847a2b225",
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "next_step": "plan",
+                    "reason": "Route current evidence or request investigation",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 2,
+                  "snapshot": {
+                    "fingerprint": "3f93c982247be3e860a1f17badf52a1371c5c7a6952695173b3eaa6048bc9557",
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "75e2d56ab24e26f1fa4d0ec213f3ff6d47478f5a3767021b9212f73f411d1e03"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "75e2d56ab24e26f1fa4d0ec213f3ff6d47478f5a3767021b9212f73f411d1e03",
+                  "result": {
+                    "current_step": "plan",
+                    "failure": null,
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "next_step": "route",
+                    "reason": "Investigation selected",
+                    "references": [
+                      {
+                        "identity": "2eff628c-29df-4cb1-ae9e-c633ae7619d5",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 3,
+                  "snapshot": {
+                    "fingerprint": "3f93c982247be3e860a1f17badf52a1371c5c7a6952695173b3eaa6048bc9557",
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "bef6556f12603c8cea91ea48fb23fa2faa243da86a5b6dacb8b4832afe545c9f"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "bef6556f12603c8cea91ea48fb23fa2faa243da86a5b6dacb8b4832afe545c9f",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "next_step": "route",
+                    "reason": "Read-only evidence collected",
+                    "references": [
+                      {
+                        "identity": "2eff628c-29df-4cb1-ae9e-c633ae7619d5",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 4,
+                  "snapshot": {
+                    "fingerprint": "893ffddfa558ba5faf53e24dc5d5c0af42d1b44b7103a9c0e228c225f72b6002",
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "cc89de28f65bb283b30a99e7df79e2dff8688fe78d6db57d82717f7db067b536"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "cc89de28f65bb283b30a99e7df79e2dff8688fe78d6db57d82717f7db067b536",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "next_step": "analyze",
+                    "reason": "Evidence analysis selected",
+                    "references": [
+                      {
+                        "identity": "2eff628c-29df-4cb1-ae9e-c633ae7619d5",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 5,
+                  "snapshot": {
+                    "fingerprint": "893ffddfa558ba5faf53e24dc5d5c0af42d1b44b7103a9c0e228c225f72b6002",
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "c79d7fc33d3f1022d811f6724432b15fe1b68c9560f88d11d2fde365cc223483"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "c79d7fc33d3f1022d811f6724432b15fe1b68c9560f88d11d2fde365cc223483",
+                  "result": {
+                    "current_step": "analyze",
+                    "failure": null,
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "next_step": "decide",
+                    "reason": "Assessment completed; severity remains advisory",
+                    "references": [
+                      {
+                        "identity": "2eff628c-29df-4cb1-ae9e-c633ae7619d5",
+                        "kind": "investigation"
+                      },
+                      {
+                        "identity": "96a623ec-22b3-46e3-aa86-eae446063a45",
+                        "kind": "assessment"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 6,
+                  "snapshot": {
+                    "fingerprint": "893ffddfa558ba5faf53e24dc5d5c0af42d1b44b7103a9c0e228c225f72b6002",
+                    "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "13eacabeeda95b93d49341c8f7702061f36702abefbfee8d03bbfc78f646ee09"
+              }
+            ],
+            "incident_id": "c8fd4103-ac2e-4198-a8ad-f3d4ab19a19a"
+          }
+        },
+        "key": "0547327a25c9fa7680ee02d841814e8dc467a2b62e69b3b00c79d65bf0f31742",
+        "profile": "quality",
+        "receipt": {
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "5f114394-cc2e-4e27-a8c4-b6a34433c32b",
+          "contract": "soc-live-network-research-receipt:v1",
+          "event_time": "2026-01-01T00:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "a61f53d1cae509a96dda6d5ef21ed8918cfcc55662f19377326deb8795e7a379",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "9cbef2881f2bd5286494b14ce167656ae761b4f7176df3271969207d273759aa",
+          "inference_latency_ms": 19.103700993582606,
+          "inferred_at": "2026-10-19T03:59:38.831358Z",
+          "invocation_id": "2ac04cea-6898-4d2d-a745-166828aa6824",
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+          "operational_inference": "BLOCKED",
+          "origin": "FIXTURE",
+          "packet_count": 3,
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_version": "1.1.0",
+          "profile": "quality",
+          "provenance_digest": "e1d61b726b99738a649c59c49e0643b0fdf6ef826ca28a85fcab317b527b8155",
+          "request_digest": "8690f129b24ee9cc37f7b8bfa77ab68a22e474383bfad491265253f2847263de",
+          "score": 0.140625,
+          "source_digest": "395bc9d0987e0530dc914132ad8c0f73afab9034dc2f4465dee459885c812509",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.35,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 1.731134,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 242061312,
+          "write_policy": "WRITE_DENIED"
+        },
+        "status": "COMPLETE",
+        "integrity_status_current": "FLOW_LOCAL_VERIFIED",
+        "quarantine_reference": null,
+        "advisory_current": "RETAINED_RESEARCH_ONLY"
+      },
+      {
+        "error": null,
+        "finished_at": "2026-10-19T03:59:41.781608+00:00",
+        "integrity_receipt": {
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "binding_digest": "02776f2088c3a7ddbc18a00507c36cfade50505d984707cecea45ffb9a43d6cb",
+          "capture_integrity": "FIXTURE_NO_CAPTURE",
+          "capture_session": "5f114394-cc2e-4e27-a8c4-b6a34433c32b",
+          "contract": "soc-total-inference-integrity:v1",
+          "event_time_policy": "soc-total-flow-isolation:v1:SAME_KEY_EVENT_TIME_ONLY",
+          "feature_digest": "a61f53d1cae509a96dda6d5ef21ed8918cfcc55662f19377326deb8795e7a379",
+          "flow_id": "9cbef2881f2bd5286494b14ce167656ae761b4f7176df3271969207d273759aa",
+          "flow_key_digest": "55b4e594c42b2228b22f6c384a36ce26f7c7a07f661535506b712be354b26c0b",
+          "future_capture_quality": "UNKNOWN",
+          "integrity_status": "FLOW_LOCAL_VERIFIED",
+          "model_receipt_digest": "5f60e4a052f0f84f1dc3fbeb765794dac993d559204b6dc86a37cd37e8528f1f",
+          "operational_gate": "BLOCKED",
+          "provenance_digest": "e1d61b726b99738a649c59c49e0643b0fdf6ef826ca28a85fcab317b527b8155",
+          "quarantine_reference": null,
+          "research_status": "RESEARCH_ONLY",
+          "source_digest": "395bc9d0987e0530dc914132ad8c0f73afab9034dc2f4465dee459885c812509",
+          "source_origin": "FIXTURE"
+        },
+        "investigation": {
+          "action_policy": "WRITE_DENIED",
+          "assessment": {
+            "incident_state": {
+              "confidence": null,
+              "created_at": "2026-10-19T03:59:41.806288Z",
+              "evidence": [
+                {
+                  "collected_at": "2026-10-19T03:59:41.948764Z",
+                  "evidence_id": "bea487f1-a5de-4a1c-af8e-cb358eddeb2f",
+                  "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                  "observed_at": "2026-10-19T03:59:41.948715Z",
+                  "raw_data": "[REDACTED]",
+                  "reliability": null,
+                  "source": "tool:read_local_source_report",
+                  "summary": "read_local_source_report investigation result",
+                  "tool_name": "read_local_source_report"
+                }
+              ],
+              "hypotheses": [],
+              "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+              "observations": [],
+              "severity": "info",
+              "status": "new",
+              "updated_at": "2026-10-19T03:59:41.951672Z"
+            },
+            "threat_assessment": {
+              "assessment_id": "31b19d50-d2d5-4fb2-9f75-fcbe9d67d9dd",
+              "confidence": 0.0,
+              "created_at": "2026-10-19T03:59:42.033000Z",
+              "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+              "severity": "info",
+              "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+              "supporting_evidence_ids": [
+                "bea487f1-a5de-4a1c-af8e-cb358eddeb2f"
+              ],
+              "supporting_hypothesis_ids": [],
+              "supporting_observation_ids": []
+            }
+          },
+          "checkpoint_restored": true,
+          "context": {
+            "contract": "soc-live-network-research-advisory:v1",
+            "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+            "mode": "FIXTURE_RESEARCH_ADVISORY",
+            "receipt_digest": "5f60e4a052f0f84f1dc3fbeb765794dac993d559204b6dc86a37cd37e8528f1f",
+            "result": {
+              "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+              "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+              "capture_quality": "UNKNOWN",
+              "capture_session": "5f114394-cc2e-4e27-a8c4-b6a34433c32b",
+              "contract": "soc-live-network-research-receipt:v1",
+              "event_time": "2026-01-01T00:00:00Z",
+              "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+              "feature_digest": "a61f53d1cae509a96dda6d5ef21ed8918cfcc55662f19377326deb8795e7a379",
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "feature_values": [
+                1.0,
+                2.0,
+                1.0,
+                120.0,
+                60.0,
+                40.0,
+                80.0,
+                60.0,
+                16.329931259155273,
+                1.0,
+                1.0,
+                0.0,
+                0.5,
+                0.5
+              ],
+              "flow_id": "9cbef2881f2bd5286494b14ce167656ae761b4f7176df3271969207d273759aa",
+              "inference_latency_ms": 11.595982010476291,
+              "inferred_at": "2026-10-19T03:59:41.440644Z",
+              "invocation_id": "c2a50070-9d32-4d61-b660-f391810f69d9",
+              "model_id": "linux-network14-research-v1-edge_lr",
+              "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+              "operational_inference": "BLOCKED",
+              "origin": "FIXTURE",
+              "packet_count": 3,
+              "prediction": "CLASS_0",
+              "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+              "producer_version": "1.1.0",
+              "profile": "edge",
+              "provenance_digest": "e1d61b726b99738a649c59c49e0643b0fdf6ef826ca28a85fcab317b527b8155",
+              "request_digest": "63111e8197840479502ec2523f0292840f543b34b62020d4fc1e925dd03d20ff",
+              "score": 0.08766025304794312,
+              "source_digest": "395bc9d0987e0530dc914132ad8c0f73afab9034dc2f4465dee459885c812509",
+              "status": "RESEARCH_ONLY",
+              "threshold": 0.8,
+              "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+              "worker_cpu_seconds": 1.638911,
+              "worker_limits": {
+                "address_space_bytes": 3221225472,
+                "cpu_seconds": 15,
+                "network": "DENIED",
+                "result_file_bytes": 131072
+              },
+              "worker_peak_rss_bytes": 242061312,
+              "write_policy": "WRITE_DENIED"
+            },
+            "role": "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
+          },
+          "context_digest": "18486558374e50e3a766ecd9015cbcac381de5f7fa17022b52c2ca28e24616ab",
+          "evidence_references": [
+            "bea487f1-a5de-4a1c-af8e-cb358eddeb2f"
+          ],
+          "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "prompt_digests": [
+            "f0fba5f6505e9a473365800c2708fd813f857ecb796112bf40b96bf415389203",
+            "50d582d70de8518b706ee20c7a7e8e579f701e231c012bc6d66ec07c709d570a"
+          ],
+          "provider_calls": 0,
+          "result": {
+            "current_step": "analyze",
+            "failure": null,
+            "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+            "next_step": "decide",
+            "reason": "Assessment completed; severity remains advisory",
+            "references": [
+              {
+                "identity": "8994752d-4ca1-457b-81ce-199024d3a53f",
+                "kind": "investigation"
+              },
+              {
+                "identity": "31b19d50-d2d5-4fb2-9f75-fcbe9d67d9dd",
+                "kind": "assessment"
+              }
+            ],
+            "terminal": false,
+            "waiting_for_human": false
+          },
+          "status": "ASSESSED_READ_ONLY",
+          "timeline": {
+            "entries": [
+              {
+                "content": {
+                  "previous_entry_id": null,
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "next_step": "observe",
+                    "reason": "Incident observed; no action dispatched",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 1,
+                  "snapshot": {
+                    "fingerprint": "f58c307349c27d2543502f2f78a511e23a380a2e45a56190931ab7ed8d4089a9",
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "0356cf2936d9dc399295a890594fbdbdde2d5cc4eb3c50087ffec31763a32858"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "0356cf2936d9dc399295a890594fbdbdde2d5cc4eb3c50087ffec31763a32858",
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "next_step": "plan",
+                    "reason": "Route current evidence or request investigation",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 2,
+                  "snapshot": {
+                    "fingerprint": "f58c307349c27d2543502f2f78a511e23a380a2e45a56190931ab7ed8d4089a9",
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "133d8406f570b7e186b4b45634cbeda9a90734c9f85ba31b1df7a0b6524334e6"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "133d8406f570b7e186b4b45634cbeda9a90734c9f85ba31b1df7a0b6524334e6",
+                  "result": {
+                    "current_step": "plan",
+                    "failure": null,
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "next_step": "route",
+                    "reason": "Investigation selected",
+                    "references": [
+                      {
+                        "identity": "8994752d-4ca1-457b-81ce-199024d3a53f",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 3,
+                  "snapshot": {
+                    "fingerprint": "f58c307349c27d2543502f2f78a511e23a380a2e45a56190931ab7ed8d4089a9",
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "e376eb4cd9aafc5240782b527a4ca36603ed3e9523cd87a1e2635e88fae74d19"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "e376eb4cd9aafc5240782b527a4ca36603ed3e9523cd87a1e2635e88fae74d19",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "next_step": "route",
+                    "reason": "Read-only evidence collected",
+                    "references": [
+                      {
+                        "identity": "8994752d-4ca1-457b-81ce-199024d3a53f",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 4,
+                  "snapshot": {
+                    "fingerprint": "62c2c5bfa2f9f5e0d048284b72c9a128caae64298e9d3af91a253b20a88f3eb1",
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "cd4d22a65c510ca0d65f9445d5b49afa4af1305b764c4d9769fc59b1547f7c93"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "cd4d22a65c510ca0d65f9445d5b49afa4af1305b764c4d9769fc59b1547f7c93",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "next_step": "analyze",
+                    "reason": "Evidence analysis selected",
+                    "references": [
+                      {
+                        "identity": "8994752d-4ca1-457b-81ce-199024d3a53f",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 5,
+                  "snapshot": {
+                    "fingerprint": "62c2c5bfa2f9f5e0d048284b72c9a128caae64298e9d3af91a253b20a88f3eb1",
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "e156968c3a58a64e6780c4cb3b5e71df35daa52e3115192512ac585fdd46b885"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "e156968c3a58a64e6780c4cb3b5e71df35daa52e3115192512ac585fdd46b885",
+                  "result": {
+                    "current_step": "analyze",
+                    "failure": null,
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "next_step": "decide",
+                    "reason": "Assessment completed; severity remains advisory",
+                    "references": [
+                      {
+                        "identity": "8994752d-4ca1-457b-81ce-199024d3a53f",
+                        "kind": "investigation"
+                      },
+                      {
+                        "identity": "31b19d50-d2d5-4fb2-9f75-fcbe9d67d9dd",
+                        "kind": "assessment"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 6,
+                  "snapshot": {
+                    "fingerprint": "62c2c5bfa2f9f5e0d048284b72c9a128caae64298e9d3af91a253b20a88f3eb1",
+                    "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5",
+                    "repository_id": "157f9b76-5e3e-4dcf-9f6e-1808a75bdda4",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "4182984149d6395b177d43b8c3153e518d51ef24ee84e2041a58d08168b24eba"
+              }
+            ],
+            "incident_id": "45b34b5e-23d0-4b00-b461-a55daa481fb5"
+          }
+        },
+        "key": "540eb024d8b86e069b2462118afcd92a2316843eb4f002fe607bfddfebd4c496",
+        "profile": "edge",
+        "receipt": {
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "5f114394-cc2e-4e27-a8c4-b6a34433c32b",
+          "contract": "soc-live-network-research-receipt:v1",
+          "event_time": "2026-01-01T00:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "a61f53d1cae509a96dda6d5ef21ed8918cfcc55662f19377326deb8795e7a379",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "9cbef2881f2bd5286494b14ce167656ae761b4f7176df3271969207d273759aa",
+          "inference_latency_ms": 11.595982010476291,
+          "inferred_at": "2026-10-19T03:59:41.440644Z",
+          "invocation_id": "c2a50070-9d32-4d61-b660-f391810f69d9",
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+          "operational_inference": "BLOCKED",
+          "origin": "FIXTURE",
+          "packet_count": 3,
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_version": "1.1.0",
+          "profile": "edge",
+          "provenance_digest": "e1d61b726b99738a649c59c49e0643b0fdf6ef826ca28a85fcab317b527b8155",
+          "request_digest": "63111e8197840479502ec2523f0292840f543b34b62020d4fc1e925dd03d20ff",
+          "score": 0.08766025304794312,
+          "source_digest": "395bc9d0987e0530dc914132ad8c0f73afab9034dc2f4465dee459885c812509",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.8,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 1.638911,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 242061312,
+          "write_policy": "WRITE_DENIED"
+        },
+        "status": "COMPLETE",
+        "integrity_status_current": "FLOW_LOCAL_VERIFIED",
+        "quarantine_reference": null,
+        "advisory_current": "RETAINED_RESEARCH_ONLY"
+      }
+    ],
+    "audit_integrity": "VERIFIED"
+  },
+  "helper_sha256": "375c06dbeb4e14c881fa496459182677b4efaa293845ecfac0dab0da663c4703",
+  "bundle_digest": "56ec48caac56a248fc0eeb5bb09c4fae4176482ed19ea8c48526f7638ae8bb31",
+  "known_native_crash": {
+    "exit": 132,
+    "root_cause": "UNKNOWN",
+    "recurrence": "NOT_EXCLUDED",
+    "interrupted_run_counted_as_pass": false,
+    "observed": "Backend thread garbage collection during combined unit/GUI process"
+  },
+  "boundaries": {
+    "native_capture_executed": false,
+    "privileged_commands_executed": false,
+    "test_traffic_generated": false,
+    "os_security_write": false,
+    "dns9": "PARITY_BLOCKED",
+    "operational_promotion": "BLOCKED",
+    "models": "RESEARCH_ONLY"
+  },
+  "environment": {
+    "python": "3.12.14",
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "affinity_cpus": 12
+  },
+  "public_redaction_applied": true,
+  "source_sha256": {
+    "src/soc_agent/gui/research_view.py": "15d78e21edfc670f87526c7a1cae5482a8a96eea5fba9c51de46d6f95f3f2cd8",
+    "src/soc_agent/gui/insights.py": "891cba08c70456a05a3146a927d11d18d555846ae9d8d9eeb33bbbf5309fce8d",
+    "src/soc_agent/gui/backend.py": "ebc0fcaa7d5a20bdaebcb4c8e82d714881eceea3414bd7236fcff108f83245cf",
+    "src/soc_agent/gui/presentation.py": "da281b15327e46237df2649177eb39485a589ffe4783a0071a236e8babd2d80b",
+    "src/soc_agent/gui/live_view.py": "024504116b00dac864bb3b9a48e25e8e1326bcb7a5ac6c1cec5a13b470268b59",
+    "src/soc_agent/gui/runtime_process.py": "1155193df90f140768fee539b9b114d5b5b89b9319606303bc0293d053065a2e",
+    "src/soc_agent/gui/unified.py": "b1aa2d7984967c951c8bb01cb39335e5e4b906fc4eb3ac0f32607affb6a6b561",
+    "src/soc_agent/gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884",
+    "src/soc_agent/gui/components.py": "34890d194fa9ec87be12174eb15d73a621ae5322452f8c971a80b1acfc2f993c",
+    "src/soc_agent/gui/typography.py": "b1004d22f18368a06f7e7dbfd495c4a150be074071050b79948c4f89f775644f",
+    "src/soc_agent/gui/redaction.py": "06e84dc764b5f5a0030ffb7e5b974f4def9b19b2210b2ea9cc0236165aaff75e",
+    "src/soc_agent/gui/probe.py": "237fb823891b54841c7d7e2be34af26ea8c533689a9935805cd33858c708231e",
+    "src/soc_agent/gui/app.py": "bad1e5acafba767f1b179c6b59979d0517926ab44a3cc3548ac5e5401841c236",
+    "src/soc_agent/gui/charts.py": "28684eeea99e16177cf286b724e0243cde8ac2a80b4548c109b1c35823490755",
+    "src/soc_agent/gui/__init__.py": "edcf171d9a05f1caa8f421aa2bd160f7c25550c3cafb9c37d43931538aac59af",
+    "src/soc_agent/gui/environment.py": "93a799c6e32716457ad53905c8a4be9ce20975381bcddadc9804df3dca4589ad",
+    "src/soc_agent/gui/__main__.py": "9451c818f49b1e5c27a9b239510598e3d936bb83e436aaab4ff450436888693e",
+    "src/soc_agent/gui/queries.py": "65644c5669abc2dfbcc3c94db3bc94b1f012d58a708e80e5d2e05a684bb31974",
+    "src/soc_agent/gui/production.py": "841927b7c177d9b5e05b1f6b3e950791c807ca0f4cd11c8f02b0c0b3aa9bf596",
+    "src/soc_agent/gui/operator_view.py": "4eafef3cd557640be3e388828aea29a2427e716ae1198e51c84ff6b6bffe877e",
+    "src/soc_agent/security_ai/research/session_archive.py": "d6911c2dbe970399b73ee1155c95a11dbc389642729604963944b4566e313e5a",
+    "src/soc_agent/security_ai/research/stream_service.py": "225e5a912039079221581443884f9520111300f14e61078857fbe903a51eae89"
+  },
+  "screenshots": {
+    "dashboard-idle-1366.png": {
+      "sha256": "6b7d1c3a03be929ae1f681fdda6594a5913289530d57082dce8403619bd733ab",
+      "dimensions": [
+        1366,
+        768
+      ],
+      "scope": "ACTUAL_WSLG_IDLE_NO_INFERENCE"
+    },
+    "dashboard-actual-model-fixture-1366.png": {
+      "sha256": "1d6d501b75f0ae3993ba40847c56144c1822e6db37e9f8ba655ff4152af124c8",
+      "dimensions": [
+        1366,
+        768
+      ],
+      "scope": "ACTUAL_WSLG_FIXTURE_MODEL_RESULTS"
+    },
+    "dashboard-idle-1920.png": {
+      "sha256": "1b7d1735f02e5a9c4729e242b849f4a2dcc9216c51edb7da37cd1b8bc769f3d8",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "scope": "ACTUAL_WSLG_IDLE_NO_INFERENCE"
+    },
+    "system-idle-1366.png": {
+      "sha256": "c05ccba1a2ac3fbcad0d4a806ba35ff800563fcbd6d1a9a9aef7de3e25c93842",
+      "dimensions": [
+        1366,
+        768
+      ],
+      "scope": "ACTUAL_WSLG_IDLE_NO_INFERENCE"
+    },
+    "investigation-actual-model-fixture-1366.png": {
+      "sha256": "4cc516dc33807759eac140215ec1d59391fe09d7ae2e614ae130a9f50cf5961b",
+      "dimensions": [
+        1366,
+        768
+      ],
+      "scope": "ACTUAL_WSLG_FIXTURE_MODEL_RESULTS"
+    }
+  },
+  "median": {
+    "before": {
+      "startup_seconds": 6.745318830013275,
+      "idle_rss_bytes": 214360064,
+      "idle_cpu_one_core_percent": 0.4516981587720608,
+      "response_p95_ms": 0.047292,
+      "backend_completion_polls_per_second": 16.30088632132752,
+      "widgets": 107
+    },
+    "after": {
+      "startup_seconds": 2.3021184039535,
+      "idle_rss_bytes": 183721984,
+      "idle_cpu_one_core_percent": 0.2640524851664889,
+      "response_p95_ms": 0.036791,
+      "backend_completion_polls_per_second": 0.0,
+      "widgets": 63
+    }
+  },
+  "same_fixture_model_outputs_match": true,
+  "independent_export_tests": {
+    "unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 39.458274316973984,
+      "scope": "INDEPENDENT_GIT_EXPORT",
+      "suite": [
+        "tests/unit/production_slimming",
+        "tests/unit/gui",
+        "tests/unit/streaming_network",
+        "tests/unit/network_capture",
+        "tests/unit/live_network/test_parity.py",
+        "tests/unit/research_adapter"
+      ],
+      "passed": 410,
+      "pytest_seconds": 37.42,
+      "log_sha256": "b6cc23aa9c847f7d5856a949b90b3024d1b2af5857f2071414b51f27cd18e14f",
+      "network_socket_attempts_blocked": 0
+    },
+    "gui": {
+      "exit_code": 0,
+      "elapsed_seconds": 26.379506118013524,
+      "scope": "INDEPENDENT_GIT_EXPORT",
+      "suite": [
+        "tests/gui_production_checks.py",
+        "tests/gui_preparation_checks.py",
+        "tests/gui_calibrated_policy_checks.py"
+      ],
+      "passed": 6,
+      "pytest_seconds": 24.3,
+      "log_sha256": "672aadcde24b21b200ac66412d2ba59df2efed39b4363f4c6250150af3653e3b",
+      "network_socket_attempts_blocked": 0
+    },
+    "model": {
+      "exit_code": 0,
+      "elapsed_seconds": 18.763909658999182,
+      "scope": "INDEPENDENT_GIT_EXPORT",
+      "suite": [
+        "tests/integration/production_slimming/test_total_operator.py",
+        "tests/gui_production_model_checks.py"
+      ],
+      "passed": 2,
+      "pytest_seconds": 16.69,
+      "log_sha256": "5e0b5091b1a8525b3dec43af8dfb7c618a13d71a765573a2d25e2214de9e66ba",
+      "network_socket_attempts_blocked": 0
+    },
+    "core": {
+      "exit_code": 0,
+      "elapsed_seconds": 133.8843385889777,
+      "scope": "INDEPENDENT_GIT_EXPORT",
+      "suite": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/orchestration",
+        "tests/integration/improvement_review",
+        "tests/integration/improvement_candidates",
+        "tests/integration/linux_runtime"
+      ],
+      "passed": 204,
+      "pytest_seconds": 130.98,
+      "log_sha256": "ab1507cc7d94211e5ee9e633e00ab3ed254d7db2961e47e40b811d4ae67fb405",
+      "network_socket_attempts_blocked": 0
+    },
+    "lifecycle": {
+      "exit_code": 0,
+      "elapsed_seconds": 6.824968559027184,
+      "scope": "INDEPENDENT_GIT_EXPORT",
+      "suite": [
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "passed": 12,
+      "pytest_seconds": 5.02,
+      "log_sha256": "9e5956316c9d5c98101faeeee60dbe1b0b9934cb65ec881841ff07bb6b31472a",
+      "network_socket_attempts_blocked": 0
+    }
+  },
+  "workspace_test_history": [
+    {
+      "suite": "earlier full unit",
+      "passed": 406,
+      "source_scope": "BEFORE_FINAL_ARCHIVE_BINDING_AND_UI_PRESENTATION_UPDATES",
+      "added_to_export_total": false
+    },
+    {
+      "suite": "archive focused final",
+      "passed": 16,
+      "added_to_export_total": false
+    },
+    {
+      "suite": "GUI actual models final",
+      "passed": 1,
+      "pytest_seconds": 8.08,
+      "added_to_export_total": false
+    }
+  ],
+  "independent_export_result": "PASS_USER_CHANGES_AND_REPLAY_EXCLUDED",
+  "preservation": {
+    "soc_original_files": 122,
+    "ml_original_files": 10,
+    "protected_native_and_artifact_files": 126,
+    "sha_mismatches": 0,
+    "raw_stat_inventory_files": 58,
+    "raw_stat_mismatches": 0,
+    "raw_full_rehash_this_task": false,
+    "native_sessions_moved": 0
+  },
+  "final_memory_observation": {
+    "memory_psi": "some avg10=0.00 avg60=0.01 avg300=0.03 total=153656437\nfull avg10=0.00 avg60=0.01 avg300=0.02 total=146362082\n",
+    "meminfo": {
+      "MemTotal": "8000144 kB",
+      "MemAvailable": "2776452 kB",
+      "SwapTotal": "2097152 kB",
+      "SwapFree": "992 kB"
+    }
+  }
+}

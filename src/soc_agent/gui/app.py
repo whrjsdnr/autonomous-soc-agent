@@ -1,19 +1,18 @@
 """Tk presentation. Every backend task runs outside the Tk event loop."""
 
-import asyncio
 import json
 import re
-import threading
 import tkinter as tk
 from datetime import UTC, datetime
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-from soc_agent.gui.backend import Backend, GUIConfig
+from soc_agent.gui.backend import GUIConfig
 from soc_agent.gui.charts import Comparison, Distribution, MetricHistory, ModelLatency, Trend
 from soc_agent.gui.components import Button, Hero, Label, Table, color
 from soc_agent.gui.presentation import screen_data, sections, short
 from soc_agent.gui.queries import display_data
+from soc_agent.gui.worker import Worker
 
 BG = "#0B1220"
 PANEL = "#17243A"
@@ -33,32 +32,6 @@ SCREENS = (
     "Total Monitoring",
     "Scenario Demo",
 )
-
-
-class Worker:
-    def __init__(self, config):
-        self.loop = asyncio.new_event_loop()
-        self.thread = threading.Thread(
-            target=self.loop.run_forever, name="soc-gui-backend", daemon=True
-        )
-        self.thread.start()
-        self.backend = asyncio.run_coroutine_threadsafe(self._create(config), self.loop).result(10)
-
-    async def _create(self, config):
-        return Backend(config)
-
-    def submit(self, operation, *args, **kwargs):
-        async def execute():
-            method = getattr(self.backend, operation)
-            value = method(*args, **kwargs)
-            return await value if asyncio.iscoroutine(value) else value
-
-        return asyncio.run_coroutine_threadsafe(execute(), self.loop)
-
-    def shutdown(self):
-        self.loop.call_soon_threadsafe(self.loop.stop)
-        self.thread.join(2)
-        self.loop.close()
 
 
 class Desktop:

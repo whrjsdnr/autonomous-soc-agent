@@ -13,20 +13,21 @@ from uuid import UUID, uuid4
 
 from pydantic import Field
 
-from soc_agent.application import compose_application
-from soc_agent.demo.scenario import run_scenario
-from soc_agent.demo.scenario_models import scenarios
-from soc_agent.deployment import DeploymentDescriptor
-from soc_agent.desktop import OfflineDesktopClient, source_report_tool
-from soc_agent.gui.queries import investigation_rows
 from soc_agent.gui.runtime_process import PersistentRuntimeProcess
-from soc_agent.ingestion import EventIngestor
-from soc_agent.linux_runtime.__main__ import status
-from soc_agent.linux_runtime.operator import OperatorRequest, operator_request
 from soc_agent.review.persistence.secure_storage import create_private_directory, validate_directory
 from soc_agent.security_ai.external.models import Snapshot
-from soc_agent.security_ai.external.runtime_store import RuntimeGovernanceStore
-from soc_agent.tools import ToolRegistry
+
+
+async def operator_request(*args, **kwargs):
+    from soc_agent.linux_runtime.operator import operator_request as request
+
+    return await request(*args, **kwargs)
+
+
+def status(directory):
+    from soc_agent.linux_runtime.__main__ import status as read_status
+
+    return read_status(directory)
 
 
 class GUIConfig(Snapshot):
@@ -63,24 +64,61 @@ class Backend:
         self.model_incident = None
         self.model_paths = (config.native_python, config.artifacts)
         self.busy_probe = False
-        from soc_agent.security_ai.research.service import ResearchDemo
-
-        self.research_demo = ResearchDemo(self.directory)
-        from soc_agent.security_ai.research.live_service import LiveMonitoring
-
-        self.live_monitoring = LiveMonitoring(self.directory)
-        from soc_agent.security_ai.research.stream_auth import OSAuthentication
-        from soc_agent.security_ai.research.stream_service import StreamingMonitoring
-
-        self.streaming_monitoring = StreamingMonitoring(self.directory)
-        self.streaming_auth = OSAuthentication()
-        from soc_agent.security_ai.research.total_auth import TerminalAuthentication
-
-        self.total_monitoring = StreamingMonitoring(self.directory, total=True)
-        self.total_auth = TerminalAuthentication()
+        self._owners = {}
         self.closed = False
         self.busy_scenario = False
         self.scenario_results = []
+
+    def _owner(self, name):
+        if name not in self._owners:
+            if self.closed:
+                raise ValueError("GUI_BACKEND_CLOSED")
+            if name == "research_demo":
+                from soc_agent.security_ai.research.service import ResearchDemo
+
+                value = ResearchDemo(self.directory)
+            elif name == "live_monitoring":
+                from soc_agent.security_ai.research.live_service import LiveMonitoring
+
+                value = LiveMonitoring(self.directory)
+            elif name in ("streaming_monitoring", "total_monitoring"):
+                from soc_agent.security_ai.research.stream_service import StreamingMonitoring
+
+                value = StreamingMonitoring(self.directory, total=name == "total_monitoring")
+            elif name == "streaming_auth":
+                from soc_agent.security_ai.research.stream_auth import OSAuthentication
+
+                value = OSAuthentication()
+            else:
+                from soc_agent.security_ai.research.total_auth import TerminalAuthentication
+
+                value = TerminalAuthentication()
+            self._owners[name] = value
+        return self._owners[name]
+
+    @property
+    def research_demo(self):
+        return self._owner("research_demo")
+
+    @property
+    def live_monitoring(self):
+        return self._owner("live_monitoring")
+
+    @property
+    def streaming_monitoring(self):
+        return self._owner("streaming_monitoring")
+
+    @property
+    def streaming_auth(self):
+        return self._owner("streaming_auth")
+
+    @property
+    def total_monitoring(self):
+        return self._owner("total_monitoring")
+
+    @property
+    def total_auth(self):
+        return self._owner("total_auth")
 
     async def _cli(self, module: str, args: list[str], *, timeout=30) -> dict:
         process = await asyncio.create_subprocess_exec(
@@ -197,18 +235,73 @@ class Backend:
         alive = self.child is not None and self.child.returncode is None
         if self.process_log:
             self.process_log.close()
-        await self.research_demo.stop()
-        await self.live_monitoring.stop()
-        await self.streaming_monitoring.stop()
-        await self.streaming_auth.cancel()
-        await self.total_monitoring.stop()
-        await self.total_auth.cancel()
+        for name, owner in self._owners.items():
+            if name.endswith("auth"):
+                await owner.cancel()
+            else:
+                await owner.stop()
         self.closed = True
         return {
             "status": "DETACHED",
             "runtime_continues": alive,
             "external_runtime_untouched": True,
         }
+
+    async def production_status(self):
+        if "total_monitoring" in self._owners:
+            value = await self.total_status()
+        else:
+            value = {
+                "state": "STOPPED",
+                "collection_live": False,
+                "listener_ready": False,
+                "session_id": None,
+                "input_origin": "NO_DATA",
+                "network": {},
+                "collectors": {
+                    "network": "STOPPED",
+                    "dns": "STOPPED",
+                    "dns9_ai": "BLOCKED_PRODUCER_PARITY_UNVERIFIED",
+                },
+                "research": {"records": [], "model_metrics": {}, "worker_running": False},
+                "runtime_audit_integrity": "NO_DATA",
+                "last_error": None,
+                "operational_gate": "OPERATIONAL_INFERENCE_BLOCKED",
+                "write_policy": "WRITE_DENIED",
+                "observation_started_ns": time.monotonic_ns(),
+            }
+        try:
+            fields = Path("/proc/self/status").read_text().split("VmRSS:", 1)[1].split()
+            rss = int(fields[0]) * 1024
+        except (OSError, IndexError, ValueError):
+            rss = None
+        value["gui_resources"] = {"rss_bytes": rss, "cpu_seconds": time.process_time()}
+        value["backend_owners"] = sorted(self._owners)
+        value["authentication"] = {
+            "state": "NOT_ATTACHED",
+            "input_origin": "NO_DATA",
+            "events": None,
+        }
+        if self.runtime is not None:
+            try:
+                value["authentication"] = await asyncio.to_thread(status, self.runtime)
+            except (OSError, ValueError, sqlite3.Error):
+                value["authentication"] = {"state": "UNKNOWN", "last_error": "STATUS_INVALID"}
+        return value
+
+    async def archive_sessions(self):
+        from soc_agent.security_ai.research.session_archive import Archive
+
+        owner = self.total_monitoring
+        if owner.preparing or (owner.task is not None and not owner.task.done()):
+            raise ValueError("ARCHIVE_RUNTIME_ACTIVE")
+        # Explicit operator action only. Never relocate the currently attached session.
+        return await asyncio.to_thread(Archive(owner.root).archive_inactive, owner.directory)
+
+    async def archive_status(self):
+        from soc_agent.security_ai.research.session_archive import Archive
+
+        return await asyncio.to_thread(Archive(self.total_monitoring.root).status)
 
     async def dashboard(self):
         research = await asyncio.to_thread(self.research_demo.snapshot)
@@ -298,7 +391,8 @@ class Backend:
             raise ValueError("TOTAL_BOTH_MODELS_AND_DNS_REQUIRED")
         if any(
             getattr(owner, "preparing", False) or bool(owner.task and not owner.task.done())
-            for owner in (self.streaming_monitoring, self.live_monitoring)
+            for name in ("streaming_monitoring", "live_monitoring")
+            if (owner := self._owners.get(name)) is not None
         ):
             raise ValueError("TOTAL_OTHER_CAPTURE_SESSION_ACTIVE")
         from soc_agent.security_ai.operational.network_capture.calibrated_policy import policy
@@ -383,6 +477,8 @@ class Backend:
         return observed_snapshot(self.streaming_monitoring.snapshot)
 
     async def investigations(self):
+        from soc_agent.gui.queries import investigation_rows
+
         if self.runtime is None:
             return []
         return await asyncio.to_thread(investigation_rows, self.runtime)
@@ -397,6 +493,8 @@ class Backend:
         )
 
     async def operator(self, command: str, **fields):
+        from soc_agent.linux_runtime.operator import OperatorRequest
+
         if self.runtime is None:
             raise ValueError("RUNTIME_NOT_CONFIGURED")
         allowed = {
@@ -455,6 +553,13 @@ class Backend:
         )
 
     def _models(self, fresh=False):
+        from soc_agent.application import compose_application
+        from soc_agent.deployment import DeploymentDescriptor
+        from soc_agent.desktop import OfflineDesktopClient, source_report_tool
+        from soc_agent.ingestion import EventIngestor
+        from soc_agent.security_ai.external.runtime_store import RuntimeGovernanceStore
+        from soc_agent.tools import ToolRegistry
+
         if self.model_service is None or fresh:
             location = self.directory / ("model-probe-" + str(uuid4()))
             store = RuntimeGovernanceStore.create_isolated(location)
@@ -598,6 +703,8 @@ class Backend:
 
     @staticmethod
     def scenario_catalog():
+        from soc_agent.demo.scenario_models import scenarios
+
         descriptions = (
             "Normal authentication",
             "Single PAM failure",
@@ -623,6 +730,9 @@ class Backend:
         ]
 
     async def scenario(self, identity: str):
+        from soc_agent.demo.scenario import run_scenario
+        from soc_agent.demo.scenario_models import scenarios
+
         if identity not in {s.scenario_id for s in scenarios()}:
             raise ValueError("UNKNOWN_SCENARIO")
         if self.busy_scenario:

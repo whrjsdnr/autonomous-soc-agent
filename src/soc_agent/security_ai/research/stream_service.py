@@ -49,6 +49,7 @@ def preparation_error(error, phase):
         "CALIBRATED_RESOURCE_HEADROOM_REQUIRED",
         "CALIBRATED_HELPER_BUNDLE_MISMATCH",
         "STREAM_ARCHIVAL_REQUIRED",
+        "STREAM_ARCHIVE_INTEGRITY_BLOCKED",
         "STREAM_PROFILE_INVALID",
         "STREAM_ARTIFACT_ENVIRONMENT_BLOCKED",
     }:
@@ -261,6 +262,9 @@ class StreamingMonitoring:
             raise ValueError("STREAM_PROFILE_INVALID")
         create_private_directory(self.root)
         self.preparation_phase = "SESSION_ARCHIVE"
+        from soc_agent.security_ai.research.session_archive import Archive
+
+        await asyncio.to_thread(Archive(self.root).admission)
         if len(list(self.root.glob("session-*"))) >= 8:
             raise ValueError("STREAM_ARCHIVAL_REQUIRED")
         self.directory = self.root / ("session-" + uuid4().hex)
