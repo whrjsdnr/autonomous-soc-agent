@@ -246,11 +246,16 @@ def render_dashboard(app, value, rows):
     origin = value.get("input_origin", "NO_DATA")
     app.status_cards["Network"].update_value(
         collectors.get("network", "UNKNOWN"),
-        origin,
+        origin + " · " + value.get("network_observation", "NOT_OBSERVED")
+        if collector.get("type") == "zeek-live"
+        else origin,
         state="PENDING" if value.get("state") == "AUTHENTICATION_REQUIRED" else None,
     )
     app.status_cards["DNS diagnostics"].update_value(
-        collectors.get("dns", "UNKNOWN"), "DNS9 model · BLOCKED"
+        collectors.get("dns", "UNKNOWN"),
+        value.get("dns_observation", "NOT_OBSERVED") + " · DNS9 model BLOCKED"
+        if collector.get("type") == "zeek-live"
+        else "DNS9 model · BLOCKED",
     )
     app.status_cards["Capture integrity"].update_value(
         net.get("capture_integrity"), "Integrity · " + str(net.get("integrity_state", "UNKNOWN"))
@@ -273,7 +278,12 @@ def render_dashboard(app, value, rows):
     )
     auth = value.get("authentication", {})
     app.status_cards["Authentication"].update_value(
-        auth.get("runtime_state", "NOT_ATTACHED"), "Retained evidence is not live collection"
+        value.get("state")
+        if value.get("startup_phase")
+        else auth.get("runtime_state", "NOT_ATTACHED"),
+        "Terminal-authenticated session · Native AI BLOCKED"
+        if value.get("startup_phase")
+        else "Retained evidence is not live collection",
     )
     account = net.get("packet_accounting", {})
 
@@ -441,7 +451,7 @@ def system(app):
         collector_bar,
         textvariable=app.collector_type,
         values=("existing-capture", "zeek-offline", "zeek-network14-offline", "zeek-live"),
-        state="readonly",
+        state="disabled" if getattr(app, "terminal_managed", False) else "readonly",
         width=24,
     ).pack(side="left")
     Label(
@@ -554,6 +564,10 @@ def render_system(app, value):
             state="PENDING" if app.command else "NOT_READY",
         )
         app.copy_button.configure(text="Copy collector command")
+        if getattr(app, "terminal_managed", False):
+            app.system_cards["Helper approval"].update_value(
+                "TERMINAL SESSION APPROVED", "Fresh terminal approval required for another capture"
+            )
     else:
         app.system_cards["Helper approval"].update_value(
             net.get("policy_approval", "NOT_PREPARED"), "READY listener required before copy / auth"
@@ -567,7 +581,8 @@ def render_system(app, value):
     app.copy_button.configure(state="normal" if app.command else "disabled")
     app.start_button.configure(
         state="disabled"
-        if value.get("prepare_active")
+        if getattr(app, "terminal_managed", False)
+        or value.get("prepare_active")
         or value.get("listener_ready")
         or value.get("state")
         in {
@@ -593,6 +608,8 @@ def render_system(app, value):
         "command_valid": value.get("command_valid", False),
         "controller_generation": value.get("controller_generation", "NOT_OBSERVED"),
         "handoff_state": value.get("handoff_state", "NOT_OBSERVED"),
+        "network_observation": value.get("network_observation", "NOT_OBSERVED"),
+        "dns_observation": value.get("dns_observation", "NOT_OBSERVED"),
         "stop_reason": value.get("termination_reason") or value.get("stop_reason", "NOT_OBSERVED"),
         "packet_budget": value.get("packet_budget", "NOT_OBSERVED"),
         "event_budget": value.get("event_budget", "NOT_OBSERVED"),
@@ -636,6 +653,10 @@ def render_system(app, value):
         + str(details["handoff_state"])
         + " / command valid "
         + str(details["command_valid"]),
+        "Network / DNS observed   "
+        + str(details["network_observation"])
+        + " / "
+        + str(details["dns_observation"]),
         "Stop reason   " + str(details["stop_reason"]),
         "Packet / event budget   "
         + str(details["packet_budget"])

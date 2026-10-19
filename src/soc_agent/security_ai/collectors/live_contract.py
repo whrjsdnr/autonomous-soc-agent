@@ -15,6 +15,7 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 FILES = (
     "live.py",
+    "startup.py",
     "handoff.py",
     "live_contract.py",
     "live_process.py",
@@ -40,13 +41,17 @@ def bundle() -> dict[str, str]:
         "soc_agent/cli.py": root.parents[1] / "cli.py",
         "research/total_auth.py": root.parent / "research/total_auth.py",
         "producer_service.py": root / "producer_service.py",
+        "gui/__main__.py": root.parents[1] / "gui/__main__.py",
+        "gui/production.py": root.parents[1] / "gui/production.py",
+        "gui/backend.py": root.parents[1] / "gui/backend.py",
+        "gui/worker.py": root.parents[1] / "gui/worker.py",
     }.items():
         hashes[name] = file_digest(path)
     return hashes
 
 
 class LivePlan(Frozen):
-    contract: Literal["soc-zeek-native-plan:v3"] = "soc-zeek-native-plan:v3"
+    contract: Literal["soc-zeek-native-plan:v4"] = "soc-zeek-native-plan:v4"
     session_id: UUID = Field(default_factory=uuid4)
     controller_generation: UUID = Field(default_factory=uuid4)
     image: Literal[IMAGE] = IMAGE

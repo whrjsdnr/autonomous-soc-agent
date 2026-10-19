@@ -4,6 +4,7 @@ import argparse
 import os
 import signal
 import sys
+from contextlib import nullcontext
 from pathlib import Path
 
 from soc_agent.gui.backend import GUIConfig
@@ -14,7 +15,7 @@ from soc_agent.review.persistence.secure_storage import (
 from soc_agent.runtime_lock import exclusive_runtime_lock
 
 
-def main(argv=None) -> int:
+def main(argv=None, *, prepared=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--data-directory",
@@ -74,20 +75,29 @@ def main(argv=None) -> int:
             native_python=args.native_python,
             source_label=args.source_label,
         )
+        if prepared is not None and (args.developer or config != prepared.config):
+            raise ValueError("ZEEK_GUI_CONFIGURATION_MISMATCH")
         create_private_directory(config.data_directory)
         lock = config.data_directory / "desktop.lock"
         if not lock.exists():
             create_private_file(lock)
-        with exclusive_runtime_lock(lock):
+        with nullcontext() if prepared is not None else exclusive_runtime_lock(lock):
             root = tk.Tk()
-            desktop = Desktop(root, config)
+            desktop = (
+                Desktop(root, config, worker=prepared.worker, on_ready=prepared.gui_ready)
+                if prepared is not None
+                else Desktop(root, config)
+            )
+            desktop.terminal_managed = prepared is not None
             previous = {}
 
-            def requested_exit(*_):
+            def requested_exit(signum, *_):
                 callback = (
                     desktop.close
                     if args.developer
-                    else lambda: desktop.close(reason="CONTROLLER_EXIT")
+                    else lambda: desktop.close(
+                        reason="USER_STOP" if signum == signal.SIGINT else "CONTROLLER_EXIT"
+                    )
                 )
                 root.after(0, callback)
 

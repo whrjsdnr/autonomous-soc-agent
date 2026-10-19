@@ -53,6 +53,7 @@ class LiveZeekCollector(ZeekCollector):
         self.exit_observation = None
         self.stop_reason = None
         self.stop_audited = False
+        self.startup_phase = None
         self.collector_started = False
 
     async def prepare(self, *, pcap: Path | None = None, sha256: str | None = None):
@@ -164,7 +165,7 @@ class LiveZeekCollector(ZeekCollector):
                 generation=str(self.plan.controller_generation),
             ),
         )
-        if kind == "LAUNCHER_ACCEPTED":
+        if kind == "LAUNCHER_ACCEPTED" and not self.startup_phase:
             self.state = "LAUNCHER_STARTING"
 
     async def command_snapshot(self, session: str, plan_digest: str, generation: str):
@@ -546,7 +547,7 @@ class LiveZeekCollector(ZeekCollector):
         self.directory = candidates[-1]
         raw_plan = read_local(self.directory / "plan.json", 8192)
         self.store = CollectorStore(self.directory)
-        if json.loads(raw_plan).get("contract") != "soc-zeek-native-plan:v3":
+        if json.loads(raw_plan).get("contract") != "soc-zeek-native-plan:v4":
             self.plan = None
             self.state = "ERROR"
             self.last_error = "ZEEK_CONTROLLER_IDENTITY_MISMATCH"
@@ -678,7 +679,17 @@ class LiveZeekCollector(ZeekCollector):
             command_valid=valid,
             controller_generation=str(self.plan.controller_generation) if self.plan else None,
             plan_digest=self.plan.identity if self.plan else None,
-            handoff_state="COMMAND_VALID" if valid else self.state,
+            handoff_state=self.startup_phase
+            if self.startup_phase
+            and self.state in {"APPROVAL_REQUIRED", "AUTHENTICATING", "STARTING"}
+            else ("COMMAND_VALID" if valid else self.state),
+            startup_phase=self.startup_phase,
+            network_observation="OBSERVED"
+            if self.stream and self.stream.packet_count
+            else "NOT_OBSERVED",
+            dns_observation="OBSERVED"
+            if self.store and self.store.counts().get("dns", 0)
+            else "NOT_OBSERVED",
             stop_reason=self.stop_reason,
             termination_reason=observed_exit.get("termination_reason"),
             packet_budget=dict(used=self.stream.packet_count if self.stream else None, limit=4096),

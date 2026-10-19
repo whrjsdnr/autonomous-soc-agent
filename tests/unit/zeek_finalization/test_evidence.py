@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from soc_agent.security_ai.collectors.finalization import Closed
-from soc_agent.security_ai.collectors.live_contract import bundle
 from soc_agent.security_ai.collectors.offline import file_digest
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
@@ -19,12 +18,12 @@ def evidence():
 
 def test_current_bundle_and_preservation():
     v = evidence()
-    assert v["bundle"] == bundle() and v["bundle_digest"] == digest(bundle())
-    assert v["launcher_sha256"] == file_digest(
-        ROOT / "src/soc_agent/security_ai/collectors/live_process.py"
+    # Frozen evidence of commit 604e265; not approval for current startup code.
+    assert v["bundle_digest"] == digest(v["bundle"])
+    assert (
+        v["launcher_sha256"]
+        == v["source_sha256"]["src/soc_agent/security_ai/collectors/live_process.py"]
     )
-    for name, sha in v["source_sha256"].items():
-        assert file_digest(ROOT / name) == sha
     assert v["approval_contract"] == "soc-zeek-native-plan:v3"
     assert not v["preservation"]["errors"]
     for group in ("main_runs", "final_affected_runs"):

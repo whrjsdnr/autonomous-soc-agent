@@ -76,6 +76,10 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
                 json.dumps(
                     dict(
                         scope="ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+                        # Persist the tested plan/exit proof with receipts: pytest may
+                        # remove its temporary session on a later verification run.
+                        stream_plan=c.plan.model_dump(mode="json"),
+                        stream_exit=json.loads((c.directory / "exit.json").read_text()),
                         session_id=snap["session_id"],
                         pcap_sha256=sha,
                         input_origin=snap["input_origin"],

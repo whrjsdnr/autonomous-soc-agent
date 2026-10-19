@@ -1,4 +1,4 @@
-"""User-terminal launcher only. GUI never authenticates or starts this module.
+"""Terminal-authenticated launcher; a prepared GUI may start the same authenticated runner.
 
 Native output is diagnostics, not a capture-integrity attestation. Run only after
 reviewing the per-session digest and explicit user approval. Offline fixtures never
@@ -40,6 +40,8 @@ class StreamProcess:
         self.cleanup_verified = False
         self.container_absent = False
         self.container_identity = None
+        self._authenticated_plan = None
+        self._launched = False
 
     def stop(self):
         self.stop_requested = True
@@ -95,27 +97,37 @@ class StreamProcess:
     def _controller(self, operation="validate"):
         return exchange(self.directory, self.plan, operation)
 
+    def authenticate(self):
+        """Main terminal thread only. No capture, password handling or persisted auth token."""
+        if self.fixture or self._authenticated_plan is not None or self._launched:
+            raise ValueError("ZEEK_SESSION_REUSE_DENIED")
+        verify(self.plan, self.plan.identity)
+        self._controller("claim")
+        from soc_agent.cli import terminal_authenticate
+
+        try:
+            terminal_authenticate()
+        except (OSError, ValueError, subprocess.SubprocessError) as error:
+            raise ValueError("ZEEK_AUTH_DENIED_CANCELLED_OR_TIMEOUT") from error
+        verify(self.plan, self.plan.identity)
+        self._controller()
+        # Private, process-local binding. No preauthenticated CLI option or disk receipt.
+        self._authenticated_plan = self.plan.identity
+
     def run(self, *, on_line=None):
+        if self._launched:
+            raise ValueError("ZEEK_SESSION_REUSE_DENIED")
         OfflineZeek().environment()
         argv = docker_argv(self.plan, Path(__file__).parent.absolute(), fixture=self.fixture)
         if not self.fixture:
-            print(
-                "TERMINAL AUTHENTICATION: scoped Zeek start/stop/cleanup; lo; 300s; "
-                "CPU 1; RSS 512MiB; Native AI BLOCKED",
-                flush=True,
-            )
+            if self._authenticated_plan is None:
+                self.authenticate()
             verify(self.plan, self.plan.identity)
-            self._controller("claim")
-            # Terminal stdin/stderr inherited. No password PIPE, environment or storage.
-            from soc_agent.cli import terminal_authenticate
-
-            try:
-                terminal_authenticate()
-            except (OSError, ValueError, subprocess.SubprocessError) as error:
-                raise ValueError("ZEEK_AUTH_DENIED_CANCELLED_OR_TIMEOUT") from error
-            verify(self.plan, self.plan.identity)
+            if self._authenticated_plan != self.plan.identity:
+                raise ValueError("ZEEK_APPROVAL_DIGEST_MISMATCH")
             self._controller()
             argv = ["sudo", "-n", "--", *argv]
+        self._launched = True
         identity = process_identity(os.getpid())
         write_new(
             self.directory / "process.json",
@@ -145,7 +157,13 @@ class StreamProcess:
         try:
             try:
                 self.process = subprocess.Popen(
-                    argv, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+                    argv,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                    # Keep the terminal session (sudo timestamp), but route Ctrl+C only
+                    # through the GUI controller's verified stop/drain path.
+                    **({"process_group": 0} if self.fixture is None else {}),
                 )
             except OSError as error:
                 raise ValueError("ZEEK_DOCKER_START_FAILED") from error

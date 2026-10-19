@@ -72,6 +72,7 @@ class Backend:
         self.busy_probe = False
         self._owners = {}
         self.closed = False
+        self.startup_outcome = None
         self.busy_scenario = False
         self.scenario_results = []
 
@@ -258,6 +259,23 @@ class Backend:
                 await owner.cancel()
             elif name == "zeek_collector" and self.collector_selection == "zeek-live":
                 await owner.close(reason=reason)
+                if owner.store:
+                    owner.store.verify()
+                    started = bool(owner.process_runner and owner.process_runner._launched)
+                    self.startup_outcome = dict(
+                        capture_start_attempted=started,
+                        final_state=owner.state,
+                        last_error=owner.last_error,
+                        audit_integrity="VERIFIED",
+                        cleanup="VERIFIED"
+                        if started and owner.process_runner.cleanup_verified
+                        else "UNVERIFIED"
+                        if started
+                        else "NOT_STARTED",
+                        safe_shutdown=(not started or owner.process_runner.cleanup_verified)
+                        and owner.state == "STOPPED"
+                        and not owner.last_error,
+                    )
             else:
                 await owner.stop()
         self.closed = True
@@ -451,6 +469,60 @@ class Backend:
         owner = self._owner("zeek_collector")
         await owner.prepare()
         return await owner.start()
+
+    async def zeek_startup_phase(self, session, plan_digest, generation, phase):
+        owner = self._owners.get("zeek_collector")
+        if (
+            owner is None
+            or owner.plan is None
+            or owner.stop_requested
+            or str(owner.plan.session_id) != session
+            or owner.plan.identity != plan_digest
+            or str(owner.plan.controller_generation) != generation
+        ):
+            raise ValueError("ZEEK_CONTROLLER_IDENTITY_MISMATCH")
+        transitions = {
+            None: "APPROVAL_REQUIRED",
+            "APPROVAL_REQUIRED": "AUTHENTICATING",
+            "AUTHENTICATING": "STARTING",
+        }
+        if transitions.get(owner.startup_phase) != phase:
+            raise ValueError("ZEEK_STARTUP_PHASE_INVALID")
+        owner._control_event("ONE_COMMAND_STARTUP", dict(phase=phase))
+        owner.startup_phase = phase
+        owner.state = phase
+        return await self.production_status()
+
+    async def zeek_startup_failure(self, code):
+        from soc_agent.security_ai.collectors.handoff import safe_code
+
+        owner = self._owners.get("zeek_collector")
+        if owner and owner.plan and owner.startup_phase:
+            owner._control_event(
+                "ONE_COMMAND_STARTUP_FAILED",
+                dict(
+                    phase=owner.startup_phase,
+                    error=safe_code(code),
+                ),
+            )
+
+    async def zeek_launch_authenticated(self, runner):
+        owner = self._owners.get("zeek_collector")
+        if (
+            owner is None
+            or owner.plan != runner.plan
+            or owner.directory != runner.directory
+            or owner.startup_phase != "STARTING"
+            or owner.stop_requested
+            or owner.process_task is not None
+            or runner._authenticated_plan != owner.plan.identity
+        ):
+            raise ValueError("ZEEK_APPROVAL_DIGEST_MISMATCH")
+        owner._validate_handoff()
+        owner._control_event("GUI_READY_COLLECTOR_START_REQUESTED", dict(non_root=True))
+        owner.process_runner = runner
+        owner.process_task = asyncio.create_task(asyncio.to_thread(runner.run))
+        return await self.production_status()
 
     async def zeek_live_command(self, session, plan_digest, generation):
         if self.collector_selection != "zeek-live" or "zeek_collector" not in self._owners:

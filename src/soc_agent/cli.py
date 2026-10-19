@@ -48,17 +48,15 @@ def main(argv=None) -> int:
 
         unprivileged()
         if args.collector == "zeek-live":
-            from soc_agent.gui.__main__ import main as gui_main
-            from soc_agent.security_ai.collectors.offline import OfflineZeek
+            from soc_agent.security_ai.collectors.startup import start
 
-            OfflineZeek().environment()
-            gui_args = ["--collector", "zeek-live"]
-            if args.data_directory:
-                gui_args += ["--data-directory", str(args.data_directory)]
-            print(
-                "ZEEK LIVE PREPARATION ONLY / USER TERMINAL APPROVAL REQUIRED / NATIVE AI BLOCKED"
-            )
-            return gui_main(gui_args)
+            if (
+                args.pcap is not None
+                or args.pcap_sha256 is not None
+                or args.rate_policy != "legacy"
+            ):
+                raise ValueError("ZEEK_LIVE_SCOPE_OPTIONS_DENIED")
+            return start(args.data_directory)
         if args.collector.startswith("zeek-"):
             from soc_agent.gui.__main__ import main as gui_main
             from soc_agent.security_ai.collectors.offline import OfflineZeek, pcap_digest

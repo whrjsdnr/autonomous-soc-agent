@@ -66,13 +66,14 @@ def friendly_model(profile):
 
 
 class Desktop:
-    def __init__(self, root, config):
+    def __init__(self, root, config, *, worker=None, on_ready=None):
         self.root, self.config = root, config
         # Collect unreachable display objects on the creator thread before a new
         # backend thread can trigger cyclic GC. The historical SIGILL cause is
         # still unproven; this is ownership hygiene, not a claimed native fix.
         gc.collect()
-        self.worker = Worker(config)
+        self.worker = worker if worker is not None else Worker(config)
+        self.on_ready = on_ready
         self.history = MetricHistory(capacity=60)
         self.visual_history = VisualHistory(capacity=60)
         self.history_session = None
@@ -192,6 +193,9 @@ class Desktop:
         elif self.config.total_approved_sha:
             self.navigate("System", refresh=False)
             self.start()
+        if self.on_ready is not None:
+            ready, self.on_ready = self.on_ready, None
+            ready(self)
 
     def navigate(self, page, refresh=True):
         if page not in SCREENS or self.closing:
@@ -485,6 +489,9 @@ class Desktop:
         )
 
     def start(self):
+        if getattr(self, "terminal_managed", False):
+            self.status.set("New Capture requires a fresh terminal command and approval")
+            return
         if self.collector_type.get() == "zeek-live":
             self.command = ""
             self.command_session = None
