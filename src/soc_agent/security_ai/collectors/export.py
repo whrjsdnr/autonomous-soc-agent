@@ -17,6 +17,9 @@ def export(collector, path: Path, format: str) -> dict:
     value = dict(
         contract="soc-zeek-diagnostic-export:v1",
         source=collector.store.source.model_dump(mode="json"),
+        collector_type=snapshot["collector"]["type"],
+        capture_integrity=snapshot["collector"].get("capture_integrity", "OFFLINE_REFERENCE_ONLY"),
+        approval=snapshot["collector"].get("approval", "OFFLINE_NO_CAPTURE_APPROVAL"),
         events=snapshot["collector"]["events"],
         parity=snapshot["collector"]["parity"],
         audit_digest=collector.store.runtime.verify_audit(),
@@ -32,11 +35,14 @@ def export(collector, path: Path, format: str) -> dict:
     )
     body = json.dumps(value, indent=2, sort_keys=True)
     if format == "markdown":
+        title = (
+            "# Zeek live diagnostics\n\nNot an operational AI finding. "
+            if snapshot["collector"]["type"] == "zeek-live"
+            else "# Zeek offline diagnostics\n\nNot an AI finding. "
+        )
         body = (
-            "# Zeek offline diagnostics\n\nNot an AI finding. "
-            "DNS9 parity BLOCKED; Network14 eligibility is bound per recorded window.\n\n```json\n"
-            + body
-            + "\n```\n"
+            title + "DNS9 parity BLOCKED; Network14 eligibility is bound per recorded window."
+            "\n\n```json\n" + body + "\n```\n"
         )
     # Existing secure helper enforces private parent, no replacement or symlink writes.
     create_private_file(path)

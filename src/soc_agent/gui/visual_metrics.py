@@ -53,6 +53,11 @@ class VisualHistory:
         )
         running = (
             offline
+            or (
+                snapshot.get("collector", {}).get("type") == "zeek-live"
+                and self.state in {"ACTIVE", "DEGRADED"}
+                and snapshot.get("collection_live") is True
+            )
             or self.state == "LIVE_COLLECTION"
             and (snapshot.get("collection_live") is True or identity[1] == "FIXTURE")
         )

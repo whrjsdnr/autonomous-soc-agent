@@ -288,7 +288,10 @@ class Desktop:
                 self.history.observe(
                     {"network": net, "queue_backlog": net.get("queue_backlog")}, now=stamp / 1e9
                 )
-        if not value.get("listener_ready"):
+        if value.get("collector_command") and value.get("state") == "AUTHENTICATION_REQUIRED":
+            self.command = value["collector_command"]
+            self.command_session = value.get("session_id")
+        elif not value.get("listener_ready"):
             self.command = ""
             self.command_session = None
         self.status.set(
@@ -452,6 +455,11 @@ class Desktop:
         )
 
     def start(self):
+        if self.collector_type.get() == "zeek-live":
+            self.command = ""
+            self.command_session = None
+            self.call("zeek_live_prepare", callback=self.render)
+            return
         if self.collector_type.get().startswith("zeek-"):
             pcap = self.config.zeek_pcap
             sha = self.config.zeek_pcap_sha256
@@ -506,6 +514,25 @@ class Desktop:
             self.copy_button.configure(state="normal" if ready else "disabled")
 
     def copy_command(self):
+        if self.snapshot.get("collector", {}).get("type") == "zeek-live":
+            session, command = self.command_session, self.command
+
+            def checked(value):
+                if (
+                    command
+                    and value.get("session_id") == session
+                    and value.get("state") == "AUTHENTICATION_REQUIRED"
+                    and value.get("collector_command") == command
+                ):
+                    self.root.clipboard_clear()
+                    self.root.clipboard_append(command)
+                else:
+                    self.command = ""
+                    self.command_session = None
+                    self.status.set("BLOCKED · ZEEK_SESSION_COMMAND_STALE")
+
+            self.call("production_status", callback=checked)
+            return
         if not self.command or self.snapshot.get("listener_ready") is not True:
             return
         session = self.command_session

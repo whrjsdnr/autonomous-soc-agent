@@ -198,7 +198,13 @@ def render_dashboard(app, value, rows):
     collector = value.get("collector", {})
     metrics = collector.get("metrics", {})
     chart = app.dashboard_charts[0]
-    chart.title = "ZEEK OFFLINE LOG EVENTS" if collector else "NETWORK TRAFFIC · DISTINCT COUNTERS"
+    chart.title = (
+        "ZEEK LIVE DIAGNOSTIC EVENTS"
+        if collector.get("type") == "zeek-live"
+        else "ZEEK OFFLINE LOG EVENTS"
+        if collector
+        else "NETWORK TRAFFIC · DISTINCT COUNTERS"
+    )
     chart.series = (
         (("zeek_network", "Connection records"), ("zeek_dns", "DNS transactions"))
         if collector
@@ -211,14 +217,19 @@ def render_dashboard(app, value, rows):
         )
     )
     chart.units = (
-        "offline adapter records / second · not live packet rate"
+        "adapter records / second · see input origin; not raw packet rate"
         if collector
         else "frames or packets / second · monotonic interval"
     )
     if hasattr(app, "collector_summary"):
         app.collector_summary.configure(
             text=(
-                "Zeek OFFLINE · Network events "
+                (
+                    "Zeek LIVE DIAGNOSTICS · "
+                    if collector.get("type") == "zeek-live"
+                    else "Zeek OFFLINE · "
+                )
+                + "Network events "
                 + str(metrics.get("network_events", "UNKNOWN"))
                 + " · DNS transactions "
                 + str(metrics.get("dns_events", "UNKNOWN"))
@@ -233,7 +244,11 @@ def render_dashboard(app, value, rows):
         )
     models = value.get("research", {}).get("model_metrics", {})
     origin = value.get("input_origin", "NO_DATA")
-    app.status_cards["Network"].update_value(collectors.get("network", "UNKNOWN"), origin)
+    app.status_cards["Network"].update_value(
+        collectors.get("network", "UNKNOWN"),
+        origin,
+        state="PENDING" if value.get("state") == "AUTHENTICATION_REQUIRED" else None,
+    )
     app.status_cards["DNS diagnostics"].update_value(
         collectors.get("dns", "UNKNOWN"), "DNS9 model · BLOCKED"
     )
@@ -425,13 +440,13 @@ def system(app):
     ttk.Combobox(
         collector_bar,
         textvariable=app.collector_type,
-        values=("existing-capture", "zeek-offline", "zeek-network14-offline"),
+        values=("existing-capture", "zeek-offline", "zeek-network14-offline", "zeek-live"),
         state="readonly",
         width=24,
     ).pack(side="left")
     Label(
         collector_bar,
-        text="Zeek = experimental OFFLINE PCAP / model parity BLOCKED",
+        text="Zeek = experimental · source, approval and model eligibility shown below",
         size=11,
         fg=SECONDARY,
     ).pack(side="left", padx=12)
@@ -526,11 +541,23 @@ def render_system(app, value):
     visual_charts.render(app.health_charts, app, value)
     net = value.get("network", {})
     app.system_cards["Monitoring"].update_value(
-        value.get("state", "UNKNOWN"), value.get("input_origin", "NO_DATA")
+        "AUTH REQUIRED"
+        if value.get("state") == "AUTHENTICATION_REQUIRED"
+        else value.get("state", "UNKNOWN"),
+        value.get("input_origin", "NO_DATA"),
+        state="PENDING" if value.get("state") == "AUTHENTICATION_REQUIRED" else None,
     )
-    app.system_cards["Helper approval"].update_value(
-        net.get("policy_approval", "NOT_PREPARED"), "READY listener required before copy / auth"
-    )
+    if value.get("collector", {}).get("type") == "zeek-live":
+        app.system_cards["Helper approval"].update_value(
+            "REVIEW REQUIRED" if app.command else "NOT PREPARED",
+            "Session-bound terminal command · Native AI BLOCKED",
+            state="PENDING" if app.command else "NOT_READY",
+        )
+        app.copy_button.configure(text="Copy collector command")
+    else:
+        app.system_cards["Helper approval"].update_value(
+            net.get("policy_approval", "NOT_PREPARED"), "READY listener required before copy / auth"
+        )
     app.system_cards["Audit integrity"].update_value(
         value.get("runtime_audit_integrity", "UNKNOWN"), "Hash chain validation retained"
     )
@@ -542,13 +569,25 @@ def render_system(app, value):
         state="disabled"
         if value.get("prepare_active")
         or value.get("listener_ready")
-        or value.get("state") == "OFFLINE_PROCESSING"
+        or value.get("state")
+        in {
+            "OFFLINE_PROCESSING",
+            "PREPARING",
+            "AUTHENTICATION_REQUIRED",
+            "STARTING",
+            "ACTIVE",
+            "DEGRADED",
+            "STOPPING",
+        }
         else "normal"
     )
     collector = value.get("collector", {})
     details = {
         "collector_type": collector.get("type", "existing-capture"),
         "collector_health": collector.get("health", "NOT_OBSERVED"),
+        "collector_approval": collector.get("approval", "NOT_OBSERVED"),
+        "capture_interface": collector.get("interface", "NOT_OBSERVED"),
+        "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
         "producer": collector.get("producer", "NOT_PREPARED"),
         "feature_parity": collector.get("parity", "EXISTING_CAPTURE_CONTRACT"),
@@ -574,6 +613,9 @@ def render_system(app, value):
         "SESSION & MODEL HEALTH",
         "Collector   " + str(details["collector_type"]),
         "Collector health   " + str(details["collector_health"]),
+        "Collector approval   " + str(details["collector_approval"]),
+        "Interface   " + str(details["capture_interface"]),
+        "Capture integrity   " + str(details["capture_integrity"]),
         "Collector metrics   " + str(details["collector_metrics"]),
         "Zeek producer   " + str(details["producer"]),
         "Feature parity   "

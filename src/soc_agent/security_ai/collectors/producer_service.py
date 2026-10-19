@@ -27,7 +27,15 @@ class ProducerService:
         self.last_error = None
         self.demo = ZeekResearch(collector.directory, self.authorize, paths=paths)
 
+    def _source_gate(self):
+        source = self.collector.store.source
+        if source.origin != "ZEEK_OFFLINE_PCAP" or (
+            source.capture_integrity != "OFFLINE_FILE_DIGEST_VERIFIED"
+        ):
+            raise ValueError("ZEEK_NETWORK14_SOURCE_AUTHORIZATION_REQUIRED")
+
     def request(self, flow, profile):
+        self._source_gate()
         c = self.collector
         p = self.proof
         return ZeekRequest(
@@ -91,6 +99,7 @@ class ProducerService:
             raise ValueError("ZEEK_REQUEST_SOURCE_BINDING_FAILED")
 
     async def produce(self, result):
+        self._source_gate()
         c = self.collector
         script = Path(__file__).with_name("network14.zeek")
         if not result.get("packet_mode") or result["packet_policy_sha256"] != file_digest(script):

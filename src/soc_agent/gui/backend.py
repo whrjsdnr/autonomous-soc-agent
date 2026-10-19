@@ -31,9 +31,9 @@ def status(directory):
 
 
 class GUIConfig(Snapshot):
-    collector_type: Literal["existing-capture", "zeek-offline", "zeek-network14-offline"] = (
-        "existing-capture"
-    )
+    collector_type: Literal[
+        "existing-capture", "zeek-offline", "zeek-network14-offline", "zeek-live"
+    ] = "existing-capture"
     zeek_pcap: Path | None = None
     zeek_pcap_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     total_approved_sha: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
@@ -90,9 +90,15 @@ class Backend:
             elif name == "zeek_collector":
                 from soc_agent.security_ai.collectors.zeek import ZeekCollector
 
-                value = ZeekCollector(
-                    self.directory, packet_mode=self.collector_selection == "zeek-network14-offline"
-                )
+                if self.collector_selection == "zeek-live":
+                    from soc_agent.security_ai.collectors.live import LiveZeekCollector
+
+                    value = LiveZeekCollector(self.directory)
+                else:
+                    value = ZeekCollector(
+                        self.directory,
+                        packet_mode=self.collector_selection == "zeek-network14-offline",
+                    )
             elif name in ("streaming_monitoring", "total_monitoring"):
                 from soc_agent.security_ai.research.stream_service import StreamingMonitoring
 
@@ -421,12 +427,27 @@ class Backend:
             sha256 = await asyncio.to_thread(pcap_digest, Path(pcap))
         selection = "zeek-network14-offline" if producer else "zeek-offline"
         owner = self._owners.get("zeek_collector")
-        if owner is not None and owner.packet_mode != producer:
+        if owner is not None and (
+            self.collector_selection == "zeek-live" or owner.packet_mode != producer
+        ):
             await owner.stop()
             del self._owners["zeek_collector"]
         self.collector_selection = selection
         owner = self._owner("zeek_collector")
         await owner.prepare(pcap=Path(pcap), sha256=sha256)
+        return await owner.start()
+
+    async def zeek_live_prepare(self):
+        for owner in self._owners.values():
+            if getattr(owner, "preparing", False) or (
+                getattr(owner, "task", None) and not owner.task.done()
+            ):
+                raise ValueError("COLLECTOR_ALREADY_ACTIVE")
+        if self.collector_selection != "zeek-live" and "zeek_collector" in self._owners:
+            await self._owners.pop("zeek_collector").stop()
+        self.collector_selection = "zeek-live"
+        owner = self._owner("zeek_collector")
+        await owner.prepare()
         return await owner.start()
 
     async def collector_stop(self):

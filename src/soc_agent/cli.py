@@ -37,7 +37,7 @@ def main(argv=None) -> int:
     start.add_argument("--approve-direction-sha")
     start.add_argument(
         "--collector",
-        choices=("existing-capture", "zeek-offline", "zeek-network14-offline"),
+        choices=("existing-capture", "zeek-offline", "zeek-network14-offline", "zeek-live"),
         default="existing-capture",
     )
     start.add_argument("--pcap", type=Path)
@@ -47,6 +47,18 @@ def main(argv=None) -> int:
         from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
 
         unprivileged()
+        if args.collector == "zeek-live":
+            from soc_agent.gui.__main__ import main as gui_main
+            from soc_agent.security_ai.collectors.offline import OfflineZeek
+
+            OfflineZeek().environment()
+            gui_args = ["--collector", "zeek-live"]
+            if args.data_directory:
+                gui_args += ["--data-directory", str(args.data_directory)]
+            print(
+                "ZEEK LIVE PREPARATION ONLY / USER TERMINAL APPROVAL REQUIRED / NATIVE AI BLOCKED"
+            )
+            return gui_main(gui_args)
         if args.collector.startswith("zeek-"):
             from soc_agent.gui.__main__ import main as gui_main
             from soc_agent.security_ai.collectors.offline import OfflineZeek, pcap_digest

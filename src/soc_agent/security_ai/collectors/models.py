@@ -8,7 +8,9 @@ from pydantic import Field, IPvAnyAddress
 from soc_agent.security_ai.research.models import Frozen
 
 Hash = str
-Origin = Literal["ZEEK_OFFLINE_PCAP", "SYNTHETIC_ZEEK_JSON", "UNVERIFIED_ZEEK_LOG"]
+Origin = Literal[
+    "ZEEK_OFFLINE_PCAP", "SYNTHETIC_ZEEK_JSON", "UNVERIFIED_ZEEK_LOG", "ZEEK_NATIVE_LIVE"
+]
 
 
 class Source(Frozen):
