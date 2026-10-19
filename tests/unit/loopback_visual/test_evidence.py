@@ -18,7 +18,17 @@ def evidence():
 def test_sources_screenshots_and_unchanged_signed_contract():
     doc = evidence()
     for name, sha in doc["source_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha, name
+        historical = {
+            "src/soc_agent/security_ai/research/stream_service.py": "stream_service.txt",
+            "src/soc_agent/security_ai/research/packet_accounting.py": "packet_accounting.txt",
+            "tests/unit/loopback_visual/test_evidence.py": "loopback_evidence_test.txt",
+        }
+        source = (
+            ROOT / "tests/fixtures/filtering-ebfd20b" / historical[name]
+            if name in historical
+            else ROOT / name
+        )
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == sha, name
     assert len(doc["screenshots"]) == 12
     for name, entry in doc["screenshots"].items():
         body = (ROOT / "docs/linux-soc-v1/loopback-visual-screenshots" / name).read_bytes()

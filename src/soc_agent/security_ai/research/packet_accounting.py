@@ -36,6 +36,8 @@ def packet_accounting(
         "received_raw_frames": get("received_frames"),
         "accepted_raw_frames": None,  # No successful-consume counter in this wire contract.
         "loopback_duplicate_candidates": None,  # No pair identity/direction histogram on wire.
+        "filtered_raw_frames": None,  # No classified exclusion counter on the approved wire.
+        "analysis_scope": "ALL_APPROVED_NORMALIZED_TCP_UDP_UNCHANGED",
         "outbound_frames": None,
         "inbound_frames": None,
         "normalized_packets_sent": get("sent_packets"),

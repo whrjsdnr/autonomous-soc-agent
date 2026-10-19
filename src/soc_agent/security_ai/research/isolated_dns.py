@@ -3,6 +3,7 @@
 from collections import Counter, deque
 
 from soc_agent.security_ai.operational.network_capture.flows import FlowTable
+from soc_agent.security_ai.operational.network_capture.models import PacketObservation
 from soc_agent.security_ai.research.live_input import timestamp_ns
 from soc_agent.security_ai.research.models import digest
 from soc_agent.security_ai.research.total_dns import DNSDiagnostics
@@ -38,6 +39,30 @@ class IsolatedDNS:
         value["event_id"] = digest(value)
         return value
 
+    @property
+    def diagnostic_status(self) -> str:
+        """Authoritative status without materializing the retained event ring."""
+        return (
+            "DNS_DIAGNOSTIC_BLOCKED"
+            if self.blocked
+            else "DEGRADED"
+            if self.quarantined or self.counts.get("PARSE_FAILURE")
+            else "HEALTHY"
+        )
+
+    def changes_projection(self, packet: PacketObservation) -> bool:
+        """Only the existing irrelevant-packet path leaves every projected field intact.
+
+        observe() must still run: observation limits, privacy rejection and blocked
+        counters are enforced even when no DNS event is produced.
+        """
+        return (
+            self.blocked
+            or packet.dns is not None
+            or packet.source_port in (53, 443, 853)
+            or packet.destination_port in (53, 443, 853)
+        )
+
     def observe(self, packet, sequence):
         self.observations += 1
         if packet.dns is not None and packet.dns.query_name is not None:
@@ -48,7 +73,7 @@ class IsolatedDNS:
             self.counts["BLOCKED_PACKET_EXCLUDED"] += 1
             return []
         if packet.dns is None:
-            if not {53, 443, 853}.intersection((packet.source_port, packet.destination_port)):
+            if not self.changes_projection(packet):
                 return []  # Unrelated packets never expire DNS queries.
             return self._record(DNSDiagnostics(self.session_id).observe(packet, sequence))
         key, now = digest(FlowTable.key(packet)), timestamp_ns(packet)
@@ -110,11 +135,7 @@ class IsolatedDNS:
             names_retained=False,
             tcp_support="SINGLE_COMPLETE_MESSAGE_ONLY_NO_REASSEMBLY",
             encrypted_dns="UNKNOWN_NOT_DECRYPTED",
-            diagnostic_status="DNS_DIAGNOSTIC_BLOCKED"
-            if self.blocked
-            else "DEGRADED"
-            if self.quarantined or self.counts.get("PARSE_FAILURE")
-            else "HEALTHY",
+            diagnostic_status=self.diagnostic_status,
             quarantined_connections=len(self.quarantined),
             event_time_policy="CONNECTION_LOCAL_NO_NETWORK_EXPIRY",
         )

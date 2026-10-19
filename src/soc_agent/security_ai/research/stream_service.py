@@ -327,6 +327,10 @@ class StreamingMonitoring:
             abort_reason=None,
             inference_count=0,
             advisory_latency_seconds=None,
+            analysis_network_metadata_reused=0,
+            analysis_network_metadata_copies=0,
+            analysis_dns_snapshot_skipped=0,
+            analysis_dns_snapshot_rebuilt=0,
         )
         self.preparation_phase = "SESSION_STORAGE"
         self.store = StreamStore(self.directory, self.session, fixture=fixture, create=True)
@@ -498,7 +502,13 @@ class StreamingMonitoring:
             raise ValueError("STREAM_SOURCE_ORIGIN_MISMATCH")
         dns_packet = packet
         if self.total:
-            packet = packet.model_copy(update={"dns": None})
+            if packet.dns is not None:
+                packet = packet.model_copy(update={"dns": None})
+                self.metrics["analysis_network_metadata_copies"] += 1
+            else:
+                # Frozen metadata already has the exact Network projection. No input
+                # is filtered, repaired, reclassified or removed from raw accounting.
+                self.metrics["analysis_network_metadata_reused"] += 1
         self.sequence += 1
         self.metrics["packet_sequence"] = self.sequence
         identity = uuid5(self.session.session_id, str(self.sequence))
@@ -507,7 +517,14 @@ class StreamingMonitoring:
             # other's feature state or expiry watermark. No packet time is repaired.
             for event in self.dns_diagnostics.observe(dns_packet, self.sequence):
                 await asyncio.to_thread(self.store.runtime.event, "TOTAL_DNS_EVENT", event)
-            self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
+            if (
+                self.dns_diagnostics.changes_projection(dns_packet)
+                or "dns_diagnostics" not in self.metrics
+            ):
+                self.metrics["dns_diagnostics"] = self.dns_diagnostics.snapshot()
+                self.metrics["analysis_dns_snapshot_rebuilt"] += 1
+            else:
+                self.metrics["analysis_dns_snapshot_skipped"] += 1
             self.metrics["dns_diagnostic_inputs"] = self.sequence
         try:
             completed = self.aggregator.add(packet, identity)
@@ -599,11 +616,11 @@ class StreamingMonitoring:
         if not self.total or self.aborted:
             return
         domain = self.aggregator.snapshot()
-        dns = self.dns_diagnostics.snapshot()
+        dns_status = self.dns_diagnostics.diagnostic_status
         degraded = bool(
             domain["cross_flow_regressions"]
             or domain["quarantined_flow_keys"]
-            or dns["diagnostic_status"] != "HEALTHY"
+            or dns_status != "HEALTHY"
             or self.inference_blocked
             or self.metrics.get("inference_capacity_exclusions", 0)
             or self.metrics.get("backpressure") == "HIGH"
@@ -616,7 +633,7 @@ class StreamingMonitoring:
             if domain["cross_flow_regressions"]
             else "PER_FLOW_ORDERED_PREFIX_ONLY",
             integrity_state="DEGRADED" if degraded else "HEALTHY",
-            dns_diagnostic_status=dns["diagnostic_status"],
+            dns_diagnostic_status=dns_status,
             healthy_flow_count=domain["healthy_flow_keys"],
             quarantined_flow_count=domain["quarantined_flow_keys"],
             model_attempts=self.model_attempts,
