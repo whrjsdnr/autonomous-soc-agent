@@ -1,0 +1,77 @@
+{
+  "release_version": "0.4.2",
+  "manifest_sha256": "17f85c891df7f5b04026fcf180b6c175fece64752ceb2f2793dd36917e0c910d",
+  "installer_sha256": "67d4ebda1ba82a563a623f72f541b7e840b861cba5735b7c6958c553617847da",
+  "destination": "/usr/libexec/soc-agent-ebpf",
+  "files": {
+    "bootstrap": {
+      "sha256": "96d0df57066e3f1004a4343d22acbe6c0ca20aef7d6919181e8ca2010dcbbd7d",
+      "mode": 365
+    },
+    "broker": {
+      "sha256": "b872565bcd0abc67c2a5b9c7f96b21d9acb46df582870e303e067c42376254ff",
+      "mode": 365
+    },
+    "entry": {
+      "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "mode": 365
+    },
+    "libnative-tc.so": {
+      "sha256": "7905693372d14e93162ff7fbeea4068a0094a737663b2403c337630901706536",
+      "mode": 292
+    },
+    "manifest.bin": {
+      "sha256": "8221efca1fb4d81089200e20d79d73a99aacc1cb47772bf7de848babde28ebb1",
+      "mode": 292
+    },
+    "pam-policy.conf": {
+      "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+      "mode": 292
+    },
+    "tc.bpf.o": {
+      "sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "mode": 292
+    },
+    "release.json": {
+      "sha256": "17f85c891df7f5b04026fcf180b6c175fece64752ceb2f2793dd36917e0c910d",
+      "mode": 292
+    },
+    "release.trust": {
+      "sha256": "8ec2424921e017a228fd111368f0821bc6bf4e152e6ebd20399f3865f841f52e",
+      "mode": 292
+    }
+  },
+  "compiled_artifacts": {
+    "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+    "bootstrap": "96d0df57066e3f1004a4343d22acbe6c0ca20aef7d6919181e8ca2010dcbbd7d",
+    "broker": "b872565bcd0abc67c2a5b9c7f96b21d9acb46df582870e303e067c42376254ff",
+    "libnative-tc.so": "7905693372d14e93162ff7fbeea4068a0094a737663b2403c337630901706536",
+    "tc-fixture": "2b938cff0aa28831d283f3db2b66c9ea654a3101d7c16db514aecf5d48811aa6",
+    "tcx-dispatch-fixture": "d43a397d678dbceb89faf85a5198924f9a95782f5384a0bd2abfbbda188feaca",
+    "tcx.bpf.o": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+    "source_bundle_digest": "464811d02a0f30a3f06069654fe157c1f447bff1b68d0ecc99d26f734e039316"
+  },
+  "dry_run": "EXACT_GENERATED_IMAGE_INSTALL_CHECK_AND_ROLLBACK_ORDINARY_UID",
+  "native_root_install": "PENDING_APPROVAL_A",
+  "native_auth": "PENDING_APPROVAL_B",
+  "native_tcx": "PENDING_APPROVAL_C",
+  "native_events": null,
+  "native_features": null,
+  "native_loss": null,
+  "native_cleanup": "NOT_OBSERVED",
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_promotion": "BLOCKED",
+  "preservation": {
+    "user_files": 132,
+    "prior_qualification_sha256": "10515ff22f00e54b037170745909d926d52228bedfa5e68215851c6546e8e67c"
+  },
+  "tests": {
+    "new_security_cases": "12 PASS; exception above 10 for counter and compiled OS-policy boundary",
+    "existing_data_plane": "1 PASS / 1 deselected; offline C fixture, not Native"
+  },
+  "root_install_executed": false,
+  "sudo_executed": false,
+  "kernel_load_executed": false,
+  "network_changes": false
+}

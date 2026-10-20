@@ -24,7 +24,6 @@ extern int soc_poll(struct soc_state *);
 static volatile sig_atomic_t stopped;
 static void stop_signal(int n) {(void)n;stopped=1;}
 static int broker(int ipc,int plan,int object,int audit) {
-    if(!soc_native_gate())return -EPERM;
     struct soc_state s={.data_fd=-1,.ops=&soc_real_ops,.object_fd=object,.ipc_fd=ipc,.audit_fd=audit};uint8_t md[32];
     struct soc_release_envelope envelope;struct stat authority,code,audit_info;
     if(fstat(plan,&authority) || fstat(object,&code) || authority.st_uid || code.st_uid ||
@@ -38,7 +37,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     if(soc_environment_contract(environ) || soc_release_check(&s.plan,envelope.manifest_sha,envelope.release_version,2) || !getuid() || geteuid()!=getuid() ||
        getuid()!=s.plan.uid || getgid()!=s.plan.gid || soc_capabilities() || soc_peer(ipc,&s.plan) ||
        soc_sealed(object,s.plan.program_sha))return -EPERM;
-    if(soc_broker_privileges())return -EPERM;
+    if(soc_qualification_admit(plan,&envelope,2) || soc_broker_privileges())return -EPERM;
     memcpy(s.release_sha,envelope.manifest_sha,32);
     memcpy(s.release_version,envelope.release_version,16);
     struct soc_tcx link={.session=&s,.ops=&soc_tcx_real_ops,.fd=-1,.program_fd=-1};
@@ -61,7 +60,9 @@ static int broker(int ipc,int plan,int object,int audit) {
         uint64_t now=soc_now();
         if(now<heartbeat || now-born>=3600000000000ULL || now-heartbeat>=15000000000ULL ||
            soc_peer(ipc,&s.plan)) {result=-ETIMEDOUT;break;}
-        if(s.attached && now-s.started_ns>=300000000000ULL && (tcx?soc_tcx_cleanup(&link):soc_cleanup(&s))) {result=-EUCLEAN;break;}
+        if(s.attached && (s.packet_budget_reached || now-s.started_ns>=300000000000ULL)) {
+            if(!tcx || soc_tcx_cleanup(&link) || soc_data_end(&s,s.packet_budget_reached?2:1)) {result=-EUCLEAN;break;}
+        }
         struct pollfd wait={ipc,POLLIN,0};int ready=poll(&wait,1,100);
         if(ready<0) {if(errno==EINTR)continue;result=-EIO;break;}
         if(s.attached && soc_poll(&s)<0) {result=-ENOBUFS;break;}
@@ -129,7 +130,6 @@ int main(int argc,char **argv) {
     if(argc==2 && !strcmp(argv[1],"--inspect") && getuid()==geteuid() && getuid()) {
         puts("{\"stage\":\"B2A\",\"native_gate\":false,\"kernel_load\":false,\"tc_attach\":false}");return 0;
     }
-    if(!soc_native_gate()) {fputs("EBPF_B2A_NATIVE_EXECUTION_BLOCKED\n",stderr);return 2;}
     if(argc!=5)return 2;
     int fd[4];for(int i=0;i<4;i++) {char *end;long n=strtol(argv[i+1],&end,10);
         if(*end || n<3 || n>31)return 2;fd[i]=n;}

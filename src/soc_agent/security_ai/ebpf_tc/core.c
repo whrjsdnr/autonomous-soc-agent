@@ -2,10 +2,33 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <openssl/evp.h>
 /* No environment, CLI flag, sudo cache or fixture can open this gate. B-2B needs
  * a reviewed code/release change, new hashes and explicit installation approval. */
-int soc_native_gate(void) {static const volatile int phase_b2a_admitted=0;return phase_b2a_admitted;}
+static int qualification_admitted;
+int soc_native_gate(void) {return qualification_admitted;}
+/* Admission is process-local and has no environment/CLI toggle. The root entry
+ * calls this only after OS policy and purpose-bound human scope verification.
+ * An exec'd Broker must present a root-created, sealed authority FD, never an
+ * approval JSON or the Controller's own user-owned memfd. */
+int soc_qualification_admit(int fd,const struct soc_release_envelope *e,int stage) {
+    if(qualification_admitted || !e || (stage!=1 && stage!=2) ||
+       soc_envelope_validate(e) || e->plan.hook!=1 || soc_environment(&e->plan) ||
+       soc_release_check(&e->plan,e->manifest_sha,e->release_version,stage))return -EPERM;
+    if(stage==1) {
+        if(getuid() || geteuid() || getgid() || getegid())return -EPERM;
+    } else {
+        struct stat st;uint8_t hash[32];struct soc_release_envelope held;
+        if(getuid()!=e->plan.uid || getgid()!=e->plan.gid || fstat(fd,&st) ||
+           st.st_uid || st.st_size!=sizeof(held) || soc_fd_sha(fd,hash) || soc_sealed(fd,hash) ||
+           pread(fd,&held,sizeof(held),0)!=sizeof(held) || memcmp(e,&held,sizeof(held)) ||
+           soc_capabilities())return -EPERM;
+    }
+    qualification_admitted=1;return 0;
+}
 int soc_auth_contract(const struct soc_auth_facts *f) {
     return !f->uid || !f->gid || f->uid!=f->real_uid || f->effective_uid ||
         f->tty_owner!=f->uid || f->tty_present!=1 || f->foreground!=1 ||

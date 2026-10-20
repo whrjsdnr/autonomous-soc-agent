@@ -25,7 +25,7 @@ from soc_agent.security_ai.ebpf_tc.contracts import OWNER, NativePlan, request
 from soc_agent.security_ai.ebpf_tc.data_plane import PacketChannel
 from soc_agent.security_ai.ebpf_tc.dependencies import read_held
 from soc_agent.security_ai.ebpf_tc.installation import ReleaseManifest, verify_package
-from soc_agent.security_ai.ebpf_tc.journal import KINDS, TCX_KINDS, recover_native
+from soc_agent.security_ai.ebpf_tc.journal import KINDS, TCX_KINDS, TCX_OWNER, recover_native
 from soc_agent.security_ai.ebpf_tc.trust import release_approval
 from soc_agent.security_ai.research.models import Frozen, digest
 
@@ -90,9 +90,14 @@ class Handoff:
         self.cleanup = "NOT_OBSERVED"
         self.error: str | None = None
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
+        self.qualification_only = False
+        self.collector_state = "NOT_OBSERVED"
+        self.link_evidence = None
         self.audit_path = application.directory / "os-handoff-journal.bin"
         self.audit_fd = -1
-        self.data = PacketChannel(plan, self.approval, application.directory)
+        # Transport binds the sealed envelope digest, not the separately displayed
+        # auth-only/live purpose approval. Both are checked at the root entry.
+        self.data = PacketChannel(plan, self.envelope[-32:].hex(), application.directory)
 
     def _event(self, kind: str, **details) -> None:
         self.application._event(
@@ -344,7 +349,8 @@ class Handoff:
         self._hello(1, fixture)
         self._event("OS_AUTH_HANDOFF_VERIFIED", verified_scope="FIXTURE" if fixture else "OS")
         self._hello(2, fixture)
-        self.data.bind(self.identity, fixture=fixture)
+        if not self.qualification_only:
+            self.data.bind(self.identity, fixture=fixture)
         self._event("TCX_DATA_CHANNEL_BOUND", data=self.data.snapshot())
         self._scope()
         self.deadline = time.monotonic() + 3600
@@ -411,6 +417,24 @@ class Handoff:
                 or hashlib.sha256(body[:-32]).digest() != body[-32:]
             ):
                 raise ValueError("HANDOFF_JOURNAL_NOTIFICATION")
+            if kind in {"TCX_LINK_VERIFIED", "TCX_LINK_RELEASED", "TCX_CLEANUP_UNVERIFIED"}:
+                row = TCX_OWNER.unpack_from(body, 64)
+                if (
+                    row[1] != int(self.plan.broker.application.scope.net_namespace[5:-1])
+                    or row[11].hex() != self.plan.program_sha256
+                ):
+                    raise ValueError("HANDOFF_LINK_EVIDENCE_SCOPE")
+                self.link_evidence = dict(
+                    state=kind,
+                    generation=row[0],
+                    namespace_inode=row[1],
+                    link_id=row[3],
+                    program_id=row[4],
+                    ifindex=row[5],
+                    attach_type=row[6],
+                    program_tag=row[9].hex(),
+                    pinned=bool(row[8]),
+                )
             self.notifications += 1
             if self.notifications > 1024:
                 raise ValueError("HANDOFF_NOTIFICATION_BUDGET")
@@ -426,15 +450,23 @@ class Handoff:
             body
         )
         if (
-            (magic, stage, source) != (MAGIC, phase, 2 if fixture else 1)
+            (magic, stage, source)
+            != (MAGIC, phase, 3 if self.qualification_only else 2 if fixture else 1)
             or (pid, claimed_uid, claimed_gid, ticks)
             != (self.identity.pid, uid, gid, self.identity.start_ticks)
             or envelope != self.envelope_sha
-            or broker.hex() != self.plan.native_broker_sha256
+            or broker.hex()
+            != (
+                self.plan.bootstrap_sha256
+                if self.qualification_only
+                else self.plan.native_broker_sha256
+            )
         ):
             raise ValueError("HANDOFF_READY_IDENTITY")
 
     def command(self, value: Command) -> dict:
+        if self.qualification_only and value.command not in {"STATUS", "STOP"}:
+            raise ValueError("AUTH_QUALIFICATION_NO_KERNEL_ACTION")
         if self.state != "BROKER_READY" or self.ended or self.deadline is None:
             raise ValueError("HANDOFF_SESSION_NOT_READY")
         try:
@@ -468,6 +500,7 @@ class Handoff:
             if seq != value.sequence or reserved or state not in (3, 4) or error:
                 raise ValueError("HANDOFF_BROKER_REQUEST_DENIED")
             self.data.pump()
+            self.collector_state = "ACTIVE" if state == 4 else "STOPPED"
             self.sequence = seq
             return {
                 "source": self.origin,
@@ -632,6 +665,9 @@ class Handoff:
             "native_gate": "BLOCKED",
             "cleanup_status": self.cleanup,
             "source": self.origin,
+            "collector_state": self.collector_state,
+            "tcx_link": self.link_evidence,
+            "qualification_only": self.qualification_only,
             "data_plane": self.data.snapshot(),
             "last_error": self.error,
             "native_ai": "BLOCKED",

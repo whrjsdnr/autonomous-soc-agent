@@ -7,6 +7,7 @@
 #define SOC_DATA_PACKET 2
 #define SOC_DATA_CLOSED 3
 #define SOC_DATA_RUN_END 4
+#define SOC_DATA_COUNTER 5
 /* Separate SOCK_SEQPACKET channel. LE ABI; no descriptors, paths or payload. */
 struct soc_data_row {
     uint32_t magic,version,kind,source;
@@ -21,4 +22,5 @@ int soc_data_open(struct soc_state *,unsigned,const uint8_t[32]);
 int soc_data_emit(struct soc_state *,const void *,size_t);
 int soc_data_end(struct soc_state *,unsigned);
 int soc_data_close(struct soc_state *);
+int soc_data_counters(struct soc_state *,const struct soc_counters *,unsigned,unsigned);
 #endif

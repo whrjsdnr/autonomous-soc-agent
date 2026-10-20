@@ -49,6 +49,7 @@ class PacketChannel:
         self.generations: set[int] = set()
         self.queue_overflows = 0
         self.backpressure_events = 0
+        self.counter_evidence = None
 
     def listen(self) -> None:
         self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
@@ -115,6 +116,7 @@ class PacketChannel:
             origin="TCX_STREAM_FIXTURE" if self.source == 2 else "EBPF_TC_NATIVE",
             clock="KERNEL_MONOTONIC_NS",
         )
+        self.counter_evidence = None
         self.runs += 1
         self.generations.add(generation)
         self.adapter = EBPFCollector(self.directory / f"data-run-{self.runs}", plan)
@@ -186,7 +188,7 @@ class PacketChannel:
             raise ValueError("TCX_DATA_SOCKET_DELIVERY_LOSS")
         if sequence != (0 if ready else self.sequence + 1) or sequence > 65568:
             raise ValueError("TCX_DATA_SEQUENCE_OR_COUNTER_RESET")
-        if kind not in ({1} if ready else {2, 3, 4}):
+        if kind not in ({1} if ready else {2, 3, 4, 5}):
             raise ValueError("TCX_DATA_KIND")
         self.sequence, self.loss = sequence, loss
         self.frames += 1
@@ -198,6 +200,41 @@ class PacketChannel:
                 raise ValueError("TCX_DATA_ADAPTER_NOT_PREPARED")
             self.adapter.ingest(raw, monotonic=time.monotonic())
             self.backpressure_events += int(len(self.adapter.queue) == 24)
+        elif kind == 5:
+            generation, timestamp, *values = struct.unpack("<QQ7QII", raw)
+            totals, status, delivered = values[:7], values[7], values[8]
+            if (
+                self.adapter is None
+                or generation != self.adapter.plan.generation
+                or status not in {1, 2}
+                or timestamp <= 0
+                or delivered > 4096
+                or self.counter_evidence is not None
+                or status == 2
+                and any(totals)
+            ):
+                raise ValueError("TCX_COUNTER_EVIDENCE_SCHEMA")
+            names = (
+                "observed",
+                "emitted",
+                "ring_reservation_failures",
+                "unsupported",
+                "malformed",
+                "disabled",
+                "budget",
+            )
+            self.counter_evidence = dict(
+                generation=generation,
+                monotonic_ns=timestamp,
+                retrieval="SUCCESS" if status == 1 else "UNVERIFIED",
+                source=(
+                    "TCX_OWNED_MAP_HOOK_PER_CPU_CUMULATIVE_NOT_ZEEK_PCAP_OR_KERNEL_DROPS"
+                    if self.source == 1
+                    else "FIXTURE_COUNTER_NEVER_NATIVE"
+                ),
+                delivered=delivered,
+                totals=dict(zip(names, totals, strict=True)) if status == 1 else None,
+            )
         elif kind == 4:
             generation, reason = struct.unpack_from("<QI", raw[:8] + raw[32:36])
             if raw != struct.pack("<Q", generation) + bytes(24) + struct.pack("<I", reason) + bytes(
@@ -273,7 +310,11 @@ class PacketChannel:
     def snapshot(self) -> dict:
         return dict(
             contract="TCX_SEQPACKET_DATA_V1_192",
-            source="ORDINARY_UID_PACKET_FIXTURE" if self.source == 2 else "NATIVE_PENDING",
+            source="ORDINARY_UID_PACKET_FIXTURE"
+            if self.source == 2
+            else "KERNEL_TCX_NATIVE"
+            if self.source == 1
+            else "NATIVE_PENDING",
             state="ERROR"
             if self.error
             else "CLOSED"
@@ -284,7 +325,12 @@ class PacketChannel:
             frames=self.frames if self.source else None,
             sequence=self.sequence if self.source else None,
             socket_send_failures=self.loss if self.source else None,
-            ring_loss=None,
+            ring_loss=(
+                self.counter_evidence["totals"]["ring_reservation_failures"]
+                if self.counter_evidence and self.counter_evidence["totals"]
+                else None
+            ),
+            counter_evidence=self.counter_evidence,
             kernel_drops=None,
             queue_overflows=self.queue_overflows,
             backpressure_events=self.backpressure_events,

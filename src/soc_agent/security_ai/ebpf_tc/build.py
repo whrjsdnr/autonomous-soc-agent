@@ -8,6 +8,12 @@ from soc_agent.security_ai.ebpf_broker.identity import bundle as broker_bundle
 from soc_agent.security_ai.research.models import digest
 
 ROOT = Path(__file__).parent
+AUTH_POLICY = {
+    "SOC_AUTH_PAM_SHA": Path("/etc/pam.d/sudo"),
+    "SOC_AUTH_COMMON_SHA": Path("/etc/pam.d/common-auth"),
+    "SOC_AUTH_ACCOUNT_SHA": Path("/etc/pam.d/common-account"),
+}
+
 FLAGS = ["-O2", "-g0", "-Wall", "-Wextra", "-Werror", "-Wno-misleading-indentation"]
 
 
@@ -30,6 +36,9 @@ def bundle() -> dict[str, str]:
 
 
 def compile_native(destination: Path) -> dict[str, str]:
+    from soc_agent.security_ai.ebpf_tc.password_policy import validate_pam_inputs
+
+    validate_pam_inputs({key: path.read_text() for key, path in AUTH_POLICY.items()})
     destination.mkdir(parents=True, exist_ok=True)
     commands = [
         [
@@ -78,7 +87,21 @@ def compile_native(destination: Path) -> dict[str, str]:
         [
             "cc",
             *FLAGS,
-            *[str(ROOT / n) for n in ("os_bootstrap.c", "handoff.c", "core.c", "os.c", "trust.c")],
+            *[
+                f'-D{key}="{hashlib.sha256(path.read_bytes()).hexdigest()}"'
+                for key, path in AUTH_POLICY.items()
+            ],
+            *[
+                str(ROOT / n)
+                for n in (
+                    "os_bootstrap.c",
+                    "auth_qualification.c",
+                    "handoff.c",
+                    "core.c",
+                    "os.c",
+                    "trust.c",
+                )
+            ],
             "-lcrypto",
             "-Wl,-z,relro,-z,now,-z,noexecstack",
             "-o",

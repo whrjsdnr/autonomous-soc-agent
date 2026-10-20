@@ -24,12 +24,19 @@ def main(argv=None) -> int:
     qualify = subs.add_parser("qualify", help="Read-only release/installation plan; no install")
     qualify.add_argument("--program", type=Path, required=True)
     qualify.add_argument("--artifacts", type=Path, required=True)
-    for name in ("prepare", "fixture", "handoff-prepare", "handoff-fixture"):
+    for name in (
+        "prepare",
+        "fixture",
+        "handoff-prepare",
+        "handoff-fixture",
+        "auth-qualify",
+        "live-qualify",
+    ):
         p = subs.add_parser(name)
         for flag in ("program", "inspector", "artifacts", "data-directory"):
             p.add_argument("--" + flag, type=Path, required=True)
         p.add_argument("--gui", action="store_true")
-        if name.startswith("handoff-"):
+        if name.startswith("handoff-") or name in {"auth-qualify", "live-qualify"}:
             p.add_argument("--package", type=Path, required=True)
             p.add_argument("--manifest-sha", required=True)
     package = subs.add_parser("package", help="Ordinary-UID release package only")
@@ -41,9 +48,22 @@ def main(argv=None) -> int:
     )
     verify.add_argument("--package", type=Path, required=True)
     verify.add_argument("--manifest-sha", required=True)
+    image = subs.add_parser(
+        "install-plan", help="Generate a pinned first-install image; no root actions"
+    )
+    image.add_argument("--package", type=Path, required=True)
+    image.add_argument("--manifest-sha", required=True)
+    image.add_argument("--output", type=Path, required=True)
     subs.add_parser("qualify-host", help="Read-only config/files; never probe BPF syscall")
     args = parser.parse_args(argv)
     local_controller()
+    if args.mode == "install-plan":
+        from soc_agent.security_ai.ebpf_tc.install_image import prepare_installation
+
+        print(
+            json.dumps(prepare_installation(args.package, args.manifest_sha, args.output), indent=2)
+        )
+        return 0
     if args.mode == "package":
         from soc_agent.security_ai.ebpf_tc.installation import create_package
 
@@ -127,16 +147,43 @@ def main(argv=None) -> int:
     preparation = Preparation(owner, args.artifacts)
     try:
         preparation.prepare()
-        print("B-2A NATIVE GATE CLOSED / NO OS PASSWORD / NO KERNEL LOAD OR TC ATTACH")
+        print("RELEASE BLOCKED / QUALIFICATION REQUIRES EXPLICIT TERMINAL SCOPE APPROVAL")
         print(json.dumps(preparation.plan.model_dump(mode="json"), indent=2))
         print("Scope approval digest: " + preparation.plan.approval)
-        if args.mode.startswith("handoff-"):
+        if args.mode.startswith("handoff-") or args.mode in {"auth-qualify", "live-qualify"}:
             from soc_agent.security_ai.ebpf_tc.os_handoff import AuthenticationFixture
 
-            handoff = preparation.os_auth_handoff(args.package, args.manifest_sha)
+            handoff = preparation.os_auth_handoff(
+                args.package,
+                args.manifest_sha,
+                qualification_only=args.mode == "auth-qualify",
+                live_qualification=args.mode == "live-qualify",
+            )
             print(json.dumps(handoff.approval_scope(), indent=2))
             print("OS handoff approval digest: " + handoff.approval)
-            print("DISPLAY ONLY / NATIVE OS AUTH BLOCKED: " + json.dumps(handoff.sudo_command()))
+            print("Qualification argv (not executed yet): " + json.dumps(handoff.sudo_command()))
+            if args.mode in {"auth-qualify", "live-qualify"}:
+                print(
+                    "AUTH ONLY / NO KERNEL"
+                    if args.mode == "auth-qualify"
+                    else "LIVE INGRESS QUALIFICATION / 300s / 4096 events / NO AI / NO RETRY"
+                )
+                if (
+                    input("Type the displayed purpose-bound approval digest: ").strip()
+                    != handoff.approval
+                ):
+                    return 1
+                handoff.approve(handoff.approval)
+                handoff.authenticate_native()
+                print(json.dumps(handoff.observe(), indent=2))
+                if args.mode == "auth-qualify":
+                    input("Press Enter to stop the authentication-only session: ")
+                else:
+                    from soc_agent.security_ai.ebpf_tc.live_run import start_live_run
+
+                    start_live_run(preparation, gui=args.gui)
+                    print(json.dumps(handoff.snapshot(), indent=2))
+                    return 0
             if args.mode == "handoff-fixture":
                 if (
                     input("Type digest to approve TRANSPORT FIXTURE ONLY: ").strip()

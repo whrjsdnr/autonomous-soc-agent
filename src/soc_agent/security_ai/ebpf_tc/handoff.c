@@ -86,6 +86,6 @@ int soc_handoff_reply(int fd,const struct soc_release_envelope *e,unsigned phase
     struct soc_handoff_reply r={.magic=SOC_HANDOFF_MAGIC,.phase=phase,.source=source,
         .pid=getpid(),.uid=getuid(),.gid=getgid(),.ticks=ticks};
     if(!ticks || soc_sha(e,sizeof(*e),r.envelope_sha))return -EPERM;
-    memcpy(r.broker_sha,e->plan.broker_sha,32);
+    memcpy(r.broker_sha,source==3?e->plan.bootstrap_sha:e->plan.broker_sha,32);
     return send(fd,&r,sizeof(r),MSG_NOSIGNAL)==sizeof(r)?0:-EIO;
 }

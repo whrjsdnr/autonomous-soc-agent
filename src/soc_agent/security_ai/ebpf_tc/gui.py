@@ -29,7 +29,8 @@ class PreparedBackend(Backend):
 
     async def broker_start(self):
         if self.preparation._os_handoff:
-            self.preparation._os_handoff.authenticate_native()
+            # Authentication is terminal-only. Never invoke sudo or a fixture from GUI.
+            raise ValueError("TERMINAL_APPROVED_START_REQUIRED")
         self.preparation.validate()
         self.preparation.transaction_fixture()
         self.controller.start()
@@ -48,7 +49,7 @@ class PreparedDesktop(BrokerDesktop):
         if self.page != "System" or self.last_render == previous:
             return
         detail = self.snapshot.get("ebpf", {})
-        rows = ["", "B-2A NATIVE IMPLEMENTATION · COMPILED / NOT EXECUTED"]
+        rows = ["", "TCX QUALIFICATION · SOURCE AND STATE SHOWN BELOW"]
         for title, key in (
             ("Bootstrap SHA", "bootstrap_sha256"),
             ("Native Broker SHA", "compiled_native_broker_sha256"),
@@ -90,6 +91,9 @@ class PreparedDesktop(BrokerDesktop):
             "cleanup_status",
             "source",
             "last_error",
+            "collector_state",
+            "tcx_link",
+            "qualification_only",
         ):
             observed = handoff.get(key)
             rows.append(
@@ -103,6 +107,9 @@ class PreparedDesktop(BrokerDesktop):
             "ring_loss",
             "queue_overflows",
             "error",
+            "counter_evidence",
+            "queue",
+            "processing",
         ):
             observed = data.get(key)
             rows.append(

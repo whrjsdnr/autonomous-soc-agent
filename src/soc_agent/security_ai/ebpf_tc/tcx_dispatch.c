@@ -25,6 +25,11 @@ int soc_tcx_cleanup(struct soc_tcx *l) {
         }
         s->attached=0;
     }
+    if(s->context && s->ops==&soc_real_ops) {
+        struct soc_snapshot after;
+        if(soc_snapshot_tcx(s,&after) || memcmp(&after,&s->before,sizeof(after))) {s->failed=1;return -EUCLEAN;}
+    }
+    if(s->context && s->ops==&soc_real_ops && soc_final_drain_counters(s)) {s->failed=1;return -EUCLEAN;}
     if((s->loaded || s->context) && s->ops->release(s)) {s->failed=1;return -EUCLEAN;}
     s->loaded=0;s->cleanup_verified=!s->failed;
     return s->failed?-EUCLEAN:0;
@@ -46,7 +51,7 @@ int soc_tcx_dispatch(struct soc_tcx *l,const struct soc_request *q) {
     if(q->operation==5 || q->operation==6)return soc_tcx_cleanup(l);
     if(!q->generation || !q->handle || s->loaded || s->attached ||
        s->attempts>=16 || l->attempted)return -EPERM;
-    s->stopping=0;
+    s->stopping=0;s->packet_budget_reached=0;
     s->generation=q->generation;s->handle=q->handle;s->started_ns=soc_now();
     s->cleanup_verified=0;s->attempts++;
     if(s->ops->validate(s) || s->ops->record(s,"LOAD_REQUESTED") ||

@@ -10,9 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 int soc_tcx_native_admitted(void) {
-    /* Separate TCX_NEXT object exists; Native qualification still closed. */
-    static const volatile int native_release_qualified=0;
-    return soc_native_gate() && native_release_qualified;
+    /* Same process-local root-authority admission; no global release enable. */
+    return soc_native_gate();
 }
 static int fail(struct soc_tcx *l) {
     if(l->phase!=SOC_LINK_ORPHANED)l->phase=SOC_LINK_UNVERIFIED;l->ops->record(l,"TCX_CLEANUP_UNVERIFIED");return -EUCLEAN;
@@ -84,7 +83,13 @@ static int create(struct soc_tcx *l) {
     struct bpf_prog_info p={0};uint32_t size=sizeof(p);
     if(bpf_prog_get_info_by_fd(l->program_fd,&p,&size) || p.type!=BPF_PROG_TYPE_SCHED_CLS ||
        p.id!=l->owner.program_id || memcmp(p.tag,l->owner.program_tag,8))return -EPERM;
-    struct bpf_link_create_opts opts={.sz=sizeof(opts)}; /* No replace/order/pin options. */
+    if(soc_snapshot_tcx(l->session,&l->session->before) || l->session->before.count)return -EPERM;
+    struct bpf_prog_query_opts query={.sz=sizeof(query)};
+    if(bpf_prog_query_opts(l->owner.ifindex,l->owner.attach_type,&query) || query.prog_cnt || !query.revision)return -EPERM;
+    /* Kernel revision compare makes empty-hook admission atomic against another
+     * manager's insert. No replacement/order/pin flags and no Legacy mutation. */
+    struct bpf_link_create_opts opts={.sz=sizeof(opts)};
+    opts.tcx.expected_revision=query.revision;
     l->fd=bpf_link_create(l->program_fd,l->owner.ifindex,l->owner.attach_type,&opts);
     if(l->fd<0)return -errno;
     return fcntl(l->fd,F_SETFD,FD_CLOEXEC)?-errno:0;

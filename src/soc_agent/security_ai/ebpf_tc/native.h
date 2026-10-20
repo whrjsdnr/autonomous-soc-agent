@@ -78,6 +78,7 @@ struct soc_state {
     struct soc_plan plan;struct soc_owner owner;const struct soc_ops *ops;
     struct soc_snapshot before;void *context;
     uint64_t started_ns, generation;uint32_t handle, attempts, sequence;
+    int packet_budget_reached;
     int data_fd;uint32_t data_source;uint64_t data_sequence,data_loss,data_ended_generation;uint8_t data_approval[32];
     int object_fd, ipc_fd, audit_fd, stopping, loaded, attached, failed, cleanup_verified;
     uint8_t audit_previous[32];uint32_t audit_records;
@@ -88,7 +89,9 @@ _Static_assert(sizeof(struct soc_request)==112,"request ABI");
 int soc_request_validate(const struct soc_plan *,const struct soc_request *,uint32_t,int);
 int soc_receive_request(int,const struct soc_plan *,uint32_t,struct soc_request *);
 int soc_rate_allow(uint64_t[32],uint32_t *,uint64_t);
+int soc_qualification_admit(int,const struct soc_release_envelope *,int);
 int soc_native_gate(void);
+
 int soc_plan_validate(const struct soc_plan *);
 int soc_prepare(struct soc_state *);
 int soc_attach(struct soc_state *);
@@ -109,5 +112,7 @@ int soc_password(const struct soc_release_envelope *);
 int soc_account_identity(uid_t,gid_t,uid_t,gid_t,int);
 int soc_reduce(uid_t,gid_t);
 int soc_snapshot_real(struct soc_state *,struct soc_snapshot *);
+int soc_final_drain_counters(struct soc_state *);
+int soc_snapshot_tcx(struct soc_state *,struct soc_snapshot *);
 extern const struct soc_ops soc_real_ops;
 #endif

@@ -73,3 +73,10 @@ int soc_snapshot_real(struct soc_state *s,struct soc_snapshot *out) {
        dump(s,out,RTM_GETTFILTER,0xfffffff2) || dump(s,out,RTM_GETTFILTER,0xfffffff3))return -EUCLEAN;
     return 0;
 }
+
+int soc_snapshot_tcx(struct soc_state *s,struct soc_snapshot *out) {
+    memset(out,0,sizeof(*out));
+    /* TCX needs no clsact qdisc. Read existing state; never create/delete one. */
+    return dump(s,out,RTM_GETQDISC,0) || dump(s,out,RTM_GETTFILTER,0xfffffff2) ||
+           dump(s,out,RTM_GETTFILTER,0xfffffff3)?-EUCLEAN:0;
+}

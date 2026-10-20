@@ -300,9 +300,26 @@ class Preparation:
         self._tcx_result = value.snapshot()
         return value.model_dump()
 
-    def os_auth_handoff(self, package: Path, manifest_sha: str):
+    def os_auth_handoff(
+        self,
+        package: Path,
+        manifest_sha: str,
+        *,
+        qualification_only: bool = False,
+        live_qualification: bool = False,
+    ):
         from soc_agent.security_ai.ebpf_tc.os_handoff import Handoff
 
+        if qualification_only and live_qualification:
+            raise ValueError("QUALIFICATION_MODE_CONFLICT")
+        if live_qualification:
+            from soc_agent.security_ai.ebpf_tc.auth_session import LiveQualification
+
+            Handoff = LiveQualification
+        if qualification_only:
+            from soc_agent.security_ai.ebpf_tc.auth_session import AuthenticationQualification
+
+            Handoff = AuthenticationQualification
         if self._os_handoff is not None:
             raise ValueError("OS_HANDOFF_ALREADY_PREPARED")
         from soc_agent.security_ai.ebpf_tc.installation import verify_package

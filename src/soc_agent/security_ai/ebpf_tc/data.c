@@ -41,3 +41,11 @@ int soc_data_close(struct soc_state *s) {
     if(s->data_fd<0)return 0;
     int rc=row(s,SOC_DATA_CLOSED,NULL);if(close(s->data_fd))rc=-EIO;s->data_fd=-1;return rc;
 }
+
+int soc_data_counters(struct soc_state *s,const struct soc_counters *c,unsigned status,unsigned delivered) {
+    struct {uint64_t generation,timestamp;struct soc_counters totals;uint32_t status,delivered;} payload={
+        .generation=s->generation,.timestamp=soc_now(),.status=status,.delivered=delivered};
+    _Static_assert(sizeof(payload)==80,"counter payload ABI");
+    if(c)payload.totals=*c;struct soc_event bytes;memcpy(&bytes,&payload,sizeof(bytes));
+    return row(s,SOC_DATA_COUNTER,&bytes);
+}
