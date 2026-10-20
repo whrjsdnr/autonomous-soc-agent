@@ -21,13 +21,45 @@
 #include <dirent.h>
 static volatile sig_atomic_t closing;
 static void stop(int sig) {(void)sig;closing=1;}
+static int rejected(const char *stage) {
+    /* Fixed stage labels only. Never print policy lines, account data or hashes. */
+    fprintf(stderr,"OS_AUTH_POLICY_REJECTED:%s\n",stage);return -EPERM;
+}
+static int shadow_metadata(const struct stat *st) {
+    /* /etc/shadow is commonly root:shadow 0640, not a root:root executable.
+     * Its group can read but cannot write. Do not resolve names through NSS or
+     * relax soc_trusted(), which still protects every executable/other file. */
+    unsigned mode=st->st_mode&07777;
+    return !S_ISREG(st->st_mode) || st->st_uid || st->st_nlink!=1 ||
+        (mode!=0600 && mode!=0640)?-EPERM:0;
+}
+static int shadow_open(void) {
+    /* Fixed path only, held directory FDs, no symlink or parent-path reopening. */
+    int root=open("/",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC),folder=-1,fd=-1;
+    struct stat st;
+    if(root<0 || fstat(root,&st) || !S_ISDIR(st.st_mode) ||
+       st.st_uid || st.st_gid || (st.st_mode&022))goto done;
+    folder=openat(root,"etc",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);
+    if(folder<0 || fstat(folder,&st) || !S_ISDIR(st.st_mode) ||
+       st.st_uid || st.st_gid || (st.st_mode&022))goto done;
+    fd=openat(folder,"shadow",O_RDONLY|O_NOFOLLOW|O_NONBLOCK|O_CLOEXEC);
+    if(fd>=0 && (fstat(fd,&st) || shadow_metadata(&st))) {close(fd);fd=-1;}
+done:
+    if(folder>=0)close(folder);if(root>=0)close(root);return fd;
+}
 static int text(const char *path,char *body,size_t size) {
-    int fd=soc_trusted(path,NULL);struct stat before,after;
+    int fd=!strcmp(path,"/etc/shadow")?shadow_open():soc_trusted(path,NULL);
+    struct stat before,after;
     if(fd<0)return -EPERM;
+    if(fstat(fd,&before)) {close(fd);return -EPERM;}
     ssize_t n=pread(fd,body,size-1,0);
-    int rc=fstat(fd,&before) || n<0 || (size_t)n>=size-1 ||
-        fstat(fd,&after) || before.st_size!=n || before.st_ino!=after.st_ino ||
-        before.st_mtim.tv_sec!=after.st_mtim.tv_sec || before.st_mtim.tv_nsec!=after.st_mtim.tv_nsec;
+    int rc=n<0 || (size_t)n>=size-1 || fstat(fd,&after) || before.st_size!=n ||
+        before.st_dev!=after.st_dev || before.st_ino!=after.st_ino ||
+        before.st_size!=after.st_size || before.st_uid!=after.st_uid ||
+        before.st_gid!=after.st_gid || before.st_mode!=after.st_mode ||
+        before.st_nlink!=after.st_nlink ||
+        before.st_mtim.tv_sec!=after.st_mtim.tv_sec || before.st_mtim.tv_nsec!=after.st_mtim.tv_nsec ||
+        before.st_ctim.tv_sec!=after.st_ctim.tv_sec || before.st_ctim.tv_nsec!=after.st_ctim.tv_nsec;
     close(fd);if(rc)return -EPERM;body[n]=0;return 0;
 }
 static void normalize(char *s) {
@@ -58,7 +90,7 @@ static int sudoers_file(const char *path,int main_file) {
     }return 0;
 }
 static int policy(unsigned uid,unsigned gid) {
-    if(sudoers_file("/etc/sudoers",1))return -EPERM;
+    if(sudoers_file("/etc/sudoers",1))return rejected("SUDOERS_POLICY");
     int folder=open("/etc/sudoers.d",O_RDONLY|O_DIRECTORY|O_NOFOLLOW|O_CLOEXEC);struct stat ds;
     if(folder<0)return -EPERM;
     if(fstat(folder,&ds) || ds.st_uid || ds.st_gid || (ds.st_mode&022)) {close(folder);return -EPERM;}
@@ -69,7 +101,7 @@ static int policy(unsigned uid,unsigned gid) {
            strchr(entry->d_name,'.') || entry->d_name[strlen(entry->d_name)-1]=='~')continue;
         char path[256];if(++count>32 || snprintf(path,sizeof(path),"/etc/sudoers.d/%s",entry->d_name)>=(int)sizeof(path) ||
            sudoers_file(path,0)) {rc=-EPERM;break;}
-    }closedir(d);if(rc)return rc;
+    }closedir(d);if(rc)return rejected("SUDOERS_INCLUDED_POLICY");
     char body[32768];
     /* Non-default sudo plugins or debug/policy configuration require review. */
     if(access("/etc/sudo.conf",F_OK)==0) {
@@ -105,14 +137,17 @@ static int policy(unsigned uid,unsigned gid) {
         char expected[128];snprintf(expected,sizeof(expected),"%s:x:%u:%u:",name,uid,gid);
         if(strncmp(line,expected,strlen(expected)))return -EPERM;found++;
     }
-    if(found!=1 || text("/etc/shadow",body,sizeof(body)))return -EPERM;
+    if(found!=1)return rejected("LOCAL_ACCOUNT_IDENTITY");
+    if(text("/etc/shadow",body,sizeof(body)))return rejected("SHADOW_FILE_TRUST");
     found=0;line=strtok_r(body,"\n",&save);
     for(;line;line=strtok_r(NULL,"\n",&save))if(!strncmp(line,prefix,strlen(prefix))) {
         /* nullok cannot bypass the challenge for a nonempty local password hash. */
         char *hash=line+strlen(prefix),*end=strchr(hash,':');
-        if(!end || end-hash<20 || *hash!='$')return -EPERM;found++;
+        if(!end || end-hash<20 || *hash!='$') {
+            explicit_bzero(body,sizeof(body));return rejected("LOCAL_PASSWORD_REQUIRED");
+        }found++;
     }
-    return found==1?0:-EPERM;
+    explicit_bzero(body,sizeof(body));return found==1?0:rejected("LOCAL_PASSWORD_IDENTITY");
 }
 static int drop(unsigned uid,unsigned gid) {
     for(int cap=0;cap<=CAP_LAST_CAP;cap++)if(prctl(PR_CAPBSET_DROP,cap,0,0,0))return -EPERM;
@@ -126,28 +161,29 @@ static int drop(unsigned uid,unsigned gid) {
 }
 int soc_os_password_policy(unsigned uid,unsigned gid) {
     struct rlimit no_core={0,0};if(setrlimit(RLIMIT_CORE,&no_core))return -EPERM;
-    if(!uid || !gid || getuid() || geteuid() || getgid() || getegid() || !isatty(0))return -EPERM;
+    if(!uid || !gid || getuid() || geteuid() || getgid() || getegid() || !isatty(0))return rejected("ROOT_TTY");
     const char *u=getenv("SUDO_UID"),*g=getenv("SUDO_GID");
     char wanted[32];snprintf(wanted,sizeof(wanted),"%u",uid);
-    if(!u || strcmp(u,wanted))return -EPERM;
-    snprintf(wanted,sizeof(wanted),"%u",gid);if(!g || strcmp(g,wanted) || policy(uid,gid))return -EPERM;
+    if(!u || strcmp(u,wanted))return rejected("SUDO_UID");
+    snprintf(wanted,sizeof(wanted),"%u",gid);if(!g || strcmp(g,wanted))return rejected("SUDO_GID");
+    if(policy(uid,gid))return -EPERM;
     int sudo_fd=soc_trusted("/usr/bin/sudo",NULL);struct stat trusted,parent;
     char path[64];snprintf(path,sizeof(path),"/proc/%u/exe",getppid());
     if(sudo_fd<0 || fstat(sudo_fd,&trusted) || stat(path,&parent) ||
-       trusted.st_dev!=parent.st_dev || trusted.st_ino!=parent.st_ino) {if(sudo_fd>=0)close(sudo_fd);return -EPERM;}
+       trusted.st_dev!=parent.st_dev || trusted.st_ino!=parent.st_ino) {if(sudo_fd>=0)close(sudo_fd);return rejected("SUDO_PARENT_IDENTITY");}
     close(sudo_fd);
     /* Require the OS process itself to have ignored the timestamp for this
      * fixed command. A Controller assertion or SUDO_* variable is insufficient.
      * Setuid sudo's proc memory/argv are outside the invoking user's write scope. */
     snprintf(path,sizeof(path),"/proc/%u/cmdline",getppid());
     int command=open(path,O_RDONLY|O_CLOEXEC);char arguments[4096];
-    if(command<0)return -EPERM;
+    if(command<0)return rejected("SUDO_PARENT_ARGUMENTS_UNAVAILABLE");
     ssize_t n=read(command,arguments,sizeof(arguments));close(command);
-    if(n<1 || n>=(ssize_t)sizeof(arguments) || arguments[n-1])return -EPERM;
+    if(n<1 || n>=(ssize_t)sizeof(arguments) || arguments[n-1])return rejected("SUDO_PARENT_ARGUMENTS_INVALID");
     const char *fixed[]={"-k","-u","root","--",SOC_INSTALL "bootstrap"};
     size_t offset=strnlen(arguments,n)+1;
     for(unsigned i=0;i<sizeof(fixed)/sizeof(*fixed);i++) {
-        if(offset>=(size_t)n || strcmp(arguments+offset,fixed[i]))return -EPERM;
+        if(offset>=(size_t)n || strcmp(arguments+offset,fixed[i]))return rejected("SUDO_FRESH_FIXED_COMMAND");
         offset+=strlen(arguments+offset)+1;
     }
     if(offset>=(size_t)n || (strcmp(arguments+offset,"--auth-qualification") &&

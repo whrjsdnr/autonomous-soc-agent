@@ -209,3 +209,24 @@ and an ordinary-UID install/check/rollback simulation. Because the source Bundle
 changes, the new release/update SHA is presented for the specific approval required
 by the user's existing exact-release boundary. Release 0.4.2 remains installed;
 0.4.3 is prepared but not installed. No Native result has been promoted.
+
+## Actual Release 0.4.3 update and B entry rejection
+
+Following explicit approval, the pinned Root update returned 0 at
+2026-10-20T23:48:24 UTC. Exact 0.4.2 was retained in its manifest-named archive.
+All nine installed 0.4.3 file hashes, UID/GID and modes and dependency trust passed.
+B session `68574dd4-35f5-4f4e-82eb-cb7bde0bd87e` then accepted yes, passed actual
+TTY validation and audited OS_AUTH_REQUESTED. It ended with
+AUTH_QUALIFICATION_ENTRY_REJECTED before IPC/Broker readiness; C was not executed.
+The sudo auth log records the fixed Bootstrap command and PAM session open/close.
+This is evidence of OS invocation, not full fresh-auth/Capability/Broker qualification.
+
+A deterministic policy blocker was found: generic soc_trusted requires GID 0 but
+the normal /etc/shadow is root:shadow (GID 42), 0640. The old generic error cannot
+identify whether an earlier policy branch rejected first. The file-specific fix,
+secret-free diagnostic stages and precise 0.4.4 replacement/conditional retry are
+in [the shadow fix approval](native-tcx-shadow-fix-approval.md). Ten focused tests,
+reference compilation and ordinary-user install/check/rollback simulation passed.
+No actual Root update or Native retry of 0.4.4 occurred pending exact-release approval.
+Native AI, DNS9 and operational promotion remain BLOCKED; no actual Kernel packet
+has yet reached Network14. Installed 0.4.3 and the preserved 0.4.2 archive remain.

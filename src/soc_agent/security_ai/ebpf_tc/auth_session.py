@@ -185,6 +185,7 @@ class AuthenticationQualification(Handoff):
         result = super().snapshot()
         result["qualification_purpose"] = self.entry_mode
         result["observed_capability_sets"] = getattr(self, "process_caps", None)
+        result["entry_exit_code"] = self.child.poll() if self.child else None
         return result
 
     def authenticate_fixture(self, *args, **kwargs):
