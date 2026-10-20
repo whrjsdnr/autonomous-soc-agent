@@ -1,0 +1,99 @@
+{
+  "contract": "tcx-c1-source-amendment:v1",
+  "baseline": "d94602af9b2accc409b26de235340fe81fcf74e1",
+  "previous_zeek_bundle": {
+    "live.py": "635fa09b805854c3db327dad75ed87977a39d5b599c114e30d3450675a5ecddf",
+    "startup.py": "02fcfaf3c53b810a2ae114af1b68422fc24fa0f62e1977e543b04984d58f8386",
+    "handoff.py": "d1dee060dd4556b7a4738f1817098033f0576d26b50dce1f7aa984c91fe9c8c8",
+    "live_contract.py": "9ec2cbc9d5f4de5005fdf34deb955bdb2e064247900f385ce1e9c287426c9272",
+    "live_process.py": "d47439e384c301265e32daee906a927b668c4f7d8961f834bc55abf90b748dda",
+    "live_stream.py": "59def4bdf83ac8ad953e55e1dc38e891d6226a2ad71c76db6d33c133baba8657",
+    "finalization.py": "cb438f2bf6929d3ab5c8ceaed6f4dd2ad8e947eda0f75a8a1618d519329ca8e7",
+    "integrity.py": "6f157ba9a112e0a0bdee37776b726a99d0b86f47a4d31db4647a2287d87dcf5f",
+    "integrity_service.py": "5d7f5d8337e0a697deea7f60a1ed765ceedffd9da619f2b6bf485aa4155dc81f",
+    "live.zeek": "d7acb7d0c85d92bdba997b58dd583dda991f478083d9edbb916d0ea21b0105e8",
+    "network14.zeek": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+    "packet_input.py": "daf9f4112a889b34f84303c890654304b44c9307bb81172626c127df101235b8",
+    "packet_producer.py": "db98b4b5179549ac152110894935ed4294414fd249fd3bd11dd491b9d0255034",
+    "preprocessing.py": "96ee523019fa2e38d83535d6b3f6a6b9b47d785dd8fde9bfa7dcc4c878215bf0",
+    "preprocessing_store.py": "46e7e029f950eaba2f91d49eae88e9444ec631016f8cc5cd0e967935ed049058",
+    "capture_attestation.py": "4aa7a882b7df3558979c98cf005ce22b2029e218686c13bc2cb210533828f199",
+    "dns_visibility.py": "2bc27c7e66b20777b60a31cbfc7ba6146c3aa83d457b9eb6a87e58dc40c7e74a",
+    "attestation_store.py": "dbbab7045e15eb559f57d7243ddefac9cde310ad7a5319c9d24f0beafd8e07db",
+    "visibility.zeek": "fe20142ef2e368a737d655faa76c9eaf8c141b0bf6d231791199b7dc556d5f57",
+    "privacy.zeek": "265d960bc0123bbd314c529972376f74999fc5beb574f81afb448d2550a77942",
+    "offline.py": "e0cc9252bd51b73679fc07adfb63c84321574a014118ecb39443d239acd4e581",
+    "reader.py": "245cb5a00886ec21e0e6237cba782f19240f7f796f648b1287b8ee1d73f3f6cc",
+    "models.py": "133a6bfde01f1ac68ee3fd4547a23f2cfabd771462c5b2078b88cf6f936eab84",
+    "adapter.py": "047da2c71ce896a433377bcfd0e6d1ee17a98ae681bf4040786e39cbba41a9e2",
+    "soc_agent/cli.py": "acc0651b80af5763b193a7dcc18bbdd203f1d6e41ae2019a9842f07dfb396351",
+    "research/total_auth.py": "f233676c97e40c60f9478417315fb7db151204e6e8fcbcb66cb947363405ccb8",
+    "producer_service.py": "1bee915a783b4c77c1473886a50acbccba5b388cb445b173cd034c337d3d587e",
+    "gui/__main__.py": "744bfbc66dce2f8eb24d925ceab0d29c1b6a8799b0a937da27350040b20afbb4",
+    "gui/production.py": "4b68dd668be0a88fd608c14092b5de31ce523a55c0e5e8d4eae2d667ebb20e11",
+    "gui/backend.py": "42d42417b95c4fdff4fb3635c2c6eaa61649f225f99c7daecba96779d3fed497",
+    "gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884"
+  },
+  "previous_zeek_bundle_digest": "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045",
+  "current_zeek_bundle": {
+    "live.py": "635fa09b805854c3db327dad75ed87977a39d5b599c114e30d3450675a5ecddf",
+    "startup.py": "02fcfaf3c53b810a2ae114af1b68422fc24fa0f62e1977e543b04984d58f8386",
+    "handoff.py": "d1dee060dd4556b7a4738f1817098033f0576d26b50dce1f7aa984c91fe9c8c8",
+    "live_contract.py": "9ec2cbc9d5f4de5005fdf34deb955bdb2e064247900f385ce1e9c287426c9272",
+    "live_process.py": "d47439e384c301265e32daee906a927b668c4f7d8961f834bc55abf90b748dda",
+    "live_stream.py": "59def4bdf83ac8ad953e55e1dc38e891d6226a2ad71c76db6d33c133baba8657",
+    "finalization.py": "cb438f2bf6929d3ab5c8ceaed6f4dd2ad8e947eda0f75a8a1618d519329ca8e7",
+    "integrity.py": "6f157ba9a112e0a0bdee37776b726a99d0b86f47a4d31db4647a2287d87dcf5f",
+    "integrity_service.py": "5d7f5d8337e0a697deea7f60a1ed765ceedffd9da619f2b6bf485aa4155dc81f",
+    "live.zeek": "d7acb7d0c85d92bdba997b58dd583dda991f478083d9edbb916d0ea21b0105e8",
+    "network14.zeek": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+    "packet_input.py": "daf9f4112a889b34f84303c890654304b44c9307bb81172626c127df101235b8",
+    "packet_producer.py": "e010836c634d40d7149b8a39bc6085a9f6d08728f4b49606a7b8602d0d744173",
+    "preprocessing.py": "96ee523019fa2e38d83535d6b3f6a6b9b47d785dd8fde9bfa7dcc4c878215bf0",
+    "preprocessing_store.py": "46e7e029f950eaba2f91d49eae88e9444ec631016f8cc5cd0e967935ed049058",
+    "capture_attestation.py": "4aa7a882b7df3558979c98cf005ce22b2029e218686c13bc2cb210533828f199",
+    "dns_visibility.py": "2bc27c7e66b20777b60a31cbfc7ba6146c3aa83d457b9eb6a87e58dc40c7e74a",
+    "attestation_store.py": "dbbab7045e15eb559f57d7243ddefac9cde310ad7a5319c9d24f0beafd8e07db",
+    "visibility.zeek": "fe20142ef2e368a737d655faa76c9eaf8c141b0bf6d231791199b7dc556d5f57",
+    "privacy.zeek": "265d960bc0123bbd314c529972376f74999fc5beb574f81afb448d2550a77942",
+    "offline.py": "e0cc9252bd51b73679fc07adfb63c84321574a014118ecb39443d239acd4e581",
+    "reader.py": "245cb5a00886ec21e0e6237cba782f19240f7f796f648b1287b8ee1d73f3f6cc",
+    "models.py": "133a6bfde01f1ac68ee3fd4547a23f2cfabd771462c5b2078b88cf6f936eab84",
+    "adapter.py": "047da2c71ce896a433377bcfd0e6d1ee17a98ae681bf4040786e39cbba41a9e2",
+    "soc_agent/cli.py": "acc0651b80af5763b193a7dcc18bbdd203f1d6e41ae2019a9842f07dfb396351",
+    "research/total_auth.py": "f233676c97e40c60f9478417315fb7db151204e6e8fcbcb66cb947363405ccb8",
+    "producer_service.py": "1bee915a783b4c77c1473886a50acbccba5b388cb445b173cd034c337d3d587e",
+    "gui/__main__.py": "744bfbc66dce2f8eb24d925ceab0d29c1b6a8799b0a937da27350040b20afbb4",
+    "gui/production.py": "4b68dd668be0a88fd608c14092b5de31ce523a55c0e5e8d4eae2d667ebb20e11",
+    "gui/backend.py": "42d42417b95c4fdff4fb3635c2c6eaa61649f225f99c7daecba96779d3fed497",
+    "gui/worker.py": "bd7cd4f396cf6f4c1cd0f2a2aa15a3874b4ec26d60d7c14d31058be9b6c1e884"
+  },
+  "current_zeek_bundle_digest": "0307ad0632696635246442ef65436c50d7df85fe0b2a047e954c84adda40ed84",
+  "zeek_changed_files": [
+    "packet_producer.py"
+  ],
+  "historical_sources": {
+    "src/soc_agent/security_ai/ebpf/collector.py": {
+      "snapshot": "docs/linux-soc-v1/source-snapshots/tcx-c1-before/src__soc_agent__security_ai__ebpf__collector.py.txt",
+      "previous_sha256": "937dd21dd5c35dea212a4456a69542bbbf54e4721ebd8068dd0db6670d6e5f5d",
+      "current_sha256": "3330824674d6bd1a46009bae56c8100954ad26bb42f51275e4a3a48d5ee0370c"
+    },
+    "src/soc_agent/security_ai/ebpf/models.py": {
+      "snapshot": "docs/linux-soc-v1/source-snapshots/tcx-c1-before/src__soc_agent__security_ai__ebpf__models.py.txt",
+      "previous_sha256": "e973a2ff7d2ce9ba7dd605893c515dc66301b3b58253eaf409c426c519ec4c7b",
+      "current_sha256": "af99220e214c31b5af12b84432b2647fc6cd722b5a5c36b2b4ba1c301d1511d7"
+    },
+    "src/soc_agent/security_ai/ebpf/ring.py": {
+      "snapshot": "docs/linux-soc-v1/source-snapshots/tcx-c1-before/src__soc_agent__security_ai__ebpf__ring.py.txt",
+      "previous_sha256": "49a31bcb7ad6a36142503b47f6c3fcc7885eea35bd4f9f67ff5cab7ba1c91dd2",
+      "current_sha256": "6981d37245c496f1f31388eecd2c481ad9d177a36a20183fa46c082a2a0968ec"
+    },
+    "src/soc_agent/security_ai/collectors/packet_producer.py": {
+      "snapshot": "docs/linux-soc-v1/source-snapshots/tcx-c1-before/packet_producer.py.txt",
+      "previous_sha256": "db98b4b5179549ac152110894935ed4294414fd249fd3bd11dd491b9d0255034",
+      "current_sha256": "e010836c634d40d7149b8a39bc6085a9f6d08728f4b49606a7b8602d0d744173"
+    }
+  },
+  "native_approval_required": true,
+  "native_release": "BLOCKED"
+}

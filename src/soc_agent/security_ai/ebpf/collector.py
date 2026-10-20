@@ -14,6 +14,7 @@ from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.review.persistence.secure_storage import create_private_directory
 from soc_agent.security_ai.collectors.packet_input import Packet
 from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
+from soc_agent.security_ai.ebpf.clock import ClockContract
 from soc_agent.security_ai.ebpf.models import Counters, Event, Plan
 from soc_agent.security_ai.ebpf.ring import decode
 from soc_agent.security_ai.research.models import digest
@@ -26,6 +27,7 @@ class EBPFCollector:
         self.last_error: str | None = None
         self.queue: deque[Event] = deque()
         self.queue_peak = self.received = self.accepted = self.dns_candidates = 0
+        self.discarded = self.overflow_rejected = 0
         self.flow = FlowAssembly(str(plan.session_id))
         self.cpu_sequences: dict[int, int] = {}
         self.counter_snapshots: dict[int, Counters] = {}
@@ -34,8 +36,12 @@ class EBPFCollector:
         self.chain = digest(dict(plan=plan.identity))
         self.deadline: float | None = None
         self.last_processing: float | None = None
+        self.clock_contract: ClockContract | None = None
 
     async def prepare(self) -> dict:
+        return self.prepare_metadata()
+
+    def prepare_metadata(self) -> dict:
         if os.geteuid() == 0 or self.state != "IDLE":
             raise ValueError("EBPF_PREPARE_DENIED")
         create_private_directory(self.directory)
@@ -72,6 +78,47 @@ class EBPFCollector:
         self.state = "FIXTURE_ACTIVE"
         self.deadline = monotonic + self.plan.duration_seconds
 
+    def begin_metadata_stream(self, monotonic: float, clock: ClockContract) -> None:
+        if (
+            self.state != "NATIVE_HOOK_PENDING"
+            or clock.session_id != self.plan.session_id
+            or clock.domain != self.plan.clock
+        ):
+            raise ValueError("TCX_CLOCK_SESSION_SCOPE")
+        if not math.isfinite(monotonic) or monotonic < 0:
+            raise ValueError("EBPF_PROCESSING_CLOCK_INVALID")
+        self.clock_contract = clock
+        self.flow = FlowAssembly(
+            digest(
+                dict(
+                    session=str(self.plan.session_id),
+                    generation=self.plan.generation,
+                    source=self.plan.identity,
+                    policy="TCX_C1_GLOBAL_COMPACT_V1",
+                    clock=clock.domain,
+                )
+            ),
+            event_watermark=True,
+            compact=True,
+        )
+        self.last_processing = monotonic
+        self.deadline = monotonic + self.plan.duration_seconds
+        self.state = "METADATA_STREAM_ACTIVE"
+
+    def end_metadata_stream(self, reason: str) -> None:
+        if self.flow.closed:
+            return
+        if self.state == "ERROR":
+            self.discarded += len(self.queue)
+            self.queue.clear()
+        while self.queue and self.state == "METADATA_STREAM_ACTIVE":
+            self.drain()
+        self.flow.finish(reason)
+        for flow in self.flow.finalized:
+            flow.pop("packets", None)
+        self.state = "ERROR" if self.last_error else "STOPPED"
+        self.checkpoint()
+
     def fail(self, code: str) -> None:
         self.state, self.last_error = "ERROR", code
         if self.store:
@@ -79,7 +126,7 @@ class EBPFCollector:
         raise ValueError(code)
 
     def ingest(self, raw: bytes, *, monotonic: float) -> None:
-        if self.state != "FIXTURE_ACTIVE":
+        if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"}:
             raise ValueError("EBPF_INPUT_NOT_ACTIVE")
         if (
             not math.isfinite(monotonic)
@@ -109,37 +156,48 @@ class EBPFCollector:
         self.cpu_sequences[e.cpu] = e.cpu_sequence
         self.received += 1
         if len(self.queue) >= self.plan.queue_capacity:
+            self.overflow_rejected += 1
             self.fail("EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
         self.queue.append(e)
         self.queue_peak = max(self.queue_peak, len(self.queue))
 
     def drain(self, limit: int = 32) -> None:
-        if self.state != "FIXTURE_ACTIVE" or not 1 <= limit <= 32:
+        if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"} or not 1 <= limit <= 32:
             raise ValueError("EBPF_DRAIN_DENIED")
         processed = min(limit, len(self.queue))
         for _ in range(processed):
             e = self.queue[0]
-            if e.clock != "FIXTURE_PCAP_EVENT_NS" or e.timestamp_ns % 1000:
+            if self.clock_contract is None and (
+                e.clock != "FIXTURE_PCAP_EVENT_NS" or e.timestamp_ns % 1000
+            ):
                 self.fail("EBPF_CLOCK_PARITY_UNVERIFIED")
             sec, ns = divmod(e.timestamp_ns, 10**9)
             try:
-                p = Packet(
-                    sequence=self.accepted + 1,
-                    seconds=sec,
-                    microseconds=ns // 1000,
-                    frame_length=e.frame_length,
-                    captured_length=e.frame_length,
-                    kind=e.protocol,
-                    source=e.source,
-                    destination=e.destination,
-                    source_port=e.source_port,
-                    destination_port=e.destination_port,
-                    ip_length=e.ip_length,
-                    tcp_flags=e.tcp_flags,
+                p = (
+                    e
+                    if self.clock_contract is not None
+                    else Packet(
+                        sequence=self.accepted + 1,
+                        seconds=sec,
+                        microseconds=ns // 1000,
+                        frame_length=e.frame_length,
+                        captured_length=e.frame_length,
+                        kind=e.protocol,
+                        source=e.source,
+                        destination=e.destination,
+                        source_port=e.source_port,
+                        destination_port=e.destination_port,
+                        ip_length=e.ip_length,
+                        tcp_flags=e.tcp_flags,
+                    )
                 )
                 self.flow.add(p)
-            except ValueError:
-                self.fail("EBPF_FLOW_METADATA_INTEGRITY_FAILED")
+            except ValueError as error:
+                self.fail(
+                    "EBPF_CLOCK_INVALID"
+                    if "CLOCK" in str(error) or "TIMESTAMP" in str(error)
+                    else "EBPF_FLOW_METADATA_INTEGRITY_FAILED"
+                )
             self.queue.popleft()
             self.accepted += 1
             self.dns_candidates += int(53 in (e.source_port, e.destination_port))
@@ -148,7 +206,7 @@ class EBPFCollector:
             self.checkpoint()
 
     def counters(self, value: Counters) -> None:
-        if self.state != "FIXTURE_ACTIVE":
+        if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"}:
             raise ValueError("EBPF_COUNTER_INPUT_DENIED")
         if value.generation != self.plan.generation or value.hook != self.plan.hook:
             self.fail("EBPF_COUNTER_SCOPE_MISMATCH")
@@ -192,6 +250,9 @@ class EBPFCollector:
             dict(
                 flow_id=f["flow_id"],
                 close_reason=f["close_reason"],
+                packet_count=f["packet_count"],
+                flow_completeness="CANDIDATE_TIMEOUT" if f["eligible"] else "INCOMPLETE",
+                feature_eligibility="BLOCKED_CAPTURE_INTEGRITY",
                 values_digest=f["values_digest"],
                 values=f["values"],
                 feature_names=f["feature_names"],
@@ -202,11 +263,18 @@ class EBPFCollector:
         return dict(
             plan=self.plan.model_dump(mode="json"),
             plan_digest=self.plan.identity,
+            producer_version="TCX_METADATA_NETWORK14_C1"
+            if self.clock_contract
+            else "EBPF_FIXTURE_V1",
             state=self.state,
+            clock=self.clock_contract.snapshot() if self.clock_contract else None,
+            flow_policy="OBSERVED_EVENT_WATERMARK" if self.flow.event_watermark else "SAME_KEY",
             last_error=self.last_error,
             received=self.received,
             accepted=self.accepted,
             queue_pending=len(self.queue),
+            queue_discarded=self.discarded,
+            queue_rejected=self.overflow_rejected,
             queue_peak=self.queue_peak,
             dns_candidates=self.dns_candidates,
             ring_loss=self.loss,
@@ -299,6 +367,8 @@ class EBPFCollector:
             kernel_events=None,
             ring_loss=self.loss,
             queue_depth=len(self.queue),
+            queue_discarded=self.discarded,
+            queue_rejected=self.overflow_rejected,
             queue_peak=self.queue_peak,
             normalized_packets=self.accepted,
         )
@@ -315,6 +385,9 @@ class EBPFCollector:
             counter_provenance="TC_HOOK_CPU_CUMULATIVE_GENERATION_NOT_ZEEK_HANDLE",
             capture_integrity="UNVERIFIED",
             feature_eligibility="BLOCKED_NATIVE_POLICY",
+            clock=self.clock_contract.snapshot() if self.clock_contract else None,
+            finalized_flows=len(self.flow.finalized),
+            active_flows=len(self.flow.active),
             dns_state="PORT53_CANDIDATE" if self.dns_candidates else "DNS_VISIBILITY_UNKNOWN",
             dns_candidates=self.dns_candidates,
             correlation="UNKNOWN_NO_SHARED_PACKET_ID",

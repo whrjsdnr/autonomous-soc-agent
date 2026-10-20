@@ -92,6 +92,7 @@ class ReleaseManifest(Frozen):
         "LINUX_6_18_SOURCE_NATIVE_SUPPORT_PENDING"
     )
     libbpf_contract: Literal["1.3.0_COMPILE_ONLY"] = "1.3.0_COMPILE_ONLY"
+    data_plane: Literal["TCX_SEQPACKET_DATA_V1_192"] = "TCX_SEQPACKET_DATA_V1_192"
     native_release: Literal["BLOCKED"] = "BLOCKED"
     dynamic_dependency_closure: Literal["UNKNOWN_PAM_NSS_RUNTIME"] = "UNKNOWN_PAM_NSS_RUNTIME"
     installation_identity: Literal[

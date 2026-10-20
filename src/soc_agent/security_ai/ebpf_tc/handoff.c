@@ -16,11 +16,11 @@ int soc_os_auth_admitted(void) {
      * No caller, manifest, environment or fixture switch can admit Native auth. */
     return 0;
 }
-int soc_handoff_connect(uid_t uid,gid_t gid,const uint8_t session[16]) {
+static int connect_channel(uid_t uid,gid_t gid,const uint8_t session[16],int data) {
     if(!uid || !gid || !session)return -EPERM;
     char hex[33];for(int i=0;i<16;i++)snprintf(hex+2*i,3,"%02x",session[i]);
     struct sockaddr_un a={.sun_family=AF_UNIX};
-    int length=snprintf(a.sun_path+1,sizeof(a.sun_path)-1,"soc-ebpf.%u.%s",uid,hex);
+    int length=snprintf(a.sun_path+1,sizeof(a.sun_path)-1,data?"soc-ebpf-data.%u.%s":"soc-ebpf.%u.%s",uid,hex);
     if(length<1 || length>=(int)sizeof(a.sun_path)-1)return -EINVAL;
     int fd=socket(AF_UNIX,SOCK_SEQPACKET|SOCK_CLOEXEC,0);if(fd<0)return -errno;
     int enabled=1,size=32768;struct timeval timeout={5,0};struct ucred peer;socklen_t n=sizeof(peer);
@@ -32,6 +32,12 @@ int soc_handoff_connect(uid_t uid,gid_t gid,const uint8_t session[16]) {
        getsockopt(fd,SOL_SOCKET,SO_PEERCRED,&peer,&n) || n!=sizeof(peer) ||
        peer.uid!=uid || peer.gid!=gid) {close(fd);return -EPERM;}
     return fd;
+}
+int soc_handoff_connect(uid_t uid,gid_t gid,const uint8_t session[16]) {
+    return connect_channel(uid,gid,session,0);
+}
+int soc_handoff_connect_data(uid_t uid,gid_t gid,const uint8_t session[16]) {
+    return connect_channel(uid,gid,session,1);
 }
 int soc_handoff_receive(int fd,uid_t uid,gid_t gid,const uint8_t session[16],
                         const uint8_t approval[32],const uint8_t manifest[32],

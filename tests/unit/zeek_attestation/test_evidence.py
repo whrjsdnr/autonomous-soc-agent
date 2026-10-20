@@ -26,9 +26,17 @@ def test_current_bundle_and_native_boundaries():
     )["zeek_launcher_update"]
     assert amendment["previous_bundle"] == v["bundle"]
     assert amendment["previous_bundle_digest"] == v["bundle_digest"]
-    assert amendment["current_bundle"] == bundle()
-    assert amendment["current_bundle_digest"] == digest(bundle())
-    assert {k for k in bundle() if bundle()[k] != v["bundle"][k]} == {"live_process.py"}
+    c1 = json.loads((ROOT / "docs/linux-soc-v1/tcx-packet-data-plane-amendment.json").read_text())
+    assert amendment["current_bundle"] == c1["previous_zeek_bundle"]
+    assert amendment["current_bundle_digest"] == c1["previous_zeek_bundle_digest"]
+    assert c1["current_zeek_bundle"] == bundle()
+    assert c1["current_zeek_bundle_digest"] == digest(bundle())
+    assert {k for k in bundle() if bundle()[k] != v["bundle"][k]} == {
+        "live_process.py",
+        "packet_producer.py",
+    }
+    assert c1["zeek_changed_files"] == ["packet_producer.py"]
+    assert c1["native_approval_required"] is True
     assert amendment["changed_files"] == ["live_process.py"]
     assert amendment["native_approval_required"] is True
     for name, sha in v["source_sha256"].items():

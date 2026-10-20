@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from soc_agent.security_ai.collectors.live_contract import bundle
@@ -8,7 +11,22 @@ from soc_agent.security_ai.research.models import digest
 
 def test_zeek_bundle_changes_only_for_reviewed_failure_certificate_order():
     # B-1 persists failure evidence before a concurrent stop; old approval is invalid.
-    assert digest(bundle()) == "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045"
+    amendment = json.loads(
+        (
+            Path(__file__).resolve().parents[3]
+            / "docs/linux-soc-v1/tcx-packet-data-plane-amendment.json"
+        ).read_text()
+    )
+    assert (
+        amendment["previous_zeek_bundle_digest"]
+        == "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045"
+    )
+    assert {k for k in bundle() if bundle()[k] != amendment["previous_zeek_bundle"][k]} == {
+        "packet_producer.py"
+    }
+    assert digest(bundle()) == amendment["current_zeek_bundle_digest"]
+    assert bundle() == amendment["current_zeek_bundle"]
+    assert amendment["native_approval_required"] is True
     assert bundle()["live_process.py"] == (
         "d47439e384c301265e32daee906a927b668c4f7d8961f834bc55abf90b748dda"
     )

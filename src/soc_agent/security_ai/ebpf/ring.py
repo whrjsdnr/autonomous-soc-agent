@@ -33,6 +33,7 @@ def decode(raw: bytes, plan: Plan, sequence: int) -> Event:
     if family == 4 and (any(src[4:]) or any(dst[4:])):
         raise ValueError("EBPF_IPV4_PADDING_INVALID")
     return Event(
+        collector=plan.collector,
         session_id=plan.session_id,
         program_sha256=plan.program_sha256,
         plan_digest=plan.identity,

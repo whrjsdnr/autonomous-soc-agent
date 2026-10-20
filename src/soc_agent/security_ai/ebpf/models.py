@@ -10,7 +10,7 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 
 class Plan(Frozen):
-    collector: Literal["EBPF_TC"] = "EBPF_TC"
+    collector: Literal["EBPF_TC", "EBPF_TCX"] = "EBPF_TC"
     contract: Literal["soc-ebpf-tc-plan:v1"] = "soc-ebpf-tc-plan:v1"
     session_id: UUID = Field(default_factory=uuid4)
     generation: int = Field(gt=0, lt=2**64, strict=True)
@@ -20,7 +20,7 @@ class Plan(Frozen):
     ifindex: int = Field(gt=0, lt=2**32, strict=True)
     net_namespace: str = Field(pattern=r"^net:\[[0-9]+\]$")
     hook: Literal["INGRESS", "EGRESS"]
-    origin: Literal["EBPF_TC_NATIVE", "EBPF_TC_FIXTURE"]
+    origin: Literal["EBPF_TC_NATIVE", "EBPF_TC_FIXTURE", "TCX_STREAM_FIXTURE"]
     clock: Literal["KERNEL_MONOTONIC_NS", "FIXTURE_PCAP_EVENT_NS"]
     event_limit: Literal[4096] = 4096
     queue_capacity: Literal[32] = 32
@@ -30,7 +30,9 @@ class Plan(Frozen):
 
     @model_validator(mode="after")
     def clock_scope(self):
-        if (self.origin == "EBPF_TC_NATIVE") != (self.clock == "KERNEL_MONOTONIC_NS"):
+        if (self.origin in {"EBPF_TC_NATIVE", "TCX_STREAM_FIXTURE"}) != (
+            self.clock == "KERNEL_MONOTONIC_NS"
+        ):
             raise ValueError("EBPF_CLOCK_ORIGIN_MISMATCH")
         return self
 
@@ -40,7 +42,7 @@ class Plan(Frozen):
 
 
 class Event(Frozen):
-    collector: Literal["EBPF_TC"] = "EBPF_TC"
+    collector: Literal["EBPF_TC", "EBPF_TCX"] = "EBPF_TC"
     session_id: UUID
     program_sha256: Hash
     plan_digest: Hash
@@ -77,6 +79,25 @@ class Event(Frozen):
         ):
             raise ValueError("EBPF_UNSUPPORTED_METADATA")
         return self
+
+    @property
+    def ns(self) -> int:
+        return self.timestamp_ns
+
+    @property
+    def sequence(self) -> int:
+        return self.delivery_sequence
+
+    @property
+    def key(self) -> tuple:
+        return self.protocol, tuple(
+            sorted(
+                (
+                    (str(self.source), self.source_port),
+                    (str(self.destination), self.destination_port),
+                )
+            )
+        )
 
     @property
     def flow_identity(self) -> str:

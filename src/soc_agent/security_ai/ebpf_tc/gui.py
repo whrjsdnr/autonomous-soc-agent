@@ -95,6 +95,19 @@ class PreparedDesktop(BrokerDesktop):
             rows.append(
                 "OS Handoff " + key + "   " + ("UNKNOWN" if observed is None else str(observed))
             )
+        data = handoff.get("data_plane", {})
+        for key in (
+            "state",
+            "sequence",
+            "socket_send_failures",
+            "ring_loss",
+            "queue_overflows",
+            "error",
+        ):
+            observed = data.get(key)
+            rows.append(
+                "TCX Data " + key + "   " + ("UNKNOWN" if observed is None else str(observed))
+            )
         installation = self.snapshot.get("installation", {})
         for key in (
             "release_candidate",

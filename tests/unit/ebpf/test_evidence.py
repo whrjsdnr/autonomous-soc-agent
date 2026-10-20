@@ -18,8 +18,25 @@ def evidence():
 
 def test_current_sources_and_explicit_native_blockers():
     v = evidence()
+    amendment = json.loads(
+        (ROOT / "docs/linux-soc-v1/tcx-packet-data-plane-amendment.json").read_text()
+    )
+    assert set(amendment["historical_sources"]) == {
+        "src/soc_agent/security_ai/ebpf/collector.py",
+        "src/soc_agent/security_ai/ebpf/models.py",
+        "src/soc_agent/security_ai/ebpf/ring.py",
+        "src/soc_agent/security_ai/collectors/packet_producer.py",
+    }
     for name, expected in v["source_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == expected
+        record = amendment["historical_sources"].get(name)
+        historical = ROOT / record["snapshot"] if record else ROOT / name
+        assert hashlib.sha256(historical.read_bytes()).hexdigest() == expected
+        if record:
+            assert record["previous_sha256"] == expected
+            assert (
+                hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == record["current_sha256"]
+            )
+    assert amendment["native_approval_required"] and amendment["native_release"] == "BLOCKED"
     assert digest(v["source_sha256"]) == v["foundation_bundle_digest"]
     assert v["build"]["source_digest"] == source_digest()
     assert v["ebpf_verifier"] == v["tc_hook_native"] == "PENDING"

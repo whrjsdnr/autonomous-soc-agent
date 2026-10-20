@@ -3,6 +3,7 @@ extern char **environ;
 #include "native.h"
 #include "tcx.h"
 #include "handoff.h"
+#include "data.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/capability.h>
@@ -24,7 +25,7 @@ static volatile sig_atomic_t stopped;
 static void stop_signal(int n) {(void)n;stopped=1;}
 static int broker(int ipc,int plan,int object,int audit) {
     if(!soc_native_gate())return -EPERM;
-    struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.ipc_fd=ipc,.audit_fd=audit};uint8_t md[32];
+    struct soc_state s={.data_fd=-1,.ops=&soc_real_ops,.object_fd=object,.ipc_fd=ipc,.audit_fd=audit};uint8_t md[32];
     struct soc_release_envelope envelope;struct stat authority,code,audit_info;
     if(fstat(plan,&authority) || fstat(object,&code) || authority.st_uid || code.st_uid ||
        authority.st_size!=sizeof(envelope) || fstat(audit,&audit_info) ||
@@ -55,7 +56,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     uint32_t previous_handles[16]={0},rate_cursor=0;uint64_t rate_slots[32]={0};int result=0,work_active=0;
     if(soc_release_record(&s) || s.ops->record(&s,"OS_AUTH_HANDOFF_VERIFIED") ||
        s.ops->record(&s,"BROKER_SESSION_BOUND") || s.ops->record(&s,"BROKER_READY"))return -EIO;
-    if(soc_handoff_reply(ipc,&envelope,2,1))return -EIO;
+    if(soc_data_open(&s,1,envelope.approval) || soc_handoff_reply(ipc,&envelope,2,1))return -EIO;
     for(unsigned commands=0;!stopped && commands<2048;) {
         uint64_t now=soc_now();
         if(now<heartbeat || now-born>=3600000000000ULL || now-heartbeat>=15000000000ULL ||
@@ -106,6 +107,9 @@ static int broker(int ipc,int plan,int object,int audit) {
             rc=memcmp(&s.owner,&q.owner,sizeof(q.owner))?-EPERM:soc_detach(&s);
         } else if(q.operation==5) {rc=q.reason>=1 && q.reason<=7?(tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)):-EINVAL;}
         else if(q.operation==6) {rc=(tcx?soc_tcx_cleanup(&link):soc_cleanup(&s));stopped=1;}
+        if(q.operation==4 || q.operation==5 || q.operation==6) {
+            if(soc_data_end(&s,1))rc=-ENOBUFS;
+        }
         if(work_active) {
             if(soc_work_privileges(0)) {result=-EPERM;break;}
             work_active=0;
@@ -118,6 +122,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     if(work_active && soc_work_privileges(0))result=-EPERM;
     if((tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)))result=-EUCLEAN;
     if(s.ops->record(&s,result?"CLEANUP_UNVERIFIED":"BROKER_EXITED"))result=-EIO;
+    if(soc_data_close(&s))result=-ENOBUFS;
     close(object);close(plan);close(ipc);close(audit);return result;
 }
 int main(int argc,char **argv) {

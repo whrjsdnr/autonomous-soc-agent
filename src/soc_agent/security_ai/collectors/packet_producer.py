@@ -3,6 +3,9 @@
 import math
 import struct
 from dataclasses import dataclass, field
+from typing import Protocol
+
+from pydantic import IPvAnyAddress
 
 from soc_agent.security_ai.collectors.packet_input import SCOPE, Packet
 from soc_agent.security_ai.collectors.parity import NETWORK14
@@ -11,9 +14,25 @@ from soc_agent.security_ai.research.models import digest
 VERSION = "zeek-packet-network14:v1"
 
 
+class FeaturePacket(Protocol):
+    """Only event-time arithmetic and in-memory metadata; no assumed UTC clock."""
+
+    sequence: int
+    ns: int
+    key: tuple
+    source: IPvAnyAddress
+    source_port: int
+    ip_length: int
+    tcp_flags: int
+
+    def model_dump(self, *, mode: str) -> dict: ...
+
+
 @dataclass
 class Window:
-    packets: list[Packet] = field(default_factory=list)
+    compact: bool = False
+    count: int = 0
+    packets: list[FeaturePacket] = field(default_factory=list)
     total: int = 0
     squares: int = 0
     forward: int = 0
@@ -27,7 +46,7 @@ class Window:
     iat_sum: int = 0
     iat_max: int = 0
 
-    def add(self, p: Packet):
+    def add(self, p: FeaturePacket):
         if self.packets:
             delta = p.ns - self.packets[-1].ns
             if delta < 0:
@@ -46,10 +65,14 @@ class Window:
         self.syn += bool(p.tcp_flags & 2)
         self.fin += bool(p.tcp_flags & 1)
         self.rst += bool(p.tcp_flags & 4)
-        self.packets.append(p)
+        self.count += 1
+        if self.compact and self.packets:
+            self.packets = [self.packets[0], p]
+        else:
+            self.packets.append(p)
 
     def finish(self, reason: str, session: str) -> dict:
-        n = len(self.packets)
+        n = self.count
         values = (
             (self.packets[-1].ns - self.packets[0].ns) / 1e9,
             self.forward,
@@ -72,6 +95,7 @@ class Window:
                 dict(key=self.packets[0].key, session=session, first=self.packets[0].sequence)
             ),
             close_reason=reason,
+            packet_count=n,
             eligible=reason in {"IDLE_TIMEOUT", "ACTIVE_TIMEOUT"},
             packets=[p.model_dump(mode="json") for p in self.packets],
             values=list(values),
@@ -87,16 +111,35 @@ class FlowAssembly:
     completion authority. The caller must explicitly finish an exhausted source.
     """
 
-    def __init__(self, session: str):
+    def __init__(self, session: str, *, event_watermark: bool = False, compact: bool = False):
         self.session = session
+        self.event_watermark = event_watermark
+        self.compact = compact
+        self.watermark: int | None = None
         self.active: dict[tuple, Window] = {}
         self.finalized: list[dict] = []
         self.count = self.peak = 0
         self.closed = False
 
-    def add(self, p: Packet) -> Packet:
+    def add(self, p: FeaturePacket) -> FeaturePacket:
         if self.closed or p.sequence != self.count + 1:
             raise ValueError("ZEEK_FLOW_SEQUENCE_INTEGRITY")
+        if self.event_watermark:
+            if self.watermark is not None and p.ns < self.watermark:
+                raise ValueError("FLOW_WATERMARK_CLOCK_REGRESSION")
+            # Observed event time only. No processing/wall-clock idle completion.
+            self.watermark = p.ns
+            for key, old in tuple(self.active.items()):
+                reason = (
+                    "ACTIVE_TIMEOUT"
+                    if p.ns - old.packets[0].ns >= 120_000_000_000
+                    else "IDLE_TIMEOUT"
+                    if p.ns - old.packets[-1].ns >= 30_000_000_000
+                    else None
+                )
+                if reason:
+                    self.finalized.append(old.finish(reason, self.session))
+                    del self.active[key]
         key = p.key
         if key in self.active:
             old = self.active[key]
@@ -116,14 +159,14 @@ class FlowAssembly:
         if key not in self.active:
             if len(self.active) >= 128:
                 raise ValueError("ZEEK_FLOW_STATE_BUDGET")
-            self.active[key] = Window()
+            self.active[key] = Window(compact=self.compact)
         first = self.active[key].packets[0] if self.active[key].packets else p
         self.active[key].add(p)
         self.count += 1
         self.peak = max(self.peak, sum(len(w.packets) for w in self.active.values()))
         if self.peak > 4096 or self.count > 4096:
             raise ValueError("ZEEK_FLOW_METADATA_BUDGET")
-        if len(self.active[key].packets) == 128:
+        if not self.compact and len(self.active[key].packets) == 128:
             self.finalized.append(self.active.pop(key).finish("PACKET_LIMIT", self.session))
         if len(self.finalized) > 1024:
             raise ValueError("ZEEK_FLOW_COMPLETION_BUDGET")
@@ -132,7 +175,16 @@ class FlowAssembly:
     def finish(self, reason: str = "SHUTDOWN") -> None:
         if self.closed:
             raise ValueError("ZEEK_FLOW_ALREADY_FINALIZED")
-        if reason not in {"SHUTDOWN", "PACKET_LIMIT", "RESTART_GAP"}:
+        if reason not in {
+            "SHUTDOWN",
+            "PACKET_LIMIT",
+            "RESTART_GAP",
+            "CAPTURE_STOP",
+            "QUEUE_OVERFLOW",
+            "CLOCK_INVALID",
+            "INCOMPLETE",
+            "NORMAL_END",
+        }:
             raise ValueError("ZEEK_FLOW_UNSUPPORTED_FINALIZATION")
         self.finalized.extend(w.finish(reason, self.session) for w in self.active.values())
         self.active.clear()

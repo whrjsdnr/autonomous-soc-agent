@@ -10,6 +10,7 @@ struct soc_handoff_reply {
 };
 _Static_assert(sizeof(struct soc_handoff_reply)==96,"OS handoff reply ABI");
 int soc_handoff_connect(uid_t,gid_t,const uint8_t[16]);
+int soc_handoff_connect_data(uid_t,gid_t,const uint8_t[16]);
 int soc_handoff_receive(int,uid_t,gid_t,const uint8_t[16],const uint8_t[32],const uint8_t[32],struct soc_release_envelope *,int *,int *);
 int soc_handoff_reply(int,const struct soc_release_envelope *,unsigned,unsigned);
 int soc_os_auth_admitted(void);

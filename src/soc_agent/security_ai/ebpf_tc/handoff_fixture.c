@@ -1,6 +1,8 @@
 /* Ordinary UID transport peer. No authentication, capabilities, load or attach. */
 #define _GNU_SOURCE
 #include "handoff.h"
+#include "data.h"
+#include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/file.h>
 #include <fcntl.h>
@@ -24,7 +26,19 @@ static int record(struct soc_state *s,const char *kind) {
     return 0;
 }
 int main(int argc,char **argv) {
-    if(!getuid() || getuid()!=geteuid() || argc!=4 || strlen(argv[1])!=32 ||
+    int events=-1;unsigned event_count=0;
+#ifdef SOC_PACKET_FIXTURE
+    if(argc!=5)return 2;
+    char *end;long descriptor=strtol(argv[4],&end,10);struct stat st;uint8_t sha[32];
+    if(*end || descriptor<3 || descriptor>1024)return 2;events=descriptor;
+    if(fstat(events,&st) || st.st_uid!=getuid() || st.st_size<80 ||
+       st.st_size>4096*80 || st.st_size%80 || soc_fd_sha(events,sha) || soc_sealed(events,sha))return 2;
+    event_count=st.st_size/80;
+#else
+    if(argc!=4)return 2;
+#endif
+
+    if(!getuid() || getuid()!=geteuid() || strlen(argv[1])!=32 ||
        strlen(argv[2])!=64 || strlen(argv[3])!=64)return 2;
     uint8_t app[16],approval[32],manifest[32];uint8_t *outputs[]={app,approval,manifest};
     for(int j=0;j<3;j++)for(int i=0;i<(j?32:16);i++) {
@@ -36,11 +50,11 @@ int main(int argc,char **argv) {
     struct soc_release_envelope e;
     if(fd<0 || soc_handoff_receive(fd,getuid(),getgid(),app,approval,manifest,&e,&plan,&audit) ||
        flock(audit,LOCK_EX|LOCK_NB) || soc_handoff_reply(fd,&e,1,2))return 2;
-    struct soc_state s={.plan=e.plan,.audit_fd=audit,.ipc_fd=fd};
+    struct soc_state s={.data_fd=-1,.plan=e.plan,.audit_fd=audit,.ipc_fd=fd};
     memcpy(s.release_sha,e.manifest_sha,32);memcpy(s.release_version,e.release_version,16);
     if(soc_release_record(&s) || record(&s,"OS_AUTH_HANDOFF_VERIFIED") ||
        record(&s,"BROKER_SESSION_BOUND") || record(&s,"BROKER_READY") ||
-       soc_handoff_reply(fd,&e,2,2))return 2;
+       soc_data_open(&s,2,e.approval) || soc_handoff_reply(fd,&e,2,2))return 2;
     uint64_t born=soc_now(),last=born,slots[32]={0};uint32_t cursor=0;int rc=0;
     while(!s.stopping && s.sequence<2048) {
         uint64_t now=soc_now();struct pollfd p={fd,POLLIN,0};
@@ -54,11 +68,23 @@ int main(int argc,char **argv) {
         /* No simulated Kernel ACTIVE and no fabricated Link. Existing TCX fixture
          * separately covers attach/detach; this peer tests the transport boundary. */
         int error=q.operation==2 || q.operation==4?-EPERM:0;
+        if(!error && q.operation==1 && events>=0) {
+            for(unsigned i=0;i<event_count;i++) {
+                struct soc_event packet;
+                if(pread(events,&packet,80,(off_t)i*80)!=80) {error=-EIO;break;}
+                if(!i)s.generation=packet.generation;
+                if(soc_data_emit(&s,&packet,80)) {error=-ENOBUFS;break;}
+            }
+            if(soc_data_end(&s,event_count==4096?2:1))error=-ENOBUFS;
+            close(events);events=-1;
+        }
         struct {uint32_t sequence,state;int32_t error;uint32_t reserved;struct soc_owner owner;} reply={q.sequence,3,error,0,{0}};
         if(send(fd,&reply,sizeof(reply),MSG_NOSIGNAL)!=sizeof(reply)) {rc=2;break;}
         if(error) {rc=2;break;}if(q.operation==6)s.stopping=1;
     }
     s.stopping=1;
     if(record(&s,"CLEANUP_VERIFIED") || record(&s,"BROKER_STOPPED"))rc=2;
+    if(soc_data_close(&s))rc=2;
+    if(events>=0)close(events);
     close(plan);close(audit);close(fd);return rc;
 }

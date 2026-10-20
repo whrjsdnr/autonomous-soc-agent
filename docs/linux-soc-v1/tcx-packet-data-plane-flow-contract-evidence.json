@@ -1,0 +1,1192 @@
+{
+  "contract": "tcx-c1-packet-data-plane-flow:v1",
+  "baseline": "d94602af9b2accc409b26de235340fe81fcf74e1",
+  "source_sha256": {
+    "src/soc_agent/security_ai/collectors/packet_producer.py": "e010836c634d40d7149b8a39bc6085a9f6d08728f4b49606a7b8602d0d744173",
+    "src/soc_agent/security_ai/ebpf/clock.py": "dc5492759e0d44f7f17040dd82ba9599a151eb932500062520460c91686e519d",
+    "src/soc_agent/security_ai/ebpf/collector.py": "3330824674d6bd1a46009bae56c8100954ad26bb42f51275e4a3a48d5ee0370c",
+    "src/soc_agent/security_ai/ebpf/models.py": "af99220e214c31b5af12b84432b2647fc6cd722b5a5c36b2b4ba1c301d1511d7",
+    "src/soc_agent/security_ai/ebpf/ring.py": "6981d37245c496f1f31388eecd2c481ad9d177a36a20183fa46c082a2a0968ec",
+    "src/soc_agent/security_ai/ebpf_tc/broker.c": "5d532a31350720d5e1cb7410f5fc3e06e960480fd6ff3a69db8909b063dd3b69",
+    "src/soc_agent/security_ai/ebpf_tc/build.py": "4743ab409418591ac9dcc78333ecfa375e8165930e16804ebf14680bf774cda2",
+    "src/soc_agent/security_ai/ebpf_tc/data.c": "aba5fc22966e9fa47040ff07b70b02462b87ad492a464aa8d9493f715a0b3c1a",
+    "src/soc_agent/security_ai/ebpf_tc/data.h": "82508d38f1fed4beb535f6787dbef35fef50f7ae67628cbeb495788d629e32bd",
+    "src/soc_agent/security_ai/ebpf_tc/data_plane.py": "a1516e5ca5d8978360f1e95882510df29fd931fbc736779b26f97e5c67b721b1",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "f9b17e79f2b512c6aa9935b63a425f2e2ee7ddd99736398489ce2e0a7763b8a4",
+    "src/soc_agent/security_ai/ebpf_tc/handoff.c": "737c7ca4bb128544d0b3600377b3fdc0d05314532eab454fee4be638115b211f",
+    "src/soc_agent/security_ai/ebpf_tc/handoff.h": "b624455df57279133bcedcde8f37b0c3f1a89e2bd42f4c078b1cc1e79fa5c6f1",
+    "src/soc_agent/security_ai/ebpf_tc/handoff_fixture.c": "e07071859a6c83e14f0031035a338d163bcaaf54b632f52ea3e5a22d6dc02f53",
+    "src/soc_agent/security_ai/ebpf_tc/installation.py": "42c2972d8033ebe798f012ae25296b3a5c5ce0feb485ca55e9f34343d243aaf1",
+    "src/soc_agent/security_ai/ebpf_tc/loader.c": "060ffafe96cf4dc2776b2b8d1c3d7986aa0fab97ad72deda93aba6a59592b3d5",
+    "src/soc_agent/security_ai/ebpf_tc/native.h": "514ebcc417b27e2ee88bd1aa0487e1ad9e1f02fc9bbd0e62a6b4079353902162",
+    "src/soc_agent/security_ai/ebpf_tc/os_handoff.py": "986c6857f7ed03a99539cb93467cdee970f68c33c94729290220ab427a21bc0a"
+  },
+  "verdicts": {
+    "TCX_DATA_PLANE_FIXTURE": "VERIFIED",
+    "CONTROL_DATA_SEPARATION": "VERIFIED",
+    "PACKET_ABI": "VERIFIED",
+    "CLOCK_CONTRACT": "VERIFIED_FIXTURE_NATIVE_ACCURACY_UNVERIFIED",
+    "FLOW_TERMINATION": "VERIFIED_CANDIDATE_VS_INCOMPLETE",
+    "NETWORK14_PARITY": "VERIFIED_OFFLINE_GOLDEN_AND_DENSE_ML_REFERENCE",
+    "NATIVE_FEATURE_ELIGIBILITY": "BLOCKED",
+    "ZEEK_COLLECTOR": "PRESERVED_DEFAULT_SEMANTICS_NEW_BUNDLE_REQUIRES_APPROVAL",
+    "TCX_LINK_OWNERSHIP": "PRESERVED",
+    "GUI": "PRESERVED",
+    "AUDIT_RECOVERY": "VERIFIED_FIXTURE",
+    "NATIVE_AUTH": "PENDING",
+    "NATIVE_TCX_ATTACH": "PENDING",
+    "NATIVE_AI": "BLOCKED",
+    "DNS9": "BLOCKED",
+    "OPERATIONAL_PROMOTION": "BLOCKED"
+  },
+  "identities": {
+    "artifacts": {
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "bootstrap": "2dc6e2d00a80a37f052aa3a664f593e3c5db7a8307b00c504e1df2457b4ee171",
+      "broker": "2e1fa1463947eb4df38d131fbdc020c8058560382af0d124b7c0818f71b0f01c",
+      "libnative-tc.so": "c2e6841f0986246f5cb76b046ab002cd6be62c359d3d39c62596dee33cf588d1",
+      "tc-fixture": "2b938cff0aa28831d283f3db2b66c9ea654a3101d7c16db514aecf5d48811aa6",
+      "tcx-dispatch-fixture": "d43a397d678dbceb89faf85a5198924f9a95782f5384a0bd2abfbbda188feaca",
+      "tcx.bpf.o": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "source_bundle_digest": "a258bbd24915ad2048a0b37148ad5d4d95f9925b18eb059f101f8b4483ee64a9"
+    },
+    "packet_fixture_sha256": "76542c836693c1257cdcc8287640686807129db55c3ae5c8be905b2b3b52ddce",
+    "bundle_digest": "a258bbd24915ad2048a0b37148ad5d4d95f9925b18eb059f101f8b4483ee64a9",
+    "manifest_digest": "ba51746b3e80bb3c23872de14bcd3880b397c7705d4ab495beaa982c9bbe9e54",
+    "version": "0.3.1",
+    "native_release": "BLOCKED",
+    "data_plane": "TCX_SEQPACKET_DATA_V1_192"
+  },
+  "historical_analysis": {
+    "scope": "HISTORICAL_READ_ONLY_NO_RECLASSIFICATION",
+    "stream_sha256": "cb484bfaa45a6e81df9f2fea94e92e2e0ccabbce061487c08aab7b52fc440787",
+    "packet_records": 4096,
+    "network_events": 117,
+    "dns_events": 0,
+    "stream_sequence": 4215,
+    "window_count": 51,
+    "retention_cap_windows_before_closed": 29,
+    "remaining_windows_at_closed": 22,
+    "packet_count_distribution": {
+      "128": 29,
+      "13": 1,
+      "4": 17,
+      "109": 1,
+      "92": 1,
+      "80": 1,
+      "22": 1
+    },
+    "event_interval_seconds": 125.437133,
+    "max_window_span_seconds": 65.309362,
+    "out_of_order": 0,
+    "reasons": {
+      "PACKET_LIMIT": 51
+    },
+    "eligible": 0,
+    "native_ai": "BLOCKED",
+    "counter_verification": "UNVERIFIED"
+  },
+  "new_policy_shadow": {
+    "scope": "NEW_POLICY_SHADOW_NOT_RECLASSIFICATION_OR_NATIVE_PARITY",
+    "shadow_reasons": {
+      "IDLE_TIMEOUT": 14,
+      "ACTIVE_TIMEOUT": 4,
+      "PACKET_LIMIT": 8
+    },
+    "shadow_packet_count": 4096,
+    "shadow_timeout_candidates": 18,
+    "shadow_active_metadata_peak": 20,
+    "stream_sha256": "cb484bfaa45a6e81df9f2fea94e92e2e0ccabbce061487c08aab7b52fc440787",
+    "packet_records": 4096,
+    "network_events": 117,
+    "dns_events": 0,
+    "stream_sequence": 4215,
+    "window_count": 51,
+    "retention_cap_windows_before_closed": 29,
+    "remaining_windows_at_closed": 22,
+    "packet_count_distribution": {
+      "128": 29,
+      "13": 1,
+      "4": 17,
+      "109": 1,
+      "92": 1,
+      "80": 1,
+      "22": 1
+    },
+    "event_interval_seconds": 125.437133,
+    "max_window_span_seconds": 65.309362,
+    "out_of_order": 0,
+    "reasons": {
+      "PACKET_LIMIT": 51
+    },
+    "eligible": 0,
+    "native_ai": "BLOCKED",
+    "counter_verification": "UNVERIFIED"
+  },
+  "data_plane_c_fixtures": {
+    "active-False-True.json": {
+      "scope": "ORDINARY_UID_C_SOCKET_HOST_PARSER_NOT_KERNEL",
+      "pcap_sha256": "7e98f0e50ea982b7e1e1bca4a403b461b9ec8f249d32b64bb490e4eb92dc0d87",
+      "data": {
+        "contract": "TCX_SEQPACKET_DATA_V1_192",
+        "source": "ORDINARY_UID_PACKET_FIXTURE",
+        "state": "CLOSED",
+        "frames": 11,
+        "sequence": 10,
+        "socket_send_failures": 0,
+        "ring_loss": null,
+        "kernel_drops": null,
+        "queue_overflows": 0,
+        "backpressure_events": 0,
+        "queue": {
+          "fixture_events": 8,
+          "high_watermark": 24,
+          "low_watermark": 8,
+          "backpressure": "NORMAL",
+          "capture_gaps": null,
+          "kernel_drops": null,
+          "kernel_events": null,
+          "ring_loss": null,
+          "queue_depth": 0,
+          "queue_discarded": 0,
+          "queue_rejected": 0,
+          "queue_peak": 8,
+          "normalized_packets": 8
+        },
+        "processing": {
+          "plan": {
+            "collector": "EBPF_TCX",
+            "contract": "soc-ebpf-tc-plan:v1",
+            "session_id": "6f0c97fa-c5dd-4d28-aa45-be74e0e10012",
+            "generation": 7,
+            "program_sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+            "source_digest": "f686eee967744cd9e95c30741c5cf2aa046ef528649ebfadef43c35eba021182",
+            "interface": "lo",
+            "ifindex": 1,
+            "net_namespace": "net:[4026531833]",
+            "hook": "INGRESS",
+            "origin": "TCX_STREAM_FIXTURE",
+            "clock": "KERNEL_MONOTONIC_NS",
+            "event_limit": 4096,
+            "queue_capacity": 32,
+            "duration_seconds": 300,
+            "ring_bytes": 262144,
+            "native_ai": "BLOCKED"
+          },
+          "plan_digest": "7b42e3168555e15f7720d9ecfdbfda9fe018449c951a6ef110fb996b355251f8",
+          "producer_version": "TCX_METADATA_NETWORK14_C1",
+          "state": "STOPPED",
+          "clock": {
+            "domain": "KERNEL_MONOTONIC_NS",
+            "unit": "NANOSECONDS_INTEGER_NO_ROUNDING",
+            "utc_conversion": "NOT_PERFORMED",
+            "calibration": "DECLARED_ONLY",
+            "offset_interval_ns": null,
+            "native_accuracy": "UNVERIFIED",
+            "native_eligibility": "BLOCKED"
+          },
+          "flow_policy": "OBSERVED_EVENT_WATERMARK",
+          "last_error": null,
+          "received": 8,
+          "accepted": 8,
+          "queue_pending": 0,
+          "queue_discarded": 0,
+          "queue_rejected": 0,
+          "queue_peak": 8,
+          "dns_candidates": 0,
+          "ring_loss": null,
+          "counter_evidence_digest": null,
+          "counter_status": "NOT_OBSERVED",
+          "event_chain": "17404d6138326d22b0081f702d58b7e24e1d052bec96f70864e41ef21655af14",
+          "feature_digest": "a73c86578a7557745ec84d64a887017f0a2b3d823cd05fe832ad24f49845fa95",
+          "feature_tail": [
+            {
+              "flow_id": "e94baac72ff6bdb5290aa70ca91c55bb3e1e8b865ecbae6c98a7f5781ec2be4f",
+              "close_reason": "ACTIVE_TIMEOUT",
+              "packet_count": 7,
+              "flow_completeness": "CANDIDATE_TIMEOUT",
+              "feature_eligibility": "BLOCKED_CAPTURE_INTEGRITY",
+              "values_digest": "53cbb894f9ff1fccc44c9a16abbc5924d7b57375e827ae668eba66b6a26e10c8",
+              "values": [
+                119.0,
+                6.0,
+                1.0,
+                460.0,
+                80.0,
+                60.0,
+                100.0,
+                77.14286041259766,
+                16.659862518310547,
+                0.0,
+                0.0,
+                0.0,
+                19.83333396911621,
+                20.0
+              ],
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "native_ai": "BLOCKED"
+            },
+            {
+              "flow_id": "a4be745e5079fa6607b14d5fda16d71b3ddd1362b12abd99e773bf43ec3a642b",
+              "close_reason": "CAPTURE_STOP",
+              "packet_count": 1,
+              "flow_completeness": "INCOMPLETE",
+              "feature_eligibility": "BLOCKED_CAPTURE_INTEGRITY",
+              "values_digest": "b1a539c454446fe7d3966fe92b228086a51ddc4ce5129d115ba7867815d129f0",
+              "values": [
+                0.0,
+                1.0,
+                0.0,
+                80.0,
+                0.0,
+                80.0,
+                80.0,
+                80.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "native_ai": "BLOCKED"
+            }
+          ],
+          "finalized_count": 2,
+          "native_ai": "BLOCKED"
+        },
+        "error": null,
+        "native_ai": "BLOCKED",
+        "automatic_restart": false,
+        "worker_alive": false
+      },
+      "control_sequence": 4,
+      "audit": "ea74238a90da8dade39c2762da870b750af1336d8db9a5bff2eee8e93bafddb0",
+      "restored": "RESTORED_NO_REATTACH"
+    },
+    "idle-True-False.json": {
+      "scope": "ORDINARY_UID_C_SOCKET_HOST_PARSER_NOT_KERNEL",
+      "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+      "data": {
+        "contract": "TCX_SEQPACKET_DATA_V1_192",
+        "source": "ORDINARY_UID_PACKET_FIXTURE",
+        "state": "CLOSED",
+        "frames": 7,
+        "sequence": 6,
+        "socket_send_failures": 0,
+        "ring_loss": null,
+        "kernel_drops": null,
+        "queue_overflows": 0,
+        "backpressure_events": 0,
+        "queue": {
+          "fixture_events": 4,
+          "high_watermark": 24,
+          "low_watermark": 8,
+          "backpressure": "NORMAL",
+          "capture_gaps": null,
+          "kernel_drops": null,
+          "kernel_events": null,
+          "ring_loss": null,
+          "queue_depth": 0,
+          "queue_discarded": 0,
+          "queue_rejected": 0,
+          "queue_peak": 4,
+          "normalized_packets": 4
+        },
+        "processing": {
+          "plan": {
+            "collector": "EBPF_TCX",
+            "contract": "soc-ebpf-tc-plan:v1",
+            "session_id": "012a2f74-5da5-4329-8f05-1a80394fb9f6",
+            "generation": 7,
+            "program_sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+            "source_digest": "09dc53094479d7c5a4b339647ef4a78e220486f7fd7ccfa0663875af1b2d50b1",
+            "interface": "lo",
+            "ifindex": 1,
+            "net_namespace": "net:[4026531833]",
+            "hook": "INGRESS",
+            "origin": "TCX_STREAM_FIXTURE",
+            "clock": "KERNEL_MONOTONIC_NS",
+            "event_limit": 4096,
+            "queue_capacity": 32,
+            "duration_seconds": 300,
+            "ring_bytes": 262144,
+            "native_ai": "BLOCKED"
+          },
+          "plan_digest": "d4d729e42dcbc783c87d4e139d3587c14e8cdf7d9137d2577272aa9aa99ea4e1",
+          "producer_version": "TCX_METADATA_NETWORK14_C1",
+          "state": "STOPPED",
+          "clock": {
+            "domain": "KERNEL_MONOTONIC_NS",
+            "unit": "NANOSECONDS_INTEGER_NO_ROUNDING",
+            "utc_conversion": "NOT_PERFORMED",
+            "calibration": "DECLARED_ONLY",
+            "offset_interval_ns": null,
+            "native_accuracy": "UNVERIFIED",
+            "native_eligibility": "BLOCKED"
+          },
+          "flow_policy": "OBSERVED_EVENT_WATERMARK",
+          "last_error": null,
+          "received": 4,
+          "accepted": 4,
+          "queue_pending": 0,
+          "queue_discarded": 0,
+          "queue_rejected": 0,
+          "queue_peak": 4,
+          "dns_candidates": 0,
+          "ring_loss": null,
+          "counter_evidence_digest": null,
+          "counter_status": "NOT_OBSERVED",
+          "event_chain": "2e00017582a53f793e026d3f28af5a8df7f9ac95a8c4e3a16cf489c753cb6f7f",
+          "feature_digest": "f432523c31f093e09cf72a965b68b577991915680380895b21248478324b3199",
+          "feature_tail": [
+            {
+              "flow_id": "751b774eff78222f2bf7c6d6c4bd23ace25f6cc53591591bef5c161e478bd463",
+              "close_reason": "IDLE_TIMEOUT",
+              "packet_count": 3,
+              "flow_completeness": "CANDIDATE_TIMEOUT",
+              "feature_eligibility": "BLOCKED_CAPTURE_INTEGRITY",
+              "values_digest": "c14b0692c5f8e4ebf0125aa9c49b5976c584f060e5c84027ffcd339904c0353c",
+              "values": [
+                1.0,
+                2.0,
+                1.0,
+                120.0,
+                60.0,
+                40.0,
+                80.0,
+                60.0,
+                16.329931259155273,
+                1.0,
+                1.0,
+                0.0,
+                0.5,
+                0.5
+              ],
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "native_ai": "BLOCKED"
+            },
+            {
+              "flow_id": "eec3e7f88dae5b46d7ae9ec9515c63eb312259773cff4a18a7dad42d9ae8bc76",
+              "close_reason": "CAPTURE_STOP",
+              "packet_count": 1,
+              "flow_completeness": "INCOMPLETE",
+              "feature_eligibility": "BLOCKED_CAPTURE_INTEGRITY",
+              "values_digest": "a462e3eb5fd483347ac9f8a57d0daadb7a965f43041d4e66344d88875b915d5f",
+              "values": [
+                0.0,
+                1.0,
+                0.0,
+                40.0,
+                0.0,
+                40.0,
+                40.0,
+                40.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ],
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "native_ai": "BLOCKED"
+            }
+          ],
+          "finalized_count": 2,
+          "native_ai": "BLOCKED"
+        },
+        "error": null,
+        "native_ai": "BLOCKED",
+        "automatic_restart": false,
+        "worker_alive": false
+      },
+      "control_sequence": 4,
+      "audit": "494a1a9d190bfe99fe79ee497443e38d4ce73d308093e52996c44fb65adafe89",
+      "restored": "RESTORED_NO_REATTACH"
+    }
+  },
+  "remaining_regression_cohorts_not_summed": {
+    "regression": {
+      "exit_code": 0,
+      "seconds": 79.85226789297303,
+      "resources": [
+        {
+          "available_bytes": 4849090560,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.02 total=302896697\nfull avg10=0.00 avg60=0.00 avg300=0.02 total=290883368\n"
+        }
+      ],
+      "tests": [
+        "tests/unit/ebpf_native",
+        "tests/unit/ebpf",
+        "tests/unit/zeek_attestation",
+        "tests/unit/zeek_preprocessing",
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "summary": "........................................................................ [ 10%]\n........................................................................ [ 20%]\n........................................................................ [ 31%]\n........................................................................ [ 41%]\n........................................................................ [ 51%]\n........................................................................ [ 62%]\n........................................................................ [ 72%]\n........................................................................ [ 82%]\n........................................................................ [ 93%]\n...............................................                          [100%]\n695 passed in 77.67s (0:01:17)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "integration": {
+      "exit_code": 0,
+      "seconds": 76.71135091496399,
+      "resources": [
+        {
+          "available_bytes": 5113847808,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=302907638\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=290894292\n"
+        }
+      ],
+      "tests": [
+        "tests/integration/ebpf_native",
+        "tests/integration/ebpf",
+        "tests/integration/zeek_attestation",
+        "tests/integration/zeek_preprocessing",
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "summary": "..........................................................               [100%]\n58 passed in 74.87s (0:01:14)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "model": {
+      "exit_code": 0,
+      "seconds": 11.485596566984896,
+      "resources": [
+        {
+          "available_bytes": 5119787008,
+          "psi": "some avg10=0.04 avg60=0.02 avg300=0.00 total=302988569\nfull avg10=0.04 avg60=0.02 avg300=0.00 total=290973903\n"
+        },
+        {
+          "available_bytes": 5046853632,
+          "psi": "some avg10=0.03 avg60=0.02 avg300=0.00 total=302988569\nfull avg10=0.03 avg60=0.02 avg300=0.00 total=290973903\n"
+        },
+        {
+          "available_bytes": 5060407296,
+          "psi": "some avg10=0.02 avg60=0.02 avg300=0.00 total=302988569\nfull avg10=0.02 avg60=0.02 avg300=0.00 total=290973903\n"
+        }
+      ],
+      "tests": [
+        "tests/integration/zeek_live/test_models.py"
+      ],
+      "summary": ".                                                                        [100%]\n1 passed in 9.63s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "gui": {
+      "exit_code": 0,
+      "seconds": 125.41038188600214,
+      "resources": [
+        {
+          "available_bytes": 5167665152,
+          "psi": "some avg10=0.00 avg60=0.01 avg300=0.00 total=302996303\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=290981548\n"
+        }
+      ],
+      "tests": [
+        "tests/gui_tcx_data_checks.py",
+        "tests/gui_ebpf_handoff_checks.py",
+        "tests/gui_ebpf_native_checks.py",
+        "tests/gui_ebpf_checks.py",
+        "tests/gui_zeek_attestation_checks.py",
+        "tests/gui_zeek_preprocessing_checks.py",
+        "tests/gui_zeek_integrity_checks.py",
+        "tests/gui_zeek_startup_checks.py",
+        "tests/gui_zeek_finalization_checks.py",
+        "tests/gui_zeek_lifecycle_checks.py",
+        "tests/gui_zeek_live_checks.py",
+        "tests/gui_zeek_collector_checks.py",
+        "tests/gui_visual_dashboard_checks.py",
+        "tests/gui_production_checks.py"
+      ],
+      "summary": "...................                                                      [100%]\n19 passed in 123.26s (0:02:03)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "audit": {
+      "exit_code": 0,
+      "seconds": 15.671244220982771,
+      "resources": [
+        {
+          "available_bytes": 5044867072,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=303020873\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=291005242\n"
+        }
+      ],
+      "tests": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/linux_runtime/test_final_integration_audit.py",
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "summary": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 13.49s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    }
+  },
+  "final_affected_cohorts_not_summed": {
+    "data_handoff": {
+      "exit_code": 0,
+      "seconds": 375.19749557902105,
+      "summary": "........................................................................ [ 96%]\n...                                                                      [100%]\n75 passed in 373.05s (0:06:13)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "paths": [
+        "tests/unit/tcx_data",
+        "tests/integration/ebpf_handoff"
+      ],
+      "source_sha256": {
+        "src/soc_agent/security_ai/ebpf_tc/data_plane.py": "a1516e5ca5d8978360f1e95882510df29fd931fbc736779b26f97e5c67b721b1",
+        "src/soc_agent/security_ai/ebpf_tc/release.py": "2d7a0102f405a8eb580a017aadc1d6809b497052fe171d200fc98358c6f9ccad",
+        "src/soc_agent/security_ai/ebpf_tc/tcx_dispatch.c": "50f79b83f5560cecfd2754758f7c920a56b340138a77448a62de0861b8e91a8b",
+        "src/soc_agent/security_ai/ebpf_tc/qualification.py": "ce70e46b08542722de2c64918cf817d5d67d830e47af376da374b88716b6e2b1",
+        "src/soc_agent/security_ai/ebpf_tc/fixture.c": "5488d55c66f0c4b5cb06966c8147727edb478a22b0160b8b57ebafbb8f21990c",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.c": "1c1c85bd61e290e8a71a310511de1ad187607ff03bc146b8bbfbb15120bdc767",
+        "src/soc_agent/security_ai/ebpf_tc/tcx_fixture.c": "216d0e63fd5f4c24ddfc7f5d122a976b87870cca85cf089a79c99c7260625efe",
+        "src/soc_agent/security_ai/ebpf_tc/dependencies.py": "b4a2ca8b8a86156fc830174a4ebb21b9192b785fb32e0d7fb65d64c462bb0064",
+        "src/soc_agent/security_ai/ebpf_tc/native.h": "514ebcc417b27e2ee88bd1aa0487e1ad9e1f02fc9bbd0e62a6b4079353902162",
+        "src/soc_agent/security_ai/ebpf_tc/dispatch_fixture.c": "f3db43550f9dc28dc980b7f58002d0f1b09f165ac00acc05e9d6fcb3df19f50c",
+        "src/soc_agent/security_ai/ebpf_tc/handoff.h": "b624455df57279133bcedcde8f37b0c3f1a89e2bd42f4c078b1cc1e79fa5c6f1",
+        "src/soc_agent/security_ai/ebpf_tc/pam_abi.h": "274cead4866bd79ef66630e92a4fb3f3d3c12a42d92c8c4579cb6c4f81706ec0",
+        "src/soc_agent/security_ai/ebpf_tc/trust.c": "9a3b14839a0d02e64432b46d630c8defd18a909b411eb7e2ac8240252939dc31",
+        "src/soc_agent/security_ai/ebpf_tc/netlink.c": "aa4733743fb5bc825719a811dda22eda6cfe30d58ae5be0d6cb59abdb5923c86",
+        "src/soc_agent/security_ai/ebpf_tc/dynamic_trust.py": "69af9c1be4dc51cf1c5aef5eebe313e5dcc91aabe0161d17942ef13bd40ebf65",
+        "src/soc_agent/security_ai/ebpf_tc/bridge.py": "6f4b99b4ad280af2212164426852b00969b5e475550d0616355bbad0e8d032e6",
+        "src/soc_agent/security_ai/ebpf_tc/contracts.py": "78e5e6e7453735497f1aa636350b5e54281b8a42b0c8c23251c5aa3e7ec1fdda",
+        "src/soc_agent/security_ai/ebpf_tc/entry.c": "10a77124a008c332474694648ea2ac57d0107d5bd265393f3251db5bb82f759c",
+        "src/soc_agent/security_ai/ebpf_tc/loader.c": "060ffafe96cf4dc2776b2b8d1c3d7986aa0fab97ad72deda93aba6a59592b3d5",
+        "src/soc_agent/security_ai/ebpf_tc/build.py": "4743ab409418591ac9dcc78333ecfa375e8165930e16804ebf14680bf774cda2",
+        "src/soc_agent/security_ai/ebpf_tc/journal.py": "063b04a92f6df19c294d93b4c7d1c1e3cad6fac2873d032c59e278c2f66c708b",
+        "src/soc_agent/security_ai/ebpf_tc/trust.py": "a4dc111dc48acfaec542b1f7667f5bc161be2c3450b36862aa0ffd9b127a5b03",
+        "src/soc_agent/security_ai/ebpf_tc/data.c": "aba5fc22966e9fa47040ff07b70b02462b87ad492a464aa8d9493f715a0b3c1a",
+        "src/soc_agent/security_ai/ebpf_tc/os_handoff.py": "986c6857f7ed03a99539cb93467cdee970f68c33c94729290220ab427a21bc0a",
+        "src/soc_agent/security_ai/ebpf_tc/auth_qualification.py": "3190f47835e661e33ba1f55bf0d0b8b9da0294ecce18d1b9ff37e8f99e2a2b68",
+        "src/soc_agent/security_ai/ebpf_tc/installation.py": "42c2972d8033ebe798f012ae25296b3a5c5ce0feb485ca55e9f34343d243aaf1",
+        "src/soc_agent/security_ai/ebpf_tc/handoff_fixture.c": "e07071859a6c83e14f0031035a338d163bcaaf54b632f52ea3e5a22d6dc02f53",
+        "src/soc_agent/security_ai/ebpf_tc/handoff.c": "737c7ca4bb128544d0b3600377b3fdc0d05314532eab454fee4be638115b211f",
+        "src/soc_agent/security_ai/ebpf_tc/os_bootstrap.c": "5aa0f94126963fe3c86ac272923e7bdf57cd78a4bfe477a845e0964ac3fcc28a",
+        "src/soc_agent/security_ai/ebpf_tc/gui.py": "f9b17e79f2b512c6aa9935b63a425f2e2ee7ddd99736398489ce2e0a7763b8a4",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.bpf.c": "b869936da7b795ddf29bde6959d067c4d89e67d3859f19891376fbaa0fd9be60",
+        "src/soc_agent/security_ai/ebpf_tc/broker.c": "5d532a31350720d5e1cb7410f5fc3e06e960480fd6ff3a69db8909b063dd3b69",
+        "src/soc_agent/security_ai/ebpf_tc/__init__.py": "d20ec34b506b1106c5e78dec06ef103f996cbdb479f96e64985b0aeb9ccbea38",
+        "src/soc_agent/security_ai/ebpf_tc/os.c": "2ded3879bd1f638208c7f0489eded125edbf214f4368c00bf5f4a1268d057bf7",
+        "src/soc_agent/security_ai/ebpf_tc/pam-policy.conf": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.py": "e4d9e60ba96cfc8a6eca5b376c50f1868d367a16ea5d3aca5e38d9de507c77d4",
+        "src/soc_agent/security_ai/ebpf_tc/core.c": "41771a7e3b2d338dbe71102d6d82614bca6502eaf0c55f1f19c1ac0d2a364523",
+        "src/soc_agent/security_ai/ebpf_tc/bootstrap.c": "75d055be8c2d50a73a703567ea41867944967a698942e14a30dce74832a6279f",
+        "src/soc_agent/security_ai/ebpf_tc/install_simulation.py": "0cc78659d78a21e29fdf1dab6afb2e8cf918bf89ab5235240126bf3629d80fbf",
+        "src/soc_agent/security_ai/ebpf_tc/__main__.py": "20e7b5fefa6a0a1a06a76fe89f644344f8ce7cfe579f0a3b3564f5eda290a227",
+        "src/soc_agent/security_ai/ebpf_tc/data.h": "82508d38f1fed4beb535f6787dbef35fef50f7ae67628cbeb495788d629e32bd",
+        "src/soc_agent/security_ai/ebpf_tc/tcx_probe.c": "0b977991f258a419df7240395214be2f0d214ccc3d2eb8ce243c86d030e5c398",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.h": "0f053035e2ae8cb260ed88a75914d870504c2daf14495d8f981a670a926f58ec",
+        "src/soc_agent/security_ai/ebpf/ring.py": "6981d37245c496f1f31388eecd2c481ad9d177a36a20183fa46c082a2a0968ec",
+        "src/soc_agent/security_ai/ebpf/models.py": "af99220e214c31b5af12b84432b2647fc6cd722b5a5c36b2b4ba1c301d1511d7",
+        "src/soc_agent/security_ai/ebpf/collector.py": "3330824674d6bd1a46009bae56c8100954ad26bb42f51275e4a3a48d5ee0370c",
+        "src/soc_agent/security_ai/ebpf/parser.h": "78f6916f8e6d858f217eeb326fe7d0cd3554cc64b71b6cd63fb2c503f6147aa9",
+        "src/soc_agent/security_ai/ebpf/build.py": "b881311b844d623b2f0f2731aa8274120944a1bc0ebb3f20384d239c8bd95a8f",
+        "src/soc_agent/security_ai/ebpf/clock.py": "dc5492759e0d44f7f17040dd82ba9599a151eb932500062520460c91686e519d",
+        "src/soc_agent/security_ai/ebpf/gui.py": "f05a16d1fd47071217f1136076d0d8fee70632eef61e552000c94622409b623b",
+        "src/soc_agent/security_ai/ebpf/__init__.py": "77e0220e07a6fc2fe168affac53245138dfe7eee5add9af3264abe8340b00c0c",
+        "src/soc_agent/security_ai/ebpf/tc.bpf.c": "80ad1d13d0e703b4b446e83150be8b29fc228bada2e05db7ea47836ecfe36649",
+        "src/soc_agent/security_ai/ebpf/event.h": "8d647d30e666196ae354f3cc14e7cd35e5cb7a172aa775d30b8b10d285548c12",
+        "src/soc_agent/security_ai/ebpf/consumer.c": "b68b72f8a77c6e4f934dd30cd66ab646920e368a90253e7a891a9880ac4cf91b",
+        "src/soc_agent/security_ai/ebpf/__main__.py": "34d0eea068a304751e20d2fae558c58816d873c2b6d88b2ef6bd1494470cafa8",
+        "src/soc_agent/security_ai/collectors/packet_producer.py": "e010836c634d40d7149b8a39bc6085a9f6d08728f4b49606a7b8602d0d744173"
+      }
+    },
+    "gui_handoff": {
+      "exit_code": 0,
+      "seconds": 58.65783163404558,
+      "summary": "..                                                                       [100%]\n2 passed in 56.84s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "paths": [
+        "tests/gui_tcx_data_checks.py",
+        "tests/gui_ebpf_handoff_checks.py"
+      ],
+      "source_sha256": {
+        "src/soc_agent/security_ai/ebpf_tc/data_plane.py": "a1516e5ca5d8978360f1e95882510df29fd931fbc736779b26f97e5c67b721b1",
+        "src/soc_agent/security_ai/ebpf_tc/release.py": "2d7a0102f405a8eb580a017aadc1d6809b497052fe171d200fc98358c6f9ccad",
+        "src/soc_agent/security_ai/ebpf_tc/tcx_dispatch.c": "50f79b83f5560cecfd2754758f7c920a56b340138a77448a62de0861b8e91a8b",
+        "src/soc_agent/security_ai/ebpf_tc/qualification.py": "ce70e46b08542722de2c64918cf817d5d67d830e47af376da374b88716b6e2b1",
+        "src/soc_agent/security_ai/ebpf_tc/fixture.c": "5488d55c66f0c4b5cb06966c8147727edb478a22b0160b8b57ebafbb8f21990c",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.c": "1c1c85bd61e290e8a71a310511de1ad187607ff03bc146b8bbfbb15120bdc767",
+        "src/soc_agent/security_ai/ebpf_tc/tcx_fixture.c": "216d0e63fd5f4c24ddfc7f5d122a976b87870cca85cf089a79c99c7260625efe",
+        "src/soc_agent/security_ai/ebpf_tc/dependencies.py": "b4a2ca8b8a86156fc830174a4ebb21b9192b785fb32e0d7fb65d64c462bb0064",
+        "src/soc_agent/security_ai/ebpf_tc/native.h": "514ebcc417b27e2ee88bd1aa0487e1ad9e1f02fc9bbd0e62a6b4079353902162",
+        "src/soc_agent/security_ai/ebpf_tc/dispatch_fixture.c": "f3db43550f9dc28dc980b7f58002d0f1b09f165ac00acc05e9d6fcb3df19f50c",
+        "src/soc_agent/security_ai/ebpf_tc/handoff.h": "b624455df57279133bcedcde8f37b0c3f1a89e2bd42f4c078b1cc1e79fa5c6f1",
+        "src/soc_agent/security_ai/ebpf_tc/pam_abi.h": "274cead4866bd79ef66630e92a4fb3f3d3c12a42d92c8c4579cb6c4f81706ec0",
+        "src/soc_agent/security_ai/ebpf_tc/trust.c": "9a3b14839a0d02e64432b46d630c8defd18a909b411eb7e2ac8240252939dc31",
+        "src/soc_agent/security_ai/ebpf_tc/netlink.c": "aa4733743fb5bc825719a811dda22eda6cfe30d58ae5be0d6cb59abdb5923c86",
+        "src/soc_agent/security_ai/ebpf_tc/dynamic_trust.py": "69af9c1be4dc51cf1c5aef5eebe313e5dcc91aabe0161d17942ef13bd40ebf65",
+        "src/soc_agent/security_ai/ebpf_tc/bridge.py": "6f4b99b4ad280af2212164426852b00969b5e475550d0616355bbad0e8d032e6",
+        "src/soc_agent/security_ai/ebpf_tc/contracts.py": "78e5e6e7453735497f1aa636350b5e54281b8a42b0c8c23251c5aa3e7ec1fdda",
+        "src/soc_agent/security_ai/ebpf_tc/entry.c": "10a77124a008c332474694648ea2ac57d0107d5bd265393f3251db5bb82f759c",
+        "src/soc_agent/security_ai/ebpf_tc/loader.c": "060ffafe96cf4dc2776b2b8d1c3d7986aa0fab97ad72deda93aba6a59592b3d5",
+        "src/soc_agent/security_ai/ebpf_tc/build.py": "4743ab409418591ac9dcc78333ecfa375e8165930e16804ebf14680bf774cda2",
+        "src/soc_agent/security_ai/ebpf_tc/journal.py": "063b04a92f6df19c294d93b4c7d1c1e3cad6fac2873d032c59e278c2f66c708b",
+        "src/soc_agent/security_ai/ebpf_tc/trust.py": "a4dc111dc48acfaec542b1f7667f5bc161be2c3450b36862aa0ffd9b127a5b03",
+        "src/soc_agent/security_ai/ebpf_tc/data.c": "aba5fc22966e9fa47040ff07b70b02462b87ad492a464aa8d9493f715a0b3c1a",
+        "src/soc_agent/security_ai/ebpf_tc/os_handoff.py": "986c6857f7ed03a99539cb93467cdee970f68c33c94729290220ab427a21bc0a",
+        "src/soc_agent/security_ai/ebpf_tc/auth_qualification.py": "3190f47835e661e33ba1f55bf0d0b8b9da0294ecce18d1b9ff37e8f99e2a2b68",
+        "src/soc_agent/security_ai/ebpf_tc/installation.py": "42c2972d8033ebe798f012ae25296b3a5c5ce0feb485ca55e9f34343d243aaf1",
+        "src/soc_agent/security_ai/ebpf_tc/handoff_fixture.c": "e07071859a6c83e14f0031035a338d163bcaaf54b632f52ea3e5a22d6dc02f53",
+        "src/soc_agent/security_ai/ebpf_tc/handoff.c": "737c7ca4bb128544d0b3600377b3fdc0d05314532eab454fee4be638115b211f",
+        "src/soc_agent/security_ai/ebpf_tc/os_bootstrap.c": "5aa0f94126963fe3c86ac272923e7bdf57cd78a4bfe477a845e0964ac3fcc28a",
+        "src/soc_agent/security_ai/ebpf_tc/gui.py": "f9b17e79f2b512c6aa9935b63a425f2e2ee7ddd99736398489ce2e0a7763b8a4",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.bpf.c": "b869936da7b795ddf29bde6959d067c4d89e67d3859f19891376fbaa0fd9be60",
+        "src/soc_agent/security_ai/ebpf_tc/broker.c": "5d532a31350720d5e1cb7410f5fc3e06e960480fd6ff3a69db8909b063dd3b69",
+        "src/soc_agent/security_ai/ebpf_tc/__init__.py": "d20ec34b506b1106c5e78dec06ef103f996cbdb479f96e64985b0aeb9ccbea38",
+        "src/soc_agent/security_ai/ebpf_tc/os.c": "2ded3879bd1f638208c7f0489eded125edbf214f4368c00bf5f4a1268d057bf7",
+        "src/soc_agent/security_ai/ebpf_tc/pam-policy.conf": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.py": "e4d9e60ba96cfc8a6eca5b376c50f1868d367a16ea5d3aca5e38d9de507c77d4",
+        "src/soc_agent/security_ai/ebpf_tc/core.c": "41771a7e3b2d338dbe71102d6d82614bca6502eaf0c55f1f19c1ac0d2a364523",
+        "src/soc_agent/security_ai/ebpf_tc/bootstrap.c": "75d055be8c2d50a73a703567ea41867944967a698942e14a30dce74832a6279f",
+        "src/soc_agent/security_ai/ebpf_tc/install_simulation.py": "0cc78659d78a21e29fdf1dab6afb2e8cf918bf89ab5235240126bf3629d80fbf",
+        "src/soc_agent/security_ai/ebpf_tc/__main__.py": "20e7b5fefa6a0a1a06a76fe89f644344f8ce7cfe579f0a3b3564f5eda290a227",
+        "src/soc_agent/security_ai/ebpf_tc/data.h": "82508d38f1fed4beb535f6787dbef35fef50f7ae67628cbeb495788d629e32bd",
+        "src/soc_agent/security_ai/ebpf_tc/tcx_probe.c": "0b977991f258a419df7240395214be2f0d214ccc3d2eb8ce243c86d030e5c398",
+        "src/soc_agent/security_ai/ebpf_tc/tcx.h": "0f053035e2ae8cb260ed88a75914d870504c2daf14495d8f981a670a926f58ec",
+        "src/soc_agent/security_ai/ebpf/ring.py": "6981d37245c496f1f31388eecd2c481ad9d177a36a20183fa46c082a2a0968ec",
+        "src/soc_agent/security_ai/ebpf/models.py": "af99220e214c31b5af12b84432b2647fc6cd722b5a5c36b2b4ba1c301d1511d7",
+        "src/soc_agent/security_ai/ebpf/collector.py": "3330824674d6bd1a46009bae56c8100954ad26bb42f51275e4a3a48d5ee0370c",
+        "src/soc_agent/security_ai/ebpf/parser.h": "78f6916f8e6d858f217eeb326fe7d0cd3554cc64b71b6cd63fb2c503f6147aa9",
+        "src/soc_agent/security_ai/ebpf/build.py": "b881311b844d623b2f0f2731aa8274120944a1bc0ebb3f20384d239c8bd95a8f",
+        "src/soc_agent/security_ai/ebpf/clock.py": "dc5492759e0d44f7f17040dd82ba9599a151eb932500062520460c91686e519d",
+        "src/soc_agent/security_ai/ebpf/gui.py": "f05a16d1fd47071217f1136076d0d8fee70632eef61e552000c94622409b623b",
+        "src/soc_agent/security_ai/ebpf/__init__.py": "77e0220e07a6fc2fe168affac53245138dfe7eee5add9af3264abe8340b00c0c",
+        "src/soc_agent/security_ai/ebpf/tc.bpf.c": "80ad1d13d0e703b4b446e83150be8b29fc228bada2e05db7ea47836ecfe36649",
+        "src/soc_agent/security_ai/ebpf/event.h": "8d647d30e666196ae354f3cc14e7cd35e5cb7a172aa775d30b8b10d285548c12",
+        "src/soc_agent/security_ai/ebpf/consumer.c": "b68b72f8a77c6e4f934dd30cd66ab646920e368a90253e7a891a9880ac4cf91b",
+        "src/soc_agent/security_ai/ebpf/__main__.py": "34d0eea068a304751e20d2fae558c58816d873c2b6d88b2ef6bd1494470cafa8",
+        "src/soc_agent/security_ai/collectors/packet_producer.py": "e010836c634d40d7149b8a39bc6085a9f6d08728f4b49606a7b8602d0d744173"
+      }
+    }
+  },
+  "compiled_contract_cohorts_not_summed": {
+    "native_contract": {
+      "exit_code": 0,
+      "seconds": 225.46798678999767,
+      "resources": [
+        {
+          "available_bytes": 5098848256,
+          "psi": "some avg10=0.00 avg60=0.02 avg300=0.19 total=302331314\nfull avg10=0.00 avg60=0.02 avg300=0.18 total=290331064\n"
+        }
+      ],
+      "tests": [
+        "tests/unit/ebpf_tc",
+        "tests/integration/ebpf_tc",
+        "tests/gui_ebpf_tc_checks.py"
+      ],
+      "summary": "........................................................................ [ 48%]\n........................................................................ [ 97%]\n...                                                                      [100%]\n147 passed in 222.99s (0:03:42)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "broker": {
+      "exit_code": 0,
+      "seconds": 32.22324777196627,
+      "resources": [
+        {
+          "available_bytes": 4986978304,
+          "psi": "some avg10=0.00 avg60=0.09 avg300=0.15 total=302824183\nfull avg10=0.00 avg60=0.09 avg300=0.14 total=290811450\n"
+        }
+      ],
+      "tests": [
+        "tests/unit/ebpf_broker",
+        "tests/integration/ebpf_broker",
+        "tests/gui_ebpf_broker_checks.py"
+      ],
+      "summary": "...............................................................          [100%]\n63 passed in 30.15s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    }
+  },
+  "initial_structural_cohort": {
+    "exit_code": 0,
+    "seconds": 468.0767700720462,
+    "resources": [
+      {
+        "available_bytes": 4929421312,
+        "psi": "some avg10=0.00 avg60=0.29 avg300=0.56 total=301342865\nfull avg10=0.00 avg60=0.27 avg300=0.53 total=289367016\n"
+      }
+    ],
+    "tests": [
+      "tests/unit/tcx_data",
+      "tests/integration/ebpf_handoff",
+      "tests/integration/ebpf_remediation",
+      "tests/integration/ebpf_release",
+      "tests/integration/ebpf_dynamic_trust",
+      "tests/unit/ebpf_install",
+      "tests/integration/ebpf_install"
+    ],
+    "summary": "........................................................................ [ 24%]\n........................................................................ [ 49%]\n........................................................................ [ 73%]\n........................................................................ [ 98%]\n....                                                                     [100%]\n292 passed in 465.57s (0:07:45)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+  },
+  "late_hardening": {
+    "changed_runtime_files": [
+      "src/soc_agent/security_ai/ebpf_tc/data_plane.py"
+    ],
+    "reason": "Preserve first data failure when shutdown sees an already-closed peer; full affected Handoff/data and GUI tests run on final source, other execution sources/compiled binaries unchanged.",
+    "broad_export": "/tmp/soc-c1-wgu0imps/SOC",
+    "final_export": "/tmp/soc-c1-final-jj0w_hkj/SOC"
+  },
+  "prior_regression_failure": {
+    "exit_code": 1,
+    "seconds": 77.6145183139597,
+    "resources": [
+      {
+        "available_bytes": 4984815616,
+        "psi": "some avg10=0.00 avg60=0.05 avg300=0.13 total=302832124\nfull avg10=0.00 avg60=0.05 avg300=0.12 total=290819332\n"
+      }
+    ],
+    "tests": [
+      "tests/unit/ebpf_native",
+      "tests/unit/ebpf",
+      "tests/unit/zeek_attestation",
+      "tests/unit/zeek_preprocessing",
+      "tests/unit/zeek_integrity",
+      "tests/unit/zeek_startup",
+      "tests/unit/zeek_finalization",
+      "tests/unit/zeek_lifecycle",
+      "tests/unit/zeek_live",
+      "tests/unit/zeek_producer",
+      "tests/unit/zeek_collector",
+      "tests/unit/gui",
+      "tests/unit/production_slimming",
+      "tests/unit/research_adapter",
+      "tests/unit/streaming_network"
+    ],
+    "summary": "E             - 937dd21dd5c35dea212a4456a69542bbbf54e4721ebd8068dd0db6670d6e5f5d\nE             + 3330824674d6bd1a46009bae56c8100954ad26bb42f51275e4a3a48d5ee0370c\n\ntests/unit/ebpf/test_evidence.py:22: AssertionError\n__________________ test_current_bundle_and_native_boundaries ___________________\n\n    def test_current_bundle_and_native_boundaries():\n        v = evidence()\n        # Historical proof remains immutable; admit only the reviewed B-1 Launcher delta.\n        amendment = json.loads(\n            (ROOT / (\"docs/linux-soc-v1/ebpf-privileged-broker-tc-ownership-evidence.json\")).read_text()\n        )[\"zeek_launcher_update\"]\n        assert amendment[\"previous_bundle\"] == v[\"bundle\"]\n        assert amendment[\"previous_bundle_digest\"] == v[\"bundle_digest\"]\n>       assert amendment[\"current_bundle\"] == bundle()\nE       AssertionError: assert {'live.py': '...26c9272', ...} == {'live.py': '...26c9272', ...}\nE         \nE         Omitting 30 identical items, use -vv to show\nE         Differing items:\nE         {'packet_producer.py': 'db98b4b5179549ac152110894935ed4294414fd249fd3bd11dd491b9d0255034'} != {'packet_producer.py': 'e010836c634d40d7149b8a39bc6085a9f6d08728f4b49606a7b8602d0d744173'}\nE         Use -v to get more diff\n\ntests/unit/zeek_attestation/test_evidence.py:29: AssertionError\n=========================== short test summary info ============================\nFAILED tests/unit/ebpf/test_boundary.py::test_zeek_bundle_changes_only_for_reviewed_failure_certificate_order\nFAILED tests/unit/ebpf/test_evidence.py::test_current_sources_and_explicit_native_blockers\nFAILED tests/unit/zeek_attestation/test_evidence.py::test_current_bundle_and_native_boundaries\n3 failed, 692 passed in 75.28s (0:01:15)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+  },
+  "harness_and_development_history": [
+    "Initial focused run:3 failures/12 pass; C data header used inner plan approval instead of outer release approval. Corrected emitter to bind outer digest; validation not weakened. Corrected focused run15 pass.",
+    "Two development qualifications intentionally interrupted to finish run identity and continuous consumption design; neither counted as final PASS. Transcripts retained.",
+    "Initial broad regression:3 failed/692 passed due historical current-SHA assertions after the reviewed shared-producer/adapter extension. Old evidence preserved; original source snapshots and C-1 amendment chain added. Complete695-case cohort rerun.",
+    "Late reader robustness: keep first failure on shutdown and explicitly record selector failures. Complete affected data/Handoff and GUI cohorts run on final source; unchanged C execution sources and binaries retain their independent compile/fixture evidence."
+  ],
+  "offline_models": {
+    "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+    "receipts": [
+      {
+        "profile": "quality",
+        "status": "COMPLETE",
+        "receipt": {
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "aaa1d246-efe8-45ca-a92a-ecc0a2f65aec",
+          "contract": "soc-zeek-network14-receipt:v1",
+          "event_time": "2027-01-15T08:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "46d0d24a2f62e796a097ee8672ba033870cb24c03b01ed4f6fa260e9cc7a96a3",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "34fbcf85d1949e937608207e651ba510da3edce72944ade4a1dd4516fb27db6d",
+          "inference_latency_ms": 10.817060014232993,
+          "inferred_at": "2026-10-20T10:12:04.953914Z",
+          "invocation_id": "a26c0e72-d41d-4f40-96bd-be6024b9981a",
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "operational_inference": "BLOCKED",
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "packet_count": 3,
+          "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+          "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_origin": "OFFLINE_PCAP",
+          "producer_version": "1.1.0",
+          "profile": "quality",
+          "provenance_digest": "8d2730a2d02abc7bebe158150794410dafa96b23adb882445affd2151f9763d3",
+          "request_digest": "defe352a34789561a8d15391d34608f87719b6c6ad42081748ee3c3d42d2cfe9",
+          "score": 0.140625,
+          "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+          "source_digest": "d3168443d02e299d3506af34bc6bab93be7d8342abb904c6be40fa38a3a84334",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.35,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 2.264865,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 233955328,
+          "write_policy": "WRITE_DENIED",
+          "zeek_producer_version": "zeek-packet-network14:v1"
+        },
+        "investigation_status": "ASSESSED_READ_ONLY",
+        "write_policy": "WRITE_DENIED"
+      },
+      {
+        "profile": "edge",
+        "status": "COMPLETE",
+        "receipt": {
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "aaa1d246-efe8-45ca-a92a-ecc0a2f65aec",
+          "contract": "soc-zeek-network14-receipt:v1",
+          "event_time": "2027-01-15T08:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "46d0d24a2f62e796a097ee8672ba033870cb24c03b01ed4f6fa260e9cc7a96a3",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "34fbcf85d1949e937608207e651ba510da3edce72944ade4a1dd4516fb27db6d",
+          "inference_latency_ms": 7.14572099968791,
+          "inferred_at": "2026-10-20T10:12:07.337922Z",
+          "invocation_id": "d2e06a5f-a6e3-4e44-a86e-67834d32792c",
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "operational_inference": "BLOCKED",
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "packet_count": 3,
+          "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+          "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_origin": "OFFLINE_PCAP",
+          "producer_version": "1.1.0",
+          "profile": "edge",
+          "provenance_digest": "8d2730a2d02abc7bebe158150794410dafa96b23adb882445affd2151f9763d3",
+          "request_digest": "6f4c0246372fe8dd29b79bb3abfeb4464a4a2fa0c6e77d69b2e4084e414b03ec",
+          "score": 0.08766025304794312,
+          "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+          "source_digest": "d3168443d02e299d3506af34bc6bab93be7d8342abb904c6be40fa38a3a84334",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.8,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 1.630115,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 233250816,
+          "write_policy": "WRITE_DENIED",
+          "zeek_producer_version": "zeek-packet-network14:v1"
+        },
+        "investigation_status": "ASSESSED_READ_ONLY",
+        "write_policy": "WRITE_DENIED"
+      }
+    ],
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "packet_count": 4,
+    "flow_count": 2,
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "audit_digest": "8a4d9111b2a63c50b6a4bce52b92cf77a527af33324e4238d0429523c7a037a7",
+    "recovered_audit_digest": "8a4d9111b2a63c50b6a4bce52b92cf77a527af33324e4238d0429523c7a037a7",
+    "restored_new_inferences": 0,
+    "cleanup_verified": true,
+    "elapsed_seconds": 9.035559086943977,
+    "cpu_seconds": 1.2174662589999996,
+    "process_peak_rss_bytes": 185434112
+  },
+  "quality": {
+    "ruff": {
+      "exit_code": 0,
+      "seconds": 0.18920751998666674,
+      "summary": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "seconds": 0.14964697899995372,
+      "summary": "1259 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "seconds": 0.2219944960088469,
+      "summary": "Building wheel...\nSuccessfully built dist/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    },
+    "wheel_source_files_matched": 553,
+    "diff_check": true
+  },
+  "performance": {
+    "runtime": {
+      "scope": "OFFLINE_FIXTURE_NOT_KERNEL_THROUGHPUT",
+      "release_verification_ms": [
+        97.41534700151533,
+        94.76150799309835,
+        102.31392597779632
+      ],
+      "release_verification_median_ms": 97.41534700151533,
+      "psi": "some avg10=0.53 avg60=0.29 avg300=0.07 total=303424412\nfull avg10=0.53 avg60=0.29 avg300=0.07 total=291385739\n",
+      "gui": {
+        "0": {
+          "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+          "mode": "operator",
+          "startup_seconds": 3.3935638340190053,
+          "startup_cpu_seconds": 4.411670598000001,
+          "idle_rss_bytes": 183803904,
+          "process_image_peak_rss_bytes": 186707968,
+          "idle_seconds": 3.006240967020858,
+          "idle_cpu_seconds": 0.012954523000000329,
+          "idle_cpu_one_core_percent": 0.43092097879426067,
+          "response_p50_ms": 0.019698,
+          "response_p95_ms": 0.053043,
+          "widgets": 69,
+          "threads": 2,
+          "background_async_tasks": 0,
+          "idle_child_processes": 0,
+          "backend_completion_polls_per_second": 0.0,
+          "model_service_created": false,
+          "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+          "created_runtime_owners": 0,
+          "gui_worker_stopped": true,
+          "remaining_child_processes": 0,
+          "controller_sqlite_statements_total": 0,
+          "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+        },
+        "1": {
+          "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+          "mode": "operator",
+          "startup_seconds": 2.7242708789999597,
+          "startup_cpu_seconds": 4.228745979,
+          "idle_rss_bytes": 183332864,
+          "process_image_peak_rss_bytes": 187199488,
+          "idle_seconds": 3.0152757970499806,
+          "idle_cpu_seconds": 0.007737226000000597,
+          "idle_cpu_one_core_percent": 0.2566009387124844,
+          "response_p50_ms": 0.017305,
+          "response_p95_ms": 0.041666,
+          "widgets": 69,
+          "threads": 2,
+          "background_async_tasks": 0,
+          "idle_child_processes": 0,
+          "backend_completion_polls_per_second": 0.0,
+          "model_service_created": false,
+          "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+          "created_runtime_owners": 0,
+          "gui_worker_stopped": true,
+          "remaining_child_processes": 0,
+          "controller_sqlite_statements_total": 0,
+          "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+        },
+        "2": {
+          "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+          "mode": "operator",
+          "startup_seconds": 2.9121001040330157,
+          "startup_cpu_seconds": 4.057453650999999,
+          "idle_rss_bytes": 183308288,
+          "process_image_peak_rss_bytes": 187351040,
+          "idle_seconds": 3.014664069050923,
+          "idle_cpu_seconds": 0.01303857300000022,
+          "idle_cpu_one_core_percent": 0.4325050055777864,
+          "response_p50_ms": 0.024532,
+          "response_p95_ms": 0.059909,
+          "widgets": 69,
+          "threads": 2,
+          "background_async_tasks": 0,
+          "idle_child_processes": 0,
+          "backend_completion_polls_per_second": 0.0,
+          "model_service_created": false,
+          "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+          "created_runtime_owners": 0,
+          "gui_worker_stopped": true,
+          "remaining_child_processes": 0,
+          "controller_sqlite_statements_total": 0,
+          "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+        }
+      },
+      "gui_summary": {
+        "repetitions": 3,
+        "startup_median_seconds": 2.9121001040330157,
+        "idle_rss_median_mib": 174.83984375,
+        "response_p50_median_ms": 0.019698
+      },
+      "psi_after": "some avg10=0.13 avg60=0.26 avg300=0.08 total=303532641\nfull avg10=0.13 avg60=0.26 avg300=0.08 total=291477968\n"
+    },
+    "data": {
+      "scope": "ORDINARY_UID_C_SOCKET_AND_PYTHON_FIXTURE_NOT_KERNEL",
+      "repetitions": 3,
+      "packet_decode_mean_ns_per_sample": [
+        20245.08,
+        24736.735,
+        18340.904
+      ],
+      "packet_decode_median_ns": 20245.08,
+      "delivery": [
+        {
+          "records": 24,
+          "delivery_and_feature_checkpoint_ns": 203873372,
+          "events_per_second": 117.72013070936994,
+          "controller_cpu_seconds": 0.11841690600000021,
+          "queue_peak": 24,
+          "queue_final": 0,
+          "socket_send_failures": 0,
+          "feature_history_size": 1
+        },
+        {
+          "records": 24,
+          "delivery_and_feature_checkpoint_ns": 116115719,
+          "events_per_second": 206.69036205167018,
+          "controller_cpu_seconds": 0.06566346800000034,
+          "queue_peak": 24,
+          "queue_final": 0,
+          "socket_send_failures": 0,
+          "feature_history_size": 1
+        },
+        {
+          "records": 24,
+          "delivery_and_feature_checkpoint_ns": 120954356,
+          "events_per_second": 198.42195679170084,
+          "controller_cpu_seconds": 0.06709253499999956,
+          "queue_peak": 24,
+          "queue_final": 0,
+          "socket_send_failures": 0,
+          "feature_history_size": 1
+        }
+      ],
+      "delivery_median_ms": 120.954356,
+      "cpu_scope": "CONTROLLER_ONLY_EXCLUDES_C_COMPILER_AND_CHILD_CPU",
+      "peak_rss_bytes": 168374272,
+      "psi": "some avg10=0.09 avg60=0.10 avg300=0.06 total=303609870\nfull avg10=0.09 avg60=0.10 avg300=0.06 total=291549559\n",
+      "comparison": "No prior comparable packet data plane; no Native performance claim"
+    }
+  },
+  "preservation": {
+    "SOC": 122,
+    "ML": 10,
+    "protected_unchanged": 400,
+    "reviewed_source_amendments": 4,
+    "raw_stat": 58
+  },
+  "historical_files_unchanged": 10,
+  "native_capture_executed": false,
+  "native_auth_executed": false,
+  "native_kernel_load_executed": false,
+  "network_changes": false,
+  "traffic_generated": false,
+  "native_ai": "BLOCKED",
+  "native_release": "BLOCKED",
+  "independent_export": {
+    "base": "GIT_ARCHIVE_HEAD_PLUS_OWN_FILES",
+    "exclude_user_native_archive_replay_models_raw": true,
+    "wheel_sources_matched": 553,
+    "workspace_export_stage_match": "REQUIRED_BEFORE_COMMIT_PRIVATE_LEDGER"
+  },
+  "sigill_root_cause": "UNKNOWN"
+}

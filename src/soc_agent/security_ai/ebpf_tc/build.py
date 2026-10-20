@@ -20,6 +20,12 @@ def bundle() -> dict[str, str]:
             if p.suffix in {".py", ".c", ".h", ".conf"}
         }
     )
+    # Bind the unprivileged metadata/feature contract as well as privileged code.
+    for name in ("clock.py", "collector.py", "models.py", "ring.py", "event.h", "parser.h"):
+        p = ROOT.parent / "ebpf" / name
+        result["data_adapter/" + name] = hashlib.sha256(p.read_bytes()).hexdigest()
+    p = ROOT.parent / "collectors" / "packet_producer.py"
+    result["data_adapter/packet_producer.py"] = hashlib.sha256(p.read_bytes()).hexdigest()
     return result
 
 
@@ -56,6 +62,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                     "handoff.c",
                     "netlink.c",
                     "loader.c",
+                    "data.c",
                     "tcx.c",
                     "tcx_dispatch.c",
                 )
@@ -94,6 +101,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                     "handoff.c",
                     "netlink.c",
                     "loader.c",
+                    "data.c",
                     "tcx.c",
                     "tcx_dispatch.c",
                 )
@@ -138,12 +146,28 @@ def compile_native(destination: Path) -> dict[str, str]:
             *FLAGS,
             *[
                 str(ROOT / n)
-                for n in ("handoff_fixture.c", "handoff.c", "core.c", "os.c", "trust.c")
+                for n in ("handoff_fixture.c", "handoff.c", "data.c", "core.c", "os.c", "trust.c")
             ],
             "-lcrypto",
             "-Wl,-z,relro,-z,now,-z,noexecstack",
             "-o",
             str(destination / "os-handoff-fixture"),
+        ]
+    )
+    # Ordinary-UID packet replay peer; never installed or selected by Native argv.
+    commands.append(
+        [
+            "cc",
+            *FLAGS,
+            "-DSOC_PACKET_FIXTURE=1",
+            *[
+                str(ROOT / n)
+                for n in ("handoff_fixture.c", "handoff.c", "data.c", "core.c", "os.c", "trust.c")
+            ],
+            "-lcrypto",
+            "-Wl,-z,relro,-z,now,-z,noexecstack",
+            "-o",
+            str(destination / "packet-handoff-fixture"),
         ]
     )
     for command in commands:

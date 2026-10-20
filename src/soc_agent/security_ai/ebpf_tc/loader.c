@@ -2,6 +2,7 @@
 extern char **environ;
 #include "native.h"
 #include "tcx.h"
+#include "data.h"
 #include "../ebpf/event.h"
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
@@ -28,8 +29,7 @@ static int emit(void *arg,void *body,size_t size) {
     if(e->generation!=s->generation || e->ifindex!=s->plan.ifindex || e->hook!=s->plan.hook)
         return -EPROTO;
     /* Dedicated bounded nonblocking metadata channel; no stdout/payload persistence. */
-    ssize_t n=send(s->ipc_fd,body,size,MSG_DONTWAIT|MSG_NOSIGNAL);
-    return n==(ssize_t)size?0:-ENOBUFS;
+    return soc_data_emit(s,body,size);
 }
 static int load(struct soc_state *s) {
     if(validate(s) || soc_environment_contract(environ) || soc_release_check(&s->plan,s->release_sha,s->release_version,3) ||

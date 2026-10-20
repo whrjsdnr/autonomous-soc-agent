@@ -78,6 +78,7 @@ struct soc_state {
     struct soc_plan plan;struct soc_owner owner;const struct soc_ops *ops;
     struct soc_snapshot before;void *context;
     uint64_t started_ns, generation;uint32_t handle, attempts, sequence;
+    int data_fd;uint32_t data_source;uint64_t data_sequence,data_loss,data_ended_generation;uint8_t data_approval[32];
     int object_fd, ipc_fd, audit_fd, stopping, loaded, attached, failed, cleanup_verified;
     uint8_t audit_previous[32];uint32_t audit_records;
 };

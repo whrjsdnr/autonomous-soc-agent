@@ -7,6 +7,7 @@ Only the explicitly named ordinary-UID transport fixture may be spawned here.
 import array
 import hashlib
 import os
+import select
 import socket
 import struct
 import subprocess
@@ -21,6 +22,7 @@ from soc_agent.security_ai.ebpf_broker.contracts import Command
 from soc_agent.security_ai.ebpf_native.application import Application
 from soc_agent.security_ai.ebpf_native.contracts import alive, local_controller, process_identity
 from soc_agent.security_ai.ebpf_tc.contracts import OWNER, NativePlan, request
+from soc_agent.security_ai.ebpf_tc.data_plane import PacketChannel
 from soc_agent.security_ai.ebpf_tc.dependencies import read_held
 from soc_agent.security_ai.ebpf_tc.installation import ReleaseManifest, verify_package
 from soc_agent.security_ai.ebpf_tc.journal import KINDS, TCX_KINDS, recover_native
@@ -90,6 +92,7 @@ class Handoff:
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
         self.audit_path = application.directory / "os-handoff-journal.bin"
         self.audit_fd = -1
+        self.data = PacketChannel(plan, self.approval, application.directory)
 
     def _event(self, kind: str, **details) -> None:
         self.application._event(
@@ -138,6 +141,7 @@ class Handoff:
         try:
             listener.bind(f"\0soc-ebpf.{uid}.{session}")
             listener.listen(1)
+            self.data.listen()
             self._event("APP_SESSION_PREPARED")
         except BaseException:
             listener.close()
@@ -224,7 +228,9 @@ class Handoff:
             os.close(tty)
         return self.snapshot()
 
-    def authenticate_fixture(self, facts: AuthenticationFixture) -> dict:
+    def authenticate_fixture(
+        self, facts: AuthenticationFixture, *, packets: tuple[bytes, ...] = ()
+    ) -> dict:
         if self.state != "AUTHENTICATION_REQUIRED" or self.attempted or self.ended:
             raise ValueError("HANDOFF_AUTHENTICATION_REPLAY")
         self.attempted = True
@@ -234,7 +240,11 @@ class Handoff:
         try:
             facts.validate_contract()
             self._scope()
-            target = self.artifacts / "os-handoff-fixture"
+            if len(packets) > 4096 or any(len(p) != 80 for p in packets):
+                raise ValueError("TCX_PACKET_FIXTURE_BOUND")
+            target = self.artifacts / (
+                "packet-handoff-fixture" if packets else "os-handoff-fixture"
+            )
             # Fixed test-only target, ordinary UID, never a sudo/Root fallback.
             import tempfile
 
@@ -248,9 +258,18 @@ class Handoff:
             executable = os.memfd_create(
                 "soc-unprivileged-handoff-fixture", os.MFD_ALLOW_SEALING | os.MFD_CLOEXEC
             )
+            events = -1
             try:
                 import fcntl
 
+                if packets:
+                    events = os.memfd_create(
+                        "soc-packet-fixture", os.MFD_ALLOW_SEALING | os.MFD_CLOEXEC
+                    )
+                    body = b"".join(packets)
+                    if os.write(events, body) != len(body):
+                        raise ValueError("TCX_PACKET_FIXTURE_WRITE")
+                    fcntl.fcntl(events, 1033, 15)
                 if os.write(executable, reference) != len(reference):
                     raise ValueError("HANDOFF_EXECUTABLE_WRITE")
                 fcntl.fcntl(executable, 1033, 15)
@@ -260,15 +279,18 @@ class Handoff:
                         self.plan.broker.application.application_session.hex,
                         self.approval,
                         self.release.identity,
-                    ],
+                    ]
+                    + ([str(events)] if events >= 0 else []),
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    pass_fds=(executable,),
+                    pass_fds=(executable,) + ((events,) if events >= 0 else ()),
                     env={"PATH": "/usr/bin:/bin", "LANG": "C"},
                 )
             finally:
                 os.close(executable)
+                if events >= 0:
+                    os.close(events)
             self._bind(fixture=True)
         except (OSError, ValueError, EOFError):
             self._reject("HANDOFF_AUTHENTICATION_FAILED")
@@ -322,6 +344,8 @@ class Handoff:
         self._hello(1, fixture)
         self._event("OS_AUTH_HANDOFF_VERIFIED", verified_scope="FIXTURE" if fixture else "OS")
         self._hello(2, fixture)
+        self.data.bind(self.identity, fixture=fixture)
+        self._event("TCX_DATA_CHANNEL_BOUND", data=self.data.snapshot())
         self._scope()
         self.deadline = time.monotonic() + 3600
         self.authentication = "MOCK_VERIFIED_NOT_NATIVE" if fixture else "OS_AUTHENTICATED"
@@ -332,6 +356,16 @@ class Handoff:
     def _packet(self, *, uid: int, gid: int) -> bytes:
         if self.channel is None or self.identity is None:
             raise ValueError("HANDOFF_CHANNEL_REQUIRED")
+        deadline = time.monotonic() + 5
+        while True:
+            if self.data.error:
+                raise ValueError("HANDOFF_DATA_INTEGRITY_FAILED")
+            if select.select([self.channel], [], [], min(0.1, max(0, deadline - time.monotonic())))[
+                0
+            ]:
+                break
+            if time.monotonic() >= deadline:
+                raise ValueError("HANDOFF_CONTROL_TIMEOUT")
         body, ancillary, flags, _ = self.channel.recvmsg(
             4096, socket.CMSG_SPACE(4 * CREDENTIAL.size), socket.MSG_CMSG_CLOEXEC
         )
@@ -423,6 +457,8 @@ class Handoff:
                 raise ValueError("HANDOFF_RATE_LIMIT")
             self.rate.append(now)
             wire = request(value)
+            if value.command == "ATTACH":
+                self.data.prepare_adapter(int.from_bytes(value.run.generation.bytes[:8], "little"))
             if self.channel.send(wire) != len(wire):
                 raise ValueError("HANDOFF_REQUEST_BOUND")
             body = self._next(uid=self.plan.broker.uid, gid=self.plan.broker.gid)
@@ -431,6 +467,7 @@ class Handoff:
             seq, state, error, reserved, owner = REPLY.unpack(body)
             if seq != value.sequence or reserved or state not in (3, 4) or error:
                 raise ValueError("HANDOFF_BROKER_REQUEST_DENIED")
+            self.data.pump()
             self.sequence = seq
             return {
                 "source": self.origin,
@@ -531,6 +568,10 @@ class Handoff:
                     self.child = None
                 else:
                     self._terminate_fixture()
+        try:
+            self.data.close()
+        except (OSError, ValueError):
+            self.error = self.error or "HANDOFF_DATA_FINALIZATION_UNVERIFIED"
         if self.audit_fd >= 0:
             os.close(self.audit_fd)
             self.audit_fd = -1
@@ -555,6 +596,7 @@ class Handoff:
             if self.child and self.cleanup == "CLEANUP_UNVERIFIED"
             else "CLOSED"
         )
+        self._event("TCX_DATA_FINALIZED", data=self.data.snapshot())
         self._event(
             "CLEANUP_VERIFIED"
             if self.cleanup in {"FIXTURE_VERIFIED", "PROCESS_AND_AUDIT_VERIFIED"}
@@ -590,6 +632,7 @@ class Handoff:
             "native_gate": "BLOCKED",
             "cleanup_status": self.cleanup,
             "source": self.origin,
+            "data_plane": self.data.snapshot(),
             "last_error": self.error,
             "native_ai": "BLOCKED",
             "dns9": "BLOCKED",
