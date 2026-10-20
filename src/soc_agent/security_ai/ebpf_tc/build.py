@@ -53,6 +53,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                     "core.c",
                     "os.c",
                     "trust.c",
+                    "handoff.c",
                     "netlink.c",
                     "loader.c",
                     "tcx.c",
@@ -65,16 +66,13 @@ def compile_native(destination: Path) -> dict[str, str]:
             str(destination / "libnative-tc.so"),
         ],
     ]
-    # Retained, gated PAM migration reference; no custom SUID installation remains.
-    # It cannot acquire privilege or bypass the removed Entry proof creation path.
+    # OS-authenticated entry; no custom PAM/SUID or inherited sudo FD assumptions.
     commands.append(
         [
             "cc",
             *FLAGS,
-            *[str(ROOT / n) for n in ("bootstrap.c", "core.c", "os.c", "trust.c")],
+            *[str(ROOT / n) for n in ("os_bootstrap.c", "handoff.c", "core.c", "os.c", "trust.c")],
             "-lcrypto",
-            "-l:libpam.so.0",
-            "-l:libpam_misc.so.0",
             "-Wl,-z,relro,-z,now,-z,noexecstack",
             "-o",
             str(destination / "bootstrap"),
@@ -93,6 +91,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                     "core.c",
                     "os.c",
                     "trust.c",
+                    "handoff.c",
                     "netlink.c",
                     "loader.c",
                     "tcx.c",
@@ -131,6 +130,20 @@ def compile_native(destination: Path) -> dict[str, str]:
             "-Wl,-rpath,$ORIGIN",
             "-o",
             str(destination / "tcx-dispatch-fixture"),
+        ]
+    )
+    commands.append(
+        [
+            "cc",
+            *FLAGS,
+            *[
+                str(ROOT / n)
+                for n in ("handoff_fixture.c", "handoff.c", "core.c", "os.c", "trust.c")
+            ],
+            "-lcrypto",
+            "-Wl,-z,relro,-z,now,-z,noexecstack",
+            "-o",
+            str(destination / "os-handoff-fixture"),
         ]
     )
     for command in commands:

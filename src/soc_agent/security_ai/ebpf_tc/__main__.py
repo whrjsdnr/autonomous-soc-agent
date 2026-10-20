@@ -24,11 +24,14 @@ def main(argv=None) -> int:
     qualify = subs.add_parser("qualify", help="Read-only release/installation plan; no install")
     qualify.add_argument("--program", type=Path, required=True)
     qualify.add_argument("--artifacts", type=Path, required=True)
-    for name in ("prepare", "fixture"):
+    for name in ("prepare", "fixture", "handoff-prepare", "handoff-fixture"):
         p = subs.add_parser(name)
         for flag in ("program", "inspector", "artifacts", "data-directory"):
             p.add_argument("--" + flag, type=Path, required=True)
         p.add_argument("--gui", action="store_true")
+        if name.startswith("handoff-"):
+            p.add_argument("--package", type=Path, required=True)
+            p.add_argument("--manifest-sha", required=True)
     package = subs.add_parser("package", help="Ordinary-UID release package only")
     package.add_argument("--artifacts", type=Path, required=True)
     package.add_argument("--output", type=Path, required=True)
@@ -127,6 +130,21 @@ def main(argv=None) -> int:
         print("B-2A NATIVE GATE CLOSED / NO OS PASSWORD / NO KERNEL LOAD OR TC ATTACH")
         print(json.dumps(preparation.plan.model_dump(mode="json"), indent=2))
         print("Scope approval digest: " + preparation.plan.approval)
+        if args.mode.startswith("handoff-"):
+            from soc_agent.security_ai.ebpf_tc.os_handoff import AuthenticationFixture
+
+            handoff = preparation.os_auth_handoff(args.package, args.manifest_sha)
+            print(json.dumps(handoff.approval_scope(), indent=2))
+            print("OS handoff approval digest: " + handoff.approval)
+            print("DISPLAY ONLY / NATIVE OS AUTH BLOCKED: " + json.dumps(handoff.sudo_command()))
+            if args.mode == "handoff-fixture":
+                if (
+                    input("Type digest to approve TRANSPORT FIXTURE ONLY: ").strip()
+                    != handoff.approval
+                ):
+                    return 1
+                handoff.approve(handoff.approval)
+                handoff.authenticate_fixture(AuthenticationFixture())
         if args.mode == "fixture":
             if input("Type digest to approve MOCK ONLY: ").strip() != preparation.plan.approval:
                 return 1
@@ -140,6 +158,8 @@ def main(argv=None) -> int:
         print(json.dumps(preparation.snapshot(), indent=2))
         return 0
     finally:
+        if preparation._os_handoff:
+            preparation._os_handoff.close()
         owner.close()
 
 

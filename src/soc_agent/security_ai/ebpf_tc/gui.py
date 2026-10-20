@@ -11,13 +11,25 @@ class PreparedBackend(Backend):
 
     async def production_status(self):
         self.controller.observe()
+        handoff = self.preparation._os_handoff
+        if handoff and handoff.state == "BROKER_READY":
+            handoff.observe()
         return self.preparation.snapshot()
 
     async def collector_stop(self):
+        if self.preparation._os_handoff:
+            self.preparation._os_handoff.stop()
         self.controller.stop()
         return self.preparation.snapshot()
 
+    async def close(self, reason="GUI_CLOSE"):
+        if self.preparation._os_handoff:
+            self.preparation._os_handoff.close()
+        return await super().close(reason)
+
     async def broker_start(self):
+        if self.preparation._os_handoff:
+            self.preparation._os_handoff.authenticate_native()
         self.preparation.validate()
         self.preparation.transaction_fixture()
         self.controller.start()
@@ -67,6 +79,22 @@ class PreparedDesktop(BrokerDesktop):
         ):
             observed = tcx.get(key)
             rows.append("TCX " + key + "   " + ("UNKNOWN" if observed is None else str(observed)))
+        handoff = self.snapshot.get("os_auth_handoff", {})
+        for key in (
+            "os_authentication",
+            "broker_handoff",
+            "broker_session",
+            "release_integrity",
+            "capability_state",
+            "native_gate",
+            "cleanup_status",
+            "source",
+            "last_error",
+        ):
+            observed = handoff.get(key)
+            rows.append(
+                "OS Handoff " + key + "   " + ("UNKNOWN" if observed is None else str(observed))
+            )
         installation = self.snapshot.get("installation", {})
         for key in (
             "release_candidate",

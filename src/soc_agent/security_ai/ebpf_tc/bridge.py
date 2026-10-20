@@ -89,6 +89,7 @@ class Preparation:
     def __init__(self, controller: Controller, artifacts: Path):
         self.controller, self.artifacts = controller, artifacts
         self._installation = None
+        self._os_handoff = None
         self._tcx_result = None
         self._tcx_used = False
         self.hashes = inspect_artifacts(artifacts)
@@ -233,7 +234,7 @@ class Preparation:
             "entry_architecture": release.entry_architecture,
             "authentication_handoff": release.authentication_handoff,
             "entry_sha256": release.payloads["entry"].sha256,
-            "authentication_nss_scope": "PASSWD_SHADOW_PAM_RUNTIME_PENDING",
+            "authentication_nss_scope": "NUMERIC_ENTRY_BROKER_OS_PAM_NSS_UNKNOWN",
             "broker_identity_scope": "NUMERIC_KERNEL_CREDENTIALS_NO_NSS_CALLS",
             "runtime_mapping_attestation": "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_LIMITED",
             "environment_contract": release.dynamic_trust.environment_contract,
@@ -299,6 +300,35 @@ class Preparation:
         self._tcx_result = value.snapshot()
         return value.model_dump()
 
+    def os_auth_handoff(self, package: Path, manifest_sha: str):
+        from soc_agent.security_ai.ebpf_tc.os_handoff import Handoff
+
+        if self._os_handoff is not None:
+            raise ValueError("OS_HANDOFF_ALREADY_PREPARED")
+        from soc_agent.security_ai.ebpf_tc.installation import verify_package
+
+        release = verify_package(package, manifest_sha)
+        scope = self.plan.broker.application.scope.model_copy(
+            update={"program_sha256": self.hashes["tcx.bpf.o"]}
+        )
+        broker = self.plan.broker.model_copy(
+            update={"application": self.plan.broker.application.model_copy(update={"scope": scope})}
+        )
+        plan = NativePlan(
+            broker=broker,
+            bootstrap_sha256=self.hashes["bootstrap"],
+            native_broker_sha256=self.hashes["broker"],
+            loader_sha256=self.hashes["libnative-tc.so"],
+            program_sha256=self.hashes["tcx.bpf.o"],
+            bundle_digest=release.bundle_digest,
+            mode="B2D_TCX_BLOCKED",
+        )
+        self._os_handoff = Handoff(
+            self.controller.application, plan, package, manifest_sha, self.artifacts
+        )
+        self._os_handoff.prepare()
+        return self._os_handoff
+
     def snapshot(self) -> dict:
         value = self.controller.snapshot()
         from soc_agent.security_ai.ebpf_tc.qualification import (
@@ -308,6 +338,16 @@ class Preparation:
         from soc_agent.security_ai.ebpf_tc.tcx import unobserved
 
         value["installation"] = self._installation or installation_unobserved()
+        value["os_auth_handoff"] = (
+            self._os_handoff.snapshot()
+            if self._os_handoff
+            else {
+                "state": "NOT_PREPARED",
+                "os_authentication": "REQUIRED",
+                "native_gate": "BLOCKED",
+                "cleanup_status": "NOT_OBSERVED",
+            }
+        )
         value["tcx"] = self._tcx_result or unobserved()
         value["tcx"].update(
             program_sha256=self.hashes["tcx.bpf.o"],
@@ -315,8 +355,17 @@ class Preparation:
             dispatcher="COMPILED_NATIVE_GATE_CLOSED",
             broker_state=value.get("state", "UNKNOWN"),
         )
+        if self._os_handoff:
+            handoff = self._os_handoff.snapshot()
+            value["state"] = handoff["state"]
+            value["collector"].update(type="EBPF_OS_HANDOFF_B2J", health=handoff["state"])
+            value["ebpf"]["authentication_state"] = handoff["os_authentication"]
         value["native_release"] = ReleaseEvidence().snapshot()
-        value["input_origin"] = "B2A_PREPARATION_OR_EXPLICIT_FIXTURE_NOT_NATIVE"
+        value["input_origin"] = (
+            self._os_handoff.origin
+            if self._os_handoff
+            else "B2A_PREPARATION_OR_EXPLICIT_FIXTURE_NOT_NATIVE"
+        )
         value["ebpf"].update(
             bootstrap_sha256=self.plan.bootstrap_sha256,
             compiled_native_broker_sha256=self.plan.native_broker_sha256,

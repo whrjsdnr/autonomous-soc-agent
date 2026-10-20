@@ -206,8 +206,8 @@ def test_nss_role_scope_keeps_missing_configuration_evidence_without_broker_name
 ):
     manifest = candidate[2]
     trust = manifest.dynamic_trust
-    assert trust.nss.direct_identity_databases == ("passwd",)
-    assert trust.nss.pam_account_databases == ("shadow",)
+    assert trust.nss.direct_identity_databases == ()
+    assert trust.nss.pam_account_databases == ()
     assert "db" in trust.unresolved_nss_services and "nis" in trust.unresolved_nss_services
     assert "db" not in trust.unresolved_required_nss_services
     assert "nis" not in trust.unresolved_required_nss_services
@@ -216,9 +216,11 @@ def test_nss_role_scope_keeps_missing_configuration_evidence_without_broker_name
     assert not {"getpwuid_r", "getpwnam_r", "getgrgid_r", "pam_start"} & set(
         trust.elf["broker"].imports
     )
-    assert {"getpwuid_r", "getpwnam_r", "pam_authenticate", "pam_acct_mgmt"} <= set(
+    assert not {"getpwuid_r", "getpwnam_r", "pam_authenticate", "pam_acct_mgmt"} & set(
         trust.elf["bootstrap"].imports
     )
+    assert "libpam.so.0" not in trust.elf["bootstrap"].needed
+    assert trust.nss.os_authentication_scope == "UNKNOWN_NATIVE_SUDO_PAM_POLICY"
     assert trust.runtime_closure.startswith("BLOCKED") and manifest.native_release == "BLOCKED"
     source = (ROOT / "bootstrap.c").read_text()
     assert "getgrgid_r" not in source and "getgrnam_r" not in source
@@ -252,8 +254,8 @@ def test_static_entry_wrong_elf_type_machine_and_class_rejected(candidate, offse
 def test_release_cannot_restore_custom_suid_or_hide_os_handoff_blocker(candidate):
     _, _, manifest = candidate
     assert not any(p.mode & 0o7000 for p in manifest.payloads.values())
-    assert manifest.entry_architecture == "OS_AUTH_ENTRY_REQUIRED_CUSTOM_SUID_REMOVED"
-    assert manifest.authentication_handoff == "BLOCKED_OS_POLICY_AND_IPC_MIGRATION_REQUIRED"
+    assert manifest.entry_architecture == "OS_SUDO_SEQPACKET_ROOT_ENTRY_NUMERIC_BROKER"
+    assert manifest.authentication_handoff == "HANDOFF_IMPLEMENTED_NATIVE_OS_POLICY_PENDING"
     value = manifest.model_dump(mode="json")
     value["payloads"]["entry"]["mode"] = 0o4755
     with pytest.raises(ValueError, match="RELEASE_MODE_CONTRACT"):

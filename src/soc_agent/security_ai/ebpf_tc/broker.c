@@ -2,6 +2,7 @@
 extern char **environ;
 #include "native.h"
 #include "tcx.h"
+#include "handoff.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/capability.h>
@@ -52,7 +53,9 @@ static int broker(int ipc,int plan,int object,int audit) {
     signal(SIGPIPE,SIG_IGN);
     uint64_t born=soc_now(),heartbeat=born;uint64_t previous_generations[16]={0};
     uint32_t previous_handles[16]={0},rate_cursor=0;uint64_t rate_slots[32]={0};int result=0,work_active=0;
-    if(soc_release_record(&s) || s.ops->record(&s,"AUTHENTICATION_VERIFIED") || s.ops->record(&s,"BROKER_READY"))return -EIO;
+    if(soc_release_record(&s) || s.ops->record(&s,"OS_AUTH_HANDOFF_VERIFIED") ||
+       s.ops->record(&s,"BROKER_SESSION_BOUND") || s.ops->record(&s,"BROKER_READY"))return -EIO;
+    if(soc_handoff_reply(ipc,&envelope,2,1))return -EIO;
     for(unsigned commands=0;!stopped && commands<2048;) {
         uint64_t now=soc_now();
         if(now<heartbeat || now-born>=3600000000000ULL || now-heartbeat>=15000000000ULL ||

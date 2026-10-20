@@ -64,12 +64,14 @@ class ReleaseManifest(Frozen):
     privilege_lifetime: Literal["BROKER_IDLE_E0_I0_A0_PERMITTED_SCOPE_LOAD_ATTACH_ONLY"] = (
         "BROKER_IDLE_E0_I0_A0_PERMITTED_SCOPE_LOAD_ATTACH_ONLY"
     )
-    entry_architecture: Literal["OS_AUTH_ENTRY_REQUIRED_CUSTOM_SUID_REMOVED"] = (
-        "OS_AUTH_ENTRY_REQUIRED_CUSTOM_SUID_REMOVED"
+    entry_architecture: Literal["OS_SUDO_SEQPACKET_ROOT_ENTRY_NUMERIC_BROKER"] = (
+        "OS_SUDO_SEQPACKET_ROOT_ENTRY_NUMERIC_BROKER"
     )
-    authentication_handoff: Literal["BLOCKED_OS_POLICY_AND_IPC_MIGRATION_REQUIRED"] = (
-        "BLOCKED_OS_POLICY_AND_IPC_MIGRATION_REQUIRED"
+    authentication_handoff: Literal["HANDOFF_IMPLEMENTED_NATIVE_OS_POLICY_PENDING"] = (
+        "HANDOFF_IMPLEMENTED_NATIVE_OS_POLICY_PENDING"
     )
+    os_authentication_service: Literal["sudo"] = "sudo"
+    reference_pam_policy_only: Literal[True] = True
     system_configuration: tuple[SystemConfiguration, SystemConfiguration]
     pam_service: Literal["soc-agent-ebpf"] = "soc-agent-ebpf"
     pam_destination: Literal["/etc/pam.d/soc-agent-ebpf"] = "/etc/pam.d/soc-agent-ebpf"
@@ -264,9 +266,6 @@ def validate_root_release(expected: ReleaseManifest) -> dict[str, str]:
                 os.close(fd)
         finally:
             os.close(parent)
-    pam = read_held(Path(expected.pam_destination), owner=0, limit=4096)
-    if hashlib.sha256(pam).hexdigest() != expected.payloads["pam-policy.conf"].sha256:
-        raise ValueError("ROOT_PAM_POLICY_MISMATCH")
     verify_dependencies(expected.dependencies)
     if (
         inventory(tuple(snapshots[n] for n in ("bootstrap", "broker", "libnative-tc.so")))
@@ -309,7 +308,7 @@ def installation_plan(manifest: ReleaseManifest) -> dict[str, object]:
             "EXPLICIT_INSTALL_APPROVAL",
             "QUIESCE_ALL_APPLICATIONS_AND_BROKERS",
             "VERIFY_ROOT_STAGING_AND_DEPENDENCIES",
-            "VERIFY_SEPARATELY_APPROVED_PAM_POLICY",
+            "QUALIFY_OS_SUDO_PASSWORD_POLICY_NO_CUSTOM_PAM_INSTALL",
             "FSYNC_RELEASE_FILES_AND_DIRECTORY",
             "RENAMEAT2_EXCHANGE_COMPLETE_FIXED_DIRECTORY",
             "FSYNC_PARENT",
@@ -317,7 +316,7 @@ def installation_plan(manifest: ReleaseManifest) -> dict[str, object]:
             "RETAIN_PREVIOUS_RELEASE_FOR_ROLLBACK",
         ),
         "rollback": "EXPLICIT_APPROVAL_QUIESCE_VERIFY_PRIOR_MANIFEST_EXCHANGE_COMPLETE_DIRECTORY",
-        "first_install": "RENAME_NOREPLACE_AFTER_PAM_POLICY_APPROVAL",
+        "first_install": "RENAME_NOREPLACE_AFTER_OS_AUTH_POLICY_REVIEW",
         "pam_update_atomic_with_release": False,
         "pam_policy_change": "SEPARATE_APPROVAL_QUIESCENT_FAIL_CLOSED",
         "automatic_rollback": False,

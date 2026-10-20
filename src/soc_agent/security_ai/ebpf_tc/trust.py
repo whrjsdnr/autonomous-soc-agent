@@ -46,10 +46,8 @@ def execution_manifest(manifest) -> bytes:
     manifest = ReleaseManifest.model_validate(manifest.model_dump(mode="json"))
     records = {d.path: (d.sha256, d.size, d.mode) for d in manifest.dependencies}
     records.update({d.path: (d.sha256, d.size, d.mode) for d in manifest.system_configuration})
-    policy = manifest.payloads["pam-policy.conf"]
     entry = manifest.payloads["entry"]
     records["/usr/libexec/soc-agent-ebpf/entry"] = (entry.sha256, entry.size, entry.mode)
-    records[manifest.pam_destination] = (policy.sha256, policy.size, 0o644)
     if not 3 <= len(records) <= 72 or sum(r[1] for r in records.values()) > 64 * 1024**2:
         raise ValueError("RELEASE_EXECUTION_BUDGET")
     hashes = b"".join(

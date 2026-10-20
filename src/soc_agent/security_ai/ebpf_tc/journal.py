@@ -10,6 +10,10 @@ from soc_agent.security_ai.ebpf_tc.contracts import OWNER
 
 ROW = struct.Struct("<32s32s56sII32s32s")
 KINDS = {
+    "OS_AUTH_HANDOFF_VERIFIED",
+    "BROKER_SESSION_BOUND",
+    "BROKER_SESSION_EXPIRED",
+    "BROKER_STOPPED",
     "AUTHENTICATION_VERIFIED",
     "BROKER_READY",
     "LOAD_REQUESTED",

@@ -71,7 +71,12 @@ def test_native_entrypoints_gate_before_pam_or_privileged_syscall(compiled):
         assert p.returncode == 0 and not json.loads(p.stdout)["native_gate"]
         for args in ([], ["3", "4", "5"], ["--native"], ["--enable"]):
             p = subprocess.run([str(compiled / name), *args], capture_output=True, text=True)
-            assert p.returncode == 2 and p.stderr.strip() == "EBPF_B2A_NATIVE_EXECUTION_BLOCKED"
+            expected = (
+                "EBPF_B2A_NATIVE_EXECUTION_BLOCKED:OS_AUTH_QUALIFICATION_PENDING"
+                if name == "bootstrap"
+                else "EBPF_B2A_NATIVE_EXECUTION_BLOCKED"
+            )
+            assert p.returncode == 2 and p.stderr.strip() == expected
     lib = ctypes.CDLL(str(compiled / "libnative-tc.so"))
     assert lib.soc_native_gate() == 0
     assert lib.soc_reduce(1000, 1000) != 0  # Gate precedes setgroups/UID/capset calls.

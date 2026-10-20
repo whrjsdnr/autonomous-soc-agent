@@ -1,0 +1,1338 @@
+{
+  "contract": "soc-ebpf-os-auth-handoff-evidence:v1",
+  "baseline_head": "3974fa2d38c937d7ac5efed41977f537a9a23fe2",
+  "scope": "NONPRIVILEGED_TRANSPORT_AND_RELEASE_QUALIFICATION_NOT_NATIVE_AUTH",
+  "source_sha256": {
+    "src/soc_agent/security_ai/ebpf_tc/__main__.py": "20e7b5fefa6a0a1a06a76fe89f644344f8ce7cfe579f0a3b3564f5eda290a227",
+    "src/soc_agent/security_ai/ebpf_tc/bridge.py": "6f4b99b4ad280af2212164426852b00969b5e475550d0616355bbad0e8d032e6",
+    "src/soc_agent/security_ai/ebpf_tc/broker.c": "1424367ca954aa0a1b22a718e04bb7162f013a5a7919e171d28df341a65a8f01",
+    "src/soc_agent/security_ai/ebpf_tc/build.py": "4c1f18f7d11332fd885e6848fc7336f0442a23da592091dc49f2afd02b86a3e1",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "19b5ea750d31288b5b836b9909e387ee56036dac5f434d9c3f57db08b1e000ff",
+    "src/soc_agent/security_ai/ebpf_tc/installation.py": "8556dd30709cb376e70bc5039de632daca95fa3eabf5f3d517e663d46a8e94a3",
+    "src/soc_agent/security_ai/ebpf_tc/journal.py": "063b04a92f6df19c294d93b4c7d1c1e3cad6fac2873d032c59e278c2f66c708b",
+    "src/soc_agent/security_ai/ebpf_tc/trust.c": "9a3b14839a0d02e64432b46d630c8defd18a909b411eb7e2ac8240252939dc31",
+    "src/soc_agent/security_ai/ebpf_tc/trust.py": "a4dc111dc48acfaec542b1f7667f5bc161be2c3450b36862aa0ffd9b127a5b03",
+    "tests/integration/ebpf_release/test_enforcement.py": "49925282e4c9dfec5e3d5a399b86023956014a756dffc2b798784b20531a49a4",
+    "tests/integration/ebpf_remediation/test_entry.py": "a57f4f4b8b0e047e9354dfd6bbd0900ee094d0ac99726f1947f993051e6ebae0",
+    "src/soc_agent/security_ai/ebpf_tc/handoff.c": "ab8e1e42b7a21e0896b85ed37ded3ca7e43f9d03683048237c9e4146156a97bb",
+    "src/soc_agent/security_ai/ebpf_tc/handoff.h": "5211f19b0cd34e9e51eaaca4a6fdd4cee57370890de996e6cf9fc8caf4312b66",
+    "src/soc_agent/security_ai/ebpf_tc/handoff_fixture.c": "300eae937c4d375f1f28448bf88a5f7dda09afeef1cc9961c8c2a8205e8ccb08",
+    "src/soc_agent/security_ai/ebpf_tc/os_bootstrap.c": "5aa0f94126963fe3c86ac272923e7bdf57cd78a4bfe477a845e0964ac3fcc28a",
+    "src/soc_agent/security_ai/ebpf_tc/os_handoff.py": "8acfbeabacbba20c6bd9eb1b109d4e0d6063300058a627cc3c6e53f267c0263a",
+    "tests/integration/ebpf_handoff/conftest.py": "b89529862499696e05e78ae1c371773686866ac0035715af2caec03243164103",
+    "tests/integration/ebpf_handoff/test_fd_protocol.py": "7764abadad91c95b89f59929f2cac808dbedcb7f4f576ea836b2d504bae8d405",
+    "tests/integration/ebpf_handoff/test_handoff.py": "5381334632e8f9b2f8d5188146d5c5e34886c83f4f706e1adf59841f2775c601",
+    "tests/integration/ebpf_tc/test_native_core.py": "503d7fcb8ab4da151815fb16356e7df1c050b150c745bf7f5c481d082ed92597",
+    "tests/gui_ebpf_handoff_checks.py": "76b45164247e79625f6c45a25ea1ff6b07a630786626495d566f75ee98578e37",
+    "src/soc_agent/security_ai/ebpf_tc/dynamic_trust.py": "69af9c1be4dc51cf1c5aef5eebe313e5dcc91aabe0161d17942ef13bd40ebf65",
+    "tests/integration/ebpf_dynamic_trust/test_boundaries.py": "406afa7a91de36ec0aae196b8482f48aeb4938558f3d032c2457bc908a3e6cca",
+    "tests/integration/ebpf_install/test_application.py": "9d1d8c6aad06145defaf080f4ce07c46c977f43748e7e5923bccf47350b8f53d",
+    "tests/integration/ebpf_handoff/test_cleanup_failures.py": "cebd42372e15803232f37676a2ace1c7943a2ee28f2557e103a04dc7a59ade9a"
+  },
+  "identity": {
+    "artifacts": {
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "bootstrap": "837b39ea68e2fe1e563c380e3610ad624a9f0a610a4aa8e4ed46d25a70fc8cb8",
+      "broker": "177e879f707f4d3fa40d4b59abe4327dacb9c3b43f69adc45a4b4bd01c4b8894",
+      "libnative-tc.so": "fa9b529ff1fd1f73e1f8e5f32c69a104188c8e1a11c13402b33b9714812473b3",
+      "tc-fixture": "c7972a6c1f8a821f783ed527bf4c1544a956947932d1e80300172facb5203e29",
+      "tcx-dispatch-fixture": "6dec643f83374aa4f11bc27ec7165dfd64747de7d7b4cb5e3e2c8a509fc2ea28",
+      "tcx.bpf.o": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "source_bundle_digest": "5971ab08bb19a167a31a933364cb4eee5d9f01f52d2b1f14ccaef0a8b0da874f"
+    },
+    "bundle_digest": "5971ab08bb19a167a31a933364cb4eee5d9f01f52d2b1f14ccaef0a8b0da874f",
+    "manifest_digest": "5fe21563dd2af5205e0e2f08ce728d3adc79802acbb1faeb7cbf37895bc5d394",
+    "version": "0.2.11",
+    "native_release": "BLOCKED",
+    "authentication_handoff": "HANDOFF_IMPLEMENTED_NATIVE_OS_POLICY_PENDING"
+  },
+  "elf_comparison": {
+    "retired_custom_pam_helper": {
+      "sha256": "c1b86b00e030d272e7c158514942fb7bbb336f7effb9313f22eef7277c2baeab",
+      "needed": [
+        "libcrypto.so.3",
+        "libpam.so.0",
+        "libpam_misc.so.0",
+        "libc.so.6"
+      ],
+      "identity_imports": [
+        "getpwnam_r",
+        "getpwuid_r",
+        "pam_acct_mgmt",
+        "pam_authenticate",
+        "pam_start"
+      ],
+      "source": "STATIC_READELF_NOT_EXECUTED"
+    },
+    "os_handoff_bootstrap": {
+      "sha256": "837b39ea68e2fe1e563c380e3610ad624a9f0a610a4aa8e4ed46d25a70fc8cb8",
+      "needed": [
+        "libcrypto.so.3",
+        "libc.so.6"
+      ],
+      "identity_imports": [],
+      "source": "STATIC_READELF_NOT_EXECUTED"
+    }
+  },
+  "cohorts": {
+    "native_contract": {
+      "passed": 147,
+      "seconds": 183.6887327079894,
+      "exit_code": 0
+    },
+    "broker": {
+      "passed": 63,
+      "seconds": 33.67218828300247,
+      "exit_code": 0
+    },
+    "regression": {
+      "passed": 695,
+      "seconds": 80.9967559290235,
+      "exit_code": 0
+    },
+    "integration": {
+      "passed": 58,
+      "seconds": 69.0459597480367,
+      "exit_code": 0
+    },
+    "model": {
+      "passed": 1,
+      "seconds": 12.252349986985791,
+      "exit_code": 0
+    },
+    "gui": {
+      "passed": 18,
+      "seconds": 105.25123946397798,
+      "exit_code": 0
+    },
+    "audit": {
+      "passed": 125,
+      "seconds": 17.98179623199394,
+      "exit_code": 0
+    },
+    "structural": {
+      "passed": 258,
+      "seconds": 391.4230491069611,
+      "exit_code": 0,
+      "includes_final_cleanup_hardening": true
+    }
+  },
+  "counts_not_summed": true,
+  "revalidation_scope": {
+    "changed_after_first_success": [
+      "src/soc_agent/security_ai/ebpf_tc/os_handoff.py",
+      "tests/integration/ebpf_handoff/conftest.py",
+      "tests/integration/ebpf_handoff/test_handoff.py",
+      "tests/integration/ebpf_handoff/test_cleanup_failures.py"
+    ],
+    "final_structural_rerun": "258 tests, entire affected structural/security cohort",
+    "gui_after_final_overlay": true,
+    "other_regressions": "Execution code unchanged; all C/BPF bytes match; Source-bundle metadata and Wheel/package revalidated with final handoff code",
+    "compiled_artifacts_unchanged": true
+  },
+  "offline_model_evidence": {
+    "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+    "stream_plan": {
+      "contract": "soc-zeek-native-plan:v4",
+      "session_id": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+      "controller_generation": "d48d2d67-6ce3-466b-bdfe-6a9b2360d9e7",
+      "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+      "interface": "lo",
+      "duration_seconds": 300,
+      "cpu_limit": 1,
+      "memory_mib": 512,
+      "disk_mib": 16,
+      "output_bytes": 8388608,
+      "queue_capacity": 32,
+      "packet_limit": 4096,
+      "event_limit": 8192,
+      "net_namespace": "net:[4026531833]",
+      "bundle_digest": "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045",
+      "capture_integrity": "UNVERIFIED_PCAP_STATS_FAILURE_SIGNAL",
+      "native_inference": "BLOCKED"
+    },
+    "stream_exit": {
+      "capture_integrity": "UNVERIFIED",
+      "cleanup_verified": true,
+      "closed_detail": {
+        "bytes_before_closed": 1389,
+        "bytes_recvd": 276,
+        "dns_events": 0,
+        "messages_before_closed": 6,
+        "network_events": 1,
+        "omitted_events": 0,
+        "omitted_packet_records": 0,
+        "packet_records": 4,
+        "pkts_dropped": 0,
+        "pkts_link": 0,
+        "pkts_recvd": 4,
+        "stop_reason": "ZEEK_DONE"
+      },
+      "closed_observed": true,
+      "container_absent": true,
+      "container_exit_source": "ATTACHED_DOCKER_RUN_EXIT_STATUS",
+      "container_id": null,
+      "drain_seconds": 0.18926381901837885,
+      "elapsed_seconds": 0.7147322589880787,
+      "error": null,
+      "exit_code": 0,
+      "exit_digest_scope": "PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
+      "native_capture": false,
+      "output_bytes": 1981,
+      "plan_digest": "6e072e5ea9fb3f56c47545eb49bb7bbe7e669681f29cca9045c3a52810e7c4d4",
+      "protocol_finalized": true,
+      "sequence": 7,
+      "stop_requested_reason": null,
+      "stopped": false,
+      "stream_sha256": "18fb5b2d051be6c86ec20d34687499e8fd63d2a642d08a58776c1874a54cfefe",
+      "termination_reason": "INPUT_EXHAUSTED"
+    },
+    "session_id": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "input_origin": "ZEEK_OFFLINE_PCAP",
+    "records": [
+      {
+        "error": null,
+        "finished_at": "2026-10-20T08:40:10.623955+00:00",
+        "investigation": {
+          "action_policy": "WRITE_DENIED",
+          "assessment": {
+            "incident_state": {
+              "confidence": null,
+              "created_at": "2026-10-20T08:40:10.630360Z",
+              "evidence": [
+                {
+                  "collected_at": "2026-10-20T08:40:11.022834Z",
+                  "evidence_id": "4827d797-2939-4c3d-ab4b-0a9764e0e92b",
+                  "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                  "observed_at": "2026-10-20T08:40:11.022769Z",
+                  "raw_data": "{\"output\":{\"capture_session\":\"dc02bc13-fe73-4993-aef8-e582d3d790d8\",\"flow_id\":\"f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"ZEEK_OFFLINE_PCAP\",\"packet_count\":3,\"provenance_digest\":\"84517df99a979b7ab84c90af999e227b5914346cb61f22f9ebb07c32a2d8260a\",\"source_digest\":\"37f14ebc1cdf47c3be05e21b2f111df136580af3e6cbcfc1b517a9b1d3ed4b70\"},\"tool_name\":\"read_local_source_report\"}",
+                  "reliability": null,
+                  "source": "tool:read_local_source_report",
+                  "summary": "read_local_source_report investigation result",
+                  "tool_name": "read_local_source_report"
+                }
+              ],
+              "hypotheses": [],
+              "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+              "observations": [],
+              "severity": "info",
+              "status": "new",
+              "updated_at": "2026-10-20T08:40:11.026072Z"
+            },
+            "threat_assessment": {
+              "assessment_id": "4d149f42-e838-431a-be1e-055194c4c11f",
+              "confidence": 0.0,
+              "created_at": "2026-10-20T08:40:11.133975Z",
+              "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+              "severity": "info",
+              "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+              "supporting_evidence_ids": [
+                "4827d797-2939-4c3d-ab4b-0a9764e0e92b"
+              ],
+              "supporting_hypothesis_ids": [],
+              "supporting_observation_ids": []
+            }
+          },
+          "checkpoint_restored": true,
+          "context": {
+            "contract": "soc-zeek-network14-advisory:v1",
+            "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+            "mode": "OFFLINE_RESEARCH_DEMO",
+            "receipt_digest": "5511527189466be8c831800705d99ca6cd1eacfcb364c8d261a79d5b2afbc5c7",
+            "result": {
+              "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+              "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+              "capture_quality": "UNKNOWN",
+              "capture_session": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+              "contract": "soc-zeek-network14-receipt:v1",
+              "event_time": "2027-01-15T08:00:00Z",
+              "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+              "feature_digest": "9bfe4233fabdf1f3f8fb40254fcf0b14655c65368935d2cab641c73a9ea45bb9",
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "feature_values": [
+                1.0,
+                2.0,
+                1.0,
+                120.0,
+                60.0,
+                40.0,
+                80.0,
+                60.0,
+                16.329931259155273,
+                1.0,
+                1.0,
+                0.0,
+                0.5,
+                0.5
+              ],
+              "flow_id": "f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5",
+              "inference_latency_ms": 10.180975019466132,
+              "inferred_at": "2026-10-20T08:40:10.093250Z",
+              "invocation_id": "76178ddd-728e-4d40-ad0e-ead5ecbd2731",
+              "model_id": "linux-network14-research-v1-quality_rf",
+              "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+              "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+              "operational_inference": "BLOCKED",
+              "origin": "ZEEK_OFFLINE_PCAP",
+              "packet_count": 3,
+              "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+              "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+              "prediction": "CLASS_0",
+              "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+              "producer_origin": "OFFLINE_PCAP",
+              "producer_version": "1.1.0",
+              "profile": "quality",
+              "provenance_digest": "84517df99a979b7ab84c90af999e227b5914346cb61f22f9ebb07c32a2d8260a",
+              "request_digest": "1f053ec4c977a3bcc9293f789e7c8c8106107ee299d48b08b81adc99d04ad52e",
+              "score": 0.140625,
+              "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+              "source_digest": "37f14ebc1cdf47c3be05e21b2f111df136580af3e6cbcfc1b517a9b1d3ed4b70",
+              "status": "RESEARCH_ONLY",
+              "threshold": 0.35,
+              "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+              "worker_cpu_seconds": 2.4425529999999998,
+              "worker_limits": {
+                "address_space_bytes": 3221225472,
+                "cpu_seconds": 15,
+                "network": "DENIED",
+                "result_file_bytes": 131072
+              },
+              "worker_peak_rss_bytes": 234631168,
+              "write_policy": "WRITE_DENIED",
+              "zeek_producer_version": "zeek-packet-network14:v1"
+            },
+            "role": "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
+          },
+          "context_digest": "7c89630fdd7bff16d773962ffe88a797f24b79c6616cd38ce0a8fe03d678c950",
+          "evidence_references": [
+            "4827d797-2939-4c3d-ab4b-0a9764e0e92b"
+          ],
+          "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "prompt_digests": [
+            "30f121c261c294d40bcc33e239b172972ba0dfa0ef8ea7d3b0b994f3fa476e28",
+            "021360da877448d04bfc5130dabadb5f55d817a7ec9be80a749a1aec9067f9c6"
+          ],
+          "provider_calls": 0,
+          "result": {
+            "current_step": "analyze",
+            "failure": null,
+            "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+            "next_step": "decide",
+            "reason": "Assessment completed; severity remains advisory",
+            "references": [
+              {
+                "identity": "001e1956-8809-459b-9717-5d38f96a0452",
+                "kind": "investigation"
+              },
+              {
+                "identity": "4d149f42-e838-431a-be1e-055194c4c11f",
+                "kind": "assessment"
+              }
+            ],
+            "terminal": false,
+            "waiting_for_human": false
+          },
+          "status": "ASSESSED_READ_ONLY",
+          "timeline": {
+            "entries": [
+              {
+                "content": {
+                  "previous_entry_id": null,
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "next_step": "observe",
+                    "reason": "Incident observed; no action dispatched",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 1,
+                  "snapshot": {
+                    "fingerprint": "fd19af7ac7adb4078d85bccfea2f3413ecdb27cb2ea48d8ecc8ad104b8ecf9ec",
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "b18dd7a17dcb86e8c5da65798168134c115f7f0d14ddc628ccffeb7c1a92416e"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "b18dd7a17dcb86e8c5da65798168134c115f7f0d14ddc628ccffeb7c1a92416e",
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "next_step": "plan",
+                    "reason": "Route current evidence or request investigation",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 2,
+                  "snapshot": {
+                    "fingerprint": "fd19af7ac7adb4078d85bccfea2f3413ecdb27cb2ea48d8ecc8ad104b8ecf9ec",
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "f4edf4ddaab96b989c3c4d9522d67be85b3d792302dd77b6b4373cb05a290768"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "f4edf4ddaab96b989c3c4d9522d67be85b3d792302dd77b6b4373cb05a290768",
+                  "result": {
+                    "current_step": "plan",
+                    "failure": null,
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "next_step": "route",
+                    "reason": "Investigation selected",
+                    "references": [
+                      {
+                        "identity": "001e1956-8809-459b-9717-5d38f96a0452",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 3,
+                  "snapshot": {
+                    "fingerprint": "fd19af7ac7adb4078d85bccfea2f3413ecdb27cb2ea48d8ecc8ad104b8ecf9ec",
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "b4ccf7169649f809cafa3260ace6807a9e0d2477d41db5abf61701066ebbbb76"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "b4ccf7169649f809cafa3260ace6807a9e0d2477d41db5abf61701066ebbbb76",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "next_step": "route",
+                    "reason": "Read-only evidence collected",
+                    "references": [
+                      {
+                        "identity": "001e1956-8809-459b-9717-5d38f96a0452",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 4,
+                  "snapshot": {
+                    "fingerprint": "e86d433eb6f31cbaff78d83d692e472db3a2daf9e09cd9bfe435ffbce649f845",
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "714f3d413e587eb97f4bf6a6b2314d09a27921963fcdfca1991bdfc8b2c5b371"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "714f3d413e587eb97f4bf6a6b2314d09a27921963fcdfca1991bdfc8b2c5b371",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "next_step": "analyze",
+                    "reason": "Evidence analysis selected",
+                    "references": [
+                      {
+                        "identity": "001e1956-8809-459b-9717-5d38f96a0452",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 5,
+                  "snapshot": {
+                    "fingerprint": "e86d433eb6f31cbaff78d83d692e472db3a2daf9e09cd9bfe435ffbce649f845",
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "f6151b7834a8ee7866d1f13799d481543f9cced4975d015dac3515c7b318569d"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "f6151b7834a8ee7866d1f13799d481543f9cced4975d015dac3515c7b318569d",
+                  "result": {
+                    "current_step": "analyze",
+                    "failure": null,
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "next_step": "decide",
+                    "reason": "Assessment completed; severity remains advisory",
+                    "references": [
+                      {
+                        "identity": "001e1956-8809-459b-9717-5d38f96a0452",
+                        "kind": "investigation"
+                      },
+                      {
+                        "identity": "4d149f42-e838-431a-be1e-055194c4c11f",
+                        "kind": "assessment"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 6,
+                  "snapshot": {
+                    "fingerprint": "e86d433eb6f31cbaff78d83d692e472db3a2daf9e09cd9bfe435ffbce649f845",
+                    "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "1476122ea6cc7a59473dae25769fa4f36a7abea59a19fa63197cd07321e312eb"
+              }
+            ],
+            "incident_id": "8483e55c-4b94-4a5c-ad2b-3cbf45dd1d0c"
+          }
+        },
+        "key": "e5383ca757540b3ba2bf7db029db98526afb48ea62d8c93f3a5a7d59a90d46f0",
+        "profile": "quality",
+        "receipt": {
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+          "contract": "soc-zeek-network14-receipt:v1",
+          "event_time": "2027-01-15T08:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "9bfe4233fabdf1f3f8fb40254fcf0b14655c65368935d2cab641c73a9ea45bb9",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5",
+          "inference_latency_ms": 10.180975019466132,
+          "inferred_at": "2026-10-20T08:40:10.093250Z",
+          "invocation_id": "76178ddd-728e-4d40-ad0e-ead5ecbd2731",
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "operational_inference": "BLOCKED",
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "packet_count": 3,
+          "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+          "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_origin": "OFFLINE_PCAP",
+          "producer_version": "1.1.0",
+          "profile": "quality",
+          "provenance_digest": "84517df99a979b7ab84c90af999e227b5914346cb61f22f9ebb07c32a2d8260a",
+          "request_digest": "1f053ec4c977a3bcc9293f789e7c8c8106107ee299d48b08b81adc99d04ad52e",
+          "score": 0.140625,
+          "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+          "source_digest": "37f14ebc1cdf47c3be05e21b2f111df136580af3e6cbcfc1b517a9b1d3ed4b70",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.35,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 2.4425529999999998,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 234631168,
+          "write_policy": "WRITE_DENIED",
+          "zeek_producer_version": "zeek-packet-network14:v1"
+        },
+        "status": "COMPLETE"
+      },
+      {
+        "error": null,
+        "finished_at": "2026-10-20T08:40:13.681986+00:00",
+        "investigation": {
+          "action_policy": "WRITE_DENIED",
+          "assessment": {
+            "incident_state": {
+              "confidence": null,
+              "created_at": "2026-10-20T08:40:13.688364Z",
+              "evidence": [
+                {
+                  "collected_at": "2026-10-20T08:40:13.851952Z",
+                  "evidence_id": "9b2dc22a-2539-4062-91f6-5b55b722580f",
+                  "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                  "observed_at": "2026-10-20T08:40:13.851890Z",
+                  "raw_data": "{\"output\":{\"capture_session\":\"dc02bc13-fe73-4993-aef8-e582d3d790d8\",\"flow_id\":\"f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"ZEEK_OFFLINE_PCAP\",\"packet_count\":3,\"provenance_digest\":\"84517df99a979b7ab84c90af999e227b5914346cb61f22f9ebb07c32a2d8260a\",\"source_digest\":\"37f14ebc1cdf47c3be05e21b2f111df136580af3e6cbcfc1b517a9b1d3ed4b70\"},\"tool_name\":\"read_local_source_report\"}",
+                  "reliability": null,
+                  "source": "tool:read_local_source_report",
+                  "summary": "read_local_source_report investigation result",
+                  "tool_name": "read_local_source_report"
+                }
+              ],
+              "hypotheses": [],
+              "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+              "observations": [],
+              "severity": "info",
+              "status": "new",
+              "updated_at": "2026-10-20T08:40:13.856580Z"
+            },
+            "threat_assessment": {
+              "assessment_id": "e9711932-40cc-4816-868d-12453f6436a2",
+              "confidence": 0.0,
+              "created_at": "2026-10-20T08:40:13.952128Z",
+              "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+              "severity": "info",
+              "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+              "supporting_evidence_ids": [
+                "9b2dc22a-2539-4062-91f6-5b55b722580f"
+              ],
+              "supporting_hypothesis_ids": [],
+              "supporting_observation_ids": []
+            }
+          },
+          "checkpoint_restored": true,
+          "context": {
+            "contract": "soc-zeek-network14-advisory:v1",
+            "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+            "mode": "OFFLINE_RESEARCH_DEMO",
+            "receipt_digest": "0c01c353b8910c405e8656d4638848dc6f783d677c714559567212d83b2d9e36",
+            "result": {
+              "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+              "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+              "capture_quality": "UNKNOWN",
+              "capture_session": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+              "contract": "soc-zeek-network14-receipt:v1",
+              "event_time": "2027-01-15T08:00:00Z",
+              "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+              "feature_digest": "9bfe4233fabdf1f3f8fb40254fcf0b14655c65368935d2cab641c73a9ea45bb9",
+              "feature_names": [
+                "duration_seconds",
+                "forward_packet_count",
+                "backward_packet_count",
+                "forward_ip_bytes",
+                "backward_ip_bytes",
+                "ip_length_min",
+                "ip_length_max",
+                "ip_length_mean",
+                "ip_length_population_std",
+                "tcp_syn_packet_count",
+                "tcp_fin_packet_count",
+                "tcp_rst_packet_count",
+                "iat_mean_seconds",
+                "iat_max_seconds"
+              ],
+              "feature_values": [
+                1.0,
+                2.0,
+                1.0,
+                120.0,
+                60.0,
+                40.0,
+                80.0,
+                60.0,
+                16.329931259155273,
+                1.0,
+                1.0,
+                0.0,
+                0.5,
+                0.5
+              ],
+              "flow_id": "f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5",
+              "inference_latency_ms": 11.88074698438868,
+              "inferred_at": "2026-10-20T08:40:13.358491Z",
+              "invocation_id": "a17f23ce-706d-4b73-a1bf-68a6ca56fbaa",
+              "model_id": "linux-network14-research-v1-edge_lr",
+              "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+              "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+              "operational_inference": "BLOCKED",
+              "origin": "ZEEK_OFFLINE_PCAP",
+              "packet_count": 3,
+              "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+              "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+              "prediction": "CLASS_0",
+              "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+              "producer_origin": "OFFLINE_PCAP",
+              "producer_version": "1.1.0",
+              "profile": "edge",
+              "provenance_digest": "84517df99a979b7ab84c90af999e227b5914346cb61f22f9ebb07c32a2d8260a",
+              "request_digest": "677dd54620f1f9adcbb8f7ebac4c2781816e0f7c4e8918e0f01baed238305d60",
+              "score": 0.08766025304794312,
+              "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+              "source_digest": "37f14ebc1cdf47c3be05e21b2f111df136580af3e6cbcfc1b517a9b1d3ed4b70",
+              "status": "RESEARCH_ONLY",
+              "threshold": 0.8,
+              "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+              "worker_cpu_seconds": 2.096482,
+              "worker_limits": {
+                "address_space_bytes": 3221225472,
+                "cpu_seconds": 15,
+                "network": "DENIED",
+                "result_file_bytes": 131072
+              },
+              "worker_peak_rss_bytes": 232931328,
+              "write_policy": "WRITE_DENIED",
+              "zeek_producer_version": "zeek-packet-network14:v1"
+            },
+            "role": "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
+          },
+          "context_digest": "fee2c7360d6d66f7698fb69f5e85b6cf0250c9df706046e129115fb8ca0107c9",
+          "evidence_references": [
+            "9b2dc22a-2539-4062-91f6-5b55b722580f"
+          ],
+          "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "prompt_digests": [
+            "3adf1261a83a65605de20a3ce551e163b2c2dd67aed8dd7140aa8394816679a6",
+            "f4a84ac6983923bd6a76f0117d01df3951ab72216b75d4e6d20a891b4b06661a"
+          ],
+          "provider_calls": 0,
+          "result": {
+            "current_step": "analyze",
+            "failure": null,
+            "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+            "next_step": "decide",
+            "reason": "Assessment completed; severity remains advisory",
+            "references": [
+              {
+                "identity": "c797a286-e874-46d1-b2c4-7963a9c05cdb",
+                "kind": "investigation"
+              },
+              {
+                "identity": "e9711932-40cc-4816-868d-12453f6436a2",
+                "kind": "assessment"
+              }
+            ],
+            "terminal": false,
+            "waiting_for_human": false
+          },
+          "status": "ASSESSED_READ_ONLY",
+          "timeline": {
+            "entries": [
+              {
+                "content": {
+                  "previous_entry_id": null,
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "next_step": "observe",
+                    "reason": "Incident observed; no action dispatched",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 1,
+                  "snapshot": {
+                    "fingerprint": "dc6cfcbbd2f091c7ecd07a6d2a54e31783186536030ee21e03a731fe3dc2e173",
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "b4b5505432243277808e8ddf5623ce2258c068cc55906a78c72ab52425e3c383"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "b4b5505432243277808e8ddf5623ce2258c068cc55906a78c72ab52425e3c383",
+                  "result": {
+                    "current_step": "observe",
+                    "failure": null,
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "next_step": "plan",
+                    "reason": "Route current evidence or request investigation",
+                    "references": [],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 2,
+                  "snapshot": {
+                    "fingerprint": "dc6cfcbbd2f091c7ecd07a6d2a54e31783186536030ee21e03a731fe3dc2e173",
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "c8bff184023fbcd051422c567b9f743d18efea918ad991fc17352ec79dc96765"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "c8bff184023fbcd051422c567b9f743d18efea918ad991fc17352ec79dc96765",
+                  "result": {
+                    "current_step": "plan",
+                    "failure": null,
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "next_step": "route",
+                    "reason": "Investigation selected",
+                    "references": [
+                      {
+                        "identity": "c797a286-e874-46d1-b2c4-7963a9c05cdb",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 3,
+                  "snapshot": {
+                    "fingerprint": "dc6cfcbbd2f091c7ecd07a6d2a54e31783186536030ee21e03a731fe3dc2e173",
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 0
+                  }
+                },
+                "entry_id": "547fac3e5a8937c82aec1cc0fc1586f61f32aab60f982dfa46d6440ffb11e978"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "547fac3e5a8937c82aec1cc0fc1586f61f32aab60f982dfa46d6440ffb11e978",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "next_step": "route",
+                    "reason": "Read-only evidence collected",
+                    "references": [
+                      {
+                        "identity": "c797a286-e874-46d1-b2c4-7963a9c05cdb",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 4,
+                  "snapshot": {
+                    "fingerprint": "660ffb06291b8e26b7a4ae93446d76a0a1ef50aba33f261bd9efb2efaa242aef",
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "960fb43ba3041b8dc9caa667a93c14d7dd6fbefccbef6d21a5c588f3a442df3c"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "960fb43ba3041b8dc9caa667a93c14d7dd6fbefccbef6d21a5c588f3a442df3c",
+                  "result": {
+                    "current_step": "route",
+                    "failure": null,
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "next_step": "analyze",
+                    "reason": "Evidence analysis selected",
+                    "references": [
+                      {
+                        "identity": "c797a286-e874-46d1-b2c4-7963a9c05cdb",
+                        "kind": "investigation"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 5,
+                  "snapshot": {
+                    "fingerprint": "660ffb06291b8e26b7a4ae93446d76a0a1ef50aba33f261bd9efb2efaa242aef",
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "48e730536ceb2d1064c9b6a8d2616759e6cdeaf2fe6456868f220a083433d645"
+              },
+              {
+                "content": {
+                  "previous_entry_id": "48e730536ceb2d1064c9b6a8d2616759e6cdeaf2fe6456868f220a083433d645",
+                  "result": {
+                    "current_step": "analyze",
+                    "failure": null,
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "next_step": "decide",
+                    "reason": "Assessment completed; severity remains advisory",
+                    "references": [
+                      {
+                        "identity": "c797a286-e874-46d1-b2c4-7963a9c05cdb",
+                        "kind": "investigation"
+                      },
+                      {
+                        "identity": "e9711932-40cc-4816-868d-12453f6436a2",
+                        "kind": "assessment"
+                      }
+                    ],
+                    "terminal": false,
+                    "waiting_for_human": false
+                  },
+                  "sequence": 6,
+                  "snapshot": {
+                    "fingerprint": "660ffb06291b8e26b7a4ae93446d76a0a1ef50aba33f261bd9efb2efaa242aef",
+                    "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24",
+                    "repository_id": "ed543511-1272-4f41-b3d8-5dc2f05e4f5a",
+                    "revision": 1
+                  }
+                },
+                "entry_id": "8d9f29ad3e5ecbe4073e5f385f95edce1d860259516b406e7263fee7ec5a6e46"
+              }
+            ],
+            "incident_id": "b5c9a72e-9a6c-44c8-aa8b-4bfa8c2a7e24"
+          }
+        },
+        "key": "f001f3658a1d0ba0f7bd39da677026ecaddec71a43f45707bfc381cd6522be8b",
+        "profile": "edge",
+        "receipt": {
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+          "capture_quality": "UNKNOWN",
+          "capture_session": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+          "contract": "soc-zeek-network14-receipt:v1",
+          "event_time": "2027-01-15T08:00:00Z",
+          "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+          "feature_digest": "9bfe4233fabdf1f3f8fb40254fcf0b14655c65368935d2cab641c73a9ea45bb9",
+          "feature_names": [
+            "duration_seconds",
+            "forward_packet_count",
+            "backward_packet_count",
+            "forward_ip_bytes",
+            "backward_ip_bytes",
+            "ip_length_min",
+            "ip_length_max",
+            "ip_length_mean",
+            "ip_length_population_std",
+            "tcp_syn_packet_count",
+            "tcp_fin_packet_count",
+            "tcp_rst_packet_count",
+            "iat_mean_seconds",
+            "iat_max_seconds"
+          ],
+          "feature_values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "flow_id": "f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5",
+          "inference_latency_ms": 11.88074698438868,
+          "inferred_at": "2026-10-20T08:40:13.358491Z",
+          "invocation_id": "a17f23ce-706d-4b73-a1bf-68a6ca56fbaa",
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "operational_inference": "BLOCKED",
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "packet_count": 3,
+          "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+          "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+          "prediction": "CLASS_0",
+          "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+          "producer_origin": "OFFLINE_PCAP",
+          "producer_version": "1.1.0",
+          "profile": "edge",
+          "provenance_digest": "84517df99a979b7ab84c90af999e227b5914346cb61f22f9ebb07c32a2d8260a",
+          "request_digest": "677dd54620f1f9adcbb8f7ebac4c2781816e0f7c4e8918e0f01baed238305d60",
+          "score": 0.08766025304794312,
+          "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+          "source_digest": "37f14ebc1cdf47c3be05e21b2f111df136580af3e6cbcfc1b517a9b1d3ed4b70",
+          "status": "RESEARCH_ONLY",
+          "threshold": 0.8,
+          "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+          "worker_cpu_seconds": 2.096482,
+          "worker_limits": {
+            "address_space_bytes": 3221225472,
+            "cpu_seconds": 15,
+            "network": "DENIED",
+            "result_file_bytes": 131072
+          },
+          "worker_peak_rss_bytes": 232931328,
+          "write_policy": "WRITE_DENIED",
+          "zeek_producer_version": "zeek-packet-network14:v1"
+        },
+        "status": "COMPLETE"
+      }
+    ],
+    "collector_metrics": {
+      "network_events": 1,
+      "dns_events": 0,
+      "queue_depth": 0,
+      "queue_capacity": 32,
+      "backpressure": "NORMAL",
+      "queue_peak": 7,
+      "rows_read": 1,
+      "duplicates": 0,
+      "out_of_order_start_times": 0,
+      "log_to_adapter_ms": null,
+      "capture_to_log_ms": null,
+      "feature_generation_ms": null,
+      "inference_latency_ms": null,
+      "investigation_latency_ms": null,
+      "log_lag_seconds": null,
+      "inference_count": 2,
+      "process_alive": false
+    },
+    "preprocessing": {
+      "contract": "soc-zeek-preprocessing-summary:v1",
+      "session_id": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+      "source_digest": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+      "input_origin": "ZEEK_OFFLINE_PCAP",
+      "plan_digest": "6e072e5ea9fb3f56c47545eb49bb7bbe7e669681f29cca9045c3a52810e7c4d4",
+      "stream_digest": "18fb5b2d051be6c86ec20d34687499e8fd63d2a642d08a58776c1874a54cfefe",
+      "producer_version": "zeek-packet-network14:v1",
+      "reference_producer_version": "1.1.0",
+      "feature_names": [
+        "duration_seconds",
+        "forward_packet_count",
+        "backward_packet_count",
+        "forward_ip_bytes",
+        "backward_ip_bytes",
+        "ip_length_min",
+        "ip_length_max",
+        "ip_length_mean",
+        "ip_length_population_std",
+        "tcp_syn_packet_count",
+        "tcp_fin_packet_count",
+        "tcp_rst_packet_count",
+        "iat_mean_seconds",
+        "iat_max_seconds"
+      ],
+      "dtype": "float32",
+      "missing_value_policy": "REJECT_NO_IMPUTATION",
+      "progress": {
+        "state": "FINALIZED",
+        "normalized_packets": 4,
+        "normalization_digest": "21456f2c28dfd54b73b12bcccf7913b49dbf6cff0ef0d1db75c7c3e7c1c4f63e",
+        "active_flows": 0,
+        "finalized_flows": 2,
+        "finalization_reasons": {
+          "IDLE_TIMEOUT": 1,
+          "SHUTDOWN": 1
+        },
+        "dns": {
+          "records": 0,
+          "counters": {},
+          "timestamp_scope": "TRANSACTION_START_NOT_QUERY_RESPONSE_PACKET_ORDER",
+          "query_response_matching": "ZEEK_TRANSACTION_METADATA_NOT_INDEPENDENT_PACKET_MATCH",
+          "query_packets": null,
+          "response_packets": null,
+          "dns9": "BLOCKED",
+          "fqdn_retained": false
+        },
+        "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED",
+        "timestamp_precision": "DECLARED_USEC_NATIVE_PARITY_UNVERIFIED",
+        "flow_policy": "SAME_KEY_EVENT_TIME_30S_IDLE_120S_ACTIVE_NO_WALLCLOCK_EXPIRY",
+        "tcp_fin_policy": "FEATURE_ONLY_NO_NEW_FINALIZATION_AUTHORITY",
+        "tcp_rst_policy": "FEATURE_ONLY_NO_NEW_FINALIZATION_AUTHORITY",
+        "resource_limits": {
+          "active_flows": 128,
+          "packets_per_flow": 128,
+          "packets": 4096,
+          "flows": 1024
+        },
+        "native_ai": "BLOCKED"
+      },
+      "capture_integrity": "UNVERIFIED",
+      "completed_flows": 1,
+      "incomplete_flows": 1,
+      "feature_decisions": {
+        "ELIGIBLE": 1,
+        "BLOCKED_FLOW_INCOMPLETE": 1
+      },
+      "flow_decisions_digest": "fe369eb01ef3c924b657fcefadf59a5017b0b39ec77ecb1cea8034814f55ffe4",
+      "flow_quality_tail": [
+        {
+          "flow_id": "f7442778e60e0dfef2083e614ac98fa2c227f5ad24acb0fa8e2cd9f4970cd7a5",
+          "values_digest": "c14b0692c5f8e4ebf0125aa9c49b5976c584f060e5c84027ffcd339904c0353c",
+          "feature_digest": "9bfe4233fabdf1f3f8fb40254fcf0b14655c65368935d2cab641c73a9ea45bb9",
+          "completeness": "VERIFIED",
+          "feature_integrity": "VERIFIED",
+          "close_reason": "IDLE_TIMEOUT",
+          "finalization_context": "IDLE_TIMEOUT",
+          "artifact_eligibility": {
+            "quality": "VERIFIED_RECEIPT",
+            "edge": "VERIFIED_RECEIPT"
+          },
+          "decision": {
+            "decision": "ELIGIBLE",
+            "blockers": [],
+            "authority": "DIAGNOSTIC_ONLY_NO_NATIVE_AUTHORIZATION"
+          }
+        },
+        {
+          "flow_id": "c69131b0972064fb32a205576d7633e0212877d52c1f6cf07ee33498b8ee6826",
+          "values_digest": "a462e3eb5fd483347ac9f8a57d0daadb7a965f43041d4e66344d88875b915d5f",
+          "feature_digest": null,
+          "completeness": "DEGRADED",
+          "feature_integrity": "VERIFIED",
+          "close_reason": "SHUTDOWN",
+          "finalization_context": "COLLECTOR_STOP",
+          "artifact_eligibility": {
+            "quality": "NOT_OBSERVED",
+            "edge": "NOT_OBSERVED"
+          },
+          "decision": {
+            "decision": "BLOCKED_FLOW_INCOMPLETE",
+            "blockers": [
+              "BLOCKED_FLOW_INCOMPLETE",
+              "BLOCKED_FEATURE_PARITY",
+              "BLOCKED_ARTIFACT"
+            ],
+            "authority": "DIAGNOSTIC_ONLY_NO_NATIVE_AUTHORIZATION"
+          }
+        }
+      ],
+      "termination_reason": "INPUT_EXHAUSTED",
+      "collector_stop_context": "COLLECTOR_STOP",
+      "closed_reason": "ZEEK_DONE",
+      "flow_boundary_policy": "UNCHANGED_TIMEOUT_WINDOWS_FIN_RST_ARE_FEATURES",
+      "fixed_sliding_window": "EXPERIMENTAL_NOT_MODEL_INPUT",
+      "raw_payload_retained": false,
+      "native_ai": "BLOCKED",
+      "dns9": "BLOCKED",
+      "operational_gate": "BLOCKED"
+    },
+    "capture_attestation": {
+      "contract": "soc-zeek-attestation-dns-summary:v1",
+      "session_id": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+      "source_digest": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+      "plan_digest": "6e072e5ea9fb3f56c47545eb49bb7bbe7e669681f29cca9045c3a52810e7c4d4",
+      "stream_digest": "18fb5b2d051be6c86ec20d34687499e8fd63d2a642d08a58776c1874a54cfefe",
+      "attestation": {
+        "contract": "soc-zeek-capture-attestation:v1",
+        "session_id": "dc02bc13-fe73-4993-aef8-e582d3d790d8",
+        "collector_identity": "6e072e5ea9fb3f56c47545eb49bb7bbe7e669681f29cca9045c3a52810e7c4d4",
+        "image_digest": "3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+        "interface": "lo",
+        "interface_identity": null,
+        "net_namespace": "net:[4026531833]",
+        "handle_identity": null,
+        "counter_source": "ZEEK_GET_NET_STATS_NO_SUCCESS_SIGNAL",
+        "retrieval": "UNKNOWN",
+        "snapshot_start": null,
+        "snapshot_end": null,
+        "counter_delta": null,
+        "drop_count": null,
+        "gap_count": null,
+        "reported_zeek_drops": null,
+        "verdict": "UNVERIFIED",
+        "same_handle_proof": "BLOCKED_STOCK_SOURCE_PRIVATE_HANDLE",
+        "packet_records": 4,
+        "packet_accounting_scope": "ZEEK_DELIVERED_METADATA_NOT_KERNEL_OBSERVATIONS",
+        "native_ai": "BLOCKED",
+        "provider_admission": "NO_REVIEWED_NATIVE_PROVIDER",
+        "timestamp": null,
+        "timestamp_scope": "BOUND_AUDIT_UTC_NOT_COUNTER_QUERY_TIME",
+        "evidence_digest": "d05af3d952eff3f11d8d97b53b79d66c64a222559ae97eca0e2e5e1839ecda40"
+      },
+      "feature_decisions_digest": "fe369eb01ef3c924b657fcefadf59a5017b0b39ec77ecb1cea8034814f55ffe4",
+      "quality_gate": "NATIVE_BLOCKED_CAPTURE_ATTESTATION_OFFLINE_GATE_UNCHANGED",
+      "dns_visibility": {
+        "classification": "NO_DNS_TRAFFIC_OBSERVED",
+        "scope": "OBSERVED_PLAINTEXT_DNS_WINDOW_NOT_NETWORK_WIDE",
+        "encrypted_dns": "DOH_DOT_PLAINTEXT_QUERY_NOT_VISIBLE",
+        "candidate_packets": 0,
+        "stage_counters": {
+          "contract": "soc-zeek-dns-stages:v1",
+          "candidate_udp": 0,
+          "candidate_tcp": 0,
+          "header_validated": 0,
+          "header_invalid": 0,
+          "analyzer_dispatch": 0,
+          "query_parsed": 0,
+          "response_parsed": 0,
+          "transaction_matched": 0,
+          "event_emitted": 0,
+          "parse_failed": 0,
+          "response_missing_metadata": 0,
+          "transaction_ambiguous": null,
+          "non_dns_confirmed": null,
+          "analyzer_attached": null,
+          "diagnostic_truncated": false
+        },
+        "analyzer_status": "UNKNOWN",
+        "analyzer_dispatch_scope": "DNS_MESSAGE_CALLBACK_NOT_ALL_DISPATCH_ATTEMPTS",
+        "adapter_accepted": 0,
+        "adapter_rejected": 0,
+        "adapter_rejection_reason": null,
+        "dns9_features_generated": 0,
+        "dns9": "BLOCKED",
+        "header_scope": "ZEEK_HEADER_EVENT_NOT_FULL_MESSAGE_VALIDATION",
+        "matching_scope": "EXISTING_ZEEK_TRANSACTION_METADATA",
+        "payload_retained": false,
+        "fqdn_retained": false
+      },
+      "dns_diagnostic_digest": "6bad31fcf07b685749bc2f1cafb4180897ba22e72cc9dfdde5e7933815593b76",
+      "native_ai": "BLOCKED",
+      "dns9": "BLOCKED",
+      "operational_gate": "BLOCKED"
+    },
+    "packet_count": 4,
+    "flow_count": 2,
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "finalization": "PCAP_REFERENCE_FINALIZED",
+    "audit_digest": "bbf364722c95cc3555b825468cfdfd9839c0933c40e51d4b90d3b7e1b60c78bf",
+    "recovered_audit_digest": "bbf364722c95cc3555b825468cfdfd9839c0933c40e51d4b90d3b7e1b60c78bf",
+    "restored_new_inferences": 0,
+    "elapsed_seconds": 9.702783446002286,
+    "cpu_seconds": 1.1969068560000005,
+    "process_peak_rss_bytes": 185069568,
+    "memavailable_before_bytes": 5094666240,
+    "psi_before": "some avg10=0.00 avg60=0.00 avg300=0.00 total=278808752\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=267708009\n",
+    "native_capture": false,
+    "cleanup_verified": true
+  },
+  "quality": {
+    "ruff": {
+      "exit_code": 0,
+      "seconds": 0.12099065899383277,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "seconds": 0.04622301098424941,
+      "result": "1249 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "seconds": 0.3188542859861627,
+      "result": "Building wheel...\nSuccessfully built dist/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    },
+    "wheel_source_files_matched": 549,
+    "diff_check": true
+  },
+  "performance": {
+    "scope": "OFFLINE_PACKAGE_VALIDATION_NOT_AUTH_OR_NATIVE",
+    "repetitions": 3,
+    "milliseconds": [
+      101.43158899154514,
+      96.52604995062575,
+      108.47088496666402
+    ],
+    "median_ms": 101.43158899154514,
+    "gui_performance": "NOT_REMEASURED_NO_STARTUP_PATH_CHANGE",
+    "baseline_comparison": "NOT_CLAIMED",
+    "memory_psi": "some avg10=0.93 avg60=5.73 avg300=2.60 total=288687166\nfull avg10=0.87 avg60=5.45 avg300=2.46 total=277118074\n"
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 404,
+    "raw_stat_files_checked": 58,
+    "errors": []
+  },
+  "initial_results": {
+    "exploratory_handoff": "Interrupted deliberately before approval/manifest argument pinning, pytest teardown transcript retained",
+    "export_preparation": "New directory mkdir omission; no tests started; fixed and regenerated",
+    "initial_structural": {
+      "failed": 2,
+      "passed": 253,
+      "resolution": "Replaced custom PAM import assumptions; forbid direct PAM/NSS imports in entry/Broker, explicit UNKNOWN OS NSS scope; full affected cohort rerun"
+    },
+    "initial_lint": "GUI test import order; fixed; final lint/format pass"
+  },
+  "verdicts": {
+    "OS_AUTH_HANDOFF_CONTRACT_VERIFIED": "NONPRIVILEGED_C_PYTHON_FIXTURE",
+    "FRESH_STARTUP_AUTH_CONTRACT_VERIFIED": "MOCK_POLICY_PLUS_CLOSED_NATIVE_ADMISSION",
+    "BROKER_SESSION_BINDING_VERIFIED": "ORDINARY_UID_UNIX_SOCKET_FIXTURE",
+    "IPC_PEER_CREDENTIALS_VERIFIED": "REAL_KERNEL_UNIX_CREDENTIALS_NOT_ROOT_TRANSITION",
+    "RELEASE_MANIFEST_ENFORCEMENT_VERIFIED": "FIXTURE_ROOT_INSTALL_PENDING",
+    "TCX_OWNERSHIP_PRESERVED": true,
+    "CLEANUP_FIXTURE_VERIFIED": true,
+    "GUI_PRESERVED": true,
+    "AUDIT_RECOVERY_VERIFIED": "FIXTURE",
+    "NATIVE_RELEASE": "BLOCKED",
+    "NATIVE_ROOT_INSTALL": "PENDING",
+    "NATIVE_AUTH": "PENDING",
+    "CAPABILITY_SCOPE": "UNKNOWN",
+    "NATIVE_VERIFIER": "PENDING",
+    "NATIVE_TCX_ATTACH": "PENDING",
+    "NATIVE_AI": "BLOCKED",
+    "DNS9": "BLOCKED",
+    "OPERATIONAL_PROMOTION": "BLOCKED"
+  },
+  "native_blockers": [
+    "Actual effective sudo password/account/environment/plugin policy not qualified",
+    "No root-owned installation performed",
+    "No root-to-user peer credential transition tested",
+    "Capability transfer/drop and CAP_PERFMON need unqualified",
+    "No Kernel verifier or TCX/coexistence/cleanup validation",
+    "OS admission function and existing Native/TCX gates remain false; release schema cannot admit Native"
+  ],
+  "native_scope": {
+    "fixed_entry": "/usr/libexec/soc-agent-ebpf/bootstrap",
+    "entry_mode": "0555",
+    "sudo": "/usr/bin/sudo -k -u root -- FIXED_ENTRY --os-handoff UID GID SESSION APPROVAL_DIGEST MANIFEST_DIGEST",
+    "interface": "lo",
+    "hook": "ONE_EXPLICIT_INGRESS_OR_EGRESS",
+    "namespace": "EXPLICIT_APPROVED_CURRENT_NAMESPACE",
+    "seconds": 300,
+    "metadata_records": 4096,
+    "queue": 32,
+    "broker_address_space_mib": 256,
+    "cpu_seconds": 20,
+    "application_seconds": 3600,
+    "max_explicit_runs": 16,
+    "pinning": false,
+    "auto_restart": false,
+    "approval_granted": false
+  },
+  "git_receipt": "Private final-git-receipt.json records actual commit/export/remote equality after push; this evidence grants no Native permission"
+}

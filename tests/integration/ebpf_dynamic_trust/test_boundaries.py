@@ -54,9 +54,11 @@ def test_actual_elf_graph_pam_nss_and_explicit_missing_modules(release):
     assert len(manifest.dependencies) >= 15
     assert set(trust.elf) == {"bootstrap", "broker", "libnative-tc.so"}
     assert all(x.bind_now and x.relro and x.executable_stack is False for x in trust.elf.values())
-    assert {"getpwuid_r", "getpwnam_r", "pam_authenticate", "pam_acct_mgmt"} <= set(
+    assert not {"getpwuid_r", "getpwnam_r", "pam_authenticate", "pam_acct_mgmt"} & set(
         trust.elf["bootstrap"].imports
     )
+    assert "libpam.so.0" not in trust.elf["bootstrap"].needed
+    assert trust.nss.os_authentication_scope == "UNKNOWN_NATIVE_SUDO_PAM_POLICY"
     assert "libnative-tc.so" not in trust.elf["bootstrap"].needed
     assert trust.pam_modules == ("/usr/lib/x86_64-linux-gnu/security/pam_unix.so",)
     assert any("libnss_systemd" in name for name in trust.nss_modules)
@@ -469,9 +471,9 @@ def test_environment_missing_duplicate_and_mutated_values(release, values):
 
 def test_nss_database_scope_never_silently_excludes_missing_unused_module(release):
     trust = release[1].dynamic_trust
-    assert trust.nss.direct_identity_databases == ("passwd",)
-    assert trust.nss.pam_account_databases == ("shadow",)
-    assert trust.nss.scope_policy == "ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"
+    assert trust.nss.direct_identity_databases == ()
+    assert trust.nss.pam_account_databases == ()
+    assert trust.nss.scope_policy == "NUMERIC_ENTRY_BROKER_OS_NSS_SCOPE_UNKNOWN"
     assert trust.nss_exclusion_policy == "UNUSED_BY_DIRECT_CODE_IS_NOT_PROOF_UNUSED_BY_PAM"
     assert trust.environment_contract == "NEW_EXEC_FIXED_PATH_LANG_ONLY_AT_SECURE_ENTRY_REQUIRED"
     assert trust.mapping_contract == "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_NOT_EXECUTION_HISTORY"

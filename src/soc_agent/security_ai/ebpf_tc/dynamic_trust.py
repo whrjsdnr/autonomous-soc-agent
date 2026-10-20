@@ -19,10 +19,13 @@ from soc_agent.security_ai.research.models import Frozen
 class NSSPolicy(Frozen):
     databases: dict[str, tuple[str, ...]]
     services: tuple[str, ...] = Field(max_length=64)
-    direct_identity_databases: tuple[Literal["passwd"], ...] = ("passwd",)
-    pam_account_databases: tuple[Literal["shadow"], ...] = ("shadow",)
-    scope_policy: Literal["ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"] = (
-        "ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"
+    direct_identity_databases: tuple[()] = ()
+    pam_account_databases: tuple[()] = ()
+    scope_policy: Literal["NUMERIC_ENTRY_BROKER_OS_NSS_SCOPE_UNKNOWN"] = (
+        "NUMERIC_ENTRY_BROKER_OS_NSS_SCOPE_UNKNOWN"
+    )
+    os_authentication_scope: Literal["UNKNOWN_NATIVE_SUDO_PAM_POLICY"] = (
+        "UNKNOWN_NATIVE_SUDO_PAM_POLICY"
     )
     source: Literal["STATIC_CONFIG_NOT_LOOKUP"] = "STATIC_CONFIG_NOT_LOOKUP"
 
@@ -146,12 +149,9 @@ def dependency_trust(bodies: dict[str, bytes], dependencies) -> DynamicTrust:
     pam = str(_library("security/pam_unix.so"))
     if pam not in paths:
         raise ValueError("PAM_DEPENDENCY_MISSING")
-    required_services = {
-        service
-        for database in ("passwd", "shadow")
-        for service in policy.databases[database]
-        if not service.startswith("[")
-    }
+    # Neither new entry nor Broker performs direct name/account lookup. This is
+    # NOT an empty set of OS sudo/PAM requirements: that scope stays UNKNOWN.
+    required_services: set[str] = set()
     entry_text = inspect_entry(bodies["entry"])
     if not entry_text:
         raise ValueError("STATIC_ENTRY_REQUIRED")
@@ -175,9 +175,12 @@ def dependency_trust(bodies: dict[str, bytes], dependencies) -> DynamicTrust:
         "initgroups",
         "getgrouplist",
         "pam_start",
+        "pam_authenticate",
+        "pam_acct_mgmt",
+        "misc_conv",
     }
-    if forbidden & set(identities["broker"].imports):
-        raise ValueError("BROKER_NUMERIC_IDENTITY_REQUIRED")
+    if any(forbidden & set(identities[name].imports) for name in ("broker", "bootstrap")):
+        raise ValueError("ENTRY_BROKER_NUMERIC_IDENTITY_REQUIRED")
     return DynamicTrust(
         elf=identities,
         static_entry_sha256=hashlib.sha256(bodies["entry"]).hexdigest(),

@@ -50,7 +50,7 @@ def test_package_qualification_appends_audit_without_install_or_auth(tmp_path):
         assert value["dynamic_loader_trust"] == "STATIC_ENTRY_FIXTURE_NATIVE_PENDING"
         assert value["runtime_mapping_attestation"] == "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_LIMITED"
         assert value["environment_contract"] == release.dynamic_trust.environment_contract
-        assert value["nss_scope_policy"] == "ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"
+        assert value["nss_scope_policy"] == "NUMERIC_ENTRY_BROKER_OS_NSS_SCOPE_UNKNOWN"
         assert not p.controller.application._authenticated
         with p.controller.application.store.database.transaction(write=False) as db:
             rows = [json.loads(r[0]) for r in db.execute("SELECT payload FROM monitor_audit")]

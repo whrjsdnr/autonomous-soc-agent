@@ -39,8 +39,7 @@ static int allowed_path(const char p[256]) {
         strstr(p,"/../") || strstr(p,"/./") || end==p || end[-1]=='/')return 0;
     for(const char *c=end;c<p+256;c++)if(*c)return 0;
     if(!strcmp(p,SOC_INSTALL "entry"))return 1;
-    if(!strcmp(p,"/etc/nsswitch.conf") || !strcmp(p,"/etc/ld.so.cache") ||
-       !strcmp(p,"/etc/pam.d/soc-agent-ebpf"))return 1;
+    if(!strcmp(p,"/etc/nsswitch.conf") || !strcmp(p,"/etc/ld.so.cache"))return 1;
     return !strncmp(p,"/usr/lib/",9) || !strncmp(p,"/usr/lib64/",11);
 }
 int soc_trust_parse(const void *body,size_t size,const struct soc_plan *p,
@@ -63,9 +62,8 @@ int soc_trust_parse(const void *body,size_t size,const struct soc_plan *p,
         if(!strcmp(r.path,SOC_INSTALL "entry"))mandatory|=8;
         if(!strcmp(r.path,"/etc/nsswitch.conf"))mandatory|=1;
         if(!strcmp(r.path,"/etc/ld.so.cache"))mandatory|=2;
-        if(!strcmp(r.path,"/etc/pam.d/soc-agent-ebpf"))mandatory|=4;
         memcpy(previous,r.path,256);
-    }return mandatory==15?0:-EPERM;
+    }return mandatory==11?0:-EPERM;
 }
 static int hash_fd(int fd,const uint8_t expected[32],uint64_t size,unsigned mode) {
     struct stat a,b;if(fstat(fd,&a) || !S_ISREG(a.st_mode) || a.st_uid || a.st_gid ||
