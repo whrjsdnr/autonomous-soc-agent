@@ -54,9 +54,14 @@ class PreparedDesktop(BrokerDesktop):
         tcx = self.snapshot.get("tcx", {})
         for key in (
             "attach_mode",
+            "program_sha256",
+            "dispatcher",
+            "broker_state",
             "link_id",
             "link_state",
             "ownership",
+            "program_semantics",
+            "coexistence",
             "broker_pin_policy",
             "external_pins",
         ):

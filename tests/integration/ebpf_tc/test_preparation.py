@@ -67,7 +67,9 @@ def test_auth_failures_never_start_broker_or_load(tmp_path, change):
         p.controller.close()
 
 
-@pytest.mark.parametrize("name", ["bootstrap", "broker", "libnative-tc.so"])
+@pytest.mark.parametrize(
+    "name", ["bootstrap", "broker", "libnative-tc.so", "tcx.bpf.o", "tcx-dispatch-fixture"]
+)
 def test_changed_executable_never_uses_approval_or_authentication(tmp_path, name):
     p = preparation(tmp_path)
     try:

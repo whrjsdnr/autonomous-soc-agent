@@ -27,4 +27,8 @@ int soc_tcx_attach(struct soc_tcx *);
 int soc_tcx_detach(struct soc_tcx *);
 extern const struct soc_tcx_ops soc_tcx_real_ops;
 int soc_tcx_fixture(int);
+int soc_tcx_dispatch(struct soc_tcx *,const struct soc_request *);
+int soc_tcx_cleanup(struct soc_tcx *);
+int soc_program_fd(struct soc_state *);
+int soc_tcx_journal(struct soc_tcx *,const char *);
 #endif

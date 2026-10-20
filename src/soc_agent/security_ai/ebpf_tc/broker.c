@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "native.h"
+#include "tcx.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/capability.h>
@@ -41,6 +42,8 @@ static int broker(int ipc,int plan,int object,int audit) {
        soc_sealed(plan,md) || soc_plan_validate(&s.plan) || !getuid() || geteuid()!=getuid() ||
        getuid()!=s.plan.uid || getgid()!=s.plan.gid || caps() || soc_peer(ipc,&s.plan) ||
        soc_sealed(object,s.plan.program_sha))return -EPERM;
+    struct soc_tcx link={.session=&s,.ops=&soc_tcx_real_ops,.fd=-1,.program_fd=-1};
+    int tcx=s.plan.version==SOC_TCX_VERSION;
     int socket_bytes=32768,passcred=1;
     if(setsockopt(ipc,SOL_SOCKET,SO_PASSCRED,&passcred,sizeof(passcred)) ||
        setsockopt(ipc,SOL_SOCKET,SO_SNDBUF,&socket_bytes,sizeof(socket_bytes)) ||
@@ -57,7 +60,7 @@ static int broker(int ipc,int plan,int object,int audit) {
         uint64_t now=soc_now();
         if(now<heartbeat || now-born>=3600000000000ULL || now-heartbeat>=15000000000ULL ||
            soc_peer(ipc,&s.plan)) {result=-ETIMEDOUT;break;}
-        if(s.attached && now-s.started_ns>=300000000000ULL && soc_cleanup(&s)) {result=-EUCLEAN;break;}
+        if(s.attached && now-s.started_ns>=300000000000ULL && (tcx?soc_tcx_cleanup(&link):soc_cleanup(&s))) {result=-EUCLEAN;break;}
         struct pollfd wait={ipc,POLLIN,0};int ready=poll(&wait,1,100);
         if(ready<0) {if(errno==EINTR)continue;result=-EIO;break;}
         if(s.attached && soc_poll(&s)<0) {result=-ENOBUFS;break;}
@@ -67,7 +70,23 @@ static int broker(int ipc,int plan,int object,int audit) {
         if(soc_rate_allow(rate_slots,&rate_cursor,now)) {result=-EAGAIN;break;}
         s.sequence=q.sequence;commands++;heartbeat=now;
         int rc=0;
-        if(q.operation==1) {if(s.loaded || s.attached)rc=-EPERM;}
+        if(tcx) {
+            if(q.operation==2 && link.phase==SOC_LINK_DETACHED && !s.failed) {
+                /* New explicit run, never automatic retry. Broker ingress history still applies. */
+                link=(struct soc_tcx){.session=&s,.ops=&soc_tcx_real_ops,.fd=-1,.program_fd=-1};
+            }
+            if(q.operation==2) {
+                for(uint32_t i=0;i<s.attempts;i++)if(previous_generations[i]==q.generation ||
+                    previous_handles[i]==q.handle)rc=-EPERM;
+                if(!rc && s.attempts<16) {
+                    previous_generations[s.attempts]=q.generation;
+                    previous_handles[s.attempts]=q.handle;
+                }
+            }
+            if(!rc)rc=soc_tcx_dispatch(&link,&q);
+            if(q.operation==6)stopped=1;
+        }
+        else if(q.operation==1) {if(s.loaded || s.attached)rc=-EPERM;}
         else if(q.operation==2) {
             if(!q.generation || !q.handle || s.attempts>=16) {result=-EINVAL;break;}
             for(uint32_t i=0;i<s.attempts;i++)if(previous_generations[i]==q.generation ||
@@ -78,14 +97,14 @@ static int broker(int ipc,int plan,int object,int audit) {
             rc=soc_prepare(&s);if(!rc)rc=soc_attach(&s);
         } else if(q.operation==4) {
             rc=memcmp(&s.owner,&q.owner,sizeof(q.owner))?-EPERM:soc_detach(&s);
-        } else if(q.operation==5) {rc=q.reason>=1 && q.reason<=7?soc_cleanup(&s):-EINVAL;}
-        else if(q.operation==6) {rc=soc_cleanup(&s);stopped=1;}
+        } else if(q.operation==5) {rc=q.reason>=1 && q.reason<=7?(tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)):-EINVAL;}
+        else if(q.operation==6) {rc=(tcx?soc_tcx_cleanup(&link):soc_cleanup(&s));stopped=1;}
         struct {uint32_t sequence,state;int32_t error;uint32_t reserved;struct soc_owner owner;} reply={
             q.sequence,s.attached?4:3,rc,0,s.owner};
         if(send(ipc,&reply,sizeof(reply),MSG_DONTWAIT|MSG_NOSIGNAL)!=sizeof(reply))rc=-ENOBUFS;
         if(rc) {result=rc;break;}
     }
-    if(soc_cleanup(&s))result=-EUCLEAN;
+    if((tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)))result=-EUCLEAN;
     if(s.ops->record(&s,result?"CLEANUP_UNVERIFIED":"BROKER_EXITED"))result=-EIO;
     close(object);close(plan);close(ipc);close(audit);return result;
 }

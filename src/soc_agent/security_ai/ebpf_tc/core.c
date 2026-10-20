@@ -17,7 +17,7 @@ int soc_sha(const void *body,size_t size,uint8_t out[32]) {
     return EVP_Digest(body,size,out,&n,EVP_sha256(),NULL)==1 && n==32?0:-EINVAL;
 }
 int soc_plan_validate(const struct soc_plan *p) {
-    if (p->version!=SOC_VERSION || !p->uid || !p->gid || !p->controller_pid ||
+    if ((p->version!=SOC_VERSION && p->version!=SOC_TCX_VERSION) || !p->uid || !p->gid || !p->controller_pid ||
         !p->controller_ticks || !p->namespace_inode || !p->ifindex ||
         (p->hook!=1 && p->hook!=2) || p->duration!=300 || p->events!=4096 ||
         p->queue!=32 || p->rss_mib!=256 || p->cpu_seconds!=20 || p->reserved) return -EINVAL;

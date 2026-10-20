@@ -10,9 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 int soc_tcx_native_admitted(void) {
-    /* Existing TC_ACT_OK == TCX_PASS changes chain traversal. No admission override. */
-    static const volatile int migrated_program_semantics_approved=0;
-    return soc_native_gate() && migrated_program_semantics_approved;
+    /* Separate TCX_NEXT object exists; Native qualification still closed. */
+    static const volatile int native_release_qualified=0;
+    return soc_native_gate() && native_release_qualified;
 }
 static int fail(struct soc_tcx *l) {
     if(l->phase!=SOC_LINK_ORPHANED)l->phase=SOC_LINK_UNVERIFIED;l->ops->record(l,"TCX_CLEANUP_UNVERIFIED");return -EUCLEAN;
@@ -33,11 +33,12 @@ int soc_tcx_attach(struct soc_tcx *l) {
     int rc=l->ops->create(l);
     if(rc || l->fd<0)return fail(l); /* Provider retains a partial owned FD on failure. */
     struct soc_tcx_identity found={0},expected=l->owner;
+    if(l->ops->record(l,"TCX_LINK_CREATED"))return fail(l);
     if(l->ops->info(l,&found) || !found.link_id)return fail(l);
     expected.link_id=found.link_id;
     if(!same(&expected,&found))return fail(l);
     l->owner=found;
-    if(l->ops->record(l,"TCX_LINK_ACTIVE"))return fail(l);
+    if(l->ops->record(l,"TCX_LINK_VERIFIED"))return fail(l);
     l->phase=SOC_LINK_ACTIVE;return 0;
 }
 int soc_tcx_detach(struct soc_tcx *l) {
@@ -52,7 +53,8 @@ int soc_tcx_detach(struct soc_tcx *l) {
     if(l->ops->info(l,&after) || !same(&expected,&after))return fail(l);
     int rc=l->ops->close(l);l->fd=-1; /* Never retry a possibly consumed Linux FD. */
     if(rc)return fail(l);
-    if(l->ops->record(l,"TCX_DETACHED"))return fail(l);
+    if(l->ops->record(l,"TCX_LINK_RELEASED"))return fail(l);
+    if(l->ops->record(l,"TCX_CLEANUP_VERIFIED"))return fail(l);
     l->phase=SOC_LINK_DETACHED;return 0;
 }
 static int validate(struct soc_tcx *l) {
@@ -103,7 +105,6 @@ static int close_link(struct soc_tcx *l) {
 }
 static int record(struct soc_tcx *l,const char *kind) {
     if(validate(l))return -EPERM;
-    /* Existing fixed journal ABI cannot attest TCX Link identity yet. Block real progress. */
-    (void)kind;return -EOPNOTSUPP;
+    return soc_tcx_journal(l,kind);
 }
 const struct soc_tcx_ops soc_tcx_real_ops={validate,create,info,detach,close_link,record};

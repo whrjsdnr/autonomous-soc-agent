@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <sys/types.h>
 #define SOC_VERSION 1
+#define SOC_TCX_VERSION 2 /* Same bounded wire shape, distinct approval identity. */
 #define SOC_LIMIT_FILTERS 128
 #define SOC_INSTALL "/usr/libexec/soc-agent-ebpf/"
 #define SOC_POLICY "/etc/pam.d/soc-agent-ebpf"

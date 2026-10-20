@@ -181,7 +181,14 @@ def test_inspection_sanitizes_preload_library_and_python_environment(
     subprocess.run(["cc", "-shared", "-fPIC", str(source), "-o", str(dso)], check=True)
     expected = {
         n: hashlib.sha256((directory / n).read_bytes()).hexdigest()
-        for n in ("bootstrap", "broker", "libnative-tc.so", "tc-fixture")
+        for n in (
+            "bootstrap",
+            "broker",
+            "libnative-tc.so",
+            "tc-fixture",
+            "tcx-dispatch-fixture",
+            "tcx.bpf.o",
+        )
     }
     monkeypatch.setenv("LD_PRELOAD", str(dso))
     monkeypatch.setenv("LD_LIBRARY_PATH", str(tmp_path))

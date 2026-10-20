@@ -10,7 +10,7 @@ def test_unobserved_is_unknown_not_zero_or_live():
     value = unobserved()
     assert value["link_id"] is None and value["ownership"] == "NOT_OBSERVED"
     assert value["kernel_support"] == "UNKNOWN_NOT_PROBED"
-    assert value["program_semantics"] == "BLOCKED_TCX_PASS_SKIPS_CHAIN"
+    assert value["program_semantics"] == "TCX_NEXT_SEPARATE_OBJECT_NATIVE_PENDING"
     assert value["native_release"] == "BLOCKED"
 
 

@@ -23,7 +23,7 @@ class NativePlan(Frozen):
     loader_sha256: Hash
     program_sha256: Hash
     bundle_digest: Hash
-    mode: Literal["B2A_NATIVE_BLOCKED"] = "B2A_NATIVE_BLOCKED"
+    mode: Literal["B2A_NATIVE_BLOCKED", "B2D_TCX_BLOCKED"] = "B2A_NATIVE_BLOCKED"
 
     @model_validator(mode="after")
     def producer_identity(self) -> Self:
@@ -35,7 +35,7 @@ class NativePlan(Frozen):
         base = self.broker.application
         scope = base.scope
         value = PLAN.pack(
-            1,
+            2 if self.mode == "B2D_TCX_BLOCKED" else 1,
             self.broker.uid,
             self.broker.gid,
             base.controller.pid,

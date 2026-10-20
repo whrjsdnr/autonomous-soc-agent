@@ -107,3 +107,11 @@ def test_native_detach_fields_are_validated(changes):
     )
     with pytest.raises(ValueError, match="OWNERSHIP_INVALID"):
         detach_request(1, "a" * 64, **fields)
+
+
+def test_tcx_mode_has_a_distinct_session_approval_with_same_fixed_wire_shape():
+    legacy = native_plan()
+    tcx = NativePlan.model_validate(legacy.model_dump() | {"mode": "B2D_TCX_BLOCKED"})
+    assert PLAN.unpack(tcx.wire())[0] == 2
+    assert len(tcx.wire()) == len(legacy.wire()) == 272
+    assert tcx.approval != legacy.approval

@@ -56,6 +56,8 @@ class LinkFixtureResult(Frozen):
             "link_state": PHASES[self.phase],
             "link_id": self.link_id or None,
             "ownership": "FIXTURE_ONLY",
+            "coexistence": "APPEND_ONLY_VISIBILITY_NOT_ATTESTED",
+            "program_semantics": "TCX_NEXT_SEPARATE_OBJECT_NATIVE_PENDING",
             "broker_pin_policy": "FORBIDDEN",
             "external_pins": "UNKNOWN",
             "input_origin": self.source,
@@ -73,6 +75,36 @@ def unobserved() -> dict[str, object]:
         "broker_pin_policy": "FORBIDDEN",
         "external_pins": "UNKNOWN",
         "kernel_support": "UNKNOWN_NOT_PROBED",
-        "program_semantics": "BLOCKED_TCX_PASS_SKIPS_CHAIN",
+        "program_semantics": "TCX_NEXT_SEPARATE_OBJECT_NATIVE_PENDING",
         "native_release": "BLOCKED",
     }
+
+
+class DispatchFixtureResult(Frozen):
+    source: Literal["TCX_DISPATCH_FIXTURE_NOT_KERNEL"]
+    native: Literal[False]
+    attach: int
+    stop: int
+    cleanup: int
+    active: Literal[0, 1]
+    created: int = Field(ge=0, le=1)
+    removed: int = Field(ge=0, le=1)
+    foreign: Literal[1]
+    phase: int = Field(ge=0, lt=len(PHASES))
+    approval: Hash
+    journal: str = Field(max_length=8192, pattern=r"^(?:[a-f0-9]{2})*$")
+
+    def snapshot(self) -> dict[str, object]:
+        return {
+            "attach_mode": "TCX_DISPATCH_FIXTURE",
+            "link_state": PHASES[self.phase],
+            "link_id": None,  # Counts are not a Link identity attestation.
+            "ownership": "FIXTURE_ONLY",
+            "broker_pin_policy": "FORBIDDEN",
+            "external_pins": "UNKNOWN",
+            "input_origin": self.source,
+            "native_release": "BLOCKED",
+            "cleanup": "FIXTURE_DETACHED"
+            if self.cleanup == 0 and self.phase == 4
+            else "UNVERIFIED",
+        }

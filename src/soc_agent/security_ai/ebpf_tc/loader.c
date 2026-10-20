@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "native.h"
+#include "tcx.h"
 #include "../ebpf/event.h"
 #include <bpf/bpf.h>
 #include <bpf/libbpf.h>
@@ -14,7 +15,7 @@
 struct runtime {struct bpf_object *object;struct ring_buffer *ring;
     int program,config;uint32_t emitted;};
 static int validate(struct soc_state *s) {
-    if(!soc_native_gate())return -EPERM;
+    if(!soc_native_gate() || (s->plan.version==SOC_TCX_VERSION && !soc_tcx_native_admitted()))return -EPERM;
     return soc_plan_validate(&s->plan) ||
         (s->stopping?soc_scope_environment(&s->plan):soc_peer(s->ipc_fd,&s->plan)) ||
         soc_sealed(s->object_fd,s->plan.program_sha)?-EPERM:0;
@@ -38,14 +39,18 @@ static int load(struct soc_state *s) {
     s->context=r;libbpf_set_print(NULL);
     r->object=bpf_object__open_mem(body,st.st_size,NULL);free(body);
     if(libbpf_get_error(r->object)) {r->object=NULL;return -EINVAL;}
+    int tcx=s->plan.version==SOC_TCX_VERSION;
+    const char *in=tcx?"tcx/ingress":"tc/ingress", *out=tcx?"tcx/egress":"tc/egress";
     unsigned programs=0,maps=0;struct bpf_program *p;struct bpf_map *m;
     bpf_object__for_each_program(p,r->object) {
         const char *section=bpf_program__section_name(p);
         if(bpf_program__type(p)!=BPF_PROG_TYPE_SCHED_CLS ||
-           (strcmp(section,"tc/ingress") && strcmp(section,"tc/egress")))return -EINVAL;
+           (strcmp(section,in) && strcmp(section,out)))return -EINVAL;
         /* Load only the explicitly approved hook; retain source object SHA. */
-        if(bpf_program__set_autoload(p,!strcmp(section,s->plan.hook==1?"tc/ingress":"tc/egress")))
+        if(bpf_program__set_autoload(p,!strcmp(section,s->plan.hook==1?in:out)))
             return -EINVAL;
+        if(tcx && bpf_program__set_expected_attach_type(p,
+            !strcmp(section,in)?BPF_TCX_INGRESS:BPF_TCX_EGRESS))return -EINVAL;
         programs++;
     }
     bpf_object__for_each_map(m,r->object) {
@@ -149,3 +154,8 @@ int soc_poll(struct soc_state *s) {
     struct runtime *r=s->context;return ring_buffer__poll(r->ring,0);
 }
 const struct soc_ops soc_real_ops={validate,soc_snapshot_real,load,enable,query,attach,detach,release,record};
+
+int soc_program_fd(struct soc_state *s) {
+    if(validate(s) || !s->context)return -EPERM;
+    return ((struct runtime *)s->context)->program;
+}

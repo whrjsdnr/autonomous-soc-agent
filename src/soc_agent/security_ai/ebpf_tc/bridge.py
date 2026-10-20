@@ -46,7 +46,14 @@ def manifest(plan: NativePlan) -> bytes:
 
 def inspect_artifacts(directory: Path, expected: dict | None = None) -> dict:
     hashes = {}
-    for name in ("bootstrap", "broker", "libnative-tc.so", "tc-fixture"):
+    for name in (
+        "bootstrap",
+        "broker",
+        "libnative-tc.so",
+        "tc-fixture",
+        "tcx-dispatch-fixture",
+        "tcx.bpf.o",
+    ):
         path = directory / name
         hashes[name] = file_sha(path)
         try:
@@ -193,12 +200,61 @@ class Preparation:
         self._tcx_result = value.snapshot()
         return value.model_dump()
 
+    @property
+    def tcx_dispatch_approval(self) -> str:
+        return digest(
+            {
+                "plan": self.plan.approval,
+                "mode": "TCX_DISPATCH_FIXTURE",
+                "program": self.hashes["tcx.bpf.o"],
+            }
+        )
+
+    def tcx_dispatch_fixture(self, approval: str, scenario: int = 0) -> dict:
+        from soc_agent.security_ai.ebpf_tc.tcx import DispatchFixtureResult
+
+        self.validate()
+        if approval != self.tcx_dispatch_approval or self._tcx_used:
+            raise ValueError("TCX_FIXTURE_APPROVAL_OR_REPLAY_DENIED")
+        if type(scenario) is not int or not 0 <= scenario <= 9:
+            raise ValueError("TCX_FIXTURE_SCENARIO_INVALID")
+        if not self.controller.application._authenticated or self.controller.broker is None:
+            raise ValueError("TCX_FIXTURE_APPLICATION_AUTH_REQUIRED")
+        self.controller.broker.request("STATUS")
+        self._tcx_used = True
+        result = subprocess.run(
+            [str((self.artifacts / "tcx-dispatch-fixture").absolute()), str(scenario)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C"},
+        )
+        if result.returncode or len(result.stdout) > 12288:
+            raise ValueError("TCX_FIXTURE_FAILED")
+        value = DispatchFixtureResult.model_validate_json(result.stdout)
+        self.controller._event(
+            "TCX_DISPATCHER_FIXTURE",
+            native_plan_digest=self.plan.approval,
+            tcx_program_sha256=self.hashes["tcx.bpf.o"],
+            approval_digest=approval,
+            result=value.model_dump(),
+            native_execution=False,
+        )
+        self._tcx_result = value.snapshot()
+        return value.model_dump()
+
     def snapshot(self) -> dict:
         value = self.controller.snapshot()
         from soc_agent.security_ai.ebpf_tc.release import ReleaseEvidence
         from soc_agent.security_ai.ebpf_tc.tcx import unobserved
 
         value["tcx"] = self._tcx_result or unobserved()
+        value["tcx"].update(
+            program_sha256=self.hashes["tcx.bpf.o"],
+            coexistence="APPEND_ONLY_VISIBILITY_NOT_ATTESTED",
+            dispatcher="COMPILED_NATIVE_GATE_CLOSED",
+            broker_state=value.get("state", "UNKNOWN"),
+        )
         value["native_release"] = ReleaseEvidence().snapshot()
         value["input_origin"] = "B2A_PREPARATION_OR_EXPLICIT_FIXTURE_NOT_NATIVE"
         value["ebpf"].update(

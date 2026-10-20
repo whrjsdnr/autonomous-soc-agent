@@ -31,7 +31,10 @@ def compile_native(destination: Path) -> dict[str, str]:
             *FLAGS,
             "-fPIC",
             "-shared",
-            *[str(ROOT / n) for n in ("core.c", "os.c", "netlink.c", "loader.c", "tcx.c")],
+            *[
+                str(ROOT / n)
+                for n in ("core.c", "os.c", "netlink.c", "loader.c", "tcx.c", "tcx_dispatch.c")
+            ],
             "-lbpf",
             "-lcrypto",
             "-o",
@@ -61,7 +64,15 @@ def compile_native(destination: Path) -> dict[str, str]:
             *FLAGS,
             *[
                 str(ROOT / n)
-                for n in ("broker.c", "core.c", "os.c", "netlink.c", "loader.c", "tcx.c")
+                for n in (
+                    "broker.c",
+                    "core.c",
+                    "os.c",
+                    "netlink.c",
+                    "loader.c",
+                    "tcx.c",
+                    "tcx_dispatch.c",
+                )
             ],
             "-lbpf",
             "-lcrypto",
@@ -85,14 +96,60 @@ def compile_native(destination: Path) -> dict[str, str]:
                 str(destination / ("tc-" + name if name == "fixture" else name)),
             ]
         )
+    commands.append(
+        [
+            "cc",
+            *FLAGS,
+            str(ROOT / "dispatch_fixture.c"),
+            "-L" + str(destination),
+            "-lnative-tc",
+            "-Wl,-rpath,$ORIGIN",
+            "-o",
+            str(destination / "tcx-dispatch-fixture"),
+        ]
+    )
     for command in commands:
         subprocess.run(command, capture_output=True, check=True, timeout=30)
-    return {
-        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
-        for p in (
-            destination / "bootstrap",
-            destination / "broker",
-            destination / "libnative-tc.so",
-            destination / "tc-fixture",
-        )
-    } | {"source_bundle_digest": digest(bundle())}
+    tcx = compile_tcx(destination)
+    return (
+        {
+            p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in (
+                destination / "bootstrap",
+                destination / "broker",
+                destination / "libnative-tc.so",
+                destination / "tc-fixture",
+                destination / "tcx-dispatch-fixture",
+            )
+        }
+        | tcx
+        | {"source_bundle_digest": digest(bundle())}
+    )
+
+
+def compile_tcx(destination: Path) -> dict[str, str]:
+    """Compile a distinct TCX_NEXT object; never load or attach it."""
+    destination.mkdir(parents=True, exist_ok=True)
+    output = destination / "tcx.bpf.o"
+    subprocess.run(
+        [
+            "clang",
+            "-target",
+            "bpfel",
+            "-O2",
+            "-g",
+            "-Wall",
+            "-Werror",
+            "-fdebug-compilation-dir=/soc-ebpf",
+            "-fdebug-prefix-map=" + str(ROOT.parent) + "=/soc-ebpf",
+            "-I/usr/include/x86_64-linux-gnu",
+            "-c",
+            str(ROOT / "tcx.bpf.c"),
+            "-o",
+            str(output),
+        ],
+        check=True,
+        capture_output=True,
+        timeout=30,
+    )
+    return {output.name: hashlib.sha256(output.read_bytes()).hexdigest()}

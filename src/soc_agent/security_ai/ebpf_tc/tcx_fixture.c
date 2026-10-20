@@ -31,7 +31,7 @@ static int close_link(struct soc_tcx *l) {
 static int record(struct soc_tcx *l,const char *kind) {
     struct fake_link *k=f(l);
     if(strlen(k->trace)+strlen(kind)+2<sizeof(k->trace)) {strcat(k->trace,kind);strcat(k->trace,";");}
-    if(k->scenario==9 && !strcmp(kind,"TCX_DETACHED"))return -EIO;
+    if(k->scenario==9 && !strcmp(kind,"TCX_LINK_RELEASED"))return -EIO;
     /* Another manager replaces a positional filter after our last info check. */
     if(k->scenario==6 && !strcmp(kind,"TCX_DETACH_REQUESTED"))k->foreign_active=2;
     return 0;

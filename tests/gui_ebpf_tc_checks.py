@@ -42,6 +42,8 @@ async def test_prepared_native_gate_gui_preserves_charts_and_fixture_shutdown(tm
         root.update()
         text = app.system.get("1.0", "end")
         assert "B-2A NATIVE IMPLEMENTATION" in text and "B2A_CLOSED" in text
+        assert app.snapshot["tcx"]["program_sha256"] in text
+        assert "APPEND_ONLY_VISIBILITY_NOT_ATTESTED" in text
         assert "LEGACY_TC_BLOCKED" in text and "NOT_OBSERVED" in text
         assert app.snapshot["tcx"]["link_id"] is None
         assert "BLOCKED_NO_ATOMIC_OWNERSHIP" in text
