@@ -1,0 +1,2224 @@
+{
+  "contract": "soc-tcx-trusted-installation-evidence:v1",
+  "baseline": "389779e9c9f03a3631333f5fa7c1b44d54dc3539",
+  "native_operations_executed": false,
+  "source_manifest": {
+    "src/soc_agent/security_ai/ebpf_tc/__main__.py": "f9bb654c4fdc8e00881dd9177b098312d953b7fe8eecc55b9578601b2dd8ddd4",
+    "src/soc_agent/security_ai/ebpf_tc/auth_qualification.py": "3190f47835e661e33ba1f55bf0d0b8b9da0294ecce18d1b9ff37e8f99e2a2b68",
+    "src/soc_agent/security_ai/ebpf_tc/bridge.py": "1c9f2fee5859f640771e8d515176bd768cd3f788076a36b61c3b251f1eea8eed",
+    "src/soc_agent/security_ai/ebpf_tc/dependencies.py": "f2544dadd30a9226f36750b03b277c01baa219b73306ac3981bff47ea92e34c5",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "ff932d90ed8c781f645a8e54155a5b4ef6589b37a6044ca70825c0bf42f7074f",
+    "src/soc_agent/security_ai/ebpf_tc/install_simulation.py": "73dd906879b020075f3f294b83b2a8ead38f76c548319ca84a6f3d43978365ec",
+    "src/soc_agent/security_ai/ebpf_tc/installation.py": "19ee2c08d9c339c7696ea9f9b5ad66122b2758d0ef20f77099d76bf976817371",
+    "src/soc_agent/security_ai/ebpf_tc/qualification.py": "ce70e46b08542722de2c64918cf817d5d67d830e47af376da374b88716b6e2b1",
+    "tests/gui_ebpf_tc_checks.py": "f28d6e59c4ab733a891be83ea62b7f30f388654dd3b45ede023dc9652800eac4",
+    "tests/integration/ebpf_install/test_application.py": "10da43b35f43c38083e83c4fe3f03609f7e4a46dc38810f81440c45f6d900296",
+    "tests/integration/ebpf_install/test_package.py": "ded9212c052ca4272575921f4c228b3299f2114816233973504c04ad65f3f8d9",
+    "tests/unit/ebpf_install/test_contracts.py": "038792a480ee9a839170c52e6cd7fe2ef9809085aa82c801ec8db20f35aa1b04"
+  },
+  "source_manifest_digest": "e97b22cf9ce311cdeacab1a138af853346515fad42161cc4fff28e842e5ea9aa",
+  "official_sources": {
+    "linux-bpf": {
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v6.18/kernel/bpf/syscall.c",
+      "sha256": "e9b33cd5abc0aedd59ef559b72235b5ded0419ebe437cf6dbcf1b902d77c9dc8"
+    },
+    "linux-tcx": {
+      "url": "https://raw.githubusercontent.com/torvalds/linux/v6.18/kernel/bpf/tcx.c",
+      "sha256": "62f5bf32d96d1a73480bd55fa2ffd537eea90bd0aa7cf724852377f232aa74c9"
+    },
+    "pam-auth": {
+      "url": "https://raw.githubusercontent.com/linux-pam/linux-pam/v1.5.3/libpam/pam_auth.c",
+      "sha256": "c76648c91cf872648f26c8e00e9ce8f2402b3129a56c6f8553f413aefc59f6a9"
+    },
+    "pam-account": {
+      "url": "https://raw.githubusercontent.com/linux-pam/linux-pam/v1.5.3/libpam/pam_account.c",
+      "sha256": "d02f2299a52c72c05b43733dfc2b9728f92d9a9266ae27b9759f8d14b2ed0d42"
+    }
+  },
+  "environment": {
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "affinity": 12,
+    "uid": 1000,
+    "libpam": "libpam0g:amd64\t1.5.3-5ubuntu5.7",
+    "libbpf": "1.3.0"
+  },
+  "kernel": {
+    "facts": {
+      "kernel": "6.18.33.2-microsoft-standard-WSL2",
+      "bpf_syscall_config": true,
+      "net_cls_bpf_config": true,
+      "net_xgress_config": true,
+      "btf_present": true,
+      "bpffs_mounted": false,
+      "namespace": "net:[4026531833]",
+      "ifindex": 1,
+      "libbpf": "1.3.0",
+      "tcx_native": "NOT_PROBED"
+    },
+    "verdict": {
+      "preflight": "UNKNOWN_NATIVE_PROBE_REQUIRED",
+      "btf": "OBSERVED",
+      "tcx": "NOT_PROBED",
+      "native_release": "BLOCKED"
+    }
+  },
+  "release": {
+    "manifest": {
+      "contract": "soc-tcx-trusted-release:v1",
+      "version": "0.2.5",
+      "destination": "/usr/libexec/soc-agent-ebpf",
+      "payloads": {
+        "bootstrap": {
+          "sha256": "60fc1ffb70c009f1ba4ad691df6e0baa656d1c8724d532b829a5b81e537d3c54",
+          "size": 36184,
+          "root_uid": 0,
+          "root_gid": 0,
+          "mode": 2541
+        },
+        "broker": {
+          "sha256": "70bda695d3569330b4daf6870412544d749e00c765516dd46b923b97ffd3ff4b",
+          "size": 50968,
+          "root_uid": 0,
+          "root_gid": 0,
+          "mode": 365
+        },
+        "libnative-tc.so": {
+          "sha256": "99036271b5db0cf5370ed13a1446cc72e3e117c40ae7cb8e31945bef03d7367d",
+          "size": 46672,
+          "root_uid": 0,
+          "root_gid": 0,
+          "mode": 292
+        },
+        "tc.bpf.o": {
+          "sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+          "size": 42112,
+          "root_uid": 0,
+          "root_gid": 0,
+          "mode": 292
+        },
+        "manifest.bin": {
+          "sha256": "34f20e3292e14ceba231fcd7714cbc6cae8b6ffae61a51a82c960a6ffa78205d",
+          "size": 160,
+          "root_uid": 0,
+          "root_gid": 0,
+          "mode": 292
+        },
+        "pam-policy.conf": {
+          "sha256": "bf95575ebb801b24c3f26d113d5c5f64f4068bd06d3da36c99e72e35eceff0e5",
+          "size": 55,
+          "root_uid": 0,
+          "root_gid": 0,
+          "mode": 292
+        }
+      },
+      "dependencies": [
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+          "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+          "size": 236616,
+          "needed": [],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libaudit.so.1.0.0",
+          "sha256": "8a4ca5eda7607f2e65da7cb32a780cc0dcfbf202037482ef4261a3c1ec339083",
+          "size": 133200,
+          "needed": [
+            "libcap-ng.so.0",
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libbpf.so.1.3.0",
+          "sha256": "0e9998e17e38d78e5ce953f89a5e6a7c8b457d3e1bfe71e3ec5a1cfb05bbd1c3",
+          "size": 387728,
+          "needed": [
+            "libelf.so.1",
+            "libz.so.1",
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+          "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+          "size": 2129424,
+          "needed": [
+            "ld-linux-x86-64.so.2"
+          ],
+          "interpreter": "/lib64/ld-linux-x86-64.so.2",
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libcap-ng.so.0.0.0",
+          "sha256": "25349c22956c7af94f46e728d7e4c1eba57d0e4a0517f72781fb495d541eeef3",
+          "size": 26848,
+          "needed": [
+            "libc.so.6",
+            "ld-linux-x86-64.so.2"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libcrypt.so.1.1.0",
+          "sha256": "1502636e3be8232c9cf801dfb533694aea985d449904f3e1295db26d7b348946",
+          "size": 198664,
+          "needed": [
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+          "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+          "size": 5309400,
+          "needed": [
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+          "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+          "size": 121560,
+          "needed": [
+            "libz.so.1",
+            "libzstd.so.1",
+            "libc.so.6",
+            "ld-linux-x86-64.so.2"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libpam.so.0.85.1",
+          "sha256": "9e1c85dcceeedd56568874afa04c52bbd051fb8bac52c3e1f5feeb1eed14238a",
+          "size": 67888,
+          "needed": [
+            "libaudit.so.1",
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libpam_misc.so.0.82.1",
+          "sha256": "a8fddf2a564a352986de28e0146a4cd7c1dd4c64aa84e9654c38a19c29fd56b6",
+          "size": 22776,
+          "needed": [
+            "libpam.so.0",
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2",
+          "sha256": "e00576d71d81d3ba0cfa4903c835a44a8723aac96f72f79ff75200b4cff9071b",
+          "size": 625344,
+          "needed": [
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libselinux.so.1",
+          "sha256": "0ec0843463f90e227b0e138e1f379774f50b5514bd7f5dbd4c8a87aca0aa6670",
+          "size": 174472,
+          "needed": [
+            "libpcre2-8.so.0",
+            "libc.so.6",
+            "ld-linux-x86-64.so.2"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+          "sha256": "86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892",
+          "size": 113000,
+          "needed": [
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5",
+          "sha256": "0a2128bc10841fb29e76d08d945864dfb0b6a66da5df6df5d8299197439e54bb",
+          "size": 755864,
+          "needed": [
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        },
+        {
+          "path": "/usr/lib/x86_64-linux-gnu/security/pam_unix.so",
+          "sha256": "48c7a809be645451122cbf1957532dc4d3907c52eb59f01269c5380ee8cc8806",
+          "size": 59632,
+          "needed": [
+            "libpam.so.0",
+            "libcrypt.so.1",
+            "libselinux.so.1",
+            "libc.so.6"
+          ],
+          "interpreter": null,
+          "source": "STATIC_READELF_NOT_LOADED"
+        }
+      ],
+      "bundle_digest": "4d5a9790ada5075129631bde9acfb56cf456392ebc4868f0f6c54f4e3bc74a9a",
+      "pam_service": "soc-agent-ebpf",
+      "pam_destination": "/etc/pam.d/soc-agent-ebpf",
+      "capabilities": [
+        "CAP_BPF",
+        "CAP_NET_ADMIN"
+      ],
+      "interfaces": [
+        "lo"
+      ],
+      "hooks": [
+        "INGRESS",
+        "EGRESS"
+      ],
+      "duration_seconds": 300,
+      "events": 4096,
+      "queue_capacity": 32,
+      "broker_address_space_mib": 256,
+      "cpu_seconds": 20,
+      "application_seconds": 3600,
+      "max_runs": 16,
+      "runtime_directory": "USER_0700_SESSION_DIRECTORY_NO_PERSISTENT_AUTHORITY",
+      "kernel_contract": "LINUX_6_18_SOURCE_NATIVE_SUPPORT_PENDING",
+      "libbpf_contract": "1.3.0_COMPILE_ONLY",
+      "native_release": "BLOCKED",
+      "dynamic_dependency_closure": "UNKNOWN_PAM_NSS_RUNTIME",
+      "installation_identity": "ROOT_OWNED_FIXED_PATH_PLUS_EXTERNALLY_APPROVED_MANIFEST_SHA"
+    },
+    "manifest_sha256": "ea8990e5dad9d164d5e1995b41a51f2733e7cd415a0def467a3b8c3ecf10ebdf"
+  },
+  "identities": {
+    "artifacts": {
+      "bootstrap": "60fc1ffb70c009f1ba4ad691df6e0baa656d1c8724d532b829a5b81e537d3c54",
+      "broker": "70bda695d3569330b4daf6870412544d749e00c765516dd46b923b97ffd3ff4b",
+      "libnative-tc.so": "99036271b5db0cf5370ed13a1446cc72e3e117c40ae7cb8e31945bef03d7367d",
+      "tc-fixture": "49a2038c27332a90ac9187162b0a7917398dbe796b323747b7adf3e0f6c20fa3",
+      "tcx-dispatch-fixture": "20670e8a4eb938bb25e37c62a9fe91932697c8ca608bd14a645944f28202376a",
+      "tcx.bpf.o": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "source_bundle_digest": "4d5a9790ada5075129631bde9acfb56cf456392ebc4868f0f6c54f4e3bc74a9a"
+    },
+    "bundle_digest": "4d5a9790ada5075129631bde9acfb56cf456392ebc4868f0f6c54f4e3bc74a9a",
+    "bundle": {
+      "b1/phase_a/__init__.py": "976857f01043e7397f0f9b2ec8084ff9705c42335742478b385df99d37df681a",
+      "b1/phase_a/__main__.py": "753efa4a69a4b2915f8321e6f1bb02316f4ee7d3420adac4bf56a04814411eef",
+      "b1/phase_a/application.py": "d696b013099e0648d99bc67d7bb8cbcd6ad3ce8c2bec0a0ec9a3e94e2b2b50d7",
+      "b1/phase_a/authentication.py": "32e8ec0717ddd0ce882a01fb17a43cc24255a85242ea2a4753d9b5a682dd4e99",
+      "b1/phase_a/contracts.py": "f65f13f520970b39cc92d68600ef3a44693ac4b8676e869029598402e6480665",
+      "b1/phase_a/gui.py": "10e375b539fddcf3844a299efff35e9a82ed39caeb9b64c71eba5a0dc9395b1e",
+      "b1/phase_a/loader.c": "364c541d9e552f808d7cda8b03220f6826662995e33c57dcb08329ea88975ef1",
+      "b1/phase_a/loader.py": "601dfcce36957cd1272be3fa2f3099945d06bf5a0fc7cd747a205cda5c0c315c",
+      "b1/phase_a/tc_contract.py": "8569d1228a8181cf50a9df89af19b049aab48da71c7c11b38a4be6c5d72c1afc",
+      "b1/__init__.py": "e520cfa51b9bbbbf2cb6eec2d13bdffe76c4229c1890560c908148c08fad6a03",
+      "b1/__main__.py": "713ff2258790904fc16b5ef2b3fe8f489ff3d78d16da2714444e7f79dd8a1fbb",
+      "b1/contracts.py": "a39d4782dc56e4e3922e6ce21d39779a05e733ffc03b92aa6a4f287eb81044c5",
+      "b1/controller.py": "df158949ec22c0d00f1bde439dda8f30819f92449f89051c39aa73d09e8ea985",
+      "b1/engine.py": "47f2b3e9d60652448de31b44bcbf49de0cf11f3acc6d9965c512726642ed3be0",
+      "b1/gui.py": "494ee63e054f06270260b63465edb64318fc6bc2b97b0ee5e630bf5e58d11ad9",
+      "b1/identity.py": "13eb53880be961c152af73508a8a27714fba8ac6ef285b8f79025ece20a3fc9b",
+      "b1/ipc.py": "1be9b8b231fa1a17bb2a37553bbd0b148b91067447aca7b936e8f06466021c14",
+      "b1/journal.py": "b001f610e739aa856049b82b37f11bfcee57dd828580857cbd6c514a6bb70a87",
+      "b1/ownership.py": "961c529e3414d6edb212745f3f5535826fcb5ce2dca77bb90de07db7d9beb0af",
+      "b1/process.py": "5945485597a2c00b884d6589a44cc66ef416a37353154a68f894556eb2fd8d9c",
+      "b1/server.py": "70f71e346713564aee18267b8396a25a52c9202ae6b365c53be72ffeecb9e380",
+      "__init__.py": "d20ec34b506b1106c5e78dec06ef103f996cbdb479f96e64985b0aeb9ccbea38",
+      "__main__.py": "f9bb654c4fdc8e00881dd9177b098312d953b7fe8eecc55b9578601b2dd8ddd4",
+      "auth_qualification.py": "3190f47835e661e33ba1f55bf0d0b8b9da0294ecce18d1b9ff37e8f99e2a2b68",
+      "bootstrap.c": "36f5e403d275bd3b3c20b46070bdfd3f4bfb051b4f46cd2ac00c7d1c0f15f9fc",
+      "bridge.py": "1c9f2fee5859f640771e8d515176bd768cd3f788076a36b61c3b251f1eea8eed",
+      "broker.c": "ad04f4277e4771551113854e8b0d052b21f40c5d03b18ba2011eff508212efbb",
+      "build.py": "3199693491e0762ce9ccd8ff7507bc34f148902c08b5741d347037974c4fb14c",
+      "contracts.py": "78e5e6e7453735497f1aa636350b5e54281b8a42b0c8c23251c5aa3e7ec1fdda",
+      "core.c": "41771a7e3b2d338dbe71102d6d82614bca6502eaf0c55f1f19c1ac0d2a364523",
+      "dependencies.py": "f2544dadd30a9226f36750b03b277c01baa219b73306ac3981bff47ea92e34c5",
+      "dispatch_fixture.c": "f3db43550f9dc28dc980b7f58002d0f1b09f165ac00acc05e9d6fcb3df19f50c",
+      "fixture.c": "5488d55c66f0c4b5cb06966c8147727edb478a22b0160b8b57ebafbb8f21990c",
+      "gui.py": "ff932d90ed8c781f645a8e54155a5b4ef6589b37a6044ca70825c0bf42f7074f",
+      "install_simulation.py": "73dd906879b020075f3f294b83b2a8ead38f76c548319ca84a6f3d43978365ec",
+      "installation.py": "19ee2c08d9c339c7696ea9f9b5ad66122b2758d0ef20f77099d76bf976817371",
+      "journal.py": "7f709347bafd2d9028404940fc7f9564500636408d1adf19d0934335e5b28855",
+      "loader.c": "3b9bf2f870fa84224d9719b5ed97f38bca98bbeadef534784f28e3bd28fdc4ab",
+      "native.h": "8763290de12b8e0f307504d17d13300733237ae3eae461e253f2145ced00f7fa",
+      "netlink.c": "aa4733743fb5bc825719a811dda22eda6cfe30d58ae5be0d6cb59abdb5923c86",
+      "os.c": "71f1af63e6f84894921f9ca55fef0b53bec25cddd9cbb42188e49d4964a5056d",
+      "pam-policy.conf": "bf95575ebb801b24c3f26d113d5c5f64f4068bd06d3da36c99e72e35eceff0e5",
+      "pam_abi.h": "274cead4866bd79ef66630e92a4fb3f3d3c12a42d92c8c4579cb6c4f81706ec0",
+      "qualification.py": "ce70e46b08542722de2c64918cf817d5d67d830e47af376da374b88716b6e2b1",
+      "release.py": "967c64520b016185895f4572b836fd32d5531ea5ac7a94bd810209dc0b5b5154",
+      "tcx.bpf.c": "b869936da7b795ddf29bde6959d067c4d89e67d3859f19891376fbaa0fd9be60",
+      "tcx.c": "1c1c85bd61e290e8a71a310511de1ad187607ff03bc146b8bbfbb15120bdc767",
+      "tcx.h": "0f053035e2ae8cb260ed88a75914d870504c2daf14495d8f981a670a926f58ec",
+      "tcx.py": "e4d9e60ba96cfc8a6eca5b376c50f1868d367a16ea5d3aca5e38d9de507c77d4",
+      "tcx_dispatch.c": "50f79b83f5560cecfd2754758f7c920a56b340138a77448a62de0861b8e91a8b",
+      "tcx_fixture.c": "216d0e63fd5f4c24ddfc7f5d122a976b87870cca85cf089a79c99c7260625efe",
+      "tcx_probe.c": "0b977991f258a419df7240395214be2f0d214ccc3d2eb8ce243c86d030e5c398"
+    }
+  },
+  "tests": {
+    "installation": {
+      "exit_code": 0,
+      "seconds": 41.106979086995125,
+      "result": "..................................................                       [100%]\n50 passed in 39.27s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "native": {
+      "exit_code": 0,
+      "elapsed_seconds": 123.58007094601635,
+      "suite": [
+        "tests/unit/ebpf_tc",
+        "tests/integration/ebpf_tc",
+        "tests/gui_ebpf_tc_checks.py"
+      ],
+      "result": "........................................................................ [ 48%]\n........................................................................ [ 97%]\n...                                                                      [100%]\n147 passed in 121.44s (0:02:01)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4680753152,
+          "psi": "some avg10=0.00 avg60=0.01 avg300=0.11 total=203269425\nfull avg10=0.00 avg60=0.01 avg300=0.11 total=194869763\n"
+        }
+      ]
+    },
+    "broker": {
+      "exit_code": 0,
+      "elapsed_seconds": 39.203671017021406,
+      "suite": [
+        "tests/unit/ebpf_broker",
+        "tests/integration/ebpf_broker",
+        "tests/gui_ebpf_broker_checks.py"
+      ],
+      "result": "...............................................................          [100%]\n63 passed in 36.76s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4061712384,
+          "psi": "some avg10=7.47 avg60=6.20 avg300=1.81 total=209067314\nfull avg10=7.07 avg60=5.67 avg300=1.66 total=200209303\n"
+        }
+      ]
+    },
+    "unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 86.72095997497672,
+      "suite": [
+        "tests/unit/ebpf_native",
+        "tests/unit/ebpf",
+        "tests/unit/zeek_attestation",
+        "tests/unit/zeek_preprocessing",
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "result": "........................................................................ [ 10%]\n........................................................................ [ 20%]\n........................................................................ [ 31%]\n........................................................................ [ 41%]\n........................................................................ [ 51%]\n........................................................................ [ 62%]\n........................................................................ [ 72%]\n........................................................................ [ 83%]\n........................................................................ [ 93%]\n.............................................                            [100%]\n693 passed in 84.46s (0:01:24)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4552495104,
+          "psi": "some avg10=1.21 avg60=3.87 avg300=1.76 total=209722439\nfull avg10=1.21 avg60=3.60 avg300=1.63 total=200847724\n"
+        }
+      ]
+    },
+    "integration": {
+      "exit_code": 0,
+      "elapsed_seconds": 77.85046182398219,
+      "suite": [
+        "tests/integration/ebpf_native",
+        "tests/integration/ebpf",
+        "tests/integration/zeek_attestation",
+        "tests/integration/zeek_preprocessing",
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "result": "..........................................................               [100%]\n58 passed in 75.98s (0:01:15)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4568403968,
+          "psi": "some avg10=0.00 avg60=0.93 avg300=1.31 total=209795499\nfull avg10=0.00 avg60=0.85 avg300=1.20 total=200896997\n"
+        }
+      ]
+    },
+    "gui": {
+      "exit_code": 0,
+      "seconds": 75.40709669102216,
+      "result": ".................                                                        [100%]\n17 passed in 73.61s (0:01:13)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4946116608,
+          "psi": "some avg10=0.00 avg60=0.27 avg300=0.92 total=210460065\nfull avg10=0.00 avg60=0.23 avg300=0.83 total=201465032\n",
+          "affinity": 12,
+          "swap": "       2097152 kB\nSwapFree:         722680 kB\n"
+        }
+      ]
+    },
+    "audit": {
+      "exit_code": 0,
+      "seconds": 16.92012469796464,
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 14.81s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4844167168,
+          "psi": "some avg10=0.00 avg60=0.09 avg300=0.71 total=210506248\nfull avg10=0.00 avg60=0.06 avg300=0.63 total=201509335\n",
+          "affinity": 12,
+          "swap": "       2097152 kB\nSwapFree:         726340 kB\n"
+        }
+      ]
+    },
+    "model": {
+      "exit_code": 0,
+      "seconds": 13.208105830010027,
+      "result": ".                                                                        [100%]\n1 passed in 11.29s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4928573440,
+          "psi": "some avg10=0.00 avg60=0.06 avg300=0.67 total=210506925\nfull avg10=0.00 avg60=0.04 avg300=0.60 total=201509768\n",
+          "affinity": 12,
+          "swap": "       2097152 kB\nSwapFree:         726544 kB\n"
+        },
+        {
+          "memavailable": 4903305216,
+          "psi": "some avg10=0.00 avg60=0.06 avg300=0.65 total=210506941\nfull avg10=0.00 avg60=0.04 avg300=0.58 total=201509784\n",
+          "affinity": 12,
+          "swap": "       2097152 kB\nSwapFree:         726572 kB\n"
+        },
+        {
+          "memavailable": 4893507584,
+          "psi": "some avg10=0.00 avg60=0.05 avg300=0.64 total=210506970\nfull avg10=0.00 avg60=0.03 avg300=0.57 total=201509814\n",
+          "affinity": 12,
+          "swap": "       2097152 kB\nSwapFree:         726612 kB\n"
+        }
+      ]
+    }
+  },
+  "regression_reuse": {
+    "changed_after_broad_regression": [
+      "src/soc_agent/security_ai/ebpf_tc/install_simulation.py",
+      "src/soc_agent/security_ai/ebpf_tc/installation.py",
+      "tests/integration/ebpf_install/test_package.py",
+      "tests/unit/ebpf_install/test_contracts.py"
+    ],
+    "final_affected_suite": "50 passed on final code, including root-verifier rejection and simulation identity/crash guards",
+    "other_files_byte_identical": true,
+    "counts_not_added_to_intermediate_44_47_48_49_50_runs": true
+  },
+  "initial_packaging_incident": {
+    "scope": "MANUAL_UNPRIVILEGED_PACKAGE_SMOKE",
+    "error": "Python fcntl.F_ADD_SEALS unavailable",
+    "resolution": "Reused existing ebpf_broker.identity Linux ABI seal constants",
+    "root_installation": false,
+    "pam_authentication": false,
+    "subsequent_new_tests": "44 PASS; extended current suite pending"
+  },
+  "resource_model_deferral": {
+    "source": "MODEL_PREFLIGHT_NOT_TEST_FAILURE",
+    "actual_model_started": false,
+    "memavailable_bytes": 4961386496,
+    "psi_some_avg10": 0.53,
+    "psi_full_avg10": 0.45,
+    "psi_some_avg60": 0.85
+  },
+  "models": {
+    "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+    "input_origin": "ZEEK_OFFLINE_PCAP",
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "finalization": "PCAP_REFERENCE_FINALIZED",
+    "audit_digest": "5cb9fe6a22e5e030eb46c3c623b8437b99ce5217321560eac4ce54679ca2038b",
+    "recovered_audit_digest": "5cb9fe6a22e5e030eb46c3c623b8437b99ce5217321560eac4ce54679ca2038b",
+    "restored_new_inferences": 0,
+    "elapsed_seconds": 10.475192065001465,
+    "cpu_seconds": 1.2832972690000002,
+    "process_peak_rss_bytes": 185458688,
+    "native_capture": false,
+    "cleanup_verified": true,
+    "receipts": [
+      {
+        "profile": "quality",
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "feature_digest": "9d7940c12fd3d5e3027232f7bdde8b6315b079d78bf561d5dbdf078823cbe1e2",
+        "producer_version": "1.1.0",
+        "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+        "inference_latency_ms": 11.56038703629747,
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "operational_inference": "BLOCKED",
+        "write_policy": "WRITE_DENIED",
+        "status": "COMPLETE",
+        "investigation_policy": "WRITE_DENIED"
+      },
+      {
+        "profile": "edge",
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "feature_digest": "9d7940c12fd3d5e3027232f7bdde8b6315b079d78bf561d5dbdf078823cbe1e2",
+        "producer_version": "1.1.0",
+        "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+        "inference_latency_ms": 8.28857603482902,
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "operational_inference": "BLOCKED",
+        "write_policy": "WRITE_DENIED",
+        "status": "COMPLETE",
+        "investigation_policy": "WRITE_DENIED"
+      }
+    ]
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 396,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "performance": {
+    "scope": "ORDINARY_UID_FIXTURES_AND_WSLG_NOT_NATIVE",
+    "gui_repetitions_per_group": 3,
+    "gui_medians": {
+      "before": {
+        "startup_seconds": 2.5131470070336945,
+        "idle_rss_bytes": 183476224,
+        "idle_cpu_one_core_percent": 0.2654744486712759,
+        "response_p50_ms": 0.015823
+      },
+      "after": {
+        "startup_seconds": 2.455159156001173,
+        "idle_rss_bytes": 183468032,
+        "idle_cpu_one_core_percent": 0.260183294488285,
+        "response_p50_ms": 0.018863
+      }
+    },
+    "gui_samples": {
+      "before-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.3087688840460032,
+        "startup_cpu_seconds": 4.11220769,
+        "idle_rss_bytes": 184725504,
+        "process_image_peak_rss_bytes": 188805120,
+        "idle_seconds": 3.0195012930198573,
+        "idle_cpu_seconds": 0.007886406999999984,
+        "idle_cpu_one_core_percent": 0.26118243493489773,
+        "response_p50_ms": 0.015823,
+        "response_p95_ms": 0.065268,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.5131470070336945,
+        "startup_cpu_seconds": 4.104027515,
+        "idle_rss_bytes": 183275520,
+        "process_image_peak_rss_bytes": 187441152,
+        "idle_seconds": 3.0197497499757446,
+        "idle_cpu_seconds": 0.00801666400000034,
+        "idle_cpu_one_core_percent": 0.2654744486712759,
+        "response_p50_ms": 0.011908,
+        "response_p95_ms": 0.06189,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.8752301009953953,
+        "startup_cpu_seconds": 4.203111397,
+        "idle_rss_bytes": 183476224,
+        "process_image_peak_rss_bytes": 187580416,
+        "idle_seconds": 3.0002141799777746,
+        "idle_cpu_seconds": 0.008713216999999496,
+        "idle_cpu_one_core_percent": 0.29041983262888393,
+        "response_p50_ms": 0.016116,
+        "response_p95_ms": 0.048295,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.8064690150204115,
+        "startup_cpu_seconds": 3.948139613,
+        "idle_rss_bytes": 183566336,
+        "process_image_peak_rss_bytes": 187170816,
+        "idle_seconds": 3.000859306019265,
+        "idle_cpu_seconds": 0.008722485999999918,
+        "idle_cpu_one_core_percent": 0.29066627623974056,
+        "response_p50_ms": 0.038536,
+        "response_p95_ms": 0.180361,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.455159156001173,
+        "startup_cpu_seconds": 4.184571924,
+        "idle_rss_bytes": 183468032,
+        "process_image_peak_rss_bytes": 187260928,
+        "idle_seconds": 3.019380513986107,
+        "idle_cpu_seconds": 0.007804604000000381,
+        "idle_cpu_one_core_percent": 0.25848361820739674,
+        "response_p50_ms": 0.018863,
+        "response_p95_ms": 0.03916,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.3921500950236805,
+        "startup_cpu_seconds": 4.038635899,
+        "idle_rss_bytes": 183357440,
+        "process_image_peak_rss_bytes": 187482112,
+        "idle_seconds": 3.0194013860309497,
+        "idle_cpu_seconds": 0.007855978000000263,
+        "idle_cpu_one_core_percent": 0.260183294488285,
+        "response_p50_ms": 0.011308,
+        "response_p95_ms": 0.054085,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      }
+    },
+    "package": {
+      "source": "UNPRIVILEGED_RELEASE_QUALIFICATION_NOT_NATIVE_AUTH_OR_KERNEL_PERFORMANCE",
+      "manifest_sha256": "78d89ce86a9a415e351a9495feaa99d47b0b280da10391304e34e941023b8071",
+      "release_version": "0.2.5",
+      "dependency_count": 15,
+      "profiles": {
+        "manifest": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 33480.5,
+          "samples": [
+            {
+              "ns": 42293,
+              "cpu_ns": 40571
+            },
+            {
+              "ns": 33022,
+              "cpu_ns": 33212
+            },
+            {
+              "ns": 32467,
+              "cpu_ns": 32546
+            },
+            {
+              "ns": 35577,
+              "cpu_ns": 35650
+            },
+            {
+              "ns": 39450,
+              "cpu_ns": 39552
+            },
+            {
+              "ns": 37410,
+              "cpu_ns": 37517
+            },
+            {
+              "ns": 46582,
+              "cpu_ns": 46702
+            },
+            {
+              "ns": 51318,
+              "cpu_ns": 51391
+            },
+            {
+              "ns": 52371,
+              "cpu_ns": 52505
+            },
+            {
+              "ns": 43767,
+              "cpu_ns": 43939
+            },
+            {
+              "ns": 37797,
+              "cpu_ns": 37932
+            },
+            {
+              "ns": 48830,
+              "cpu_ns": 48961
+            },
+            {
+              "ns": 40942,
+              "cpu_ns": 41029
+            },
+            {
+              "ns": 40248,
+              "cpu_ns": 40295
+            },
+            {
+              "ns": 33468,
+              "cpu_ns": 33482
+            },
+            {
+              "ns": 32677,
+              "cpu_ns": 32736
+            },
+            {
+              "ns": 43867,
+              "cpu_ns": 43982
+            },
+            {
+              "ns": 49849,
+              "cpu_ns": 49996
+            },
+            {
+              "ns": 37000,
+              "cpu_ns": 37014
+            },
+            {
+              "ns": 34431,
+              "cpu_ns": 34462
+            },
+            {
+              "ns": 46192,
+              "cpu_ns": 46374
+            },
+            {
+              "ns": 62549,
+              "cpu_ns": 62867
+            },
+            {
+              "ns": 56862,
+              "cpu_ns": 57069
+            },
+            {
+              "ns": 77810,
+              "cpu_ns": 78100
+            },
+            {
+              "ns": 36824,
+              "cpu_ns": 36873
+            },
+            {
+              "ns": 34449,
+              "cpu_ns": 34457
+            },
+            {
+              "ns": 34902,
+              "cpu_ns": 34956
+            },
+            {
+              "ns": 34869,
+              "cpu_ns": 34895
+            },
+            {
+              "ns": 33745,
+              "cpu_ns": 33792
+            },
+            {
+              "ns": 34047,
+              "cpu_ns": 34071
+            },
+            {
+              "ns": 34108,
+              "cpu_ns": 34164
+            },
+            {
+              "ns": 32553,
+              "cpu_ns": 32610
+            },
+            {
+              "ns": 46860,
+              "cpu_ns": 47008
+            },
+            {
+              "ns": 48179,
+              "cpu_ns": 48170
+            },
+            {
+              "ns": 61913,
+              "cpu_ns": 62041
+            },
+            {
+              "ns": 60733,
+              "cpu_ns": 60759
+            },
+            {
+              "ns": 60018,
+              "cpu_ns": 60165
+            },
+            {
+              "ns": 62159,
+              "cpu_ns": 62309
+            },
+            {
+              "ns": 72997,
+              "cpu_ns": 73295
+            },
+            {
+              "ns": 41481,
+              "cpu_ns": 41609
+            },
+            {
+              "ns": 41673,
+              "cpu_ns": 41701
+            },
+            {
+              "ns": 33493,
+              "cpu_ns": 33501
+            },
+            {
+              "ns": 32184,
+              "cpu_ns": 32237
+            },
+            {
+              "ns": 31707,
+              "cpu_ns": 31762
+            },
+            {
+              "ns": 41111,
+              "cpu_ns": 41456
+            },
+            {
+              "ns": 46766,
+              "cpu_ns": 46871
+            },
+            {
+              "ns": 32743,
+              "cpu_ns": 32740
+            },
+            {
+              "ns": 36995,
+              "cpu_ns": 37127
+            },
+            {
+              "ns": 47831,
+              "cpu_ns": 47875
+            },
+            {
+              "ns": 58910,
+              "cpu_ns": 59088
+            },
+            {
+              "ns": 39161,
+              "cpu_ns": 39175
+            },
+            {
+              "ns": 32607,
+              "cpu_ns": 32641
+            },
+            {
+              "ns": 31621,
+              "cpu_ns": 31669
+            },
+            {
+              "ns": 31475,
+              "cpu_ns": 31506
+            },
+            {
+              "ns": 32753,
+              "cpu_ns": 32809
+            },
+            {
+              "ns": 31307,
+              "cpu_ns": 31353
+            },
+            {
+              "ns": 32123,
+              "cpu_ns": 32205
+            },
+            {
+              "ns": 31736,
+              "cpu_ns": 31764
+            },
+            {
+              "ns": 30741,
+              "cpu_ns": 30813
+            },
+            {
+              "ns": 31515,
+              "cpu_ns": 31555
+            },
+            {
+              "ns": 31218,
+              "cpu_ns": 31265
+            },
+            {
+              "ns": 31859,
+              "cpu_ns": 31910
+            },
+            {
+              "ns": 31405,
+              "cpu_ns": 31455
+            },
+            {
+              "ns": 31721,
+              "cpu_ns": 31762
+            },
+            {
+              "ns": 31208,
+              "cpu_ns": 31253
+            },
+            {
+              "ns": 31326,
+              "cpu_ns": 31365
+            },
+            {
+              "ns": 31183,
+              "cpu_ns": 31235
+            },
+            {
+              "ns": 31475,
+              "cpu_ns": 31537
+            },
+            {
+              "ns": 31175,
+              "cpu_ns": 31191
+            },
+            {
+              "ns": 31556,
+              "cpu_ns": 31631
+            },
+            {
+              "ns": 31033,
+              "cpu_ns": 31094
+            },
+            {
+              "ns": 31174,
+              "cpu_ns": 31228
+            },
+            {
+              "ns": 40422,
+              "cpu_ns": 40610
+            },
+            {
+              "ns": 52888,
+              "cpu_ns": 53057
+            },
+            {
+              "ns": 35690,
+              "cpu_ns": 35704
+            },
+            {
+              "ns": 32818,
+              "cpu_ns": 32859
+            },
+            {
+              "ns": 31395,
+              "cpu_ns": 31433
+            },
+            {
+              "ns": 31700,
+              "cpu_ns": 31707
+            },
+            {
+              "ns": 31991,
+              "cpu_ns": 32039
+            },
+            {
+              "ns": 31759,
+              "cpu_ns": 31795
+            },
+            {
+              "ns": 32332,
+              "cpu_ns": 32376
+            },
+            {
+              "ns": 31942,
+              "cpu_ns": 31966
+            },
+            {
+              "ns": 31838,
+              "cpu_ns": 31862
+            },
+            {
+              "ns": 39183,
+              "cpu_ns": 39211
+            },
+            {
+              "ns": 32158,
+              "cpu_ns": 32177
+            },
+            {
+              "ns": 31542,
+              "cpu_ns": 31567
+            },
+            {
+              "ns": 31456,
+              "cpu_ns": 31498
+            },
+            {
+              "ns": 31433,
+              "cpu_ns": 31461
+            },
+            {
+              "ns": 31874,
+              "cpu_ns": 31922
+            },
+            {
+              "ns": 31443,
+              "cpu_ns": 31467
+            },
+            {
+              "ns": 31480,
+              "cpu_ns": 31527
+            },
+            {
+              "ns": 31596,
+              "cpu_ns": 31610
+            },
+            {
+              "ns": 31615,
+              "cpu_ns": 31633
+            },
+            {
+              "ns": 31536,
+              "cpu_ns": 31569
+            },
+            {
+              "ns": 31498,
+              "cpu_ns": 31528
+            },
+            {
+              "ns": 31064,
+              "cpu_ns": 31083
+            },
+            {
+              "ns": 32151,
+              "cpu_ns": 32194
+            },
+            {
+              "ns": 35149,
+              "cpu_ns": 35234
+            },
+            {
+              "ns": 48238,
+              "cpu_ns": 48437
+            },
+            {
+              "ns": 49731,
+              "cpu_ns": 49985
+            }
+          ]
+        },
+        "package_full_static_verification": {
+          "warmup": 1,
+          "repetitions": 3,
+          "median_ns": 45577562,
+          "samples": [
+            {
+              "ns": 48896410,
+              "cpu_ns": 34781303
+            },
+            {
+              "ns": 45577562,
+              "cpu_ns": 31206802
+            },
+            {
+              "ns": 42036602,
+              "cpu_ns": 30094718
+            }
+          ]
+        },
+        "pam_mock": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 1737.0,
+          "samples": [
+            {
+              "ns": 2986,
+              "cpu_ns": 2850
+            },
+            {
+              "ns": 2108,
+              "cpu_ns": 2106
+            },
+            {
+              "ns": 1938,
+              "cpu_ns": 1899
+            },
+            {
+              "ns": 1976,
+              "cpu_ns": 1961
+            },
+            {
+              "ns": 1782,
+              "cpu_ns": 1751
+            },
+            {
+              "ns": 1796,
+              "cpu_ns": 1762
+            },
+            {
+              "ns": 1862,
+              "cpu_ns": 1878
+            },
+            {
+              "ns": 1809,
+              "cpu_ns": 1818
+            },
+            {
+              "ns": 1766,
+              "cpu_ns": 1751
+            },
+            {
+              "ns": 1697,
+              "cpu_ns": 1749
+            },
+            {
+              "ns": 1761,
+              "cpu_ns": 1815
+            },
+            {
+              "ns": 1726,
+              "cpu_ns": 1716
+            },
+            {
+              "ns": 1646,
+              "cpu_ns": 1673
+            },
+            {
+              "ns": 1818,
+              "cpu_ns": 1840
+            },
+            {
+              "ns": 1773,
+              "cpu_ns": 1768
+            },
+            {
+              "ns": 1823,
+              "cpu_ns": 1839
+            },
+            {
+              "ns": 1878,
+              "cpu_ns": 1905
+            },
+            {
+              "ns": 2030,
+              "cpu_ns": 1985
+            },
+            {
+              "ns": 1736,
+              "cpu_ns": 1765
+            },
+            {
+              "ns": 1719,
+              "cpu_ns": 1762
+            },
+            {
+              "ns": 1715,
+              "cpu_ns": 1720
+            },
+            {
+              "ns": 1760,
+              "cpu_ns": 1787
+            },
+            {
+              "ns": 1655,
+              "cpu_ns": 1709
+            },
+            {
+              "ns": 1844,
+              "cpu_ns": 1847
+            },
+            {
+              "ns": 1805,
+              "cpu_ns": 1833
+            },
+            {
+              "ns": 1694,
+              "cpu_ns": 1696
+            },
+            {
+              "ns": 1750,
+              "cpu_ns": 1745
+            },
+            {
+              "ns": 1759,
+              "cpu_ns": 1765
+            },
+            {
+              "ns": 1793,
+              "cpu_ns": 1813
+            },
+            {
+              "ns": 1847,
+              "cpu_ns": 1869
+            },
+            {
+              "ns": 1936,
+              "cpu_ns": 1923
+            },
+            {
+              "ns": 1772,
+              "cpu_ns": 1819
+            },
+            {
+              "ns": 1668,
+              "cpu_ns": 1642
+            },
+            {
+              "ns": 1691,
+              "cpu_ns": 1725
+            },
+            {
+              "ns": 1674,
+              "cpu_ns": 1692
+            },
+            {
+              "ns": 1735,
+              "cpu_ns": 1734
+            },
+            {
+              "ns": 1740,
+              "cpu_ns": 1767
+            },
+            {
+              "ns": 1916,
+              "cpu_ns": 1981
+            },
+            {
+              "ns": 2057,
+              "cpu_ns": 2063
+            },
+            {
+              "ns": 1729,
+              "cpu_ns": 1764
+            },
+            {
+              "ns": 1722,
+              "cpu_ns": 1746
+            },
+            {
+              "ns": 1668,
+              "cpu_ns": 1674
+            },
+            {
+              "ns": 1617,
+              "cpu_ns": 1725
+            },
+            {
+              "ns": 1714,
+              "cpu_ns": 1733
+            },
+            {
+              "ns": 1680,
+              "cpu_ns": 1679
+            },
+            {
+              "ns": 1673,
+              "cpu_ns": 1722
+            },
+            {
+              "ns": 1622,
+              "cpu_ns": 1652
+            },
+            {
+              "ns": 1764,
+              "cpu_ns": 1760
+            },
+            {
+              "ns": 1647,
+              "cpu_ns": 1677
+            },
+            {
+              "ns": 1780,
+              "cpu_ns": 1833
+            },
+            {
+              "ns": 1783,
+              "cpu_ns": 1787
+            },
+            {
+              "ns": 1693,
+              "cpu_ns": 1743
+            },
+            {
+              "ns": 1695,
+              "cpu_ns": 1728
+            },
+            {
+              "ns": 1630,
+              "cpu_ns": 1608
+            },
+            {
+              "ns": 1691,
+              "cpu_ns": 1738
+            },
+            {
+              "ns": 1782,
+              "cpu_ns": 1792
+            },
+            {
+              "ns": 1680,
+              "cpu_ns": 1693
+            },
+            {
+              "ns": 1693,
+              "cpu_ns": 1717
+            },
+            {
+              "ns": 1711,
+              "cpu_ns": 1745
+            },
+            {
+              "ns": 1660,
+              "cpu_ns": 1667
+            },
+            {
+              "ns": 1666,
+              "cpu_ns": 1715
+            },
+            {
+              "ns": 1992,
+              "cpu_ns": 2054
+            },
+            {
+              "ns": 1781,
+              "cpu_ns": 1782
+            },
+            {
+              "ns": 1617,
+              "cpu_ns": 1668
+            },
+            {
+              "ns": 1724,
+              "cpu_ns": 1739
+            },
+            {
+              "ns": 1803,
+              "cpu_ns": 1784
+            },
+            {
+              "ns": 1693,
+              "cpu_ns": 1724
+            },
+            {
+              "ns": 1740,
+              "cpu_ns": 1778
+            },
+            {
+              "ns": 1623,
+              "cpu_ns": 1660
+            },
+            {
+              "ns": 1617,
+              "cpu_ns": 1646
+            },
+            {
+              "ns": 1665,
+              "cpu_ns": 1688
+            },
+            {
+              "ns": 1603,
+              "cpu_ns": 1615
+            },
+            {
+              "ns": 1640,
+              "cpu_ns": 1666
+            },
+            {
+              "ns": 1650,
+              "cpu_ns": 1675
+            },
+            {
+              "ns": 1659,
+              "cpu_ns": 1663
+            },
+            {
+              "ns": 1738,
+              "cpu_ns": 1744
+            },
+            {
+              "ns": 1736,
+              "cpu_ns": 1761
+            },
+            {
+              "ns": 1751,
+              "cpu_ns": 1756
+            },
+            {
+              "ns": 1774,
+              "cpu_ns": 1812
+            },
+            {
+              "ns": 1625,
+              "cpu_ns": 1659
+            },
+            {
+              "ns": 1609,
+              "cpu_ns": 1615
+            },
+            {
+              "ns": 1762,
+              "cpu_ns": 1794
+            },
+            {
+              "ns": 1749,
+              "cpu_ns": 1777
+            },
+            {
+              "ns": 1685,
+              "cpu_ns": 1751
+            },
+            {
+              "ns": 2002,
+              "cpu_ns": 2050
+            },
+            {
+              "ns": 1939,
+              "cpu_ns": 1941
+            },
+            {
+              "ns": 18391,
+              "cpu_ns": 18691
+            },
+            {
+              "ns": 3700,
+              "cpu_ns": 3730
+            },
+            {
+              "ns": 2006,
+              "cpu_ns": 2004
+            },
+            {
+              "ns": 1880,
+              "cpu_ns": 1881
+            },
+            {
+              "ns": 1776,
+              "cpu_ns": 1819
+            },
+            {
+              "ns": 1718,
+              "cpu_ns": 1737
+            },
+            {
+              "ns": 1642,
+              "cpu_ns": 1674
+            },
+            {
+              "ns": 1819,
+              "cpu_ns": 1789
+            },
+            {
+              "ns": 1631,
+              "cpu_ns": 1659
+            },
+            {
+              "ns": 1691,
+              "cpu_ns": 1698
+            },
+            {
+              "ns": 1706,
+              "cpu_ns": 1719
+            },
+            {
+              "ns": 1636,
+              "cpu_ns": 1655
+            },
+            {
+              "ns": 6671,
+              "cpu_ns": 6689
+            },
+            {
+              "ns": 1820,
+              "cpu_ns": 1840
+            }
+          ]
+        },
+        "capability_mock": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 2000.0,
+          "samples": [
+            {
+              "ns": 2368,
+              "cpu_ns": 2359
+            },
+            {
+              "ns": 2191,
+              "cpu_ns": 2193
+            },
+            {
+              "ns": 2108,
+              "cpu_ns": 2128
+            },
+            {
+              "ns": 2040,
+              "cpu_ns": 2089
+            },
+            {
+              "ns": 2087,
+              "cpu_ns": 2123
+            },
+            {
+              "ns": 2053,
+              "cpu_ns": 2096
+            },
+            {
+              "ns": 2054,
+              "cpu_ns": 2094
+            },
+            {
+              "ns": 1965,
+              "cpu_ns": 2014
+            },
+            {
+              "ns": 2043,
+              "cpu_ns": 2116
+            },
+            {
+              "ns": 1983,
+              "cpu_ns": 2018
+            },
+            {
+              "ns": 1941,
+              "cpu_ns": 1954
+            },
+            {
+              "ns": 2111,
+              "cpu_ns": 2143
+            },
+            {
+              "ns": 1966,
+              "cpu_ns": 1993
+            },
+            {
+              "ns": 1992,
+              "cpu_ns": 1996
+            },
+            {
+              "ns": 1931,
+              "cpu_ns": 1951
+            },
+            {
+              "ns": 2070,
+              "cpu_ns": 2134
+            },
+            {
+              "ns": 2127,
+              "cpu_ns": 2134
+            },
+            {
+              "ns": 2036,
+              "cpu_ns": 2027
+            },
+            {
+              "ns": 2026,
+              "cpu_ns": 2051
+            },
+            {
+              "ns": 1857,
+              "cpu_ns": 1887
+            },
+            {
+              "ns": 1981,
+              "cpu_ns": 2025
+            },
+            {
+              "ns": 2078,
+              "cpu_ns": 2092
+            },
+            {
+              "ns": 2001,
+              "cpu_ns": 2023
+            },
+            {
+              "ns": 1887,
+              "cpu_ns": 1922
+            },
+            {
+              "ns": 1916,
+              "cpu_ns": 1940
+            },
+            {
+              "ns": 1885,
+              "cpu_ns": 1859
+            },
+            {
+              "ns": 2009,
+              "cpu_ns": 2052
+            },
+            {
+              "ns": 1907,
+              "cpu_ns": 1946
+            },
+            {
+              "ns": 2100,
+              "cpu_ns": 2148
+            },
+            {
+              "ns": 2116,
+              "cpu_ns": 2147
+            },
+            {
+              "ns": 1977,
+              "cpu_ns": 2001
+            },
+            {
+              "ns": 1999,
+              "cpu_ns": 2076
+            },
+            {
+              "ns": 1940,
+              "cpu_ns": 1967
+            },
+            {
+              "ns": 2023,
+              "cpu_ns": 2011
+            },
+            {
+              "ns": 1967,
+              "cpu_ns": 1995
+            },
+            {
+              "ns": 1942,
+              "cpu_ns": 1971
+            },
+            {
+              "ns": 1997,
+              "cpu_ns": 2003
+            },
+            {
+              "ns": 1906,
+              "cpu_ns": 1935
+            },
+            {
+              "ns": 1912,
+              "cpu_ns": 1957
+            },
+            {
+              "ns": 1895,
+              "cpu_ns": 1917
+            },
+            {
+              "ns": 2230,
+              "cpu_ns": 2241
+            },
+            {
+              "ns": 2029,
+              "cpu_ns": 2035
+            },
+            {
+              "ns": 1958,
+              "cpu_ns": 1988
+            },
+            {
+              "ns": 1953,
+              "cpu_ns": 1995
+            },
+            {
+              "ns": 2123,
+              "cpu_ns": 2149
+            },
+            {
+              "ns": 1952,
+              "cpu_ns": 1976
+            },
+            {
+              "ns": 1866,
+              "cpu_ns": 1940
+            },
+            {
+              "ns": 2044,
+              "cpu_ns": 2072
+            },
+            {
+              "ns": 1884,
+              "cpu_ns": 1934
+            },
+            {
+              "ns": 12434,
+              "cpu_ns": 12660
+            },
+            {
+              "ns": 3241,
+              "cpu_ns": 3289
+            },
+            {
+              "ns": 2220,
+              "cpu_ns": 2262
+            },
+            {
+              "ns": 2180,
+              "cpu_ns": 2185
+            },
+            {
+              "ns": 2132,
+              "cpu_ns": 2131
+            },
+            {
+              "ns": 1941,
+              "cpu_ns": 1960
+            },
+            {
+              "ns": 1979,
+              "cpu_ns": 1970
+            },
+            {
+              "ns": 2020,
+              "cpu_ns": 2009
+            },
+            {
+              "ns": 2006,
+              "cpu_ns": 2031
+            },
+            {
+              "ns": 2239,
+              "cpu_ns": 2244
+            },
+            {
+              "ns": 2245,
+              "cpu_ns": 2280
+            },
+            {
+              "ns": 3285,
+              "cpu_ns": 3311
+            },
+            {
+              "ns": 2020,
+              "cpu_ns": 2063
+            },
+            {
+              "ns": 2013,
+              "cpu_ns": 2040
+            },
+            {
+              "ns": 2012,
+              "cpu_ns": 2049
+            },
+            {
+              "ns": 1913,
+              "cpu_ns": 1949
+            },
+            {
+              "ns": 1979,
+              "cpu_ns": 2014
+            },
+            {
+              "ns": 1948,
+              "cpu_ns": 2006
+            },
+            {
+              "ns": 1972,
+              "cpu_ns": 2012
+            },
+            {
+              "ns": 1994,
+              "cpu_ns": 2031
+            },
+            {
+              "ns": 1867,
+              "cpu_ns": 1888
+            },
+            {
+              "ns": 1891,
+              "cpu_ns": 1931
+            },
+            {
+              "ns": 1950,
+              "cpu_ns": 1988
+            },
+            {
+              "ns": 1871,
+              "cpu_ns": 1897
+            },
+            {
+              "ns": 2070,
+              "cpu_ns": 2115
+            },
+            {
+              "ns": 1934,
+              "cpu_ns": 1965
+            },
+            {
+              "ns": 2027,
+              "cpu_ns": 2055
+            },
+            {
+              "ns": 1927,
+              "cpu_ns": 1933
+            },
+            {
+              "ns": 1992,
+              "cpu_ns": 1980
+            },
+            {
+              "ns": 1976,
+              "cpu_ns": 2000
+            },
+            {
+              "ns": 1980,
+              "cpu_ns": 2021
+            },
+            {
+              "ns": 1942,
+              "cpu_ns": 1982
+            },
+            {
+              "ns": 1979,
+              "cpu_ns": 2022
+            },
+            {
+              "ns": 2043,
+              "cpu_ns": 2069
+            },
+            {
+              "ns": 2056,
+              "cpu_ns": 2097
+            },
+            {
+              "ns": 1924,
+              "cpu_ns": 1941
+            },
+            {
+              "ns": 1921,
+              "cpu_ns": 1948
+            },
+            {
+              "ns": 2231,
+              "cpu_ns": 2279
+            },
+            {
+              "ns": 2013,
+              "cpu_ns": 2045
+            },
+            {
+              "ns": 2050,
+              "cpu_ns": 2078
+            },
+            {
+              "ns": 2018,
+              "cpu_ns": 2101
+            },
+            {
+              "ns": 1905,
+              "cpu_ns": 1964
+            },
+            {
+              "ns": 2046,
+              "cpu_ns": 2025
+            },
+            {
+              "ns": 2045,
+              "cpu_ns": 2083
+            },
+            {
+              "ns": 2062,
+              "cpu_ns": 2115
+            },
+            {
+              "ns": 2091,
+              "cpu_ns": 2105
+            },
+            {
+              "ns": 2026,
+              "cpu_ns": 2064
+            },
+            {
+              "ns": 1923,
+              "cpu_ns": 1946
+            },
+            {
+              "ns": 1957,
+              "cpu_ns": 1991
+            },
+            {
+              "ns": 2039,
+              "cpu_ns": 2061
+            },
+            {
+              "ns": 1942,
+              "cpu_ns": 1994
+            }
+          ]
+        },
+        "kernel_read_only": {
+          "warmup": 1,
+          "repetitions": 3,
+          "median_ns": 1960707,
+          "samples": [
+            {
+              "ns": 1960707,
+              "cpu_ns": 1182617
+            },
+            {
+              "ns": 2277975,
+              "cpu_ns": 1521606
+            },
+            {
+              "ns": 1924706,
+              "cpu_ns": 1337525
+            }
+          ]
+        }
+      },
+      "peak_rss_kib": 156420,
+      "meminfo": "MemTotal:        8000144 kB\nMemFree:          176016 kB\nMemAvailable:    4643436 kB\nBuffers:          386732 kB\nCached:          3730420 kB\nSwapCached:        35240 kB\nActive:          5201716 kB\nInactive:        1440024 kB\nActive(anon):    1821380 kB\nInactive(anon):   706072 kB\nActive(file):    3380336 kB\nInactive(file):   733952 kB\nUnevictable:           0 kB\nMlocked:               0 kB\nSwapTotal:       2097152 kB\nSwapFree:         706688 kB\nDirty:              8372 kB\nWriteback:             0 kB\nAnonPages:       2504536 kB\nMapped:           295600 kB\nShmem:              2860 kB\nKReclaimable:     549392 kB\nSlab:             700148 kB\nSReclaimable:     549392 kB\nSUnreclaim:       150756 kB\nKernelStack:       12844 kB\nPageTables:        62800 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:     6097224 kB\nCommitted_AS:   12016440 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:       41080 kB\nVmallocChunk:          0 kB\nPercpu:             6976 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:     45056 kB\nFilePmdMapped:     36864 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:       72704 kB\nDirectMap2M:     6084608 kB\nDirectMap1G:    10485760 kB\n",
+      "psi": "some avg10=0.10 avg60=0.09 avg300=0.34 total=211049465\nfull avg10=0.10 avg60=0.09 avg300=0.31 total=202045175\n",
+      "native_auth_latency": null,
+      "native_capability_transfer": null,
+      "native_root_installation": false
+    },
+    "broker_before": {
+      "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+      "repetitions": 3,
+      "samples": [
+        {
+          "resources": {
+            "memavailable": "4674532",
+            "psi": "some avg10=0.00 avg60=0.02 avg300=0.57 total=210549299\nfull avg10=0.00 avg60=0.01 avg300=0.51 total=201551038\n"
+          },
+          "ipc_status_seconds": 0.001899847004096955,
+          "validation_seconds": 0.003944906988181174,
+          "prepare_with_reference_compile_seconds": 6.123890671995468,
+          "mock_auth_and_b1_child_start_seconds": 1.1139314899919555,
+          "c_transaction_fake_ops_seconds": 0.01282527600415051,
+          "b1_attach_fixture_seconds": 0.029839670984074473,
+          "b1_detach_fixture_seconds": 0.029068494972307235,
+          "b1_cleanup_and_exit_seconds": 0.2630157910170965,
+          "fixture_supervisor_rss_bytes": 151642112
+        },
+        {
+          "resources": {
+            "memavailable": "4723252",
+            "psi": "some avg10=0.29 avg60=0.11 avg300=0.57 total=210630051\nfull avg10=0.29 avg60=0.10 avg300=0.51 total=201630048\n"
+          },
+          "ipc_status_seconds": 0.0019167160498909652,
+          "validation_seconds": 0.004135123977903277,
+          "prepare_with_reference_compile_seconds": 4.819075080973562,
+          "mock_auth_and_b1_child_start_seconds": 1.1314403750002384,
+          "c_transaction_fake_ops_seconds": 0.014596135006286204,
+          "b1_attach_fixture_seconds": 0.024084624950774014,
+          "b1_detach_fixture_seconds": 0.02628177305450663,
+          "b1_cleanup_and_exit_seconds": 0.24755875597475097,
+          "fixture_supervisor_rss_bytes": 151486464
+        },
+        {
+          "resources": {
+            "memavailable": "4720344",
+            "psi": "some avg10=0.16 avg60=0.10 avg300=0.56 total=210630891\nfull avg10=0.16 avg60=0.09 avg300=0.50 total=201630887\n"
+          },
+          "ipc_status_seconds": 0.0034085839870385826,
+          "validation_seconds": 0.004030719981528819,
+          "prepare_with_reference_compile_seconds": 5.053540835971944,
+          "mock_auth_and_b1_child_start_seconds": 1.3698765989975072,
+          "c_transaction_fake_ops_seconds": 0.02557546499883756,
+          "b1_attach_fixture_seconds": 0.04662460403051227,
+          "b1_detach_fixture_seconds": 0.055382899998221546,
+          "b1_cleanup_and_exit_seconds": 0.6202177940285765,
+          "fixture_supervisor_rss_bytes": 151216128
+        }
+      ],
+      "median": {
+        "ipc_status_seconds": 0.0019167160498909652,
+        "validation_seconds": 0.004030719981528819,
+        "prepare_with_reference_compile_seconds": 5.053540835971944,
+        "mock_auth_and_b1_child_start_seconds": 1.1314403750002384,
+        "c_transaction_fake_ops_seconds": 0.014596135006286204,
+        "b1_attach_fixture_seconds": 0.029839670984074473,
+        "b1_detach_fixture_seconds": 0.029068494972307235,
+        "b1_cleanup_and_exit_seconds": 0.2630157910170965,
+        "fixture_supervisor_rss_bytes": 151486464
+      },
+      "native_authentication_latency": null,
+      "native_load_latency": null,
+      "native_attach_detach_latency": null,
+      "native_supervisor_rss": null
+    },
+    "broker_after": {
+      "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+      "repetitions": 3,
+      "samples": [
+        {
+          "resources": {
+            "memavailable": "4698428",
+            "psi": "some avg10=0.20 avg60=0.11 avg300=0.55 total=210653861\nfull avg10=0.20 avg60=0.11 avg300=0.49 total=201653420\n"
+          },
+          "ipc_status_seconds": 0.0024927310296334326,
+          "validation_seconds": 0.004512551007792354,
+          "prepare_with_reference_compile_seconds": 4.796016342996154,
+          "mock_auth_and_b1_child_start_seconds": 1.1233828960102983,
+          "c_transaction_fake_ops_seconds": 0.01547800499247387,
+          "b1_attach_fixture_seconds": 0.024490896030329168,
+          "b1_detach_fixture_seconds": 0.025778186973184347,
+          "b1_cleanup_and_exit_seconds": 0.30245564598590136,
+          "fixture_supervisor_rss_bytes": 151408640
+        },
+        {
+          "resources": {
+            "memavailable": "4679628",
+            "psi": "some avg10=0.11 avg60=0.10 avg300=0.53 total=210653861\nfull avg10=0.11 avg60=0.09 avg300=0.48 total=201653420\n"
+          },
+          "ipc_status_seconds": 0.0031407399801537395,
+          "validation_seconds": 0.004847736970987171,
+          "prepare_with_reference_compile_seconds": 4.759852014947683,
+          "mock_auth_and_b1_child_start_seconds": 1.1087456659879535,
+          "c_transaction_fake_ops_seconds": 0.0197499209898524,
+          "b1_attach_fixture_seconds": 0.02450088202022016,
+          "b1_detach_fixture_seconds": 0.028368986037094146,
+          "b1_cleanup_and_exit_seconds": 0.2964952480397187,
+          "fixture_supervisor_rss_bytes": 151412736
+        },
+        {
+          "resources": {
+            "memavailable": "4704948",
+            "psi": "some avg10=0.05 avg60=0.09 avg300=0.52 total=210654112\nfull avg10=0.05 avg60=0.08 avg300=0.47 total=201653671\n"
+          },
+          "ipc_status_seconds": 0.0027580729802139103,
+          "validation_seconds": 0.005750781972892582,
+          "prepare_with_reference_compile_seconds": 4.937688721984159,
+          "mock_auth_and_b1_child_start_seconds": 1.1000518460059538,
+          "c_transaction_fake_ops_seconds": 0.015030889015179127,
+          "b1_attach_fixture_seconds": 0.027018896013032645,
+          "b1_detach_fixture_seconds": 0.029756331001408398,
+          "b1_cleanup_and_exit_seconds": 0.29650450800545514,
+          "fixture_supervisor_rss_bytes": 151244800
+        }
+      ],
+      "median": {
+        "ipc_status_seconds": 0.0027580729802139103,
+        "validation_seconds": 0.004847736970987171,
+        "prepare_with_reference_compile_seconds": 4.796016342996154,
+        "mock_auth_and_b1_child_start_seconds": 1.1087456659879535,
+        "c_transaction_fake_ops_seconds": 0.01547800499247387,
+        "b1_attach_fixture_seconds": 0.02450088202022016,
+        "b1_detach_fixture_seconds": 0.028368986037094146,
+        "b1_cleanup_and_exit_seconds": 0.29650450800545514,
+        "fixture_supervisor_rss_bytes": 151408640
+      },
+      "native_authentication_latency": null,
+      "native_load_latency": null,
+      "native_attach_detach_latency": null,
+      "native_supervisor_rss": null
+    },
+    "note": "Timing functions unchanged by final simulation identity/crash guards; no simulation-activation latency or Native improvement claimed. Final release SHA regenerated from final sources.",
+    "native_auth_latency": null,
+    "native_capability_transfer": null,
+    "native_broker_rss": null
+  },
+  "quality": {
+    "ruff": {
+      "exit_code": 0,
+      "seconds": 0.08107574499445036,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "seconds": 0.08260411396622658,
+      "result": "1233 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "seconds": 0.20754867501091212,
+      "result": "Building wheel...\nSuccessfully built dist/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    },
+    "wheel_source_files_matched": 540,
+    "rebuilt_artifacts_and_bundle_match": true,
+    "workspace_export_sha_match": true,
+    "diff_check": true
+  },
+  "verdicts": {
+    "TRUSTED_INSTALLATION_CONTRACT": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "RELEASE_MANIFEST": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "PAM_AUTH_CONTRACT": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "SESSION_AUTH_LIFETIME": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "TCX_LINK_OWNERSHIP_FIXTURE": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "CLEANUP_FIXTURE": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "AUDIT_RECOVERY": "VERIFIED_FIXTURE_OR_READ_ONLY_CONTRACT_NOT_NATIVE",
+    "CAPABILITY_PROFILE": "UNKNOWN_NATIVE_TRANSFER_CANDIDATE_BPF_NET_ADMIN",
+    "KERNEL_COMPATIBILITY_PREFLIGHT": "UNKNOWN_NATIVE_NOT_PROBED",
+    "GUI": "PRESERVED",
+    "NATIVE_ROOT_INSTALL": "PENDING",
+    "NATIVE_AUTH": "PENDING",
+    "NATIVE_VERIFIER": "PENDING",
+    "NATIVE_TCX_ATTACH": "PENDING",
+    "NATIVE_AI": "BLOCKED",
+    "DNS9": "BLOCKED",
+    "OPERATIONAL_PROMOTION": "BLOCKED",
+    "NATIVE_RELEASE": "BLOCKED"
+  },
+  "remaining_blockers": [
+    "No root installation or privileged deployment test",
+    "PAM/secure-execution/dynamic NSS dependency closure not qualified",
+    "Actual capability transfer/resource accounting unknown",
+    "Actual Microsoft-kernel verifier and TCX support unprobed",
+    "Supplementary JSON qualification not an enabled Native Bootstrap gate",
+    "Default Legacy fixture plan is not a Native TCX authorization plan",
+    "External Link references/pins and privileged same-Link mutation not excluded",
+    "Native AI/DNS9/operational gates independently blocked",
+    "SIGILL root cause UNKNOWN"
+  ]
+}

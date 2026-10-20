@@ -87,6 +87,7 @@ def inspect_artifacts(directory: Path, expected: dict | None = None) -> dict:
 class Preparation:
     def __init__(self, controller: Controller, artifacts: Path):
         self.controller, self.artifacts = controller, artifacts
+        self._installation = None
         self._tcx_result = None
         self._tcx_used = False
         self.hashes = inspect_artifacts(artifacts)
@@ -200,6 +201,36 @@ class Preparation:
         self._tcx_result = value.snapshot()
         return value.model_dump()
 
+    def qualify_package(self, directory: Path, manifest_sha: str) -> dict:
+        from soc_agent.security_ai.ebpf_tc.installation import verify_package
+
+        self.validate()
+        release = verify_package(directory, manifest_sha)
+        if (
+            release.bundle_digest != self.plan.bundle_digest
+            or release.payloads["tc.bpf.o"].sha256 != self.hashes["tcx.bpf.o"]
+        ):
+            raise ValueError("RELEASE_APPLICATION_BUNDLE_MISMATCH")
+        self.controller._event(
+            "INSTALLATION_PACKAGE_VERIFIED",
+            release_manifest_digest=release.identity,
+            input_origin="UNPRIVILEGED_PACKAGE_NOT_ROOT",
+            native_execution=False,
+            capability_scope="CANDIDATE_CAP_BPF_CAP_NET_ADMIN_NATIVE_UNKNOWN",
+            release_gate="BLOCKED",
+        )
+        self._installation = {
+            "installed_release": None,
+            "package_version": release.version,
+            "release_manifest_digest": release.identity,
+            "installation_integrity": "PACKAGE_VERIFIED_ROOT_NOT_OBSERVED",
+            "authentication": "NATIVE_PENDING",
+            "capability_state": "UNKNOWN_NATIVE_TRANSFER",
+            "kernel_compatibility": "UNKNOWN_NOT_PROBED",
+            "native_release": "BLOCKED",
+        }
+        return self.snapshot()
+
     @property
     def tcx_dispatch_approval(self) -> str:
         return digest(
@@ -245,9 +276,13 @@ class Preparation:
 
     def snapshot(self) -> dict:
         value = self.controller.snapshot()
+        from soc_agent.security_ai.ebpf_tc.qualification import (
+            unobserved as installation_unobserved,
+        )
         from soc_agent.security_ai.ebpf_tc.release import ReleaseEvidence
         from soc_agent.security_ai.ebpf_tc.tcx import unobserved
 
+        value["installation"] = self._installation or installation_unobserved()
         value["tcx"] = self._tcx_result or unobserved()
         value["tcx"].update(
             program_sha256=self.hashes["tcx.bpf.o"],

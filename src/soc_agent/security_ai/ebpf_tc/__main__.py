@@ -29,8 +29,61 @@ def main(argv=None) -> int:
         for flag in ("program", "inspector", "artifacts", "data-directory"):
             p.add_argument("--" + flag, type=Path, required=True)
         p.add_argument("--gui", action="store_true")
+    package = subs.add_parser("package", help="Ordinary-UID release package only")
+    package.add_argument("--artifacts", type=Path, required=True)
+    package.add_argument("--output", type=Path, required=True)
+    package.add_argument("--version", required=True)
+    verify = subs.add_parser(
+        "verify-package", help="Verify package against separately approved manifest SHA"
+    )
+    verify.add_argument("--package", type=Path, required=True)
+    verify.add_argument("--manifest-sha", required=True)
+    subs.add_parser("qualify-host", help="Read-only config/files; never probe BPF syscall")
     args = parser.parse_args(argv)
     local_controller()
+    if args.mode == "package":
+        from soc_agent.security_ai.ebpf_tc.installation import create_package
+
+        result = create_package(args.artifacts, args.output, args.version)
+        print(
+            json.dumps(
+                {
+                    "manifest": result.model_dump(mode="json"),
+                    "manifest_sha256": result.identity,
+                    "source": "UNPRIVILEGED_PACKAGE_NOT_INSTALLATION",
+                },
+                indent=2,
+            )
+        )
+        return 0
+    if args.mode == "verify-package":
+        from soc_agent.security_ai.ebpf_tc.installation import verify_package
+
+        result = verify_package(args.package, args.manifest_sha)
+        print(
+            json.dumps(
+                {
+                    "manifest_sha256": result.identity,
+                    "package": "VERIFIED_UNPRIVILEGED",
+                    "native_release": "BLOCKED",
+                }
+            )
+        )
+        return 0
+    if args.mode == "qualify-host":
+        from soc_agent.security_ai.ebpf_tc.qualification import observe_kernel
+
+        facts = observe_kernel()
+        print(
+            json.dumps(
+                {
+                    "facts": facts.model_dump(),
+                    "verdict": facts.verdict(facts.namespace, facts.ifindex),
+                },
+                indent=2,
+            )
+        )
+        return 0
     if args.mode == "compile":
         print(json.dumps(compile_native(args.output), indent=2))
         return 0

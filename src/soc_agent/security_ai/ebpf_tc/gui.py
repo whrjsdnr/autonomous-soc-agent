@@ -67,6 +67,20 @@ class PreparedDesktop(BrokerDesktop):
         ):
             observed = tcx.get(key)
             rows.append("TCX " + key + "   " + ("UNKNOWN" if observed is None else str(observed)))
+        installation = self.snapshot.get("installation", {})
+        for key in (
+            "installed_release",
+            "package_version",
+            "installation_integrity",
+            "authentication",
+            "capability_state",
+            "kernel_compatibility",
+            "native_release",
+        ):
+            observed = installation.get(key)
+            rows.append(
+                "Installation " + key + "   " + ("UNKNOWN" if observed is None else str(observed))
+            )
         self._text(self.system, self.system.get("1.0", "end") + "\n".join(rows))
 
 
