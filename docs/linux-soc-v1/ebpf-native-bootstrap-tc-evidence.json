@@ -1,0 +1,600 @@
+{
+  "contract": "soc-ebpf-b2a-completion-evidence:v1",
+  "baseline_soc": "ebdae69f7da5c44f1c1086a28d359d93e4f0bda9",
+  "baseline_ml": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "scope": "COMPILE_AND_UNPRIVILEGED_FIXTURES_ONLY",
+  "identities": {
+    "artifacts": {
+      "bootstrap": "5d5d5144af37775e5ba5941eaa9beeef60fa48347627404078cd656fc972a818",
+      "broker": "a491cbe317790291282f70a1727989a7d28b367254417e824a75c4423c9cda6f",
+      "libnative-tc.so": "7fce809b4e1d4ee8bcf0836fe6b11d80e8a330e65f3c9cd7c68dfacd19f1128a",
+      "tc-fixture": "921bc807b5fe84ad35a6c2d60c6a2c0030b42cdd3cd5fc8fb94417421b13304c",
+      "source_bundle_digest": "5e1e0f1835d93f389fd9bcef89258690655bc456e9f32d4f29ac62f35f4b3cdc"
+    },
+    "program_sha256": "69de609ea8ee90ecf90d091ec361e46e61ed0638b3175390c77305145e19d5f4",
+    "phase_a_inspector_sha256": "23f0c50720db8f2eaa39f7867188efdf01caedda5b41d8f1faae626ec3e81310",
+    "bundle": {
+      "b1/phase_a/__init__.py": "976857f01043e7397f0f9b2ec8084ff9705c42335742478b385df99d37df681a",
+      "b1/phase_a/__main__.py": "753efa4a69a4b2915f8321e6f1bb02316f4ee7d3420adac4bf56a04814411eef",
+      "b1/phase_a/application.py": "d696b013099e0648d99bc67d7bb8cbcd6ad3ce8c2bec0a0ec9a3e94e2b2b50d7",
+      "b1/phase_a/authentication.py": "32e8ec0717ddd0ce882a01fb17a43cc24255a85242ea2a4753d9b5a682dd4e99",
+      "b1/phase_a/contracts.py": "f65f13f520970b39cc92d68600ef3a44693ac4b8676e869029598402e6480665",
+      "b1/phase_a/gui.py": "10e375b539fddcf3844a299efff35e9a82ed39caeb9b64c71eba5a0dc9395b1e",
+      "b1/phase_a/loader.c": "364c541d9e552f808d7cda8b03220f6826662995e33c57dcb08329ea88975ef1",
+      "b1/phase_a/loader.py": "601dfcce36957cd1272be3fa2f3099945d06bf5a0fc7cd747a205cda5c0c315c",
+      "b1/phase_a/tc_contract.py": "8569d1228a8181cf50a9df89af19b049aab48da71c7c11b38a4be6c5d72c1afc",
+      "b1/__init__.py": "e520cfa51b9bbbbf2cb6eec2d13bdffe76c4229c1890560c908148c08fad6a03",
+      "b1/__main__.py": "713ff2258790904fc16b5ef2b3fe8f489ff3d78d16da2714444e7f79dd8a1fbb",
+      "b1/contracts.py": "a39d4782dc56e4e3922e6ce21d39779a05e733ffc03b92aa6a4f287eb81044c5",
+      "b1/controller.py": "df158949ec22c0d00f1bde439dda8f30819f92449f89051c39aa73d09e8ea985",
+      "b1/engine.py": "47f2b3e9d60652448de31b44bcbf49de0cf11f3acc6d9965c512726642ed3be0",
+      "b1/gui.py": "494ee63e054f06270260b63465edb64318fc6bc2b97b0ee5e630bf5e58d11ad9",
+      "b1/identity.py": "13eb53880be961c152af73508a8a27714fba8ac6ef285b8f79025ece20a3fc9b",
+      "b1/ipc.py": "1be9b8b231fa1a17bb2a37553bbd0b148b91067447aca7b936e8f06466021c14",
+      "b1/journal.py": "b001f610e739aa856049b82b37f11bfcee57dd828580857cbd6c514a6bb70a87",
+      "b1/ownership.py": "961c529e3414d6edb212745f3f5535826fcb5ce2dca77bb90de07db7d9beb0af",
+      "b1/process.py": "5945485597a2c00b884d6589a44cc66ef416a37353154a68f894556eb2fd8d9c",
+      "b1/server.py": "70f71e346713564aee18267b8396a25a52c9202ae6b365c53be72ffeecb9e380",
+      "__init__.py": "d20ec34b506b1106c5e78dec06ef103f996cbdb479f96e64985b0aeb9ccbea38",
+      "__main__.py": "da420797fe5fdb8743843327f1d3c756c04480ab0cd27c9aa0274c3a2f149583",
+      "bootstrap.c": "36f5e403d275bd3b3c20b46070bdfd3f4bfb051b4f46cd2ac00c7d1c0f15f9fc",
+      "bridge.py": "0fbd5c35c547ff7de60f310b307006820e848c269b35c75d62255c5f0d11ba75",
+      "broker.c": "a1e64ad96754bd6bd8ece47d98902be82f86151cac6fa075aef20a4397d78368",
+      "build.py": "28c19c6cb74277b9667459045bbf0302f781b959ab459251baf9b52e0c8e8120",
+      "contracts.py": "000b6adf811380acd9b06ea962ede2fedfbfc1bb197ed59f94b5b0ee6bfab97e",
+      "core.c": "5db5fb36e18b2ae9fe8492cb6e2d83faa7c57a0c72d4006a1d6e35aea61170b3",
+      "fixture.c": "797796cb0fb0f27db6adaf9bc25b2ea93cf21cf53de3d64f789abb0f6c427be8",
+      "gui.py": "3163142ec2b313bdb8f752fa312732fb00d45567e77443ddd10a8e5accfb8926",
+      "journal.py": "7013b533bb66e5d62640957e822d96b52cdab05428f010d620058ddc1e480921",
+      "loader.c": "c0bcb21725992081e7df61aedd2149910194638d3ec7f0c14a0d993ceea2222e",
+      "native.h": "7e56893373ab8a19ece6e278a5cac9c3494329dcfedb6cb720771ff1323d067c",
+      "netlink.c": "aa4733743fb5bc825719a811dda22eda6cfe30d58ae5be0d6cb59abdb5923c86",
+      "os.c": "35a5f65c406461df12d7a0df3d8a7008924fbc2430a087badc320ce2142f229d",
+      "pam-policy.conf": "bf95575ebb801b24c3f26d113d5c5f64f4068bd06d3da36c99e72e35eceff0e5",
+      "pam_abi.h": "274cead4866bd79ef66630e92a4fb3f3d3c12a42d92c8c4579cb6c4f81706ec0"
+    },
+    "bundle_digest": "5e1e0f1835d93f389fd9bcef89258690655bc456e9f32d4f29ac62f35f4b3cdc",
+    "zeek_bundle_digest": "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045",
+    "manifest_format": "bootstrap32/broker32/loader32/program32/bundle32",
+    "native_gate": false
+  },
+  "final_52_test_source_manifest": {
+    "docs/linux-soc-v1/ebpf-native-bootstrap-tc.md": "479986abcd61f66530e27a03a1b035306d9f726211702dbb90e513f762a66cee",
+    "src/soc_agent/security_ai/ebpf_tc/__init__.py": "d20ec34b506b1106c5e78dec06ef103f996cbdb479f96e64985b0aeb9ccbea38",
+    "src/soc_agent/security_ai/ebpf_tc/__main__.py": "da420797fe5fdb8743843327f1d3c756c04480ab0cd27c9aa0274c3a2f149583",
+    "src/soc_agent/security_ai/ebpf_tc/bootstrap.c": "36f5e403d275bd3b3c20b46070bdfd3f4bfb051b4f46cd2ac00c7d1c0f15f9fc",
+    "src/soc_agent/security_ai/ebpf_tc/bridge.py": "0fbd5c35c547ff7de60f310b307006820e848c269b35c75d62255c5f0d11ba75",
+    "src/soc_agent/security_ai/ebpf_tc/broker.c": "a1e64ad96754bd6bd8ece47d98902be82f86151cac6fa075aef20a4397d78368",
+    "src/soc_agent/security_ai/ebpf_tc/build.py": "28c19c6cb74277b9667459045bbf0302f781b959ab459251baf9b52e0c8e8120",
+    "src/soc_agent/security_ai/ebpf_tc/contracts.py": "000b6adf811380acd9b06ea962ede2fedfbfc1bb197ed59f94b5b0ee6bfab97e",
+    "src/soc_agent/security_ai/ebpf_tc/core.c": "5db5fb36e18b2ae9fe8492cb6e2d83faa7c57a0c72d4006a1d6e35aea61170b3",
+    "src/soc_agent/security_ai/ebpf_tc/fixture.c": "797796cb0fb0f27db6adaf9bc25b2ea93cf21cf53de3d64f789abb0f6c427be8",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "3163142ec2b313bdb8f752fa312732fb00d45567e77443ddd10a8e5accfb8926",
+    "src/soc_agent/security_ai/ebpf_tc/journal.py": "7013b533bb66e5d62640957e822d96b52cdab05428f010d620058ddc1e480921",
+    "src/soc_agent/security_ai/ebpf_tc/loader.c": "c0bcb21725992081e7df61aedd2149910194638d3ec7f0c14a0d993ceea2222e",
+    "src/soc_agent/security_ai/ebpf_tc/native.h": "7e56893373ab8a19ece6e278a5cac9c3494329dcfedb6cb720771ff1323d067c",
+    "src/soc_agent/security_ai/ebpf_tc/netlink.c": "aa4733743fb5bc825719a811dda22eda6cfe30d58ae5be0d6cb59abdb5923c86",
+    "src/soc_agent/security_ai/ebpf_tc/os.c": "35a5f65c406461df12d7a0df3d8a7008924fbc2430a087badc320ce2142f229d",
+    "src/soc_agent/security_ai/ebpf_tc/pam-policy.conf": "bf95575ebb801b24c3f26d113d5c5f64f4068bd06d3da36c99e72e35eceff0e5",
+    "src/soc_agent/security_ai/ebpf_tc/pam_abi.h": "274cead4866bd79ef66630e92a4fb3f3d3c12a42d92c8c4579cb6c4f81706ec0",
+    "tests/ebpf_tc_support.py": "babd952f532c34eb9b5dc17c0fe732bff5fb8fff70a2382577df49d3f723bb29",
+    "tests/gui_ebpf_tc_checks.py": "053d3c80562fa3b17394db264a808acd30a4d8e68b960bd215528466bd447774",
+    "tests/integration/ebpf_tc/test_native_core.py": "6407483f374aa07be941ed2f5d0872de951cc46ec7cd0dff6178cdaf3c6d4544",
+    "tests/integration/ebpf_tc/test_preparation.py": "08f55726c0b00eba4f74c4181949ab1025bd2fc3857d12c07ebe4b81a067dbee",
+    "tests/unit/ebpf_tc/test_contracts.py": "0861b0cccd66f57658d6480229cf8c7c087c868297152787f68977ab5181ce42",
+    "tests/unit/ebpf_tc/test_journal.py": "fb98f7ec36182ed45f586a8ee5532d7fc37fc33e46dd8242caced4f495adab0c"
+  },
+  "final_native_fixture_tests": {
+    "exit_code": 0,
+    "elapsed_seconds": 42.203483407967724,
+    "result": "....................................................                     [100%]\n52 passed in 39.94s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+  },
+  "regression_results": {
+    "broker": {
+      "exit_code": 0,
+      "elapsed_seconds": 29.4447921589599,
+      "suite": [
+        "tests/unit/ebpf_broker",
+        "tests/integration/ebpf_broker",
+        "tests/gui_ebpf_broker_checks.py"
+      ],
+      "result": "...............................................................          [100%]\n63 passed in 27.54s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4752412672,
+          "psi": "some avg10=0.00 avg60=0.01 avg300=0.10 total=188102475\nfull avg10=0.00 avg60=0.01 avg300=0.10 total=179948780\n"
+        }
+      ]
+    },
+    "unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 67.54105734603945,
+      "suite": [
+        "tests/unit/ebpf_native",
+        "tests/unit/ebpf",
+        "tests/unit/zeek_attestation",
+        "tests/unit/zeek_preprocessing",
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "result": "........................................................................ [ 10%]\n........................................................................ [ 20%]\n........................................................................ [ 31%]\n........................................................................ [ 41%]\n........................................................................ [ 51%]\n........................................................................ [ 62%]\n........................................................................ [ 72%]\n........................................................................ [ 83%]\n........................................................................ [ 93%]\n.............................................                            [100%]\n693 passed in 65.41s (0:01:05)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4641050624,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.09 total=188106613\nfull avg10=0.00 avg60=0.00 avg300=0.09 total=179952902\n"
+        }
+      ]
+    },
+    "integration": {
+      "exit_code": 0,
+      "elapsed_seconds": 71.4109438600135,
+      "suite": [
+        "tests/integration/ebpf_native",
+        "tests/integration/ebpf",
+        "tests/integration/zeek_attestation",
+        "tests/integration/zeek_preprocessing",
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "result": "..........................................................               [100%]\n58 passed in 69.50s (0:01:09)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4748738560,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.06 total=188119499\nfull avg10=0.00 avg60=0.00 avg300=0.06 total=179965722\n"
+        }
+      ]
+    },
+    "model": {
+      "exit_code": 0,
+      "elapsed_seconds": 11.50170459097717,
+      "suite": [
+        "tests/integration/zeek_live/test_models.py"
+      ],
+      "result": ".                                                                        [100%]\n1 passed in 9.46s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4562161664,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.04 total=188151274\nfull avg10=0.00 avg60=0.00 avg300=0.04 total=179996591\n"
+        },
+        {
+          "memavailable": 4718690304,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.04 total=188151274\nfull avg10=0.00 avg60=0.00 avg300=0.04 total=179996591\n"
+        },
+        {
+          "memavailable": 4738052096,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.04 total=188151274\nfull avg10=0.00 avg60=0.00 avg300=0.04 total=179996591\n"
+        }
+      ]
+    },
+    "gui": {
+      "exit_code": 0,
+      "elapsed_seconds": 76.15192392800236,
+      "suite": [
+        "tests/gui_ebpf_native_checks.py",
+        "tests/gui_ebpf_checks.py",
+        "tests/gui_zeek_attestation_checks.py",
+        "tests/gui_zeek_preprocessing_checks.py",
+        "tests/gui_zeek_integrity_checks.py",
+        "tests/gui_zeek_startup_checks.py",
+        "tests/gui_zeek_finalization_checks.py",
+        "tests/gui_zeek_lifecycle_checks.py",
+        "tests/gui_zeek_live_checks.py",
+        "tests/gui_zeek_collector_checks.py",
+        "tests/gui_visual_dashboard_checks.py",
+        "tests/gui_production_checks.py"
+      ],
+      "result": ".................                                                        [100%]\n17 passed in 74.17s (0:01:14)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4674523136,
+          "psi": "some avg10=0.12 avg60=0.02 avg300=0.05 total=188194615\nfull avg10=0.12 avg60=0.02 avg300=0.05 total=180039853\n"
+        }
+      ]
+    },
+    "audit": {
+      "exit_code": 0,
+      "elapsed_seconds": 21.731490971986204,
+      "suite": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/linux_runtime/test_final_integration_audit.py",
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 18.90s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4693700608,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.03 total=188236798\nfull avg10=0.00 avg60=0.00 avg300=0.03 total=180080588\n"
+        }
+      ]
+    }
+  },
+  "regression_reuse": "Existing B-1, Zeek, Network14, model, GUI and Audit sources unchanged since successful independent Export run. Final new source reverified separately: 52 tests. Counts are independent runs, not summed.",
+  "offline_models": {
+    "receipts": [
+      {
+        "profile": "quality",
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "feature_digest": "d61e3938c23771369f18b7bf417e878a5c2660e4f346841785d5a82135ff1d0f",
+        "producer_version": "1.1.0",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "status": "RESEARCH_ONLY",
+        "inference_latency_ms": 12.418328959029168,
+        "worker_peak_rss_bytes": 234577920,
+        "operational_inference": "BLOCKED",
+        "write_policy": "WRITE_DENIED",
+        "investigation_status": "ASSESSED_READ_ONLY"
+      },
+      {
+        "profile": "edge",
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "feature_digest": "d61e3938c23771369f18b7bf417e878a5c2660e4f346841785d5a82135ff1d0f",
+        "producer_version": "1.1.0",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "status": "RESEARCH_ONLY",
+        "inference_latency_ms": 7.705689989961684,
+        "worker_peak_rss_bytes": 233222144,
+        "operational_inference": "BLOCKED",
+        "write_policy": "WRITE_DENIED",
+        "investigation_status": "ASSESSED_READ_ONLY"
+      }
+    ],
+    "queue_final": 0,
+    "inference_queue_final": 0,
+    "audit_digest": "8d4b62d659eaf2028a48c54c326d976bae6961bf9a5e1321049b0a067ecf23fe",
+    "recovered_audit_digest": "8d4b62d659eaf2028a48c54c326d976bae6961bf9a5e1321049b0a067ecf23fe",
+    "restored_new_inferences": 0,
+    "native_capture": false
+  },
+  "performance": {
+    "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+    "repetitions": 5,
+    "samples": [
+      {
+        "prepare_with_reference_compile_seconds": 2.6222224639495835,
+        "mock_auth_and_b1_child_start_seconds": 1.5420014419942163,
+        "c_transaction_fake_ops_seconds": 0.018057332024909556,
+        "b1_attach_fixture_seconds": 0.02874379901913926,
+        "b1_detach_fixture_seconds": 0.0278445269796066,
+        "b1_cleanup_and_exit_seconds": 0.2952205539913848,
+        "fixture_supervisor_rss_bytes": 151293952
+      },
+      {
+        "prepare_with_reference_compile_seconds": 2.5657126989681274,
+        "mock_auth_and_b1_child_start_seconds": 1.1007136999978684,
+        "c_transaction_fake_ops_seconds": 0.016389574040658772,
+        "b1_attach_fixture_seconds": 0.028611873975023627,
+        "b1_detach_fixture_seconds": 0.03014325600815937,
+        "b1_cleanup_and_exit_seconds": 0.250565652968362,
+        "fixture_supervisor_rss_bytes": 151359488
+      },
+      {
+        "prepare_with_reference_compile_seconds": 2.63218885299284,
+        "mock_auth_and_b1_child_start_seconds": 1.204395917011425,
+        "c_transaction_fake_ops_seconds": 0.015343243954703212,
+        "b1_attach_fixture_seconds": 0.0301929620327428,
+        "b1_detach_fixture_seconds": 0.03004955197684467,
+        "b1_cleanup_and_exit_seconds": 0.2485684499843046,
+        "fixture_supervisor_rss_bytes": 151449600
+      },
+      {
+        "prepare_with_reference_compile_seconds": 2.536140115989838,
+        "mock_auth_and_b1_child_start_seconds": 1.1722951919655316,
+        "c_transaction_fake_ops_seconds": 0.014981586020439863,
+        "b1_attach_fixture_seconds": 0.02828746900195256,
+        "b1_detach_fixture_seconds": 0.0351174509851262,
+        "b1_cleanup_and_exit_seconds": 0.3049349369830452,
+        "fixture_supervisor_rss_bytes": 151375872
+      },
+      {
+        "prepare_with_reference_compile_seconds": 2.6361526310211048,
+        "mock_auth_and_b1_child_start_seconds": 1.1843250030069612,
+        "c_transaction_fake_ops_seconds": 0.01654418301768601,
+        "b1_attach_fixture_seconds": 0.026568203989882022,
+        "b1_detach_fixture_seconds": 0.03303113899892196,
+        "b1_cleanup_and_exit_seconds": 0.2546863800380379,
+        "fixture_supervisor_rss_bytes": 151097344
+      }
+    ],
+    "median": {
+      "prepare_with_reference_compile_seconds": 2.6222224639495835,
+      "mock_auth_and_b1_child_start_seconds": 1.1843250030069612,
+      "c_transaction_fake_ops_seconds": 0.016389574040658772,
+      "b1_attach_fixture_seconds": 0.028611873975023627,
+      "b1_detach_fixture_seconds": 0.03014325600815937,
+      "b1_cleanup_and_exit_seconds": 0.2546863800380379,
+      "fixture_supervisor_rss_bytes": 151359488
+    },
+    "native_authentication_latency": null,
+    "native_load_latency": null,
+    "native_attach_detach_latency": null,
+    "native_supervisor_rss": null
+  },
+  "gui_performance": {
+    "samples": {
+      "before-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.4688160130172037,
+        "startup_cpu_seconds": 3.968383777,
+        "idle_rss_bytes": 184324096,
+        "process_image_peak_rss_bytes": 188727296,
+        "idle_seconds": 3.0193719620001502,
+        "idle_cpu_seconds": 0.008329096999999841,
+        "idle_cpu_one_core_percent": 0.27585528066182086,
+        "response_p50_ms": 0.016937,
+        "response_p95_ms": 0.057122,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.3268942150170915,
+        "startup_cpu_seconds": 3.933140683,
+        "idle_rss_bytes": 183324672,
+        "process_image_peak_rss_bytes": 187101184,
+        "idle_seconds": 3.0193315659998916,
+        "idle_cpu_seconds": 0.007538946999999574,
+        "idle_cpu_one_core_percent": 0.24968927178764325,
+        "response_p50_ms": 0.014484,
+        "response_p95_ms": 0.094476,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.232377042004373,
+        "startup_cpu_seconds": 3.9203692610000003,
+        "idle_rss_bytes": 183123968,
+        "process_image_peak_rss_bytes": 187322368,
+        "idle_seconds": 3.0188396140001714,
+        "idle_cpu_seconds": 0.007704487999999898,
+        "idle_cpu_one_core_percent": 0.25521355835764054,
+        "response_p50_ms": 0.010388,
+        "response_p95_ms": 0.074495,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2269496079534292,
+        "startup_cpu_seconds": 3.831642569,
+        "idle_rss_bytes": 183529472,
+        "process_image_peak_rss_bytes": 187293696,
+        "idle_seconds": 3.0185042530065402,
+        "idle_cpu_seconds": 0.007047170999999963,
+        "idle_cpu_one_core_percent": 0.23346566409441777,
+        "response_p50_ms": 0.010422,
+        "response_p95_ms": 0.03744,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.455668909009546,
+        "startup_cpu_seconds": 4.0808840360000005,
+        "idle_rss_bytes": 183246848,
+        "process_image_peak_rss_bytes": 187334656,
+        "idle_seconds": 3.018475105985999,
+        "idle_cpu_seconds": 0.007612315000000258,
+        "idle_cpu_one_core_percent": 0.2521907497233991,
+        "response_p50_ms": 0.010217,
+        "response_p95_ms": 0.016696,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2552362729911692,
+        "startup_cpu_seconds": 3.874481489,
+        "idle_rss_bytes": 183959552,
+        "process_image_peak_rss_bytes": 187179008,
+        "idle_seconds": 3.019812915008515,
+        "idle_cpu_seconds": 0.007882031999999928,
+        "idle_cpu_one_core_percent": 0.26101060634670814,
+        "response_p50_ms": 0.011289,
+        "response_p95_ms": 0.056954,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      }
+    },
+    "median": {
+      "before": {
+        "startup_seconds": 2.3268942150170915,
+        "idle_rss_bytes": 183324672,
+        "idle_cpu_one_core_percent": 0.25521355835764054,
+        "response_p95_ms": 0.074495
+      },
+      "after": {
+        "startup_seconds": 2.2552362729911692,
+        "idle_rss_bytes": 183529472,
+        "idle_cpu_one_core_percent": 0.2521907497233991,
+        "response_p95_ms": 0.03744
+      }
+    },
+    "claim": "Three serial runs per group; descriptive only, no established speedup; default production GUI unchanged."
+  },
+  "focused_gui": {
+    "scope": "WSLG_WARM_B2A_PREAUTHENTICATED_MOCK_NO_NATIVE",
+    "startup_seconds": 1.0676840919768438,
+    "gui_test_process_rss_bytes": 219975680,
+    "fixture_supervisor": {
+      "process_identity": {
+        "pid": 3586247,
+        "start_ticks": 34945056,
+        "uid": 1000
+      },
+      "rss_bytes": 151289856,
+      "process_exit": null,
+      "ipc_in_flight_limit": 1,
+      "kernel_event_queue_depth": null,
+      "observed_at_monotonic": 349454.693681503
+    },
+    "native_supervisor_rss": null,
+    "native_authentication": false
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 388,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "environment": {
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "cpu_affinity": 12,
+    "memory_psi": "some avg10=0.00 avg60=0.02 avg300=0.04 total=189116296\nfull avg10=0.00 avg60=0.02 avg300=0.04 total=180942745\n",
+    "meminfo": {
+      "MemTotal": "8000144 kB",
+      "MemAvailable": "4629864 kB",
+      "SwapTotal": "2097152 kB",
+      "SwapFree": "851184 kB"
+    }
+  },
+  "retained_failures": [
+    {
+      "cause": "DETACH wire encoder omitted reserved reason field",
+      "resolution": "Added zero reason matching fixed 112-byte ABI; final fixture suite passed."
+    },
+    {
+      "cause": "Test helper prepared same B-1 controller twice",
+      "resolution": "Fresh controller fixture; production session-reuse guard retained."
+    },
+    {
+      "cause": "Missing hashlib import in closed handoff code",
+      "resolution": "Import corrected; final lint and fixture suite."
+    }
+  ],
+  "native_actions_executed": [],
+  "gates": {
+    "native_admission": false,
+    "native_authentication": "PENDING",
+    "kernel_verifier": "PENDING",
+    "tc_attach": "PENDING",
+    "native_ai": "BLOCKED",
+    "dns9": "BLOCKED",
+    "operational_promotion": "BLOCKED"
+  },
+  "native_blockers": [
+    "Reviewed root-owned bootstrap/PAM installation and new admission release required; current compiled gate cannot be enabled by CLI/environment.",
+    "Prove exclusive TC slot/namespace ownership against concurrent privileged writers or review atomic alternative.",
+    "Validate actual PAM TTY/password challenge, capability transfer, libbpf Verifier, signal/kill/orphan cleanup in Phase B-2B.",
+    "Existing clsact required; no automatic qdisc creation or deletion."
+  ],
+  "private_log_sha256": {
+    "final-native.json": "759993e714a05be268f7173128b44c15e604d9c73beb0fb341939d5784f41b6e",
+    "results.json": "6ac6145564141a5ead08bbc0df33cd414529507f93e53343fcd5b8527703db01",
+    "gui-performance.json": "4c7386d34b0adec4104b92eeba79d1daf32bbe5cb9c55c3ad6b1c1898c200d18",
+    "performance.json": "aaa30629c4de7f9586dd92c5c0fba47aee34727535696372c4064b3154e32b37",
+    "models.json": "d3bc1ed206bce66f6e6adf94417f1bfe4d37c0e1cdf32784129f3314ed5b5141",
+    "initial-tests.log": "7368512778982da304c3a0d070594c9eedef942897ec951a87bd7c1ff6ac4ec2",
+    "implementation-tests.log": "accd689398bd4dac1059c22fd1144c03e4e8121350b395ff625c6794aa009907"
+  },
+  "final_quality": {
+    "ruff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.1009576510405168,
+      "output": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.09244879899779335,
+      "output": "1213 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.2175147869857028,
+      "output": "Building wheel...\nSuccessfully built dist/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    },
+    "gate_contracts": {
+      "exit_code": 0,
+      "elapsed_seconds": 2.2338876049616374,
+      "output": ".........                                                                [100%]\n9 passed in 0.16s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "wheel_source_files_matched": 526,
+    "binary_and_source_bundle_match": true,
+    "diff_check": true,
+    "workspace_export_sha_match": true,
+    "format_scope": "1213 files in clean independent Export; pre-existing uncommitted user/Replay files excluded.",
+    "export_content_note": "Following quality run only this evidence/report updated; product/test sources unchanged."
+  }
+}

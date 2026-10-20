@@ -1,0 +1,80 @@
+"""Compile/link only; no installation, setuid, file-capability or Kernel invocation."""
+
+import hashlib
+import subprocess
+from pathlib import Path
+
+from soc_agent.security_ai.ebpf_broker.identity import bundle as broker_bundle
+from soc_agent.security_ai.research.models import digest
+
+ROOT = Path(__file__).parent
+FLAGS = ["-O2", "-g0", "-Wall", "-Wextra", "-Werror", "-Wno-misleading-indentation"]
+
+
+def bundle() -> dict[str, str]:
+    result = {"b1/" + k: v for k, v in broker_bundle().items()}
+    result.update(
+        {
+            p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(ROOT.iterdir())
+            if p.suffix in {".py", ".c", ".h", ".conf"}
+        }
+    )
+    return result
+
+
+def compile_native(destination: Path) -> dict[str, str]:
+    destination.mkdir(parents=True, exist_ok=True)
+    commands = [
+        [
+            "cc",
+            *FLAGS,
+            "-fPIC",
+            "-shared",
+            *[str(ROOT / n) for n in ("core.c", "os.c", "netlink.c", "loader.c")],
+            "-lbpf",
+            "-lcrypto",
+            "-o",
+            str(destination / "libnative-tc.so"),
+        ],
+    ]
+    # The privilege-raising bootstrap links only system PAM/crypto. It must not
+    # load our custom loader DSO before validating the root installation manifest.
+    commands.append(
+        [
+            "cc",
+            *FLAGS,
+            *[str(ROOT / n) for n in ("bootstrap.c", "core.c", "os.c")],
+            "-lcrypto",
+            "-l:libpam.so.0",
+            "-l:libpam_misc.so.0",
+            "-Wl,-z,relro,-z,now",
+            "-o",
+            str(destination / "bootstrap"),
+        ]
+    )
+    for name in ("broker", "fixture"):
+        commands.append(
+            [
+                "cc",
+                *FLAGS,
+                str(ROOT / (name + ".c")),
+                "-L" + str(destination),
+                "-lnative-tc",
+                "-Wl,-rpath,$ORIGIN",
+                "-Wl,-z,relro,-z,now",
+                "-o",
+                str(destination / ("tc-" + name if name == "fixture" else name)),
+            ]
+        )
+    for command in commands:
+        subprocess.run(command, capture_output=True, check=True, timeout=30)
+    return {
+        p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in (
+            destination / "bootstrap",
+            destination / "broker",
+            destination / "libnative-tc.so",
+            destination / "tc-fixture",
+        )
+    } | {"source_bundle_digest": digest(bundle())}
