@@ -29,6 +29,21 @@ def compile_native(destination: Path) -> dict[str, str]:
         [
             "cc",
             *FLAGS,
+            "-ffreestanding",
+            "-fno-builtin",
+            "-fno-stack-protector",
+            "-fno-pie",
+            "-no-pie",
+            "-nostdlib",
+            "-static",
+            "-Wl,-z,noexecstack,--build-id=none",
+            str(ROOT / "entry.c"),
+            "-o",
+            str(destination / "entry"),
+        ],
+        [
+            "cc",
+            *FLAGS,
             "-fPIC",
             "-shared",
             "-Wl,-z,relro,-z,now,-z,noexecstack",
@@ -125,6 +140,7 @@ def compile_native(destination: Path) -> dict[str, str]:
         {
             p.name: hashlib.sha256(p.read_bytes()).hexdigest()
             for p in (
+                destination / "entry",
                 destination / "bootstrap",
                 destination / "broker",
                 destination / "libnative-tc.so",

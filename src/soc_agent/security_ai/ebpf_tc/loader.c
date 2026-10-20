@@ -33,7 +33,7 @@ static int emit(void *arg,void *body,size_t size) {
 }
 static int load(struct soc_state *s) {
     if(validate(s) || soc_environment_contract(environ) || soc_release_check(&s->plan,s->release_sha,s->release_version,3) ||
-       soc_capabilities())return -EPERM;
+       soc_broker_capabilities(1))return -EPERM;
     struct stat st;if(fstat(s->object_fd,&st) || st.st_size<64 || st.st_size>1048576)return -EINVAL;
     void *body=malloc(st.st_size);if(!body)return -ENOMEM;
     if(pread(s->object_fd,body,st.st_size,0)!=st.st_size) {free(body);return -EIO;}

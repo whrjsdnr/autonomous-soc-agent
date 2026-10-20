@@ -36,6 +36,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     if(soc_environment_contract(environ) || soc_release_check(&s.plan,envelope.manifest_sha,envelope.release_version,2) || !getuid() || geteuid()!=getuid() ||
        getuid()!=s.plan.uid || getgid()!=s.plan.gid || soc_capabilities() || soc_peer(ipc,&s.plan) ||
        soc_sealed(object,s.plan.program_sha))return -EPERM;
+    if(soc_broker_privileges())return -EPERM;
     memcpy(s.release_sha,envelope.manifest_sha,32);
     memcpy(s.release_version,envelope.release_version,16);
     struct soc_tcx link={.session=&s,.ops=&soc_tcx_real_ops,.fd=-1,.program_fd=-1};
@@ -50,7 +51,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     signal(SIGINT,stop_signal);signal(SIGTERM,stop_signal);signal(SIGXCPU,stop_signal);
     signal(SIGPIPE,SIG_IGN);
     uint64_t born=soc_now(),heartbeat=born;uint64_t previous_generations[16]={0};
-    uint32_t previous_handles[16]={0},rate_cursor=0;uint64_t rate_slots[32]={0};int result=0;
+    uint32_t previous_handles[16]={0},rate_cursor=0;uint64_t rate_slots[32]={0};int result=0,work_active=0;
     if(soc_release_record(&s) || s.ops->record(&s,"AUTHENTICATION_VERIFIED") || s.ops->record(&s,"BROKER_READY"))return -EIO;
     for(unsigned commands=0;!stopped && commands<2048;) {
         uint64_t now=soc_now();
@@ -66,8 +67,12 @@ static int broker(int ipc,int plan,int object,int audit) {
         if(soc_rate_allow(rate_slots,&rate_cursor,now)) {result=-EAGAIN;break;}
         s.sequence=q.sequence;commands++;heartbeat=now;
         int rc=0;
-        if(soc_environment_contract(environ) || soc_capabilities() || soc_release_check(&s.plan,s.release_sha,s.release_version,2)) {
+        if(soc_environment_contract(environ) || soc_broker_capabilities(0) || soc_release_check(&s.plan,s.release_sha,s.release_version,2)) {
             result=-EPERM;break; /* owned-FD cleanup below is still attempted */
+        }
+        if(q.operation==2) {
+            if(!tcx || soc_work_privileges(1)) {result=-EPERM;break;}
+            work_active=1;
         }
         if(tcx) {
             if(q.operation==2 && link.phase==SOC_LINK_DETACHED && !s.failed) {
@@ -98,11 +103,16 @@ static int broker(int ipc,int plan,int object,int audit) {
             rc=memcmp(&s.owner,&q.owner,sizeof(q.owner))?-EPERM:soc_detach(&s);
         } else if(q.operation==5) {rc=q.reason>=1 && q.reason<=7?(tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)):-EINVAL;}
         else if(q.operation==6) {rc=(tcx?soc_tcx_cleanup(&link):soc_cleanup(&s));stopped=1;}
+        if(work_active) {
+            if(soc_work_privileges(0)) {result=-EPERM;break;}
+            work_active=0;
+        }
         struct {uint32_t sequence,state;int32_t error;uint32_t reserved;struct soc_owner owner;} reply={
             q.sequence,s.attached?4:3,rc,0,s.owner};
         if(send(ipc,&reply,sizeof(reply),MSG_DONTWAIT|MSG_NOSIGNAL)!=sizeof(reply))rc=-ENOBUFS;
         if(rc) {result=rc;break;}
     }
+    if(work_active && soc_work_privileges(0))result=-EPERM;
     if((tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)))result=-EUCLEAN;
     if(s.ops->record(&s,result?"CLEANUP_UNVERIFIED":"BROKER_EXITED"))result=-EIO;
     close(object);close(plan);close(ipc);close(audit);return result;

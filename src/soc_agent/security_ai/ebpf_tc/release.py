@@ -19,7 +19,8 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 INSTALL = Path("/usr/libexec/soc-agent-ebpf")
 MODES = {
-    "bootstrap": 0o4755,
+    "entry": 0o4755,
+    "bootstrap": 0o555,
     "broker": 0o555,
     "libnative-tc.so": 0o444,
     "tc.bpf.o": 0o444,
@@ -50,6 +51,7 @@ def installation_plan(artifacts: dict[str, str], program_sha: Hash) -> Installat
     hashes = {n: artifacts[n] for n in names} | {"tc.bpf.o": program_sha}
     source = digest(bundle())
     manifest = b"".join(bytes.fromhex(hashes[n]) for n in (*names, "tc.bpf.o"))
+    hashes["entry"] = artifacts["entry"]
     hashes["manifest.bin"] = hashlib.sha256(manifest + bytes.fromhex(source)).hexdigest()
     return InstallationPlan(artifacts=hashes, source_bundle=source)
 

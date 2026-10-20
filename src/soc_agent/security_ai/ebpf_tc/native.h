@@ -25,6 +25,15 @@ struct soc_release_envelope {
     uint8_t approval[32];
 };
 _Static_assert(sizeof(struct soc_release_envelope)==352,"release approval ABI");
+#define SOC_ENTRY_PROOF_FD 31
+#define SOC_ENTRY_MAGIC 0x3130304945434f53ULL
+struct soc_entry_proof {
+    uint64_t magic;uint32_t uid,gid,pid,reserved;
+    struct soc_release_envelope envelope;
+};
+_Static_assert(sizeof(struct soc_entry_proof)==376,"static entry proof ABI");
+int soc_entry_identity(const struct soc_entry_proof *,const struct soc_release_envelope *,uid_t,gid_t,pid_t);
+int soc_entry_proof_check(const struct soc_release_envelope *);
 struct soc_trust_record {char path[256];uint8_t sha[32];uint64_t size;uint32_t mode,reserved;};
 struct soc_trust_header {
     char magic[8];uint32_t schema,count,native_release,dynamic_closure;
@@ -37,6 +46,10 @@ int soc_trust_parse(const void *,size_t,const struct soc_plan *,const uint8_t[32
 int soc_release_check(const struct soc_plan *,const uint8_t[32],const char[16],int);
 int soc_capability_contract(uint64_t,uint64_t,uint64_t,uint64_t,uint64_t);
 int soc_capabilities(void);
+int soc_broker_capability_contract(uint64_t,uint64_t,uint64_t,uint64_t,uint64_t,int);
+int soc_broker_capabilities(int);
+int soc_broker_privileges(void);
+int soc_work_privileges(int);
 int soc_process_identity(uid_t,uid_t,uid_t,gid_t,gid_t,gid_t,int);
 char *const *soc_clean_environment(void);
 int soc_environment_contract(char *const env[]);

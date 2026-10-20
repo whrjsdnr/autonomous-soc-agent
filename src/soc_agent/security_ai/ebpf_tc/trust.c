@@ -38,6 +38,7 @@ static int allowed_path(const char p[256]) {
     const char *end=memchr(p,0,256);if(!end || p[0]!='/' || strstr(p,"//") ||
         strstr(p,"/../") || strstr(p,"/./") || end==p || end[-1]=='/')return 0;
     for(const char *c=end;c<p+256;c++)if(*c)return 0;
+    if(!strcmp(p,SOC_INSTALL "entry"))return 1;
     if(!strcmp(p,"/etc/nsswitch.conf") || !strcmp(p,"/etc/ld.so.cache") ||
        !strcmp(p,"/etc/pam.d/soc-agent-ebpf"))return 1;
     return !strncmp(p,"/usr/lib/",9) || !strncmp(p,"/usr/lib64/",11);
@@ -58,12 +59,13 @@ int soc_trust_parse(const void *body,size_t size,const struct soc_plan *p,
         struct soc_trust_record r;memcpy(&r,(const char *)body+sizeof(h)+i*sizeof(r),sizeof(r));
         if(!allowed_path(r.path) || (i && strcmp(previous,r.path)>=0) || !r.size ||
            r.size>16777216 || !nonzero(r.sha,32) || r.reserved ||
-           r.mode&~0777U || r.mode&022 || (total+=r.size)>67108864)return -EPERM;
+           (strcmp(r.path,SOC_INSTALL "entry")?r.mode&~0777U:r.mode!=04755) || r.mode&022 || (total+=r.size)>67108864)return -EPERM;
+        if(!strcmp(r.path,SOC_INSTALL "entry"))mandatory|=8;
         if(!strcmp(r.path,"/etc/nsswitch.conf"))mandatory|=1;
         if(!strcmp(r.path,"/etc/ld.so.cache"))mandatory|=2;
         if(!strcmp(r.path,"/etc/pam.d/soc-agent-ebpf"))mandatory|=4;
         memcpy(previous,r.path,256);
-    }return mandatory==7?0:-EPERM;
+    }return mandatory==15?0:-EPERM;
 }
 static int hash_fd(int fd,const uint8_t expected[32],uint64_t size,unsigned mode) {
     struct stat a,b;if(fstat(fd,&a) || !S_ISREG(a.st_mode) || a.st_uid || a.st_gid ||
@@ -199,7 +201,7 @@ int soc_mapped_dependencies(const void *body,size_t size) {
        size!=sizeof(h)+h.count*sizeof(struct soc_trust_record))return -EPERM;
     for(uint32_t i=0;i<h.count;i++) {
         struct soc_trust_record r;memcpy(&r,(const char *)body+sizeof(h)+i*sizeof(r),sizeof(r));
-        if(!allowed_path(r.path) || !r.size || r.size>16777216 || r.mode&~0777U ||
+        if(!allowed_path(r.path) || !r.size || r.size>16777216 || (strcmp(r.path,SOC_INSTALL "entry")?r.mode&~0777U:r.mode!=04755) ||
            r.mode&022 || r.reserved || !nonzero(r.sha,32))return -EPERM;
     }
     struct mapping_check check={body,h.count,0};
@@ -233,7 +235,7 @@ int soc_release_check(const struct soc_plan *p,const uint8_t expected[32],const 
     /* Refuse preload configuration rather than attempting an incomplete parser. */
     struct stat preload;if(!lstat("/etc/ld.so.preload",&preload) || errno!=ENOENT)return -EPERM;
     const char *names[]={"bootstrap","broker","libnative-tc.so","tc.bpf.o"};
-    unsigned modes[]={04755,0555,0444,0444};
+    unsigned modes[]={0555,0555,0444,0444};
     for(int i=0;i<4;i++) {
         char path[256];snprintf(path,sizeof(path),"%s%s",SOC_INSTALL,names[i]);
         fd=soc_trusted(path,h.artifacts+32*i);if(fd<0)return -EPERM;
@@ -287,4 +289,27 @@ int soc_release_record(struct soc_state *s) {
     if(soc_sha(&row,sizeof(row)-32,row.sha) ||
        write(s->audit_fd,&row,sizeof(row))!=sizeof(row) || fsync(s->audit_fd))return -EIO;
     memcpy(s->audit_previous,row.sha,32);s->audit_records++;return 0;
+}
+
+/* Execution transfer needs ambient rights only until the fixed Broker exec.
+ * The Broker then clears I/A and keeps E=0 except for explicit Load/Attach. */
+int soc_broker_capability_contract(uint64_t e,uint64_t p,uint64_t i,uint64_t a,uint64_t b,int work) {
+    uint64_t mask=(1ULL<<CAP_BPF)|(1ULL<<CAP_NET_ADMIN);
+    return (work==0 || work==1) && e==(work?mask:0) && p==mask && !i && !a && b==mask?0:-EPERM;
+}
+int soc_broker_capabilities(int work) {
+    struct __user_cap_header_struct h={_LINUX_CAPABILITY_VERSION_3,0};
+    struct __user_cap_data_struct d[2]={{0}};uid_t r,e,s;gid_t gr,ge,gs;
+    if(getresuid(&r,&e,&s) || getresgid(&gr,&ge,&gs) ||
+       soc_process_identity(r,e,s,gr,ge,gs,getgroups(0,NULL)) ||
+       prctl(PR_GET_NO_NEW_PRIVS,0,0,0,0)!=1 || syscall(SYS_capget,&h,d))return -EPERM;
+    uint64_t ambient=0,bounding=0;
+    for(int cap=0;cap<=CAP_LAST_CAP;cap++) {
+        int a=prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_IS_SET,cap,0,0),b=prctl(PR_CAPBSET_READ,cap,0,0,0);
+        if(a<0 || b<0)return -EPERM;
+        if(a)ambient|=1ULL<<cap;if(b)bounding|=1ULL<<cap;
+    }
+    return soc_broker_capability_contract(d[0].effective|((uint64_t)d[1].effective<<32),
+        d[0].permitted|((uint64_t)d[1].permitted<<32),
+        d[0].inheritable|((uint64_t)d[1].inheritable<<32),ambient,bounding,work);
 }

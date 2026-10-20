@@ -112,3 +112,37 @@ int soc_receive_request(int fd,const struct soc_plan *p,uint32_t sequence,struct
     if(n!=sizeof(*q) || !valid || bad)return -EPROTO;
     return soc_request_validate(p,q,sequence,msg.msg_flags);
 }
+
+/* A root-created boundary proof is never a password/authentication receipt. */
+int soc_entry_identity(const struct soc_entry_proof *proof,const struct soc_release_envelope *e,
+                       uid_t uid,gid_t gid,pid_t pid) {
+    return !proof || !e || !uid || !gid || pid<=0 || proof->magic!=SOC_ENTRY_MAGIC ||
+        proof->reserved || proof->uid!=uid || proof->gid!=gid || proof->pid!=(uint32_t)pid ||
+        e->plan.uid!=uid || e->plan.gid!=gid || memcmp(&proof->envelope,e,sizeof(*e))?-EPERM:0;
+}
+int soc_entry_proof_check(const struct soc_release_envelope *e) {
+    struct stat st;struct soc_entry_proof proof;
+    int fd=SOC_ENTRY_PROOF_FD,seals=fcntl(fd,F_GET_SEALS);
+    if(!e || fstat(fd,&st) || !S_ISREG(st.st_mode) || st.st_uid || st.st_gid!=e->plan.gid ||
+       st.st_size!=sizeof(proof) || seals<0 || (seals&15)!=15 ||
+       pread(fd,&proof,sizeof(proof),0)!=sizeof(proof))return -EPERM;
+    return soc_entry_identity(&proof,e,getuid(),getgid(),getpid());
+}
+
+static int broker_capset(int work) {
+    struct __user_cap_header_struct h={_LINUX_CAPABILITY_VERSION_3,0};
+    struct __user_cap_data_struct d[2]={{0}};
+    uint64_t mask=(1ULL<<CAP_BPF)|(1ULL<<CAP_NET_ADMIN);
+    for(int n=0;n<2;n++) {d[n].permitted=(uint32_t)(mask>>(32*n));
+        d[n].effective=work?d[n].permitted:0;}
+    return syscall(SYS_capset,&h,d) || soc_broker_capabilities(work)?-EPERM:0;
+}
+int soc_broker_privileges(void) {
+    if(!soc_native_gate() || soc_capabilities() ||
+       prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_CLEAR_ALL,0,0,0))return -EPERM;
+    return broker_capset(0);
+}
+int soc_work_privileges(int work) {
+    if(!soc_native_gate() || (work!=0 && work!=1) || soc_broker_capabilities(!work))return -EPERM;
+    return broker_capset(work);
+}

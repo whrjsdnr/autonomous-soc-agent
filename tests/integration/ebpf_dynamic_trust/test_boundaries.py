@@ -469,15 +469,15 @@ def test_environment_missing_duplicate_and_mutated_values(release, values):
 
 def test_nss_database_scope_never_silently_excludes_missing_unused_module(release):
     trust = release[1].dynamic_trust
-    assert trust.nss.direct_identity_databases == ("passwd", "group")
-    assert trust.nss.pam_account_databases == ("shadow", "gshadow")
-    assert trust.nss.scope_policy == "ALL_CONFIGURED_NO_IMPLICIT_EXCLUSION"
+    assert trust.nss.direct_identity_databases == ("passwd",)
+    assert trust.nss.pam_account_databases == ("shadow",)
+    assert trust.nss.scope_policy == "ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"
     assert trust.nss_exclusion_policy == "UNUSED_BY_DIRECT_CODE_IS_NOT_PROOF_UNUSED_BY_PAM"
     assert trust.environment_contract == "NEW_EXEC_FIXED_PATH_LANG_ONLY_AT_SECURE_ENTRY_REQUIRED"
     assert trust.mapping_contract == "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_NOT_EXECUTION_HISTORY"
     source = (ROOT / "bootstrap.c").read_text()
-    assert "getgrgid_r" in source and "getgrnam_r" in source
-    assert "group_named->gr_gid!=p->gid" in source
+    assert "getgrgid_r" not in source and "getgrnam_r" not in source
+    assert "soc_entry_proof_check(&envelope)" in source
     assert "fexecve(7,args,soc_clean_environment())" in source
     for name in ("broker.c", "loader.c"):
         assert "soc_environment_contract(environ)" in (ROOT / name).read_text()

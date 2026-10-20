@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
-#include <grp.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,22 +50,8 @@ int soc_password(const struct soc_release_envelope *envelope) {
        soc_release_check(p,envelope->manifest_sha,envelope->release_version,1)) {
         alarm(0);return -EPERM;
     }
-    struct group primary,group_by_name,*group=NULL,*group_named=NULL;
-    char groups[8192],group_names[8192];
-    lookup_rc=getgrgid_r(p->gid,&primary,groups,sizeof(groups),&group);
-    if(lookup_rc || !group || !group->gr_name || !*group->gr_name ||
-       strnlen(group->gr_name,256)>=256 || group->gr_gid!=p->gid) {
-        alarm(0);return -EPERM;
-    }
-    char group_name[256];strcpy(group_name,group->gr_name);
-    lookup_rc=getgrnam_r(group_name,&group_by_name,group_names,sizeof(group_names),&group_named);
-    if(lookup_rc || !group_named || !group_named->gr_name ||
-       strcmp(group_named->gr_name,group_name) || group_named->gr_gid!=p->gid ||
-       soc_release_check(p,envelope->manifest_sha,envelope->release_version,1)) {
-        alarm(0);return -EPERM;
-    }
-    /* Primary membership is bound through passwd.gid; supplementary groups are
-     * not inherited by the broker (soc_reduce clears them). */
+    /* Authorization uses numeric primary GID + kernel peer credentials. No group
+     * name lookup grants authority; supplementary groups are cleared at transfer. */
     alarm(0);
     int tty=open("/dev/tty",O_RDWR|O_CLOEXEC|O_NOCTTY);struct stat st;
     if(tty<0)return -ENOTTY;
@@ -110,6 +95,8 @@ static int bootstrap(int channel,int plan_fd,int audit_fd) {
     if(fstat(plan_fd,&plan_info) || plan_info.st_size!=sizeof(envelope) || pread(plan_fd,&envelope,sizeof(envelope),0)!=sizeof(envelope) || soc_fd_sha(plan_fd,psha) ||
        soc_sealed(plan_fd,psha) || soc_envelope_validate(&envelope))return -EPERM;
     p=envelope.plan;
+    if(soc_entry_proof_check(&envelope))return -EPERM;
+    close(SOC_ENTRY_PROOF_FD); /* never exported to Broker/GUI and not PAM authority */
     if(soc_release_check(&p,envelope.manifest_sha,envelope.release_version,1) || p.uid!=uid || p.gid!=gid ||
        p.controller_pid!=(uint32_t)getppid() || soc_peer(channel,&p))return -EPERM;
     int mf=soc_trusted(SOC_INSTALL "manifest.bin",NULL);struct soc_manifest manifest;

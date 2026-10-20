@@ -55,7 +55,8 @@ def test_real_package_manifest_external_anchor_and_blocked_native_plan(release):
     assert manifest.native_release == "BLOCKED" and manifest.dynamic_dependency_closure.startswith(
         "UNKNOWN"
     )
-    assert manifest.payloads["bootstrap"].mode == 0o4755
+    assert manifest.payloads["entry"].mode == 0o4755
+    assert manifest.payloads["bootstrap"].mode == 0o555
     assert (directory / "package/bootstrap").stat().st_mode & 0o7777 == 0o444
     with pytest.raises(ValueError, match="APPROVAL"):
         native_install()

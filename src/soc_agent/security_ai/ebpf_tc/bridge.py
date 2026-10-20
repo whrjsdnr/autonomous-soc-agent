@@ -47,6 +47,7 @@ def manifest(plan: NativePlan) -> bytes:
 def inspect_artifacts(directory: Path, expected: dict | None = None) -> dict:
     hashes = {}
     for name in (
+        "entry",
         "bootstrap",
         "broker",
         "libnative-tc.so",
@@ -218,13 +219,20 @@ class Preparation:
             native_execution=False,
             capability_scope="CANDIDATE_CAP_BPF_CAP_NET_ADMIN_NATIVE_UNKNOWN",
             release_gate="BLOCKED",
+            entry_architecture=release.entry_architecture,
+            entry_sha256=release.payloads["entry"].sha256,
+            privilege_lifetime=release.privilege_lifetime,
             dependency_verification="STATIC_GRAPH_WITH_NSS_MODULES",
             pam_trust="ABSOLUTE_MODULE_NATIVE_PENDING",
             nss_trust="BLOCKED_NATIVE_LOOKUP_NOT_OBSERVED",
         )
         self._installation = {
             "release_candidate": "B2F_BLOCKED_NATIVE_QUALIFICATION",
-            "dynamic_loader_trust": "BLOCKED_PREMAIN_NATIVE_NOT_OBSERVED",
+            "dynamic_loader_trust": "STATIC_ENTRY_FIXTURE_NATIVE_PENDING",
+            "entry_architecture": release.entry_architecture,
+            "entry_sha256": release.payloads["entry"].sha256,
+            "authentication_nss_scope": "PASSWD_SHADOW_PAM_RUNTIME_PENDING",
+            "broker_identity_scope": "NUMERIC_KERNEL_CREDENTIALS_NO_NSS_CALLS",
             "runtime_mapping_attestation": "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_LIMITED",
             "environment_contract": release.dynamic_trust.environment_contract,
             "nss_scope_policy": release.dynamic_trust.nss.scope_policy,

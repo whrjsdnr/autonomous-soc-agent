@@ -47,6 +47,8 @@ def execution_manifest(manifest) -> bytes:
     records = {d.path: (d.sha256, d.size, d.mode) for d in manifest.dependencies}
     records.update({d.path: (d.sha256, d.size, d.mode) for d in manifest.system_configuration})
     policy = manifest.payloads["pam-policy.conf"]
+    entry = manifest.payloads["entry"]
+    records["/usr/libexec/soc-agent-ebpf/entry"] = (entry.sha256, entry.size, entry.mode)
     records[manifest.pam_destination] = (policy.sha256, policy.size, 0o644)
     if not 3 <= len(records) <= 72 or sum(r[1] for r in records.values()) > 64 * 1024**2:
         raise ValueError("RELEASE_EXECUTION_BUDGET")
@@ -65,7 +67,9 @@ def execution_manifest(manifest) -> bytes:
         manifest.version.encode().ljust(16, b"\0"),
     )
     for name, (sha, size, mode) in sorted(records.items()):
-        if len(name.encode()) >= 256 or mode & 0o7022:
+        if len(name.encode()) >= 256 or (
+            mode != 0o4755 if name == "/usr/libexec/soc-agent-ebpf/entry" else bool(mode & 0o7022)
+        ):
             raise ValueError("RELEASE_EXECUTION_RECORD")
         body += RECORD.pack(name.encode().ljust(256, b"\0"), bytes.fromhex(sha), size, mode, 0)
     return body

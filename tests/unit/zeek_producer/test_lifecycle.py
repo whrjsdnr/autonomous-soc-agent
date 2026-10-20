@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
@@ -72,6 +73,18 @@ async def test_worker_failure_durable_unknown_and_recovery_does_not_retry(
 ):
     from soc_agent.security_ai.research.adapter import ResearchAdapter
 
+    # This tests a mocked worker failure, not shared-host resource admission.
+    # Pin ONLY resource inputs; production headroom policy remains unchanged.
+    original_read = Path.read_text
+
+    def healthy_resources(path, *args, **kwargs):
+        if str(path) == "/proc/meminfo":
+            return "MemAvailable: 4194304 kB\n"
+        if str(path) == "/proc/pressure/memory":
+            return "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\n"
+        return original_read(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", healthy_resources)
     monkeypatch.setattr(ResearchAdapter, "status", lambda *a, **k: {"status": "READY"})
     calls = []
 
@@ -109,3 +122,38 @@ async def test_prepare_producer_scope_precedes_any_engine_or_model(tmp_path):
         await c.prepare(pcap=p, sha256=sha)
     runner.run.assert_not_called()
     assert c.producer is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("pressure", [1.0, 4.0])
+async def test_explicit_high_psi_blocks_mock_worker_before_dispatch(
+    tmp_path, monkeypatch, pressure
+):
+    from soc_agent.security_ai.research.adapter import ResearchAdapter
+
+    original_read = Path.read_text
+
+    def stressed_resources(path, *args, **kwargs):
+        if str(path) == "/proc/meminfo":
+            return "MemAvailable: 4194304 kB\n"
+        if str(path) == "/proc/pressure/memory":
+            return f"some avg10={pressure:.2f} avg60=0.00 avg300=0.00 total=0\n"
+        return original_read(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", stressed_resources)
+    monkeypatch.setattr(ResearchAdapter, "status", lambda *a, **k: {"status": "READY"})
+
+    async def forbidden_inference(*args, **kwargs):
+        pytest.fail("resource-blocked worker must never be invoked")
+
+    monkeypatch.setattr(ResearchAdapter, "infer", forbidden_inference)
+    p = tmp_path / "input.pcap"
+    sha = golden(p)
+    collector = ZeekCollector(tmp_path, packet_mode=True, runner=FileRunner())
+    await collector.prepare(pcap=p, sha256=sha)
+    await collector.start()
+    await collector.task
+    assert collector.producer.state == "BLOCKED_MODEL_HEADROOM_NO_AUTO_RETRY"
+    assert collector.producer.new_inferences == 0 and collector.producer.pending == 0
+    assert collector.producer.last_error == "ZEEK_MODEL_HEADROOM_REQUIRED"
+    await collector.stop()

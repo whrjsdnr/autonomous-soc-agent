@@ -182,6 +182,7 @@ def test_inspection_sanitizes_preload_library_and_python_environment(
     expected = {
         n: hashlib.sha256((directory / n).read_bytes()).hexdigest()
         for n in (
+            "entry",
             "bootstrap",
             "broker",
             "libnative-tc.so",

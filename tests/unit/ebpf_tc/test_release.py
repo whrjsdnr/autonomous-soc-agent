@@ -73,7 +73,7 @@ def test_root_owner_check_rejects_development_checkout(tmp_path):
 
 def test_installation_plan_is_not_executable_permission_or_release(tmp_path):
     p = installation_plan(
-        {n: "a" * 64 for n in ("bootstrap", "broker", "libnative-tc.so")}, "b" * 64
+        {n: "a" * 64 for n in ("entry", "bootstrap", "broker", "libnative-tc.so")}, "b" * 64
     )
     assert p.state == "UNPRIVILEGED_PLAN_NOT_INSTALLED" and not p.native_admission
     assert not list(tmp_path.iterdir())
@@ -107,7 +107,7 @@ def test_qualification_cli_only_prints_uninstalled_blocked_plan(monkeypatch, cap
     monkeypatch.setattr(
         bridge,
         "inspect_artifacts",
-        lambda _: {n: "a" * 64 for n in ("bootstrap", "broker", "libnative-tc.so")},
+        lambda _: {n: "a" * 64 for n in ("entry", "bootstrap", "broker", "libnative-tc.so")},
     )
     monkeypatch.setattr(cli, "file_sha", lambda _: "b" * 64)
     assert cli.main(["qualify", "--artifacts", "/untrusted/staging", "--program", "/unused"]) == 0

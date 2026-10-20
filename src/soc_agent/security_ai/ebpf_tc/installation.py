@@ -26,6 +26,7 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 FILES = (*MODES, "pam-policy.conf")
 SOURCE_NAMES = {
+    "entry": "entry",
     "bootstrap": "bootstrap",
     "broker": "broker",
     "libnative-tc.so": "libnative-tc.so",
@@ -60,6 +61,12 @@ class ReleaseManifest(Frozen):
     dependencies: tuple[Dependency, ...] = Field(min_length=1, max_length=64)
     bundle_digest: Hash
     dynamic_trust: DynamicTrust
+    privilege_lifetime: Literal["BROKER_IDLE_E0_I0_A0_PERMITTED_SCOPE_LOAD_ATTACH_ONLY"] = (
+        "BROKER_IDLE_E0_I0_A0_PERMITTED_SCOPE_LOAD_ATTACH_ONLY"
+    )
+    entry_architecture: Literal["STATIC_SYSCALL_ENTRY_EXEC_PAM_HELPER_NUMERIC_BROKER"] = (
+        "STATIC_SYSCALL_ENTRY_EXEC_PAM_HELPER_NUMERIC_BROKER"
+    )
     system_configuration: tuple[SystemConfiguration, SystemConfiguration]
     pam_service: Literal["soc-agent-ebpf"] = "soc-agent-ebpf"
     pam_destination: Literal["/etc/pam.d/soc-agent-ebpf"] = "/etc/pam.d/soc-agent-ebpf"
@@ -100,6 +107,8 @@ class ReleaseManifest(Frozen):
             "/etc/nsswitch.conf",
         ) or any(d.mode & 0o022 for d in self.system_configuration):
             raise ValueError("RELEASE_SYSTEM_CONFIGURATION")
+        if self.dynamic_trust.static_entry_sha256 != self.payloads["entry"].sha256:
+            raise ValueError("RELEASE_ENTRY_IDENTITY_MISMATCH")
         if set(self.dynamic_trust.elf) != {"bootstrap", "broker", "libnative-tc.so"} or any(
             self.dynamic_trust.elf[n].sha256 != self.payloads[n].sha256
             for n in self.dynamic_trust.elf

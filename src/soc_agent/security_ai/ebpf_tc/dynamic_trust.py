@@ -19,10 +19,10 @@ from soc_agent.security_ai.research.models import Frozen
 class NSSPolicy(Frozen):
     databases: dict[str, tuple[str, ...]]
     services: tuple[str, ...] = Field(max_length=64)
-    direct_identity_databases: tuple[Literal["passwd", "group"], ...] = ("passwd", "group")
-    pam_account_databases: tuple[Literal["shadow", "gshadow"], ...] = ("shadow", "gshadow")
-    scope_policy: Literal["ALL_CONFIGURED_NO_IMPLICIT_EXCLUSION"] = (
-        "ALL_CONFIGURED_NO_IMPLICIT_EXCLUSION"
+    direct_identity_databases: tuple[Literal["passwd"], ...] = ("passwd",)
+    pam_account_databases: tuple[Literal["shadow"], ...] = ("shadow",)
+    scope_policy: Literal["ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"] = (
+        "ROLE_SCOPED_AUTH_PASSWD_SHADOW_BROKER_NUMERIC"
     )
     source: Literal["STATIC_CONFIG_NOT_LOOKUP"] = "STATIC_CONFIG_NOT_LOOKUP"
 
@@ -90,6 +90,14 @@ def elf_identity(body: bytes) -> ELFIdentity:
 class DynamicTrust(Frozen):
     contract: Literal["soc-pam-nss-static-trust:v1"] = "soc-pam-nss-static-trust:v1"
     elf: dict[str, ELFIdentity]
+    static_entry_sha256: Hash
+    static_entry_contract: Literal["X86_64_EXEC_NO_INTERPRETER_NO_DYNAMIC_SEGMENT_NO_IMPORTS"] = (
+        "X86_64_EXEC_NO_INTERPRETER_NO_DYNAMIC_SEGMENT_NO_IMPORTS"
+    )
+    broker_nss_contract: Literal["NO_DIRECT_NSS_IMPORTS_NUMERIC_AUTHORIZATION"] = (
+        "NO_DIRECT_NSS_IMPORTS_NUMERIC_AUTHORIZATION"
+    )
+    unresolved_required_nss_services: tuple[str, ...] = Field(max_length=64)
     nss: NSSPolicy
     libc_version: str = Field(max_length=64)
     builtin_source: Literal["GLIBC_FILES_DNS_SOURCE_NOT_RUNTIME_PROOF"] = (
@@ -138,6 +146,15 @@ def dependency_trust(bodies: dict[str, bytes], dependencies) -> DynamicTrust:
     pam = str(_library("security/pam_unix.so"))
     if pam not in paths:
         raise ValueError("PAM_DEPENDENCY_MISSING")
+    required_services = {
+        service
+        for database in ("passwd", "shadow")
+        for service in policy.databases[database]
+        if not service.startswith("[")
+    }
+    entry_text = inspect_entry(bodies["entry"])
+    if not entry_text:
+        raise ValueError("STATIC_ENTRY_REQUIRED")
     identities = {
         name: elf_identity(bodies[name]) for name in ("bootstrap", "broker", "libnative-tc.so")
     }
@@ -146,8 +163,25 @@ def dependency_trust(bodies: dict[str, bytes], dependencies) -> DynamicTrust:
         for x in identities.values()
     ):
         raise ValueError("ELF_HARDENING_REQUIRED")
+    forbidden = {
+        "getpwnam",
+        "getpwnam_r",
+        "getpwuid",
+        "getpwuid_r",
+        "getgrnam",
+        "getgrnam_r",
+        "getgrgid",
+        "getgrgid_r",
+        "initgroups",
+        "getgrouplist",
+        "pam_start",
+    }
+    if forbidden & set(identities["broker"].imports):
+        raise ValueError("BROKER_NUMERIC_IDENTITY_REQUIRED")
     return DynamicTrust(
         elf=identities,
+        static_entry_sha256=hashlib.sha256(bodies["entry"]).hexdigest(),
+        unresolved_required_nss_services=tuple(sorted(set(missing) & required_services)),
         nss=policy,
         libc_version=os.confstr("CS_GNU_LIBC_VERSION") or "UNKNOWN",
         pam_modules=(pam,),
@@ -158,4 +192,25 @@ def dependency_trust(bodies: dict[str, bytes], dependencies) -> DynamicTrust:
             for database, tokens in policy.databases.items()
             if any(service in missing for service in tokens)
         },
+    )
+
+
+def inspect_entry(body: bytes) -> bool:
+    """Structural ELF proof; never execute inspected bytes or treat it as Root proof."""
+    import struct
+
+    from soc_agent.security_ai.ebpf_tc.dependencies import elf_metadata, inspect_elf
+
+    needed, interpreter = elf_metadata(body)
+    text = inspect_elf(body, symbols=True)
+    return (
+        len(body) >= 64
+        and body[:6] == b"\x7fELF\x02\x01"
+        and struct.unpack_from("<HH", body, 16) == (2, 62)
+        and not needed
+        and interpreter is None
+        and "There is no dynamic section" in text
+        and "GNU_STACK" in text
+        and not any("GNU_STACK" in line and "RWE" in line for line in text.splitlines())
+        and not re.search(r"\bUND\s+[A-Za-z_]", text)
     )
