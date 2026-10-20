@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+extern char **environ;
 #include "native.h"
 #include "tcx.h"
 #include <errno.h>
@@ -32,7 +33,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     if(pread(plan,&envelope,sizeof(envelope),0)!=sizeof(envelope) || soc_fd_sha(plan,md) ||
        soc_sealed(plan,md) || soc_envelope_validate(&envelope))return -EPERM;
     s.plan=envelope.plan;
-    if(soc_release_check(&s.plan,envelope.manifest_sha,envelope.release_version,2) || !getuid() || geteuid()!=getuid() ||
+    if(soc_environment_contract(environ) || soc_release_check(&s.plan,envelope.manifest_sha,envelope.release_version,2) || !getuid() || geteuid()!=getuid() ||
        getuid()!=s.plan.uid || getgid()!=s.plan.gid || soc_capabilities() || soc_peer(ipc,&s.plan) ||
        soc_sealed(object,s.plan.program_sha))return -EPERM;
     memcpy(s.release_sha,envelope.manifest_sha,32);
@@ -65,7 +66,7 @@ static int broker(int ipc,int plan,int object,int audit) {
         if(soc_rate_allow(rate_slots,&rate_cursor,now)) {result=-EAGAIN;break;}
         s.sequence=q.sequence;commands++;heartbeat=now;
         int rc=0;
-        if(soc_capabilities() || soc_release_check(&s.plan,s.release_sha,s.release_version,2)) {
+        if(soc_environment_contract(environ) || soc_capabilities() || soc_release_check(&s.plan,s.release_sha,s.release_version,2)) {
             result=-EPERM;break; /* owned-FD cleanup below is still attempted */
         }
         if(tcx) {

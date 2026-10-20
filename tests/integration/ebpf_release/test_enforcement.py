@@ -145,7 +145,7 @@ def test_native_entrypoints_enforce_release_and_do_not_offer_runtime_override(re
         assert result.returncode == 2 and b"NATIVE_EXECUTION_BLOCKED" in result.stderr
     source = (ROOT / "bootstrap.c").read_text()
     assert source.index("soc_release_check") < source.index("if(soc_password")
-    assert "fexecve(7,args,env)" in source and "clearenv()" in source
+    assert "fexecve(7,args,soc_clean_environment())" in source and "clearenv()" in source
     assert "release.trust" in (ROOT / "trust.c").read_text()
     for name in ("broker.c", "loader.c"):
         assert "soc_release_check" in (ROOT / name).read_text()

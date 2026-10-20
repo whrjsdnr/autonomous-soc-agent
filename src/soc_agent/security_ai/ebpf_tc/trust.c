@@ -6,6 +6,7 @@
 #include <link.h>
 #include <limits.h>
 #include <sys/sysmacros.h>
+#include <sys/auxv.h>
 #include <openssl/evp.h>
 #include <sys/prctl.h>
 #include <sys/stat.h>
@@ -135,6 +136,61 @@ static int mapping_callback(struct dl_phdr_info *info,size_t size,void *context)
         close(fd);return rc?1:0;
     }return 1;
 }
+/* Process-wide snapshot includes dlmopen/LD_AUDIT namespaces. It is not a
+ * history of executed code: a constructor may already have run/unmapped. */
+static int executable_maps(const struct mapping_check *check) {
+    struct stat main_file;if(stat("/proc/self/exe",&main_file))return -EPERM;
+    FILE *maps=fopen("/proc/self/maps","re");if(!maps)return -EPERM;
+    char line[1024];unsigned lines=0;int result=0;
+    while(fgets(line,sizeof(line),maps)) {
+        unsigned long lo,hi,offset,inode;unsigned ma,mi;char perms[5];int used=0;
+        if(++lines>2048 || !strchr(line,'\n') ||
+           sscanf(line,"%lx-%lx %4s %lx %x:%x %lu %n",&lo,&hi,perms,&offset,
+                  &ma,&mi,&inode,&used)!=7 || !used || lo>=hi) {result=-EPERM;break;}
+        if(!strchr(perms,'x'))continue;
+        char *name=line+used;name[strcspn(name,"\n")]=0;
+        if(!strcmp(name,"[vdso]") && lo==getauxval(AT_SYSINFO_EHDR))continue;
+#if defined(__x86_64__)
+        if(!strcmp(name,"[vsyscall]") && lo==0xffffffffff600000UL &&
+           hi==0xffffffffff601000UL)continue;
+#endif
+        if(!inode || name[0]!='/' || strstr(name," (deleted)") || strstr(name,"/memfd:")) {
+            result=-EPERM;break;
+        }
+        /* Self is independently root-owned, SHA/inode verified at each release entry. */
+        if(inode==(unsigned long)main_file.st_ino && ma==major(main_file.st_dev) &&
+           mi==minor(main_file.st_dev))continue;
+        if(trusted_mapping_name(name)) {result=-EPERM;break;}
+        char canonical[PATH_MAX];if(!realpath(name,canonical)) {result=-EPERM;break;}
+        int matched=0;
+        for(uint32_t i=0;i<check->count;i++) {
+            struct soc_trust_record record;
+            memcpy(&record,check->body+sizeof(struct soc_trust_header)+i*sizeof(record),sizeof(record));
+            if(strcmp(record.path,canonical))continue;
+            int fd=soc_trusted(canonical,NULL);struct stat st;
+            if(fd<0) {result=-EPERM;break;}
+            int bad=fstat(fd,&st) || inode!=(unsigned long)st.st_ino || ma!=major(st.st_dev) ||
+                mi!=minor(st.st_dev) || hash_fd(fd,record.sha,record.size,record.mode);
+            close(fd);if(bad)result=-EPERM;else matched=1;break;
+        }
+        if(result || !matched) {result=-EPERM;break;}
+    }
+    if(ferror(maps))result=-EPERM;fclose(maps);return result;
+}
+/* This array is passed to a NEW exec, never an inherited environment edited in
+ * place. Pre-main trust at the setuid entry still requires kernel AT_SECURE. */
+char *const *soc_clean_environment(void) {
+    static char *const clean[]={"PATH=/usr/bin:/bin","LANG=C",NULL};return clean;
+}
+int soc_environment_contract(char *const env[]) {
+    if(!env)return -EPERM;
+    unsigned seen=0;
+    for(unsigned i=0;i<3;i++) {
+        if(!env[i])return seen==3?0:-EPERM;
+        unsigned flag=!strcmp(env[i],"PATH=/usr/bin:/bin")?1:!strcmp(env[i],"LANG=C")?2:0;
+        if(!flag || (seen&flag))return -EPERM;seen|=flag;
+    }return -EPERM;
+}
 int soc_mapped_dependencies(const void *body,size_t size) {
     if(!body || size<sizeof(struct soc_trust_header))return -EPERM;
     struct soc_trust_header h;memcpy(&h,body,sizeof(h));
@@ -147,7 +203,7 @@ int soc_mapped_dependencies(const void *body,size_t size) {
            r.mode&022 || r.reserved || !nonzero(r.sha,32))return -EPERM;
     }
     struct mapping_check check={body,h.count,0};
-    return dl_iterate_phdr(mapping_callback,&check)?-EPERM:0;
+    return dl_iterate_phdr(mapping_callback,&check)?-EPERM:executable_maps(&check);
 }
 int soc_account_identity(uid_t uid,gid_t gid,uid_t found_uid,gid_t found_gid,int found) {
     return uid && gid && found==1 && uid==found_uid && gid==found_gid?0:-EPERM;

@@ -26,7 +26,7 @@ from soc_agent.security_ai.ebpf_tc.trust import execution_manifest
 def release(tmp_path_factory):
     directory = tmp_path_factory.mktemp("dynamic-trust")
     compile_native(directory / "build")
-    manifest = create_package(directory / "build", directory / "package", "0.2.7")
+    manifest = create_package(directory / "build", directory / "package", "0.2.8")
     library = ctypes.CDLL(str(directory / "build/libnative-tc.so"))
     library.soc_account_identity.argtypes = [ctypes.c_uint] * 4 + [ctypes.c_int]
     library.soc_mapped_dependencies.argtypes = [ctypes.c_char_p, ctypes.c_size_t]
@@ -205,7 +205,29 @@ def test_c_mapping_probe_system_and_foreign_dsos(release, tmp_path):
 #include "native.h"
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
+#include <sys/mman.h>
+#include <stdlib.h>
+extern char **environ;
 int main(int argc,char **argv) {
+    if(argc==4 && !strcmp(argv[3],"clean")) {
+        char *args[]={argv[0],argv[1],"unused","verify",NULL};
+        int self=open("/proc/self/exe",O_RDONLY);
+        fexecve(self,args,soc_clean_environment());return 4;
+    }
+    if(argc==4 && !strcmp(argv[3],"verify")) {
+        if(soc_environment_contract(environ))return 6;argc=2;
+    }
+    if(argc==4) {
+        int fd=-1;
+        if(!strcmp(argv[3],"memfd")) {fd=memfd_create("fixture",0);ftruncate(fd,4096);}
+        else if(!strcmp(argv[3],"deleted")) {
+            char file[]="/tmp/soc-mapping-XXXXXX";fd=mkstemp(file);unlink(file);ftruncate(fd,4096);
+        }
+        void *map=mmap(NULL,4096,PROT_READ|PROT_EXEC,
+            fd<0?MAP_PRIVATE|MAP_ANONYMOUS:MAP_PRIVATE,fd,0);
+        if(map==MAP_FAILED)return 5;argc=2;
+    }
     unsigned char body[232+72*304];if(argc!=2)return 2;
     int fd=open(argv[1],O_RDONLY);if(fd<0)return 2;
     ssize_t n=read(fd,body,sizeof(body));close(fd);
@@ -249,7 +271,7 @@ int main(int argc,char **argv) {
         if variable == "LD_PRELOAD":
             assert result.returncode == 3
     # A real audit namespace can be invisible to dl_iterate_phdr's base namespace.
-    # Demonstrate this limit instead of claiming that map checks solve LD_AUDIT.
+    # Process-wide executable maps must reject it; pre-main execution still happened.
     marker = tmp_path / "audit-loaded"
     audit_source = tmp_path / "audit.c"
     audit_source.write_text(
@@ -266,7 +288,59 @@ int main(int argc,char **argv) {
         capture_output=True,
         timeout=3,
     )
-    assert marker.read_text() == "fixture" and result.returncode in {0, 3}
+    assert marker.read_text() == "fixture" and result.returncode == 3
+    # A NEW exec with the production fixed env does not load the parent audit DSO.
+    # The polluted parent's pre-main execution still happens: never a prevention claim.
+    marker.unlink()
+    clean = subprocess.run(
+        [str(executable), str(descriptor), "unused", "clean"],
+        env=env | {"LD_AUDIT": str(audit)},
+        capture_output=True,
+        timeout=3,
+    )
+    assert marker.read_text() == "fixture" and clean.returncode == 0
+    # Parent before-main constructors are not undone: the clean child is isolated.
+    preload_marker = tmp_path / "preload-loaded"
+    library_source.write_text(
+        "#include <fcntl.h>\n#include <unistd.h>\n"
+        "__attribute__((constructor)) static void entered(void){"
+        "int fd=open(" + json.dumps(str(preload_marker)) + ",O_WRONLY|O_CREAT|O_EXCL,0600);"
+        'if(fd>=0){write(fd,"fixture",7);close(fd);}}\n'
+    )
+    subprocess.run(["cc", "-shared", "-fPIC", str(library_source), "-o", str(foreign)], check=True)
+    clean = subprocess.run(
+        [str(executable), str(descriptor), "unused", "clean"],
+        env=env | {"LD_PRELOAD": str(foreign)},
+        capture_output=True,
+        timeout=3,
+    )
+    assert preload_marker.read_text() == "fixture" and clean.returncode == 0
+    pollution = {
+        name: "fixture"
+        for name in (
+            "LD_LIBRARY_PATH",
+            "GLIBC_TUNABLES",
+            "LD_BIND_NOW",
+            "LD_ORIGIN_PATH",
+            "LD_PROFILE",
+            "PYTHONPATH",
+            "PYTHONHOME",
+            "BASH_ENV",
+            "ENV",
+        )
+    }
+    clean = subprocess.run(
+        [str(executable), str(descriptor), "unused", "clean"],
+        env=env | pollution,
+        capture_output=True,
+        timeout=3,
+    )
+    assert clean.returncode == 0
+    for mode in ("anonymous", "memfd", "deleted"):
+        rejected = subprocess.run(
+            [str(executable), str(descriptor), "unused", mode], env=env, timeout=3
+        )
+        assert rejected.returncode == 3, mode
     target = os.environ.get("SOC_AUDIT_NAMESPACE_EVIDENCE")
     if target:
         Path(target).write_text(
@@ -274,7 +348,10 @@ int main(int argc,char **argv) {
                 {
                     "source": "ORDINARY_UID_NO_AUTH_NO_KERNEL",
                     "audit_module_executed": True,
-                    "base_namespace_verifier_exit": result.returncode,
+                    "process_wide_verifier_exit": result.returncode,
+                    "parent_pre_main_execution_blocked": False,
+                    "sanitized_exec_child_exit": clean.returncode,
+                    "rejected_executable_mappings": ["anonymous", "memfd", "deleted"],
                     "complete_dynamic_loader_trust": "BLOCKED",
                     "native_authentication": False,
                     "native_release": "BLOCKED",
@@ -344,4 +421,84 @@ def test_dependency_replacement_and_transitive_metadata_are_rejected(release, tm
     value["dependencies"][0]["needed"] = ["libforged.so"]
     expected = repackage(target, value)
     with pytest.raises(ValueError, match="CLOSURE_MISMATCH"):
+        verify_package(target, expected)
+
+
+@pytest.mark.parametrize(
+    "variable",
+    [
+        "LD_AUDIT",
+        "LD_PRELOAD",
+        "LD_LIBRARY_PATH",
+        "LD_DEBUG",
+        "LD_PROFILE",
+        "LD_ORIGIN_PATH",
+        "LD_BIND_NOW",
+        "GLIBC_TUNABLES",
+        "PYTHONPATH",
+        "PYTHONHOME",
+        "BASH_ENV",
+        "ENV",
+        "HOME",
+        "LC_ALL",
+    ],
+)
+def test_fixed_exec_environment_rejects_inherited_variables(release, variable):
+    library = release[2]
+    library.soc_environment_contract.argtypes = [ctypes.POINTER(ctypes.c_char_p)]
+    clean = (ctypes.c_char_p * 3)(b"PATH=/usr/bin:/bin", b"LANG=C", None)
+    assert library.soc_environment_contract(clean) == 0
+    polluted = (ctypes.c_char_p * 4)(clean[0], clean[1], (variable + "=fixture").encode(), None)
+    assert library.soc_environment_contract(polluted) != 0
+
+
+@pytest.mark.parametrize(
+    "values",
+    [
+        [],
+        [b"LANG=C"],
+        [b"LANG=C", b"LANG=C"],
+        [b"PATH=.", b"LANG=C"],
+        [b"PATH=/usr/bin:/bin", b"LANG=en_US"],
+    ],
+)
+def test_environment_missing_duplicate_and_mutated_values(release, values):
+    array = (ctypes.c_char_p * (len(values) + 1))(*values, None)
+    assert release[2].soc_environment_contract(array) != 0
+
+
+def test_nss_database_scope_never_silently_excludes_missing_unused_module(release):
+    trust = release[1].dynamic_trust
+    assert trust.nss.direct_identity_databases == ("passwd", "group")
+    assert trust.nss.pam_account_databases == ("shadow", "gshadow")
+    assert trust.nss.scope_policy == "ALL_CONFIGURED_NO_IMPLICIT_EXCLUSION"
+    assert trust.nss_exclusion_policy == "UNUSED_BY_DIRECT_CODE_IS_NOT_PROOF_UNUSED_BY_PAM"
+    assert trust.environment_contract == "NEW_EXEC_FIXED_PATH_LANG_ONLY_AT_SECURE_ENTRY_REQUIRED"
+    assert trust.mapping_contract == "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_NOT_EXECUTION_HISTORY"
+    source = (ROOT / "bootstrap.c").read_text()
+    assert "getgrgid_r" in source and "getgrnam_r" in source
+    assert "group_named->gr_gid!=p->gid" in source
+    assert "fexecve(7,args,soc_clean_environment())" in source
+    for name in ("broker.c", "loader.c"):
+        assert "soc_environment_contract(environ)" in (ROOT / name).read_text()
+
+
+@pytest.mark.parametrize(
+    "field", ["environment_contract", "mapping_contract", "nss_exclusion_policy"]
+)
+def test_manifest_cannot_claim_a_weaker_exec_or_nss_contract(release, field):
+    value = release[1].model_dump(mode="json")
+    value["dynamic_trust"][field] = "VERIFIED_OR_IGNORE"
+    with pytest.raises(ValueError):
+        ReleaseManifest.model_validate(value)
+
+
+def test_recomputed_manifest_cannot_erase_missing_database_evidence(release, tmp_path):
+    directory, manifest, _ = release
+    target = tmp_path / "package"
+    shutil.copytree(directory / "package", target)
+    value = manifest.model_dump(mode="json")
+    value["dynamic_trust"]["unresolved_nss_databases"] = {"passwd": ["forged"]}
+    expected = repackage(target, value)
+    with pytest.raises(ValueError, match="DYNAMIC_TRUST_MISMATCH"):
         verify_package(target, expected)

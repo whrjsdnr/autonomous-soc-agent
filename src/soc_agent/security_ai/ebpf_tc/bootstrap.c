@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
+#include <grp.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,6 +51,22 @@ int soc_password(const struct soc_release_envelope *envelope) {
        soc_release_check(p,envelope->manifest_sha,envelope->release_version,1)) {
         alarm(0);return -EPERM;
     }
+    struct group primary,group_by_name,*group=NULL,*group_named=NULL;
+    char groups[8192],group_names[8192];
+    lookup_rc=getgrgid_r(p->gid,&primary,groups,sizeof(groups),&group);
+    if(lookup_rc || !group || !group->gr_name || !*group->gr_name ||
+       strnlen(group->gr_name,256)>=256 || group->gr_gid!=p->gid) {
+        alarm(0);return -EPERM;
+    }
+    char group_name[256];strcpy(group_name,group->gr_name);
+    lookup_rc=getgrnam_r(group_name,&group_by_name,group_names,sizeof(group_names),&group_named);
+    if(lookup_rc || !group_named || !group_named->gr_name ||
+       strcmp(group_named->gr_name,group_name) || group_named->gr_gid!=p->gid ||
+       soc_release_check(p,envelope->manifest_sha,envelope->release_version,1)) {
+        alarm(0);return -EPERM;
+    }
+    /* Primary membership is bound through passwd.gid; supplementary groups are
+     * not inherited by the broker (soc_reduce clears them). */
     alarm(0);
     int tty=open("/dev/tty",O_RDWR|O_CLOEXEC|O_NOCTTY);struct stat st;
     if(tty<0)return -ENOTTY;
@@ -134,7 +151,7 @@ static int bootstrap(int channel,int plan_fd,int audit_fd) {
     for(int i=0;i<5;i++)if(dup2(temporary[i],3+i)<0)return -EPERM;
     if(close_range(8,~0U,0) || soc_reduce(uid,gid))return -EPERM;
     char *args[]={"broker","3","4","5","6",NULL};
-    char *env[]={"PATH=/usr/bin:/bin","LANG=C",NULL};fexecve(7,args,env);return -errno;
+    fexecve(7,args,soc_clean_environment());return -errno;
 }
 int main(int argc,char **argv) {
     if(argc==2 && !strcmp(argv[1],"--inspect") && geteuid()==getuid() && getuid()) {

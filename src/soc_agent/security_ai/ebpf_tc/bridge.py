@@ -224,6 +224,10 @@ class Preparation:
         )
         self._installation = {
             "release_candidate": "B2F_BLOCKED_NATIVE_QUALIFICATION",
+            "dynamic_loader_trust": "BLOCKED_PREMAIN_NATIVE_NOT_OBSERVED",
+            "runtime_mapping_attestation": "PROCESS_WIDE_EXECUTABLE_SNAPSHOT_LIMITED",
+            "environment_contract": release.dynamic_trust.environment_contract,
+            "nss_scope_policy": release.dynamic_trust.nss.scope_policy,
             "pam_nss_trust": "STATIC_SNAPSHOTS_DYNAMIC_CLOSURE_UNKNOWN",
             "dependency_integrity": "STATIC_GRAPH_VERIFIED_NATIVE_MAPPINGS_PENDING",
             "pam_trust": "ABSOLUTE_MODULE_PINNED_NATIVE_AUTH_PENDING",

@@ -38,6 +38,8 @@ int soc_release_check(const struct soc_plan *,const uint8_t[32],const char[16],i
 int soc_capability_contract(uint64_t,uint64_t,uint64_t,uint64_t,uint64_t);
 int soc_capabilities(void);
 int soc_process_identity(uid_t,uid_t,uid_t,gid_t,gid_t,gid_t,int);
+char *const *soc_clean_environment(void);
+int soc_environment_contract(char *const env[]);
 int soc_mapped_dependencies(const void *,size_t);
 struct soc_state;
 int soc_release_record(struct soc_state *);
