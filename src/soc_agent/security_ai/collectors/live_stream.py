@@ -9,8 +9,9 @@ from soc_agent.security_ai.collectors.adapter import parse_line
 from soc_agent.security_ai.collectors.finalization import Closed
 from soc_agent.security_ai.collectors.models import Source
 from soc_agent.security_ai.collectors.packet_input import Packet
-from soc_agent.security_ai.collectors.packet_producer import Window
-from soc_agent.security_ai.research.models import Frozen
+from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
+from soc_agent.security_ai.collectors.preprocessing import DNSPreprocessing, normalize
+from soc_agent.security_ai.research.models import Frozen, digest
 
 SUMMARY_FIELDS = {
     "ts",
@@ -50,8 +51,11 @@ class Stream:
         self.source = source
         self.sequence = self.packet_count = self.peak = 0
         self.ready = self.closed = False
-        self.active = {}
-        self.finalized = []
+        self.flows = FlowAssembly(str(source.session_id))
+        self.active = self.flows.active
+        self.finalized = self.flows.finalized
+        self.normalization_digest = digest(source.model_dump(mode="json"))
+        self.dns_preprocessing = DNSPreprocessing(source)
         self.counters = None
         self.previous_ns = None
         self.out_of_order = 0
@@ -76,30 +80,11 @@ class Stream:
             if self.previous_ns is not None and p.ns < self.previous_ns:
                 self.out_of_order += 1  # Different keys are independent; never reorder/clamp.
             self.previous_ns = p.ns
-            old = self.active.get(p.key)
-            if old:
-                delta = p.ns - old.packets[-1].ns
-                if delta < 0:
-                    raise ValueError("ZEEK_FLOW_TIMESTAMP_REGRESSION")
-                reason = (
-                    "ACTIVE_TIMEOUT"
-                    if p.ns - old.packets[0].ns >= 120_000_000_000
-                    else "IDLE_TIMEOUT"
-                    if delta >= 30_000_000_000
-                    else None
-                )
-                if reason:
-                    self.finalized.append(old.finish(reason, str(self.source.session_id)))
-                    del self.active[p.key]
-            if p.key not in self.active:
-                if len(self.active) >= 128:
-                    raise ValueError("ZEEK_FLOW_STATE_BUDGET")
-                self.active[p.key] = Window()
-            self.active[p.key].add(p)
-            if len(self.active[p.key].packets) == 128:
-                self.finalized.append(
-                    self.active.pop(p.key).finish("PACKET_LIMIT", str(self.source.session_id))
-                )
+            first = self.flows.add(p)
+            normalized = normalize(p, self.source, e.sequence, first)
+            self.normalization_digest = digest(
+                dict(previous=self.normalization_digest, packet=normalized.model_dump(mode="json"))
+            )
             self.port53_metadata_packets += int(53 in (p.source_port, p.destination_port))
             self.packet_count += 1
             self.peak = max(self.peak, sum(len(w.packets) for w in self.active.values()))
@@ -128,6 +113,7 @@ class Stream:
             if e.kind == "network":
                 self.network_count += 1
             else:
+                self.dns_preprocessing.add(event)
                 self.dns_count += 1
             self.sequence = e.sequence
             return event
@@ -152,17 +138,11 @@ class Stream:
                 raise ValueError("ZEEK_STREAM_COUNTER_SCHEMA")
             self.counters = counters
             self.closed = True
-            self.finalized.extend(
-                w.finish(
-                    "PACKET_LIMIT"
-                    if self.closed_detail
-                    and self.closed_detail.stop_reason == "PACKET_LIMIT_REACHED"
-                    else "SHUTDOWN",
-                    str(self.source.session_id),
-                )
-                for w in self.active.values()
+            self.flows.finish(
+                "PACKET_LIMIT"
+                if self.closed_detail and self.closed_detail.stop_reason == "PACKET_LIMIT_REACHED"
+                else "SHUTDOWN"
             )
-            self.active.clear()
             if counters.get("pkts_dropped", 0):
                 raise ValueError("ZEEK_CAPTURE_DROPS_DETECTED")
             # Zero alone is NEVER capture attestation. Native remains UNVERIFIED.

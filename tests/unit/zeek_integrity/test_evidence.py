@@ -4,7 +4,6 @@ import hashlib
 import json
 from pathlib import Path
 
-from soc_agent.security_ai.collectors.live_contract import bundle
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -18,11 +17,10 @@ def evidence():
 
 def test_reviewed_sources_bundle_and_preservation():
     v = evidence()
-    assert v["bundle"] == bundle()
-    assert v["bundle_digest"] == digest(bundle())
-    assert v["launcher_sha256"] == bundle()["live_process.py"]
-    for name, sha in v["source_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha
+    # Immutable evidence of 464dc87; never authority for a later source bundle.
+    assert v["bundle_digest"] == digest(v["bundle"])
+    assert v["bundle_digest"] == "aabfcc24ea719cf40c4d915d36cb05bbc32e99dfd788b254d3e4119b7fa5f34f"
+    assert v["launcher_sha256"] == v["bundle"]["live_process.py"]
     assert not v["preservation"]["errors"]
     assert v["preservation"]["user_files_checked"] == 132
     assert v["preservation"]["protected_files_checked"] == 267

@@ -620,6 +620,7 @@ def render_system(app, value):
         "capture_interface": collector.get("interface", "NOT_OBSERVED"),
         "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
         "integrity_evidence": value.get("capture_integrity_evidence") or {},
+        "preprocessing": value.get("preprocessing") or {},
         "last_verified_process_session": value.get("last_verified_process_session"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
         "producer": collector.get("producer", "NOT_PREPARED"),
@@ -692,6 +693,22 @@ def render_system(app, value):
         + " / "
         + str(proof.get("ai_decision", {}).get("decision", "BLOCKED_CAPTURE_INTEGRITY")),
         "DNS visibility   " + str(session.get("dns_visibility", "UNKNOWN")),
+        "Normalized packets / active flows   "
+        + " / ".join(
+            str(details["preprocessing"].get("progress", {}).get(k, "NOT_OBSERVED"))
+            for k in ("normalized_packets", "active_flows")
+        ),
+        "Timeout-complete / incomplete windows   "
+        + " / ".join(
+            str(details["preprocessing"].get(k, "NOT_OBSERVED"))
+            for k in ("completed_flows", "incomplete_flows")
+        ),
+        "Flow finalization reasons   "
+        + str(details["preprocessing"].get("progress", {}).get("finalization_reasons", {})),
+        "Feature quality / AI block reasons   "
+        + str(details["preprocessing"].get("feature_decisions", "NOT_OBSERVED")),
+        "DNS preprocessing   "
+        + str(details["preprocessing"].get("progress", {}).get("dns", "NOT_OBSERVED")),
         "Last verified PROCESS session (capture not attested)   "
         + str(details["last_verified_process_session"] or "NOT_OBSERVED"),
         "Collector metrics   " + str(details["collector_metrics"]),

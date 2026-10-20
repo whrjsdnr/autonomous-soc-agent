@@ -27,6 +27,8 @@ FILES = (
     "network14.zeek",
     "packet_input.py",
     "packet_producer.py",
+    "preprocessing.py",
+    "preprocessing_store.py",
     "privacy.zeek",
     "offline.py",
     "reader.py",

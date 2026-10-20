@@ -52,6 +52,17 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
             assert r.status == "RESEARCH_ONLY" and r.write_policy == "WRITE_DENIED"
             assert record["investigation"]["status"] == "ASSESSED_READ_ONLY"
             assert record["investigation"]["action_policy"] == "WRITE_DENIED"
+        preprocessed = snap["preprocessing"]
+        assert preprocessed["completed_flows"] == preprocessed["incomplete_flows"] == 1
+        assert preprocessed["feature_decisions"]["ELIGIBLE"] == 1
+        assert preprocessed["progress"]["normalized_packets"] == 4
+        assert preprocessed["capture_integrity"] == "UNVERIFIED"
+        assert preprocessed["input_origin"] == "ZEEK_OFFLINE_PCAP"
+        assert preprocessed["native_ai"] == "BLOCKED"
+        assert (
+            preprocessed["flow_quality_tail"][0]["feature_digest"]
+            == records[0]["receipt"]["feature_digest"]
+        )
         assert c.process_runner.cleanup_verified
         assert c.producer.demo.adapter.process is None
         export(c, tmp_path / "report.json", "json")
@@ -65,6 +76,7 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
         await c.stop()
         restored = LiveZeekCollector(tmp_path, paths=research_paths())
         result = await restored.recover()
+        assert result["preprocessing"] == preprocessed
         assert [digest(r["receipt"]) for r in result["research"]["records"]] == receipts
         assert result["collector"]["metrics"]["inference_count"] == 0
         assert not result["collection_live"] and restored.task is None
@@ -85,6 +97,7 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
                         input_origin=snap["input_origin"],
                         records=records,
                         collector_metrics=snap["collector"]["metrics"],
+                        preprocessing=preprocessed,
                         packet_count=c.stream.packet_count,
                         flow_count=len(c.stream.finalized),
                         queue_peak=c.queue_peak,

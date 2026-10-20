@@ -80,17 +80,26 @@ class Window:
         )
 
 
-def aggregate(packets: tuple[Packet, ...], session: str) -> dict:
-    if not 1 <= len(packets) <= 4096:
-        raise ValueError("ZEEK_FLOW_PACKET_BUDGET")
-    active, finished = {}, []
-    peak = 0
-    for i, p in enumerate(packets, 1):
-        if p.sequence != i:
+class FlowAssembly:
+    """One bounded event-time assembler shared by offline and streaming callers.
+
+    Same-key timeouts preserve v1 windows. FIN/RST are feature flags, never new
+    completion authority. The caller must explicitly finish an exhausted source.
+    """
+
+    def __init__(self, session: str):
+        self.session = session
+        self.active: dict[tuple, Window] = {}
+        self.finalized: list[dict] = []
+        self.count = self.peak = 0
+        self.closed = False
+
+    def add(self, p: Packet) -> Packet:
+        if self.closed or p.sequence != self.count + 1:
             raise ValueError("ZEEK_FLOW_SEQUENCE_INTEGRITY")
         key = p.key
-        if key in active:
-            old = active[key]
+        if key in self.active:
+            old = self.active[key]
             delta = p.ns - old.packets[-1].ns
             if delta < 0:
                 raise ValueError("ZEEK_FLOW_TIMESTAMP_REGRESSION")
@@ -102,33 +111,53 @@ def aggregate(packets: tuple[Packet, ...], session: str) -> dict:
                 else None
             )
             if reason:
-                finished.append(old.finish(reason, session))
-                del active[key]
-        if key not in active:
-            if len(active) >= 128:
+                self.finalized.append(old.finish(reason, self.session))
+                del self.active[key]
+        if key not in self.active:
+            if len(self.active) >= 128:
                 raise ValueError("ZEEK_FLOW_STATE_BUDGET")
-            active[key] = Window()
-        active[key].add(p)
-        peak = max(peak, sum(len(w.packets) for w in active.values()))
-        if peak > 4096:
+            self.active[key] = Window()
+        first = self.active[key].packets[0] if self.active[key].packets else p
+        self.active[key].add(p)
+        self.count += 1
+        self.peak = max(self.peak, sum(len(w.packets) for w in self.active.values()))
+        if self.peak > 4096 or self.count > 4096:
             raise ValueError("ZEEK_FLOW_METADATA_BUDGET")
-        if len(active[key].packets) == 128:
-            finished.append(active.pop(key).finish("PACKET_LIMIT", session))
-        if len(finished) > 1024:
+        if len(self.active[key].packets) == 128:
+            self.finalized.append(self.active.pop(key).finish("PACKET_LIMIT", self.session))
+        if len(self.finalized) > 1024:
             raise ValueError("ZEEK_FLOW_COMPLETION_BUDGET")
-    finished.extend(w.finish("SHUTDOWN", session) for w in active.values())
-    if len(finished) > 1024:
-        raise ValueError("ZEEK_FLOW_COMPLETION_BUDGET")
+        return first
+
+    def finish(self, reason: str = "SHUTDOWN") -> None:
+        if self.closed:
+            raise ValueError("ZEEK_FLOW_ALREADY_FINALIZED")
+        if reason not in {"SHUTDOWN", "PACKET_LIMIT", "RESTART_GAP"}:
+            raise ValueError("ZEEK_FLOW_UNSUPPORTED_FINALIZATION")
+        self.finalized.extend(w.finish(reason, self.session) for w in self.active.values())
+        self.active.clear()
+        self.closed = True
+        if len(self.finalized) > 1024:
+            raise ValueError("ZEEK_FLOW_COMPLETION_BUDGET")
+
+
+def aggregate(packets: tuple[Packet, ...], session: str) -> dict:
+    if not 1 <= len(packets) <= 4096:
+        raise ValueError("ZEEK_FLOW_PACKET_BUDGET")
+    assembly = FlowAssembly(session)
+    for p in packets:
+        assembly.add(p)
+    assembly.finish()
     return dict(
         producer=VERSION,
         scope=SCOPE,
         flow_policy="SAME_KEY_EVENT_TIME_ONLY",
         packet_count=len(packets),
-        peak_packet_references=peak,
+        peak_packet_references=assembly.peak,
         active_final=0,
-        flows=finished,
-        eligible=sum(f["eligible"] for f in finished),
-        rejected=sum(not f["eligible"] for f in finished),
+        flows=assembly.finalized,
+        eligible=sum(f["eligible"] for f in assembly.finalized),
+        rejected=sum(not f["eligible"] for f in assembly.finalized),
         network14_parity="PENDING_INDEPENDENT_ML_REFERENCE",
         dns9_parity="BLOCKED",
     )

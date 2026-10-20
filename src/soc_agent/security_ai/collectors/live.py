@@ -54,6 +54,7 @@ class LiveZeekCollector(ZeekCollector):
         self.stop_reason = None
         self.stop_audited = False
         self.native_integrity = None
+        self.preprocessing = None
         self.startup_phase = None
         self.collector_started = False
 
@@ -124,6 +125,7 @@ class LiveZeekCollector(ZeekCollector):
             self.started = self.watch_started = None
             self.process_task = None
             self.native_integrity = None
+            self.preprocessing = None
             self.exit_observation = None
             self.stop_reason = None
             self.stop_audited = False
@@ -279,6 +281,8 @@ class LiveZeekCollector(ZeekCollector):
                 packets=self.stream.packet_count,
                 cursor=cursor,
                 closed=self.stream.closed,
+                normalization_digest=self.stream.normalization_digest,
+                active_flows=len(self.stream.active),
             ),
         )
         self.queue_depth = 0
@@ -405,6 +409,9 @@ class LiveZeekCollector(ZeekCollector):
                             )
                         )
                         self.last_error = self.producer.last_error
+                    from soc_agent.security_ai.collectors.preprocessing_store import persist
+
+                    self.preprocessing = await asyncio.to_thread(persist, self)
                     self.state = "ERROR" if self.last_error else "STOPPED"
                     self.store.runtime.event(
                         "ZEEK_LIVE_FINALIZED",
@@ -574,7 +581,7 @@ class LiveZeekCollector(ZeekCollector):
             return self.snapshot()
         # Recover may reuse a stopped controller object. Never project old
         # in-memory packets/receipts under a newly selected session identity.
-        self.stream = self.producer = self.native_integrity = None
+        self.stream = self.producer = self.native_integrity = self.preprocessing = None
         self.result = self.exit_observation = self.process_runner = self.process_task = None
         self.handoff = None
         self.last_error = None
@@ -639,6 +646,13 @@ class LiveZeekCollector(ZeekCollector):
 
             self.producer = ProducerService(self, paths=self.paths)
             await self.producer.recover()
+        from soc_agent.security_ai.collectors.preprocessing_store import restore
+
+        try:
+            self.preprocessing = await asyncio.to_thread(restore, self)
+        except (OSError, ValueError, sqlite3.Error):
+            self.state, self.last_error = "ERROR", "ZEEK_PREPROCESSING_PROOF_MISMATCH"
+            return self.snapshot()
         self.state, self.recovery_state = "STOPPED", "RESTORED_NO_CAPTURE_OR_INFERENCE_RESTART"
         return self.snapshot()
 
@@ -773,6 +787,15 @@ class LiveZeekCollector(ZeekCollector):
             else "FAILED"
             if self.last_error
             else "PENDING",
+        )
+        from soc_agent.security_ai.collectors.preprocessing import progress
+
+        value["preprocessing"] = self.preprocessing or dict(
+            progress=progress(self.stream),
+            completed_flows=None,
+            incomplete_flows=None,
+            feature_decisions={"BLOCKED_POLICY": "NOT_FINALIZED"},
+            native_ai="BLOCKED",
         )
         value["capture_integrity_evidence"] = self.native_integrity
         value["last_verified_process_session"] = (
