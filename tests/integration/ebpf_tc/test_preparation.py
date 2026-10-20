@@ -31,6 +31,10 @@ def test_bootstrap_preparation_reuses_b1_auth_and_new_plan_approval(tmp_path):
         p.controller.stop()
         with p.controller.application.store.database.transaction(write=False) as db:
             rows = [json.loads(r[0]) for r in db.execute("SELECT payload FROM monitor_audit")]
+        blocked = [r for r in rows if r["kind"] == "NATIVE_RELEASE_BLOCKED"]
+        assert len(blocked) == 1
+        assert len(blocked[0]["details"]["installation_manifest_digest"]) == 64
+        assert blocked[0]["details"]["native_execution"] is False
         assert sum(r["kind"] == "AUTHENTICATION_VERIFIED" for r in rows) == 1
         assert all(not r["details"].get("native_authentication", False) for r in rows)
         assert not any(r["kind"] == "LOAD_VERIFIED" for r in rows)

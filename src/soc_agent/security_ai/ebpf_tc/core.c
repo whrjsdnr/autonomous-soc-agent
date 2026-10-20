@@ -1,6 +1,7 @@
 #include "native.h"
 #include <errno.h>
 #include <string.h>
+#include <sys/socket.h>
 #include <openssl/evp.h>
 /* No environment, CLI flag, sudo cache or fixture can open this gate. B-2B needs
  * a reviewed code/release change, new hashes and explicit installation approval. */
@@ -99,4 +100,23 @@ int soc_cleanup(struct soc_state *s) {
     if (soc_detach(s)) {s->ops->record(s,"CLEANUP_UNVERIFIED");return -EUCLEAN;}
     if (s->ops->release(s) || s->ops->record(s,"CLEANUP_VERIFIED")) return failed(s);
     s->loaded=0;s->stopping=0;s->cleanup_verified=1;return 0;
+}
+
+int soc_request_validate(const struct soc_plan *p,const struct soc_request *q,uint32_t sequence,int flags) {
+    struct soc_owner zero={0};
+    if(flags&(MSG_TRUNC|MSG_CTRUNC) || sequence>=2048 || q->sequence!=sequence+1 ||
+       memcmp(q->approval,p->approval,32) || q->operation<1 || q->operation>6 ||
+       (q->operation!=2 && (q->generation || q->handle)) ||
+       (q->operation==2 && (!q->generation || !q->handle)) ||
+       (q->operation!=4 && memcmp(&q->owner,&zero,sizeof(zero))) ||
+       (q->operation!=5 && q->reason) ||
+       (q->operation==5 && (q->reason<1 || q->reason>7)))return -EPROTO;
+    return 0;
+}
+
+int soc_rate_allow(uint64_t slots[32],uint32_t *cursor,uint64_t now) {
+    if(!now || *cursor>=32)return -EPROTO;
+    uint64_t last=slots[(*cursor+31)%32],old=slots[*cursor];
+    if(now<last || (old && now-old<1000000000ULL))return -EAGAIN;
+    slots[*cursor]=now;*cursor=(*cursor+1)%32;return 0;
 }

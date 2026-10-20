@@ -93,10 +93,9 @@ static struct bpf_tc_opts opts(struct soc_state *s) {
         .priority=SOC_PRIORITY,.prog_fd=r?r->program:0};
 }
 static int attach(struct soc_state *s) {
-    if(validate(s))return -EPERM;
-    struct bpf_tc_hook h=hook(s);struct bpf_tc_opts o=opts(s);
-    /* flags=0 means exclusive creation. No qdisc create/destroy/flush/replace. */
-    return bpf_tc_attach(&h,&o);
+    /* Safe detach is unproved for legacy TC. Never create an uncleanable lease,
+     * even if a future release opens the separate global admission gate. */
+    (void)s;return -EOPNOTSUPP;
 }
 static int query(struct soc_state *s,uint32_t *id,uint8_t *tag) {
     if(validate(s))return -EPERM;
@@ -108,11 +107,9 @@ static int query(struct soc_state *s,uint32_t *id,uint8_t *tag) {
     *id=info.id;memcpy(tag,info.tag,8);return 0;
 }
 static int detach(struct soc_state *s) {
-    if(validate(s))return -EPERM;
-    uint32_t id=0;uint8_t tag[8];
-    if(query(s,&id,tag) || id!=s->owner.program_id || memcmp(tag,s->owner.tag,8))return -EPERM;
-    struct bpf_tc_hook h=hook(s);struct bpf_tc_opts o=opts(s);o.prog_fd=0;
-    return bpf_tc_detach(&h,&o);
+    /* RTM_DELTFILTER cannot condition deletion on Program ID/tag/generation.
+     * No re-query closes that race. Do not call bpf_tc_detach at all. */
+    (void)s;return -EOPNOTSUPP;
 }
 static int enable(struct soc_state *s,int enabled) {
     if(validate(s))return -EPERM;

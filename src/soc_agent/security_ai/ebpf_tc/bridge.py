@@ -1,7 +1,6 @@
 """B-2A admission/ABI bridge. No Root subprocess, PAM, load or attach is launched."""
 
 import errno
-import hashlib
 import json
 import os
 import subprocess
@@ -27,40 +26,9 @@ def native_admitted() -> bool:
 def native_handoff(
     plan: NativePlan, channel_fd: int, plan_fd: int, journal_fd: int = -1
 ) -> subprocess.Popen:
-    if not native_admitted():
-        raise ValueError(NATIVE_ERROR)
-    # Future fixed-path handoff implementation. Never reached by a B-2A entrypoint.
-    # C independently refuses every Native operation in the current artifacts.
-    expected = {
-        "bootstrap": plan.bootstrap_sha256,
-        "broker": plan.native_broker_sha256,
-        "libnative-tc.so": plan.loader_sha256,
-    }
-    for parent in (INSTALL, *INSTALL.parents):
-        info = parent.lstat()
-        if parent.is_symlink() or info.st_uid != 0 or info.st_mode & 0o022:
-            raise ValueError("NATIVE_INSTALLATION_UNTRUSTED")
-    for name, sha in expected.items():
-        path = INSTALL / name
-        info = path.lstat()
-        if (
-            path.is_symlink()
-            or info.st_uid
-            or info.st_mode & 0o022
-            or (hashlib.sha256(path.read_bytes()).hexdigest() != sha)
-        ):
-            raise ValueError("NATIVE_INSTALLATION_UNTRUSTED")
-    if os.getuid() == 0 or not os.isatty(0) or len({channel_fd, plan_fd, journal_fd}) != 3:
-        raise ValueError("NATIVE_TERMINAL_OR_DESCRIPTOR_INVALID")
-    if not all(3 <= fd <= 31 for fd in (channel_fd, plan_fd, journal_fd)):
-        raise ValueError("NATIVE_DESCRIPTOR_INVALID")
-    return subprocess.Popen(
-        [str(INSTALL / "bootstrap"), str(channel_fd), str(plan_fd), str(journal_fd)],
-        pass_fds=(channel_fd, plan_fd, journal_fd),
-        close_fds=True,
-        start_new_session=False,
-        env={"PATH": "/usr/bin:/bin", "LANG": "C"},
-    )
+    # No pathname-execution fallback while trusted installation, dependencies and
+    # safe detach are unqualified. Monkeypatching a Python gate cannot admit Native.
+    raise ValueError(NATIVE_ERROR)
 
 
 def manifest(plan: NativePlan) -> bytes:
@@ -137,6 +105,18 @@ class Preparation:
             )
         finally:
             os.close(fd)
+        from soc_agent.security_ai.ebpf_tc.release import installation_plan
+
+        planned = installation_plan(self.hashes, self.plan.program_sha256)
+        self.controller._event(
+            "NATIVE_RELEASE_BLOCKED",
+            installation_manifest_digest=planned.artifacts["manifest.bin"],
+            native_scope_digest=self.plan.approval,
+            release="BLOCKED",
+            safe_detach="BLOCKED_NO_ATOMIC_OWNERSHIP",
+            input_origin="UNPRIVILEGED_PREPARATION_NOT_NATIVE",
+            native_execution=False,
+        )
         return self.snapshot()
 
     def approve(self, value: str) -> None:
@@ -174,6 +154,9 @@ class Preparation:
 
     def snapshot(self) -> dict:
         value = self.controller.snapshot()
+        from soc_agent.security_ai.ebpf_tc.release import ReleaseEvidence
+
+        value["native_release"] = ReleaseEvidence().snapshot()
         value["input_origin"] = "B2A_PREPARATION_OR_EXPLICIT_FIXTURE_NOT_NATIVE"
         value["ebpf"].update(
             bootstrap_sha256=self.plan.bootstrap_sha256,

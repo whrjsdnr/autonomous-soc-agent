@@ -40,6 +40,12 @@ struct soc_state {
     int object_fd, ipc_fd, audit_fd, stopping, loaded, attached, failed, cleanup_verified;
     uint8_t audit_previous[32];uint32_t audit_records;
 };
+struct soc_request {uint32_t operation,sequence;uint64_t generation;uint32_t handle,reason;
+    uint8_t approval[32];struct soc_owner owner;};
+_Static_assert(sizeof(struct soc_request)==112,"request ABI");
+int soc_request_validate(const struct soc_plan *,const struct soc_request *,uint32_t,int);
+int soc_receive_request(int,const struct soc_plan *,uint32_t,struct soc_request *);
+int soc_rate_allow(uint64_t[32],uint32_t *,uint64_t);
 int soc_native_gate(void);
 int soc_plan_validate(const struct soc_plan *);
 int soc_prepare(struct soc_state *);

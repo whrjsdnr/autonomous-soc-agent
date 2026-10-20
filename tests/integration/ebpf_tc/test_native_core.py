@@ -93,13 +93,12 @@ def test_actual_api_implementations_are_linked_but_no_mutating_qdisc_api(compile
     )
     for symbol in (
         "bpf_object__load",
-        "bpf_tc_attach",
         "bpf_tc_query",
-        "bpf_tc_detach",
         "bpf_map_update_elem",
         "ring_buffer__new",
     ):
         assert symbol in p.stdout
+    assert "bpf_tc_attach" not in p.stdout and "bpf_tc_detach" not in p.stdout
     assert "bpf_tc_hook_destroy" not in p.stdout and "bpf_tc_hook_create" not in p.stdout
 
 
@@ -152,3 +151,18 @@ def test_syscall_trace_proves_gate_denies_bpf_capability_and_network_entry(compi
     body = trace.read_text()
     for forbidden in ("bpf(", "socket(", "capset(", "setuid(", "setgid(", "setresuid("):
         assert forbidden not in body
+
+
+def test_replacement_after_last_query_never_deletes_foreign_filter(compiled):
+    value = scenario(compiled, 15)
+    assert value["replacement_program"] == 999
+    assert value["remaining"] == 2 and value["detaches"] == 0
+    assert value["cleanup"] != 0 and not value["cleanup_verified"]
+    assert "CLEANUP_UNVERIFIED" in value["trace"]
+
+
+@pytest.mark.parametrize("number", [16, 17, 18, 19, 20])
+def test_changed_ownership_identity_prevents_deletion(compiled, number):
+    value = scenario(compiled, number)
+    assert value["detaches"] == 0 and value["remaining"] == 2
+    assert not value["cleanup_verified"]

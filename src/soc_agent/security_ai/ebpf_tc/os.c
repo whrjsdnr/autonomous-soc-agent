@@ -31,14 +31,17 @@ int soc_sealed(int fd,const uint8_t expected[32]) {
 int soc_trusted(const char *path,const uint8_t expected[32]) {
     /* All path components must be root-owned directories, no symlink traversal.
      * openat on directory FDs also prevents parent replacement TOCTOU. */
-    if (path[0]!='/') return -EPERM;
+    if (!path || path[0]!='/' || strstr(path,"//") || path[strlen(path)-1]=='/') return -EPERM;
     char copy[256];if (strlen(path)>=sizeof(copy)) return -EINVAL;strcpy(copy,path+1);
-    int d=open("/",O_DIRECTORY|O_CLOEXEC),fd=-1;char *save=NULL,*part=strtok_r(copy,"/",&save);
+    struct stat root;
+    int d=open("/",O_DIRECTORY|O_CLOEXEC),fd=-1;
+    if(d<0 || fstat(d,&root) || root.st_uid || (root.st_mode&022)) {if(d>=0)close(d);return -EPERM;}char *save=NULL,*part=strtok_r(copy,"/",&save);
     while (part && d>=0) {
+        if(!strcmp(part,".") || !strcmp(part,"..")) {close(d);return -EPERM;}
         char *next=strtok_r(NULL,"/",&save);struct stat st;
         fd=openat(d,part,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|(next?O_DIRECTORY:O_NONBLOCK));
         if (fd<0 || fstat(fd,&st) || st.st_uid || (st.st_mode&022) ||
-            (next?!S_ISDIR(st.st_mode):!S_ISREG(st.st_mode))) {if(fd>=0)close(fd);close(d);return -EPERM;}
+            (next?!S_ISDIR(st.st_mode):(!S_ISREG(st.st_mode) || st.st_nlink!=1))) {if(fd>=0)close(fd);close(d);return -EPERM;}
         close(d);d=fd;part=next;
     }
     uint8_t md[32];if (d<0 || (expected && (soc_fd_sha(d,md) || memcmp(md,expected,32)))) {
@@ -86,4 +89,26 @@ int soc_reduce(uid_t uid,gid_t gid) {
         prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_RAISE,CAP_NET_ADMIN,0,0) ||
         prctl(PR_SET_KEEPCAPS,0) || prctl(PR_SET_NO_NEW_PRIVS,1,0,0,0))return -EPERM;
     return 0;
+}
+
+int soc_receive_request(int fd,const struct soc_plan *p,uint32_t sequence,struct soc_request *q) {
+    if(soc_peer(fd,p))return -EPERM;
+    union {struct cmsghdr align;char body[CMSG_SPACE(sizeof(struct ucred))+CMSG_SPACE(4*sizeof(int))];} control={0};
+    struct iovec iov={q,sizeof(*q)};struct msghdr msg={.msg_iov=&iov,.msg_iovlen=1,
+        .msg_control=control.body,.msg_controllen=sizeof(control.body)};
+    ssize_t n=recvmsg(fd,&msg,MSG_DONTWAIT|MSG_CMSG_CLOEXEC);int valid=0,bad=0;
+    for(struct cmsghdr *c=CMSG_FIRSTHDR(&msg);c;c=CMSG_NXTHDR(&msg,c)) {
+        if(c->cmsg_level==SOL_SOCKET && c->cmsg_type==SCM_RIGHTS) {
+            /* Received descriptors are never commands/authority. Close all installed FDs. */
+            size_t bytes=c->cmsg_len>=CMSG_LEN(0)?c->cmsg_len-CMSG_LEN(0):0;
+            int *fds=(int *)CMSG_DATA(c);for(size_t i=0;i<bytes/sizeof(int);i++)close(fds[i]);bad=1;
+        } else if(c->cmsg_level==SOL_SOCKET && c->cmsg_type==SCM_CREDENTIALS &&
+                  c->cmsg_len==CMSG_LEN(sizeof(struct ucred))) {
+            struct ucred peer;memcpy(&peer,CMSG_DATA(c),sizeof(peer));
+            if(valid || peer.uid!=p->uid || peer.gid!=p->gid || peer.pid!=(pid_t)p->controller_pid)bad=1;
+            valid=1;
+        } else bad=1;
+    }
+    if(n!=sizeof(*q) || !valid || bad)return -EPROTO;
+    return soc_request_validate(p,q,sequence,msg.msg_flags);
 }

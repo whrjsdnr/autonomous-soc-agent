@@ -48,6 +48,9 @@ class PreparedDesktop(BrokerDesktop):
             ("Native authentication", "native_authentication"),
         ):
             rows.append(title + "   " + str(detail.get(key, "UNKNOWN")))
+        release = self.snapshot.get("native_release", {})
+        for key in ("state", "safe_detach", "kernel_compatibility"):
+            rows.append("Native release " + key + "   " + str(release.get(key, "UNKNOWN")))
         self._text(self.system, self.system.get("1.0", "end") + "\n".join(rows))
 
 

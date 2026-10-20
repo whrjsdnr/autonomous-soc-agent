@@ -53,7 +53,21 @@ def compile_native(destination: Path) -> dict[str, str]:
             str(destination / "bootstrap"),
         ]
     )
-    for name in ("broker", "fixture"):
+    # Broker embeds our reviewed loader code, rather than resolving a custom DSO
+    # after privilege transfer. Only the unprivileged fake driver uses $ORIGIN.
+    commands.append(
+        [
+            "cc",
+            *FLAGS,
+            *[str(ROOT / n) for n in ("broker.c", "core.c", "os.c", "netlink.c", "loader.c")],
+            "-lbpf",
+            "-lcrypto",
+            "-Wl,-z,relro,-z,now",
+            "-o",
+            str(destination / "broker"),
+        ]
+    )
+    for name in ("fixture",):
         commands.append(
             [
                 "cc",

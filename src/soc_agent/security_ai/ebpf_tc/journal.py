@@ -1,6 +1,8 @@
 """Read-only Native journal decoder. A hash chain is not Native attestation by itself."""
 
 import hashlib
+import os
+import stat
 import struct
 from pathlib import Path
 
@@ -24,12 +26,17 @@ assert ROW.size == 192
 
 
 def recover_native(path: Path, approval: str) -> dict:
-    if path.is_symlink() or not 0 < path.stat().st_size <= 192 * 1024:
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC | os.O_NONBLOCK)
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or not 0 < info.st_size <= 192 * 1024:
+        os.close(fd)
         raise ValueError("NATIVE_JOURNAL_BOUND")
     previous, ordinal, claimed_cleanup = bytes(32), 0, False
     last_owner = None
-    with path.open("rb") as stream:
+    with os.fdopen(fd, "rb") as stream:
         while body := stream.read(ROW.size):
+            if ordinal >= 1024:
+                raise ValueError("NATIVE_JOURNAL_BOUND")
             if len(body) != ROW.size:
                 raise ValueError("NATIVE_JOURNAL_PARTIAL")
             plan, raw_kind, owner, sequence, count, before, checksum = ROW.unpack(body)
@@ -49,13 +56,22 @@ def recover_native(path: Path, approval: str) -> dict:
                 claimed_cleanup = True
             if kind in {"ATTACH_REQUESTED", "CLEANUP_UNVERIFIED"}:
                 claimed_cleanup = False
+        after = os.fstat(stream.fileno())
+        if (info.st_size, info.st_mtime_ns, info.st_ctime_ns) != (
+            after.st_size,
+            after.st_mtime_ns,
+            after.st_ctime_ns,
+        ):
+            raise ValueError("NATIVE_JOURNAL_CHANGED")
     return dict(
         source="NATIVE_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
         audit_digest=previous.hex(),
         records=ordinal,
         claimed_cleanup=claimed_cleanup,
         last_owner_observed=last_owner is not None,
-        state="RECOVERY_REQUIRES_USER_REVIEW",
+        state="ORPHANED"
+        if last_owner is not None and not claimed_cleanup
+        else "RECOVERY_REQUIRES_USER_REVIEW",
         process_exit="UNKNOWN",
         authentication_restored=False,
         automatic_attach=False,

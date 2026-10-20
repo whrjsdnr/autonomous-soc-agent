@@ -21,6 +21,9 @@ def main(argv=None) -> int:
     subs = parser.add_subparsers(dest="mode", required=True)
     build = subs.add_parser("compile")
     build.add_argument("--output", type=Path, required=True)
+    qualify = subs.add_parser("qualify", help="Read-only release/installation plan; no install")
+    qualify.add_argument("--program", type=Path, required=True)
+    qualify.add_argument("--artifacts", type=Path, required=True)
     for name in ("prepare", "fixture"):
         p = subs.add_parser(name)
         for flag in ("program", "inspector", "artifacts", "data-directory"):
@@ -30,6 +33,23 @@ def main(argv=None) -> int:
     local_controller()
     if args.mode == "compile":
         print(json.dumps(compile_native(args.output), indent=2))
+        return 0
+    if args.mode == "qualify":
+        from soc_agent.security_ai.ebpf_tc.bridge import inspect_artifacts
+        from soc_agent.security_ai.ebpf_tc.release import MODES, ReleaseEvidence, installation_plan
+
+        hashes = inspect_artifacts(args.artifacts)
+        plan = installation_plan(hashes, file_sha(args.program))
+        print(
+            json.dumps(
+                {
+                    "installation_plan": plan.model_dump(),
+                    "required_root_install_modes": {k: oct(v) for k, v in MODES.items()},
+                    "release": ReleaseEvidence().snapshot(),
+                },
+                indent=2,
+            )
+        )
         return 0
     scope = Scope(
         hook="INGRESS",

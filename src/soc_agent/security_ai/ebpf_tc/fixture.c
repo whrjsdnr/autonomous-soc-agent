@@ -29,6 +29,7 @@ static int attach(struct soc_state *s) {
     return f(s)->scenario==4?-EIO:0;
 }
 static int detach(struct soc_state *s) {
+    if(f(s)->scenario==15) return soc_real_ops.detach(s);
     f(s)->detaches++;
     if(f(s)->scenario==8)return -EIO;
     f(s)->current.count--;
@@ -38,6 +39,10 @@ static int detach(struct soc_state *s) {
 static int release(struct soc_state *s) {f(s)->releases++;return 0;}
 static int record(struct soc_state *s,const char *kind) {
     f(s)->records++;
+    if(f(s)->scenario==15 && !strcmp(kind,"DETACH_REQUESTED")) {
+        /* External replacement AFTER the core's final ownership query/snapshot. */
+        f(s)->current.filters[1].program_id=999;
+    }
     if(strlen(f(s)->trace)+strlen(kind)+2<sizeof(f(s)->trace)) {strcat(f(s)->trace,kind);strcat(f(s)->trace,";");}
     if((f(s)->scenario==9 && !strcmp(kind,"ATTACH_VERIFIED")) ||
        (f(s)->scenario==10 && !strcmp(kind,"DETACH_VERIFIED")))return -EIO;
@@ -46,7 +51,7 @@ static int record(struct soc_state *s,const char *kind) {
 static const struct soc_ops fake_ops={valid,snap,load,enable,query,attach,detach,release,record};
 int main(int argc,char **argv) {
     if(argc!=2 || !getuid() || getuid()!=geteuid())return 2;
-    char *end;long scenario=strtol(argv[1],&end,10);if(*end || scenario<0 || scenario>14)return 2;
+    char *end;long scenario=strtol(argv[1],&end,10);if(*end || scenario<0 || scenario>20)return 2;
     struct fake fake={.scenario=scenario,.current={.clsact=1,.count=1}};
     fake.current.filters[0]=(struct soc_filter){.parent=0xfffffff2,.priority=1,.handle=1,.program_id=77};
     strcpy(fake.current.filters[0].kind,"foreign");
@@ -61,13 +66,19 @@ int main(int argc,char **argv) {
     if(scenario==2) {fake.current.filters[0].priority=SOC_PRIORITY;fake.current.filters[0].handle=4321;}
     if(scenario==13)s.plan.approval[0]++;
     if(scenario==14)fake.current.clsact=0;
-    int prepared=soc_prepare(&s),attached=prepared?-999:soc_attach(&s),cleaned=soc_cleanup(&s);
+    int prepared=soc_prepare(&s),attached=prepared?-999:soc_attach(&s);
+    if(scenario==16)s.owner.generation++;
+    if(scenario==17)s.owner.namespace_inode++;
+    if(scenario==18)s.owner.ifindex++;
+    if(scenario==19)s.owner.application[0]++;
+    if(scenario==20)s.owner.hook=2;
+    int cleaned=soc_cleanup(&s);
     printf("{\"source\":\"C_TRANSACTION_CORE_FAKE_OPS_ONLY\",\"native_gate\":%s,"
         "\"scenario\":%ld,\"prepare\":%d,\"attach\":%d,\"cleanup\":%d,"
         "\"loads\":%d,\"attaches\":%d,\"detaches\":%d,\"releases\":%d,"
         "\"cleanup_verified\":%s,\"failed\":%s,\"foreign_program\":%u,\"remaining\":%u,"
-        "\"trace\":\"%s\"}\n",soc_native_gate()?"true":"false",scenario,prepared,attached,cleaned,
+        "\"replacement_program\":%u,\"trace\":\"%s\"}\n",soc_native_gate()?"true":"false",scenario,prepared,attached,cleaned,
         fake.loads,fake.attaches,fake.detaches,fake.releases,s.cleanup_verified?"true":"false",
-        s.failed?"true":"false",fake.current.filters[0].program_id,fake.current.count,fake.trace);
+        s.failed?"true":"false",fake.current.filters[0].program_id,fake.current.count,fake.current.filters[1].program_id,fake.trace);
     return 0;
 }
