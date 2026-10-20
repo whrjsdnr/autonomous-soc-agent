@@ -3,6 +3,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/capability.h>
+#include <link.h>
+#include <limits.h>
+#include <sys/sysmacros.h>
 #include <openssl/evp.h>
 #include <sys/prctl.h>
 #include <sys/stat.h>
@@ -79,6 +82,76 @@ static int hash_fd(int fd,const uint8_t expected[32],uint64_t size,unsigned mode
         a.st_mtim.tv_sec!=b.st_mtim.tv_sec || a.st_mtim.tv_nsec!=b.st_mtim.tv_nsec ||
         a.st_ctim.tv_sec!=b.st_ctim.tv_sec || a.st_ctim.tv_nsec!=b.st_ctim.tv_nsec?-EPERM:0;
 }
+/* Compare a mapped file-backed segment with the held verified inode. This is
+ * post-map evidence, not proof that pre-main constructors were safe. */
+static int mapped_inode(const struct dl_phdr_info *info,const struct stat *st) {
+    uintptr_t address=0;int found=0;
+    for(ElfW(Half) i=0;i<info->dlpi_phnum;i++)if(info->dlpi_phdr[i].p_type==PT_LOAD &&
+        info->dlpi_phdr[i].p_filesz) {address=info->dlpi_addr+info->dlpi_phdr[i].p_vaddr;found=1;break;}
+    if(!found)return -EPERM;
+    FILE *maps=fopen("/proc/self/maps","re");if(!maps)return -EPERM;
+    char line[512];int result=-EPERM;unsigned lines=0;
+    while(fgets(line,sizeof(line),maps)) {
+        if(++lines>2048 || !strchr(line,'\n'))break;
+        unsigned long lo,hi,offset,inode;unsigned dev_major,dev_minor;char perms[5];
+        if(sscanf(line,"%lx-%lx %4s %lx %x:%x %lu",&lo,&hi,perms,&offset,
+            &dev_major,&dev_minor,&inode)!=7)break;
+        if(address>=lo && address<hi) {
+            result=inode==(unsigned long)st->st_ino && dev_major==major(st->st_dev) &&
+                dev_minor==minor(st->st_dev)?0:-EPERM;break;
+        }
+    }fclose(maps);return result;
+}
+static int trusted_mapping_name(const char *name) {
+    if(strncmp(name,"/lib/",5) && strncmp(name,"/lib64/",7) &&
+       strncmp(name,"/usr/lib/",9) && strncmp(name,"/usr/lib64/",11))return -EPERM;
+    if(strlen(name)>=256 || strstr(name,"//") || strstr(name,"/../") || strstr(name,"/./"))return -EPERM;
+    char path[256];strcpy(path,name);
+    /* Permit root-owned distribution aliases such as /lib -> usr/lib, while
+     * rejecting user-owned/mutable named parents before canonical FD checks. */
+    for(char *c=path+1;;c++)if(*c=='/' || !*c) {
+        char saved=*c;*c=0;struct stat named,resolved;
+        int rc=lstat(path,&named) || named.st_uid || named.st_gid ||
+            stat(path,&resolved) || resolved.st_uid || resolved.st_gid || (resolved.st_mode&022);
+        *c=saved;if(rc)return -EPERM;if(!saved)break;
+    }return 0;
+}
+struct mapping_check {const unsigned char *body;uint32_t count,seen;};
+static int mapping_callback(struct dl_phdr_info *info,size_t size,void *context) {
+    (void)size;struct mapping_check *check=context;
+    if(++check->seen>128)return 1;
+    const char *name=info->dlpi_name;
+    /* Main executable has its own root-owned inode check. vDSO is kernel-provided,
+     * explicitly outside disk dependency attestation, never a zero-drop claim. */
+    if(!name || !*name || !strcmp(name,"linux-vdso.so.1"))return 0;
+    if(trusted_mapping_name(name))return 1;
+    char canonical[PATH_MAX];if(!realpath(name,canonical) || strlen(canonical)>=256)return 1;
+    for(uint32_t i=0;i<check->count;i++) {
+        struct soc_trust_record r;
+        memcpy(&r,check->body+sizeof(struct soc_trust_header)+i*sizeof(r),sizeof(r));
+        if(strcmp(r.path,canonical))continue;
+        int fd=soc_trusted(canonical,NULL);if(fd<0)return 1;
+        struct stat st;int rc=fstat(fd,&st) || hash_fd(fd,r.sha,r.size,r.mode) || mapped_inode(info,&st);
+        close(fd);return rc?1:0;
+    }return 1;
+}
+int soc_mapped_dependencies(const void *body,size_t size) {
+    if(!body || size<sizeof(struct soc_trust_header))return -EPERM;
+    struct soc_trust_header h;memcpy(&h,body,sizeof(h));
+    if(memcmp(h.magic,"SOCRC001",8) || h.schema!=1 || !h.count || h.count>72 ||
+       h.native_release || h.dynamic_closure ||
+       size!=sizeof(h)+h.count*sizeof(struct soc_trust_record))return -EPERM;
+    for(uint32_t i=0;i<h.count;i++) {
+        struct soc_trust_record r;memcpy(&r,(const char *)body+sizeof(h)+i*sizeof(r),sizeof(r));
+        if(!allowed_path(r.path) || !r.size || r.size>16777216 || r.mode&~0777U ||
+           r.mode&022 || r.reserved || !nonzero(r.sha,32))return -EPERM;
+    }
+    struct mapping_check check={body,h.count,0};
+    return dl_iterate_phdr(mapping_callback,&check)?-EPERM:0;
+}
+int soc_account_identity(uid_t uid,gid_t gid,uid_t found_uid,gid_t found_gid,int found) {
+    return uid && gid && found==1 && uid==found_uid && gid==found_gid?0:-EPERM;
+}
 int soc_release_check(const struct soc_plan *p,const uint8_t expected[32],const char v[16],int stage) {
     if(!p || stage<1 || stage>3)return -EPERM;
     int fd=soc_trusted(SOC_INSTALL "release.trust",NULL);struct stat st;
@@ -88,6 +161,7 @@ int soc_release_check(const struct soc_plan *p,const uint8_t expected[32],const 
         st.st_size<232 || st.st_size>(off_t)sizeof(body)?-EPERM:0;
     if(!rc && pread(fd,body,st.st_size,0)!=st.st_size)rc=-EIO;close(fd);
     if(rc || soc_trust_parse(body,st.st_size,p,expected,v))return -EPERM;
+    size_t descriptor_size=st.st_size;
     /* release.trust is the bounded execution schema compiled from strict release.json.
      * Both must be in the same root-owned quiescent installation. Neither opens the gate. */
     fd=soc_trusted(SOC_INSTALL "release.json",expected);
@@ -114,7 +188,7 @@ int soc_release_check(const struct soc_plan *p,const uint8_t expected[32],const 
             if(self>=0)close(self);
         }
         close(fd);if(rc)return -EPERM;
-    }return 0;
+    }return soc_mapped_dependencies(body,descriptor_size);
 }
 int soc_capability_contract(uint64_t effective,uint64_t permitted,uint64_t inheritable,
                            uint64_t ambient,uint64_t bounding) {
@@ -122,9 +196,15 @@ int soc_capability_contract(uint64_t effective,uint64_t permitted,uint64_t inher
     return effective==expected && permitted==expected && inheritable==expected &&
         ambient==expected && bounding==expected?0:-EPERM;
 }
+int soc_process_identity(uid_t r,uid_t e,uid_t saved,gid_t gr,gid_t ge,gid_t gs,int groups) {
+    return r && gr && r==e && e==saved && gr==ge && ge==gs && groups==0?0:-EPERM;
+}
 int soc_capabilities(void) {
     struct __user_cap_header_struct h={_LINUX_CAPABILITY_VERSION_3,0};
     struct __user_cap_data_struct d[2]={{0}};
+    uid_t r,e,saved;gid_t gr,ge,gs;
+    if(getresuid(&r,&e,&saved) || getresgid(&gr,&ge,&gs) ||
+       soc_process_identity(r,e,saved,gr,ge,gs,getgroups(0,NULL)))return -EPERM;
     if(syscall(SYS_capget,&h,d) || !getuid() || getuid()!=geteuid() ||
        prctl(PR_GET_NO_NEW_PRIVS,0,0,0,0)!=1)return -EPERM;
     uint64_t ambient=0,bounding=0;

@@ -87,7 +87,7 @@ int soc_reduce(uid_t uid,gid_t gid) {
     for(int i=0;i<2;i++)d[i].effective=d[i].permitted=d[i].inheritable=(uint32_t)(mask>>(32*i));
     if(syscall(SYS_capset,&h,d) || prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_RAISE,CAP_BPF,0,0) ||
         prctl(PR_CAP_AMBIENT,PR_CAP_AMBIENT_RAISE,CAP_NET_ADMIN,0,0) ||
-        prctl(PR_SET_KEEPCAPS,0) || prctl(PR_SET_NO_NEW_PRIVS,1,0,0,0))return -EPERM;
+        prctl(PR_SET_KEEPCAPS,0) || prctl(PR_SET_NO_NEW_PRIVS,1,0,0,0) || prctl(PR_SET_DUMPABLE,0))return -EPERM;
     return 0;
 }
 

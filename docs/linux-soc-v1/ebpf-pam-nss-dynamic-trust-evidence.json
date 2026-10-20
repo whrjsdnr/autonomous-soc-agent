@@ -1,0 +1,3081 @@
+{
+  "phase": "B-2G",
+  "baseline_commit": "fb4c8f28d735d8bd368f0b81f66489949aa41967",
+  "scope": "NON_PRIVILEGED_STATIC_AND_ADVERSARIAL_FIXTURE_NOT_NATIVE",
+  "source_sha256": {
+    "src/soc_agent/security_ai/ebpf_tc/bootstrap.c": "2dbe6763e3612729ce30045bfdb3427261e617530eb4314aac00403631b592fd",
+    "src/soc_agent/security_ai/ebpf_tc/bridge.py": "b709a871531c924c9f59d5af10053898b93c12c0d4075910a0efc4031b780497",
+    "src/soc_agent/security_ai/ebpf_tc/build.py": "c26192bb2c92d83f411bc585a94e727e5e6daf57d1e822dc44773aacd982d68e",
+    "src/soc_agent/security_ai/ebpf_tc/dependencies.py": "b4a2ca8b8a86156fc830174a4ebb21b9192b785fb32e0d7fb65d64c462bb0064",
+    "src/soc_agent/security_ai/ebpf_tc/dynamic_trust.py": "568ebea6f98444705a24218c22c5f288abf215431f543109169ec5708a716e06",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "2a2be22882a8b3aaa5e8d3df99b1bf51f70f67de173e045d26b6f118e0fd44a2",
+    "src/soc_agent/security_ai/ebpf_tc/installation.py": "cb566de9deb19acfa2402d8eb3b36770bddef59e959435cdc0b5fec734a6afba",
+    "src/soc_agent/security_ai/ebpf_tc/native.h": "51230a69656ff06aec9316dc1b41015aeffe477d896acda282bc24f4efaf2125",
+    "src/soc_agent/security_ai/ebpf_tc/os.c": "febc1f868120582df7ed2458e743de7c9cd8e1abba971b8b0e7d73426d5e638e",
+    "src/soc_agent/security_ai/ebpf_tc/pam-policy.conf": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+    "src/soc_agent/security_ai/ebpf_tc/trust.c": "7293510d411d151667ccaeb16b79714669417addb5599e4875b53689ec0eb906",
+    "src/soc_agent/security_ai/ebpf_tc/trust.py": "523f15e0274e65240b8276824b12b79cc23ff048a057ba1e644b2da0fb3eeaf1",
+    "tests/integration/ebpf_dynamic_trust/test_boundaries.py": "26d07db6100b6ae96ad7a4648b14bf821c17686cc3e04834095056d8a59f873e"
+  },
+  "regression_source_hashes_match_final_source": true,
+  "test_cohorts_not_summed": {
+    "dynamic": {
+      "passed": 47,
+      "exit_code": 0,
+      "elapsed_seconds": 14.828992291993927,
+      "resources": []
+    },
+    "release": {
+      "passed": 67,
+      "exit_code": 0,
+      "elapsed_seconds": 7.138538422004785,
+      "resources": [
+        {
+          "memavailable": 4938252288,
+          "psi": "some avg10=0.64 avg60=1.84 avg300=1.70 total=227195002\nfull avg10=0.64 avg60=1.79 avg300=1.66 total=217652507\n"
+        }
+      ]
+    },
+    "installation": {
+      "passed": 50,
+      "exit_code": 0,
+      "elapsed_seconds": 67.6132489439915,
+      "resources": [
+        {
+          "memavailable": 4950405120,
+          "psi": "some avg10=0.29 avg60=1.61 avg300=1.66 total=227199599\nfull avg10=0.29 avg60=1.57 avg300=1.61 total=217655676\n"
+        }
+      ]
+    },
+    "native": {
+      "passed": 147,
+      "exit_code": 0,
+      "elapsed_seconds": 119.47674838500097,
+      "resources": [
+        {
+          "memavailable": 4940173312,
+          "psi": "some avg10=2.49 avg60=2.05 avg300=1.71 total=228571076\nfull avg10=1.78 avg60=1.63 avg300=1.57 total=218687621\n"
+        }
+      ]
+    },
+    "broker": {
+      "passed": 63,
+      "exit_code": 0,
+      "elapsed_seconds": 27.105086203024257,
+      "resources": [
+        {
+          "memavailable": 5018980352,
+          "psi": "some avg10=0.00 avg60=0.27 avg300=1.12 total=228582516\nfull avg10=0.00 avg60=0.21 avg300=1.03 total=218699012\n"
+        }
+      ]
+    },
+    "unit": {
+      "passed": 693,
+      "exit_code": 0,
+      "elapsed_seconds": 64.84196841501398,
+      "resources": [
+        {
+          "memavailable": 4924035072,
+          "psi": "some avg10=0.00 avg60=0.17 avg300=1.02 total=228584883\nfull avg10=0.00 avg60=0.13 avg300=0.93 total=218701331\n"
+        }
+      ]
+    },
+    "integration": {
+      "passed": 58,
+      "exit_code": 0,
+      "elapsed_seconds": 65.95746409398271,
+      "resources": [
+        {
+          "memavailable": 4998926336,
+          "psi": "some avg10=0.19 avg60=0.11 avg300=0.82 total=228642175\nfull avg10=0.19 avg60=0.10 avg300=0.75 total=218757940\n"
+        }
+      ]
+    },
+    "model": {
+      "passed": 1,
+      "exit_code": 0,
+      "elapsed_seconds": 10.404028503980953,
+      "resources": [
+        {
+          "memavailable": 4907110400,
+          "psi": "some avg10=0.05 avg60=0.13 avg300=0.68 total=228801552\nfull avg10=0.05 avg60=0.12 avg300=0.62 total=218916672\n"
+        },
+        {
+          "memavailable": 4819255296,
+          "psi": "some avg10=0.04 avg60=0.12 avg300=0.67 total=228801552\nfull avg10=0.04 avg60=0.12 avg300=0.62 total=218916672\n"
+        },
+        {
+          "memavailable": 4821807104,
+          "psi": "some avg10=0.03 avg60=0.12 avg300=0.67 total=228801552\nfull avg10=0.03 avg60=0.12 avg300=0.61 total=218916672\n"
+        }
+      ]
+    },
+    "gui": {
+      "passed": 17,
+      "exit_code": 0,
+      "elapsed_seconds": 71.32001645403216,
+      "resources": [
+        {
+          "memavailable": 4951019520,
+          "psi": "some avg10=0.01 avg60=0.10 avg300=0.64 total=228814118\nfull avg10=0.01 avg60=0.10 avg300=0.59 total=218929223\n"
+        }
+      ]
+    },
+    "audit": {
+      "passed": 125,
+      "exit_code": 0,
+      "elapsed_seconds": 16.06985444901511,
+      "resources": [
+        {
+          "memavailable": 4956618752,
+          "psi": "some avg10=0.00 avg60=0.02 avg300=0.49 total=228831260\nfull avg10=0.00 avg60=0.02 avg300=0.45 total=218946102\n"
+        }
+      ]
+    }
+  },
+  "quality": {
+    "ruff": {
+      "exit_code": 0,
+      "seconds": 0.21742092695785686,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "seconds": 0.26175068598240614,
+      "result": "1239 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "seconds": 0.2799853300093673,
+      "result": "Building wheel...\nSuccessfully built dist/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    },
+    "wheel_source_files_matched": 543,
+    "rebuilt_artifacts_and_bundle_match": true,
+    "workspace_export_sha_match": true,
+    "diff_check": true
+  },
+  "identities": {
+    "artifacts": {
+      "bootstrap": "76260cb6ea334b7dfbb1fb277bfac46cd3ab163f2cec8224c58b6389d928163f",
+      "broker": "2258b674db39849fbc9ad145d82d0fd8f1731816f9b24ce514ba7c571cd6e1bc",
+      "libnative-tc.so": "19f200225cbc163c80b40fbf1de5f39f506fbde0e2b30eb056e3f1ad28f9fff4",
+      "tc-fixture": "c7972a6c1f8a821f783ed527bf4c1544a956947932d1e80300172facb5203e29",
+      "tcx-dispatch-fixture": "6dec643f83374aa4f11bc27ec7165dfd64747de7d7b4cb5e3e2c8a509fc2ea28",
+      "tcx.bpf.o": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "source_bundle_digest": "99259acf82c1d8b16cc1da4da75518d093d272a235d33a0d10da23969c618f6f"
+    },
+    "bundle_digest": "99259acf82c1d8b16cc1da4da75518d093d272a235d33a0d10da23969c618f6f"
+  },
+  "release_manifest": {
+    "application_seconds": 3600,
+    "broker_address_space_mib": 256,
+    "bundle_digest": "99259acf82c1d8b16cc1da4da75518d093d272a235d33a0d10da23969c618f6f",
+    "capabilities": [
+      "CAP_BPF",
+      "CAP_NET_ADMIN"
+    ],
+    "contract": "soc-tcx-trusted-release:v1",
+    "cpu_seconds": 20,
+    "dependencies": [
+      {
+        "interpreter": null,
+        "mode": 493,
+        "needed": [],
+        "path": "/usr/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2",
+        "sha256": "c20a2dc8917c755f02b94049356320fe1f62ac7d9f8994731f807d9df39302da",
+        "size": 236616,
+        "soname": "ld-linux-x86-64.so.2",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libcap-ng.so.0",
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libaudit.so.1.0.0",
+        "sha256": "8a4ca5eda7607f2e65da7cb32a780cc0dcfbf202037482ef4261a3c1ec339083",
+        "size": 133200,
+        "soname": "libaudit.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libelf.so.1",
+          "libz.so.1",
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libbpf.so.1.3.0",
+        "sha256": "0e9998e17e38d78e5ce953f89a5e6a7c8b457d3e1bfe71e3ec5a1cfb05bbd1c3",
+        "size": 387728,
+        "soname": "libbpf.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": "/lib64/ld-linux-x86-64.so.2",
+        "mode": 493,
+        "needed": [
+          "ld-linux-x86-64.so.2"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libc.so.6",
+        "sha256": "3a15d66867d83762c7f2f1e37359cb8f6c5743edb369c65285cb0b1c4f7498bf",
+        "size": 2129424,
+        "soname": "libc.so.6",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6",
+          "ld-linux-x86-64.so.2"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libcap-ng.so.0.0.0",
+        "sha256": "25349c22956c7af94f46e728d7e4c1eba57d0e4a0517f72781fb495d541eeef3",
+        "size": 26848,
+        "soname": "libcap-ng.so.0",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": "/lib64/ld-linux-x86-64.so.2",
+        "mode": 420,
+        "needed": [
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libcap.so.2.66",
+        "sha256": "6ac6abc86ac891c6e13486470e26f1d939f47fda9e6b5d5508a7f5ec881adc84",
+        "size": 51536,
+        "soname": "libcap.so.2",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libcrypt.so.1.1.0",
+        "sha256": "1502636e3be8232c9cf801dfb533694aea985d449904f3e1295db26d7b348946",
+        "size": 198664,
+        "soname": "libcrypt.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libcrypto.so.3",
+        "sha256": "6866ed711dab8927e1bf82bf1cd30e828bdfc34f3cc1e83b1c9eb01ce6c37d9a",
+        "size": 5309400,
+        "soname": "libcrypto.so.3",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libz.so.1",
+          "libzstd.so.1",
+          "libc.so.6",
+          "ld-linux-x86-64.so.2"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libelf-0.190.so",
+        "sha256": "248c989360783cdc52f3659921de852c2efcc2097253ce58e34443f856412814",
+        "size": 121560,
+        "soname": "libelf.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6",
+          "ld-linux-x86-64.so.2"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libm.so.6",
+        "sha256": "fce00b6f25f459cf4ae0b7fae4257909a1a8a86f9149e7c029a5d617baf1ccd0",
+        "size": 952616,
+        "soname": "libm.so.6",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libcap.so.2",
+          "libm.so.6",
+          "libc.so.6",
+          "ld-linux-x86-64.so.2"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libnss_systemd.so.2",
+        "sha256": "3d6ce4ca24d0001182accbe820df2f3fb9f4eb8035356ce6f214c966805bf5eb",
+        "size": 371112,
+        "soname": "libnss_systemd.so.2",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libaudit.so.1",
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libpam.so.0.85.1",
+        "sha256": "9e1c85dcceeedd56568874afa04c52bbd051fb8bac52c3e1f5feeb1eed14238a",
+        "size": 67888,
+        "soname": "libpam.so.0",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libpam.so.0",
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libpam_misc.so.0.82.1",
+        "sha256": "a8fddf2a564a352986de28e0146a4cd7c1dd4c64aa84e9654c38a19c29fd56b6",
+        "size": 22776,
+        "soname": "libpam_misc.so.0",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libpcre2-8.so.0.11.2",
+        "sha256": "e00576d71d81d3ba0cfa4903c835a44a8723aac96f72f79ff75200b4cff9071b",
+        "size": 625344,
+        "soname": "libpcre2-8.so.0",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libpcre2-8.so.0",
+          "libc.so.6",
+          "ld-linux-x86-64.so.2"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libselinux.so.1",
+        "sha256": "0ec0843463f90e227b0e138e1f379774f50b5514bd7f5dbd4c8a87aca0aa6670",
+        "size": 174472,
+        "soname": "libselinux.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libz.so.1.3",
+        "sha256": "86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892",
+        "size": 113000,
+        "soname": "libz.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/libzstd.so.1.5.5",
+        "sha256": "0a2128bc10841fb29e76d08d945864dfb0b6a66da5df6df5d8299197439e54bb",
+        "size": 755864,
+        "soname": "libzstd.so.1",
+        "source": "STATIC_READELF_NOT_LOADED"
+      },
+      {
+        "interpreter": null,
+        "mode": 420,
+        "needed": [
+          "libpam.so.0",
+          "libcrypt.so.1",
+          "libselinux.so.1",
+          "libc.so.6"
+        ],
+        "path": "/usr/lib/x86_64-linux-gnu/security/pam_unix.so",
+        "sha256": "48c7a809be645451122cbf1957532dc4d3907c52eb59f01269c5380ee8cc8806",
+        "size": 59632,
+        "soname": "pam_unix.so",
+        "source": "STATIC_READELF_NOT_LOADED"
+      }
+    ],
+    "destination": "/usr/libexec/soc-agent-ebpf",
+    "duration_seconds": 300,
+    "dynamic_dependency_closure": "UNKNOWN_PAM_NSS_RUNTIME",
+    "dynamic_trust": {
+      "builtin_source": "GLIBC_FILES_DNS_SOURCE_NOT_RUNTIME_PROOF",
+      "contract": "soc-pam-nss-static-trust:v1",
+      "elf": {
+        "bootstrap": {
+          "bind_now": true,
+          "executable_stack": false,
+          "imports": [
+            "EVP_Digest",
+            "EVP_DigestFinal_ex",
+            "EVP_DigestInit_ex",
+            "EVP_DigestUpdate",
+            "EVP_MD_CTX_free",
+            "EVP_MD_CTX_new",
+            "EVP_sha256",
+            "_ITM_deregisterTMCloneTable",
+            "_ITM_registerTMCloneTable",
+            "__cxa_finalize",
+            "__errno_location",
+            "__fprintf_chk",
+            "__gmon_start__",
+            "__isoc23_sscanf",
+            "__isoc23_strtol",
+            "__isoc23_strtoull",
+            "__libc_start_main",
+            "__openat_2",
+            "__pread_chk",
+            "__realpath_chk",
+            "__snprintf_chk",
+            "__stack_chk_fail",
+            "__strcpy_chk",
+            "alarm",
+            "clearenv",
+            "clock_gettime",
+            "close",
+            "close_range",
+            "dl_iterate_phdr",
+            "dup2",
+            "fclose",
+            "fcntl",
+            "fexecve",
+            "fflush",
+            "fgets",
+            "flock",
+            "fopen",
+            "free",
+            "fstat",
+            "fsync",
+            "fwrite",
+            "getauxval",
+            "geteuid",
+            "getgid",
+            "getgroups",
+            "getpgrp",
+            "getppid",
+            "getpwnam_r",
+            "getpwuid_r",
+            "getresgid",
+            "getresuid",
+            "getsid",
+            "getsockopt",
+            "getuid",
+            "if_nametoindex",
+            "isatty",
+            "lstat",
+            "malloc",
+            "memchr",
+            "memcmp",
+            "memfd_create",
+            "misc_conv",
+            "open",
+            "pam_acct_mgmt",
+            "pam_authenticate",
+            "pam_end",
+            "pam_start",
+            "prctl",
+            "pread",
+            "puts",
+            "read",
+            "recvmsg",
+            "setgroups",
+            "setresgid",
+            "setresuid",
+            "stat",
+            "strchr",
+            "strcmp",
+            "strcspn",
+            "strlen",
+            "strncmp",
+            "strnlen",
+            "strrchr",
+            "strstr",
+            "strtok_r",
+            "syscall",
+            "tcgetpgrp",
+            "tcgetsid",
+            "write"
+          ],
+          "interpreter": "/lib64/ld-linux-x86-64.so.2",
+          "needed": [
+            "libcrypto.so.3",
+            "libpam.so.0",
+            "libpam_misc.so.0",
+            "libc.so.6"
+          ],
+          "relro": true,
+          "sha256": "76260cb6ea334b7dfbb1fb277bfac46cd3ab163f2cec8224c58b6389d928163f",
+          "soname": null,
+          "source": "STATIC_READELF_NOT_EXECUTED"
+        },
+        "broker": {
+          "bind_now": true,
+          "executable_stack": false,
+          "imports": [
+            "EVP_Digest",
+            "EVP_DigestFinal_ex",
+            "EVP_DigestInit_ex",
+            "EVP_DigestUpdate",
+            "EVP_MD_CTX_free",
+            "EVP_MD_CTX_new",
+            "EVP_sha256",
+            "_ITM_deregisterTMCloneTable",
+            "_ITM_registerTMCloneTable",
+            "__cxa_finalize",
+            "__errno_location",
+            "__gmon_start__",
+            "__isoc23_sscanf",
+            "__isoc23_strtol",
+            "__isoc23_strtoull",
+            "__libc_start_main",
+            "__openat_2",
+            "__realpath_chk",
+            "__snprintf_chk",
+            "__stack_chk_fail",
+            "__strcpy_chk",
+            "bind",
+            "bpf_link_create",
+            "bpf_link_detach",
+            "bpf_link_get_info_by_fd",
+            "bpf_map__fd",
+            "bpf_map__key_size",
+            "bpf_map__max_entries",
+            "bpf_map__name",
+            "bpf_map__type",
+            "bpf_map__value_size",
+            "bpf_map_update_elem",
+            "bpf_obj_get_info_by_fd",
+            "bpf_object__close",
+            "bpf_object__find_map_fd_by_name",
+            "bpf_object__find_program_by_name",
+            "bpf_object__load",
+            "bpf_object__next_map",
+            "bpf_object__next_program",
+            "bpf_object__open_mem",
+            "bpf_prog_get_fd_by_id",
+            "bpf_prog_get_info_by_fd",
+            "bpf_program__fd",
+            "bpf_program__section_name",
+            "bpf_program__set_autoload",
+            "bpf_program__set_expected_attach_type",
+            "bpf_program__type",
+            "bpf_tc_query",
+            "calloc",
+            "clock_gettime",
+            "close",
+            "dl_iterate_phdr",
+            "fclose",
+            "fcntl",
+            "fgets",
+            "fopen",
+            "free",
+            "fstat",
+            "fsync",
+            "fwrite",
+            "geteuid",
+            "getgid",
+            "getgroups",
+            "getpid",
+            "getresgid",
+            "getresuid",
+            "getsockopt",
+            "getuid",
+            "if_nametoindex",
+            "libbpf_get_error",
+            "libbpf_set_print",
+            "lstat",
+            "malloc",
+            "memchr",
+            "memcmp",
+            "memcpy",
+            "open",
+            "poll",
+            "prctl",
+            "pread",
+            "puts",
+            "read",
+            "recvmsg",
+            "ring_buffer__free",
+            "ring_buffer__new",
+            "ring_buffer__poll",
+            "send",
+            "sendto",
+            "setgroups",
+            "setresgid",
+            "setresuid",
+            "setrlimit",
+            "setsockopt",
+            "signal",
+            "socket",
+            "stat",
+            "strchr",
+            "strcmp",
+            "strlen",
+            "strncmp",
+            "strrchr",
+            "strstr",
+            "strtok_r",
+            "strtoull",
+            "syscall",
+            "write"
+          ],
+          "interpreter": "/lib64/ld-linux-x86-64.so.2",
+          "needed": [
+            "libbpf.so.1",
+            "libcrypto.so.3",
+            "libc.so.6"
+          ],
+          "relro": true,
+          "sha256": "2258b674db39849fbc9ad145d82d0fd8f1731816f9b24ce514ba7c571cd6e1bc",
+          "soname": null,
+          "source": "STATIC_READELF_NOT_EXECUTED"
+        },
+        "libnative-tc.so": {
+          "bind_now": true,
+          "executable_stack": false,
+          "imports": [
+            "EVP_Digest",
+            "EVP_DigestFinal_ex",
+            "EVP_DigestInit_ex",
+            "EVP_DigestUpdate",
+            "EVP_MD_CTX_free",
+            "EVP_MD_CTX_new",
+            "EVP_sha256",
+            "_ITM_deregisterTMCloneTable",
+            "_ITM_registerTMCloneTable",
+            "__cxa_finalize",
+            "__errno_location",
+            "__gmon_start__",
+            "__isoc23_sscanf",
+            "__isoc23_strtoull",
+            "__openat_2",
+            "__realpath_chk",
+            "__snprintf_chk",
+            "__stack_chk_fail",
+            "__strcpy_chk",
+            "bind",
+            "bpf_link_create",
+            "bpf_link_detach",
+            "bpf_link_get_info_by_fd",
+            "bpf_map__fd",
+            "bpf_map__key_size",
+            "bpf_map__max_entries",
+            "bpf_map__name",
+            "bpf_map__type",
+            "bpf_map__value_size",
+            "bpf_map_update_elem",
+            "bpf_obj_get_info_by_fd",
+            "bpf_object__close",
+            "bpf_object__find_map_fd_by_name",
+            "bpf_object__find_program_by_name",
+            "bpf_object__load",
+            "bpf_object__next_map",
+            "bpf_object__next_program",
+            "bpf_object__open_mem",
+            "bpf_prog_get_fd_by_id",
+            "bpf_prog_get_info_by_fd",
+            "bpf_program__fd",
+            "bpf_program__section_name",
+            "bpf_program__set_autoload",
+            "bpf_program__set_expected_attach_type",
+            "bpf_program__type",
+            "bpf_tc_query",
+            "calloc",
+            "clock_gettime",
+            "close",
+            "dl_iterate_phdr",
+            "fclose",
+            "fcntl",
+            "fgets",
+            "fopen",
+            "free",
+            "fstat",
+            "fsync",
+            "geteuid",
+            "getgroups",
+            "getpid",
+            "getresgid",
+            "getresuid",
+            "getsockopt",
+            "getuid",
+            "if_nametoindex",
+            "libbpf_get_error",
+            "libbpf_set_print",
+            "lstat",
+            "malloc",
+            "memchr",
+            "memcmp",
+            "memcpy",
+            "open",
+            "prctl",
+            "pread",
+            "read",
+            "recvmsg",
+            "ring_buffer__free",
+            "ring_buffer__new",
+            "ring_buffer__poll",
+            "send",
+            "sendto",
+            "setgroups",
+            "setresgid",
+            "setresuid",
+            "setsockopt",
+            "socket",
+            "stat",
+            "strchr",
+            "strcmp",
+            "strlen",
+            "strncmp",
+            "strrchr",
+            "strstr",
+            "strtok_r",
+            "strtoull",
+            "syscall",
+            "write"
+          ],
+          "interpreter": null,
+          "needed": [
+            "libbpf.so.1",
+            "libcrypto.so.3",
+            "libc.so.6"
+          ],
+          "relro": true,
+          "sha256": "19f200225cbc163c80b40fbf1de5f39f506fbde0e2b30eb056e3f1ad28f9fff4",
+          "soname": null,
+          "source": "STATIC_READELF_NOT_EXECUTED"
+        }
+      },
+      "libc_version": "glibc 2.39",
+      "loader_search": "STATIC_CANDIDATES_ACTUAL_MAPPINGS_REQUIRE_C_VERIFICATION",
+      "native_release": "BLOCKED",
+      "nss": {
+        "databases": {
+          "ethers": [
+            "db",
+            "files"
+          ],
+          "group": [
+            "files",
+            "systemd"
+          ],
+          "gshadow": [
+            "files",
+            "systemd"
+          ],
+          "hosts": [
+            "files",
+            "dns"
+          ],
+          "netgroup": [
+            "nis"
+          ],
+          "networks": [
+            "files"
+          ],
+          "passwd": [
+            "files",
+            "systemd"
+          ],
+          "protocols": [
+            "db",
+            "files"
+          ],
+          "rpc": [
+            "db",
+            "files"
+          ],
+          "services": [
+            "db",
+            "files"
+          ],
+          "shadow": [
+            "files",
+            "systemd"
+          ]
+        },
+        "services": [
+          "db",
+          "dns",
+          "files",
+          "nis",
+          "systemd"
+        ],
+        "source": "STATIC_CONFIG_NOT_LOOKUP"
+      },
+      "nss_modules": [
+        "/usr/lib/x86_64-linux-gnu/libnss_systemd.so.2"
+      ],
+      "pam_modules": [
+        "/usr/lib/x86_64-linux-gnu/security/pam_unix.so"
+      ],
+      "pam_service": "soc-agent-ebpf",
+      "runtime_closure": "BLOCKED_NATIVE_PAM_NSS_LOADER_NOT_OBSERVED",
+      "unresolved_nss_services": [
+        "db",
+        "nis"
+      ]
+    },
+    "events": 4096,
+    "hooks": [
+      "INGRESS",
+      "EGRESS"
+    ],
+    "installation_identity": "ROOT_OWNED_FIXED_PATH_PLUS_EXTERNALLY_APPROVED_MANIFEST_SHA",
+    "interfaces": [
+      "lo"
+    ],
+    "kernel_contract": "LINUX_6_18_SOURCE_NATIVE_SUPPORT_PENDING",
+    "libbpf_contract": "1.3.0_COMPILE_ONLY",
+    "max_runs": 16,
+    "native_release": "BLOCKED",
+    "pam_destination": "/etc/pam.d/soc-agent-ebpf",
+    "pam_service": "soc-agent-ebpf",
+    "payloads": {
+      "bootstrap": {
+        "mode": 2541,
+        "root_gid": 0,
+        "root_uid": 0,
+        "sha256": "76260cb6ea334b7dfbb1fb277bfac46cd3ab163f2cec8224c58b6389d928163f",
+        "size": 49968
+      },
+      "broker": {
+        "mode": 365,
+        "root_gid": 0,
+        "root_uid": 0,
+        "sha256": "2258b674db39849fbc9ad145d82d0fd8f1731816f9b24ce514ba7c571cd6e1bc",
+        "size": 64520
+      },
+      "libnative-tc.so": {
+        "mode": 292,
+        "root_gid": 0,
+        "root_uid": 0,
+        "sha256": "19f200225cbc163c80b40fbf1de5f39f506fbde0e2b30eb056e3f1ad28f9fff4",
+        "size": 63528
+      },
+      "manifest.bin": {
+        "mode": 292,
+        "root_gid": 0,
+        "root_uid": 0,
+        "sha256": "540f3dd345504703e34a98407c2addc406d317a9dd1a8cdbfe6bc3195cde9d72",
+        "size": 160
+      },
+      "pam-policy.conf": {
+        "mode": 292,
+        "root_gid": 0,
+        "root_uid": 0,
+        "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "size": 125
+      },
+      "tc.bpf.o": {
+        "mode": 292,
+        "root_gid": 0,
+        "root_uid": 0,
+        "sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+        "size": 42112
+      }
+    },
+    "queue_capacity": 32,
+    "runtime_directory": "USER_0700_SESSION_DIRECTORY_NO_PERSISTENT_AUTHORITY",
+    "system_configuration": [
+      {
+        "mode": 420,
+        "path": "/etc/ld.so.cache",
+        "sha256": "f357d54dc0e7f5a75f4995e5d8aa4a655af2f188f3a48ca1db8cb960f87ae81f",
+        "size": 33491
+      },
+      {
+        "mode": 420,
+        "path": "/etc/nsswitch.conf",
+        "sha256": "b953df1d0016f515fc052ca6bb0ccd092b8d13c8789c51c4eaef2b0461574e57",
+        "size": 526
+      }
+    ],
+    "version": "0.2.7"
+  },
+  "release_manifest_sha256": "27b7130dded3499a97fdd6a940998be3e0cf57555b3bc9efaba71bafb955182b",
+  "execution_manifest_sha256": "1616218643a1da4055912bf05985fc5011df56cb984bd04c9dd4391e80c4afeb",
+  "elf_audit": {
+    "files": 21,
+    "tools": [
+      "readelf",
+      "objdump",
+      "file",
+      "SHA256"
+    ],
+    "ldd_executed": false,
+    "inspected_elf_executed": false,
+    "conditional_loader_symbol_hints": {
+      "bootstrap": [
+        "getpwuid_r",
+        "getpwnam_r"
+      ],
+      "/usr/lib/x86_64-linux-gnu/libc.so.6": [
+        "dlopen",
+        "dlsym",
+        "dlmopen",
+        "getpwuid_r",
+        "getpwnam_r",
+        "getgrgid_r",
+        "getgrnam_r"
+      ],
+      "/usr/lib/x86_64-linux-gnu/libcrypto.so.3": [
+        "dlopen",
+        "dlsym"
+      ],
+      "/usr/lib/x86_64-linux-gnu/libnss_systemd.so.2": [
+        "dlopen",
+        "dlsym",
+        "getpwuid_r",
+        "getpwnam_r",
+        "getgrgid_r",
+        "getgrnam_r"
+      ],
+      "/usr/lib/x86_64-linux-gnu/libpam.so.0.85.1": [
+        "dlopen",
+        "dlsym",
+        "getpwuid_r",
+        "getpwnam_r",
+        "getgrgid_r",
+        "getgrnam_r"
+      ],
+      "/usr/lib/x86_64-linux-gnu/libselinux.so.1": [
+        "dlopen",
+        "dlsym",
+        "getpwnam_r",
+        "getgrnam_r"
+      ]
+    },
+    "private_transcript_sha256": "18060760feb6633d93c9cb9ab8318b4bea32534a3f9501be4c97c000b5514290"
+  },
+  "audit_namespace_adversarial_probe": {
+    "source": "ORDINARY_UID_NO_AUTH_NO_KERNEL",
+    "audit_module_executed": true,
+    "base_namespace_verifier_exit": 0,
+    "complete_dynamic_loader_trust": "BLOCKED",
+    "native_authentication": false,
+    "native_release": "BLOCKED"
+  },
+  "performance": {
+    "gui": {
+      "before": {
+        "repetitions": 3,
+        "startup_median_seconds": 2.637818868039176,
+        "idle_rss_median_mib": 174.95703125,
+        "response_p50_median_ms": 0.014834,
+        "idle_cpu_one_core_median_percent": 0.3270805196871848
+      },
+      "after": {
+        "repetitions": 3,
+        "startup_median_seconds": 2.4810158209875226,
+        "idle_rss_median_mib": 175.33984375,
+        "response_p50_median_ms": 0.010497,
+        "idle_cpu_one_core_median_percent": 0.30975194514574683
+      }
+    },
+    "package_before": {
+      "source": "UNPRIVILEGED_RELEASE_CANDIDATE_NOT_NATIVE",
+      "manifest_sha256": "0fad80d8ef4e3a81eee7bd8c76dffa332a9ed7c9f1cc277d5181456925a6845a",
+      "release_version": "0.2.7",
+      "dependency_count": 15,
+      "profiles": {
+        "manifest": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 42443.5,
+          "samples": [
+            {
+              "ns": 49112,
+              "cpu_ns": 46726
+            },
+            {
+              "ns": 37319,
+              "cpu_ns": 37450
+            },
+            {
+              "ns": 37000,
+              "cpu_ns": 37002
+            },
+            {
+              "ns": 35977,
+              "cpu_ns": 35979
+            },
+            {
+              "ns": 34748,
+              "cpu_ns": 34808
+            },
+            {
+              "ns": 35069,
+              "cpu_ns": 35095
+            },
+            {
+              "ns": 34802,
+              "cpu_ns": 34878
+            },
+            {
+              "ns": 34921,
+              "cpu_ns": 34943
+            },
+            {
+              "ns": 35385,
+              "cpu_ns": 35485
+            },
+            {
+              "ns": 37599,
+              "cpu_ns": 37687
+            },
+            {
+              "ns": 35579,
+              "cpu_ns": 35653
+            },
+            {
+              "ns": 42247,
+              "cpu_ns": 42425
+            },
+            {
+              "ns": 62831,
+              "cpu_ns": 63156
+            },
+            {
+              "ns": 67940,
+              "cpu_ns": 68185
+            },
+            {
+              "ns": 79644,
+              "cpu_ns": 80324
+            },
+            {
+              "ns": 64667,
+              "cpu_ns": 64772
+            },
+            {
+              "ns": 57656,
+              "cpu_ns": 58058
+            },
+            {
+              "ns": 54865,
+              "cpu_ns": 55035
+            },
+            {
+              "ns": 53918,
+              "cpu_ns": 52665
+            },
+            {
+              "ns": 48862,
+              "cpu_ns": 49032
+            },
+            {
+              "ns": 57396,
+              "cpu_ns": 57594
+            },
+            {
+              "ns": 38636,
+              "cpu_ns": 38663
+            },
+            {
+              "ns": 48418,
+              "cpu_ns": 48780
+            },
+            {
+              "ns": 58155,
+              "cpu_ns": 58309
+            },
+            {
+              "ns": 54259,
+              "cpu_ns": 54468
+            },
+            {
+              "ns": 65603,
+              "cpu_ns": 65713
+            },
+            {
+              "ns": 62145,
+              "cpu_ns": 62253
+            },
+            {
+              "ns": 61596,
+              "cpu_ns": 61763
+            },
+            {
+              "ns": 60327,
+              "cpu_ns": 60547
+            },
+            {
+              "ns": 51960,
+              "cpu_ns": 52093
+            },
+            {
+              "ns": 37205,
+              "cpu_ns": 37254
+            },
+            {
+              "ns": 36794,
+              "cpu_ns": 36819
+            },
+            {
+              "ns": 46330,
+              "cpu_ns": 46420
+            },
+            {
+              "ns": 35731,
+              "cpu_ns": 35753
+            },
+            {
+              "ns": 43209,
+              "cpu_ns": 43469
+            },
+            {
+              "ns": 47268,
+              "cpu_ns": 48042
+            },
+            {
+              "ns": 56259,
+              "cpu_ns": 56467
+            },
+            {
+              "ns": 60962,
+              "cpu_ns": 61111
+            },
+            {
+              "ns": 59739,
+              "cpu_ns": 59855
+            },
+            {
+              "ns": 57103,
+              "cpu_ns": 57345
+            },
+            {
+              "ns": 38629,
+              "cpu_ns": 38638
+            },
+            {
+              "ns": 34833,
+              "cpu_ns": 34930
+            },
+            {
+              "ns": 43000,
+              "cpu_ns": 43027
+            },
+            {
+              "ns": 40123,
+              "cpu_ns": 40157
+            },
+            {
+              "ns": 35265,
+              "cpu_ns": 35367
+            },
+            {
+              "ns": 95794,
+              "cpu_ns": 96649
+            },
+            {
+              "ns": 64513,
+              "cpu_ns": 64659
+            },
+            {
+              "ns": 64739,
+              "cpu_ns": 64881
+            },
+            {
+              "ns": 58024,
+              "cpu_ns": 58095
+            },
+            {
+              "ns": 60008,
+              "cpu_ns": 60854
+            },
+            {
+              "ns": 38598,
+              "cpu_ns": 38637
+            },
+            {
+              "ns": 34477,
+              "cpu_ns": 34499
+            },
+            {
+              "ns": 34841,
+              "cpu_ns": 34863
+            },
+            {
+              "ns": 39760,
+              "cpu_ns": 39813
+            },
+            {
+              "ns": 35023,
+              "cpu_ns": 35039
+            },
+            {
+              "ns": 46210,
+              "cpu_ns": 46253
+            },
+            {
+              "ns": 39533,
+              "cpu_ns": 39629
+            },
+            {
+              "ns": 53850,
+              "cpu_ns": 54053
+            },
+            {
+              "ns": 60231,
+              "cpu_ns": 60407
+            },
+            {
+              "ns": 83505,
+              "cpu_ns": 83998
+            },
+            {
+              "ns": 61251,
+              "cpu_ns": 61517
+            },
+            {
+              "ns": 35628,
+              "cpu_ns": 35698
+            },
+            {
+              "ns": 34944,
+              "cpu_ns": 34985
+            },
+            {
+              "ns": 34623,
+              "cpu_ns": 34668
+            },
+            {
+              "ns": 34096,
+              "cpu_ns": 34130
+            },
+            {
+              "ns": 34562,
+              "cpu_ns": 34583
+            },
+            {
+              "ns": 35506,
+              "cpu_ns": 35590
+            },
+            {
+              "ns": 47168,
+              "cpu_ns": 47282
+            },
+            {
+              "ns": 51756,
+              "cpu_ns": 51963
+            },
+            {
+              "ns": 57208,
+              "cpu_ns": 57533
+            },
+            {
+              "ns": 64478,
+              "cpu_ns": 64639
+            },
+            {
+              "ns": 60885,
+              "cpu_ns": 61745
+            },
+            {
+              "ns": 54395,
+              "cpu_ns": 54612
+            },
+            {
+              "ns": 36418,
+              "cpu_ns": 36453
+            },
+            {
+              "ns": 35660,
+              "cpu_ns": 35667
+            },
+            {
+              "ns": 34214,
+              "cpu_ns": 34296
+            },
+            {
+              "ns": 34647,
+              "cpu_ns": 34653
+            },
+            {
+              "ns": 34964,
+              "cpu_ns": 35005
+            },
+            {
+              "ns": 33926,
+              "cpu_ns": 33893
+            },
+            {
+              "ns": 34100,
+              "cpu_ns": 34101
+            },
+            {
+              "ns": 34893,
+              "cpu_ns": 34936
+            },
+            {
+              "ns": 48275,
+              "cpu_ns": 48471
+            },
+            {
+              "ns": 51176,
+              "cpu_ns": 51345
+            },
+            {
+              "ns": 56725,
+              "cpu_ns": 57225
+            },
+            {
+              "ns": 61776,
+              "cpu_ns": 61836
+            },
+            {
+              "ns": 56568,
+              "cpu_ns": 56924
+            },
+            {
+              "ns": 53988,
+              "cpu_ns": 54239
+            },
+            {
+              "ns": 36797,
+              "cpu_ns": 36852
+            },
+            {
+              "ns": 34856,
+              "cpu_ns": 34875
+            },
+            {
+              "ns": 34552,
+              "cpu_ns": 34577
+            },
+            {
+              "ns": 34612,
+              "cpu_ns": 34653
+            },
+            {
+              "ns": 40089,
+              "cpu_ns": 40159
+            },
+            {
+              "ns": 35027,
+              "cpu_ns": 35067
+            },
+            {
+              "ns": 33523,
+              "cpu_ns": 33550
+            },
+            {
+              "ns": 43601,
+              "cpu_ns": 43698
+            },
+            {
+              "ns": 42640,
+              "cpu_ns": 42665
+            },
+            {
+              "ns": 34644,
+              "cpu_ns": 34682
+            },
+            {
+              "ns": 34544,
+              "cpu_ns": 34581
+            },
+            {
+              "ns": 37116,
+              "cpu_ns": 37154
+            },
+            {
+              "ns": 35663,
+              "cpu_ns": 35688
+            }
+          ]
+        },
+        "package_full_static_verification": {
+          "warmup": 1,
+          "repetitions": 3,
+          "median_ns": 47009218,
+          "samples": [
+            {
+              "ns": 44316162,
+              "cpu_ns": 30843357
+            },
+            {
+              "ns": 49772595,
+              "cpu_ns": 35223407
+            },
+            {
+              "ns": 47009218,
+              "cpu_ns": 31630547
+            }
+          ]
+        },
+        "pam_mock": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 1701.0,
+          "samples": [
+            {
+              "ns": 3043,
+              "cpu_ns": 2772
+            },
+            {
+              "ns": 2149,
+              "cpu_ns": 2169
+            },
+            {
+              "ns": 2044,
+              "cpu_ns": 1961
+            },
+            {
+              "ns": 2076,
+              "cpu_ns": 2116
+            },
+            {
+              "ns": 1818,
+              "cpu_ns": 1799
+            },
+            {
+              "ns": 1764,
+              "cpu_ns": 1736
+            },
+            {
+              "ns": 1810,
+              "cpu_ns": 1802
+            },
+            {
+              "ns": 1825,
+              "cpu_ns": 1825
+            },
+            {
+              "ns": 1642,
+              "cpu_ns": 1663
+            },
+            {
+              "ns": 1810,
+              "cpu_ns": 1813
+            },
+            {
+              "ns": 1824,
+              "cpu_ns": 1843
+            },
+            {
+              "ns": 1701,
+              "cpu_ns": 1702
+            },
+            {
+              "ns": 1840,
+              "cpu_ns": 1872
+            },
+            {
+              "ns": 1829,
+              "cpu_ns": 1841
+            },
+            {
+              "ns": 1659,
+              "cpu_ns": 1665
+            },
+            {
+              "ns": 1701,
+              "cpu_ns": 1730
+            },
+            {
+              "ns": 1785,
+              "cpu_ns": 1802
+            },
+            {
+              "ns": 1902,
+              "cpu_ns": 1936
+            },
+            {
+              "ns": 1714,
+              "cpu_ns": 1730
+            },
+            {
+              "ns": 1721,
+              "cpu_ns": 1738
+            },
+            {
+              "ns": 1733,
+              "cpu_ns": 1718
+            },
+            {
+              "ns": 1753,
+              "cpu_ns": 1799
+            },
+            {
+              "ns": 1679,
+              "cpu_ns": 1692
+            },
+            {
+              "ns": 1980,
+              "cpu_ns": 1972
+            },
+            {
+              "ns": 1843,
+              "cpu_ns": 1857
+            },
+            {
+              "ns": 1810,
+              "cpu_ns": 1790
+            },
+            {
+              "ns": 1664,
+              "cpu_ns": 1661
+            },
+            {
+              "ns": 1704,
+              "cpu_ns": 1724
+            },
+            {
+              "ns": 1672,
+              "cpu_ns": 1685
+            },
+            {
+              "ns": 1730,
+              "cpu_ns": 1725
+            },
+            {
+              "ns": 1715,
+              "cpu_ns": 1743
+            },
+            {
+              "ns": 1706,
+              "cpu_ns": 1696
+            },
+            {
+              "ns": 1564,
+              "cpu_ns": 1557
+            },
+            {
+              "ns": 1718,
+              "cpu_ns": 1737
+            },
+            {
+              "ns": 1651,
+              "cpu_ns": 1672
+            },
+            {
+              "ns": 1620,
+              "cpu_ns": 1615
+            },
+            {
+              "ns": 1718,
+              "cpu_ns": 1746
+            },
+            {
+              "ns": 1734,
+              "cpu_ns": 1724
+            },
+            {
+              "ns": 1730,
+              "cpu_ns": 1731
+            },
+            {
+              "ns": 1628,
+              "cpu_ns": 1653
+            },
+            {
+              "ns": 1697,
+              "cpu_ns": 1718
+            },
+            {
+              "ns": 1633,
+              "cpu_ns": 1614
+            },
+            {
+              "ns": 1673,
+              "cpu_ns": 1697
+            },
+            {
+              "ns": 1656,
+              "cpu_ns": 1642
+            },
+            {
+              "ns": 1673,
+              "cpu_ns": 1668
+            },
+            {
+              "ns": 1744,
+              "cpu_ns": 1809
+            },
+            {
+              "ns": 1637,
+              "cpu_ns": 1674
+            },
+            {
+              "ns": 1706,
+              "cpu_ns": 1700
+            },
+            {
+              "ns": 1661,
+              "cpu_ns": 1758
+            },
+            {
+              "ns": 1775,
+              "cpu_ns": 1791
+            },
+            {
+              "ns": 1762,
+              "cpu_ns": 1743
+            },
+            {
+              "ns": 1784,
+              "cpu_ns": 1814
+            },
+            {
+              "ns": 1630,
+              "cpu_ns": 1625
+            },
+            {
+              "ns": 1667,
+              "cpu_ns": 1654
+            },
+            {
+              "ns": 1665,
+              "cpu_ns": 1715
+            },
+            {
+              "ns": 1662,
+              "cpu_ns": 1683
+            },
+            {
+              "ns": 1667,
+              "cpu_ns": 1652
+            },
+            {
+              "ns": 1595,
+              "cpu_ns": 1625
+            },
+            {
+              "ns": 1624,
+              "cpu_ns": 1618
+            },
+            {
+              "ns": 1792,
+              "cpu_ns": 1772
+            },
+            {
+              "ns": 1664,
+              "cpu_ns": 1685
+            },
+            {
+              "ns": 1604,
+              "cpu_ns": 1628
+            },
+            {
+              "ns": 1613,
+              "cpu_ns": 1618
+            },
+            {
+              "ns": 1708,
+              "cpu_ns": 1731
+            },
+            {
+              "ns": 1636,
+              "cpu_ns": 1648
+            },
+            {
+              "ns": 1639,
+              "cpu_ns": 1657
+            },
+            {
+              "ns": 1777,
+              "cpu_ns": 1822
+            },
+            {
+              "ns": 1599,
+              "cpu_ns": 1624
+            },
+            {
+              "ns": 1684,
+              "cpu_ns": 1692
+            },
+            {
+              "ns": 1776,
+              "cpu_ns": 1782
+            },
+            {
+              "ns": 1666,
+              "cpu_ns": 1656
+            },
+            {
+              "ns": 1723,
+              "cpu_ns": 1715
+            },
+            {
+              "ns": 1599,
+              "cpu_ns": 1643
+            },
+            {
+              "ns": 1646,
+              "cpu_ns": 1663
+            },
+            {
+              "ns": 1649,
+              "cpu_ns": 1686
+            },
+            {
+              "ns": 1649,
+              "cpu_ns": 1695
+            },
+            {
+              "ns": 1791,
+              "cpu_ns": 1802
+            },
+            {
+              "ns": 2058,
+              "cpu_ns": 2080
+            },
+            {
+              "ns": 1727,
+              "cpu_ns": 1776
+            },
+            {
+              "ns": 1642,
+              "cpu_ns": 1664
+            },
+            {
+              "ns": 1711,
+              "cpu_ns": 1715
+            },
+            {
+              "ns": 1672,
+              "cpu_ns": 1716
+            },
+            {
+              "ns": 1682,
+              "cpu_ns": 1702
+            },
+            {
+              "ns": 1667,
+              "cpu_ns": 1678
+            },
+            {
+              "ns": 1639,
+              "cpu_ns": 1684
+            },
+            {
+              "ns": 1670,
+              "cpu_ns": 1689
+            },
+            {
+              "ns": 1611,
+              "cpu_ns": 1612
+            },
+            {
+              "ns": 1735,
+              "cpu_ns": 1780
+            },
+            {
+              "ns": 1673,
+              "cpu_ns": 1702
+            },
+            {
+              "ns": 1568,
+              "cpu_ns": 1570
+            },
+            {
+              "ns": 1716,
+              "cpu_ns": 1755
+            },
+            {
+              "ns": 1677,
+              "cpu_ns": 1696
+            },
+            {
+              "ns": 1628,
+              "cpu_ns": 1631
+            },
+            {
+              "ns": 1725,
+              "cpu_ns": 1723
+            },
+            {
+              "ns": 1654,
+              "cpu_ns": 1674
+            },
+            {
+              "ns": 1699,
+              "cpu_ns": 1709
+            },
+            {
+              "ns": 6302,
+              "cpu_ns": 6359
+            },
+            {
+              "ns": 1795,
+              "cpu_ns": 1796
+            },
+            {
+              "ns": 1746,
+              "cpu_ns": 1752
+            },
+            {
+              "ns": 1691,
+              "cpu_ns": 1726
+            }
+          ]
+        },
+        "kernel_read_only": {
+          "warmup": 1,
+          "repetitions": 3,
+          "median_ns": 3203955,
+          "samples": [
+            {
+              "ns": 3874616,
+              "cpu_ns": 2148879
+            },
+            {
+              "ns": 3203955,
+              "cpu_ns": 2283410
+            },
+            {
+              "ns": 2381313,
+              "cpu_ns": 1460533
+            }
+          ]
+        }
+      },
+      "peak_rss_kib": 156712,
+      "meminfo": "MemTotal:        8000144 kB\nMemFree:          264360 kB\nMemAvailable:    4650832 kB\nBuffers:          328800 kB\nCached:          3830408 kB\nSwapCached:        26708 kB\nActive:          5440856 kB\nInactive:        1236356 kB\nActive(anon):    1849528 kB\nInactive(anon):   671612 kB\nActive(file):    3591328 kB\nInactive(file):   564744 kB\nUnevictable:           0 kB\nMlocked:               0 kB\nSwapTotal:       2097152 kB\nSwapFree:         558064 kB\nDirty:              1596 kB\nWriteback:             0 kB\nAnonPages:       2494068 kB\nMapped:           278008 kB\nShmem:              2748 kB\nKReclaimable:     529060 kB\nSlab:             679100 kB\nSReclaimable:     529060 kB\nSUnreclaim:       150040 kB\nKernelStack:       13076 kB\nPageTables:        65304 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:     6097224 kB\nCommitted_AS:   12219644 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:       41208 kB\nVmallocChunk:          0 kB\nPercpu:             6976 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:     81920 kB\nFilePmdMapped:     36864 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:       72704 kB\nDirectMap2M:     6084608 kB\nDirectMap1G:    10485760 kB\n",
+      "psi": "some avg10=5.14 avg60=1.82 avg300=0.74 total=230363335\nfull avg10=5.14 avg60=1.82 avg300=0.71 total=220468363\n",
+      "affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "native_auth_latency": null,
+      "native_root_installation": false
+    },
+    "package_after": {
+      "source": "UNPRIVILEGED_RELEASE_CANDIDATE_NOT_NATIVE",
+      "manifest_sha256": "27b7130dded3499a97fdd6a940998be3e0cf57555b3bc9efaba71bafb955182b",
+      "release_version": "0.2.7",
+      "dependency_count": 18,
+      "profiles": {
+        "manifest": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 65486.5,
+          "samples": [
+            {
+              "ns": 128408,
+              "cpu_ns": 127297
+            },
+            {
+              "ns": 72932,
+              "cpu_ns": 73105
+            },
+            {
+              "ns": 67489,
+              "cpu_ns": 67532
+            },
+            {
+              "ns": 67458,
+              "cpu_ns": 67465
+            },
+            {
+              "ns": 65110,
+              "cpu_ns": 65115
+            },
+            {
+              "ns": 65050,
+              "cpu_ns": 65129
+            },
+            {
+              "ns": 63569,
+              "cpu_ns": 63592
+            },
+            {
+              "ns": 64980,
+              "cpu_ns": 65033
+            },
+            {
+              "ns": 62924,
+              "cpu_ns": 62943
+            },
+            {
+              "ns": 63596,
+              "cpu_ns": 63639
+            },
+            {
+              "ns": 65075,
+              "cpu_ns": 65088
+            },
+            {
+              "ns": 66294,
+              "cpu_ns": 66382
+            },
+            {
+              "ns": 103558,
+              "cpu_ns": 104632
+            },
+            {
+              "ns": 128024,
+              "cpu_ns": 128815
+            },
+            {
+              "ns": 109776,
+              "cpu_ns": 110150
+            },
+            {
+              "ns": 72967,
+              "cpu_ns": 72985
+            },
+            {
+              "ns": 69421,
+              "cpu_ns": 69538
+            },
+            {
+              "ns": 68658,
+              "cpu_ns": 68687
+            },
+            {
+              "ns": 65645,
+              "cpu_ns": 65681
+            },
+            {
+              "ns": 100133,
+              "cpu_ns": 100323
+            },
+            {
+              "ns": 71231,
+              "cpu_ns": 71252
+            },
+            {
+              "ns": 68250,
+              "cpu_ns": 68324
+            },
+            {
+              "ns": 64982,
+              "cpu_ns": 65033
+            },
+            {
+              "ns": 64735,
+              "cpu_ns": 64783
+            },
+            {
+              "ns": 64943,
+              "cpu_ns": 64965
+            },
+            {
+              "ns": 63452,
+              "cpu_ns": 63492
+            },
+            {
+              "ns": 63599,
+              "cpu_ns": 63637
+            },
+            {
+              "ns": 64566,
+              "cpu_ns": 64615
+            },
+            {
+              "ns": 64193,
+              "cpu_ns": 64237
+            },
+            {
+              "ns": 63382,
+              "cpu_ns": 63451
+            },
+            {
+              "ns": 63141,
+              "cpu_ns": 63187
+            },
+            {
+              "ns": 65104,
+              "cpu_ns": 65143
+            },
+            {
+              "ns": 70947,
+              "cpu_ns": 71009
+            },
+            {
+              "ns": 64397,
+              "cpu_ns": 64439
+            },
+            {
+              "ns": 63370,
+              "cpu_ns": 63413
+            },
+            {
+              "ns": 65194,
+              "cpu_ns": 65253
+            },
+            {
+              "ns": 63784,
+              "cpu_ns": 63875
+            },
+            {
+              "ns": 101987,
+              "cpu_ns": 102337
+            },
+            {
+              "ns": 66369,
+              "cpu_ns": 66404
+            },
+            {
+              "ns": 66235,
+              "cpu_ns": 66298
+            },
+            {
+              "ns": 65619,
+              "cpu_ns": 65652
+            },
+            {
+              "ns": 92906,
+              "cpu_ns": 93118
+            },
+            {
+              "ns": 69694,
+              "cpu_ns": 69741
+            },
+            {
+              "ns": 65444,
+              "cpu_ns": 65518
+            },
+            {
+              "ns": 65019,
+              "cpu_ns": 65069
+            },
+            {
+              "ns": 64656,
+              "cpu_ns": 64695
+            },
+            {
+              "ns": 64513,
+              "cpu_ns": 64515
+            },
+            {
+              "ns": 67470,
+              "cpu_ns": 67550
+            },
+            {
+              "ns": 67215,
+              "cpu_ns": 67264
+            },
+            {
+              "ns": 67591,
+              "cpu_ns": 67617
+            },
+            {
+              "ns": 65493,
+              "cpu_ns": 65541
+            },
+            {
+              "ns": 64985,
+              "cpu_ns": 65020
+            },
+            {
+              "ns": 63696,
+              "cpu_ns": 63728
+            },
+            {
+              "ns": 64441,
+              "cpu_ns": 64476
+            },
+            {
+              "ns": 64221,
+              "cpu_ns": 64255
+            },
+            {
+              "ns": 63999,
+              "cpu_ns": 64043
+            },
+            {
+              "ns": 142875,
+              "cpu_ns": 143384
+            },
+            {
+              "ns": 70310,
+              "cpu_ns": 70381
+            },
+            {
+              "ns": 94559,
+              "cpu_ns": 95003
+            },
+            {
+              "ns": 100317,
+              "cpu_ns": 100609
+            },
+            {
+              "ns": 67636,
+              "cpu_ns": 67705
+            },
+            {
+              "ns": 76682,
+              "cpu_ns": 76874
+            },
+            {
+              "ns": 73324,
+              "cpu_ns": 73352
+            },
+            {
+              "ns": 70763,
+              "cpu_ns": 70825
+            },
+            {
+              "ns": 64703,
+              "cpu_ns": 64783
+            },
+            {
+              "ns": 64687,
+              "cpu_ns": 64709
+            },
+            {
+              "ns": 64218,
+              "cpu_ns": 64255
+            },
+            {
+              "ns": 64348,
+              "cpu_ns": 64355
+            },
+            {
+              "ns": 79088,
+              "cpu_ns": 79306
+            },
+            {
+              "ns": 73638,
+              "cpu_ns": 73670
+            },
+            {
+              "ns": 67326,
+              "cpu_ns": 67406
+            },
+            {
+              "ns": 66730,
+              "cpu_ns": 66828
+            },
+            {
+              "ns": 65474,
+              "cpu_ns": 65532
+            },
+            {
+              "ns": 65307,
+              "cpu_ns": 65346
+            },
+            {
+              "ns": 64190,
+              "cpu_ns": 64263
+            },
+            {
+              "ns": 63062,
+              "cpu_ns": 63087
+            },
+            {
+              "ns": 62589,
+              "cpu_ns": 62622
+            },
+            {
+              "ns": 63121,
+              "cpu_ns": 63129
+            },
+            {
+              "ns": 62897,
+              "cpu_ns": 62936
+            },
+            {
+              "ns": 87984,
+              "cpu_ns": 88196
+            },
+            {
+              "ns": 68817,
+              "cpu_ns": 68901
+            },
+            {
+              "ns": 67146,
+              "cpu_ns": 67314
+            },
+            {
+              "ns": 71443,
+              "cpu_ns": 71445
+            },
+            {
+              "ns": 84537,
+              "cpu_ns": 84746
+            },
+            {
+              "ns": 71521,
+              "cpu_ns": 71627
+            },
+            {
+              "ns": 77485,
+              "cpu_ns": 77505
+            },
+            {
+              "ns": 64892,
+              "cpu_ns": 64939
+            },
+            {
+              "ns": 65530,
+              "cpu_ns": 65579
+            },
+            {
+              "ns": 65480,
+              "cpu_ns": 65515
+            },
+            {
+              "ns": 66436,
+              "cpu_ns": 66462
+            },
+            {
+              "ns": 63688,
+              "cpu_ns": 63732
+            },
+            {
+              "ns": 63795,
+              "cpu_ns": 63853
+            },
+            {
+              "ns": 110156,
+              "cpu_ns": 110340
+            },
+            {
+              "ns": 65035,
+              "cpu_ns": 65022
+            },
+            {
+              "ns": 63268,
+              "cpu_ns": 63308
+            },
+            {
+              "ns": 66865,
+              "cpu_ns": 66909
+            },
+            {
+              "ns": 62856,
+              "cpu_ns": 62901
+            },
+            {
+              "ns": 63265,
+              "cpu_ns": 63343
+            },
+            {
+              "ns": 62737,
+              "cpu_ns": 62781
+            },
+            {
+              "ns": 66080,
+              "cpu_ns": 66133
+            }
+          ]
+        },
+        "package_full_static_verification": {
+          "warmup": 1,
+          "repetitions": 3,
+          "median_ns": 83831253,
+          "samples": [
+            {
+              "ns": 88017280,
+              "cpu_ns": 50307499
+            },
+            {
+              "ns": 83831253,
+              "cpu_ns": 48336216
+            },
+            {
+              "ns": 81898516,
+              "cpu_ns": 48289808
+            }
+          ]
+        },
+        "pam_mock": {
+          "warmup": 10,
+          "repetitions": 100,
+          "median_ns": 1698.5,
+          "samples": [
+            {
+              "ns": 2440,
+              "cpu_ns": 2387
+            },
+            {
+              "ns": 2057,
+              "cpu_ns": 2074
+            },
+            {
+              "ns": 1882,
+              "cpu_ns": 1831
+            },
+            {
+              "ns": 1836,
+              "cpu_ns": 1831
+            },
+            {
+              "ns": 1755,
+              "cpu_ns": 1729
+            },
+            {
+              "ns": 1624,
+              "cpu_ns": 1623
+            },
+            {
+              "ns": 1660,
+              "cpu_ns": 1716
+            },
+            {
+              "ns": 1715,
+              "cpu_ns": 1724
+            },
+            {
+              "ns": 1780,
+              "cpu_ns": 1787
+            },
+            {
+              "ns": 1874,
+              "cpu_ns": 1908
+            },
+            {
+              "ns": 1745,
+              "cpu_ns": 1744
+            },
+            {
+              "ns": 1685,
+              "cpu_ns": 1684
+            },
+            {
+              "ns": 1666,
+              "cpu_ns": 1712
+            },
+            {
+              "ns": 1677,
+              "cpu_ns": 1705
+            },
+            {
+              "ns": 1751,
+              "cpu_ns": 1744
+            },
+            {
+              "ns": 1709,
+              "cpu_ns": 1736
+            },
+            {
+              "ns": 1761,
+              "cpu_ns": 1780
+            },
+            {
+              "ns": 1871,
+              "cpu_ns": 1884
+            },
+            {
+              "ns": 1650,
+              "cpu_ns": 1694
+            },
+            {
+              "ns": 1679,
+              "cpu_ns": 1709
+            },
+            {
+              "ns": 1668,
+              "cpu_ns": 1669
+            },
+            {
+              "ns": 1746,
+              "cpu_ns": 1790
+            },
+            {
+              "ns": 1678,
+              "cpu_ns": 1699
+            },
+            {
+              "ns": 1630,
+              "cpu_ns": 1618
+            },
+            {
+              "ns": 1706,
+              "cpu_ns": 1735
+            },
+            {
+              "ns": 1805,
+              "cpu_ns": 1812
+            },
+            {
+              "ns": 1657,
+              "cpu_ns": 1670
+            },
+            {
+              "ns": 1813,
+              "cpu_ns": 1846
+            },
+            {
+              "ns": 1700,
+              "cpu_ns": 1720
+            },
+            {
+              "ns": 1740,
+              "cpu_ns": 1731
+            },
+            {
+              "ns": 1832,
+              "cpu_ns": 1864
+            },
+            {
+              "ns": 1648,
+              "cpu_ns": 1672
+            },
+            {
+              "ns": 2037,
+              "cpu_ns": 2017
+            },
+            {
+              "ns": 1669,
+              "cpu_ns": 1696
+            },
+            {
+              "ns": 1553,
+              "cpu_ns": 1583
+            },
+            {
+              "ns": 1627,
+              "cpu_ns": 1650
+            },
+            {
+              "ns": 1748,
+              "cpu_ns": 1766
+            },
+            {
+              "ns": 1594,
+              "cpu_ns": 1625
+            },
+            {
+              "ns": 1633,
+              "cpu_ns": 1643
+            },
+            {
+              "ns": 1687,
+              "cpu_ns": 1699
+            },
+            {
+              "ns": 1582,
+              "cpu_ns": 1608
+            },
+            {
+              "ns": 1686,
+              "cpu_ns": 1658
+            },
+            {
+              "ns": 1678,
+              "cpu_ns": 1717
+            },
+            {
+              "ns": 1763,
+              "cpu_ns": 1782
+            },
+            {
+              "ns": 1638,
+              "cpu_ns": 1652
+            },
+            {
+              "ns": 1669,
+              "cpu_ns": 1695
+            },
+            {
+              "ns": 1621,
+              "cpu_ns": 1647
+            },
+            {
+              "ns": 1692,
+              "cpu_ns": 1704
+            },
+            {
+              "ns": 1725,
+              "cpu_ns": 1753
+            },
+            {
+              "ns": 1763,
+              "cpu_ns": 1780
+            },
+            {
+              "ns": 1778,
+              "cpu_ns": 1793
+            },
+            {
+              "ns": 1720,
+              "cpu_ns": 1749
+            },
+            {
+              "ns": 1695,
+              "cpu_ns": 1687
+            },
+            {
+              "ns": 1753,
+              "cpu_ns": 1760
+            },
+            {
+              "ns": 1690,
+              "cpu_ns": 1731
+            },
+            {
+              "ns": 1654,
+              "cpu_ns": 1673
+            },
+            {
+              "ns": 1611,
+              "cpu_ns": 1616
+            },
+            {
+              "ns": 1714,
+              "cpu_ns": 1746
+            },
+            {
+              "ns": 1661,
+              "cpu_ns": 1667
+            },
+            {
+              "ns": 1642,
+              "cpu_ns": 1656
+            },
+            {
+              "ns": 1677,
+              "cpu_ns": 1704
+            },
+            {
+              "ns": 1657,
+              "cpu_ns": 1674
+            },
+            {
+              "ns": 1654,
+              "cpu_ns": 1675
+            },
+            {
+              "ns": 1796,
+              "cpu_ns": 1826
+            },
+            {
+              "ns": 1690,
+              "cpu_ns": 1769
+            },
+            {
+              "ns": 1685,
+              "cpu_ns": 1716
+            },
+            {
+              "ns": 1763,
+              "cpu_ns": 1807
+            },
+            {
+              "ns": 1758,
+              "cpu_ns": 1796
+            },
+            {
+              "ns": 1777,
+              "cpu_ns": 1784
+            },
+            {
+              "ns": 1711,
+              "cpu_ns": 1766
+            },
+            {
+              "ns": 1755,
+              "cpu_ns": 1771
+            },
+            {
+              "ns": 1548,
+              "cpu_ns": 1582
+            },
+            {
+              "ns": 1924,
+              "cpu_ns": 1964
+            },
+            {
+              "ns": 1789,
+              "cpu_ns": 1830
+            },
+            {
+              "ns": 1652,
+              "cpu_ns": 1669
+            },
+            {
+              "ns": 1601,
+              "cpu_ns": 1635
+            },
+            {
+              "ns": 1734,
+              "cpu_ns": 1758
+            },
+            {
+              "ns": 1867,
+              "cpu_ns": 1889
+            },
+            {
+              "ns": 1778,
+              "cpu_ns": 1808
+            },
+            {
+              "ns": 1751,
+              "cpu_ns": 1793
+            },
+            {
+              "ns": 1815,
+              "cpu_ns": 1824
+            },
+            {
+              "ns": 1697,
+              "cpu_ns": 1731
+            },
+            {
+              "ns": 1661,
+              "cpu_ns": 1682
+            },
+            {
+              "ns": 1631,
+              "cpu_ns": 1628
+            },
+            {
+              "ns": 1897,
+              "cpu_ns": 1922
+            },
+            {
+              "ns": 1806,
+              "cpu_ns": 1838
+            },
+            {
+              "ns": 1625,
+              "cpu_ns": 1636
+            },
+            {
+              "ns": 1630,
+              "cpu_ns": 1661
+            },
+            {
+              "ns": 1621,
+              "cpu_ns": 1654
+            },
+            {
+              "ns": 1630,
+              "cpu_ns": 1643
+            },
+            {
+              "ns": 1779,
+              "cpu_ns": 1799
+            },
+            {
+              "ns": 1733,
+              "cpu_ns": 1760
+            },
+            {
+              "ns": 1648,
+              "cpu_ns": 1677
+            },
+            {
+              "ns": 1770,
+              "cpu_ns": 1808
+            },
+            {
+              "ns": 1769,
+              "cpu_ns": 1799
+            },
+            {
+              "ns": 1599,
+              "cpu_ns": 1654
+            },
+            {
+              "ns": 1748,
+              "cpu_ns": 1794
+            },
+            {
+              "ns": 1671,
+              "cpu_ns": 1685
+            },
+            {
+              "ns": 1623,
+              "cpu_ns": 1647
+            },
+            {
+              "ns": 1744,
+              "cpu_ns": 1778
+            }
+          ]
+        },
+        "kernel_read_only": {
+          "warmup": 1,
+          "repetitions": 3,
+          "median_ns": 2119137,
+          "samples": [
+            {
+              "ns": 1690172,
+              "cpu_ns": 1208235
+            },
+            {
+              "ns": 2119137,
+              "cpu_ns": 1300046
+            },
+            {
+              "ns": 2583699,
+              "cpu_ns": 1668579
+            }
+          ]
+        }
+      },
+      "peak_rss_kib": 157164,
+      "meminfo": "MemTotal:        8000144 kB\nMemFree:          230752 kB\nMemAvailable:    4714964 kB\nBuffers:          348876 kB\nCached:          3801296 kB\nSwapCached:        27380 kB\nActive:          5341908 kB\nInactive:        1224376 kB\nActive(anon):    1848832 kB\nInactive(anon):   570000 kB\nActive(file):    3493076 kB\nInactive(file):   654376 kB\nUnevictable:           0 kB\nMlocked:               0 kB\nSwapTotal:       2097152 kB\nSwapFree:         553476 kB\nDirty:              9168 kB\nWriteback:             0 kB\nAnonPages:       2391372 kB\nMapped:           279680 kB\nShmem:              2640 kB\nKReclaimable:     533020 kB\nSlab:             682932 kB\nSReclaimable:     533020 kB\nSUnreclaim:       149912 kB\nKernelStack:       12744 kB\nPageTables:        65628 kB\nSecPageTables:         0 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:     6097224 kB\nCommitted_AS:   12044724 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:       41000 kB\nVmallocChunk:          0 kB\nPercpu:             6976 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:     79872 kB\nFilePmdMapped:     36864 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:       72704 kB\nDirectMap2M:     6084608 kB\nDirectMap1G:    10485760 kB\n",
+      "psi": "some avg10=0.09 avg60=0.95 avg300=0.65 total=230539887\nfull avg10=0.09 avg60=0.95 avg300=0.63 total=220643793\n",
+      "affinity": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "native_auth_latency": null,
+      "native_root_installation": false
+    },
+    "trust": {
+      "dependency_sha_verification": {
+        "warmup": 1,
+        "repetitions": 3,
+        "median_ns": 11622754,
+        "samples": [
+          {
+            "wall_ns": 11622754,
+            "cpu_ns": 11623375
+          },
+          {
+            "wall_ns": 11832486,
+            "cpu_ns": 11835775
+          },
+          {
+            "wall_ns": 11038873,
+            "cpu_ns": 11042174
+          }
+        ]
+      },
+      "pam_nss_static_trust": {
+        "warmup": 1,
+        "repetitions": 3,
+        "median_ns": 11390430,
+        "samples": [
+          {
+            "wall_ns": 11390430,
+            "cpu_ns": 4573471
+          },
+          {
+            "wall_ns": 10625751,
+            "cpu_ns": 3658822
+          },
+          {
+            "wall_ns": 12665744,
+            "cpu_ns": 4921161
+          }
+        ]
+      }
+    },
+    "broker_before": {
+      "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+      "repetitions": 3,
+      "samples": [
+        {
+          "resources": {
+            "memavailable": "4756288",
+            "psi": "some avg10=0.09 avg60=0.02 avg300=0.35 total=228950645\nfull avg10=0.09 avg60=0.02 avg300=0.32 total=219059688\n"
+          },
+          "ipc_status_seconds": 0.0021377980010583997,
+          "validation_seconds": 0.004517806053627282,
+          "prepare_with_reference_compile_seconds": 6.779175061034039,
+          "mock_auth_and_b1_child_start_seconds": 1.2748801039997488,
+          "c_transaction_fake_ops_seconds": 0.02414044097531587,
+          "b1_attach_fixture_seconds": 0.03216120199067518,
+          "b1_detach_fixture_seconds": 0.03065155999502167,
+          "b1_cleanup_and_exit_seconds": 0.348360333009623,
+          "fixture_supervisor_rss_bytes": 151576576
+        },
+        {
+          "resources": {
+            "memavailable": "4734632",
+            "psi": "some avg10=0.24 avg60=0.08 avg300=0.35 total=228956730\nfull avg10=0.24 avg60=0.08 avg300=0.32 total=219065713\n"
+          },
+          "ipc_status_seconds": 0.0020364010124467313,
+          "validation_seconds": 0.0057396559859625995,
+          "prepare_with_reference_compile_seconds": 6.332152372982819,
+          "mock_auth_and_b1_child_start_seconds": 1.4227555899997242,
+          "c_transaction_fake_ops_seconds": 0.015132722968701273,
+          "b1_attach_fixture_seconds": 0.02863814204465598,
+          "b1_detach_fixture_seconds": 0.03052837902214378,
+          "b1_cleanup_and_exit_seconds": 0.34748421399854124,
+          "fixture_supervisor_rss_bytes": 151449600
+        },
+        {
+          "resources": {
+            "memavailable": "4680076",
+            "psi": "some avg10=0.10 avg60=0.07 avg300=0.34 total=228981013\nfull avg10=0.10 avg60=0.07 avg300=0.31 total=219089990\n"
+          },
+          "ipc_status_seconds": 0.0028226629947312176,
+          "validation_seconds": 0.004544253053609282,
+          "prepare_with_reference_compile_seconds": 6.7534948120010085,
+          "mock_auth_and_b1_child_start_seconds": 1.4306618089904077,
+          "c_transaction_fake_ops_seconds": 0.032017838035244495,
+          "b1_attach_fixture_seconds": 0.5161051900358871,
+          "b1_detach_fixture_seconds": 1.870782796991989,
+          "b1_cleanup_and_exit_seconds": 1.4162769109825604,
+          "fixture_supervisor_rss_bytes": 151261184
+        }
+      ],
+      "median": {
+        "ipc_status_seconds": 0.0021377980010583997,
+        "validation_seconds": 0.004544253053609282,
+        "prepare_with_reference_compile_seconds": 6.7534948120010085,
+        "mock_auth_and_b1_child_start_seconds": 1.4227555899997242,
+        "c_transaction_fake_ops_seconds": 0.02414044097531587,
+        "b1_attach_fixture_seconds": 0.03216120199067518,
+        "b1_detach_fixture_seconds": 0.03065155999502167,
+        "b1_cleanup_and_exit_seconds": 0.348360333009623,
+        "fixture_supervisor_rss_bytes": 151449600
+      },
+      "native_authentication_latency": null,
+      "native_load_latency": null,
+      "native_attach_detach_latency": null,
+      "native_supervisor_rss": null
+    },
+    "broker_after": {
+      "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+      "repetitions": 3,
+      "samples": [
+        {
+          "resources": {
+            "memavailable": "4736220",
+            "psi": "some avg10=4.21 avg60=1.76 avg300=0.73 total=230363651\nfull avg10=4.21 avg60=1.76 avg300=0.71 total=220468366\n"
+          },
+          "ipc_status_seconds": 0.0025560339563526213,
+          "validation_seconds": 0.005742162000387907,
+          "prepare_with_reference_compile_seconds": 7.187719694047701,
+          "mock_auth_and_b1_child_start_seconds": 1.4187430029851384,
+          "c_transaction_fake_ops_seconds": 0.038679183984640986,
+          "b1_attach_fixture_seconds": 0.06805904197972268,
+          "b1_detach_fixture_seconds": 0.05873442901065573,
+          "b1_cleanup_and_exit_seconds": 0.4892312469892204,
+          "fixture_supervisor_rss_bytes": 151793664
+        },
+        {
+          "resources": {
+            "memavailable": "4746204",
+            "psi": "some avg10=1.87 avg60=1.58 avg300=0.72 total=230471109\nfull avg10=1.87 avg60=1.58 avg300=0.70 total=220575148\n"
+          },
+          "ipc_status_seconds": 0.00256666901987046,
+          "validation_seconds": 0.004516673972830176,
+          "prepare_with_reference_compile_seconds": 11.42283265502192,
+          "mock_auth_and_b1_child_start_seconds": 1.5343975399737246,
+          "c_transaction_fake_ops_seconds": 0.016156176978256553,
+          "b1_attach_fixture_seconds": 0.03569548699306324,
+          "b1_detach_fixture_seconds": 0.04285501898266375,
+          "b1_cleanup_and_exit_seconds": 0.29905145696830004,
+          "fixture_supervisor_rss_bytes": 151322624
+        },
+        {
+          "resources": {
+            "memavailable": "4729140",
+            "psi": "some avg10=0.71 avg60=1.32 avg300=0.70 total=230527785\nfull avg10=0.71 avg60=1.32 avg300=0.68 total=220631698\n"
+          },
+          "ipc_status_seconds": 0.0024015450035221875,
+          "validation_seconds": 0.004444814985617995,
+          "prepare_with_reference_compile_seconds": 6.209324727009516,
+          "mock_auth_and_b1_child_start_seconds": 1.0396042150096036,
+          "c_transaction_fake_ops_seconds": 0.015811480989214033,
+          "b1_attach_fixture_seconds": 0.026959426992107183,
+          "b1_detach_fixture_seconds": 0.028065634018275887,
+          "b1_cleanup_and_exit_seconds": 0.9792325780144893,
+          "fixture_supervisor_rss_bytes": 151330816
+        }
+      ],
+      "median": {
+        "ipc_status_seconds": 0.0025560339563526213,
+        "validation_seconds": 0.004516673972830176,
+        "prepare_with_reference_compile_seconds": 7.187719694047701,
+        "mock_auth_and_b1_child_start_seconds": 1.4187430029851384,
+        "c_transaction_fake_ops_seconds": 0.016156176978256553,
+        "b1_attach_fixture_seconds": 0.03569548699306324,
+        "b1_detach_fixture_seconds": 0.04285501898266375,
+        "b1_cleanup_and_exit_seconds": 0.4892312469892204,
+        "fixture_supervisor_rss_bytes": 151330816
+      },
+      "native_authentication_latency": null,
+      "native_load_latency": null,
+      "native_attach_detach_latency": null,
+      "native_supervisor_rss": null
+    },
+    "limitations": "Three sequential repetitions; shared WSL pressure and cache/order effects; no optimization or Native performance claim"
+  },
+  "kernel": {
+    "facts": {
+      "kernel": "6.18.33.2-microsoft-standard-WSL2",
+      "bpf_syscall_config": true,
+      "net_cls_bpf_config": true,
+      "net_xgress_config": true,
+      "btf_present": true,
+      "bpffs_mounted": false,
+      "namespace": "net:[4026531833]",
+      "ifindex": 1,
+      "libbpf": "1.3.0",
+      "tcx_native": "NOT_PROBED"
+    },
+    "verdict": {
+      "preflight": "UNKNOWN_NATIVE_PROBE_REQUIRED",
+      "btf": "OBSERVED",
+      "tcx": "NOT_PROBED",
+      "native_release": "BLOCKED"
+    }
+  },
+  "offline_models": {
+    "native_capture": false,
+    "records": [
+      {
+        "profile": "quality",
+        "status": "COMPLETE",
+        "receipt": {
+          "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+          "feature_digest": "2e04f127c1b07c616b21a3e324785623493d110254f2af4c9be172c0d00ab1f9",
+          "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "inference_latency_ms": 10.275564971379936,
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "status": "RESEARCH_ONLY",
+          "worker_peak_rss_bytes": 234225664,
+          "worker_cpu_seconds": 2.1270379999999998,
+          "operational_inference": "BLOCKED",
+          "write_policy": "WRITE_DENIED"
+        },
+        "investigation": {
+          "status": "ASSESSED_READ_ONLY",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true
+        }
+      },
+      {
+        "profile": "edge",
+        "status": "COMPLETE",
+        "receipt": {
+          "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+          "feature_digest": "2e04f127c1b07c616b21a3e324785623493d110254f2af4c9be172c0d00ab1f9",
+          "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+          "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+          "inference_latency_ms": 13.001246028579772,
+          "origin": "ZEEK_OFFLINE_PCAP",
+          "status": "RESEARCH_ONLY",
+          "worker_peak_rss_bytes": 232914944,
+          "worker_cpu_seconds": 1.590293,
+          "operational_inference": "BLOCKED",
+          "write_policy": "WRITE_DENIED"
+        },
+        "investigation": {
+          "status": "ASSESSED_READ_ONLY",
+          "mode": "SCRIPTED_OFFLINE_RESEARCH",
+          "action_policy": "WRITE_DENIED",
+          "checkpoint_restored": true
+        }
+      }
+    ],
+    "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+    "packet_count": 4,
+    "flow_count": 2,
+    "queue_peak": 7,
+    "queue_final": 0,
+    "inference_queue_peak": 2,
+    "inference_queue_final": 0,
+    "finalization": "PCAP_REFERENCE_FINALIZED",
+    "audit_digest": "784be2ef0725bf5fc4aad481b3c8636df31bb70eba24a6c4a21fa5d2e4515e4f",
+    "recovered_audit_digest": "784be2ef0725bf5fc4aad481b3c8636df31bb70eba24a6c4a21fa5d2e4515e4f",
+    "restored_new_inferences": 0,
+    "elapsed_seconds": 8.160235468996689,
+    "cpu_seconds": 1.0235888009999998,
+    "process_peak_rss_bytes": 185438208,
+    "cleanup_verified": true
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 400,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "verdicts": {
+    "ELF_DEPENDENCY_CLOSURE": "BLOCKED_COMPLETE_RUNTIME_CLOSURE_NOT_PROVEN",
+    "DYNAMIC_LOADER_TRUST": "BLOCKED_PRE_MAIN_AND_AUDIT_NAMESPACE",
+    "PAM_TRUST_CONTRACT": "VERIFIED_STATIC_AND_MOCK_NATIVE_PENDING",
+    "NSS_TRUST_CONTRACT": "BLOCKED_MISSING_MODULES_AND_NATIVE_LOOKUP",
+    "DEPENDENCY_MANIFEST": "VERIFIED_STATIC_REGENERATED_NOT_RUNTIME_PROOF",
+    "CAPABILITY_PROFILE": "UNKNOWN_NATIVE_TRANSFER",
+    "STARTUP_AUTH_CONTRACT": "VERIFIED_MOCK_ONCE_PER_APP",
+    "TCX_CLEANUP": "PRESERVED_FIXTURE",
+    "GUI": "PRESERVED",
+    "AUDIT_RECOVERY": "VERIFIED_FIXTURE",
+    "NATIVE_RELEASE": "BLOCKED",
+    "NATIVE_ROOT_INSTALL": "PENDING",
+    "NATIVE_AUTH": "PENDING",
+    "NATIVE_VERIFIER": "PENDING",
+    "NATIVE_TCX_ATTACH": "PENDING",
+    "NATIVE_AI": "BLOCKED",
+    "DNS9": "BLOCKED",
+    "OPERATIONAL_PROMOTION": "BLOCKED"
+  },
+  "development_probes": {
+    "initial_dynamic": "37 PASS on earlier source, not reused as final source evidence",
+    "expanded_dynamic": "47 PASS, then same source with valid LD_AUDIT scope experiment: 47 PASS",
+    "failed_test_retries": false,
+    "native_pam_invoked": false
+  },
+  "independent_export": {
+    "user_changes_replay_native_sessions_models_raw_excluded": true,
+    "wheel_source_files_matched": 543,
+    "source_and_artifact_sha_match": true,
+    "full_commit_export_check": "Required before commit; private ledger avoids self-referential document hashes"
+  },
+  "remaining_blockers": [
+    "Static graph covers 18 existing DSOs; configured NSS db/nis are missing",
+    "Valid ordinary-UID LD_AUDIT fixture executed outside base-namespace verification scope",
+    "Pre-main constructors, IFUNC resolution and complete runtime PAM/NSS/OpenSSL/helper provenance not attested",
+    "No trusted Root installation, actual PAM/account, capability transfer, Kernel verifier or TCX cleanup qualification",
+    "Historical SIGILL cause UNKNOWN; none observed in these tests"
+  ],
+  "next_approval_scope": {
+    "requires_new_reviewed_code_and_hashes": true,
+    "fixed_install": "/usr/libexec/soc-agent-ebpf",
+    "pam_configuration": "/etc/pam.d/soc-agent-ebpf",
+    "pam_module": "/usr/lib/x86_64-linux-gnu/security/pam_unix.so",
+    "startup_password": "ONE_FRESH_TERMINAL_CHALLENGE_PER_APP",
+    "capability_candidate": [
+      "CAP_BPF",
+      "CAP_NET_ADMIN"
+    ],
+    "interface": "lo",
+    "hook_allowlist": [
+      "INGRESS",
+      "EGRESS"
+    ],
+    "namespace": "EXPLICIT_OBSERVED_NAMESPACE",
+    "duration_seconds": 300,
+    "events": 4096,
+    "queue_capacity": 32,
+    "broker_address_space_mib": 256,
+    "cpu_seconds": 20,
+    "application_seconds": 3600,
+    "max_explicit_runs": 16,
+    "pinning": false,
+    "traffic_generation": false,
+    "automatic_restart": false,
+    "native_ai": "BLOCKED"
+  }
+}

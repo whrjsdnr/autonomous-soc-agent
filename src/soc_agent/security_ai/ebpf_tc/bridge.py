@@ -218,10 +218,18 @@ class Preparation:
             native_execution=False,
             capability_scope="CANDIDATE_CAP_BPF_CAP_NET_ADMIN_NATIVE_UNKNOWN",
             release_gate="BLOCKED",
+            dependency_verification="STATIC_GRAPH_WITH_NSS_MODULES",
+            pam_trust="ABSOLUTE_MODULE_NATIVE_PENDING",
+            nss_trust="BLOCKED_NATIVE_LOOKUP_NOT_OBSERVED",
         )
         self._installation = {
             "release_candidate": "B2F_BLOCKED_NATIVE_QUALIFICATION",
             "pam_nss_trust": "STATIC_SNAPSHOTS_DYNAMIC_CLOSURE_UNKNOWN",
+            "dependency_integrity": "STATIC_GRAPH_VERIFIED_NATIVE_MAPPINGS_PENDING",
+            "pam_trust": "ABSOLUTE_MODULE_PINNED_NATIVE_AUTH_PENDING",
+            "nss_trust": "BLOCKED"
+            if release.dynamic_trust.unresolved_nss_services
+            else "NATIVE_LOOKUP_PENDING",
             "installed_release": None,
             "package_version": release.version,
             "release_manifest_digest": release.identity,

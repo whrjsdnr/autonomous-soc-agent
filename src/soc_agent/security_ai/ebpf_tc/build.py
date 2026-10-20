@@ -31,6 +31,7 @@ def compile_native(destination: Path) -> dict[str, str]:
             *FLAGS,
             "-fPIC",
             "-shared",
+            "-Wl,-z,relro,-z,now,-z,noexecstack",
             *[
                 str(ROOT / n)
                 for n in (
@@ -59,7 +60,7 @@ def compile_native(destination: Path) -> dict[str, str]:
             "-lcrypto",
             "-l:libpam.so.0",
             "-l:libpam_misc.so.0",
-            "-Wl,-z,relro,-z,now",
+            "-Wl,-z,relro,-z,now,-z,noexecstack",
             "-o",
             str(destination / "bootstrap"),
         ]
@@ -85,7 +86,7 @@ def compile_native(destination: Path) -> dict[str, str]:
             ],
             "-lbpf",
             "-lcrypto",
-            "-Wl,-z,relro,-z,now",
+            "-Wl,-z,relro,-z,now,-z,noexecstack",
             "-o",
             str(destination / "broker"),
         ]
@@ -100,7 +101,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                 "-L" + str(destination),
                 "-lnative-tc",
                 "-Wl,-rpath,$ORIGIN",
-                "-Wl,-z,relro,-z,now",
+                "-Wl,-z,relro,-z,now,-z,noexecstack",
                 "-o",
                 str(destination / ("tc-" + name if name == "fixture" else name)),
             ]

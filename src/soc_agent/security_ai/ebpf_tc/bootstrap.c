@@ -6,6 +6,7 @@
 #include <sys/resource.h>
 #include <sys/mman.h>
 #include <sys/file.h>
+#include <sys/auxv.h>
 #include <termios.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -16,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 extern char **environ;
-static const char policy[]="auth required pam_unix.so\naccount required pam_unix.so\n";
+static const char policy[]="auth required /usr/lib/x86_64-linux-gnu/security/pam_unix.so\naccount required /usr/lib/x86_64-linux-gnu/security/pam_unix.so\n";
 static int conversation(int n,const struct pam_message **m,struct pam_response **r,void *data) {
     int *challenges=data;
     if(n<1 || n>4)return PAM_CONV_ERR;
@@ -27,12 +28,29 @@ static int conversation(int n,const struct pam_message **m,struct pam_response *
     /* System terminal conversation owns ephemeral password buffers, not Python/GUI. */
     return misc_conv(n,m,r,NULL);
 }
-int soc_password(uid_t uid) {
-    if(!soc_native_gate())return -EPERM;
+int soc_password(const struct soc_release_envelope *envelope) {
+    if(!soc_native_gate() || !envelope)return -EPERM;
+    const struct soc_plan *p=&envelope->plan;uid_t uid=p->uid;
     int fd=soc_trusted(SOC_POLICY,NULL);if(fd<0)return -EPERM;
     char body[sizeof(policy)+1]={0};ssize_t n=read(fd,body,sizeof(body));close(fd);
     if(n!=(ssize_t)strlen(policy) || memcmp(body,policy,strlen(policy)))return -EPERM;
-    struct passwd *user=getpwuid(uid);if(!user || !user->pw_name || !uid)return -EPERM;
+    /* Bounded reentrant NSS queries must agree with both the approved identity and
+     * name-based PAM lookup. A lookup failure or mismatch cannot become authentication. */
+    struct passwd account,by_name,*user=NULL,*named=NULL;char lookup[8192],lookup_name[8192];
+    alarm(60);
+    int lookup_rc=getpwuid_r(uid,&account,lookup,sizeof(lookup),&user);
+    if(lookup_rc || !user || !user->pw_name || !*user->pw_name ||
+       strnlen(user->pw_name,256)>=256 || soc_account_identity(uid,p->gid,user->pw_uid,user->pw_gid,1)) {
+        alarm(0);return -EPERM;
+    }
+    char username[256];strcpy(username,user->pw_name);
+    lookup_rc=getpwnam_r(username,&by_name,lookup_name,sizeof(lookup_name),&named);
+    if(lookup_rc || !named || !named->pw_name || strcmp(named->pw_name,username) ||
+       soc_account_identity(uid,p->gid,named->pw_uid,named->pw_gid,1) ||
+       soc_release_check(p,envelope->manifest_sha,envelope->release_version,1)) {
+        alarm(0);return -EPERM;
+    }
+    alarm(0);
     int tty=open("/dev/tty",O_RDWR|O_CLOEXEC|O_NOCTTY);struct stat st;
     if(tty<0)return -ENOTTY;
     if(!isatty(tty) || fstat(tty,&st) || st.st_uid!=uid || tcgetsid(tty)!=getsid(0) ||
@@ -40,7 +58,9 @@ int soc_password(uid_t uid) {
     /* Bind system PAM's conversation to the OS terminal. No stdin pipe/askpass fallback. */
     if(dup2(tty,0)<0 || dup2(tty,1)<0 || dup2(tty,2)<0) {close(tty);return -EIO;}close(tty);
     int challenges=0;struct pam_conv conv={conversation,&challenges};pam_handle_t *handle=NULL;
-    alarm(60);int rc=pam_start("soc-agent-ebpf",user->pw_name,&conv,&handle);
+    alarm(60);int rc=pam_start("soc-agent-ebpf",username,&conv,&handle);
+    if(rc==PAM_SUCCESS && soc_release_check(p,envelope->manifest_sha,envelope->release_version,1))
+        rc=PAM_CONV_ERR;
     if(rc==PAM_SUCCESS)rc=pam_authenticate(handle,PAM_DISALLOW_NULL_AUTHTOK);
     if(rc==PAM_SUCCESS && challenges==1)rc=pam_acct_mgmt(handle,0);else rc=PAM_CONV_ERR;
     if(handle)pam_end(handle,rc);alarm(0);
@@ -64,7 +84,7 @@ static int bootstrap(int channel,int plan_fd,int audit_fd) {
      * sudo path is admitted: sudo changes real UID to root and is rejected here.
      * Consequently no cached/NOPASSWD sudo policy substitutes for this PAM challenge. */
     uid_t uid=getuid();gid_t gid=getgid();
-    if(!uid || !gid || geteuid()!=0 || !isatty(0) || clearenv())return -EPERM;
+    if(!uid || !gid || geteuid()!=0 || getauxval(AT_SECURE)!=1 || !isatty(0) || clearenv())return -EPERM;
     struct stat audit;int audit_flags=fcntl(audit_fd,F_GETFL);
     if(fstat(audit_fd,&audit) || !S_ISREG(audit.st_mode) || audit.st_uid!=uid ||
        audit.st_nlink!=1 || audit.st_size || (audit.st_mode&0777)!=0600 ||
@@ -103,7 +123,7 @@ static int bootstrap(int channel,int plan_fd,int audit_fd) {
         p.ifindex,p.hook,(unsigned long long)p.namespace_inode,approval);fflush(tty);
     alarm(60);if(!fgets(answer,sizeof(answer),tty))return -EPERM;alarm(0);fclose(tty);
     answer[strcspn(answer,"\r\n")]=0;if(strcmp(answer,approval))return -EPERM;
-    if(soc_password(uid) || soc_peer(channel,&p) || soc_envelope_validate(&envelope) ||
+    if(soc_password(&envelope) || soc_peer(channel,&p) || soc_envelope_validate(&envelope) ||
        soc_release_check(&p,envelope.manifest_sha,envelope.release_version,1))return -EPERM;
     /* Fixed verified executable FD only, never a user-supplied path or shell. */
     int authority=sealed_copy(plan_fd,psha);if(authority<0)return -EPERM;

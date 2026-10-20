@@ -37,6 +37,8 @@ int soc_trust_parse(const void *,size_t,const struct soc_plan *,const uint8_t[32
 int soc_release_check(const struct soc_plan *,const uint8_t[32],const char[16],int);
 int soc_capability_contract(uint64_t,uint64_t,uint64_t,uint64_t,uint64_t);
 int soc_capabilities(void);
+int soc_process_identity(uid_t,uid_t,uid_t,gid_t,gid_t,gid_t,int);
+int soc_mapped_dependencies(const void *,size_t);
 struct soc_state;
 int soc_release_record(struct soc_state *);
 struct soc_manifest {uint8_t bootstrap[32], broker[32], loader[32], program[32], bundle[32];};
@@ -87,7 +89,8 @@ uint64_t soc_now(void);
 struct soc_auth_facts {uint32_t uid,gid,real_uid,effective_uid,tty_owner,
     tty_present,foreground,policy_exact,challenge_count,authentication_status,cached_only;};
 int soc_auth_contract(const struct soc_auth_facts *);
-int soc_password(uid_t);
+int soc_password(const struct soc_release_envelope *);
+int soc_account_identity(uid_t,gid_t,uid_t,gid_t,int);
 int soc_reduce(uid_t,gid_t);
 int soc_snapshot_real(struct soc_state *,struct soc_snapshot *);
 extern const struct soc_ops soc_real_ops;

@@ -44,10 +44,7 @@ def execution_manifest(manifest) -> bytes:
     from soc_agent.security_ai.ebpf_tc.installation import ReleaseManifest
 
     manifest = ReleaseManifest.model_validate(manifest.model_dump(mode="json"))
-    records = {
-        d.path: (d.sha256, d.size, stat.S_IMODE(Path(d.path).stat().st_mode))
-        for d in manifest.dependencies
-    }
+    records = {d.path: (d.sha256, d.size, d.mode) for d in manifest.dependencies}
     records.update({d.path: (d.sha256, d.size, d.mode) for d in manifest.system_configuration})
     policy = manifest.payloads["pam-policy.conf"]
     records[manifest.pam_destination] = (policy.sha256, policy.size, 0o644)
