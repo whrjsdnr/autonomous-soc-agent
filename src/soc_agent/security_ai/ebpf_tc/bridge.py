@@ -219,6 +219,7 @@ class Preparation:
             native_execution=False,
             capability_scope="CANDIDATE_CAP_BPF_CAP_NET_ADMIN_NATIVE_UNKNOWN",
             release_gate="BLOCKED",
+            authentication_handoff=release.authentication_handoff,
             entry_architecture=release.entry_architecture,
             entry_sha256=release.payloads["entry"].sha256,
             privilege_lifetime=release.privilege_lifetime,
@@ -230,6 +231,7 @@ class Preparation:
             "release_candidate": "B2F_BLOCKED_NATIVE_QUALIFICATION",
             "dynamic_loader_trust": "STATIC_ENTRY_FIXTURE_NATIVE_PENDING",
             "entry_architecture": release.entry_architecture,
+            "authentication_handoff": release.authentication_handoff,
             "entry_sha256": release.payloads["entry"].sha256,
             "authentication_nss_scope": "PASSWD_SHADOW_PAM_RUNTIME_PENDING",
             "broker_identity_scope": "NUMERIC_KERNEL_CREDENTIALS_NO_NSS_CALLS",
@@ -239,9 +241,10 @@ class Preparation:
             "pam_nss_trust": "STATIC_SNAPSHOTS_DYNAMIC_CLOSURE_UNKNOWN",
             "dependency_integrity": "STATIC_GRAPH_VERIFIED_NATIVE_MAPPINGS_PENDING",
             "pam_trust": "ABSOLUTE_MODULE_PINNED_NATIVE_AUTH_PENDING",
-            "nss_trust": "BLOCKED"
-            if release.dynamic_trust.unresolved_nss_services
-            else "NATIVE_LOOKUP_PENDING",
+            "nss_trust": "BLOCKED_REQUIRED_ROLE_MODULE_MISSING"
+            if release.dynamic_trust.unresolved_required_nss_services
+            else "BLOCKED_OS_AUTH_SCOPE_NOT_QUALIFIED",
+            "nss_missing_configured_services": release.dynamic_trust.unresolved_nss_services,
             "installed_release": None,
             "package_version": release.version,
             "release_manifest_digest": release.identity,

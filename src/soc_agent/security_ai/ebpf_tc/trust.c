@@ -59,7 +59,7 @@ int soc_trust_parse(const void *body,size_t size,const struct soc_plan *p,
         struct soc_trust_record r;memcpy(&r,(const char *)body+sizeof(h)+i*sizeof(r),sizeof(r));
         if(!allowed_path(r.path) || (i && strcmp(previous,r.path)>=0) || !r.size ||
            r.size>16777216 || !nonzero(r.sha,32) || r.reserved ||
-           (strcmp(r.path,SOC_INSTALL "entry")?r.mode&~0777U:r.mode!=04755) || r.mode&022 || (total+=r.size)>67108864)return -EPERM;
+           (strcmp(r.path,SOC_INSTALL "entry")?r.mode&~0777U:r.mode!=0555) || r.mode&022 || (total+=r.size)>67108864)return -EPERM;
         if(!strcmp(r.path,SOC_INSTALL "entry"))mandatory|=8;
         if(!strcmp(r.path,"/etc/nsswitch.conf"))mandatory|=1;
         if(!strcmp(r.path,"/etc/ld.so.cache"))mandatory|=2;
@@ -201,7 +201,7 @@ int soc_mapped_dependencies(const void *body,size_t size) {
        size!=sizeof(h)+h.count*sizeof(struct soc_trust_record))return -EPERM;
     for(uint32_t i=0;i<h.count;i++) {
         struct soc_trust_record r;memcpy(&r,(const char *)body+sizeof(h)+i*sizeof(r),sizeof(r));
-        if(!allowed_path(r.path) || !r.size || r.size>16777216 || (strcmp(r.path,SOC_INSTALL "entry")?r.mode&~0777U:r.mode!=04755) ||
+        if(!allowed_path(r.path) || !r.size || r.size>16777216 || (strcmp(r.path,SOC_INSTALL "entry")?r.mode&~0777U:r.mode!=0555) ||
            r.mode&022 || r.reserved || !nonzero(r.sha,32))return -EPERM;
     }
     struct mapping_check check={body,h.count,0};

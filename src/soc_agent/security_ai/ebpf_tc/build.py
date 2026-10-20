@@ -65,8 +65,8 @@ def compile_native(destination: Path) -> dict[str, str]:
             str(destination / "libnative-tc.so"),
         ],
     ]
-    # The privilege-raising bootstrap links only system PAM/crypto. It must not
-    # load our custom loader DSO before validating the root installation manifest.
+    # Retained, gated PAM migration reference; no custom SUID installation remains.
+    # It cannot acquire privilege or bypass the removed Entry proof creation path.
     commands.append(
         [
             "cc",

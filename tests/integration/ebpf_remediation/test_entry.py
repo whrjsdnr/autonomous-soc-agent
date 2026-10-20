@@ -10,7 +10,11 @@ import pytest
 from soc_agent.security_ai.ebpf_tc.build import FLAGS, ROOT, compile_native
 from soc_agent.security_ai.ebpf_tc.dependencies import elf_metadata
 from soc_agent.security_ai.ebpf_tc.dynamic_trust import inspect_entry
-from soc_agent.security_ai.ebpf_tc.installation import create_package, verify_package
+from soc_agent.security_ai.ebpf_tc.installation import (
+    ReleaseManifest,
+    create_package,
+    verify_package,
+)
 
 
 @pytest.fixture(scope="module")
@@ -29,7 +33,7 @@ def test_entry_has_no_dynamic_loading_boundary(candidate):
     assert elf_metadata(body) == ((), None)
     assert manifest.payloads["entry"].sha256 == hashes["entry"]
     assert manifest.dynamic_trust.static_entry_sha256 == hashes["entry"]
-    assert manifest.payloads["entry"].mode == 0o4755
+    assert manifest.payloads["entry"].mode == 0o555
     assert manifest.payloads["bootstrap"].mode == 0o555
     assert verify_package(root / "package", manifest.identity) == manifest
     result = subprocess.run([str(entry), "--inspect"], capture_output=True, timeout=3)
@@ -243,3 +247,18 @@ def test_static_entry_wrong_elf_type_machine_and_class_rejected(candidate, offse
     except ValueError:
         accepted = False
     assert not accepted
+
+
+def test_release_cannot_restore_custom_suid_or_hide_os_handoff_blocker(candidate):
+    _, _, manifest = candidate
+    assert not any(p.mode & 0o7000 for p in manifest.payloads.values())
+    assert manifest.entry_architecture == "OS_AUTH_ENTRY_REQUIRED_CUSTOM_SUID_REMOVED"
+    assert manifest.authentication_handoff == "BLOCKED_OS_POLICY_AND_IPC_MIGRATION_REQUIRED"
+    value = manifest.model_dump(mode="json")
+    value["payloads"]["entry"]["mode"] = 0o4755
+    with pytest.raises(ValueError, match="RELEASE_MODE_CONTRACT"):
+        ReleaseManifest.model_validate(value)
+    value = manifest.model_dump(mode="json")
+    value["authentication_handoff"] = "VERIFIED"
+    with pytest.raises(ValueError):
+        ReleaseManifest.model_validate(value)

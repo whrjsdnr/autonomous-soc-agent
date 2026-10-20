@@ -19,7 +19,7 @@ from soc_agent.security_ai.research.models import Frozen, digest
 
 INSTALL = Path("/usr/libexec/soc-agent-ebpf")
 MODES = {
-    "entry": 0o4755,
+    "entry": 0o555,
     "bootstrap": 0o555,
     "broker": 0o555,
     "libnative-tc.so": 0o444,

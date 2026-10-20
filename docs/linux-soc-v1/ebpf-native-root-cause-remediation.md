@@ -1,5 +1,7 @@
 # Phase B-2I — Root-cause security architecture remediation
 
+The architecture decision and SUID installation proposal below are historical and superseded by [the OS-entry review](ebpf-native-os-entry-review.md). The current candidate removes custom SUID execution and blocks the unimplemented OS authentication handoff. Earlier results do not certify that handoff.
+
 Baseline: `08442c589eeac5396dce47120482ce0632c44f9b`. This release is a nonprivileged architecture candidate, **not Native release qualification**. No root installation, PAM/sudo authentication, capability modification, BPF load, TCX/TC operation, network change, capture or generated traffic is performed. Native release, Native AI, DNS9 and operational promotion remain BLOCKED.
 
 ## 1. Root cause: hypotheses, evidence and counterevidence
@@ -15,11 +17,11 @@ Baseline: `08442c589eeac5396dce47120482ce0632c44f9b`. This release is a nonprivi
 
 Read-only facts are observations. The source-derived capability/PAM scope is a design hypothesis until actual WSL2 qualification; it is not promoted to Native proof.
 
-## 2. Architecture decision record
+## 2. Architecture decision record (superseded by additional review)
 
 Three alternatives were evaluated against the same once-per-application password policy.
 
-| Criterion | A: custom PAM with static Entry + isolated Helper (selected) | B: OS sudo entry + restricted Broker | C: root-owned service + session authorization |
+| Criterion | A: custom PAM with static Entry + isolated Helper (historical selection) | B: OS sudo entry + restricted Broker | C: root-owned service + session authorization |
 | --- | --- | --- | --- |
 | Pre-main injection | Static syscall Entry has no interpreter, DT_NEEDED, dynamic segment or user DSO loader; clean FD exec precedes Helper loading | Relies on sudo's secure entry and policy/environment handling | Service starts from trusted service manager environment, not an interactive parent |
 | Dynamic dependencies | Only the later fixed PAM Helper/Broker use root-owned system libraries | sudo, policy plugins and Broker dependencies remain | Service manager, daemon and authentication dependencies remain |
@@ -32,7 +34,7 @@ Three alternatives were evaluated against the same once-per-application password
 | WSL2 | Static x86-64 build tested; actual SUID, capabilities and TCX pending | Actual sudo policy and TCX pending | Service manager availability and persistent service lifecycle add uncertainty |
 | Maintainability | Reuses existing PAM/Broker/IPC/TCX contracts; one small new entry | Less custom authentication code, but incompatible password guarantee without extra policy work | More IPC/authentication/deployment architecture than this bounded collector needs |
 
-Decision: **A with a structural split**, not more post-load exception checks. Existing dynamic `bootstrap` becomes a PAM authentication Helper with mode `0555`; only new syscall-only `entry` has a proposed `04755` installation contract. A direct Helper invocation cannot acquire privilege or mint a trusted entry proof. B/C are not implemented or automatically installed.
+Historical decision (superseded): **A with a structural split**, not more post-load exception checks. Existing dynamic `bootstrap` becomes a PAM authentication Helper with mode `0555`; only new syscall-only `entry` has a proposed `04755` installation contract. A direct Helper invocation cannot acquire privilege or mint a trusted entry proof. B/C are not implemented or automatically installed.
 
 ## 3. Selected trust boundary
 

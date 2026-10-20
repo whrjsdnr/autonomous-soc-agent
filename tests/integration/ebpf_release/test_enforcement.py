@@ -16,6 +16,7 @@ from soc_agent.security_ai.ebpf_tc.journal import RC_ROW, recover_native
 from soc_agent.security_ai.ebpf_tc.trust import (
     ENVELOPE_SIZE,
     HEADER,
+    RECORD,
     candidate_snapshot,
     execution_manifest,
     release_approval,
@@ -304,3 +305,16 @@ int main(int argc,char **argv) {
     assert journal.stat().st_size == 216 and result["records"] == 1
     assert result["release_manifest_digest"] == manifest.identity
     assert not result["authentication_restored"] and result["native_ai"] == "BLOCKED"
+
+
+def test_c_execution_manifest_rejects_old_suid_entry_even_with_matching_source(release):
+    body = bytearray(execution_manifest(release[1]))
+    for offset in range(HEADER.size, len(body), RECORD.size):
+        path, sha, size, mode, reserved = RECORD.unpack_from(body, offset)
+        if path.rstrip(b"\0") == b"/usr/libexec/soc-agent-ebpf/entry":
+            assert mode == 0o555
+            RECORD.pack_into(body, offset, path, sha, size, 0o4755, reserved)
+            break
+    else:
+        pytest.fail("mandatory entry record absent")
+    assert parse(release, bytes(body)) != 0

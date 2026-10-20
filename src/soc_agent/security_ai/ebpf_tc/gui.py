@@ -74,6 +74,8 @@ class PreparedDesktop(BrokerDesktop):
             "pam_nss_trust",
             "dynamic_loader_trust",
             "entry_architecture",
+            "authentication_handoff",
+            "nss_missing_configured_services",
             "entry_sha256",
             "authentication_nss_scope",
             "broker_identity_scope",

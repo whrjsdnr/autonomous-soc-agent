@@ -64,8 +64,11 @@ class ReleaseManifest(Frozen):
     privilege_lifetime: Literal["BROKER_IDLE_E0_I0_A0_PERMITTED_SCOPE_LOAD_ATTACH_ONLY"] = (
         "BROKER_IDLE_E0_I0_A0_PERMITTED_SCOPE_LOAD_ATTACH_ONLY"
     )
-    entry_architecture: Literal["STATIC_SYSCALL_ENTRY_EXEC_PAM_HELPER_NUMERIC_BROKER"] = (
-        "STATIC_SYSCALL_ENTRY_EXEC_PAM_HELPER_NUMERIC_BROKER"
+    entry_architecture: Literal["OS_AUTH_ENTRY_REQUIRED_CUSTOM_SUID_REMOVED"] = (
+        "OS_AUTH_ENTRY_REQUIRED_CUSTOM_SUID_REMOVED"
+    )
+    authentication_handoff: Literal["BLOCKED_OS_POLICY_AND_IPC_MIGRATION_REQUIRED"] = (
+        "BLOCKED_OS_POLICY_AND_IPC_MIGRATION_REQUIRED"
     )
     system_configuration: tuple[SystemConfiguration, SystemConfiguration]
     pam_service: Literal["soc-agent-ebpf"] = "soc-agent-ebpf"

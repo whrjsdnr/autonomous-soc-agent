@@ -68,7 +68,7 @@ def execution_manifest(manifest) -> bytes:
     )
     for name, (sha, size, mode) in sorted(records.items()):
         if len(name.encode()) >= 256 or (
-            mode != 0o4755 if name == "/usr/libexec/soc-agent-ebpf/entry" else bool(mode & 0o7022)
+            mode != 0o555 if name == "/usr/libexec/soc-agent-ebpf/entry" else bool(mode & 0o7022)
         ):
             raise ValueError("RELEASE_EXECUTION_RECORD")
         body += RECORD.pack(name.encode().ljust(256, b"\0"), bytes.fromhex(sha), size, mode, 0)
