@@ -6,8 +6,12 @@ from soc_agent.security_ai.ebpf.models import Event, Plan
 from soc_agent.security_ai.research.models import digest
 
 
-def test_zeek_existing_bundle_unchanged():
-    assert digest(bundle()) == "e665e7629a2b945ab84ccf26f78b1a492e5acd2d00f6197da5517be67ab2c7ef"
+def test_zeek_bundle_changes_only_for_reviewed_failure_certificate_order():
+    # B-1 persists failure evidence before a concurrent stop; old approval is invalid.
+    assert digest(bundle()) == "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045"
+    assert bundle()["live_process.py"] == (
+        "d47439e384c301265e32daee906a927b668c4f7d8961f834bc55abf90b748dda"
+    )
 
 
 def test_no_native_attach_or_zeek_selection_on_preparation_cli():

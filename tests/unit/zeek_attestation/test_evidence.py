@@ -20,13 +20,28 @@ def evidence():
 
 def test_current_bundle_and_native_boundaries():
     v = evidence()
-    assert v["bundle"] == bundle() and v["bundle_digest"] == digest(bundle())
+    # Historical proof remains immutable; admit only the reviewed B-1 Launcher delta.
+    amendment = json.loads(
+        (ROOT / ("docs/linux-soc-v1/ebpf-privileged-broker-tc-ownership-evidence.json")).read_text()
+    )["zeek_launcher_update"]
+    assert amendment["previous_bundle"] == v["bundle"]
+    assert amendment["previous_bundle_digest"] == v["bundle_digest"]
+    assert amendment["current_bundle"] == bundle()
+    assert amendment["current_bundle_digest"] == digest(bundle())
+    assert {k for k in bundle() if bundle()[k] != v["bundle"][k]} == {"live_process.py"}
+    assert amendment["changed_files"] == ["live_process.py"]
+    assert amendment["native_approval_required"] is True
     for name, sha in v["source_sha256"].items():
         if name == "src/soc_agent/gui/operator_view.py":
             # Immutable f020f71 presentation evidence; later views may add collectors.
             assert sha == "eb208b3276762b64bdcfd0775ae85ca184917a29314ec9debf00ffb2d722d87e"
             continue
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha
+        current_sha = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
+        if name == "src/soc_agent/security_ai/collectors/live_process.py":
+            assert sha == amendment["previous_bundle"]["live_process.py"]
+            assert current_sha == amendment["current_bundle"]["live_process.py"]
+        else:
+            assert current_sha == sha
     assert v["verdict"] == "PARTIAL"
     assert v["same_handle_native_proof"] == "BLOCKED_NO_REVIEWED_NATIVE_PROVIDER"
     assert v["native_counter_retrieval"] == "UNKNOWN"

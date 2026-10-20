@@ -382,6 +382,10 @@ def rejection(directory: Path, error: object, plan=None):
         generation=str(plan.controller_generation) if plan else None,
     )
     write_new(failures / (uuid4().hex + ".json"), value)
+    # Persist the failure certificate before stop publication can race the Controller.
+    # A concurrent stop must never prevent the reviewed launch error from surviving.
+    if plan and not (directory / "launch-failure.json").exists():
+        write_new(directory / "launch-failure.json", value)
     if plan and not (directory / "stop.request").exists():
         write_new(
             directory / "stop.request",
@@ -396,8 +400,6 @@ def rejection(directory: Path, error: object, plan=None):
                 at_monotonic_ns=time.monotonic_ns(),
             ),
         )
-    if plan and not (directory / "launch-failure.json").exists():
-        write_new(directory / "launch-failure.json", value)
 
 
 def main(argv=None):
