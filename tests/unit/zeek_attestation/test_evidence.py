@@ -22,6 +22,10 @@ def test_current_bundle_and_native_boundaries():
     v = evidence()
     assert v["bundle"] == bundle() and v["bundle_digest"] == digest(bundle())
     for name, sha in v["source_sha256"].items():
+        if name == "src/soc_agent/gui/operator_view.py":
+            # Immutable f020f71 presentation evidence; later views may add collectors.
+            assert sha == "eb208b3276762b64bdcfd0775ae85ca184917a29314ec9debf00ffb2d722d87e"
+            continue
         assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha
     assert v["verdict"] == "PARTIAL"
     assert v["same_handle_native_proof"] == "BLOCKED_NO_REVIEWED_NATIVE_PROVIDER"

@@ -642,6 +642,8 @@ def render_system(app, value):
         "dns9": "BLOCKED_PRODUCER_PARITY_UNVERIFIED",
         "write_policy": "WRITE_DENIED",
     }
+    if value.get("ebpf"):
+        details["ebpf"] = value["ebpf"]
     app.system_details = details
     proof = details["integrity_evidence"]
     session = proof.get("session", {})
@@ -789,4 +791,25 @@ def render_system(app, value):
         "DNS9 parity remains BLOCKED. Research scores are uncalibrated.",
         "Operational inference remains BLOCKED. All investigations are READ-only.",
     ]
+    if value.get("ebpf"):
+        ebpf = value["ebpf"]
+        lines += [
+            "EBPF TC · RESEARCH ONLY / NATIVE HOOK PENDING",
+            "Kernel hook / interface   "
+            + str(ebpf.get("hook"))
+            + " / "
+            + str(ebpf.get("interface")),
+            "Program SHA   " + str(ebpf.get("program_sha256")),
+            "Kernel events / ring loss / queue   "
+            + " / ".join(
+                "UNKNOWN" if ebpf.get("metrics", {}).get(k) is None else str(ebpf["metrics"][k])
+                for k in ("kernel_events", "ring_loss", "queue_depth")
+            ),
+            "Counter provenance   " + str(ebpf.get("counter_provenance")),
+            "Feature eligibility / AI block reason   " + str(ebpf.get("feature_eligibility")),
+            "DNS / correlation   "
+            + str(ebpf.get("dns_state"))
+            + " / "
+            + str(ebpf.get("correlation")),
+        ]
     app._text(app.system, "\n".join(lines))

@@ -1,0 +1,345 @@
+"""Prepared-only Native collector and bounded file-fixture ring delivery.
+
+Reuses Network14 arithmetic, not Zeek provenance/admission. No loader or model worker.
+"""
+
+import json
+import math
+import os
+from collections import deque
+from pathlib import Path
+
+from soc_agent.linux_runtime.models import RuntimeConfig
+from soc_agent.linux_runtime.store import RuntimeStore
+from soc_agent.review.persistence.secure_storage import create_private_directory
+from soc_agent.security_ai.collectors.packet_input import Packet
+from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
+from soc_agent.security_ai.ebpf.models import Counters, Event, Plan
+from soc_agent.security_ai.ebpf.ring import decode
+from soc_agent.security_ai.research.models import digest
+
+
+class EBPFCollector:
+    def __init__(self, directory: Path, plan: Plan):
+        self.directory, self.plan = directory.absolute(), plan
+        self.state = "IDLE"
+        self.last_error: str | None = None
+        self.queue: deque[Event] = deque()
+        self.queue_peak = self.received = self.accepted = self.dns_candidates = 0
+        self.flow = FlowAssembly(str(plan.session_id))
+        self.cpu_sequences: dict[int, int] = {}
+        self.counter_snapshots: dict[int, Counters] = {}
+        self.loss: int | None = None
+        self.store: RuntimeStore | None = None
+        self.chain = digest(dict(plan=plan.identity))
+        self.deadline: float | None = None
+        self.last_processing: float | None = None
+
+    async def prepare(self) -> dict:
+        if os.geteuid() == 0 or self.state != "IDLE":
+            raise ValueError("EBPF_PREPARE_DENIED")
+        create_private_directory(self.directory)
+        self.store = RuntimeStore.create(
+            self.directory,
+            RuntimeConfig(
+                incident_id=self.plan.session_id,
+                repeated_failures=5,
+                multiple_accounts=3,
+                assessment_mode="READ_ONLY",
+            ),
+        )
+        with self.store.database.transaction() as db:
+            db.execute("CREATE TABLE ebpf_checkpoint(value TEXT NOT NULL,digest TEXT NOT NULL)")
+            self.store._audit(
+                db,
+                "EBPF_PREPARED",
+                dict(plan=self.plan.model_dump(mode="json"), plan_digest=self.plan.identity),
+            )
+        self.state = "NATIVE_HOOK_PENDING"
+        self.checkpoint()
+        return self.snapshot()
+
+    async def start(self) -> dict:
+        # There is deliberately no path from Python/GUI to a BPF loader/TC hook.
+        raise ValueError("EBPF_NATIVE_HOOK_APPROVAL_REQUIRED")
+
+    def begin_fixture(self, monotonic: float) -> None:
+        if self.plan.origin != "EBPF_TC_FIXTURE" or self.state != "NATIVE_HOOK_PENDING":
+            raise ValueError("EBPF_FIXTURE_SCOPE_REQUIRED")
+        if not math.isfinite(monotonic) or monotonic < 0:
+            raise ValueError("EBPF_PROCESSING_CLOCK_INVALID")
+        self.last_processing = monotonic
+        self.state = "FIXTURE_ACTIVE"
+        self.deadline = monotonic + self.plan.duration_seconds
+
+    def fail(self, code: str) -> None:
+        self.state, self.last_error = "ERROR", code
+        if self.store:
+            self.checkpoint()
+        raise ValueError(code)
+
+    def ingest(self, raw: bytes, *, monotonic: float) -> None:
+        if self.state != "FIXTURE_ACTIVE":
+            raise ValueError("EBPF_INPUT_NOT_ACTIVE")
+        if (
+            not math.isfinite(monotonic)
+            or self.last_processing is None
+            or monotonic < self.last_processing
+        ):
+            self.fail("EBPF_PROCESSING_CLOCK_INVALID")
+        self.last_processing = monotonic
+        if self.deadline is None or monotonic >= self.deadline:
+            self.fail("EBPF_SESSION_DEADLINE")
+        if self.received >= self.plan.event_limit:
+            self.fail("EBPF_EVENT_LIMIT")
+        try:
+            e = decode(raw, self.plan, self.received + 1)
+        except ValueError:
+            self.fail("EBPF_EVENT_SCHEMA_REJECTED")
+        if (e.generation, e.ifindex, e.hook) != (
+            self.plan.generation,
+            self.plan.ifindex,
+            self.plan.hook,
+        ):
+            self.fail("EBPF_SOURCE_IDENTITY_MISMATCH")
+        if e.cpu_sequence != self.cpu_sequences.get(e.cpu, 0) + 1:
+            self.fail("EBPF_CPU_SEQUENCE_GAP_OR_REUSE")
+        if len(self.cpu_sequences) >= 128 and e.cpu not in self.cpu_sequences:
+            self.fail("EBPF_CPU_STATE_LIMIT")
+        self.cpu_sequences[e.cpu] = e.cpu_sequence
+        self.received += 1
+        if len(self.queue) >= self.plan.queue_capacity:
+            self.fail("EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
+        self.queue.append(e)
+        self.queue_peak = max(self.queue_peak, len(self.queue))
+
+    def drain(self, limit: int = 32) -> None:
+        if self.state != "FIXTURE_ACTIVE" or not 1 <= limit <= 32:
+            raise ValueError("EBPF_DRAIN_DENIED")
+        processed = min(limit, len(self.queue))
+        for _ in range(processed):
+            e = self.queue[0]
+            if e.clock != "FIXTURE_PCAP_EVENT_NS" or e.timestamp_ns % 1000:
+                self.fail("EBPF_CLOCK_PARITY_UNVERIFIED")
+            sec, ns = divmod(e.timestamp_ns, 10**9)
+            try:
+                p = Packet(
+                    sequence=self.accepted + 1,
+                    seconds=sec,
+                    microseconds=ns // 1000,
+                    frame_length=e.frame_length,
+                    captured_length=e.frame_length,
+                    kind=e.protocol,
+                    source=e.source,
+                    destination=e.destination,
+                    source_port=e.source_port,
+                    destination_port=e.destination_port,
+                    ip_length=e.ip_length,
+                    tcp_flags=e.tcp_flags,
+                )
+                self.flow.add(p)
+            except ValueError:
+                self.fail("EBPF_FLOW_METADATA_INTEGRITY_FAILED")
+            self.queue.popleft()
+            self.accepted += 1
+            self.dns_candidates += int(53 in (e.source_port, e.destination_port))
+            self.chain = digest(dict(previous=self.chain, event=e.model_dump(mode="json")))
+        if processed and self.accepted % 64 == 0:
+            self.checkpoint()
+
+    def counters(self, value: Counters) -> None:
+        if self.state != "FIXTURE_ACTIVE":
+            raise ValueError("EBPF_COUNTER_INPUT_DENIED")
+        if value.generation != self.plan.generation or value.hook != self.plan.hook:
+            self.fail("EBPF_COUNTER_SCOPE_MISMATCH")
+        old = self.counter_snapshots.get(value.cpu)
+        if old and any(
+            getattr(value, k) < getattr(old, k)
+            for k in (
+                "observed",
+                "emitted",
+                "ring_lost",
+                "unsupported",
+                "malformed",
+                "disabled",
+                "budget",
+            )
+        ):
+            self.fail("EBPF_COUNTER_RESET_OR_WRAP")
+        if len(self.counter_snapshots) >= 128 and value.cpu not in self.counter_snapshots:
+            self.fail("EBPF_COUNTER_CPU_LIMIT")
+        self.counter_snapshots[value.cpu] = value
+        self.loss = sum(v.ring_lost for v in self.counter_snapshots.values())
+        if self.loss or value.malformed or value.budget or value.disabled or value.unsupported:
+            self.fail("EBPF_COUNTER_LOSS_OR_UNSUPPORTED_WINDOW")
+
+    async def stop(self) -> dict:
+        if self.state in {"STOPPED", "ERROR", "RESTORED_NO_REATTACH"}:
+            return self.snapshot()
+        if self.state == "FIXTURE_ACTIVE":
+            while self.queue:
+                self.drain()
+            self.flow.finish()
+        self.state = "STOPPED"
+        if self.store:
+            self.checkpoint()
+        for flow in self.flow.finalized:
+            flow.pop("packets", None)
+        return self.snapshot()
+
+    def _summary(self) -> dict:
+        features = [
+            dict(
+                flow_id=f["flow_id"],
+                close_reason=f["close_reason"],
+                values_digest=f["values_digest"],
+                values=f["values"],
+                feature_names=f["feature_names"],
+                native_ai="BLOCKED",
+            )
+            for f in self.flow.finalized
+        ]
+        return dict(
+            plan=self.plan.model_dump(mode="json"),
+            plan_digest=self.plan.identity,
+            state=self.state,
+            last_error=self.last_error,
+            received=self.received,
+            accepted=self.accepted,
+            queue_pending=len(self.queue),
+            queue_peak=self.queue_peak,
+            dns_candidates=self.dns_candidates,
+            ring_loss=self.loss,
+            counter_evidence_digest=digest(
+                [
+                    self.counter_snapshots[cpu].model_dump(mode="json")
+                    for cpu in sorted(self.counter_snapshots)
+                ]
+            )
+            if self.counter_snapshots
+            else None,
+            counter_status="FIXTURE_DECLARATION_ONLY" if self.counter_snapshots else "NOT_OBSERVED",
+            event_chain=self.chain,
+            feature_digest=digest(features),
+            feature_tail=features[-4:],
+            finalized_count=len(features),
+            native_ai="BLOCKED",
+        )
+
+    def checkpoint(self) -> None:
+        if self.store is None:
+            raise ValueError("EBPF_STORE_NOT_PREPARED")
+        if sum(p.stat().st_size for p in self.directory.iterdir() if p.is_file()) > 8 * 1024**2:
+            self.state, self.last_error = "ERROR", "EBPF_SESSION_DISK_LIMIT"
+            raise ValueError(self.last_error)
+        value = self._summary()
+        text, sha = json.dumps(value), digest(value)
+        if len(text.encode()) > 16384:
+            raise ValueError("EBPF_CHECKPOINT_SIZE")
+        with self.store.database.transaction() as db:
+            db.execute("DELETE FROM ebpf_checkpoint")
+            db.execute("INSERT INTO ebpf_checkpoint VALUES(?,?)", (text, sha))
+            self.store._audit(
+                db,
+                "EBPF_CHECKPOINT",
+                dict(
+                    summary_digest=sha,
+                    plan_digest=self.plan.identity,
+                    program_sha256=self.plan.program_sha256,
+                    native_ai="BLOCKED",
+                ),
+            )
+
+    async def recover(self) -> dict:
+        if self.state != "IDLE":
+            raise ValueError("EBPF_RECOVERY_REQUIRES_FRESH_OWNER")
+        store = RuntimeStore(self.directory)
+        store.verify_audit()
+        with store.database.transaction(write=False) as db:
+            row = db.execute("SELECT value,digest FROM ebpf_checkpoint").fetchone()
+            audits = [
+                json.loads(r[0])
+                for r in db.execute("SELECT payload FROM monitor_audit ORDER BY sequence")
+            ]
+        value = json.loads(row[0])
+        initial = [a["details"] for a in audits if a["kind"] == "EBPF_PREPARED"]
+        checkpoints = [a["details"] for a in audits if a["kind"] == "EBPF_CHECKPOINT"]
+        if (
+            digest(value) != row[1]
+            or value["plan"] != self.plan.model_dump(mode="json")
+            or initial != [dict(plan=value["plan"], plan_digest=self.plan.identity)]
+            or not checkpoints
+            or checkpoints[-1]["summary_digest"] != row[1]
+            or checkpoints[-1]["plan_digest"] != self.plan.identity
+            or checkpoints[-1]["program_sha256"] != self.plan.program_sha256
+        ):
+            raise ValueError("EBPF_CHECKPOINT_BINDING_FAILED")
+        self.state = "RESTORED_NO_REATTACH"
+        return self.snapshot() | dict(
+            restored_evidence=value, runtime_audit_integrity=store.verify_audit()
+        )
+
+    def health(self) -> dict:
+        return dict(state=self.state, native_hook="PENDING", last_error=self.last_error)
+
+    def network_events(self) -> list[dict]:
+        return []  # No AI receipt/operational event is fabricated from kernel metadata.
+
+    def dns_events(self) -> list[dict]:
+        return []  # Port 53 candidates are not Zeek DNS transactions.
+
+    def metrics(self) -> dict:
+        return dict(
+            fixture_events=self.received if self.plan.origin.endswith("FIXTURE") else None,
+            high_watermark=24,
+            low_watermark=8,
+            backpressure="HIGH" if len(self.queue) >= 24 else "NORMAL",
+            capture_gaps=1 if self.last_error else None,
+            kernel_drops=None,
+            kernel_events=None,
+            ring_loss=self.loss,
+            queue_depth=len(self.queue),
+            queue_peak=self.queue_peak,
+            normalized_packets=self.accepted,
+        )
+
+    def snapshot(self) -> dict:
+        detail = dict(
+            collector_type="EBPF_TC",
+            hook=self.plan.hook,
+            interface=self.plan.interface,
+            ifindex=self.plan.ifindex,
+            namespace=self.plan.net_namespace,
+            program_sha256=self.plan.program_sha256,
+            metrics=self.metrics(),
+            counter_provenance="TC_HOOK_CPU_CUMULATIVE_GENERATION_NOT_ZEEK_HANDLE",
+            capture_integrity="UNVERIFIED",
+            feature_eligibility="BLOCKED_NATIVE_POLICY",
+            dns_state="PORT53_CANDIDATE" if self.dns_candidates else "DNS_VISIBILITY_UNKNOWN",
+            dns_candidates=self.dns_candidates,
+            correlation="UNKNOWN_NO_SHARED_PACKET_ID",
+            native_ai="BLOCKED",
+            verifier="PENDING",
+            native_hook="PENDING",
+        )
+        return dict(
+            state=self.state,
+            session_id=str(self.plan.session_id),
+            input_origin=self.plan.origin,
+            collection_live=False,
+            last_error=self.last_error,
+            ebpf=detail,
+            collector=dict(
+                type="EBPF_TC",
+                health=self.state,
+                capture_integrity="UNVERIFIED",
+                metrics=self.metrics(),
+            ),
+            network=dict(state=self.state),
+            dns=dict(state="DNS_VISIBILITY_UNKNOWN"),
+            research=dict(records=[]),
+            operational_gate="BLOCKED",
+            dns9="BLOCKED",
+            listener_ready=False,
+            command_valid=False,
+        )

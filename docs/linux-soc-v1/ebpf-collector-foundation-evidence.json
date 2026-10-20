@@ -1,0 +1,1846 @@
+{
+  "contract": "soc-ebpf-foundation-validation:v1",
+  "verdict": "FOUNDATION_VERIFIED_NATIVE_PENDING",
+  "soc_parent": "f020f718f9b950927aded17fb6f16eeeff24ed3f",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "source_sha256": {
+    "src/soc_agent/security_ai/ebpf/__init__.py": "77e0220e07a6fc2fe168affac53245138dfe7eee5add9af3264abe8340b00c0c",
+    "src/soc_agent/security_ai/ebpf/__main__.py": "34d0eea068a304751e20d2fae558c58816d873c2b6d88b2ef6bd1494470cafa8",
+    "src/soc_agent/security_ai/ebpf/build.py": "b881311b844d623b2f0f2731aa8274120944a1bc0ebb3f20384d239c8bd95a8f",
+    "src/soc_agent/security_ai/ebpf/collector.py": "937dd21dd5c35dea212a4456a69542bbbf54e4721ebd8068dd0db6670d6e5f5d",
+    "src/soc_agent/security_ai/ebpf/consumer.c": "b68b72f8a77c6e4f934dd30cd66ab646920e368a90253e7a891a9880ac4cf91b",
+    "src/soc_agent/security_ai/ebpf/event.h": "8d647d30e666196ae354f3cc14e7cd35e5cb7a172aa775d30b8b10d285548c12",
+    "src/soc_agent/security_ai/ebpf/gui.py": "f05a16d1fd47071217f1136076d0d8fee70632eef61e552000c94622409b623b",
+    "src/soc_agent/security_ai/ebpf/models.py": "e973a2ff7d2ce9ba7dd605893c515dc66301b3b58253eaf409c426c519ec4c7b",
+    "src/soc_agent/security_ai/ebpf/parser.h": "78f6916f8e6d858f217eeb326fe7d0cd3554cc64b71b6cd63fb2c503f6147aa9",
+    "src/soc_agent/security_ai/ebpf/ring.py": "49a31bcb7ad6a36142503b47f6c3fcc7885eea35bd4f9f67ff5cab7ba1c91dd2",
+    "src/soc_agent/security_ai/ebpf/tc.bpf.c": "80ad1d13d0e703b4b446e83150be8b29fc228bada2e05db7ea47836ecfe36649",
+    "src/soc_agent/gui/operator_view.py": "8676dcddd102131125c9c0bf760769e05a9887549b2e835880f903266239d635"
+  },
+  "foundation_bundle_digest": "165c749e83e5f7d6b74e1b54f0bc2d4d846505ad7c36a59825be55932aab8a58",
+  "build": {
+    "scope": "COMPILE_AND_LINK_ONLY_NOT_KERNEL_VERIFIER",
+    "binaries": {
+      "tc.bpf.o": "69de609ea8ee90ecf90d091ec361e46e61ed0638b3175390c77305145e19d5f4",
+      "ring-consumer": "8e4f69ffde75d6e728b72ba9c1bb13ff59e1fdb042bc6f6dbecd1af2a11ce072"
+    },
+    "source_digest": "8c8b9c92231348293299eeaa1c430661156d9049a92d532cf0dc27aa1bbd8e32",
+    "zeek_bundle_digest": "e665e7629a2b945ab84ccf26f78b1a492e5acd2d00f6197da5517be67ab2c7ef",
+    "kernel_verifier": "PENDING",
+    "native_hook": "PENDING"
+  },
+  "environment": {
+    "kernel": {
+      "exit_code": 0,
+      "stdout": "6.18.33.2-microsoft-standard-WSL2\n",
+      "stderr": ""
+    },
+    "clang": {
+      "exit_code": 0,
+      "stdout": "Ubuntu clang version 18.1.3 (1ubuntu1)\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin\n",
+      "stderr": ""
+    },
+    "libbpf": {
+      "exit_code": 0,
+      "stdout": "1.3.0\n",
+      "stderr": ""
+    },
+    "bpftool": {
+      "exit_code": 0,
+      "stdout": "bpftool v7.4.0\nusing libbpf v1.4\nfeatures:\n",
+      "stderr": ""
+    },
+    "tc": {
+      "exit_code": 0,
+      "stdout": "tc utility, iproute2-6.1.0, libbpf 1.3.0\n",
+      "stderr": ""
+    },
+    "btf_exists": true,
+    "bpffs_mounted": false,
+    "namespace": "net:[4026531833]",
+    "ifindex": 1,
+    "cpu_affinity": 12,
+    "cpu_possible": "0-11",
+    "unprivileged_bpf_disabled": "2",
+    "capabilities": [
+      "CapEff:\t0000000000000000",
+      "CapBnd:\t000001ffffffffff"
+    ],
+    "memory": {
+      "MemTotal": "8000144 kB",
+      "MemAvailable": "3811628 kB",
+      "SwapTotal": "2097152 kB",
+      "SwapFree": "1283876 kB"
+    },
+    "psi": "some avg10=0.20 avg60=0.07 avg300=0.02 total=174800975\nfull avg10=0.20 avg60=0.07 avg300=0.01 total=166812484\n",
+    "kernel_config": {
+      "CONFIG_BPF": "y",
+      "CONFIG_BPF_SYSCALL": "y",
+      "CONFIG_BPF_JIT": "y",
+      "CONFIG_XDP_SOCKETS": "y",
+      "CONFIG_NET_CLS_BPF": "m",
+      "CONFIG_BPF_EVENTS": "y"
+    }
+  },
+  "verified_runs": {
+    "unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 50.817477434000466,
+      "suite": [
+        "tests/unit/ebpf",
+        "tests/unit/zeek_attestation",
+        "tests/unit/zeek_preprocessing",
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "result": "........................................................................ [ 11%]\n........................................................................ [ 22%]\n........................................................................ [ 33%]\n........................................................................ [ 44%]\n........................................................................ [ 55%]\n........................................................................ [ 66%]\n........................................................................ [ 77%]\n........................................................................ [ 88%]\n........................................................................ [ 99%]\n....                                                                     [100%]\n652 passed in 47.34s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "resources": [
+        {
+          "memavailable": 4070817792,
+          "psi": "some avg10=0.00 avg60=0.05 avg300=0.02 total=174867593\nfull avg10=0.00 avg60=0.05 avg300=0.01 total=166879027\n"
+        }
+      ]
+    },
+    "integration": {
+      "exit_code": 0,
+      "elapsed_seconds": 61.3630643709912,
+      "suite": [
+        "tests/integration/ebpf",
+        "tests/integration/zeek_attestation",
+        "tests/integration/zeek_preprocessing",
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "result": "....................................................                     [100%]\n52 passed in 59.20s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "resources": [
+        {
+          "memavailable": 4229529600,
+          "psi": "some avg10=0.00 avg60=0.09 avg300=0.04 total=175010339\nfull avg10=0.00 avg60=0.09 avg300=0.03 total=167017854\n"
+        }
+      ]
+    },
+    "model": {
+      "exit_code": 0,
+      "elapsed_seconds": 10.700379790971056,
+      "suite": [
+        "tests/integration/zeek_live/test_models.py"
+      ],
+      "result": ".                                                                        [100%]\n1 passed in 8.95s\nVERIFICATION_GUARD: NO PRIVILEGE, AF_PACKET OR TEST TRAFFIC EXECUTION\n",
+      "resources": [
+        {
+          "memavailable": 4204883968,
+          "psi": "some avg10=0.00 avg60=0.05 avg300=0.04 total=175132202\nfull avg10=0.00 avg60=0.05 avg300=0.03 total=167138312\n"
+        },
+        {
+          "memavailable": 4187947008,
+          "psi": "some avg10=0.00 avg60=0.05 avg300=0.04 total=175132202\nfull avg10=0.00 avg60=0.05 avg300=0.03 total=167138312\n"
+        },
+        {
+          "memavailable": 4224245760,
+          "psi": "some avg10=0.00 avg60=0.04 avg300=0.04 total=175132202\nfull avg10=0.00 avg60=0.04 avg300=0.03 total=167138312\n"
+        }
+      ]
+    },
+    "ebpf-unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 6.591815292951651,
+      "suite": [
+        "tests/unit/ebpf"
+      ],
+      "result": ".............................................                            [100%]\n45 passed in 4.76s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4197048320,
+          "psi": "some avg10=0.00 avg60=0.02 avg300=0.05 total=175367727\nfull avg10=0.00 avg60=0.02 avg300=0.04 total=167371019\n"
+        }
+      ]
+    },
+    "gui": {
+      "exit_code": 0,
+      "elapsed_seconds": 6.052145599969663,
+      "suite": [
+        "tests/gui_ebpf_checks.py"
+      ],
+      "result": ".                                                                        [100%]\n1 passed in 4.13s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4233781248,
+          "psi": "some avg10=0.00 avg60=0.02 avg300=0.04 total=175380238\nfull avg10=0.00 avg60=0.02 avg300=0.04 total=167383495\n"
+        }
+      ]
+    },
+    "audit": {
+      "exit_code": 0,
+      "elapsed_seconds": 15.868745058018249,
+      "suite": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/linux_runtime/test_final_integration_audit.py",
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 13.91s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4331819008,
+          "psi": "some avg10=0.00 avg60=0.01 avg300=0.04 total=175395046\nfull avg10=0.00 avg60=0.01 avg300=0.04 total=167398292\n"
+        }
+      ]
+    }
+  },
+  "preserved_gui_run": {
+    "result": "15 existing GUI cases passed; one new fixture assertion failed and was corrected separately",
+    "first_exit_code": 1
+  },
+  "model_regression": {
+    "scope": "EXISTING_ZEEK_OFFLINE_RF_LR_NOT_EBPF_INFERENCE",
+    "evidence": {
+      "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+      "stream_plan": {
+        "contract": "soc-zeek-native-plan:v4",
+        "session_id": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+        "controller_generation": "2a856544-1bb2-48fc-975a-cd45b0c2c17b",
+        "image": "zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+        "interface": "lo",
+        "duration_seconds": 300,
+        "cpu_limit": 1,
+        "memory_mib": 512,
+        "disk_mib": 16,
+        "output_bytes": 8388608,
+        "queue_capacity": 32,
+        "packet_limit": 4096,
+        "event_limit": 8192,
+        "net_namespace": "net:[4026531833]",
+        "bundle_digest": "e665e7629a2b945ab84ccf26f78b1a492e5acd2d00f6197da5517be67ab2c7ef",
+        "capture_integrity": "UNVERIFIED_PCAP_STATS_FAILURE_SIGNAL",
+        "native_inference": "BLOCKED"
+      },
+      "stream_exit": {
+        "capture_integrity": "UNVERIFIED",
+        "cleanup_verified": true,
+        "closed_detail": {
+          "bytes_before_closed": 1389,
+          "bytes_recvd": 276,
+          "dns_events": 0,
+          "messages_before_closed": 6,
+          "network_events": 1,
+          "omitted_events": 0,
+          "omitted_packet_records": 0,
+          "packet_records": 4,
+          "pkts_dropped": 0,
+          "pkts_link": 0,
+          "pkts_recvd": 4,
+          "stop_reason": "ZEEK_DONE"
+        },
+        "closed_observed": true,
+        "container_absent": true,
+        "container_exit_source": "ATTACHED_DOCKER_RUN_EXIT_STATUS",
+        "container_id": null,
+        "drain_seconds": 0.17843213002197444,
+        "elapsed_seconds": 0.7105037469882518,
+        "error": null,
+        "exit_code": 0,
+        "exit_digest_scope": "PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
+        "native_capture": false,
+        "output_bytes": 1981,
+        "plan_digest": "3a3654a2eead6d0cc1bfcc64dae5dc8291e663c8eaa019630590d0c3c34f6483",
+        "protocol_finalized": true,
+        "sequence": 7,
+        "stop_requested_reason": null,
+        "stopped": false,
+        "stream_sha256": "90adfff1f13bb7b90fbb954d69bb2f8de73d99eccb0f1601c79c079fb4877a52",
+        "termination_reason": "INPUT_EXHAUSTED"
+      },
+      "session_id": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+      "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+      "input_origin": "ZEEK_OFFLINE_PCAP",
+      "records": [
+        {
+          "error": null,
+          "finished_at": "2026-10-20T00:42:37.503044+00:00",
+          "investigation": {
+            "action_policy": "WRITE_DENIED",
+            "assessment": {
+              "incident_state": {
+                "confidence": null,
+                "created_at": "2026-10-20T00:42:37.511311Z",
+                "evidence": [
+                  {
+                    "collected_at": "2026-10-20T00:42:37.666854Z",
+                    "evidence_id": "4c8215d0-6343-47e8-8690-7296cd44ed7d",
+                    "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                    "observed_at": "2026-10-20T00:42:37.666808Z",
+                    "raw_data": "{\"output\":{\"capture_session\":\"2a94c8e8-cad3-45c3-96e0-23e50357db3e\",\"flow_id\":\"e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"ZEEK_OFFLINE_PCAP\",\"packet_count\":3,\"provenance_digest\":\"30f7eefa8f13e431a6b3bfff0d14197ed840d9a9db6576b541dd7e5b14658781\",\"source_digest\":\"2bc0a26fe2daac33cb5758724c79cc9da3276684a02325959b2b1c5bf9e88d0a\"},\"tool_name\":\"read_local_source_report\"}",
+                    "reliability": null,
+                    "source": "tool:read_local_source_report",
+                    "summary": "read_local_source_report investigation result",
+                    "tool_name": "read_local_source_report"
+                  }
+                ],
+                "hypotheses": [],
+                "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                "observations": [],
+                "severity": "info",
+                "status": "new",
+                "updated_at": "2026-10-20T00:42:37.669678Z"
+              },
+              "threat_assessment": {
+                "assessment_id": "c081695d-29eb-49be-bf49-7d45b3d2ed23",
+                "confidence": 0.0,
+                "created_at": "2026-10-20T00:42:37.749008Z",
+                "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                "severity": "info",
+                "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+                "supporting_evidence_ids": [
+                  "4c8215d0-6343-47e8-8690-7296cd44ed7d"
+                ],
+                "supporting_hypothesis_ids": [],
+                "supporting_observation_ids": []
+              }
+            },
+            "checkpoint_restored": true,
+            "context": {
+              "contract": "soc-zeek-network14-advisory:v1",
+              "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+              "mode": "OFFLINE_RESEARCH_DEMO",
+              "receipt_digest": "1a5ddb4a7ac486efcba52d449fe8a0187422dbd3cd17b2b4ae3ea0ee59604f5a",
+              "result": {
+                "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+                "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+                "capture_quality": "UNKNOWN",
+                "capture_session": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+                "contract": "soc-zeek-network14-receipt:v1",
+                "event_time": "2027-01-15T08:00:00Z",
+                "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+                "feature_digest": "67f150ec64a631f6fab08b127ce89730bd5f789aeee08e294c166083f9352517",
+                "feature_names": [
+                  "duration_seconds",
+                  "forward_packet_count",
+                  "backward_packet_count",
+                  "forward_ip_bytes",
+                  "backward_ip_bytes",
+                  "ip_length_min",
+                  "ip_length_max",
+                  "ip_length_mean",
+                  "ip_length_population_std",
+                  "tcp_syn_packet_count",
+                  "tcp_fin_packet_count",
+                  "tcp_rst_packet_count",
+                  "iat_mean_seconds",
+                  "iat_max_seconds"
+                ],
+                "feature_values": [
+                  1.0,
+                  2.0,
+                  1.0,
+                  120.0,
+                  60.0,
+                  40.0,
+                  80.0,
+                  60.0,
+                  16.329931259155273,
+                  1.0,
+                  1.0,
+                  0.0,
+                  0.5,
+                  0.5
+                ],
+                "flow_id": "e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1",
+                "inference_latency_ms": 16.36897202115506,
+                "inferred_at": "2026-10-20T00:42:37.044261Z",
+                "invocation_id": "596b47d3-a053-4592-83dc-349fae33d431",
+                "model_id": "linux-network14-research-v1-quality_rf",
+                "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+                "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+                "operational_inference": "BLOCKED",
+                "origin": "ZEEK_OFFLINE_PCAP",
+                "packet_count": 3,
+                "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+                "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+                "prediction": "CLASS_0",
+                "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+                "producer_origin": "OFFLINE_PCAP",
+                "producer_version": "1.1.0",
+                "profile": "quality",
+                "provenance_digest": "30f7eefa8f13e431a6b3bfff0d14197ed840d9a9db6576b541dd7e5b14658781",
+                "request_digest": "327e9d45fc36aa62cff1852778134c5ae7c97be2da88e50d4feb09b6ff5df605",
+                "score": 0.140625,
+                "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+                "source_digest": "2bc0a26fe2daac33cb5758724c79cc9da3276684a02325959b2b1c5bf9e88d0a",
+                "status": "RESEARCH_ONLY",
+                "threshold": 0.35,
+                "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+                "worker_cpu_seconds": 2.476826,
+                "worker_limits": {
+                  "address_space_bytes": 3221225472,
+                  "cpu_seconds": 15,
+                  "network": "DENIED",
+                  "result_file_bytes": 131072
+                },
+                "worker_peak_rss_bytes": 234041344,
+                "write_policy": "WRITE_DENIED",
+                "zeek_producer_version": "zeek-packet-network14:v1"
+              },
+              "role": "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
+            },
+            "context_digest": "982784eadfb22b07171db5ad9b5ba41f217c51711e173feda5266b0c063c0d9f",
+            "evidence_references": [
+              "4c8215d0-6343-47e8-8690-7296cd44ed7d"
+            ],
+            "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+            "mode": "SCRIPTED_OFFLINE_RESEARCH",
+            "prompt_digests": [
+              "e8ab12a3b732cdc0b741b3c1e099b71f8ca4b9ef132c399c3c6896bf391c688b",
+              "0034b34369b9c2903e4ee297bada3613a4fc5ab9b44b3a1fec666a6877fd7e98"
+            ],
+            "provider_calls": 0,
+            "result": {
+              "current_step": "analyze",
+              "failure": null,
+              "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+              "next_step": "decide",
+              "reason": "Assessment completed; severity remains advisory",
+              "references": [
+                {
+                  "identity": "c15b8c09-3759-4083-8792-bbf189868ecf",
+                  "kind": "investigation"
+                },
+                {
+                  "identity": "c081695d-29eb-49be-bf49-7d45b3d2ed23",
+                  "kind": "assessment"
+                }
+              ],
+              "terminal": false,
+              "waiting_for_human": false
+            },
+            "status": "ASSESSED_READ_ONLY",
+            "timeline": {
+              "entries": [
+                {
+                  "content": {
+                    "previous_entry_id": null,
+                    "result": {
+                      "current_step": "observe",
+                      "failure": null,
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "next_step": "observe",
+                      "reason": "Incident observed; no action dispatched",
+                      "references": [],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 1,
+                    "snapshot": {
+                      "fingerprint": "e1c943a801d85bf8e6712dfccc658df9f2fe88fda8bb07e4cd7f5750c8ebfb88",
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 0
+                    }
+                  },
+                  "entry_id": "d44f2c1b3b9011e12b8a4d5f4b57e455e22c5b1970e3fbf69176e820dbc85d87"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "d44f2c1b3b9011e12b8a4d5f4b57e455e22c5b1970e3fbf69176e820dbc85d87",
+                    "result": {
+                      "current_step": "observe",
+                      "failure": null,
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "next_step": "plan",
+                      "reason": "Route current evidence or request investigation",
+                      "references": [],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 2,
+                    "snapshot": {
+                      "fingerprint": "e1c943a801d85bf8e6712dfccc658df9f2fe88fda8bb07e4cd7f5750c8ebfb88",
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 0
+                    }
+                  },
+                  "entry_id": "c2c58973fd81e355b3abf102271e94c6736b68d8bfc42763465f867b193b340b"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "c2c58973fd81e355b3abf102271e94c6736b68d8bfc42763465f867b193b340b",
+                    "result": {
+                      "current_step": "plan",
+                      "failure": null,
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "next_step": "route",
+                      "reason": "Investigation selected",
+                      "references": [
+                        {
+                          "identity": "c15b8c09-3759-4083-8792-bbf189868ecf",
+                          "kind": "investigation"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 3,
+                    "snapshot": {
+                      "fingerprint": "e1c943a801d85bf8e6712dfccc658df9f2fe88fda8bb07e4cd7f5750c8ebfb88",
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 0
+                    }
+                  },
+                  "entry_id": "6214e381a3adb358adf6e5c81538a9ba3e73e3cf81b7acdb1d26b373ef12dcae"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "6214e381a3adb358adf6e5c81538a9ba3e73e3cf81b7acdb1d26b373ef12dcae",
+                    "result": {
+                      "current_step": "route",
+                      "failure": null,
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "next_step": "route",
+                      "reason": "Read-only evidence collected",
+                      "references": [
+                        {
+                          "identity": "c15b8c09-3759-4083-8792-bbf189868ecf",
+                          "kind": "investigation"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 4,
+                    "snapshot": {
+                      "fingerprint": "441dd7b782dc815b1a142ce84c9806df718f4cc7075d9f2a9333047f93f41b02",
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 1
+                    }
+                  },
+                  "entry_id": "ab0f27223a22a545b541030232704eceaf02336b2ecb53d57101c2e71222a5ee"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "ab0f27223a22a545b541030232704eceaf02336b2ecb53d57101c2e71222a5ee",
+                    "result": {
+                      "current_step": "route",
+                      "failure": null,
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "next_step": "analyze",
+                      "reason": "Evidence analysis selected",
+                      "references": [
+                        {
+                          "identity": "c15b8c09-3759-4083-8792-bbf189868ecf",
+                          "kind": "investigation"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 5,
+                    "snapshot": {
+                      "fingerprint": "441dd7b782dc815b1a142ce84c9806df718f4cc7075d9f2a9333047f93f41b02",
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 1
+                    }
+                  },
+                  "entry_id": "d3362c907e8495432e4d4f89840b306aeae27f29e0844bcf2b1a370f57494af8"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "d3362c907e8495432e4d4f89840b306aeae27f29e0844bcf2b1a370f57494af8",
+                    "result": {
+                      "current_step": "analyze",
+                      "failure": null,
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "next_step": "decide",
+                      "reason": "Assessment completed; severity remains advisory",
+                      "references": [
+                        {
+                          "identity": "c15b8c09-3759-4083-8792-bbf189868ecf",
+                          "kind": "investigation"
+                        },
+                        {
+                          "identity": "c081695d-29eb-49be-bf49-7d45b3d2ed23",
+                          "kind": "assessment"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 6,
+                    "snapshot": {
+                      "fingerprint": "441dd7b782dc815b1a142ce84c9806df718f4cc7075d9f2a9333047f93f41b02",
+                      "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 1
+                    }
+                  },
+                  "entry_id": "cd9672fc3065a33c362bd239e637bc4f2b805d410ef0481112f900c5a69eff57"
+                }
+              ],
+              "incident_id": "a1479a6b-9a1d-403b-af3a-34f696db7c18"
+            }
+          },
+          "key": "e61f09a35e4ae9fdf8cc60e095ead7a23e30fa6b78b75688c9c5254785b2a74c",
+          "profile": "quality",
+          "receipt": {
+            "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+            "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+            "capture_quality": "UNKNOWN",
+            "capture_session": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+            "contract": "soc-zeek-network14-receipt:v1",
+            "event_time": "2027-01-15T08:00:00Z",
+            "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+            "feature_digest": "67f150ec64a631f6fab08b127ce89730bd5f789aeee08e294c166083f9352517",
+            "feature_names": [
+              "duration_seconds",
+              "forward_packet_count",
+              "backward_packet_count",
+              "forward_ip_bytes",
+              "backward_ip_bytes",
+              "ip_length_min",
+              "ip_length_max",
+              "ip_length_mean",
+              "ip_length_population_std",
+              "tcp_syn_packet_count",
+              "tcp_fin_packet_count",
+              "tcp_rst_packet_count",
+              "iat_mean_seconds",
+              "iat_max_seconds"
+            ],
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "flow_id": "e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1",
+            "inference_latency_ms": 16.36897202115506,
+            "inferred_at": "2026-10-20T00:42:37.044261Z",
+            "invocation_id": "596b47d3-a053-4592-83dc-349fae33d431",
+            "model_id": "linux-network14-research-v1-quality_rf",
+            "model_manifest_digest": "80bb31b38c6e35dac1628f8c5c3ed1843ae81779ca3173a356f18473821b5f66",
+            "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+            "operational_inference": "BLOCKED",
+            "origin": "ZEEK_OFFLINE_PCAP",
+            "packet_count": 3,
+            "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+            "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+            "prediction": "CLASS_0",
+            "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+            "producer_origin": "OFFLINE_PCAP",
+            "producer_version": "1.1.0",
+            "profile": "quality",
+            "provenance_digest": "30f7eefa8f13e431a6b3bfff0d14197ed840d9a9db6576b541dd7e5b14658781",
+            "request_digest": "327e9d45fc36aa62cff1852778134c5ae7c97be2da88e50d4feb09b6ff5df605",
+            "score": 0.140625,
+            "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+            "source_digest": "2bc0a26fe2daac33cb5758724c79cc9da3276684a02325959b2b1c5bf9e88d0a",
+            "status": "RESEARCH_ONLY",
+            "threshold": 0.35,
+            "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+            "worker_cpu_seconds": 2.476826,
+            "worker_limits": {
+              "address_space_bytes": 3221225472,
+              "cpu_seconds": 15,
+              "network": "DENIED",
+              "result_file_bytes": 131072
+            },
+            "worker_peak_rss_bytes": 234041344,
+            "write_policy": "WRITE_DENIED",
+            "zeek_producer_version": "zeek-packet-network14:v1"
+          },
+          "status": "COMPLETE"
+        },
+        {
+          "error": null,
+          "finished_at": "2026-10-20T00:42:39.844609+00:00",
+          "investigation": {
+            "action_policy": "WRITE_DENIED",
+            "assessment": {
+              "incident_state": {
+                "confidence": null,
+                "created_at": "2026-10-20T00:42:39.849897Z",
+                "evidence": [
+                  {
+                    "collected_at": "2026-10-20T00:42:39.977908Z",
+                    "evidence_id": "10b8128d-9cfd-436d-8d30-a33273a0cc7c",
+                    "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                    "observed_at": "2026-10-20T00:42:39.977855Z",
+                    "raw_data": "{\"output\":{\"capture_session\":\"2a94c8e8-cad3-45c3-96e0-23e50357db3e\",\"flow_id\":\"e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1\",\"meaning\":\"Bound packet metadata window; incomplete capture quality UNKNOWN; no attack fact\",\"origin\":\"ZEEK_OFFLINE_PCAP\",\"packet_count\":3,\"provenance_digest\":\"30f7eefa8f13e431a6b3bfff0d14197ed840d9a9db6576b541dd7e5b14658781\",\"source_digest\":\"2bc0a26fe2daac33cb5758724c79cc9da3276684a02325959b2b1c5bf9e88d0a\"},\"tool_name\":\"read_local_source_report\"}",
+                    "reliability": null,
+                    "source": "tool:read_local_source_report",
+                    "summary": "read_local_source_report investigation result",
+                    "tool_name": "read_local_source_report"
+                  }
+                ],
+                "hypotheses": [],
+                "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                "observations": [],
+                "severity": "info",
+                "status": "new",
+                "updated_at": "2026-10-20T00:42:39.981188Z"
+              },
+              "threat_assessment": {
+                "assessment_id": "8de4cccb-1a8a-41ce-aed5-5ed23cd3cf5a",
+                "confidence": 0.0,
+                "created_at": "2026-10-20T00:42:40.060914Z",
+                "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                "severity": "info",
+                "summary": "OFFLINE advisory; compromise unverified; severity is advisory",
+                "supporting_evidence_ids": [
+                  "10b8128d-9cfd-436d-8d30-a33273a0cc7c"
+                ],
+                "supporting_hypothesis_ids": [],
+                "supporting_observation_ids": []
+              }
+            },
+            "checkpoint_restored": true,
+            "context": {
+              "contract": "soc-zeek-network14-advisory:v1",
+              "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+              "mode": "OFFLINE_RESEARCH_DEMO",
+              "receipt_digest": "c9af61c40b474869aa9b05b96790e75298f4e58a7beee60ad2b528f94c1b6929",
+              "result": {
+                "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+                "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+                "capture_quality": "UNKNOWN",
+                "capture_session": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+                "contract": "soc-zeek-network14-receipt:v1",
+                "event_time": "2027-01-15T08:00:00Z",
+                "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+                "feature_digest": "67f150ec64a631f6fab08b127ce89730bd5f789aeee08e294c166083f9352517",
+                "feature_names": [
+                  "duration_seconds",
+                  "forward_packet_count",
+                  "backward_packet_count",
+                  "forward_ip_bytes",
+                  "backward_ip_bytes",
+                  "ip_length_min",
+                  "ip_length_max",
+                  "ip_length_mean",
+                  "ip_length_population_std",
+                  "tcp_syn_packet_count",
+                  "tcp_fin_packet_count",
+                  "tcp_rst_packet_count",
+                  "iat_mean_seconds",
+                  "iat_max_seconds"
+                ],
+                "feature_values": [
+                  1.0,
+                  2.0,
+                  1.0,
+                  120.0,
+                  60.0,
+                  40.0,
+                  80.0,
+                  60.0,
+                  16.329931259155273,
+                  1.0,
+                  1.0,
+                  0.0,
+                  0.5,
+                  0.5
+                ],
+                "flow_id": "e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1",
+                "inference_latency_ms": 10.732810012996197,
+                "inferred_at": "2026-10-20T00:42:39.472806Z",
+                "invocation_id": "2cbfbb6a-3bf1-4278-bf01-73a72f749c44",
+                "model_id": "linux-network14-research-v1-edge_lr",
+                "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+                "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+                "operational_inference": "BLOCKED",
+                "origin": "ZEEK_OFFLINE_PCAP",
+                "packet_count": 3,
+                "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+                "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+                "prediction": "CLASS_0",
+                "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+                "producer_origin": "OFFLINE_PCAP",
+                "producer_version": "1.1.0",
+                "profile": "edge",
+                "provenance_digest": "30f7eefa8f13e431a6b3bfff0d14197ed840d9a9db6576b541dd7e5b14658781",
+                "request_digest": "ea3d410fe4d9d1a7ab6156551e059cdd95b877c40b93a7185b1184c3e07511e0",
+                "score": 0.08766025304794312,
+                "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+                "source_digest": "2bc0a26fe2daac33cb5758724c79cc9da3276684a02325959b2b1c5bf9e88d0a",
+                "status": "RESEARCH_ONLY",
+                "threshold": 0.8,
+                "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+                "worker_cpu_seconds": 1.598833,
+                "worker_limits": {
+                  "address_space_bytes": 3221225472,
+                  "cpu_seconds": 15,
+                  "network": "DENIED",
+                  "result_file_bytes": 131072
+                },
+                "worker_peak_rss_bytes": 232902656,
+                "write_policy": "WRITE_DENIED",
+                "zeek_producer_version": "zeek-packet-network14:v1"
+              },
+              "role": "UNTRUSTED_MODEL_INFERENCE_NOT_EVIDENCE"
+            },
+            "context_digest": "8cc58653b055d1a415d81f39d5845c76d6d417e1555375509860faa47021f2bf",
+            "evidence_references": [
+              "10b8128d-9cfd-436d-8d30-a33273a0cc7c"
+            ],
+            "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+            "mode": "SCRIPTED_OFFLINE_RESEARCH",
+            "prompt_digests": [
+              "6093792e88000202e4f04099d2549b1ea935023184320f97e8f438a469ecb4d0",
+              "882d096677624e781c8b0fb7003a5c062a34c7f2724976214ccd890b6f8ef634"
+            ],
+            "provider_calls": 0,
+            "result": {
+              "current_step": "analyze",
+              "failure": null,
+              "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+              "next_step": "decide",
+              "reason": "Assessment completed; severity remains advisory",
+              "references": [
+                {
+                  "identity": "e5dbd9e7-1617-4d27-8ea4-d75daeb18bfb",
+                  "kind": "investigation"
+                },
+                {
+                  "identity": "8de4cccb-1a8a-41ce-aed5-5ed23cd3cf5a",
+                  "kind": "assessment"
+                }
+              ],
+              "terminal": false,
+              "waiting_for_human": false
+            },
+            "status": "ASSESSED_READ_ONLY",
+            "timeline": {
+              "entries": [
+                {
+                  "content": {
+                    "previous_entry_id": null,
+                    "result": {
+                      "current_step": "observe",
+                      "failure": null,
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "next_step": "observe",
+                      "reason": "Incident observed; no action dispatched",
+                      "references": [],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 1,
+                    "snapshot": {
+                      "fingerprint": "752748c492bee9307753daa2af0dc3ec5f2a56fa75c39f68ade171ee29fb9c94",
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 0
+                    }
+                  },
+                  "entry_id": "f2cc04e49889269d56507b5c9cb6aecf18458bb3b954ee3670f5b6b56312eb0e"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "f2cc04e49889269d56507b5c9cb6aecf18458bb3b954ee3670f5b6b56312eb0e",
+                    "result": {
+                      "current_step": "observe",
+                      "failure": null,
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "next_step": "plan",
+                      "reason": "Route current evidence or request investigation",
+                      "references": [],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 2,
+                    "snapshot": {
+                      "fingerprint": "752748c492bee9307753daa2af0dc3ec5f2a56fa75c39f68ade171ee29fb9c94",
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 0
+                    }
+                  },
+                  "entry_id": "08450313a2e1ba45808ede3f68b0094fdb898c44d068e9821afc0a8d206a8073"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "08450313a2e1ba45808ede3f68b0094fdb898c44d068e9821afc0a8d206a8073",
+                    "result": {
+                      "current_step": "plan",
+                      "failure": null,
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "next_step": "route",
+                      "reason": "Investigation selected",
+                      "references": [
+                        {
+                          "identity": "e5dbd9e7-1617-4d27-8ea4-d75daeb18bfb",
+                          "kind": "investigation"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 3,
+                    "snapshot": {
+                      "fingerprint": "752748c492bee9307753daa2af0dc3ec5f2a56fa75c39f68ade171ee29fb9c94",
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 0
+                    }
+                  },
+                  "entry_id": "9665e2705e76c062df201f3c292fcd5dadf4550d789d77d42bbe6dcad8710fcf"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "9665e2705e76c062df201f3c292fcd5dadf4550d789d77d42bbe6dcad8710fcf",
+                    "result": {
+                      "current_step": "route",
+                      "failure": null,
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "next_step": "route",
+                      "reason": "Read-only evidence collected",
+                      "references": [
+                        {
+                          "identity": "e5dbd9e7-1617-4d27-8ea4-d75daeb18bfb",
+                          "kind": "investigation"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 4,
+                    "snapshot": {
+                      "fingerprint": "6254dafa868dbeb9e0a4431b03eda0ca4eadf4a6b86476d7602abe88532308ff",
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 1
+                    }
+                  },
+                  "entry_id": "a6bd48252d6b34328fb5a9a376395e83fee16ee6b709e149f841cb7096eafa40"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "a6bd48252d6b34328fb5a9a376395e83fee16ee6b709e149f841cb7096eafa40",
+                    "result": {
+                      "current_step": "route",
+                      "failure": null,
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "next_step": "analyze",
+                      "reason": "Evidence analysis selected",
+                      "references": [
+                        {
+                          "identity": "e5dbd9e7-1617-4d27-8ea4-d75daeb18bfb",
+                          "kind": "investigation"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 5,
+                    "snapshot": {
+                      "fingerprint": "6254dafa868dbeb9e0a4431b03eda0ca4eadf4a6b86476d7602abe88532308ff",
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 1
+                    }
+                  },
+                  "entry_id": "1cfa927bf09369df49721f8d48ecfb462cc9c5ad01e9b469e6cf27ae5d2190cd"
+                },
+                {
+                  "content": {
+                    "previous_entry_id": "1cfa927bf09369df49721f8d48ecfb462cc9c5ad01e9b469e6cf27ae5d2190cd",
+                    "result": {
+                      "current_step": "analyze",
+                      "failure": null,
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "next_step": "decide",
+                      "reason": "Assessment completed; severity remains advisory",
+                      "references": [
+                        {
+                          "identity": "e5dbd9e7-1617-4d27-8ea4-d75daeb18bfb",
+                          "kind": "investigation"
+                        },
+                        {
+                          "identity": "8de4cccb-1a8a-41ce-aed5-5ed23cd3cf5a",
+                          "kind": "assessment"
+                        }
+                      ],
+                      "terminal": false,
+                      "waiting_for_human": false
+                    },
+                    "sequence": 6,
+                    "snapshot": {
+                      "fingerprint": "6254dafa868dbeb9e0a4431b03eda0ca4eadf4a6b86476d7602abe88532308ff",
+                      "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2",
+                      "repository_id": "f161c76a-b28b-4143-adc4-4d2060c21c49",
+                      "revision": 1
+                    }
+                  },
+                  "entry_id": "114c38f34baf31153943be78b962467e2812cb2d74599b2a22ca6590be50f7ce"
+                }
+              ],
+              "incident_id": "b5dd0def-3a28-4620-bafa-41bd3070cba2"
+            }
+          },
+          "key": "fcf5c296cafb8a8b25ad9f10fbd5f63f2e3145287d85eeb13c74bfdce417689f",
+          "profile": "edge",
+          "receipt": {
+            "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+            "calibration": "UNCALIBRATED_SCORE_NOT_ATTACK_PROBABILITY",
+            "capture_quality": "UNKNOWN",
+            "capture_session": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+            "contract": "soc-zeek-network14-receipt:v1",
+            "event_time": "2027-01-15T08:00:00Z",
+            "feature_contract_digest": "84ba0916f0ce4e9e12bb70712db2cd1eaea84ba4173acd57b647faf38efb1c6e",
+            "feature_digest": "67f150ec64a631f6fab08b127ce89730bd5f789aeee08e294c166083f9352517",
+            "feature_names": [
+              "duration_seconds",
+              "forward_packet_count",
+              "backward_packet_count",
+              "forward_ip_bytes",
+              "backward_ip_bytes",
+              "ip_length_min",
+              "ip_length_max",
+              "ip_length_mean",
+              "ip_length_population_std",
+              "tcp_syn_packet_count",
+              "tcp_fin_packet_count",
+              "tcp_rst_packet_count",
+              "iat_mean_seconds",
+              "iat_max_seconds"
+            ],
+            "feature_values": [
+              1.0,
+              2.0,
+              1.0,
+              120.0,
+              60.0,
+              40.0,
+              80.0,
+              60.0,
+              16.329931259155273,
+              1.0,
+              1.0,
+              0.0,
+              0.5,
+              0.5
+            ],
+            "flow_id": "e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1",
+            "inference_latency_ms": 10.732810012996197,
+            "inferred_at": "2026-10-20T00:42:39.472806Z",
+            "invocation_id": "2cbfbb6a-3bf1-4278-bf01-73a72f749c44",
+            "model_id": "linux-network14-research-v1-edge_lr",
+            "model_manifest_digest": "293e6046e2b46777c383ae0b5de5951596238d4f26e552263022b9b65357e2d9",
+            "network14_parity": "VERIFIED_FOR_BOUND_WINDOW",
+            "operational_inference": "BLOCKED",
+            "origin": "ZEEK_OFFLINE_PCAP",
+            "packet_count": 3,
+            "packet_log_sha256": "f9c5c9b68de47c91b3d909afabe0f5884555118a359c45f11c2eeed60a539d80",
+            "pcap_sha256": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+            "prediction": "CLASS_0",
+            "producer_configuration_digest": "7999723911ce3d2e9cd3b3b6e0d45e11f44b1316cdf9c7f4883d7e2a69ca21a7",
+            "producer_origin": "OFFLINE_PCAP",
+            "producer_version": "1.1.0",
+            "profile": "edge",
+            "provenance_digest": "30f7eefa8f13e431a6b3bfff0d14197ed840d9a9db6576b541dd7e5b14658781",
+            "request_digest": "ea3d410fe4d9d1a7ab6156551e059cdd95b877c40b93a7185b1184c3e07511e0",
+            "score": 0.08766025304794312,
+            "script_sha256": "ad8dd8a4e7ea72da29bebe2ebf8ef23f93d089787d4da629c7ef257cc2d28397",
+            "source_digest": "2bc0a26fe2daac33cb5758724c79cc9da3276684a02325959b2b1c5bf9e88d0a",
+            "status": "RESEARCH_ONLY",
+            "threshold": 0.8,
+            "validation_level": "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL",
+            "worker_cpu_seconds": 1.598833,
+            "worker_limits": {
+              "address_space_bytes": 3221225472,
+              "cpu_seconds": 15,
+              "network": "DENIED",
+              "result_file_bytes": 131072
+            },
+            "worker_peak_rss_bytes": 232902656,
+            "write_policy": "WRITE_DENIED",
+            "zeek_producer_version": "zeek-packet-network14:v1"
+          },
+          "status": "COMPLETE"
+        }
+      ],
+      "collector_metrics": {
+        "network_events": 1,
+        "dns_events": 0,
+        "queue_depth": 0,
+        "queue_capacity": 32,
+        "backpressure": "NORMAL",
+        "queue_peak": 7,
+        "rows_read": 1,
+        "duplicates": 0,
+        "out_of_order_start_times": 0,
+        "log_to_adapter_ms": null,
+        "capture_to_log_ms": null,
+        "feature_generation_ms": null,
+        "inference_latency_ms": null,
+        "investigation_latency_ms": null,
+        "log_lag_seconds": null,
+        "inference_count": 2,
+        "process_alive": false
+      },
+      "preprocessing": {
+        "contract": "soc-zeek-preprocessing-summary:v1",
+        "session_id": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+        "source_digest": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+        "input_origin": "ZEEK_OFFLINE_PCAP",
+        "plan_digest": "3a3654a2eead6d0cc1bfcc64dae5dc8291e663c8eaa019630590d0c3c34f6483",
+        "stream_digest": "90adfff1f13bb7b90fbb954d69bb2f8de73d99eccb0f1601c79c079fb4877a52",
+        "producer_version": "zeek-packet-network14:v1",
+        "reference_producer_version": "1.1.0",
+        "feature_names": [
+          "duration_seconds",
+          "forward_packet_count",
+          "backward_packet_count",
+          "forward_ip_bytes",
+          "backward_ip_bytes",
+          "ip_length_min",
+          "ip_length_max",
+          "ip_length_mean",
+          "ip_length_population_std",
+          "tcp_syn_packet_count",
+          "tcp_fin_packet_count",
+          "tcp_rst_packet_count",
+          "iat_mean_seconds",
+          "iat_max_seconds"
+        ],
+        "dtype": "float32",
+        "missing_value_policy": "REJECT_NO_IMPUTATION",
+        "progress": {
+          "state": "FINALIZED",
+          "normalized_packets": 4,
+          "normalization_digest": "0f9965ac600eba7b6f866441ff5544650702d6ebadbf54f2534161bc5947253f",
+          "active_flows": 0,
+          "finalized_flows": 2,
+          "finalization_reasons": {
+            "IDLE_TIMEOUT": 1,
+            "SHUTDOWN": 1
+          },
+          "dns": {
+            "records": 0,
+            "counters": {},
+            "timestamp_scope": "TRANSACTION_START_NOT_QUERY_RESPONSE_PACKET_ORDER",
+            "query_response_matching": "ZEEK_TRANSACTION_METADATA_NOT_INDEPENDENT_PACKET_MATCH",
+            "query_packets": null,
+            "response_packets": null,
+            "dns9": "BLOCKED",
+            "fqdn_retained": false
+          },
+          "capture_integrity": "OFFLINE_FILE_DIGEST_VERIFIED",
+          "timestamp_precision": "DECLARED_USEC_NATIVE_PARITY_UNVERIFIED",
+          "flow_policy": "SAME_KEY_EVENT_TIME_30S_IDLE_120S_ACTIVE_NO_WALLCLOCK_EXPIRY",
+          "tcp_fin_policy": "FEATURE_ONLY_NO_NEW_FINALIZATION_AUTHORITY",
+          "tcp_rst_policy": "FEATURE_ONLY_NO_NEW_FINALIZATION_AUTHORITY",
+          "resource_limits": {
+            "active_flows": 128,
+            "packets_per_flow": 128,
+            "packets": 4096,
+            "flows": 1024
+          },
+          "native_ai": "BLOCKED"
+        },
+        "capture_integrity": "UNVERIFIED",
+        "completed_flows": 1,
+        "incomplete_flows": 1,
+        "feature_decisions": {
+          "ELIGIBLE": 1,
+          "BLOCKED_FLOW_INCOMPLETE": 1
+        },
+        "flow_decisions_digest": "f5a0440fbb45cbdf0586ca359c8f57134802d3b2bb73fccb86f0c91aeb246467",
+        "flow_quality_tail": [
+          {
+            "flow_id": "e7b5c7509576e2ed191a9e45d64f6e9a88d425d0054112ccaf5d01dc504f55f1",
+            "values_digest": "c14b0692c5f8e4ebf0125aa9c49b5976c584f060e5c84027ffcd339904c0353c",
+            "feature_digest": "67f150ec64a631f6fab08b127ce89730bd5f789aeee08e294c166083f9352517",
+            "completeness": "VERIFIED",
+            "feature_integrity": "VERIFIED",
+            "close_reason": "IDLE_TIMEOUT",
+            "finalization_context": "IDLE_TIMEOUT",
+            "artifact_eligibility": {
+              "quality": "VERIFIED_RECEIPT",
+              "edge": "VERIFIED_RECEIPT"
+            },
+            "decision": {
+              "decision": "ELIGIBLE",
+              "blockers": [],
+              "authority": "DIAGNOSTIC_ONLY_NO_NATIVE_AUTHORIZATION"
+            }
+          },
+          {
+            "flow_id": "a037d5a9607f17de1a79ae21ae3486837732462355503a1371f14e94686da16e",
+            "values_digest": "a462e3eb5fd483347ac9f8a57d0daadb7a965f43041d4e66344d88875b915d5f",
+            "feature_digest": null,
+            "completeness": "DEGRADED",
+            "feature_integrity": "VERIFIED",
+            "close_reason": "SHUTDOWN",
+            "finalization_context": "COLLECTOR_STOP",
+            "artifact_eligibility": {
+              "quality": "NOT_OBSERVED",
+              "edge": "NOT_OBSERVED"
+            },
+            "decision": {
+              "decision": "BLOCKED_FLOW_INCOMPLETE",
+              "blockers": [
+                "BLOCKED_FLOW_INCOMPLETE",
+                "BLOCKED_FEATURE_PARITY",
+                "BLOCKED_ARTIFACT"
+              ],
+              "authority": "DIAGNOSTIC_ONLY_NO_NATIVE_AUTHORIZATION"
+            }
+          }
+        ],
+        "termination_reason": "INPUT_EXHAUSTED",
+        "collector_stop_context": "COLLECTOR_STOP",
+        "closed_reason": "ZEEK_DONE",
+        "flow_boundary_policy": "UNCHANGED_TIMEOUT_WINDOWS_FIN_RST_ARE_FEATURES",
+        "fixed_sliding_window": "EXPERIMENTAL_NOT_MODEL_INPUT",
+        "raw_payload_retained": false,
+        "native_ai": "BLOCKED",
+        "dns9": "BLOCKED",
+        "operational_gate": "BLOCKED"
+      },
+      "capture_attestation": {
+        "contract": "soc-zeek-attestation-dns-summary:v1",
+        "session_id": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+        "source_digest": "ca8eec496c54c71cd923d18707e1bbf6fe868917b68af7a2b09d9a9575d9cf35",
+        "plan_digest": "3a3654a2eead6d0cc1bfcc64dae5dc8291e663c8eaa019630590d0c3c34f6483",
+        "stream_digest": "90adfff1f13bb7b90fbb954d69bb2f8de73d99eccb0f1601c79c079fb4877a52",
+        "attestation": {
+          "contract": "soc-zeek-capture-attestation:v1",
+          "session_id": "2a94c8e8-cad3-45c3-96e0-23e50357db3e",
+          "collector_identity": "3a3654a2eead6d0cc1bfcc64dae5dc8291e663c8eaa019630590d0c3c34f6483",
+          "image_digest": "3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019",
+          "interface": "lo",
+          "interface_identity": null,
+          "net_namespace": "net:[4026531833]",
+          "handle_identity": null,
+          "counter_source": "ZEEK_GET_NET_STATS_NO_SUCCESS_SIGNAL",
+          "retrieval": "UNKNOWN",
+          "snapshot_start": null,
+          "snapshot_end": null,
+          "counter_delta": null,
+          "drop_count": null,
+          "gap_count": null,
+          "reported_zeek_drops": null,
+          "verdict": "UNVERIFIED",
+          "same_handle_proof": "BLOCKED_STOCK_SOURCE_PRIVATE_HANDLE",
+          "packet_records": 4,
+          "packet_accounting_scope": "ZEEK_DELIVERED_METADATA_NOT_KERNEL_OBSERVATIONS",
+          "native_ai": "BLOCKED",
+          "provider_admission": "NO_REVIEWED_NATIVE_PROVIDER",
+          "timestamp": null,
+          "timestamp_scope": "BOUND_AUDIT_UTC_NOT_COUNTER_QUERY_TIME",
+          "evidence_digest": "2e87435271d93622c33781467ff3bd215c1c1f296c753432a5c72e20e880d466"
+        },
+        "feature_decisions_digest": "f5a0440fbb45cbdf0586ca359c8f57134802d3b2bb73fccb86f0c91aeb246467",
+        "quality_gate": "NATIVE_BLOCKED_CAPTURE_ATTESTATION_OFFLINE_GATE_UNCHANGED",
+        "dns_visibility": {
+          "classification": "NO_DNS_TRAFFIC_OBSERVED",
+          "scope": "OBSERVED_PLAINTEXT_DNS_WINDOW_NOT_NETWORK_WIDE",
+          "encrypted_dns": "DOH_DOT_PLAINTEXT_QUERY_NOT_VISIBLE",
+          "candidate_packets": 0,
+          "stage_counters": {
+            "contract": "soc-zeek-dns-stages:v1",
+            "candidate_udp": 0,
+            "candidate_tcp": 0,
+            "header_validated": 0,
+            "header_invalid": 0,
+            "analyzer_dispatch": 0,
+            "query_parsed": 0,
+            "response_parsed": 0,
+            "transaction_matched": 0,
+            "event_emitted": 0,
+            "parse_failed": 0,
+            "response_missing_metadata": 0,
+            "transaction_ambiguous": null,
+            "non_dns_confirmed": null,
+            "analyzer_attached": null,
+            "diagnostic_truncated": false
+          },
+          "analyzer_status": "UNKNOWN",
+          "analyzer_dispatch_scope": "DNS_MESSAGE_CALLBACK_NOT_ALL_DISPATCH_ATTEMPTS",
+          "adapter_accepted": 0,
+          "adapter_rejected": 0,
+          "adapter_rejection_reason": null,
+          "dns9_features_generated": 0,
+          "dns9": "BLOCKED",
+          "header_scope": "ZEEK_HEADER_EVENT_NOT_FULL_MESSAGE_VALIDATION",
+          "matching_scope": "EXISTING_ZEEK_TRANSACTION_METADATA",
+          "payload_retained": false,
+          "fqdn_retained": false
+        },
+        "dns_diagnostic_digest": "6bad31fcf07b685749bc2f1cafb4180897ba22e72cc9dfdde5e7933815593b76",
+        "native_ai": "BLOCKED",
+        "dns9": "BLOCKED",
+        "operational_gate": "BLOCKED"
+      },
+      "packet_count": 4,
+      "flow_count": 2,
+      "queue_peak": 7,
+      "queue_final": 0,
+      "inference_queue_peak": 2,
+      "inference_queue_final": 0,
+      "finalization": "PCAP_REFERENCE_FINALIZED",
+      "audit_digest": "4aa82ccfbe98a5ffd09825eb8ccc486fb5c6d70990bc21fffb604c42e56501a7",
+      "recovered_audit_digest": "4aa82ccfbe98a5ffd09825eb8ccc486fb5c6d70990bc21fffb604c42e56501a7",
+      "restored_new_inferences": 0,
+      "elapsed_seconds": 8.431998139014468,
+      "cpu_seconds": 1.1877503199999997,
+      "process_peak_rss_bytes": 184938496,
+      "memavailable_before_bytes": 4199817216,
+      "psi_before": "some avg10=0.00 avg60=0.04 avg300=0.04 total=175132217\nfull avg10=0.00 avg60=0.04 avg300=0.03 total=167138327\n",
+      "native_capture": false,
+      "cleanup_verified": true
+    }
+  },
+  "golden_parity": {
+    "active-True-False": {
+      "scope": "HOST_C_PARSER_AND_OFFLINE_ML_FIXTURE_NOT_KERNEL_VERIFIER_OR_NATIVE_PARITY",
+      "packet_count": 8,
+      "comparisons": [
+        {
+          "close_reason": "ACTIVE_TIMEOUT",
+          "values": [
+            119.0,
+            6.0,
+            1.0,
+            340.0,
+            60.0,
+            40.0,
+            80.0,
+            57.14285659790039,
+            16.659862518310547,
+            3.0,
+            2.0,
+            0.0,
+            19.83333396911621,
+            20.0
+          ],
+          "numeric_digest": "bed9b2f392ceea0ea5764dd99457b76a518b5040741c35a4e02c9187a44fa7aa",
+          "independent_ml_fixture_digest": "5d6897d999ed7f565b465b7da6b6417d4e895cdc72f4b2b79a99ebb351994a9c"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            60.0,
+            0.0,
+            60.0,
+            60.0,
+            60.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "numeric_digest": "72cfc36733c31c183be44a6ee5baceaf30ab88e399bbfcf3b0fe6457d46e5e98",
+          "independent_ml_fixture_digest": "35c756e82cafd9a015659abeba156fb8d6f89fa80b9dff6c6c8e98117380c40d"
+        }
+      ],
+      "queue_peak": 1,
+      "audit_digest": "d405518d96dcab39e5d2de6672d319b4f8161f7c8ef734866f7eea30bae4377f",
+      "native_ai": "BLOCKED"
+    },
+    "idle-False-False": {
+      "scope": "HOST_C_PARSER_AND_OFFLINE_ML_FIXTURE_NOT_KERNEL_VERIFIER_OR_NATIVE_PARITY",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "numeric_digest": "5786b61b3b739b5aacac5fcd47a00faa6137e6bfc195bab8a86699f65deeb1ac",
+          "independent_ml_fixture_digest": "e59a4c4b9dfaf069fc8bc0ac0b4bdd47a9858ab28d42537664b35c647fd04099"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            40.0,
+            0.0,
+            40.0,
+            40.0,
+            40.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "numeric_digest": "4d5c6f08fd9e861e225aa56eb09c270690d184de6dfee4c802a29394ef67f9b2",
+          "independent_ml_fixture_digest": "a55c979cd40d085b269299f3f1e1c8ad65e2102e089c46a465d402f0ae2bcd67"
+        }
+      ],
+      "queue_peak": 1,
+      "audit_digest": "7f8b0956c5457e5cc81c749ac8ecc8562d29a30db7686fa575266ca8d1e4bac5",
+      "native_ai": "BLOCKED"
+    },
+    "idle-False-True": {
+      "scope": "HOST_C_PARSER_AND_OFFLINE_ML_FIXTURE_NOT_KERNEL_VERIFIER_OR_NATIVE_PARITY",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            160.0,
+            80.0,
+            60.0,
+            100.0,
+            80.0,
+            16.329931259155273,
+            0.0,
+            0.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "numeric_digest": "2d2c415f663fe215fba2339b1f91a780e20c025d5e3df2a8870faa71da416470",
+          "independent_ml_fixture_digest": "8638dffb110f77096304aaa100eadf9e94be80dc36f05bce8f73d8b27e4a0dd3"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            60.0,
+            0.0,
+            60.0,
+            60.0,
+            60.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "numeric_digest": "72cfc36733c31c183be44a6ee5baceaf30ab88e399bbfcf3b0fe6457d46e5e98",
+          "independent_ml_fixture_digest": "12663b631955ffdd960c7dc21a1738f277514353d9cc73a707a17050dfa0a9d6"
+        }
+      ],
+      "queue_peak": 1,
+      "audit_digest": "f580b80cc3682ef84fc58f861b12150194cd2ef6d2783c25af16e8268fe30134",
+      "native_ai": "BLOCKED"
+    },
+    "idle-True-False": {
+      "scope": "HOST_C_PARSER_AND_OFFLINE_ML_FIXTURE_NOT_KERNEL_VERIFIER_OR_NATIVE_PARITY",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            120.0,
+            60.0,
+            40.0,
+            80.0,
+            60.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "numeric_digest": "c14b0692c5f8e4ebf0125aa9c49b5976c584f060e5c84027ffcd339904c0353c",
+          "independent_ml_fixture_digest": "4731b182984a73aa9d089a276ca1a05323f3a20b0e23bb82205124a5f8f3de52"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            40.0,
+            0.0,
+            40.0,
+            40.0,
+            40.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "numeric_digest": "a462e3eb5fd483347ac9f8a57d0daadb7a965f43041d4e66344d88875b915d5f",
+          "independent_ml_fixture_digest": "e6b83e02b2024a1c9ad1297fc2a64f7f5c750151a1f751d59ebed76de70fb8dc"
+        }
+      ],
+      "queue_peak": 1,
+      "audit_digest": "d8f899f5dd51d697682860045419a4309c9a00e15031b5ccfa1507f4956c554c",
+      "native_ai": "BLOCKED"
+    },
+    "idle-True-True": {
+      "scope": "HOST_C_PARSER_AND_OFFLINE_ML_FIXTURE_NOT_KERNEL_VERIFIER_OR_NATIVE_PARITY",
+      "packet_count": 4,
+      "comparisons": [
+        {
+          "close_reason": "IDLE_TIMEOUT",
+          "values": [
+            1.0,
+            2.0,
+            1.0,
+            160.0,
+            80.0,
+            60.0,
+            100.0,
+            80.0,
+            16.329931259155273,
+            1.0,
+            1.0,
+            0.0,
+            0.5,
+            0.5
+          ],
+          "numeric_digest": "d2eea182b9fa6686530dd31865471f111705235c281cbee86357069e4f0e05bc",
+          "independent_ml_fixture_digest": "cdc76651a5ddb71a37c070ee50ed7c70ff152971cf70074a9f6b7239ecbfaf43"
+        },
+        {
+          "close_reason": "SHUTDOWN",
+          "values": [
+            0.0,
+            1.0,
+            0.0,
+            60.0,
+            0.0,
+            60.0,
+            60.0,
+            60.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "numeric_digest": "75ef77ea707b0c19685c18cf4d9c8ac6530e6b2e9e95e2ab796ec0e18cfb4eb7",
+          "independent_ml_fixture_digest": "4d40c6fd0de2a068d964dd7d6707c7d99173bc172de03a534b2975274cafbf52"
+        }
+      ],
+      "queue_peak": 1,
+      "audit_digest": "2d46865f97422466500c221df82ecb22bc85ff86961ef6195272ad9e8e25cee0",
+      "native_ai": "BLOCKED"
+    }
+  },
+  "performance_gui": {
+    "before-0": {
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "mode": "operator",
+      "startup_seconds": 2.6188546989578754,
+      "startup_cpu_seconds": 4.403449733,
+      "idle_rss_bytes": 184913920,
+      "process_image_peak_rss_bytes": 188592128,
+      "idle_seconds": 3.000730725005269,
+      "idle_cpu_seconds": 0.008566835999999967,
+      "idle_cpu_one_core_percent": 0.28549166136807974,
+      "response_p50_ms": 0.010276,
+      "response_p95_ms": 0.05292,
+      "widgets": 69,
+      "threads": 2,
+      "background_async_tasks": 0,
+      "idle_child_processes": 0,
+      "backend_completion_polls_per_second": 0.0,
+      "model_service_created": false,
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "remaining_child_processes": 0,
+      "controller_sqlite_statements_total": 0,
+      "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+    },
+    "before-1": {
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "mode": "operator",
+      "startup_seconds": 2.2449828109820373,
+      "startup_cpu_seconds": 3.939918793,
+      "idle_rss_bytes": 183615488,
+      "process_image_peak_rss_bytes": 186937344,
+      "idle_seconds": 3.0005211130483076,
+      "idle_cpu_seconds": 0.00864578600000021,
+      "idle_cpu_one_core_percent": 0.2881428150064484,
+      "response_p50_ms": 0.019681,
+      "response_p95_ms": 0.044343,
+      "widgets": 69,
+      "threads": 2,
+      "background_async_tasks": 0,
+      "idle_child_processes": 0,
+      "backend_completion_polls_per_second": 0.0,
+      "model_service_created": false,
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "remaining_child_processes": 0,
+      "controller_sqlite_statements_total": 0,
+      "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+    },
+    "before-2": {
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "mode": "operator",
+      "startup_seconds": 2.4597578219836578,
+      "startup_cpu_seconds": 4.256956255,
+      "idle_rss_bytes": 183500800,
+      "process_image_peak_rss_bytes": 187568128,
+      "idle_seconds": 3.000384722952731,
+      "idle_cpu_seconds": 0.008784702999999894,
+      "idle_cpu_one_core_percent": 0.292785886183113,
+      "response_p50_ms": 0.010374,
+      "response_p95_ms": 0.043318,
+      "widgets": 69,
+      "threads": 2,
+      "background_async_tasks": 0,
+      "idle_child_processes": 0,
+      "backend_completion_polls_per_second": 0.0,
+      "model_service_created": false,
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "remaining_child_processes": 0,
+      "controller_sqlite_statements_total": 0,
+      "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+    },
+    "after-0": {
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "mode": "operator",
+      "startup_seconds": 2.4791107649798505,
+      "startup_cpu_seconds": 3.8615927660000002,
+      "idle_rss_bytes": 183447552,
+      "process_image_peak_rss_bytes": 187252736,
+      "idle_seconds": 3.001797482953407,
+      "idle_cpu_seconds": 0.009346622000000249,
+      "idle_cpu_one_core_percent": 0.3113675074044069,
+      "response_p50_ms": 0.023264,
+      "response_p95_ms": 0.176738,
+      "widgets": 69,
+      "threads": 2,
+      "background_async_tasks": 0,
+      "idle_child_processes": 0,
+      "backend_completion_polls_per_second": 0.0,
+      "model_service_created": false,
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "remaining_child_processes": 0,
+      "controller_sqlite_statements_total": 0,
+      "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+    },
+    "after-1": {
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "mode": "operator",
+      "startup_seconds": 2.7151847070199437,
+      "startup_cpu_seconds": 4.126917713,
+      "idle_rss_bytes": 183439360,
+      "process_image_peak_rss_bytes": 187555840,
+      "idle_seconds": 3.0011139060370624,
+      "idle_cpu_seconds": 0.008629245999999924,
+      "idle_cpu_one_core_percent": 0.2875347710942017,
+      "response_p50_ms": 0.01938,
+      "response_p95_ms": 0.127807,
+      "widgets": 69,
+      "threads": 2,
+      "background_async_tasks": 0,
+      "idle_child_processes": 0,
+      "backend_completion_polls_per_second": 0.0,
+      "model_service_created": false,
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "remaining_child_processes": 0,
+      "controller_sqlite_statements_total": 0,
+      "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+    },
+    "after-2": {
+      "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+      "mode": "operator",
+      "startup_seconds": 3.0009369460167363,
+      "startup_cpu_seconds": 4.3993399339999995,
+      "idle_rss_bytes": 183349248,
+      "process_image_peak_rss_bytes": 187494400,
+      "idle_seconds": 3.0088723280350678,
+      "idle_cpu_seconds": 0.013192962999999835,
+      "idle_cpu_one_core_percent": 0.4384686873243122,
+      "response_p50_ms": 0.010377,
+      "response_p95_ms": 0.017819,
+      "widgets": 69,
+      "threads": 2,
+      "background_async_tasks": 0,
+      "idle_child_processes": 0,
+      "backend_completion_polls_per_second": 0.0,
+      "model_service_created": false,
+      "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+      "created_runtime_owners": 0,
+      "gui_worker_stopped": true,
+      "remaining_child_processes": 0,
+      "controller_sqlite_statements_total": 0,
+      "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+    }
+  },
+  "performance_parser": {
+    "existing_python_packet_parser": {
+      "p50_us": 9.846,
+      "p95_us": 16.443,
+      "p99_us": 31.094,
+      "throughput_per_second": 87913.05915606822,
+      "cpu_seconds": 0.034430548000000005,
+      "elapsed_seconds": 0.0341246229945682
+    },
+    "shared_c_parser_host_ctypes": {
+      "p50_us": 1.155,
+      "p95_us": 2.147,
+      "p99_us": 3.014,
+      "throughput_per_second": 638817.3508377397,
+      "cpu_seconds": 0.004955321000000179,
+      "elapsed_seconds": 0.004696178017184138
+    },
+    "ebpf_abi_normalization": {
+      "p50_us": 16.326500000000003,
+      "p95_us": 33.272,
+      "p99_us": 53.677,
+      "throughput_per_second": 45410.62784082579,
+      "cpu_seconds": 0.0665565130000001,
+      "elapsed_seconds": 0.06606383004691452
+    },
+    "scope": "SAME_SYNTHETIC_FRAME_HOST_ONLY_DIFFERENT_OUTPUT_CONTRACTS_NOT_KERNEL_PERFORMANCE",
+    "warmup": 100,
+    "repeats": 3000,
+    "peak_rss_bytes": 171831296
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 350,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "screenshots": [
+    {
+      "file": "docs/linux-soc-v1/ebpf-collector-foundation-screenshots/system-prepared-1366.png",
+      "width": 1366,
+      "height": 768,
+      "sha256": "573cb105a05470aba36a97b8faf4559021057581750fe30872f9639bb1e729c6",
+      "scope": "PREPARATION_PLAN_FIXTURE_NO_NATIVE_HOOK_OR_CAPTURE"
+    },
+    {
+      "file": "docs/linux-soc-v1/ebpf-collector-foundation-screenshots/system-prepared-1920.png",
+      "width": 1920,
+      "height": 1080,
+      "sha256": "bf5ec7042a74672357ca2a1a718a0b912eef6a89542bf8d6fa26d5e25e6fedd7",
+      "scope": "PREPARATION_PLAN_FIXTURE_NO_NATIVE_HOOK_OR_CAPTURE"
+    }
+  ],
+  "harness_incidents": [
+    {
+      "result": "1 failed, 648 passed",
+      "cause": "Historical GUI source SHA compared to new collector presentation",
+      "fix": "Retain historical SHA explicitly; original evidence unmodified"
+    },
+    {
+      "result": "1 failed, 15 passed",
+      "cause": "Tcl disabled state object compared directly with Python string",
+      "fix": "Normalize UI test state using str; new GUI test passes"
+    },
+    {
+      "result": "1 failed, 43 passed",
+      "cause": "Verification guard mistook compiler output filename for an executable",
+      "fix": "Allow fixed compiler output data; explicit native tool execution denials tested"
+    },
+    {
+      "result": "Benchmark warm-up rejected invalid interface_id",
+      "cause": "Harness used lo where existing PacketObservation requires SHA",
+      "fix": "Use valid fixture identity without changing parser"
+    }
+  ],
+  "ebpf_verifier": "PENDING",
+  "tc_hook_native": "PENDING",
+  "ring_fixture_scope": "HOST_C_METADATA_ABI_AND_BOUNDED_QUEUE_NOT_REAL_BPF_RING",
+  "native_network14_parity": "BLOCKED_MONOTONIC_OFFLOAD_HOOK_PROVENANCE_UNVERIFIED",
+  "zeek_counter_correlation": "UNKNOWN_NOT_SAME_CAPTURE_HANDLE",
+  "native_capture_integrity": "UNVERIFIED",
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_gate": "BLOCKED",
+  "native_hook_attached": false,
+  "bpf_program_loaded": false,
+  "privileged_commands_executed": false,
+  "test_traffic_generated": false,
+  "model_artifacts_modified": false,
+  "package_validation": {
+    "final-ebpf-contract": {
+      "exit_code": 0,
+      "elapsed_seconds": 15.099016538006254,
+      "result": "......................................................                   [100%]\n54 passed in 12.99s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "ruff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.09509497199906036,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.09518081496935338,
+      "result": "1161 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.08939977001864463,
+      "result": "Building wheel...\nSuccessfully built /home/geonug/kdt-linux/autonomous-soc-agent/.git/ebpf-foundation-audit/wheel/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    }
+  },
+  "wheel_validation": {
+    "wheel_sha256": "4f35b0cf488a409830854c9f579173ec97b237988fc3ded8306da8b5a0d8a6db",
+    "source_files_checked": 488,
+    "entry_points": "[console_scripts]\nsoc-agent = soc_agent.cli:main\n\n"
+  }
+}
