@@ -79,7 +79,10 @@ class Ledger:
         elif envelope.kind == "dns":
             self.dns += 1
         elif envelope.kind == "closed":
-            proof = Closed.model_validate(envelope.data)
+            from soc_agent.security_ai.collectors.dns_visibility import closed_data
+
+            body, _ = closed_data(envelope.data)
+            proof = Closed.model_validate(body)
             proof.verify(
                 sequence=envelope.sequence, packets=self.packets, network=self.network, dns=self.dns
             )

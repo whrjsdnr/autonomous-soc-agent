@@ -58,6 +58,7 @@ def test_script_event_and_output_reserve(tmp_path, environment):
         directory = tmp_path / name
         directory.mkdir()
         shutil.copy(policies / "network14.zeek", directory)
+        shutil.copy(policies / "visibility.zeek", directory)
         text = (policies / "live.zeek").read_text()
         text = text.replace("8191", "7") if name == "event" else text.replace("8388608", "4096")
         (directory / "live.zeek").write_text(text)
@@ -85,6 +86,7 @@ async def test_real_zeek_timeout_and_sigint_drain(tmp_path, environment, monkeyp
     directory = tmp_path / "policy"
     directory.mkdir()
     shutil.copy(policies / "network14.zeek", directory)
+    shutil.copy(policies / "visibility.zeek", directory)
     (directory / "live.zeek").write_text(
         "redef exit_only_after_terminate = T;\n" + (policies / "live.zeek").read_text()
     )

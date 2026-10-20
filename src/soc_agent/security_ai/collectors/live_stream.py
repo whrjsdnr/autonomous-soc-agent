@@ -62,6 +62,8 @@ class Stream:
         self.network_count = self.dns_count = 0
         self.port53_metadata_packets = 0
         self.closed_detail = None
+        self.dns_stages = None
+        self.dns_adapter_rejected = 0
 
     def accept(self, envelope: Envelope):
         e = envelope
@@ -91,6 +93,8 @@ class Stream:
             if self.peak > 4096 or len(self.finalized) > 1024:
                 raise ValueError("ZEEK_FLOW_METADATA_BUDGET")
         elif e.kind in {"network", "dns"}:
+            if e.kind == "dns":
+                self.dns_adapter_rejected += 1
             row = dict(e.data)
             if not set(row) <= SUMMARY_FIELDS:
                 raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
@@ -104,7 +108,7 @@ class Stream:
                 raise ValueError("ZEEK_STREAM_ENDPOINT_IDENTITY")
             row.update({"id." + key: value for key, value in identity.items()})
             # Decimal text preserves event time, unlike float round trips.
-            stamp = row.pop("ts")
+            stamp = row.pop("ts", None)
             if isinstance(stamp, bool) or not isinstance(stamp, (int, Decimal)):
                 raise ValueError("ZEEK_STREAM_TIMESTAMP_INVALID")
             text = json.dumps(row, default=float)
@@ -114,13 +118,17 @@ class Stream:
                 self.network_count += 1
             else:
                 self.dns_preprocessing.add(event)
+                self.dns_adapter_rejected -= 1
                 self.dns_count += 1
             self.sequence = e.sequence
             return event
         elif e.kind == "closed":
             counters = e.data
             if "stop_reason" in e.data:
-                proof = Closed.model_validate(e.data)
+                from soc_agent.security_ai.collectors.dns_visibility import closed_data
+
+                body, self.dns_stages = closed_data(e.data)
+                proof = Closed.model_validate(body)
                 proof.verify(
                     sequence=e.sequence,
                     packets=self.packet_count,

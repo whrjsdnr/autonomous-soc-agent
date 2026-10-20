@@ -621,6 +621,7 @@ def render_system(app, value):
         "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
         "integrity_evidence": value.get("capture_integrity_evidence") or {},
         "preprocessing": value.get("preprocessing") or {},
+        "capture_attestation": value.get("capture_attestation") or {},
         "last_verified_process_session": value.get("last_verified_process_session"),
         "collector_metrics": collector.get("metrics", "NOT_OBSERVED"),
         "producer": collector.get("producer", "NOT_PREPARED"),
@@ -693,6 +694,43 @@ def render_system(app, value):
         + " / "
         + str(proof.get("ai_decision", {}).get("decision", "BLOCKED_CAPTURE_INTEGRITY")),
         "DNS visibility   " + str(session.get("dns_visibility", "UNKNOWN")),
+        "Capture attestation / retrieval   "
+        + str(details["capture_attestation"].get("attestation", {}).get("verdict", "NOT_OBSERVED"))
+        + " / "
+        + str(details["capture_attestation"].get("attestation", {}).get("retrieval", "UNKNOWN")),
+        "Same-handle / counter scope   "
+        + str(
+            details["capture_attestation"]
+            .get("attestation", {})
+            .get("same_handle_proof", "UNKNOWN")
+        ),
+        "DNS candidate / analyzer / diagnosis   "
+        + str(
+            details["capture_attestation"]
+            .get("dns_visibility", {})
+            .get("candidate_packets", "UNKNOWN")
+        )
+        + " / "
+        + str(
+            details["capture_attestation"]
+            .get("dns_visibility", {})
+            .get("analyzer_status", "UNKNOWN")
+        )
+        + " / "
+        + str(
+            details["capture_attestation"]
+            .get("dns_visibility", {})
+            .get("classification", "UNKNOWN")
+        ),
+        "DNS stage counters / adapter rejection   "
+        + str(
+            details["capture_attestation"].get("dns_visibility", {}).get("stage_counters")
+            or "NOT_OBSERVED"
+        )
+        + " / "
+        + str(
+            details["capture_attestation"].get("dns_visibility", {}).get("adapter_rejection_reason")
+        ),
         "Normalized packets / active flows   "
         + " / ".join(
             str(details["preprocessing"].get("progress", {}).get(k, "NOT_OBSERVED"))

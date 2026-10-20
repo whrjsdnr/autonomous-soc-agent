@@ -4,7 +4,6 @@ import hashlib
 import json
 from pathlib import Path
 
-from soc_agent.security_ai.collectors.live_contract import bundle
 from soc_agent.security_ai.research.models import digest, parse_receipt
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -18,10 +17,10 @@ def evidence():
 
 def test_source_bundle_preservation_and_security_boundaries():
     v = evidence()
-    assert v["bundle"] == bundle() and v["bundle_digest"] == digest(bundle())
-    assert v["launcher_sha256"] == bundle()["live_process.py"]
-    for name, sha in v["source_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha
+    # Immutable evidence of commit 9d48db5, not authority for a subsequent Bundle.
+    assert v["bundle_digest"] == digest(v["bundle"])
+    assert v["bundle_digest"] == "953f34ec2f9fa0172968ebc8c3d44022931640bc266753f9fe3920d6f45d98e4"
+    assert v["launcher_sha256"] == v["bundle"]["live_process.py"]
     assert v["preservation"]["errors"] == []
     assert v["preservation"]["user_files_checked"] == 132
     assert v["native_ai"] == v["dns9"] == v["operational_gate"] == "BLOCKED"

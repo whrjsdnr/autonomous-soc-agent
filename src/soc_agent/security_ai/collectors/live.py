@@ -55,6 +55,7 @@ class LiveZeekCollector(ZeekCollector):
         self.stop_audited = False
         self.native_integrity = None
         self.preprocessing = None
+        self.attestation = None
         self.startup_phase = None
         self.collector_started = False
 
@@ -126,6 +127,7 @@ class LiveZeekCollector(ZeekCollector):
             self.process_task = None
             self.native_integrity = None
             self.preprocessing = None
+            self.attestation = None
             self.exit_observation = None
             self.stop_reason = None
             self.stop_audited = False
@@ -412,6 +414,9 @@ class LiveZeekCollector(ZeekCollector):
                     from soc_agent.security_ai.collectors.preprocessing_store import persist
 
                     self.preprocessing = await asyncio.to_thread(persist, self)
+                    from soc_agent.security_ai.collectors.attestation_store import persist as attest
+
+                    self.attestation = await asyncio.to_thread(attest, self)
                     self.state = "ERROR" if self.last_error else "STOPPED"
                     self.store.runtime.event(
                         "ZEEK_LIVE_FINALIZED",
@@ -466,6 +471,10 @@ class LiveZeekCollector(ZeekCollector):
                     queue_depth=self.queue_depth,
                     failed=True,
                 )
+            if self.stream:
+                from soc_agent.security_ai.collectors.attestation_store import summary as diagnostic
+
+                self.attestation = diagnostic(self, self.stream)
             try:
                 reason = (
                     "TIMEOUT"
@@ -483,6 +492,7 @@ class LiveZeekCollector(ZeekCollector):
                         error=self.last_error,
                         inference_allowed=False,
                         native_integrity=self.native_integrity,
+                        capture_attestation=self.attestation,
                     ),
                 )
             except (OSError, ValueError, sqlite3.Error):
@@ -581,7 +591,9 @@ class LiveZeekCollector(ZeekCollector):
             return self.snapshot()
         # Recover may reuse a stopped controller object. Never project old
         # in-memory packets/receipts under a newly selected session identity.
-        self.stream = self.producer = self.native_integrity = self.preprocessing = None
+        self.stream = self.producer = self.native_integrity = self.preprocessing = (
+            self.attestation
+        ) = None
         self.result = self.exit_observation = self.process_runner = self.process_task = None
         self.handoff = None
         self.last_error = None
@@ -652,6 +664,15 @@ class LiveZeekCollector(ZeekCollector):
             self.preprocessing = await asyncio.to_thread(restore, self)
         except (OSError, ValueError, sqlite3.Error):
             self.state, self.last_error = "ERROR", "ZEEK_PREPROCESSING_PROOF_MISMATCH"
+            return self.snapshot()
+        from soc_agent.security_ai.collectors.attestation_store import (
+            restore as restore_attestation,
+        )
+
+        try:
+            self.attestation = await asyncio.to_thread(restore_attestation, self)
+        except (OSError, ValueError, sqlite3.Error):
+            self.state, self.last_error = "ERROR", "ZEEK_ATTESTATION_BINDING_MISMATCH"
             return self.snapshot()
         self.state, self.recovery_state = "STOPPED", "RESTORED_NO_CAPTURE_OR_INFERENCE_RESTART"
         return self.snapshot()
@@ -797,6 +818,11 @@ class LiveZeekCollector(ZeekCollector):
             feature_decisions={"BLOCKED_POLICY": "NOT_FINALIZED"},
             native_ai="BLOCKED",
         )
+        value["capture_attestation"] = self.attestation
+        if self.stream and not self.attestation:
+            from soc_agent.security_ai.collectors.attestation_store import summary as diagnostics
+
+            value["capture_attestation"] = diagnostics(self, self.stream)
         value["capture_integrity_evidence"] = self.native_integrity
         value["last_verified_process_session"] = (
             str(self.plan.session_id)

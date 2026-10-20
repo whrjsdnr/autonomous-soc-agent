@@ -29,6 +29,10 @@ FILES = (
     "packet_producer.py",
     "preprocessing.py",
     "preprocessing_store.py",
+    "capture_attestation.py",
+    "dns_visibility.py",
+    "attestation_store.py",
+    "visibility.zeek",
     "privacy.zeek",
     "offline.py",
     "reader.py",
@@ -158,7 +162,7 @@ def docker_argv(plan: LivePlan, policy: Path, *, fixture: Path | None = None) ->
     else:
         argv += ["--cap-add=NET_RAW", "--user", "0:0"]
     # Mount only reviewed scripts. No host output mount, Docker socket or raw PCAP writing.
-    for name in ("live.zeek", "network14.zeek"):
+    for name in ("live.zeek", "network14.zeek", "visibility.zeek"):
         argv += ["--mount", f"type=bind,source={policy / name},target=/policy/{name},readonly"]
     argv += ["--entrypoint", "/bin/sh", IMAGE, "-c"]
     program = "exec /usr/bin/timeout -s INT -k 2s " + str(plan.duration_seconds)

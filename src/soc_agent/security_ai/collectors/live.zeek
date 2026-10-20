@@ -1,5 +1,6 @@
 # Bounded metadata stdout protocol; no query, answer or payload serialization.
 @load ./network14
+@load ./visibility
 redef SOCNetwork14::graceful_limit = T;
 module SOCLive;
 export {
@@ -93,6 +94,7 @@ event zeek_done() &priority=-100 {
         stop_reason, packets, networks, dns_events, messages, output_bytes,
         SOCNetwork14::omitted_packet_records, omitted_events,
         stats$pkts_recvd, stats$pkts_dropped, stats$pkts_link, stats$bytes_recvd);
+    data = sub_bytes(data, 0, |data|-1) + ",\"dns_diagnostics\":" + SOCVisibility::snapshot() + "}";
     local line = fmt("{\"sequence\":%d,\"kind\":\"closed\",\"data\":%s}", messages+1, data);
     if ( |line| + 1 > 2048 ) Reporter::fatal("SOC_ZEEK_CLOSED_BOUND");
     closed = T;

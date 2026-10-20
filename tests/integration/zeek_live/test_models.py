@@ -63,6 +63,10 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
             preprocessed["flow_quality_tail"][0]["feature_digest"]
             == records[0]["receipt"]["feature_digest"]
         )
+        attestation = snap["capture_attestation"]
+        assert attestation["attestation"]["retrieval"] == "UNKNOWN"
+        assert attestation["attestation"]["drop_count"] is None
+        assert attestation["native_ai"] == "BLOCKED"
         assert c.process_runner.cleanup_verified
         assert c.producer.demo.adapter.process is None
         export(c, tmp_path / "report.json", "json")
@@ -76,6 +80,7 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
         await c.stop()
         restored = LiveZeekCollector(tmp_path, paths=research_paths())
         result = await restored.recover()
+        assert result["capture_attestation"] == attestation
         assert result["preprocessing"] == preprocessed
         assert [digest(r["receipt"]) for r in result["research"]["records"]] == receipts
         assert result["collector"]["metrics"]["inference_count"] == 0
@@ -98,6 +103,7 @@ async def test_streamed_zeek_actual_rf_lr_read_only_recovery(tmp_path):
                         records=records,
                         collector_metrics=snap["collector"]["metrics"],
                         preprocessing=preprocessed,
+                        capture_attestation=attestation,
                         packet_count=c.stream.packet_count,
                         flow_count=len(c.stream.finalized),
                         queue_peak=c.queue_peak,
