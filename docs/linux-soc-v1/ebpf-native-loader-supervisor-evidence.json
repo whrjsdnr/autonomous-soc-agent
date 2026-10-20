@@ -1,0 +1,566 @@
+{
+  "schema": "soc-ebpf-native-phase-a-evidence:v1",
+  "baseline": {
+    "soc": "882273f0d1bc12bda2565686ce0ea57d7e158eab",
+    "ml": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+    "branch": "main"
+  },
+  "scope": "ACTUAL_UNPRIVILEGED_BUILD_ELF_INSPECTION_AND_MOCK_APPLICATION_SESSION_ONLY",
+  "authentication_policy": "TERMINAL_PASSWORD_ONCE_PER_APPLICATION:v1",
+  "implementation": {
+    "scope": "ACTUAL_UNPRIVILEGED_COMPILATION_AND_LIBBPF_ELF_INSPECTION_ONLY",
+    "program_sha256": "69de609ea8ee90ecf90d091ec361e46e61ed0638b3175390c77305145e19d5f4",
+    "loader_sha256": "23f0c50720db8f2eaa39f7867188efdf01caedda5b41d8f1faae626ec3e81310",
+    "bundle": {
+      "__init__.py": "976857f01043e7397f0f9b2ec8084ff9705c42335742478b385df99d37df681a",
+      "__main__.py": "753efa4a69a4b2915f8321e6f1bb02316f4ee7d3420adac4bf56a04814411eef",
+      "application.py": "d696b013099e0648d99bc67d7bb8cbcd6ad3ce8c2bec0a0ec9a3e94e2b2b50d7",
+      "authentication.py": "32e8ec0717ddd0ce882a01fb17a43cc24255a85242ea2a4753d9b5a682dd4e99",
+      "contracts.py": "f65f13f520970b39cc92d68600ef3a44693ac4b8676e869029598402e6480665",
+      "gui.py": "10e375b539fddcf3844a299efff35e9a82ed39caeb9b64c71eba5a0dc9395b1e",
+      "loader.c": "364c541d9e552f808d7cda8b03220f6826662995e33c57dcb08329ea88975ef1",
+      "loader.py": "601dfcce36957cd1272be3fa2f3099945d06bf5a0fc7cd747a205cda5c0c315c",
+      "tc_contract.py": "8569d1228a8181cf50a9df89af19b049aab48da71c7c11b38a4be6c5d72c1afc"
+    },
+    "bundle_digest": "096853e7dc0b2b4a9f9a7e019e2d87111f664be99b40accf3d3197777a5ddfca",
+    "inspection": {
+      "status": "LOADER_PREPARATION_VERIFIED",
+      "scope": "ELF_INSPECTION_ONLY",
+      "programs": 2,
+      "maps": 3,
+      "kernel_load": false,
+      "tc_attach": false,
+      "map_identity": "ELF_DECLARATIONS_NOT_KERNEL_IDS"
+    },
+    "capability_preflight": {
+      "effective": {
+        "CAP_BPF": false,
+        "CAP_NET_ADMIN": false
+      },
+      "required": [
+        "CAP_BPF",
+        "CAP_NET_ADMIN"
+      ],
+      "cap_perfmon_required_for_this_tc_contract": false,
+      "privilege_granted": false,
+      "native_execution": "PHASE_A_DISABLED"
+    },
+    "kernel_load": false,
+    "tc_attach": false,
+    "native_authentication": false
+  },
+  "preservation": {
+    "dirty_files_sha_checked": 132,
+    "protected_files_sha_checked": 363,
+    "raw_dataset_stat_checked": 58,
+    "original_index_empty": true,
+    "existing_zeek_bundle_digest": "e665e7629a2b945ab84ccf26f78b1a492e5acd2d00f6197da5517be67ab2c7ef",
+    "old_helpers_zeek_and_models_changed": false
+  },
+  "native_actions": {
+    "sudo_pam_authentication": false,
+    "kernel_bpf_load": false,
+    "tc_attach": false,
+    "capture": false,
+    "test_traffic": false,
+    "security_response_write": false
+  },
+  "policy_fixture": {
+    "authentication_per_application": 1,
+    "same_scope_runs_tested": 2,
+    "fresh_run_uuid_and_generation": true,
+    "scope_change_explicit_approval_without_second_password": true,
+    "scope_revision_replay_denied": true,
+    "new_application_requires_new_approval_and_password_contract": true,
+    "authority_persisted": false,
+    "authority_restored": false,
+    "resource_limits": "FIXTURE_VALIDATION_NOT_KERNEL_ENFORCEMENT"
+  },
+  "regressions": {
+    "unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 68.46514111600118,
+      "suite": [
+        "tests/unit/ebpf_native",
+        "tests/unit/ebpf",
+        "tests/unit/zeek_attestation",
+        "tests/unit/zeek_preprocessing",
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "result": "........................................................................ [ 10%]\n........................................................................ [ 21%]\n........................................................................ [ 31%]\n........................................................................ [ 42%]\n........................................................................ [ 52%]\n........................................................................ [ 63%]\n........................................................................ [ 73%]\n........................................................................ [ 84%]\n........................................................................ [ 94%]\n....................................                                     [100%]\n684 passed in 66.00s (0:01:05)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4286562304,
+          "psi": "some avg10=0.00 avg60=0.19 avg300=0.23 total=177246859\nfull avg10=0.00 avg60=0.19 avg300=0.23 total=169238420\n"
+        }
+      ]
+    },
+    "integration": {
+      "exit_code": 0,
+      "elapsed_seconds": 63.7120997949969,
+      "suite": [
+        "tests/integration/ebpf_native",
+        "tests/integration/ebpf",
+        "tests/integration/zeek_attestation",
+        "tests/integration/zeek_preprocessing",
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "result": "........................................................                 [100%]\n56 passed in 61.55s (0:01:01)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4447707136,
+          "psi": "some avg10=0.03 avg60=0.30 avg300=0.27 total=177686373\nfull avg10=0.03 avg60=0.30 avg300=0.27 total=169671244\n"
+        }
+      ]
+    },
+    "gui": {
+      "exit_code": 0,
+      "elapsed_seconds": 74.39991851698142,
+      "suite": [
+        "tests/gui_ebpf_native_checks.py",
+        "tests/gui_ebpf_checks.py",
+        "tests/gui_zeek_attestation_checks.py",
+        "tests/gui_zeek_preprocessing_checks.py",
+        "tests/gui_zeek_integrity_checks.py",
+        "tests/gui_zeek_startup_checks.py",
+        "tests/gui_zeek_finalization_checks.py",
+        "tests/gui_zeek_lifecycle_checks.py",
+        "tests/gui_zeek_live_checks.py",
+        "tests/gui_zeek_collector_checks.py",
+        "tests/gui_visual_dashboard_checks.py",
+        "tests/gui_production_checks.py"
+      ],
+      "result": ".................                                                        [100%]\n17 passed in 72.63s (0:01:12)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4478652416,
+          "psi": "some avg10=0.85 avg60=0.54 avg300=0.33 total=178167003\nfull avg10=0.85 avg60=0.54 avg300=0.33 total=170147370\n"
+        }
+      ]
+    },
+    "audit": {
+      "exit_code": 0,
+      "elapsed_seconds": 15.863421718997415,
+      "suite": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/linux_runtime/test_final_integration_audit.py",
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 13.71s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4449054720,
+          "psi": "some avg10=0.00 avg60=0.14 avg300=0.25 total=178183823\nfull avg10=0.00 avg60=0.14 avg300=0.25 total=170163912\n"
+        }
+      ]
+    }
+  },
+  "final_implementation_export_tests": {
+    "final-loader-contract": {
+      "exit_code": 0,
+      "elapsed_seconds": 38.78387224499602,
+      "result": "..........................................                               [100%]\n42 passed in 36.67s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "ruff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.10176923795370385,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.09807842696318403,
+      "result": "1176 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.11706578399753198,
+      "result": "Building wheel...\nSuccessfully built /home/geonug/kdt-linux/autonomous-soc-agent/.git/ebpf-loader-audit/wheel/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    }
+  },
+  "test_count_note": "684/56/17/125 regression groups overlap the final 42 Phase A checks. Do not sum them as unique tests. The final 42 includes final expiry/recovery changes; broad unchanged paths reuse earlier runs.",
+  "retained_failures": [
+    {
+      "result": "1 failed, 28 passed",
+      "cause": "Controller identity mutation initially produced generic execution-disabled error",
+      "resolution": "Identity checks precede execution-mode denial; regression retained"
+    },
+    {
+      "result": "24 failed, 660 passed",
+      "cause": "Capability preflight tuple violated existing strict JSON Audit metadata contract",
+      "resolution": "Serialize required capabilities as list; canonical JSON assertion; no Audit validation relaxation"
+    },
+    {
+      "result": "1 failed, 4 passed",
+      "cause": "Verification guard intercepted a literal forbidden sudo word in Python subcommand negative test; no sudo executable ran",
+      "resolution": "Removed that harness invocation; C --sudo denial and Native-disabled behavior remain tested"
+    }
+  ],
+  "performance": {
+    "environment": {
+      "kernel": "6.18.33.2-microsoft-standard-WSL2",
+      "libraries": [
+        "1.3.0",
+        "3.0.13"
+      ],
+      "cpu_affinity": 12,
+      "memory": [
+        "MemAvailable:    4241228 kB",
+        "SwapTotal:       2097152 kB",
+        "SwapFree:        1078700 kB"
+      ],
+      "psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=178554630\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=170529651\n",
+      "capabilities": {
+        "effective": {
+          "CAP_BPF": false,
+          "CAP_NET_ADMIN": false
+        },
+        "required": [
+          "CAP_BPF",
+          "CAP_NET_ADMIN"
+        ],
+        "cap_perfmon_required_for_this_tc_contract": false,
+        "privilege_granted": false,
+        "native_execution": "PHASE_A_DISABLED"
+      }
+    },
+    "cli": {
+      "scope": "FRESH_NONPRIVILEGED_PHASE_A_CLI_HELP_NO_AUTH",
+      "samples_seconds": [
+        1.3776654379907995,
+        1.3571578480186872,
+        1.4346968730096705,
+        1.4388133500469849,
+        1.4460837739752606
+      ],
+      "median_seconds": 1.4346968730096705
+    },
+    "controller": {
+      "scope": "PHASE_A_PYTHON_CONTROLLER_AND_INSPECTOR_NO_NATIVE_AUTH_OR_SUPERVISOR",
+      "repetitions": 5,
+      "samples": [
+        {
+          "prepare_seconds": 0.20707050000783056,
+          "approval_seconds": 0.00939635798567906,
+          "mock_authentication_seconds": 0.016908828052692115,
+          "fixture_start_seconds": 0.019948975008446723,
+          "fixture_cleanup_seconds": 0.018982982961460948,
+          "application_close_seconds": 1.811899710446596e-05
+        },
+        {
+          "prepare_seconds": 0.23008816596120596,
+          "approval_seconds": 0.011410071048885584,
+          "mock_authentication_seconds": 0.014570509956683964,
+          "fixture_start_seconds": 0.0201566590112634,
+          "fixture_cleanup_seconds": 0.015416743990499526,
+          "application_close_seconds": 2.7017027605324984e-05
+        },
+        {
+          "prepare_seconds": 0.2297834599739872,
+          "approval_seconds": 0.010490171960555017,
+          "mock_authentication_seconds": 0.017417158000171185,
+          "fixture_start_seconds": 0.020229961024597287,
+          "fixture_cleanup_seconds": 0.016536067007109523,
+          "application_close_seconds": 2.039800165221095e-05
+        },
+        {
+          "prepare_seconds": 0.2006669769762084,
+          "approval_seconds": 0.010733235976658762,
+          "mock_authentication_seconds": 0.016656205989420414,
+          "fixture_start_seconds": 0.019177290960215032,
+          "fixture_cleanup_seconds": 0.018341974006034434,
+          "application_close_seconds": 1.645099837332964e-05
+        },
+        {
+          "prepare_seconds": 0.1816800870001316,
+          "approval_seconds": 0.010704377957154065,
+          "mock_authentication_seconds": 0.016320538998115808,
+          "fixture_start_seconds": 0.01942342397524044,
+          "fixture_cleanup_seconds": 0.016609401034656912,
+          "application_close_seconds": 2.572301309555769e-05
+        }
+      ],
+      "median": {
+        "prepare_seconds": 0.20707050000783056,
+        "approval_seconds": 0.010704377957154065,
+        "mock_authentication_seconds": 0.016656205989420414,
+        "fixture_start_seconds": 0.019948975008446723,
+        "fixture_cleanup_seconds": 0.016609401034656912,
+        "application_close_seconds": 2.039800165221095e-05
+      },
+      "idle_rss_bytes": 154091520,
+      "idle_cpu_seconds": 0.00024624399999995106,
+      "idle_seconds": 1.00035167200258,
+      "peak_rss_bytes": 153694208,
+      "native_supervisor_rss": null,
+      "native_authentication_latency": null
+    },
+    "gui_default_samples": {
+      "before-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.79521345498506,
+        "startup_cpu_seconds": 4.080765411,
+        "idle_rss_bytes": 184668160,
+        "process_image_peak_rss_bytes": 188596224,
+        "idle_seconds": 3.0195977330440655,
+        "idle_cpu_seconds": 0.0076735079999998845,
+        "idle_cpu_one_core_percent": 0.2541235183755486,
+        "response_p50_ms": 0.010505,
+        "response_p95_ms": 0.02093,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.6313427190179937,
+        "startup_cpu_seconds": 3.997419757,
+        "idle_rss_bytes": 183447552,
+        "process_image_peak_rss_bytes": 187105280,
+        "idle_seconds": 3.0004133959882893,
+        "idle_cpu_seconds": 0.008230964000000007,
+        "idle_cpu_one_core_percent": 0.27432766468131486,
+        "response_p50_ms": 0.01289,
+        "response_p95_ms": 0.044014,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.5608993229689077,
+        "startup_cpu_seconds": 4.102772626999999,
+        "idle_rss_bytes": 183312384,
+        "process_image_peak_rss_bytes": 187224064,
+        "idle_seconds": 3.019201970018912,
+        "idle_cpu_seconds": 0.007593059999999596,
+        "idle_cpu_one_core_percent": 0.2514922842327118,
+        "response_p50_ms": 0.01402,
+        "response_p95_ms": 0.077313,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.3672154379892163,
+        "startup_cpu_seconds": 4.025946116,
+        "idle_rss_bytes": 183947264,
+        "process_image_peak_rss_bytes": 187756544,
+        "idle_seconds": 3.0189650560496375,
+        "idle_cpu_seconds": 0.00752794300000037,
+        "idle_cpu_one_core_percent": 0.24935508892079727,
+        "response_p50_ms": 0.010458,
+        "response_p95_ms": 0.021911,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.438987050030846,
+        "startup_cpu_seconds": 4.054736318,
+        "idle_rss_bytes": 183570432,
+        "process_image_peak_rss_bytes": 187342848,
+        "idle_seconds": 3.0185204760055058,
+        "idle_cpu_seconds": 0.007330952000000224,
+        "idle_cpu_one_core_percent": 0.24286573698189656,
+        "response_p50_ms": 0.010742,
+        "response_p95_ms": 0.045408,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.586075344006531,
+        "startup_cpu_seconds": 3.9896463119999996,
+        "idle_rss_bytes": 183177216,
+        "process_image_peak_rss_bytes": 187191296,
+        "idle_seconds": 3.0136114089982584,
+        "idle_cpu_seconds": 0.008195617000000155,
+        "idle_cpu_one_core_percent": 0.271953343935754,
+        "response_p50_ms": 0.012472,
+        "response_p95_ms": 0.226874,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      }
+    },
+    "gui_default_medians": {
+      "before": {
+        "startup_seconds": 2.6313427190179937,
+        "idle_rss_bytes": 183447552,
+        "idle_cpu_one_core_percent": 0.2541235183755486,
+        "response_p95_ms": 0.044014,
+        "threads": 2,
+        "widgets": 69
+      },
+      "after": {
+        "startup_seconds": 2.438987050030846,
+        "idle_rss_bytes": 183570432,
+        "idle_cpu_one_core_percent": 0.24935508892079727,
+        "response_p95_ms": 0.045408,
+        "threads": 2,
+        "widgets": 69
+      }
+    },
+    "phase_gui_warm_mock_sample": {
+      "scope": "ACTUAL_WSLG_PHASE_A_PREAUTHENTICATED_MOCK_NO_NATIVE",
+      "startup_seconds": 1.3885874960105866,
+      "startup_cpu_seconds": 1.2262628599999994,
+      "idle_rss_bytes": 215445504,
+      "authentication": "MOCK_NOT_NATIVE",
+      "kernel_capture": false
+    },
+    "interpretation": "Default GUI sources unchanged; 3 cold samples per group, observational variability only, not a claimed speedup. Phase GUI is a single warm preauthenticated Mock sample including test/import heap and excludes compile/prepare/auth. Native auth and privileged supervisor metrics UNKNOWN."
+  },
+  "wheel": {
+    "wheel_sha256": "c46506f6da8620443dbf684d352b14ae93d0484ef6bd53f669f117fb761447d1",
+    "source_files_checked": 497,
+    "entry_points": "[console_scripts]\nsoc-agent = soc_agent.cli:main\n\n"
+  },
+  "screenshots": {
+    "source": "ACTUAL_WSLG_MOCK_ONLY_NO_KERNEL_CAPTURE",
+    "sha256": {
+      "docs/linux-soc-v1/ebpf-native-loader-supervisor-screenshots/system-mock-1366.png": "ac55d72a7b555f6d5cfb98a9513252ddafeb965355575375d7596903480ac226",
+      "docs/linux-soc-v1/ebpf-native-loader-supervisor-screenshots/system-mock-1920.png": "f2300e6c11f57d38e6af9b3b2529456fa2cc4ea79c6e7c89175b1d9354c9802a"
+    }
+  },
+  "model_validation": {
+    "artifacts_changed": false,
+    "actual_model_loading_this_task": false,
+    "prior_zeek_artifact_fixture_results_reused_as_prior_only": true,
+    "ebpf_native_inference": "BLOCKED"
+  },
+  "verdicts": {
+    "FRESH_TERMINAL_AUTH_CONTRACT": "VERIFIED_MOCK_ONCE_PER_APPLICATION",
+    "FRESH_TERMINAL_AUTH_NATIVE": "PENDING",
+    "SESSION_APPROVAL": "VERIFIED_FIXTURE",
+    "LOADER_PREPARATION": "VERIFIED_ACTUAL_READ_ONLY_LIBBPF_ELF_INSPECTION",
+    "SUPERVISOR": "VERIFIED_FIXTURE_ONLY",
+    "TC_HOOK_NATIVE": "PENDING",
+    "CLEANUP": "VERIFIED_FIXTURE_ONLY",
+    "GUI": "PRESERVED_WSLG",
+    "AUDIT_RECOVERY": "VERIFIED_FIXTURE_NO_AUTH_RESTORE",
+    "NATIVE_AI": "BLOCKED",
+    "DNS9": "BLOCKED",
+    "OPERATIONAL_PROMOTION": "BLOCKED"
+  },
+  "remaining_blockers": [
+    "Trusted root-owned bootstrap and effective password-required TTY/PAM policy proof",
+    "Authenticated application-bound privileged IPC and minimal-capability resident supervisor",
+    "Actual Kernel Verifier, map/program identity, exclusive TC ownership and crash-safe detach",
+    "Native resource/loss accounting and separate Native AI admission approval"
+  ],
+  "native_execution_command": null,
+  "evidence_and_quality_checks": {
+    "evidence-export": {
+      "exit_code": 0,
+      "elapsed_seconds": 1.8830683269770816,
+      "result": "..                                                                       [100%]\n2 passed in 0.05s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n"
+    },
+    "export-ruff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.07742010796209797,
+      "result": "All checks passed!\n"
+    },
+    "export-format": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.07848263398045674,
+      "result": "1177 files already formatted\n"
+    },
+    "workspace-ruff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.03664438996929675,
+      "result": "All checks passed!\n"
+    },
+    "workspace-format": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.03193473699502647,
+      "result": "1221 files already formatted\n"
+    },
+    "workspace-diff": {
+      "exit_code": 0,
+      "elapsed_seconds": 0.005158601037692279,
+      "result": ""
+    }
+  }
+}
