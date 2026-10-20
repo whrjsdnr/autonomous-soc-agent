@@ -123,6 +123,17 @@ def test_simulation_install_update_explicit_rollback_and_recovery(release, tmp_p
         with pytest.raises(ValueError, match="REUSE"):
             sim.activate(path, old.identity)
         expected = rewrite(path, old, version="0.2.6")
+        # A new JSON version cannot reuse an old execution manifest.
+        with pytest.raises(ValueError, match="EXECUTION_MANIFEST_MISMATCH"):
+            verify_package(path, expected)
+        from soc_agent.security_ai.ebpf_tc.installation import ReleaseManifest
+        from soc_agent.security_ai.ebpf_tc.trust import execution_manifest
+
+        updated = ReleaseManifest.model_validate_json((path / "release.json").read_bytes())
+        descriptor = path / "release.trust"
+        descriptor.chmod(0o644)
+        descriptor.write_bytes(execution_manifest(updated))
+        descriptor.chmod(0o444)
         current = verify_package(path, expected)
         assert sim.activate(path, current.identity)["active_manifest"] == expected
         with pytest.raises(ValueError, match="MANIFEST_MISMATCH"):

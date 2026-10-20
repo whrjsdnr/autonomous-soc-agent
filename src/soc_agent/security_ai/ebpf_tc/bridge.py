@@ -220,6 +220,8 @@ class Preparation:
             release_gate="BLOCKED",
         )
         self._installation = {
+            "release_candidate": "B2F_BLOCKED_NATIVE_QUALIFICATION",
+            "pam_nss_trust": "STATIC_SNAPSHOTS_DYNAMIC_CLOSURE_UNKNOWN",
             "installed_release": None,
             "package_version": release.version,
             "release_manifest_digest": release.identity,

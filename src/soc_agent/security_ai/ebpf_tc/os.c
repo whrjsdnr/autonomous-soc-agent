@@ -35,12 +35,12 @@ int soc_trusted(const char *path,const uint8_t expected[32]) {
     char copy[256];if (strlen(path)>=sizeof(copy)) return -EINVAL;strcpy(copy,path+1);
     struct stat root;
     int d=open("/",O_DIRECTORY|O_CLOEXEC),fd=-1;
-    if(d<0 || fstat(d,&root) || root.st_uid || (root.st_mode&022)) {if(d>=0)close(d);return -EPERM;}char *save=NULL,*part=strtok_r(copy,"/",&save);
+    if(d<0 || fstat(d,&root) || root.st_uid || root.st_gid || (root.st_mode&022)) {if(d>=0)close(d);return -EPERM;}char *save=NULL,*part=strtok_r(copy,"/",&save);
     while (part && d>=0) {
         if(!strcmp(part,".") || !strcmp(part,"..")) {close(d);return -EPERM;}
         char *next=strtok_r(NULL,"/",&save);struct stat st;
         fd=openat(d,part,O_RDONLY|O_NOFOLLOW|O_CLOEXEC|(next?O_DIRECTORY:O_NONBLOCK));
-        if (fd<0 || fstat(fd,&st) || st.st_uid || (st.st_mode&022) ||
+        if (fd<0 || fstat(fd,&st) || st.st_uid || st.st_gid || (st.st_mode&022) ||
             (next?!S_ISDIR(st.st_mode):(!S_ISREG(st.st_mode) || st.st_nlink!=1))) {if(fd>=0)close(fd);close(d);return -EPERM;}
         close(d);d=fd;part=next;
     }

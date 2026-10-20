@@ -34,6 +34,8 @@ TCX_KINDS = {
     "TCX_CLEANUP_UNVERIFIED",
 }
 assert TCX_OWNER.size == 104 and TCX_ROW.size == 240
+RC_ROW = struct.Struct("<32s32s80sII32s32s")
+assert RC_ROW.size == 216
 assert ROW.size == 192
 
 
@@ -44,6 +46,7 @@ def recover_native(path: Path, approval: str) -> dict:
         os.close(fd)
         raise ValueError("NATIVE_JOURNAL_BOUND")
     previous, ordinal, claimed_cleanup = bytes(32), 0, False
+    release_manifest_digest = None
     last_owner = None
     mutation_observed = False
     with os.fdopen(fd, "rb") as stream:
@@ -53,7 +56,13 @@ def recover_native(path: Path, approval: str) -> dict:
             if len(header) != 64:
                 raise ValueError("NATIVE_JOURNAL_PARTIAL")
             kind = header[32:].split(b"\0", 1)[0].decode("ascii")
-            layout = TCX_ROW if kind.startswith("TCX_") else ROW
+            layout = (
+                RC_ROW
+                if kind == "RC_RELEASE_VERIFIED"
+                else TCX_ROW
+                if kind.startswith("TCX_")
+                else ROW
+            )
             body = header + stream.read(layout.size - 64)
             if len(body) != layout.size:
                 raise ValueError("NATIVE_JOURNAL_PARTIAL")
@@ -63,10 +72,21 @@ def recover_native(path: Path, approval: str) -> dict:
                 or count != ordinal + 1
                 or before != previous
                 or hashlib.sha256(body[:-32]).digest() != checksum
-                or kind not in KINDS | TCX_KINDS
+                or kind not in KINDS | TCX_KINDS | {"RC_RELEASE_VERIFIED"}
                 or sequence > 2048
             ):
                 raise ValueError("NATIVE_JOURNAL_INTEGRITY")
+            if kind == "RC_RELEASE_VERIFIED":
+                version = owner[32:48].split(b"\0", 1)[0]
+                import re
+
+                if (
+                    not any(owner[:32])
+                    or not re.fullmatch(rb"[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}", version)
+                    or release_manifest_digest is not None
+                ):
+                    raise ValueError("NATIVE_RELEASE_JOURNAL_INTEGRITY")
+                release_manifest_digest = owner[:32].hex()
             previous, ordinal = checksum, count
             if kind in {"ATTACH_REQUESTED", "TCX_ATTACH_REQUESTED", "TCX_LINK_CREATED"}:
                 mutation_observed = True
@@ -94,6 +114,7 @@ def recover_native(path: Path, approval: str) -> dict:
     return dict(
         source="NATIVE_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
         audit_digest=previous.hex(),
+        release_manifest_digest=release_manifest_digest,
         records=ordinal,
         claimed_cleanup=claimed_cleanup,
         last_owner_observed=last_owner is not None,

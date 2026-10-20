@@ -20,28 +20,23 @@ extern int soc_poll(struct soc_state *);
 /* The six operations reuse the B-1 allowlist. No path/command or arbitrary flags. */
 static volatile sig_atomic_t stopped;
 static void stop_signal(int n) {(void)n;stopped=1;}
-static int caps(void) {
-    struct __user_cap_header_struct h={_LINUX_CAPABILITY_VERSION_3,0};
-    struct __user_cap_data_struct d[2]={{0}};
-    uint64_t expected=(1ULL<<CAP_BPF)|(1ULL<<CAP_NET_ADMIN);
-    if(syscall(SYS_capget,&h,d))return -EPERM;
-    uint64_t effective=d[0].effective|((uint64_t)d[1].effective<<32);
-    uint64_t permitted=d[0].permitted|((uint64_t)d[1].permitted<<32);
-    return effective==expected && permitted==expected?0:-EPERM;
-}
 static int broker(int ipc,int plan,int object,int audit) {
     if(!soc_native_gate())return -EPERM;
     struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.ipc_fd=ipc,.audit_fd=audit};uint8_t md[32];
-    struct stat authority,code,audit_info;
+    struct soc_release_envelope envelope;struct stat authority,code,audit_info;
     if(fstat(plan,&authority) || fstat(object,&code) || authority.st_uid || code.st_uid ||
-       authority.st_size!=sizeof(s.plan) || fstat(audit,&audit_info) ||
+       authority.st_size!=sizeof(envelope) || fstat(audit,&audit_info) ||
        audit_info.st_uid!=getuid() || !S_ISREG(audit_info.st_mode) ||
        audit_info.st_size || audit_info.st_nlink!=1 ||
        (audit_info.st_mode&0777)!=0600 || !(fcntl(audit,F_GETFL)&O_APPEND) || prctl(PR_SET_DUMPABLE,0))return -EPERM;
-    if(pread(plan,&s.plan,sizeof(s.plan),0)!=sizeof(s.plan) || soc_fd_sha(plan,md) ||
-       soc_sealed(plan,md) || soc_plan_validate(&s.plan) || !getuid() || geteuid()!=getuid() ||
-       getuid()!=s.plan.uid || getgid()!=s.plan.gid || caps() || soc_peer(ipc,&s.plan) ||
+    if(pread(plan,&envelope,sizeof(envelope),0)!=sizeof(envelope) || soc_fd_sha(plan,md) ||
+       soc_sealed(plan,md) || soc_envelope_validate(&envelope))return -EPERM;
+    s.plan=envelope.plan;
+    if(soc_release_check(&s.plan,envelope.manifest_sha,envelope.release_version,2) || !getuid() || geteuid()!=getuid() ||
+       getuid()!=s.plan.uid || getgid()!=s.plan.gid || soc_capabilities() || soc_peer(ipc,&s.plan) ||
        soc_sealed(object,s.plan.program_sha))return -EPERM;
+    memcpy(s.release_sha,envelope.manifest_sha,32);
+    memcpy(s.release_version,envelope.release_version,16);
     struct soc_tcx link={.session=&s,.ops=&soc_tcx_real_ops,.fd=-1,.program_fd=-1};
     int tcx=s.plan.version==SOC_TCX_VERSION;
     int socket_bytes=32768,passcred=1;
@@ -55,7 +50,7 @@ static int broker(int ipc,int plan,int object,int audit) {
     signal(SIGPIPE,SIG_IGN);
     uint64_t born=soc_now(),heartbeat=born;uint64_t previous_generations[16]={0};
     uint32_t previous_handles[16]={0},rate_cursor=0;uint64_t rate_slots[32]={0};int result=0;
-    if(s.ops->record(&s,"AUTHENTICATION_VERIFIED") || s.ops->record(&s,"BROKER_READY"))return -EIO;
+    if(soc_release_record(&s) || s.ops->record(&s,"AUTHENTICATION_VERIFIED") || s.ops->record(&s,"BROKER_READY"))return -EIO;
     for(unsigned commands=0;!stopped && commands<2048;) {
         uint64_t now=soc_now();
         if(now<heartbeat || now-born>=3600000000000ULL || now-heartbeat>=15000000000ULL ||
@@ -70,6 +65,9 @@ static int broker(int ipc,int plan,int object,int audit) {
         if(soc_rate_allow(rate_slots,&rate_cursor,now)) {result=-EAGAIN;break;}
         s.sequence=q.sequence;commands++;heartbeat=now;
         int rc=0;
+        if(soc_capabilities() || soc_release_check(&s.plan,s.release_sha,s.release_version,2)) {
+            result=-EPERM;break; /* owned-FD cleanup below is still attempted */
+        }
         if(tcx) {
             if(q.operation==2 && link.phase==SOC_LINK_DETACHED && !s.failed) {
                 /* New explicit run, never automatic retry. Broker ingress history still applies. */

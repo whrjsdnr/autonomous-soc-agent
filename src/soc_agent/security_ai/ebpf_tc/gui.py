@@ -69,6 +69,9 @@ class PreparedDesktop(BrokerDesktop):
             rows.append("TCX " + key + "   " + ("UNKNOWN" if observed is None else str(observed)))
         installation = self.snapshot.get("installation", {})
         for key in (
+            "release_candidate",
+            "release_manifest_digest",
+            "pam_nss_trust",
             "installed_release",
             "package_version",
             "installation_integrity",

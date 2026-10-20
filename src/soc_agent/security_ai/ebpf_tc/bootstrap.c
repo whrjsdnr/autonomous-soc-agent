@@ -69,9 +69,11 @@ static int bootstrap(int channel,int plan_fd,int audit_fd) {
     if(fstat(audit_fd,&audit) || !S_ISREG(audit.st_mode) || audit.st_uid!=uid ||
        audit.st_nlink!=1 || audit.st_size || (audit.st_mode&0777)!=0600 ||
        audit_flags<0 || !(audit_flags&O_APPEND) || flock(audit_fd,LOCK_EX|LOCK_NB))return -EPERM;
-    struct soc_plan p;uint8_t psha[32];struct stat plan_info;
-    if(fstat(plan_fd,&plan_info) || plan_info.st_size!=sizeof(p) || pread(plan_fd,&p,sizeof(p),0)!=sizeof(p) || soc_fd_sha(plan_fd,psha) ||
-       soc_sealed(plan_fd,psha) || soc_plan_validate(&p) || p.uid!=uid || p.gid!=gid ||
+    struct soc_release_envelope envelope;struct soc_plan p;uint8_t psha[32];struct stat plan_info;
+    if(fstat(plan_fd,&plan_info) || plan_info.st_size!=sizeof(envelope) || pread(plan_fd,&envelope,sizeof(envelope),0)!=sizeof(envelope) || soc_fd_sha(plan_fd,psha) ||
+       soc_sealed(plan_fd,psha) || soc_envelope_validate(&envelope))return -EPERM;
+    p=envelope.plan;
+    if(soc_release_check(&p,envelope.manifest_sha,envelope.release_version,1) || p.uid!=uid || p.gid!=gid ||
        p.controller_pid!=(uint32_t)getppid() || soc_peer(channel,&p))return -EPERM;
     int mf=soc_trusted(SOC_INSTALL "manifest.bin",NULL);struct soc_manifest manifest;
     if(mf<0)return -EPERM;
@@ -90,17 +92,19 @@ static int bootstrap(int channel,int plan_fd,int audit_fd) {
     /* Root-side display/confirmation prevents a hidden malicious CLI scope swap. */
     FILE *tty=fopen("/dev/tty","r+");if(!tty)return -ENOTTY;
     char approval[65]={0},answer[80]={0};
-    for(int i=0;i<32;i++)snprintf(approval+2*i,3,"%02x",p.approval[i]);
-    const uint8_t *digests[]={p.bootstrap_sha,p.broker_sha,p.loader_sha,p.program_sha,p.bundle_sha};
-    const char *names[]={"Bootstrap","Broker","Loader","Program","Bundle"};
-    for(int k=0;k<5;k++) {char hex[65];for(int j=0;j<32;j++)snprintf(hex+2*j,3,"%02x",digests[k][j]);
+    for(int i=0;i<32;i++)snprintf(approval+2*i,3,"%02x",envelope.approval[i]);
+    fprintf(tty,"Release %s · Native Release BLOCKED\n",envelope.release_version);
+    const uint8_t *digests[]={p.bootstrap_sha,p.broker_sha,p.loader_sha,p.program_sha,p.bundle_sha,envelope.manifest_sha};
+    const char *names[]={"Bootstrap","Broker","Loader","Program","Bundle","Release Manifest"};
+    for(int k=0;k<6;k++) {char hex[65];for(int j=0;j<32;j++)snprintf(hex+2*j,3,"%02x",digests[k][j]);
         fprintf(tty,"%s SHA256 %s\n",names[k],hex);}
     fprintf(tty,"SOC eBPF scope: lo index %u hook %u namespace %llu, 300s, 4096 events, "
         "256MiB RSS, 20 CPU seconds. Native AI BLOCKED.\nApproval %s\nType digest: ",
         p.ifindex,p.hook,(unsigned long long)p.namespace_inode,approval);fflush(tty);
     alarm(60);if(!fgets(answer,sizeof(answer),tty))return -EPERM;alarm(0);fclose(tty);
     answer[strcspn(answer,"\r\n")]=0;if(strcmp(answer,approval))return -EPERM;
-    if(soc_password(uid) || soc_peer(channel,&p) || soc_plan_validate(&p))return -EPERM;
+    if(soc_password(uid) || soc_peer(channel,&p) || soc_envelope_validate(&envelope) ||
+       soc_release_check(&p,envelope.manifest_sha,envelope.release_version,1))return -EPERM;
     /* Fixed verified executable FD only, never a user-supplied path or shell. */
     int authority=sealed_copy(plan_fd,psha);if(authority<0)return -EPERM;
     /* Root-owned sealed authority exists only after the fresh PAM challenge.

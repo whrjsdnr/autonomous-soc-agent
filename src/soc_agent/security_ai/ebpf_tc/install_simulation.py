@@ -14,6 +14,7 @@ from soc_agent.security_ai.ebpf_tc.installation import (
     verify_package,
 )
 from soc_agent.security_ai.ebpf_tc.release import _directory
+from soc_agent.security_ai.ebpf_tc.trust import execution_manifest
 
 
 class InstallationSimulation:
@@ -150,11 +151,13 @@ class InstallationSimulation:
                 dir_fd=self.fd,
             )
             try:
-                for name in (*manifest.payloads, "release.json"):
+                for name in (*manifest.payloads, "release.json", "release.trust"):
                     body = read_held((package / name).absolute(), owner=os.getuid(), limit=1048576)
                     wanted = (
                         manifest.identity
                         if name == "release.json"
+                        else hashlib.sha256(execution_manifest(manifest)).hexdigest()
+                        if name == "release.trust"
                         else manifest.payloads[name].sha256
                     )
                     if hashlib.sha256(body).hexdigest() != wanted:

@@ -44,6 +44,13 @@ class Payload(Frozen):
     mode: int
 
 
+class SystemConfiguration(Frozen):
+    path: Literal["/etc/ld.so.cache", "/etc/nsswitch.conf"]
+    sha256: Hash
+    size: int = Field(gt=0, le=1048576)
+    mode: int = Field(ge=0, le=0o777)
+
+
 class ReleaseManifest(Frozen):
     contract: Literal["soc-tcx-trusted-release:v1"] = "soc-tcx-trusted-release:v1"
     version: str = Field(pattern=r"^[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}$")
@@ -51,6 +58,7 @@ class ReleaseManifest(Frozen):
     payloads: dict[str, Payload]
     dependencies: tuple[Dependency, ...] = Field(min_length=1, max_length=64)
     bundle_digest: Hash
+    system_configuration: tuple[SystemConfiguration, SystemConfiguration]
     pam_service: Literal["soc-agent-ebpf"] = "soc-agent-ebpf"
     pam_destination: Literal["/etc/pam.d/soc-agent-ebpf"] = "/etc/pam.d/soc-agent-ebpf"
     capabilities: tuple[Literal["CAP_BPF"], Literal["CAP_NET_ADMIN"]] = ("CAP_BPF", "CAP_NET_ADMIN")
@@ -85,6 +93,11 @@ class ReleaseManifest(Frozen):
                 raise ValueError("RELEASE_MODE_CONTRACT")
         if len({d.path for d in self.dependencies}) != len(self.dependencies):
             raise ValueError("RELEASE_DEPENDENCY_DUPLICATE")
+        if tuple(d.path for d in self.system_configuration) != (
+            "/etc/ld.so.cache",
+            "/etc/nsswitch.conf",
+        ) or any(d.mode & 0o022 for d in self.system_configuration):
+            raise ValueError("RELEASE_SYSTEM_CONFIGURATION")
         wire = b"".join(
             bytes.fromhex(self.payloads[n].sha256)
             for n in ("bootstrap", "broker", "libnative-tc.so", "tc.bpf.o")
@@ -122,7 +135,10 @@ def create_package(artifacts: Path, destination: Path, version: str) -> ReleaseM
         for n in ("bootstrap", "broker", "libnative-tc.so", "tc.bpf.o")
     ) + bytes.fromhex(digest(bundle()))
     bodies["pam-policy.conf"] = (ROOT / "pam-policy.conf").read_bytes()
+    from soc_agent.security_ai.ebpf_tc.trust import configuration, execution_manifest
+
     manifest = ReleaseManifest(
+        system_configuration=configuration(),
         version=version,
         bundle_digest=digest(bundle()),
         payloads={
@@ -142,6 +158,7 @@ def create_package(artifacts: Path, destination: Path, version: str) -> ReleaseM
         for name, body in bodies.items():
             _write(fd, name, body, 0o444)
         _write(fd, "release.json", canonical(manifest.model_dump(mode="json")), 0o444)
+        _write(fd, "release.trust", execution_manifest(manifest), 0o444)
         os.fsync(fd)
     finally:
         os.close(fd)
@@ -187,6 +204,11 @@ def verify_package(directory: Path, expected_manifest_sha: Hash) -> ReleaseManif
         or bodies["pam-policy.conf"] != (ROOT / "pam-policy.conf").read_bytes()
     ):
         raise ValueError("RELEASE_BOOTSTRAP_CONTRACT_MISMATCH")
+    from soc_agent.security_ai.ebpf_tc.trust import configuration, verify_execution_manifest
+
+    if tuple(d.model_dump(mode="json") for d in manifest.system_configuration) != configuration():
+        raise ValueError("RELEASE_SYSTEM_CONFIGURATION_MISMATCH")
+    verify_execution_manifest(directory, manifest)
     verify_dependencies(manifest.dependencies)
     if (
         inventory(tuple(bodies[n] for n in ("bootstrap", "broker", "libnative-tc.so")))
@@ -230,6 +252,22 @@ def validate_root_release(expected: ReleaseManifest) -> dict[str, str]:
         != expected.dependencies
     ):
         raise ValueError("ROOT_DEPENDENCY_CLOSURE_MISMATCH")
+    from soc_agent.security_ai.ebpf_tc.trust import configuration, execution_manifest
+
+    if tuple(d.model_dump(mode="json") for d in expected.system_configuration) != configuration():
+        raise ValueError("ROOT_SYSTEM_CONFIGURATION_MISMATCH")
+    execution = execution_manifest(expected)
+    parent = os.open(INSTALL, os.O_DIRECTORY | os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        descriptor = _open_file(
+            parent, "release.trust", hashlib.sha256(execution).hexdigest(), 0o444
+        )
+        os.close(descriptor)
+    finally:
+        os.close(parent)
+    wire = read_held(INSTALL / "release.trust", owner=0, limit=32768)
+    if wire != execution_manifest(expected):
+        raise ValueError("ROOT_EXECUTION_MANIFEST_MISMATCH")
     return {
         "installation_files": "VERIFIED_READ_ONLY",
         "pam_authentication": "PENDING",

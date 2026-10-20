@@ -17,6 +17,28 @@ struct soc_plan {
     uint8_t application[16], program_sha[32], loader_sha[32], bootstrap_sha[32], broker_sha[32], bundle_sha[32], approval[32];
 };
 _Static_assert(sizeof(struct soc_plan)==272,"plan ABI");
+/* Versioned, session-bound release approval; never persisted as authentication. */
+struct soc_release_envelope {
+    struct soc_plan plan;
+    uint8_t manifest_sha[32];
+    char release_version[16];
+    uint8_t approval[32];
+};
+_Static_assert(sizeof(struct soc_release_envelope)==352,"release approval ABI");
+struct soc_trust_record {char path[256];uint8_t sha[32];uint64_t size;uint32_t mode,reserved;};
+struct soc_trust_header {
+    char magic[8];uint32_t schema,count,native_release,dynamic_closure;
+    uint8_t manifest_sha[32],artifacts[160];char release_version[16];
+};
+_Static_assert(sizeof(struct soc_trust_header)==232,"trust header ABI");
+_Static_assert(sizeof(struct soc_trust_record)==304,"trust record ABI");
+int soc_envelope_validate(const struct soc_release_envelope *);
+int soc_trust_parse(const void *,size_t,const struct soc_plan *,const uint8_t[32],const char[16]);
+int soc_release_check(const struct soc_plan *,const uint8_t[32],const char[16],int);
+int soc_capability_contract(uint64_t,uint64_t,uint64_t,uint64_t,uint64_t);
+int soc_capabilities(void);
+struct soc_state;
+int soc_release_record(struct soc_state *);
 struct soc_manifest {uint8_t bootstrap[32], broker[32], loader[32], program[32], bundle[32];};
 struct soc_filter {uint32_t parent, handle, priority, chain, program_id;char kind[16];};
 struct soc_snapshot {uint32_t clsact, count;struct soc_filter filters[SOC_LIMIT_FILTERS];};
@@ -35,6 +57,7 @@ struct soc_ops {
     int (*record)(struct soc_state *,const char *);
 };
 struct soc_state {
+    uint8_t release_sha[32];char release_version[16];
     struct soc_plan plan;struct soc_owner owner;const struct soc_ops *ops;
     struct soc_snapshot before;void *context;
     uint64_t started_ns, generation;uint32_t handle, attempts, sequence;
