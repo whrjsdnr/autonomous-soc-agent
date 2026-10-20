@@ -237,10 +237,7 @@ def test_auth_failure_does_not_retry_or_leave_session_authority(tmp_path, monkey
     monkeypatch.setattr(module, "validate_root_release", lambda _: None)
     tty = tmp_path / "tty-fixture"
     tty.write_bytes(b"")
-    original_open = os.open
-    monkeypatch.setattr(module.os, "open", lambda *args, **kwargs: original_open(tty, os.O_RDWR))
-    monkeypatch.setattr(module.os, "isatty", lambda _: True)
-    monkeypatch.setattr(module.os, "tcgetpgrp", lambda _: os.getpgrp())
+    monkeypatch.setattr(module, "open_authentication_tty", lambda _: os.open(tty, os.O_RDWR))
     calls = []
 
     def denied(*args, **kwargs):

@@ -194,3 +194,18 @@ is needed after the prior failed attempt; the operator then needs only `yes` and
 OS password, followed by Enter to stop a successful B session. No new capture or
 Native success is claimed. Existing release and Native AI/DNS9/operational gates
 remain unchanged.
+
+## Short-confirmation attempt: controlling TTY failure
+
+Application `114b197e-54f9-4545-8171-cefee3849574` accepted yes, then failed with
+AUTH_QUALIFICATION_TTY_REQUIRED before requesting OS authentication. The exact
+cause was checking the root-owned /dev/tty alias rather than the actual owned PTY.
+The actual terminal identity fix and complete Release 0.4.3 update scope are recorded
+in [the TTY fix approval](native-tcx-tty-fix-approval.md). No privileged Broker,
+BPF load or TCX attach occurred. No retry was made automatically.
+
+The user requested a fix and immediate retry. The correction passed 12 focused cases
+and an ordinary-UID install/check/rollback simulation. Because the source Bundle
+changes, the new release/update SHA is presented for the specific approval required
+by the user's existing exact-release boundary. Release 0.4.2 remains installed;
+0.4.3 is prepared but not installed. No Native result has been promoted.

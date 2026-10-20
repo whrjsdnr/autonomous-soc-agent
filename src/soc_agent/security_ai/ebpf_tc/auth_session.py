@@ -1,14 +1,53 @@
 """Separate OS-authentication-only session. Never load/attach or grant Kernel authority."""
 
+import fcntl
 import hashlib
 import os
 import select
+import stat
+import struct
 import subprocess
 import time
 
 from soc_agent.security_ai.ebpf_broker.contracts import Command
 from soc_agent.security_ai.ebpf_tc.installation import validate_root_release
 from soc_agent.security_ai.ebpf_tc.os_handoff import Handoff
+
+
+def open_authentication_tty(uid: int) -> int:
+    """Match owned terminal input to the kernel's controlling terminal, by FD.
+
+    /dev/tty is a root-owned alias, not the user's actual PTY inode. Linux
+    TIOCGDEV returns the real terminal device even through that alias. Require
+    a matching owned stdin terminal and foreground process group as well.
+    """
+    tty = os.open("/dev/tty", os.O_RDWR | os.O_NOCTTY | os.O_CLOEXEC)
+    input_fd = -1
+    try:
+        input_fd = os.dup(0)
+        terminal = os.fstat(input_fd)
+        # Linux asm-generic/ioctls.h: _IOR('T', 0x32, unsigned int).
+        encoded = struct.unpack("=I", fcntl.ioctl(tty, 0x80045432, bytes(4)))[0]
+        actual_device = os.makedev(
+            (encoded >> 8) & 0xFFF, (encoded & 0xFF) | ((encoded >> 12) & 0xFFF00)
+        )
+        if (
+            not os.isatty(tty)
+            or not os.isatty(input_fd)
+            or not stat.S_ISCHR(terminal.st_mode)
+            or terminal.st_uid != uid
+            or terminal.st_rdev != actual_device
+            or os.tcgetpgrp(tty) != os.getpgrp()
+            or os.tcgetpgrp(input_fd) != os.getpgrp()
+        ):
+            raise ValueError("AUTH_QUALIFICATION_TTY_REQUIRED")
+        return tty
+    except BaseException:
+        os.close(tty)
+        raise
+    finally:
+        if input_fd >= 0:
+            os.close(input_fd)
 
 
 class AuthenticationQualification(Handoff):
@@ -46,14 +85,8 @@ class AuthenticationQualification(Handoff):
             raise ValueError("AUTH_QUALIFICATION_REPLAY")
         self._scope()
         validate_root_release(self.release)
-        tty = os.open("/dev/tty", os.O_RDWR | os.O_NOCTTY | os.O_CLOEXEC)
+        tty = open_authentication_tty(self.plan.broker.uid)
         try:
-            if (
-                not os.isatty(tty)
-                or os.fstat(tty).st_uid != self.plan.broker.uid
-                or os.tcgetpgrp(tty) != os.getpgrp()
-            ):
-                raise ValueError("AUTH_QUALIFICATION_TTY_REQUIRED")
             self.attempted = True
             self.origin = self.native_origin
             self.state, self.authentication = "AUTHENTICATING", "OS_AUTH_PENDING"
