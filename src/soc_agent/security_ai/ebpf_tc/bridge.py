@@ -80,6 +80,8 @@ def inspect_artifacts(directory: Path, expected: dict | None = None) -> dict:
 class Preparation:
     def __init__(self, controller: Controller, artifacts: Path):
         self.controller, self.artifacts = controller, artifacts
+        self._tcx_result = None
+        self._tcx_used = False
         self.hashes = inspect_artifacts(artifacts)
         self.plan = NativePlan(
             broker=controller.plan,
@@ -152,10 +154,51 @@ class Preparation:
         )
         return value
 
+    @property
+    def tcx_fixture_approval(self) -> str:
+        return digest(
+            {"plan": self.plan.approval, "attach_mode": "TCX_FIXTURE", "pin": "FORBIDDEN"}
+        )
+
+    def tcx_fixture(self, approval: str, scenario: int = 0) -> dict:
+        from soc_agent.security_ai.ebpf_tc.tcx import LinkFixtureResult
+
+        self.validate()
+        if approval != self.tcx_fixture_approval or self._tcx_used:
+            raise ValueError("TCX_FIXTURE_APPROVAL_OR_REPLAY_DENIED")
+        if type(scenario) is not int or not 0 <= scenario <= 20:
+            raise ValueError("TCX_FIXTURE_SCENARIO_INVALID")
+        if not self.controller.application._authenticated or self.controller.broker is None:
+            raise ValueError("TCX_FIXTURE_APPLICATION_AUTH_REQUIRED")
+        self.controller.broker.request("STATUS")  # Existing PID/peer/sequence-checked supervisor.
+        self._tcx_used = True  # Consumed on failure too; no automatic retry.
+        result = subprocess.run(
+            [str((self.artifacts / "tc-fixture").absolute()), "--tcx", str(scenario)],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C"},
+        )
+        if result.returncode or len(result.stdout) > 4096:
+            raise ValueError("TCX_FIXTURE_FAILED")
+        value = LinkFixtureResult.model_validate_json(result.stdout)
+        self.controller._event(
+            "TCX_LINK_LIFECYCLE_FIXTURE",
+            native_plan_digest=self.plan.approval,
+            program_sha256=self.plan.program_sha256,
+            approval_digest=approval,
+            result=value.model_dump(),
+            native_execution=False,
+        )
+        self._tcx_result = value.snapshot()
+        return value.model_dump()
+
     def snapshot(self) -> dict:
         value = self.controller.snapshot()
         from soc_agent.security_ai.ebpf_tc.release import ReleaseEvidence
+        from soc_agent.security_ai.ebpf_tc.tcx import unobserved
 
+        value["tcx"] = self._tcx_result or unobserved()
         value["native_release"] = ReleaseEvidence().snapshot()
         value["input_origin"] = "B2A_PREPARATION_OR_EXPLICIT_FIXTURE_NOT_NATIVE"
         value["ebpf"].update(

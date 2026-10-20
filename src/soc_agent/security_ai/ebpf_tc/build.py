@@ -31,7 +31,7 @@ def compile_native(destination: Path) -> dict[str, str]:
             *FLAGS,
             "-fPIC",
             "-shared",
-            *[str(ROOT / n) for n in ("core.c", "os.c", "netlink.c", "loader.c")],
+            *[str(ROOT / n) for n in ("core.c", "os.c", "netlink.c", "loader.c", "tcx.c")],
             "-lbpf",
             "-lcrypto",
             "-o",
@@ -59,7 +59,10 @@ def compile_native(destination: Path) -> dict[str, str]:
         [
             "cc",
             *FLAGS,
-            *[str(ROOT / n) for n in ("broker.c", "core.c", "os.c", "netlink.c", "loader.c")],
+            *[
+                str(ROOT / n)
+                for n in ("broker.c", "core.c", "os.c", "netlink.c", "loader.c", "tcx.c")
+            ],
             "-lbpf",
             "-lcrypto",
             "-Wl,-z,relro,-z,now",
@@ -73,6 +76,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                 "cc",
                 *FLAGS,
                 str(ROOT / (name + ".c")),
+                str(ROOT / "tcx_fixture.c"),
                 "-L" + str(destination),
                 "-lnative-tc",
                 "-Wl,-rpath,$ORIGIN",

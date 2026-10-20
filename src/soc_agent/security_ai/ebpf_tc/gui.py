@@ -51,6 +51,17 @@ class PreparedDesktop(BrokerDesktop):
         release = self.snapshot.get("native_release", {})
         for key in ("state", "safe_detach", "kernel_compatibility"):
             rows.append("Native release " + key + "   " + str(release.get(key, "UNKNOWN")))
+        tcx = self.snapshot.get("tcx", {})
+        for key in (
+            "attach_mode",
+            "link_id",
+            "link_state",
+            "ownership",
+            "broker_pin_policy",
+            "external_pins",
+        ):
+            observed = tcx.get(key)
+            rows.append("TCX " + key + "   " + ("UNKNOWN" if observed is None else str(observed)))
         self._text(self.system, self.system.get("1.0", "end") + "\n".join(rows))
 
 

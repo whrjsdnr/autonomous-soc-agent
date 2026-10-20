@@ -120,3 +120,58 @@ def test_actual_sealed_fd_and_environment_validation_remain_read_only(tmp_path):
         assert lib.soc_environment(ctypes.create_string_buffer(bytes(damaged))) != 0
     finally:
         p.controller.close()
+
+
+def test_tcx_fixture_uses_existing_app_auth_supervisor_and_append_only_audit(tmp_path):
+    p = preparation(tmp_path)
+    try:
+        p.prepare()
+        with pytest.raises(ValueError, match="AUTH_REQUIRED"):
+            p.tcx_fixture(p.tcx_fixture_approval)
+        p.approve(p.plan.approval)
+        p.controller.authenticate(FixtureAuthentication())
+        with pytest.raises(ValueError, match="APPROVAL_OR_REPLAY"):
+            p.tcx_fixture(p.plan.approval)
+        value = p.tcx_fixture(p.tcx_fixture_approval)
+        assert value["phase"] == 4 and value["native"] is False
+        with pytest.raises(ValueError, match="APPROVAL_OR_REPLAY"):
+            p.tcx_fixture(p.tcx_fixture_approval)
+        snapshot = p.snapshot()
+        assert snapshot["tcx"]["attach_mode"] == "TCX_FIXTURE"
+        assert snapshot["native_release"]["state"] == "BLOCKED"
+        assert not snapshot["collection_live"]
+        with p.controller.application.store.database.transaction(write=False) as db:
+            rows = [json.loads(r[0]) for r in db.execute("SELECT payload FROM monitor_audit")]
+        assert sum(r["kind"] == "AUTHENTICATION_VERIFIED" for r in rows) == 1
+        event = next(r for r in rows if r["kind"] == "TCX_LINK_LIFECYCLE_FIXTURE")
+        assert event["details"]["program_sha256"] == p.plan.program_sha256
+        assert event["details"]["native_execution"] is False
+        assert event["details"]["result"]["owner"]["origin"] == "C_FAKE_NOT_KERNEL"
+        assert "link_fd" not in event["details"]["result"]["owner"]
+    finally:
+        p.controller.close()
+    recovered = p.controller.recover(p.controller.application.directory)
+    assert not recovered["automatic_attach"] and not recovered["authentication_restored"]
+
+
+def test_tcx_audit_failure_does_not_publish_success_or_allow_retry(tmp_path, monkeypatch):
+    p = preparation(tmp_path)
+    try:
+        p.prepare()
+        p.approve(p.plan.approval)
+        p.controller.authenticate(FixtureAuthentication())
+        original = p.controller._event
+
+        def reject(kind, **details):
+            if kind == "TCX_LINK_LIFECYCLE_FIXTURE":
+                raise ValueError("AUDIT_FAILED")
+            return original(kind, **details)
+
+        monkeypatch.setattr(p.controller, "_event", reject)
+        with pytest.raises(ValueError, match="AUDIT_FAILED"):
+            p.tcx_fixture(p.tcx_fixture_approval)
+        assert p.snapshot()["tcx"]["ownership"] == "NOT_OBSERVED"
+        with pytest.raises(ValueError, match="APPROVAL_OR_REPLAY"):
+            p.tcx_fixture(p.tcx_fixture_approval)
+    finally:
+        p.controller.close()

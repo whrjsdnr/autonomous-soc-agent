@@ -1,5 +1,6 @@
 /* Execute production transaction core against a closed fake syscall table only. */
 #include "native.h"
+#include "tcx.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -50,6 +51,9 @@ static int record(struct soc_state *s,const char *kind) {
 }
 static const struct soc_ops fake_ops={valid,snap,load,enable,query,attach,detach,release,record};
 int main(int argc,char **argv) {
+    if(argc==3 && !strcmp(argv[1],"--tcx") && getuid() && getuid()==geteuid()) {
+        char *end;long n=strtol(argv[2],&end,10);return *end || n<0 || n>20?2:soc_tcx_fixture(n);
+    }
     if(argc!=2 || !getuid() || getuid()!=geteuid())return 2;
     char *end;long scenario=strtol(argv[1],&end,10);if(*end || scenario<0 || scenario>20)return 2;
     struct fake fake={.scenario=scenario,.current={.clsact=1,.count=1}};

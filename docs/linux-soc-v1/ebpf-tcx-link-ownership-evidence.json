@@ -1,0 +1,796 @@
+{
+  "contract": "soc-tcx-link-ownership-evidence:v1",
+  "baseline_soc": "2a75c4b3fd95deb413f30b980ce8266fd5d342fa",
+  "scope": "COMPILE_SYMBOLS_AND_UNPRIVILEGED_FAKE_RESOURCE_TABLE_NOT_NATIVE",
+  "release": "BLOCKED",
+  "environment": {
+    "kernel": "6.18.33.2-microsoft-standard-WSL2",
+    "local_identity": {
+      "/usr/include/linux/bpf.h": "86b6c4af14bfea0acbc77bed3aaa247d4e155570347f221c3e0549fbe9dc7bcb",
+      "/usr/include/bpf/libbpf.h": "3064ebc2dc7e93e4463ede5092044f3dc5beafcfcc32617d17c0210dd870ab2b",
+      "/usr/include/bpf/bpf.h": "09fdac5185d030bc606a6bb67933fdf162c5db60a6b6eea7d2e13584378672bb",
+      "/usr/lib/x86_64-linux-gnu/libbpf.so.1.3.0": "0e9998e17e38d78e5ce953f89a5e6a7c8b457d3e1bfe71e3ec5a1cfb05bbd1c3"
+    },
+    "kernel_build_headers_present": false,
+    "running_kernel_tcx_support": "UNKNOWN_NOT_PROBED",
+    "libbpf_package": "libbpf-dev:amd64\t1:1.3.0-2build2\nlibbpf1:amd64\t1:1.3.0-2build2\nlinux-libc-dev:amd64\t6.8.0-147.147\n"
+  },
+  "api": {
+    "scope": "HEADER_SYMBOL_ONLY_NOT_KERNEL",
+    "libbpf": "v1.3",
+    "tcx_ingress": 46,
+    "tcx_egress": 47,
+    "tc_act_ok": 0,
+    "tcx_pass": 0,
+    "tcx_next": -1,
+    "kernel_support": "UNKNOWN"
+  },
+  "identities": {
+    "artifacts": {
+      "bootstrap": "f2bc7b066e136c54a34d2c11c14c204bc6689859ff746626247b97cd10c6569a",
+      "broker": "2af83d320d88d50359eb8927bc78ca122dc167a244e78c1f08808b00daffd1ed",
+      "libnative-tc.so": "e686ac2df4de4420c31b326d0670e83f66e894a24198b3c0ab2cf04fc544ba4d",
+      "tc-fixture": "0bf805518e44a261899e460168029518634172eb1b2b29c958fd14d18c1b798a",
+      "source_bundle_digest": "69c20ebf593ff7f6782bae484e8cc0ad1140975d7f1450f4e4189c3e814ab472"
+    },
+    "program_sha256": "69de609ea8ee90ecf90d091ec361e46e61ed0638b3175390c77305145e19d5f4",
+    "phase_a_inspector_sha256": "23f0c50720db8f2eaa39f7867188efdf01caedda5b41d8f1faae626ec3e81310",
+    "bundle": {
+      "b1/phase_a/__init__.py": "976857f01043e7397f0f9b2ec8084ff9705c42335742478b385df99d37df681a",
+      "b1/phase_a/__main__.py": "753efa4a69a4b2915f8321e6f1bb02316f4ee7d3420adac4bf56a04814411eef",
+      "b1/phase_a/application.py": "d696b013099e0648d99bc67d7bb8cbcd6ad3ce8c2bec0a0ec9a3e94e2b2b50d7",
+      "b1/phase_a/authentication.py": "32e8ec0717ddd0ce882a01fb17a43cc24255a85242ea2a4753d9b5a682dd4e99",
+      "b1/phase_a/contracts.py": "f65f13f520970b39cc92d68600ef3a44693ac4b8676e869029598402e6480665",
+      "b1/phase_a/gui.py": "10e375b539fddcf3844a299efff35e9a82ed39caeb9b64c71eba5a0dc9395b1e",
+      "b1/phase_a/loader.c": "364c541d9e552f808d7cda8b03220f6826662995e33c57dcb08329ea88975ef1",
+      "b1/phase_a/loader.py": "601dfcce36957cd1272be3fa2f3099945d06bf5a0fc7cd747a205cda5c0c315c",
+      "b1/phase_a/tc_contract.py": "8569d1228a8181cf50a9df89af19b049aab48da71c7c11b38a4be6c5d72c1afc",
+      "b1/__init__.py": "e520cfa51b9bbbbf2cb6eec2d13bdffe76c4229c1890560c908148c08fad6a03",
+      "b1/__main__.py": "713ff2258790904fc16b5ef2b3fe8f489ff3d78d16da2714444e7f79dd8a1fbb",
+      "b1/contracts.py": "a39d4782dc56e4e3922e6ce21d39779a05e733ffc03b92aa6a4f287eb81044c5",
+      "b1/controller.py": "df158949ec22c0d00f1bde439dda8f30819f92449f89051c39aa73d09e8ea985",
+      "b1/engine.py": "47f2b3e9d60652448de31b44bcbf49de0cf11f3acc6d9965c512726642ed3be0",
+      "b1/gui.py": "494ee63e054f06270260b63465edb64318fc6bc2b97b0ee5e630bf5e58d11ad9",
+      "b1/identity.py": "13eb53880be961c152af73508a8a27714fba8ac6ef285b8f79025ece20a3fc9b",
+      "b1/ipc.py": "1be9b8b231fa1a17bb2a37553bbd0b148b91067447aca7b936e8f06466021c14",
+      "b1/journal.py": "b001f610e739aa856049b82b37f11bfcee57dd828580857cbd6c514a6bb70a87",
+      "b1/ownership.py": "961c529e3414d6edb212745f3f5535826fcb5ce2dca77bb90de07db7d9beb0af",
+      "b1/process.py": "5945485597a2c00b884d6589a44cc66ef416a37353154a68f894556eb2fd8d9c",
+      "b1/server.py": "70f71e346713564aee18267b8396a25a52c9202ae6b365c53be72ffeecb9e380",
+      "__init__.py": "d20ec34b506b1106c5e78dec06ef103f996cbdb479f96e64985b0aeb9ccbea38",
+      "__main__.py": "c8ac6537d49bbd5cc8ab01c8ffd9aa0bee7072e9352552eae9b2ca12259b2b74",
+      "bootstrap.c": "36f5e403d275bd3b3c20b46070bdfd3f4bfb051b4f46cd2ac00c7d1c0f15f9fc",
+      "bridge.py": "d42f041d980f86b09ee65a89135163a2028e623c936cc342b4767785e45c8150",
+      "broker.c": "e693f8d108435bf7bc83e34099acaab9b51d0e1ae071e6810ca8b238cb807074",
+      "build.py": "78c74bc303ac36f94874541269e52e7c63a00a5e07b4a3a9288472fd977d0836",
+      "contracts.py": "000b6adf811380acd9b06ea962ede2fedfbfc1bb197ed59f94b5b0ee6bfab97e",
+      "core.c": "f34d17e8e660131033f83d1f50a0a4dca6b46ae42c9528a993fa617acccc7c1e",
+      "fixture.c": "5488d55c66f0c4b5cb06966c8147727edb478a22b0160b8b57ebafbb8f21990c",
+      "gui.py": "157a8213aa7c15fd05348e693d851aee2294ae77d57f9fbbac3b6d2ae6bef0d5",
+      "journal.py": "f8763d98067fccfe1be02353ae32feac098b0e28bde3b165852c3dbe12eb215b",
+      "loader.c": "bde399bc65f133655bf19888372b6bd2ea3ca004138c579be31c776c6057eb34",
+      "native.h": "e288eec9adb419c756cf53ed49451034778269ee7671e318e4d58790265cd809",
+      "netlink.c": "aa4733743fb5bc825719a811dda22eda6cfe30d58ae5be0d6cb59abdb5923c86",
+      "os.c": "71f1af63e6f84894921f9ca55fef0b53bec25cddd9cbb42188e49d4964a5056d",
+      "pam-policy.conf": "bf95575ebb801b24c3f26d113d5c5f64f4068bd06d3da36c99e72e35eceff0e5",
+      "pam_abi.h": "274cead4866bd79ef66630e92a4fb3f3d3c12a42d92c8c4579cb6c4f81706ec0",
+      "release.py": "967c64520b016185895f4572b836fd32d5531ea5ac7a94bd810209dc0b5b5154",
+      "tcx.c": "4b105314029ccd5b3be2be7b14187cb35fc72553730a0c7bcf76e13e2c3143f5",
+      "tcx.h": "2bcf38840771a1ce1232628edbece82bd10410fa95d842402be164fb1f211eeb",
+      "tcx.py": "920cbe3a7599ea2c02dd7e8677ed465e100e2475abfd910acf8e90dfc6239382",
+      "tcx_fixture.c": "a3cb01bcba6e987f59f04e465a1b2c504590770a22c233a354da161a9579f70c",
+      "tcx_probe.c": "0b977991f258a419df7240395214be2f0d214ccc3d2eb8ce243c86d030e5c398"
+    },
+    "bundle_digest": "69c20ebf593ff7f6782bae484e8cc0ad1140975d7f1450f4e4189c3e814ab472",
+    "zeek_bundle_digest": "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045",
+    "manifest_format": "bootstrap32/broker32/loader32/program32/bundle32",
+    "native_gate": false
+  },
+  "final_tests": {
+    "exit_code": 0,
+    "seconds": 78.507524059969,
+    "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 74.81s (0:01:14)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+    "export": "/tmp/soc-zeek-export-m4l6onh8/SOC",
+    "manifest": {
+      "docs/linux-soc-v1/ebpf-tcx-link-ownership.md": "a3b694467e79251ea242865942a60baf5454fa9c0871f663b354fb4922c94cc0",
+      "src/soc_agent/security_ai/ebpf_tc/bridge.py": "d42f041d980f86b09ee65a89135163a2028e623c936cc342b4767785e45c8150",
+      "src/soc_agent/security_ai/ebpf_tc/build.py": "78c74bc303ac36f94874541269e52e7c63a00a5e07b4a3a9288472fd977d0836",
+      "src/soc_agent/security_ai/ebpf_tc/fixture.c": "5488d55c66f0c4b5cb06966c8147727edb478a22b0160b8b57ebafbb8f21990c",
+      "src/soc_agent/security_ai/ebpf_tc/gui.py": "157a8213aa7c15fd05348e693d851aee2294ae77d57f9fbbac3b6d2ae6bef0d5",
+      "src/soc_agent/security_ai/ebpf_tc/tcx.c": "4b105314029ccd5b3be2be7b14187cb35fc72553730a0c7bcf76e13e2c3143f5",
+      "src/soc_agent/security_ai/ebpf_tc/tcx.h": "2bcf38840771a1ce1232628edbece82bd10410fa95d842402be164fb1f211eeb",
+      "src/soc_agent/security_ai/ebpf_tc/tcx.py": "920cbe3a7599ea2c02dd7e8677ed465e100e2475abfd910acf8e90dfc6239382",
+      "src/soc_agent/security_ai/ebpf_tc/tcx_fixture.c": "a3cb01bcba6e987f59f04e465a1b2c504590770a22c233a354da161a9579f70c",
+      "src/soc_agent/security_ai/ebpf_tc/tcx_probe.c": "0b977991f258a419df7240395214be2f0d214ccc3d2eb8ce243c86d030e5c398",
+      "tests/gui_ebpf_tc_checks.py": "9d68401b820093680ffb527c921f4a76517e720480c35db87eac4a04bf6527ed",
+      "tests/integration/ebpf_tc/test_preparation.py": "189ae30e7007b098f19b59ec6a61a0d047b33a95548667df64ef185386691176",
+      "tests/integration/ebpf_tc/test_tcx.py": "912148bf419d988cf31addfcb0d44fc72fb80d8fa3b271b35f50eb60c581f3b4",
+      "tests/unit/ebpf_tc/test_tcx_contract.py": "cbe57f269db6b8de1a7b0e811000ef950f7c4d7efd010834e12c5d7956936072"
+    }
+  },
+  "initial_full_regressions": {
+    "native": {
+      "exit_code": 0,
+      "elapsed_seconds": 75.56962987402221,
+      "suite": [
+        "tests/unit/ebpf_tc",
+        "tests/integration/ebpf_tc",
+        "tests/gui_ebpf_tc_checks.py"
+      ],
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 73.53s (0:01:13)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4793663488,
+          "psi": "some avg10=0.00 avg60=0.01 avg300=0.00 total=191078560\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=182872532\n"
+        }
+      ]
+    },
+    "broker": {
+      "exit_code": 0,
+      "elapsed_seconds": 30.227852688985877,
+      "suite": [
+        "tests/unit/ebpf_broker",
+        "tests/integration/ebpf_broker",
+        "tests/gui_ebpf_broker_checks.py"
+      ],
+      "result": "...............................................................          [100%]\n63 passed in 27.71s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4649144320,
+          "psi": "some avg10=0.00 avg60=0.01 avg300=0.00 total=191142508\nfull avg10=0.00 avg60=0.01 avg300=0.00 total=182935612\n"
+        }
+      ]
+    },
+    "unit": {
+      "exit_code": 1,
+      "elapsed_seconds": 114.47055037802784,
+      "suite": [
+        "tests/unit/ebpf_native",
+        "tests/unit/ebpf",
+        "tests/unit/zeek_attestation",
+        "tests/unit/zeek_preprocessing",
+        "tests/unit/zeek_integrity",
+        "tests/unit/zeek_startup",
+        "tests/unit/zeek_finalization",
+        "tests/unit/zeek_lifecycle",
+        "tests/unit/zeek_live",
+        "tests/unit/zeek_producer",
+        "tests/unit/zeek_collector",
+        "tests/unit/gui",
+        "tests/unit/production_slimming",
+        "tests/unit/research_adapter",
+        "tests/unit/streaming_network"
+      ],
+      "result": "x pattern did not match.\nE         Expected regex: 'PRIOR_CONTAINER_REVIEW_REQUIRED'\nE         Actual message: 'ZEEK_RESOURCE_PRESSURE_REQUIRED'\n\ntests/unit/zeek_startup/test_startup.py:233: AssertionError\n_ test_worker_failure_durable_unknown_and_recovery_does_not_retry[WORKER_TIMEOUT_NO_RETRY] _\n\ntmp_path = PosixPath('/tmp/b2a-2syfhy1e/test_worker_failure_durable_un0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x72322b32c770>\nfailure = 'WORKER_TIMEOUT_NO_RETRY'\n\n    @pytest.mark.asyncio\n    @pytest.mark.parametrize(\n        \"failure\", [\"WORKER_TIMEOUT_NO_RETRY\", \"WORKER_FAILURE_OR_BUDGET_NO_RETRY\"]\n    )\n    async def test_worker_failure_durable_unknown_and_recovery_does_not_retry(\n        tmp_path, monkeypatch, failure\n    ):\n        from soc_agent.security_ai.research.adapter import ResearchAdapter\n    \n        monkeypatch.setattr(ResearchAdapter, \"status\", lambda *a, **k: {\"status\": \"READY\"})\n        calls = []\n    \n        async def fail(self, request):\n            calls.append(request.invocation_id)\n            return {\"status\": \"UNKNOWN\", \"error\": failure}\n    \n        monkeypatch.setattr(ResearchAdapter, \"infer\", fail)\n        p = tmp_path / \"input.pcap\"\n        sha = golden(p)\n        c = ZeekCollector(tmp_path, packet_mode=True, runner=FileRunner())\n        await c.prepare(pcap=p, sha256=sha)\n        await c.start()\n        await c.task\n>       assert c.producer.state == \"UNKNOWN_MODEL_OR_INVESTIGATION_NO_RETRY\"\nE       AssertionError: assert 'BLOCKED_MODE...NO_AUTO_RETRY' == 'UNKNOWN_MODE...TION_NO_RETRY'\nE         \nE         - UNKNOWN_MODEL_OR_INVESTIGATION_NO_RETRY\nE         + BLOCKED_MODEL_HEADROOM_NO_AUTO_RETRY\n\ntests/unit/zeek_producer/test_lifecycle.py:89: AssertionError\n_ test_worker_failure_durable_unknown_and_recovery_does_not_retry[WORKER_FAILURE_OR_BUDGET_NO_RETRY] _\n\ntmp_path = PosixPath('/tmp/b2a-2syfhy1e/test_worker_failure_durable_un1')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x723229222240>\nfailure = 'WORKER_FAILURE_OR_BUDGET_NO_RETRY'\n\n    @pytest.mark.asyncio\n    @pytest.mark.parametrize(\n        \"failure\", [\"WORKER_TIMEOUT_NO_RETRY\", \"WORKER_FAILURE_OR_BUDGET_NO_RETRY\"]\n    )\n    async def test_worker_failure_durable_unknown_and_recovery_does_not_retry(\n        tmp_path, monkeypatch, failure\n    ):\n        from soc_agent.security_ai.research.adapter import ResearchAdapter\n    \n        monkeypatch.setattr(ResearchAdapter, \"status\", lambda *a, **k: {\"status\": \"READY\"})\n        calls = []\n    \n        async def fail(self, request):\n            calls.append(request.invocation_id)\n            return {\"status\": \"UNKNOWN\", \"error\": failure}\n    \n        monkeypatch.setattr(ResearchAdapter, \"infer\", fail)\n        p = tmp_path / \"input.pcap\"\n        sha = golden(p)\n        c = ZeekCollector(tmp_path, packet_mode=True, runner=FileRunner())\n        await c.prepare(pcap=p, sha256=sha)\n        await c.start()\n        await c.task\n>       assert c.producer.state == \"UNKNOWN_MODEL_OR_INVESTIGATION_NO_RETRY\"\nE       AssertionError: assert 'BLOCKED_MODE...NO_AUTO_RETRY' == 'UNKNOWN_MODE...TION_NO_RETRY'\nE         \nE         - UNKNOWN_MODEL_OR_INVESTIGATION_NO_RETRY\nE         + BLOCKED_MODEL_HEADROOM_NO_AUTO_RETRY\n\ntests/unit/zeek_producer/test_lifecycle.py:89: AssertionError\n=========================== short test summary info ============================\nFAILED tests/unit/zeek_startup/test_startup.py::test_inventory_blocks_prior_or_unverifiable_containers[0-old-container\\n]\nFAILED tests/unit/zeek_startup/test_startup.py::test_inventory_blocks_prior_or_unverifiable_containers[1-]\nFAILED tests/unit/zeek_producer/test_lifecycle.py::test_worker_failure_durable_unknown_and_recovery_does_not_retry[WORKER_TIMEOUT_NO_RETRY]\nFAILED tests/unit/zeek_producer/test_lifecycle.py::test_worker_failure_durable_unknown_and_recovery_does_not_retry[WORKER_FAILURE_OR_BUDGET_NO_RETRY]\n4 failed, 689 passed in 112.16s (0:01:52)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4674428928,
+          "psi": "some avg10=0.00 avg60=0.00 avg300=0.00 total=191159743\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=182952126\n"
+        }
+      ]
+    }
+  },
+  "continuation_regressions": {
+    "resource_affected_unit": {
+      "exit_code": 0,
+      "elapsed_seconds": 3.3269487239886075,
+      "suite": [
+        "tests/unit/zeek_startup/test_startup.py::test_inventory_blocks_prior_or_unverifiable_containers",
+        "tests/unit/zeek_producer/test_lifecycle.py::test_worker_failure_durable_unknown_and_recovery_does_not_retry"
+      ],
+      "result": "....                                                                     [100%]\n4 passed in 1.49s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4747984896,
+          "psi": "some avg10=0.00 avg60=0.91 avg300=1.66 total=200397578\nfull avg10=0.00 avg60=0.89 avg300=1.63 total=192048606\n"
+        }
+      ]
+    },
+    "integration": {
+      "exit_code": 0,
+      "elapsed_seconds": 74.30020853801398,
+      "suite": [
+        "tests/integration/ebpf_native",
+        "tests/integration/ebpf",
+        "tests/integration/zeek_attestation",
+        "tests/integration/zeek_preprocessing",
+        "tests/integration/zeek_integrity",
+        "tests/integration/zeek_startup",
+        "tests/integration/zeek_finalization",
+        "tests/integration/zeek_lifecycle",
+        "tests/integration/zeek_live/test_stream.py",
+        "tests/integration/zeek_producer/test_packets.py"
+      ],
+      "result": "..........................................................               [100%]\n58 passed in 72.52s (0:01:12)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4773625856,
+          "psi": "some avg10=0.00 avg60=0.85 avg300=1.64 total=200397682\nfull avg10=0.00 avg60=0.83 avg300=1.60 total=192048710\n"
+        }
+      ]
+    },
+    "gui": {
+      "exit_code": 0,
+      "elapsed_seconds": 73.49741169501795,
+      "suite": [
+        "tests/gui_ebpf_native_checks.py",
+        "tests/gui_ebpf_checks.py",
+        "tests/gui_zeek_attestation_checks.py",
+        "tests/gui_zeek_preprocessing_checks.py",
+        "tests/gui_zeek_integrity_checks.py",
+        "tests/gui_zeek_startup_checks.py",
+        "tests/gui_zeek_finalization_checks.py",
+        "tests/gui_zeek_lifecycle_checks.py",
+        "tests/gui_zeek_live_checks.py",
+        "tests/gui_zeek_collector_checks.py",
+        "tests/gui_visual_dashboard_checks.py",
+        "tests/gui_production_checks.py"
+      ],
+      "result": ".................                                                        [100%]\n17 passed in 71.71s (0:01:11)\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4666982400,
+          "psi": "some avg10=0.00 avg60=0.25 avg300=1.27 total=200473856\nfull avg10=0.00 avg60=0.25 avg300=1.24 total=192124021\n"
+        }
+      ]
+    },
+    "audit": {
+      "exit_code": 0,
+      "elapsed_seconds": 16.219327466969844,
+      "suite": [
+        "tests/unit/policy",
+        "tests/unit/approval",
+        "tests/unit/investigation_runtime",
+        "tests/integration/linux_runtime/test_final_integration_audit.py",
+        "tests/integration/research_adapter/test_lifecycle.py",
+        "tests/integration/streaming_network/test_total_transport.py"
+      ],
+      "result": "........................................................................ [ 57%]\n.....................................................                    [100%]\n125 passed in 14.14s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4634161152,
+          "psi": "some avg10=0.00 avg60=0.07 avg300=0.97 total=200497767\nfull avg10=0.00 avg60=0.06 avg300=0.95 total=192147779\n"
+        }
+      ]
+    },
+    "model": {
+      "exit_code": 0,
+      "elapsed_seconds": 11.649794063996524,
+      "suite": [
+        "tests/integration/zeek_live/test_models.py"
+      ],
+      "result": ".                                                                        [100%]\n1 passed in 9.75s\nEBPF VERIFICATION: NO LOAD / TC ATTACH / PRIVILEGE / AF_PACKET / TEST TRAFFIC\n",
+      "resources": [
+        {
+          "memavailable": 4662919168,
+          "psi": "some avg10=0.00 avg60=0.05 avg300=0.92 total=200498848\nfull avg10=0.00 avg60=0.05 avg300=0.90 total=192148607\n"
+        },
+        {
+          "memavailable": 4741844992,
+          "psi": "some avg10=0.00 avg60=0.05 avg300=0.91 total=200498848\nfull avg10=0.00 avg60=0.04 avg300=0.89 total=192148607\n"
+        },
+        {
+          "memavailable": 4702158848,
+          "psi": "some avg10=0.00 avg60=0.04 avg300=0.91 total=200498848\nfull avg10=0.00 avg60=0.04 avg300=0.89 total=192148607\n"
+        }
+      ]
+    }
+  },
+  "unchanged_regression_source_binding": {
+    "count": 509,
+    "sha256": "30736e8f6a6375d67901622aa1afe2085f37dad1845eaf9d46723ebf0257c5f5",
+    "initial_export": "/tmp/soc-zeek-export-xw3j_85x/SOC",
+    "final_export": "/tmp/soc-zeek-export-m4l6onh8/SOC",
+    "unchanged_outside_ebpf_tc": true
+  },
+  "models": {
+    "scope": "ACTUAL_ZEEK_REALTIME_PROTOCOL_FROM_OFFLINE_PCAP_NOT_NATIVE",
+    "receipts": [
+      {
+        "profile": "quality",
+        "artifact_digest": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+        "feature_digest": "2a7cc2190057eb626fe0ca710ca0c225ad9d2467938f5a093b0db1a242e7ea09",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "producer_version": "1.1.0",
+        "status": "RESEARCH_ONLY",
+        "inference_latency_ms": 12.087009032256901,
+        "worker_peak_rss_bytes": 233766912,
+        "write_policy": "WRITE_DENIED",
+        "investigation": "ASSESSED_READ_ONLY"
+      },
+      {
+        "profile": "edge",
+        "artifact_digest": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+        "feature_digest": "2a7cc2190057eb626fe0ca710ca0c225ad9d2467938f5a093b0db1a242e7ea09",
+        "origin": "ZEEK_OFFLINE_PCAP",
+        "producer_version": "1.1.0",
+        "status": "RESEARCH_ONLY",
+        "inference_latency_ms": 7.038167037535459,
+        "worker_peak_rss_bytes": 233349120,
+        "write_policy": "WRITE_DENIED",
+        "investigation": "ASSESSED_READ_ONLY"
+      }
+    ],
+    "queue_final": 0,
+    "inference_queue_final": 0,
+    "audit_digest": "68fda4af6c50e80153f917649510fbccc05ffccc9de6aa5ed2c0dcf9d41cb7ed",
+    "recovered_audit_digest": "68fda4af6c50e80153f917649510fbccc05ffccc9de6aa5ed2c0dcf9d41cb7ed",
+    "restored_new_inferences": 0,
+    "native": false
+  },
+  "performance": {
+    "before": {
+      "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+      "repetitions": 5,
+      "samples": [
+        {
+          "resources": {
+            "memavailable": "4588504",
+            "psi": "some avg10=0.00 avg60=0.01 avg300=0.77 total=200529265\nfull avg10=0.00 avg60=0.01 avg300=0.75 total=192178162\n"
+          },
+          "ipc_status_seconds": 0.0027900629793293774,
+          "validation_seconds": 0.00614169699838385,
+          "prepare_with_reference_compile_seconds": 3.3895457870094106,
+          "mock_auth_and_b1_child_start_seconds": 1.2579443869763054,
+          "c_transaction_fake_ops_seconds": 0.021821869944687933,
+          "b1_attach_fixture_seconds": 0.029495202004909515,
+          "b1_detach_fixture_seconds": 0.029078157036565244,
+          "b1_cleanup_and_exit_seconds": 0.31314026296604425,
+          "fixture_supervisor_rss_bytes": 151531520
+        },
+        {
+          "resources": {
+            "memavailable": "4586792",
+            "psi": "some avg10=0.00 avg60=0.01 avg300=0.76 total=200532680\nfull avg10=0.00 avg60=0.01 avg300=0.74 total=192181496\n"
+          },
+          "ipc_status_seconds": 0.0017698719748295844,
+          "validation_seconds": 0.004333085962571204,
+          "prepare_with_reference_compile_seconds": 3.4685700939735398,
+          "mock_auth_and_b1_child_start_seconds": 1.18306443199981,
+          "c_transaction_fake_ops_seconds": 0.015250294003635645,
+          "b1_attach_fixture_seconds": 0.028515912010334432,
+          "b1_detach_fixture_seconds": 0.03092451801057905,
+          "b1_cleanup_and_exit_seconds": 0.35700166097376496,
+          "fixture_supervisor_rss_bytes": 151093248
+        },
+        {
+          "resources": {
+            "memavailable": "4531176",
+            "psi": "some avg10=0.00 avg60=0.01 avg300=0.74 total=200532961\nfull avg10=0.00 avg60=0.01 avg300=0.73 total=192181776\n"
+          },
+          "ipc_status_seconds": 0.00146665598731488,
+          "validation_seconds": 0.004877332015894353,
+          "prepare_with_reference_compile_seconds": 3.5461340330075473,
+          "mock_auth_and_b1_child_start_seconds": 1.0133202600409277,
+          "c_transaction_fake_ops_seconds": 0.1305444419849664,
+          "b1_attach_fixture_seconds": 0.12716621899744496,
+          "b1_detach_fixture_seconds": 0.02845619001891464,
+          "b1_cleanup_and_exit_seconds": 0.25050237198593095,
+          "fixture_supervisor_rss_bytes": 151367680
+        },
+        {
+          "resources": {
+            "memavailable": "4529528",
+            "psi": "some avg10=0.00 avg60=0.01 avg300=0.73 total=200533613\nfull avg10=0.00 avg60=0.01 avg300=0.72 total=192182428\n"
+          },
+          "ipc_status_seconds": 0.001949759025592357,
+          "validation_seconds": 0.005068380036391318,
+          "prepare_with_reference_compile_seconds": 3.6218641780433245,
+          "mock_auth_and_b1_child_start_seconds": 1.1115089330123737,
+          "c_transaction_fake_ops_seconds": 0.013979313953313977,
+          "b1_attach_fixture_seconds": 0.024096347973681986,
+          "b1_detach_fixture_seconds": 0.028052432986442,
+          "b1_cleanup_and_exit_seconds": 0.32201297499705106,
+          "fixture_supervisor_rss_bytes": 151183360
+        },
+        {
+          "resources": {
+            "memavailable": "4492520",
+            "psi": "some avg10=0.00 avg60=0.01 avg300=0.72 total=200534234\nfull avg10=0.00 avg60=0.01 avg300=0.70 total=192183048\n"
+          },
+          "ipc_status_seconds": 0.0025604850379750133,
+          "validation_seconds": 0.0038012699806131423,
+          "prepare_with_reference_compile_seconds": 3.440989046008326,
+          "mock_auth_and_b1_child_start_seconds": 1.1078904760070145,
+          "c_transaction_fake_ops_seconds": 0.016402679029852152,
+          "b1_attach_fixture_seconds": 0.026508322975132614,
+          "b1_detach_fixture_seconds": 0.026487398019526154,
+          "b1_cleanup_and_exit_seconds": 0.3050492139882408,
+          "fixture_supervisor_rss_bytes": 151048192
+        }
+      ],
+      "median": {
+        "ipc_status_seconds": 0.001949759025592357,
+        "validation_seconds": 0.004877332015894353,
+        "prepare_with_reference_compile_seconds": 3.4685700939735398,
+        "mock_auth_and_b1_child_start_seconds": 1.1115089330123737,
+        "c_transaction_fake_ops_seconds": 0.016402679029852152,
+        "b1_attach_fixture_seconds": 0.028515912010334432,
+        "b1_detach_fixture_seconds": 0.02845619001891464,
+        "b1_cleanup_and_exit_seconds": 0.31314026296604425,
+        "fixture_supervisor_rss_bytes": 151183360
+      },
+      "native_authentication_latency": null,
+      "native_load_latency": null,
+      "native_attach_detach_latency": null,
+      "native_supervisor_rss": null
+    },
+    "after": {
+      "scope": "B2A_BUILD_INSPECTION_AND_B1_SUPERVISOR_PLUS_C_CORE_FAKE_OPS_NOT_NATIVE",
+      "repetitions": 5,
+      "samples": [
+        {
+          "resources": {
+            "memavailable": "4462076",
+            "psi": "some avg10=0.00 avg60=0.00 avg300=0.69 total=200535457\nfull avg10=0.00 avg60=0.00 avg300=0.68 total=192183709\n"
+          },
+          "ipc_status_seconds": 0.0023135679657571018,
+          "validation_seconds": 0.005581505014561117,
+          "prepare_with_reference_compile_seconds": 3.977923576021567,
+          "mock_auth_and_b1_child_start_seconds": 1.1381221190094948,
+          "c_transaction_fake_ops_seconds": 0.016676692001055926,
+          "b1_attach_fixture_seconds": 0.02550026698736474,
+          "b1_detach_fixture_seconds": 0.030505414004437625,
+          "b1_cleanup_and_exit_seconds": 0.2483712620451115,
+          "fixture_supervisor_rss_bytes": 151470080
+        },
+        {
+          "resources": {
+            "memavailable": "4497080",
+            "psi": "some avg10=0.00 avg60=0.00 avg300=0.68 total=200535557\nfull avg10=0.00 avg60=0.00 avg300=0.67 total=192183807\n"
+          },
+          "ipc_status_seconds": 0.0019795079715549946,
+          "validation_seconds": 0.0058739109663292766,
+          "prepare_with_reference_compile_seconds": 4.148489524959587,
+          "mock_auth_and_b1_child_start_seconds": 1.1902486269827932,
+          "c_transaction_fake_ops_seconds": 0.021740230033174157,
+          "b1_attach_fixture_seconds": 0.036337913013994694,
+          "b1_detach_fixture_seconds": 0.04289313399931416,
+          "b1_cleanup_and_exit_seconds": 0.29942076303996146,
+          "fixture_supervisor_rss_bytes": 151379968
+        },
+        {
+          "resources": {
+            "memavailable": "4490292",
+            "psi": "some avg10=0.00 avg60=0.00 avg300=0.67 total=200535657\nfull avg10=0.00 avg60=0.00 avg300=0.65 total=192183908\n"
+          },
+          "ipc_status_seconds": 0.0017247720388695598,
+          "validation_seconds": 0.0038514360203407705,
+          "prepare_with_reference_compile_seconds": 3.985310618998483,
+          "mock_auth_and_b1_child_start_seconds": 1.0846083859796636,
+          "c_transaction_fake_ops_seconds": 0.013706570025533438,
+          "b1_attach_fixture_seconds": 0.029623533017002046,
+          "b1_detach_fixture_seconds": 0.030167702003382146,
+          "b1_cleanup_and_exit_seconds": 0.30003597401082516,
+          "fixture_supervisor_rss_bytes": 151105536
+        },
+        {
+          "resources": {
+            "memavailable": "4495880",
+            "psi": "some avg10=0.00 avg60=0.00 avg300=0.66 total=200535657\nfull avg10=0.00 avg60=0.00 avg300=0.64 total=192183908\n"
+          },
+          "ipc_status_seconds": 0.0018046509940177202,
+          "validation_seconds": 0.005896192044019699,
+          "prepare_with_reference_compile_seconds": 4.094235666969325,
+          "mock_auth_and_b1_child_start_seconds": 1.1350394770270213,
+          "c_transaction_fake_ops_seconds": 0.015336317010223866,
+          "b1_attach_fixture_seconds": 0.027451361005660146,
+          "b1_detach_fixture_seconds": 0.030982488999143243,
+          "b1_cleanup_and_exit_seconds": 0.3003291240311228,
+          "fixture_supervisor_rss_bytes": 151384064
+        },
+        {
+          "resources": {
+            "memavailable": "4460920",
+            "psi": "some avg10=0.00 avg60=0.00 avg300=0.64 total=200535727\nfull avg10=0.00 avg60=0.00 avg300=0.63 total=192183978\n"
+          },
+          "ipc_status_seconds": 0.00212504604132846,
+          "validation_seconds": 0.006765028985682875,
+          "prepare_with_reference_compile_seconds": 4.108216697990429,
+          "mock_auth_and_b1_child_start_seconds": 1.0830376119702123,
+          "c_transaction_fake_ops_seconds": 0.014106950024142861,
+          "b1_attach_fixture_seconds": 0.027142737992107868,
+          "b1_detach_fixture_seconds": 0.029181515972595662,
+          "b1_cleanup_and_exit_seconds": 0.2992834550095722,
+          "fixture_supervisor_rss_bytes": 151306240
+        }
+      ],
+      "median": {
+        "ipc_status_seconds": 0.0019795079715549946,
+        "validation_seconds": 0.0058739109663292766,
+        "prepare_with_reference_compile_seconds": 4.094235666969325,
+        "mock_auth_and_b1_child_start_seconds": 1.1350394770270213,
+        "c_transaction_fake_ops_seconds": 0.015336317010223866,
+        "b1_attach_fixture_seconds": 0.027451361005660146,
+        "b1_detach_fixture_seconds": 0.030505414004437625,
+        "b1_cleanup_and_exit_seconds": 0.29942076303996146,
+        "fixture_supervisor_rss_bytes": 151379968
+      },
+      "native_authentication_latency": null,
+      "native_load_latency": null,
+      "native_attach_detach_latency": null,
+      "native_supervisor_rss": null
+    }
+  },
+  "tcx_c_core_performance": {
+    "scope": "C_CORE_FAKE_OPS_NOT_KERNEL",
+    "warmup": 100,
+    "samples": [
+      {
+        "attach_preparation_ns": 46,
+        "identity_validation_ns": 32,
+        "detach_ns": 57
+      },
+      {
+        "attach_preparation_ns": 71,
+        "identity_validation_ns": 31,
+        "detach_ns": 71
+      },
+      {
+        "attach_preparation_ns": 83,
+        "identity_validation_ns": 31,
+        "detach_ns": 62
+      },
+      {
+        "attach_preparation_ns": 46,
+        "identity_validation_ns": 32,
+        "detach_ns": 59
+      },
+      {
+        "attach_preparation_ns": 47,
+        "identity_validation_ns": 32,
+        "detach_ns": 59
+      }
+    ],
+    "peak_rss_kib": 40588,
+    "cpu_seconds": 0.00099
+  },
+  "gui": {
+    "samples": {
+      "before-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 3.03233218297828,
+        "startup_cpu_seconds": 4.529255112,
+        "idle_rss_bytes": 184786944,
+        "process_image_peak_rss_bytes": 188710912,
+        "idle_seconds": 3.0197303180466406,
+        "idle_cpu_seconds": 0.007740620999999948,
+        "idle_cpu_one_core_percent": 0.25633484400047646,
+        "response_p50_ms": 0.020423,
+        "response_p95_ms": 0.035788,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2667244389886037,
+        "startup_cpu_seconds": 3.9459080129999995,
+        "idle_rss_bytes": 183947264,
+        "process_image_peak_rss_bytes": 187191296,
+        "idle_seconds": 3.0198185609770007,
+        "idle_cpu_seconds": 0.007703250999999689,
+        "idle_cpu_one_core_percent": 0.2550898620050689,
+        "response_p50_ms": 0.010935,
+        "response_p95_ms": 0.056983,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "before-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.437981922994368,
+        "startup_cpu_seconds": 4.154975661,
+        "idle_rss_bytes": 183234560,
+        "process_image_peak_rss_bytes": 186904576,
+        "idle_seconds": 3.0008983309962787,
+        "idle_cpu_seconds": 0.008715199000000062,
+        "idle_cpu_one_core_percent": 0.2904196690031372,
+        "response_p50_ms": 0.013827,
+        "response_p95_ms": 0.072482,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-0": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.3665852919803,
+        "startup_cpu_seconds": 4.152636215,
+        "idle_rss_bytes": 183771136,
+        "process_image_peak_rss_bytes": 187183104,
+        "idle_seconds": 3.0188007910037413,
+        "idle_cpu_seconds": 0.0073952959999994405,
+        "idle_cpu_one_core_percent": 0.24497462774085627,
+        "response_p50_ms": 0.010798,
+        "response_p95_ms": 0.035348,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-1": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.2281812580185942,
+        "startup_cpu_seconds": 3.928599253,
+        "idle_rss_bytes": 183463936,
+        "process_image_peak_rss_bytes": 187109376,
+        "idle_seconds": 3.0189835900091566,
+        "idle_cpu_seconds": 0.007629064000000074,
+        "idle_cpu_one_core_percent": 0.2527030628867027,
+        "response_p50_ms": 0.025362,
+        "response_p95_ms": 0.058361,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      },
+      "after-2": {
+        "scope": "ACTUAL_WSLG_IDLE_NO_CAPTURE_NO_INFERENCE",
+        "mode": "operator",
+        "startup_seconds": 2.296543948992621,
+        "startup_cpu_seconds": 3.8597798919999997,
+        "idle_rss_bytes": 183713792,
+        "process_image_peak_rss_bytes": 187834368,
+        "idle_seconds": 3.0191788990050554,
+        "idle_cpu_seconds": 0.007672174999999726,
+        "idle_cpu_one_core_percent": 0.25411462045286637,
+        "response_p50_ms": 0.010911,
+        "response_p95_ms": 0.015583,
+        "widgets": 69,
+        "threads": 2,
+        "background_async_tasks": 0,
+        "idle_child_processes": 0,
+        "backend_completion_polls_per_second": 0.0,
+        "model_service_created": false,
+        "model_deserializations": "UNKNOWN_NOT_INSTRUMENTED",
+        "created_runtime_owners": 0,
+        "gui_worker_stopped": true,
+        "remaining_child_processes": 0,
+        "controller_sqlite_statements_total": 0,
+        "sql_scope": "All controller connections; isolated worker SQL not instrumented"
+      }
+    },
+    "medians": {
+      "before": {
+        "startup_seconds": 2.437981922994368,
+        "idle_rss_bytes": 183947264,
+        "idle_cpu_one_core_percent": 0.25633484400047646,
+        "response_p95_ms": 0.056983
+      },
+      "after": {
+        "startup_seconds": 2.296543948992621,
+        "idle_rss_bytes": 183713792,
+        "idle_cpu_one_core_percent": 0.2527030628867027,
+        "response_p95_ms": 0.035348
+      }
+    },
+    "claim": "Descriptive serial samples only, no claimed Native or statistical improvement."
+  },
+  "retained_failures": {
+    "initial_full": "1 failed,119 passed: duplicated plan_digest in common Audit factory envelope.",
+    "focused": "1 failed,28 passed: duplicated application_session in common envelope after first collision removed.",
+    "fix": "Use common factory app context; distinct native_plan_digest, publish result only after Audit append. Focused 2 tests and final 125 passed.",
+    "existing_units": "4 failed,689 passed under raised Memory PSI: two inventory and two worker-failure Mock tests were preempted by unchanged headroom gates.",
+    "existing_recheck": "Only affected 4 re-executed after pressure subsided: 4 passed. Existing environmental/test-isolation sensitivity remains unresolved; not relabelled an all-green initial run.",
+    "sigill_root_cause": "UNKNOWN"
+  },
+  "pressure_incident": {
+    "observed_at": 1792467288.54498,
+    "meminfo": {
+      "MemAvailable": "4529204 kB",
+      "SwapTotal": "2097152 kB",
+      "SwapFree": "788160 kB"
+    },
+    "psi": "some avg10=0.44 avg60=2.18 avg300=1.99 total=200385555\nfull avg10=0.43 avg60=2.13 avg300=1.95 total=192037850\n",
+    "regression": "4 failed,689 passed; all four headroom gate precedence, no product fix or gate relaxation",
+    "model_not_started": true
+  },
+  "preservation": {
+    "user_files_checked": 132,
+    "protected_files_checked": 392,
+    "raw_files_stat_checked": 58,
+    "errors": []
+  },
+  "native_actions_executed": [],
+  "verdicts": {
+    "TCX_API_COMPATIBILITY": "UNKNOWN_FOR_RUNNING_KERNEL; HEADERS_AND_LINKER_VERIFIED",
+    "TCX_LINK_OWNERSHIP_FIXTURE": "VERIFIED",
+    "LEGACY_TC_NATIVE": "BLOCKED",
+    "TCX_NATIVE_ATTACH": "PENDING",
+    "LINK_CLEANUP_FIXTURE": "VERIFIED",
+    "BROKER_INTEGRATION": "FIXTURE_VERIFIED; NATIVE_DISPATCH_JOURNAL_BLOCKED",
+    "GUI": "PRESERVED",
+    "AUDIT_RECOVERY": "VERIFIED_FIXTURE_ONLY",
+    "NATIVE_AUTH": "PENDING",
+    "NATIVE_VERIFIER": "PENDING",
+    "NATIVE_AI": "BLOCKED",
+    "DNS9": "BLOCKED",
+    "OPERATIONAL_PROMOTION": "BLOCKED"
+  },
+  "native_blockers": [
+    "Unchanged TC_ACT_OK is TCX_PASS, skipping following TCX/Legacy filters. Preserve existing program; no automatic migration.",
+    "Running WSL kernel TCX/Verifier/capability behavior unverified.",
+    "Native Link approval/dispatcher/journal ABI is not admitted.",
+    "Root installation/dependency/PAM/capability/exit/reference cleanup proof still pending."
+  ],
+  "log_sha256": {
+    "initial-tests.log": "bf4461a6126f8e0695bea97dac1aee1731ebb48f72ce2be285769b232f9836fa",
+    "focused-tests.log": "f24125e0945d378722c466d9b0c803cffab049eaaeb89a00c41b91410be43483",
+    "audit-fix-tests.log": "ed2760857d8fe1b9ba50b554e47a02598b3301eef0bfe217e3ed906cd833cc2e",
+    "final-native.json": "98e23e71a821f22c08c6fc049fdf4aeb7ec74bbf50da24a3d637f766d9417f90",
+    "results.json": "c62c907ba565bfb8818614f84c74a16cdc908091d26c1c49e45d64806caa671f",
+    "results-continuation.json": "05b605c41d117d62a3333b55f63cba2c72ab40cad47758951a2ab036bca08e16",
+    "models.json": "c76da62a79b81d5cf94141a348435c9739eef444f4717c1f8bfe050fbf7ba336",
+    "performance-summary.log": "cbe616ede01994617ba20339dc774d37215c6728321214606737ba3eaef0a8c9"
+  },
+  "quality": {
+    "ruff": {
+      "exit_code": 0,
+      "seconds": 0.12109592999331653,
+      "result": "All checks passed!\n"
+    },
+    "format": {
+      "exit_code": 0,
+      "seconds": 0.10366347001399845,
+      "result": "1221 files already formatted\n"
+    },
+    "wheel": {
+      "exit_code": 0,
+      "seconds": 0.21156369795789942,
+      "result": "Building wheel...\nSuccessfully built dist/autonomous_soc_agent-0.1.0-py3-none-any.whl\n"
+    },
+    "wheel_source_files_matched": 532,
+    "rebuilt_artifacts_and_bundle_match": true,
+    "workspace_export_sha_match": true,
+    "diff_check": true,
+    "metadata_note": "Only final evidence/report changed afterward; implementation/test SHA match final 125-test Export."
+  }
+}
