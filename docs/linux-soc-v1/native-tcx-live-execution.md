@@ -1,8 +1,17 @@
 # Phase C-2 Native Live Execution
 
-## Latest qualification status
+## Latest unified qualification
 
-Actual installed release is 0.4.5; exact payload/Manifest/version checks passed.
+Installed 0.5.0 is VERIFIED by exact Root file checks. The single approved unified
+invocation completed installation and OS authentication/Broker handoff, then failed
+inside native load after LOAD_REQUESTED. No TCX attach/packet/Network14/GUI success
+is established; cleanup is CLEANUP_UNVERIFIED. No automatic retry occurred.
+See [the unified execution record](native-unified-session.md) for exact scope,
+identities, evidence and remaining diagnostics.
+
+## Previous 0.4.5 qualification status
+
+At that qualification the installed release was 0.4.5; exact payload/Manifest/version checks passed.
 Actual B authentication, auth-only Broker handoff, all-zero capabilities, STOP
 acknowledgment, exit 0 and authorization disposal are VERIFIED for session
 bd4bd3e8-a9be-4a7b-a140-9f8e3a827140. C session

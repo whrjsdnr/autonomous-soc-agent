@@ -10,7 +10,11 @@ from soc_agent.security_ai.research.models import digest
 
 def start_live_run(preparation, *, gui: bool = False) -> dict:
     h = preparation._os_handoff
-    if not h or h.origin != "TCX_LIVE_QUALIFICATION_NATIVE" or h.state != "BROKER_READY":
+    if (
+        not h
+        or h.origin not in {"TCX_LIVE_QUALIFICATION_NATIVE", "TCX_UNIFIED_SESSION_NATIVE"}
+        or h.state != "BROKER_READY"
+    ):
         raise ValueError("APPROVED_NATIVE_HANDOFF_REQUIRED")
     run = RunIdentity(
         application_session=h.plan.broker.application.application_session,

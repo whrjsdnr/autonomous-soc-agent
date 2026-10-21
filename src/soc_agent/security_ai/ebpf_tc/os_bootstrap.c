@@ -1,6 +1,7 @@
 /* OS-authenticated fixed entry. Never setuid; never calls PAM or accepts a path. */
 #define _GNU_SOURCE
 #include "handoff.h"
+#include "unified.h"
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/file.h>
@@ -40,9 +41,10 @@ static int root_copy(int fd,const uint8_t expected[32]) {
     }free(body);return target;
 }
 static int bootstrap(unsigned uid,unsigned gid,const uint8_t app[16],
-                     const uint8_t approval[32],const uint8_t manifest[32],const uint8_t purpose[32]) {
+                     const uint8_t approval[32],const uint8_t manifest[32],const uint8_t purpose[32],
+                     const struct soc_unified_proof *unified) {
     /* This is an independent qualification gate, not a caller-supplied auth flag. */
-    if(!purpose || soc_os_password_policy(uid,gid))return -EPERM;
+    if(!purpose || (!unified && soc_os_password_policy(uid,gid)))return -EPERM;
     if(getuid() || geteuid() || getgid() || getegid())return -EPERM;
     unsigned invoking_uid=0,invoking_gid=0;
     if(number(getenv("SUDO_UID"),&invoking_uid) || number(getenv("SUDO_GID"),&invoking_gid) ||
@@ -70,7 +72,8 @@ static int bootstrap(unsigned uid,unsigned gid,const uint8_t app[16],
        soc_release_check(&e.plan,e.manifest_sha,e.release_version,1))return -EPERM;
     const char label[]="SOC_TCX_LIVE_V1";uint8_t bound[sizeof(label)+sizeof(e)],purpose_sha[32];
     memcpy(bound,label,sizeof(label));memcpy(bound+sizeof(label),&e,sizeof(e));
-    if(soc_sha(bound,sizeof(bound),purpose_sha) || memcmp(purpose_sha,purpose,32) ||
+    if((unified ? (memcmp(&unified->envelope,&e,sizeof(e)) || memcmp(unified->approval,purpose,32)) :
+        (soc_sha(bound,sizeof(bound),purpose_sha) || memcmp(purpose_sha,purpose,32))) ||
        soc_qualification_admit(plan,&e,1))return -EPERM;
     int executable=soc_trusted(SOC_INSTALL "broker",e.plan.broker_sha);
     int object=soc_trusted(SOC_INSTALL "tc.bpf.o",e.plan.program_sha);
@@ -90,6 +93,21 @@ int main(int argc,char **argv) {
     if(argc==2 && !strcmp(argv[1],"--inspect") && getuid()==geteuid() && getuid()) {
         puts("{\"stage\":\"B2J_OS_HANDOFF\",\"native_gate\":false,\"pam_invoked\":false,\"os_auth_qualification\":\"PENDING\"}");return 0;
     }
+    if(argc==4 && !strcmp(argv[1],"--unified-policy-check")) {
+        unsigned uid,gid;
+        return number(argv[2],&uid) || number(argv[3],&gid) ||
+            soc_os_password_policy_only(uid,gid)?2:0; /* Read-only, no authority issued. */
+    }
+    if(argc==8 && !strcmp(argv[1],"--unified-handoff")) {
+        unsigned uid,gid;uint8_t app[16],approval[32],manifest[32],purpose[32];
+        struct soc_unified_proof proof;
+        if(number(argv[2],&uid) || number(argv[3],&gid) || hex(argv[4],app,16) ||
+           hex(argv[5],approval,32) || hex(argv[6],manifest,32) || hex(argv[7],purpose,32) ||
+           soc_unified_proof_read(&proof,uid,gid,app,approval,manifest,purpose) ||
+           bootstrap(uid,gid,app,approval,manifest,purpose,&proof)) {
+            fputs("UNIFIED_HANDOFF_REJECTED\n",stderr);return 2;
+        }return 0;
+    }
     if(argc==8 && !strcmp(argv[1],"--auth-qualification")) {
         unsigned uid,gid;uint8_t app[16],approval[32],manifest[32],purpose[32];
         if(number(argv[2],&uid) || number(argv[3],&gid) || hex(argv[4],app,16) ||
@@ -102,7 +120,7 @@ int main(int argc,char **argv) {
         unsigned uid,gid;uint8_t app[16],approval[32],manifest[32],purpose[32];
         if(number(argv[2],&uid) || number(argv[3],&gid) || hex(argv[4],app,16) ||
            hex(argv[5],approval,32) || hex(argv[6],manifest,32) || hex(argv[7],purpose,32))return 2;
-        if(bootstrap(uid,gid,app,approval,manifest,purpose)) {
+        if(bootstrap(uid,gid,app,approval,manifest,purpose,NULL)) {
             fputs("TCX_LIVE_QUALIFICATION_REJECTED\n",stderr);return 2;
         }return 0;
     }
@@ -113,5 +131,5 @@ int main(int argc,char **argv) {
     if(argc!=7 || strcmp(argv[1],"--os-handoff") || number(argv[2],&uid) ||
        number(argv[3],&gid) || hex(argv[4],app,16) ||
        hex(argv[5],approval,32) || hex(argv[6],manifest,32))return 2;
-    return bootstrap(uid,gid,app,approval,manifest,NULL)?2:0;
+    return bootstrap(uid,gid,app,approval,manifest,NULL,NULL)?2:0;
 }

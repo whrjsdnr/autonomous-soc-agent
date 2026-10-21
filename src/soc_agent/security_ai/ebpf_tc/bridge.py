@@ -307,10 +307,11 @@ class Preparation:
         *,
         qualification_only: bool = False,
         live_qualification: bool = False,
+        unified_image=None,
     ):
         from soc_agent.security_ai.ebpf_tc.os_handoff import Handoff
 
-        if qualification_only and live_qualification:
+        if sum((qualification_only, live_qualification, unified_image is not None)) > 1:
             raise ValueError("QUALIFICATION_MODE_CONFLICT")
         if live_qualification:
             from soc_agent.security_ai.ebpf_tc.auth_session import LiveQualification
@@ -320,6 +321,10 @@ class Preparation:
             from soc_agent.security_ai.ebpf_tc.auth_session import AuthenticationQualification
 
             Handoff = AuthenticationQualification
+        if unified_image is not None:
+            from soc_agent.security_ai.ebpf_tc.unified import UnifiedSession
+
+            Handoff = UnifiedSession
         if self._os_handoff is not None:
             raise ValueError("OS_HANDOFF_ALREADY_PREPARED")
         from soc_agent.security_ai.ebpf_tc.installation import verify_package
@@ -341,7 +346,12 @@ class Preparation:
             mode="B2D_TCX_BLOCKED",
         )
         self._os_handoff = Handoff(
-            self.controller.application, plan, package, manifest_sha, self.artifacts
+            self.controller.application,
+            plan,
+            package,
+            manifest_sha,
+            self.artifacts,
+            **({"image": unified_image} if unified_image is not None else {}),
         )
         self._os_handoff.prepare()
         return self._os_handoff

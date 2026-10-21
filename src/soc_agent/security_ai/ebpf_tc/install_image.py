@@ -11,10 +11,15 @@ from soc_agent.security_ai.ebpf_tc.build import AUTH_POLICY
 from soc_agent.security_ai.ebpf_tc.installation import verify_package
 
 
-def prepare_installation(package: Path, manifest_sha: str, output: Path) -> dict:
+def installation_payload(package: Path, manifest_sha: str) -> tuple:
     if os.geteuid() == 0:
         raise ValueError("INSTALL_IMAGE_PREPARATION_NON_ROOT_REQUIRED")
     release = verify_package(package, manifest_sha)
+    return release, payload_from_release(package, release)
+
+
+def payload_from_release(package: Path, release) -> dict:
+    manifest_sha = release.identity
     files = {}
     for name, payload in release.payloads.items():
         body = (package / name).read_bytes()
@@ -51,6 +56,12 @@ def prepare_installation(package: Path, manifest_sha: str, output: Path) -> dict
             )
         )
     image = dict(manifest_sha256=manifest_sha, files=files, dependencies=dependencies)
+    return image
+
+
+def prepare_installation(package: Path, manifest_sha: str, output: Path) -> dict:
+    release, image = installation_payload(package, manifest_sha)
+    files, dependencies = image["files"], image["dependencies"]
     body = (
         Path(install_engine.__file__).read_bytes()
         + b"\nIMAGE = json.loads("

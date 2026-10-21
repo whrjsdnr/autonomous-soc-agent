@@ -96,6 +96,7 @@ def compile_native(destination: Path) -> dict[str, str]:
                 for n in (
                     "os_bootstrap.c",
                     "auth_qualification.c",
+                    "unified_proof.c",
                     "handoff.c",
                     "core.c",
                     "os.c",

@@ -159,14 +159,17 @@ static int drop(unsigned uid,unsigned gid) {
     for(int i=0;i<2;i++)if(caps[i].effective || caps[i].permitted || caps[i].inheritable)return -EPERM;
     return 0;
 }
-int soc_os_password_policy(unsigned uid,unsigned gid) {
+int soc_os_password_policy_only(unsigned uid,unsigned gid) {
     struct rlimit no_core={0,0};if(setrlimit(RLIMIT_CORE,&no_core))return -EPERM;
     if(!uid || !gid || getuid() || geteuid() || getgid() || getegid() || !isatty(0))return rejected("ROOT_TTY");
     const char *u=getenv("SUDO_UID"),*g=getenv("SUDO_GID");
     char wanted[32];snprintf(wanted,sizeof(wanted),"%u",uid);
     if(!u || strcmp(u,wanted))return rejected("SUDO_UID");
     snprintf(wanted,sizeof(wanted),"%u",gid);if(!g || strcmp(g,wanted))return rejected("SUDO_GID");
-    if(policy(uid,gid))return -EPERM;
+    return policy(uid,gid);
+}
+int soc_os_password_policy(unsigned uid,unsigned gid) {
+    if(soc_os_password_policy_only(uid,gid))return -EPERM;
     int sudo_fd=soc_trusted("/usr/bin/sudo",NULL);struct stat trusted,parent;
     char path[64];snprintf(path,sizeof(path),"/proc/%u/exe",getppid());
     if(sudo_fd<0 || fstat(sudo_fd,&trusted) || stat(path,&parent) ||

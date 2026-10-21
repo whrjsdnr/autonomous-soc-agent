@@ -1,6 +1,10 @@
 # One approval and one terminal authentication per application session
 
-Status: architecture proposal, not implemented or authorized for Native execution.
+Status: historical architecture proposal, superseded by the implemented
+[unified session](native-unified-session.md). Its single approved Native attempt
+verified installation/authentication/handoff, then stopped at LOAD_REQUESTED.
+The stable updater described below was not introduced: the implementation reuses
+a reviewed SHA-pinned standalone installation image and Root-owned sealed handoff.
 Prepared after the actual Release 0.4.5 authentication and cleanup qualification.
 
 ## Recommended operator flow
@@ -11,7 +15,7 @@ then performs installation/version checks, Broker qualification, and the explici
 approved bounded capture. There are no separate A/B/C approval prompts or separate
 auth-only and live application restarts in this normal flow.
 
-Proposed command, not an executable feature yet:
+Command now implemented (see execution limits in the linked implementation record):
 
 ```text
 soc-agent start --gui --monitor total --collector ebpf-tcx

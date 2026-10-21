@@ -194,6 +194,21 @@ def _quiescent(parent: int) -> None:
             raise ValueError("INSTALL_APPLICATION_NOT_QUIESCENT")
 
 
+def _verify_dependencies(image: dict) -> None:
+    for row in image["dependencies"]:
+        path = row["path"]
+        directory, name = path.rsplit("/", 1)
+        folder = _open_directory(directory, 0)
+        try:
+            fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=folder)
+            try:
+                _read(fd, 0, row["mode"], row["sha256"], 64 * 1024**2)
+            finally:
+                os.close(fd)
+        finally:
+            os.close(folder)
+
+
 def root_main(image: dict, action: str, approval: str | None = None) -> None:
     if os.getuid() != 0 or os.geteuid() != 0 or os.getgid() != 0 or os.getegid() != 0:
         raise ValueError("INSTALL_ROOT_REQUIRED")
@@ -210,18 +225,8 @@ def root_main(image: dict, action: str, approval: str | None = None) -> None:
             _quiescent(parent)
         # Revalidate dependencies before publishing, but never block exact unpublish
         # merely because an OS update changed an unrelated dependency.
-        for row in image["dependencies"] if action != "rollback" else ():
-            path = row["path"]
-            directory, name = path.rsplit("/", 1)
-            folder = _open_directory(directory, 0)
-            try:
-                fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=folder)
-                try:
-                    _read(fd, 0, row["mode"], row["sha256"], 64 * 1024**2)
-                finally:
-                    os.close(fd)
-            finally:
-                os.close(folder)
+        if action != "rollback":
+            _verify_dependencies(image)
         print(json.dumps(_apply(image, parent, 0, action), sort_keys=True))
     finally:
         os.close(parent)

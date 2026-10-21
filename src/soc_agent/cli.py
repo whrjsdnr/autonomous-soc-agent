@@ -37,7 +37,13 @@ def main(argv=None) -> int:
     start.add_argument("--approve-direction-sha")
     start.add_argument(
         "--collector",
-        choices=("existing-capture", "zeek-offline", "zeek-network14-offline", "zeek-live"),
+        choices=(
+            "existing-capture",
+            "zeek-offline",
+            "zeek-network14-offline",
+            "zeek-live",
+            "ebpf-tcx",
+        ),
         default="existing-capture",
     )
     start.add_argument("--pcap", type=Path)
@@ -47,6 +53,18 @@ def main(argv=None) -> int:
         from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
 
         unprivileged()
+        if args.collector == "ebpf-tcx":
+            from soc_agent.security_ai.ebpf_tc.unified_startup import start
+
+            if (
+                args.pcap is not None
+                or args.pcap_sha256 is not None
+                or args.rate_policy != "legacy"
+                or args.approve_calibrated_sha
+                or args.approve_direction_sha
+            ):
+                raise ValueError("TCX_UNIFIED_SCOPE_OPTIONS_DENIED")
+            return start(args.data_directory)
         if args.collector == "zeek-live":
             from soc_agent.security_ai.collectors.startup import start
 

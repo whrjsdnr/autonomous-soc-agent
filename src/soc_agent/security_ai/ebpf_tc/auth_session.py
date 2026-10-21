@@ -80,11 +80,17 @@ class AuthenticationQualification(Handoff):
             self.approval,
         )
 
+    def _authentication_preflight(self) -> None:
+        validate_root_release(self.release)
+
+    def _authentication_verified(self) -> None:
+        pass
+
     def authenticate_native(self) -> dict:
         if self.state != "AUTHENTICATION_REQUIRED" or self.attempted or self.ended:
             raise ValueError("AUTH_QUALIFICATION_REPLAY")
         self._scope()
-        validate_root_release(self.release)
+        self._authentication_preflight()
         tty = open_authentication_tty(self.plan.broker.uid)
         try:
             self.attempted = True
@@ -113,6 +119,7 @@ class AuthenticationQualification(Handoff):
                         self.error = "AUTH_CANCELLATION_UNVERIFIED"
                     raise ValueError("AUTH_QUALIFICATION_TIMEOUT")
             self._bind(fixture=False)
+            self._authentication_verified()
             from pathlib import Path
 
             status = Path(f"/proc/{self.identity.pid}/status").read_text()
