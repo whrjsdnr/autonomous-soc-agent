@@ -92,7 +92,7 @@ def test_inspection_failure_preserves_original_exception_and_never_retries(monke
         raise original
 
     monkeypatch.setattr(engine, "SUPERVISOR_CONFIG", {}, raising=False)
-    monkeypatch.setattr(engine, "sup_inventory", inspect)
+    monkeypatch.setattr(engine, "_supervisor_prepare", inspect)
     monkeypatch.setattr(engine, "sup_entry_failure", lambda envelope, exc: calls.append(exc))
     with pytest.raises(PermissionError) as caught:
         engine.supervisor_prepare({}, bytes(352), bytes(32), {})
@@ -137,9 +137,71 @@ def test_preexec_errno_is_reported_before_subprocess_generalizes_it(monkeypatch,
     def cap_failure(*args, **kwargs):
         raise original
 
+    monkeypatch.setattr(engine, "sup_parent_death", lambda _: None)
     monkeypatch.setattr(engine, "sup_caps", cap_failure)
     monkeypatch.setattr(engine, "sup_entry_failure", lambda envelope, exc: calls.append(exc))
     monkeypatch.setattr(engine.subprocess, "Popen", lambda *args, **kwargs: kwargs["preexec_fn"]())
     with pytest.raises(PermissionError) as caught:
         engine.sup_tool(["/fixed/tool"], engine.SUP_MASK)
     assert caught.value is original and calls == [original]
+
+
+@pytest.mark.parametrize("bad", [None, "truncated", "fd"])
+def test_real_linux_recvmsg_flags_preserve_cloexec_and_reject_loss_and_fds(tmp_path, bad):
+    import array
+
+    sender, receiver = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    source_fd = -1
+
+    class SyntheticRootPeer:
+        """Only peer identity is simulated; recvmsg and flags come from Linux."""
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            receiver.close()
+
+        def settimeout(self, value):
+            receiver.settimeout(value)
+
+        def getsockopt(self, *_):
+            return struct.pack("3i", os.getpid(), 0, 0)
+
+        def recvmsg(self, *args):
+            result = receiver.recvmsg(*args)
+            assert result[2] & socket.MSG_CMSG_CLOEXEC
+            return result
+
+    try:
+        body = json.dumps(evidence()).encode()
+        if bad == "truncated":
+            body += b" " * 2048
+        if bad == "fd":
+            source_fd = os.open(tmp_path, os.O_RDONLY | os.O_DIRECTORY)
+            sender.sendmsg(
+                [body], [(socket.SOL_SOCKET, socket.SCM_RIGHTS, array.array("i", [source_fd]))]
+            )
+        else:
+            sender.send(body)
+        listener = Listener(SyntheticRootPeer())
+        owner = SimpleNamespace(
+            entry_diagnostic_listener=listener,
+            error="ENTRY_REJECTED",
+            application=SimpleNamespace(directory=tmp_path),
+            _event=lambda *a, **kw: None,
+        )
+        before_fds = len(os.listdir("/proc/self/fd"))
+        SupervisedSession._collect_entry_diagnostic(owner)
+        assert len(os.listdir("/proc/self/fd")) == before_fds - 1  # Only receiver closed.
+        if bad is None:
+            assert owner.entry_diagnostic["errno"] == 13
+            assert (tmp_path / "entry-diagnostic.json").exists()
+        else:
+            assert owner.entry_diagnostic["collection_error"] == "ENTRY_DIAGNOSTIC_MESSAGE_REJECTED"
+            assert not (tmp_path / "entry-diagnostic.json").exists()
+    finally:
+        sender.close()
+        receiver.close()
+        if source_fd >= 0:
+            os.close(source_fd)

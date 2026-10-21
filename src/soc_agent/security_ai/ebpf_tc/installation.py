@@ -10,7 +10,7 @@ import os
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, SerializerFunctionWrapHandler, model_serializer, model_validator
 
 from soc_agent.review.models import Hash
 from soc_agent.security_ai.ebpf_tc.build import ROOT, bundle
@@ -53,11 +53,25 @@ class SystemConfiguration(Frozen):
     mode: int = Field(ge=0, le=0o777)
 
 
+class InspectorProfile(Frozen):
+    contract: Literal["READ_ONLY_SESSION_INSPECTOR_V1"] = "READ_ONLY_SESSION_INSPECTOR_V1"
+    capabilities: tuple[Literal["CAP_SYS_ADMIN"]] = ("CAP_SYS_ADMIN",)
+    idle_effective_inheritable_ambient: Literal["ZERO"] = "ZERO"
+    commands: tuple[Literal["SNAPSHOT"], Literal["STOP"]] = ("SNAPSHOT", "STOP")
+    snapshots: Literal[2] = 2
+    lifetime_seconds: Literal[330] = 330
+    address_space_mib: Literal[256] = 256
+    cpu_seconds: Literal[20] = 20
+    authority_transfer: Literal["FORBIDDEN"] = "FORBIDDEN"
+    bpftool_without_skeletons: Literal[True] = True
+
+
 class ReleaseManifest(Frozen):
     contract: Literal["soc-tcx-trusted-release:v1"] = "soc-tcx-trusted-release:v1"
     version: str = Field(pattern=r"^[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}$")
     destination: Literal["/usr/libexec/soc-agent-ebpf"] = "/usr/libexec/soc-agent-ebpf"
     payloads: dict[str, Payload]
+    inspector: InspectorProfile | None = None
     dependencies: tuple[Dependency, ...] = Field(min_length=1, max_length=64)
     bundle_digest: Hash
     dynamic_trust: DynamicTrust
@@ -99,6 +113,13 @@ class ReleaseManifest(Frozen):
         "ROOT_OWNED_FIXED_PATH_PLUS_EXTERNALLY_APPROVED_MANIFEST_SHA"
     ] = "ROOT_OWNED_FIXED_PATH_PLUS_EXTERNALLY_APPROVED_MANIFEST_SHA"
 
+    @model_serializer(mode="wrap")
+    def preserve_legacy_manifest(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        data = handler(self)
+        if self.inspector is None:
+            data.pop("inspector", None)  # Existing installed Manifest identities stay unchanged.
+        return data
+
     @model_validator(mode="after")
     def fixed_layout(self) -> Self:
         if set(self.payloads) != set(FILES):
@@ -136,7 +157,9 @@ class ReleaseManifest(Frozen):
         return hashlib.sha256(canonical(self.model_dump(mode="json"))).hexdigest()
 
 
-def create_package(artifacts: Path, destination: Path, version: str) -> ReleaseManifest:
+def create_package(
+    artifacts: Path, destination: Path, version: str, *, inspector: bool = False
+) -> ReleaseManifest:
     if os.geteuid() == 0:
         raise ValueError("RELEASE_NON_ROOT_ONLY")
     # Source compilation/reference qualification is the existing boundary.
@@ -164,6 +187,7 @@ def create_package(artifacts: Path, destination: Path, version: str) -> ReleaseM
         dynamic_trust=dependency_trust(bodies, dependencies),
         system_configuration=configuration(),
         version=version,
+        inspector=InspectorProfile() if inspector else None,
         bundle_digest=digest(bundle()),
         payloads={
             name: Payload(

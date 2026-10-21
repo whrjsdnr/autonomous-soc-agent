@@ -7,6 +7,7 @@ proof and privilege drop; the sidecar never inherits Link/object/authority FDs.
 
 import array
 import ctypes
+import errno
 import hashlib
 import http.client
 import json
@@ -27,6 +28,8 @@ _read: object
 _ticks: object
 SUPERVISOR_CONFIG: dict
 SUPERVISOR_REDUCED: bool
+start_inspector: object
+INSPECT_QUERY_SECONDS: int
 
 SUP_LIMIT = 16384
 SUP_MASK = (1 << 39) | (1 << 12)
@@ -36,6 +39,15 @@ SUP_ENV = {"PATH": "/usr/bin:/bin", "LANG": "C"}
 
 def sup_json(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+
+
+def sup_parent_death(parent):
+    """Kernel revokes only our child process if its owning parent disappears."""
+    libc = ctypes.CDLL(None, use_errno=True)
+    if libc.prctl(1, signal.SIGKILL, 0, 0, 0):  # PR_SET_PDEATHSIG
+        raise OSError(ctypes.get_errno(), "SUPERVISOR_PARENT_DEATH_CONTRACT")
+    if os.getppid() != parent:
+        raise ValueError("SUPERVISOR_PARENT_CHANGED")
 
 
 def sup_caps(mask, *, initial=False, execute=False):
@@ -66,7 +78,7 @@ def sup_caps(mask, *, initial=False, execute=False):
     if libc.capset(header, data):
         raise OSError(ctypes.get_errno(), "SUPERVISOR_CAPSET")
     if execute:
-        for cap in (12, 39):
+        for cap in (12, 21, 39):
             if mask & (1 << cap):
                 prctl(47, 2, cap)  # Ambient scope for this fixed inspected tool.
     prctl(38, 1)  # NO_NEW_PRIVS, including Docker client (not daemon).
@@ -100,7 +112,7 @@ def sup_execute(command, mask, *, descriptor=None):
         process.stdout.close()
 
 
-def sup_inventory(config):
+def sup_inventory(config, *, mask=SUP_MASK, allow_existing=False):
     results = {}
     global SUP_ENTRY_STAGE
     for name, args in (
@@ -111,7 +123,10 @@ def sup_inventory(config):
         ("egress", [config["tc"], "-j", "filter", "show", "dev", "lo", "egress"]),
     ):
         SUP_ENTRY_STAGE = "RESOURCE_INSPECTION_" + name.upper()
-        body = sup_execute(args, SUP_MASK)
+        query_mask = mask
+        if mask & (1 << 21):
+            query_mask = (1 << 21) if name in {"programs", "maps", "links"} else 0
+        body = sup_execute(args, query_mask)
         rows = json.loads(body)
         if (
             not isinstance(rows, list)
@@ -122,13 +137,18 @@ def sup_inventory(config):
         ):
             raise ValueError("SUPERVISOR_INVENTORY_SCHEMA")
         results[name] = dict(rows=rows, sha256=hashlib.sha256(body).hexdigest())
+    if not allow_existing:
+        sup_require_clear(results)
+    return results
+
+
+def sup_require_clear(results):
     if results["ingress"]["rows"] or results["egress"]["rows"]:
         raise ValueError("SUPERVISOR_FOREIGN_FILTER_REVIEW_REQUIRED")
     # Initial qualification admits no existing Link: avoid guessing tool-specific
     # TCX field layouts or treating an unknown Link as ours. Never delete it.
     if results["links"]["rows"]:
         raise ValueError("SUPERVISOR_EXISTING_LINK_REVIEW_REQUIRED")
-    return results
 
 
 def sup_validate_request(request, expected_sequence, binding):
@@ -215,24 +235,23 @@ class SupervisorCore:
             self.stop_once()
         except (OSError, ValueError, TimeoutError) as exc:
             failures.append(str(exc))
-        quiesced = True
         try:
             self.ops.quiesce()
         except (OSError, ValueError, TimeoutError) as exc:
             failures.append(str(exc))
-            quiesced = False
         try:
-            if not quiesced:
-                raise ValueError("SUPERVISOR_POST_INSPECTION_BLOCKED_ACTIVE_STREAM_WORKER")
+            # IPC to the already isolated Inspector forks no helper in this process.
+            # Preserve stream failure but still obtain independent resource evidence.
             after = self.ops.inspect()
             # Compare foreign identities; unrelated concurrent changes are not
             # silently attributed to us or removed to make this pass.
-            for key in ("programs", "maps"):
-                fields = (
-                    ("id", "type", "tag", "map_ids")
-                    if key == "programs"
-                    else ("id", "type", "name")
-                )
+            for key, fields in {
+                "programs": ("id", "type", "tag", "map_ids"),
+                "maps": ("id", "type", "name"),
+                "links": ("id", "type", "prog_id", "ifindex", "netns_ino"),
+                "ingress": ("kind", "protocol", "pref", "chain", "options"),
+                "egress": ("kind", "protocol", "pref", "chain", "options"),
+            }.items():
                 if sup_identities(after[key]["rows"], fields) != sup_identities(
                     self.before[key]["rows"], fields
                 ):
@@ -252,6 +271,7 @@ class SupervisorCore:
             failures=failures,
             first_error=self.error,
             after=after,
+            inspector_exit=getattr(getattr(self.ops, "inspector", None), "exit_evidence", None),
             native_ai="BLOCKED",
             dns9="BLOCKED",
         )
@@ -308,12 +328,21 @@ def sup_validate_plan(plan, config, namespace):
 
 def sup_executable(path):
     row = globals()["SUPERVISOR_CONFIG"]["tools"][path]
+    if row["mode"] & 0o7022:
+        raise ValueError("SUPERVISOR_TOOL_PRIVILEGED_OR_MUTABLE_MODE")
     directory, name = path.rsplit("/", 1)
     parent = globals()["_open_directory"](directory, 0)
     try:
         fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC, dir_fd=parent)
         try:
             globals()["_read"](fd, 0, row["mode"], row["sha256"], 64 * 1024**2)
+            try:
+                os.getxattr(fd, "security.capability")
+            except OSError as exc:
+                if exc.errno != errno.ENODATA:
+                    raise
+            else:
+                raise ValueError("SUPERVISOR_TOOL_FILE_CAPABILITIES_FORBIDDEN")
         except BaseException:
             os.close(fd)
             raise
@@ -323,8 +352,11 @@ def sup_executable(path):
 
 
 def sup_tool(command, mask, *, pipe=None, descriptor=None):
+    parent = os.getpid()
+
     def prepare_tool():
         try:
+            sup_parent_death(parent)
             sup_caps(mask, initial=not SUPERVISOR_REDUCED, execute=True)
         except OSError as exc:
             # subprocess otherwise replaces preexec errno with SubprocessError.
@@ -508,7 +540,8 @@ def sup_container(plan, config, policy, identity):
 
 
 class RootOperations:
-    def __init__(self, config, namespace, session):
+    def __init__(self, config, namespace, session, inspector):
+        self.inspector = inspector
         self.config, self.namespace = config, namespace
         self.api = DockerAPI(config.get("daemon_peer"))
         self.capture = None
@@ -518,7 +551,7 @@ class RootOperations:
         self.exit_code = None
 
     def inspect(self):
-        return sup_inventory(self.config)
+        return self.inspector.snapshot()
 
     def owned(self):
         if self.identity is None:
@@ -617,15 +650,25 @@ class RootOperations:
             self.capture.close()
 
     def close(self):
-        if self.policy and self.stopped:
-            parent = globals()["_open_directory"](self.policy, 0)
-            try:
-                for name in self.config["scripts"]:
-                    os.unlink(name, dir_fd=parent)
-            finally:
-                os.close(parent)
-            os.rmdir(self.policy)
-            self.policy = None
+        errors = []
+        try:
+            if self.policy and self.stopped:
+                parent = globals()["_open_directory"](self.policy, 0)
+                try:
+                    for name in self.config["scripts"]:
+                        os.unlink(name, dir_fd=parent)
+                finally:
+                    os.close(parent)
+                os.rmdir(self.policy)
+                self.policy = None
+        except (OSError, ValueError) as exc:
+            errors.append(str(exc))
+        try:
+            self.inspector.close()
+        except (OSError, ValueError) as exc:
+            errors.append(str(exc))
+        if errors:
+            raise ValueError("SUPERVISOR_CLOSE_UNVERIFIED:" + ";".join(errors))
 
 
 def sup_policy(session, scripts):
@@ -755,7 +798,6 @@ def _supervisor_prepare(image, envelope, approval, environment):
     global SUPERVISOR_REDUCED
     SUPERVISOR_REDUCED = False
     config = globals()["SUPERVISOR_CONFIG"]
-    before = sup_inventory(config)
     globals()["SUP_ENTRY_STAGE"] = "DOCKER_PREFLIGHT"
     api = DockerAPI()
     version = api.request("GET", "/version")
@@ -797,12 +839,19 @@ def _supervisor_prepare(image, envelope, approval, environment):
         channel = None
         core = None
         final = None
+        inspector = None
         try:
+            # Fork before reduction: no capability restoration or second sudo call.
+            inspector = globals()["start_inspector"](
+                config, binding, namespace, (controller, ticks, uid)
+            )
             sup_caps(SUP_MASK, initial=True)
             SUPERVISOR_REDUCED = True
             resource.setrlimit(resource.RLIMIT_AS, (256 * 1024**2, 256 * 1024**2))
             resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
             resource.setrlimit(resource.RLIMIT_NOFILE, (64, 64))
+            before = inspector.snapshot()
+            sup_require_clear(before)  # Inspect first; never authorize an existing/unknown Hook.
             channel = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
             channel.settimeout(2)
             channel.setsockopt(socket.SOL_SOCKET, socket.SO_PASSCRED, 1)
@@ -819,12 +868,15 @@ def _supervisor_prepare(image, envelope, approval, environment):
                 before=before,
                 state="RESOURCE_VERIFIED",
                 capabilities="E0_P_BPF_NETADMIN_I0_A0",
+                inspector=inspector.hello,
             )
             sup_send(channel, hello)
             os.write(3, b"1")
             os.close(3)
-            core = SupervisorCore(RootOperations(config, namespace, session), binding, before)
-            deadline, window, count = time.monotonic() + 300, time.monotonic(), 0
+            core = SupervisorCore(
+                RootOperations(config, namespace, session, inspector), binding, before
+            )
+            deadline, window, count = inspector.started + 300, time.monotonic(), 0
             stopping = []
             signal.signal(signal.SIGTERM, lambda *_: stopping.append("SIGTERM"))
             signal.signal(signal.SIGINT, lambda *_: stopping.append("SIGINT"))
@@ -859,6 +911,13 @@ def _supervisor_prepare(image, envelope, approval, environment):
                     time.sleep(0.05)
                 cleanup = core.finish()
                 final = dict(final or {}, **cleanup)
+            elif inspector:
+                try:
+                    inspector.close()
+                except (OSError, ValueError) as exc:
+                    final = dict(
+                        final or {}, inspector_error=str(exc), cleanup="CLEANUP_UNVERIFIED"
+                    )
             if channel:
                 try:
                     sup_send(channel, dict(final=final, binding=binding))
@@ -868,7 +927,10 @@ def _supervisor_prepare(image, envelope, approval, environment):
             os._exit(0 if final and final.get("cleanup") == "VERIFIED" else 2)
     os.close(write_fd)
     try:
-        if not select.select([read_fd], [], [], 5)[0] or os.read(read_fd, 1) != b"1":
+        if (
+            not select.select([read_fd], [], [], globals()["INSPECT_QUERY_SECONDS"] + 2)[0]
+            or os.read(read_fd, 1) != b"1"
+        ):
             raise ValueError("SUPERVISOR_PREPARE_FAILED")
     finally:
         os.close(read_fd)

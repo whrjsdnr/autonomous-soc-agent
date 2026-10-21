@@ -35,7 +35,7 @@ from soc_agent.security_ai.research.models import digest
 def prepare(directory: Path) -> SupervisorImage:
     local_controller()
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
-    _, _, package, manifest = prepare_candidate(directory, version="0.5.6")
+    _, _, package, manifest = prepare_candidate(directory, version="0.5.8", inspector=True)
     image = prepare_supervisor_image(package, manifest, directory / "supervisor-image.py")
     (directory / "supervisor-image.json").write_text(image.model_dump_json(indent=2) + "\n")
     return image

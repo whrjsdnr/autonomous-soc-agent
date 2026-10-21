@@ -310,7 +310,7 @@ def test_foreign_container_identity_never_stopped_or_deleted(monkeypatch):
             return {"Id": "b" * 64, "Config": {"Image": "foreign"}}
 
     monkeypatch.setattr(engine, "DockerAPI", API)
-    ops = engine.RootOperations({}, "net:[4026531833]", "fixture")
+    ops = engine.RootOperations({}, "net:[4026531833]", "fixture", inspector=None)
     ops.identity = "a" * 64
     with pytest.raises(ValueError, match="OWNERSHIP_UNVERIFIED"):
         ops.stop()
@@ -363,7 +363,7 @@ def test_new_kernel_work_needs_supervisor_but_cleanup_remains_available(monkeypa
     assert calls == ["CLEANUP"]
 
 
-def test_unclosed_stream_never_forks_an_inspection_helper():
+def test_unclosed_stream_still_uses_isolated_inspector_without_local_fork():
     ops = Operations()
 
     def fail():
@@ -373,4 +373,4 @@ def test_unclosed_stream_never_forks_an_inspection_helper():
     core = engine.SupervisorCore(ops, "b" * 64, inventory())
     final = core.finish()
     assert final["cleanup"] == "CLEANUP_UNVERIFIED"
-    assert "inspect" not in ops.calls and "close" in ops.calls
+    assert "inspect" in ops.calls and "close" in ops.calls

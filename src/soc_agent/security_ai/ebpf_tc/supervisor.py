@@ -9,6 +9,7 @@ import os
 import socket
 import stat
 import struct
+import subprocess
 import threading
 import time
 from pathlib import Path
@@ -31,10 +32,51 @@ class SupervisorImage(UnifiedImage):
     scope_namespace: Literal["net:[4026531833]"]
 
 
+def inspection_tool_version(path: Path, expected_sha: str) -> dict:
+    """Version only, ordinary UID, held executable; never an inventory/BPF operation."""
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+    try:
+        st = os.fstat(fd)
+        if (
+            st.st_uid
+            or st.st_gid
+            or st.st_nlink != 1
+            or st.st_mode & 0o7022
+            or not 0 < st.st_size <= 64 * 1024**2
+            or hashlib.sha256(os.pread(fd, st.st_size, 0)).hexdigest() != expected_sha
+        ):
+            raise ValueError("INSPECTOR_TOOL_VERSION_IDENTITY")
+        result = subprocess.run(
+            [f"/proc/self/fd/{fd}", "-j", "version"],
+            pass_fds=(fd,),
+            close_fds=True,
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=5,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C"},
+        )
+    finally:
+        os.close(fd)
+    if result.returncode or len(result.stdout) > 4096 or len(result.stderr) > 4096:
+        raise ValueError("INSPECTOR_TOOL_VERSION_FAILED")
+    version = json.loads(result.stdout)
+    if (
+        version.get("version") != "7.4.0"
+        or version.get("features", {}).get("skeletons") is not False
+    ):
+        raise ValueError("INSPECTOR_AUTOLOAD_BUILD_FORBIDDEN")
+    return version
+
+
 def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> SupervisorImage:
     """Build bytes only. No auth, install, inventory syscall, Docker run or capability changes."""
     if os.readlink("/proc/self/ns/net") != "net:[4026531833]":
         raise ValueError("SUPERVISOR_REVIEWED_NAMESPACE_CHANGED")
+    from soc_agent.security_ai.ebpf_tc.installation import InspectorProfile, verify_package
+
+    release = verify_package(package, manifest)
+    if release.inspector != InspectorProfile():
+        raise ValueError("SUPERVISOR_INSPECTOR_MANIFEST_REQUIRED")
     base = prepare_unified_image(package, manifest, output.with_suffix(".tcx-only.py"))
     plan = LivePlan(net_namespace="net:[4026531833]", bundle_digest=digest(zeek_bundle()))
     argv = docker_argv(plan, Path("@POLICY@"))
@@ -48,6 +90,7 @@ def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> Supe
     argv[0] = "/usr/bin/docker"
     root = Path(__file__).parents[1] / "collectors"
     config = dict(
+        inspector=release.inspector.model_dump(mode="json"),
         bpftool="/usr/lib/linux-tools-6.8.0-147/bpftool",
         tc="/usr/sbin/tc",
         zeek_argv=argv,
@@ -71,6 +114,9 @@ def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> Supe
         config["tools"][name] = dict(
             sha256=hashlib.sha256(body).hexdigest(), mode=stat.S_IMODE(path.stat().st_mode)
         )
+    config["bpftool_version"] = inspection_tool_version(
+        Path(config["bpftool"]), config["tools"][config["bpftool"]]["sha256"]
+    )
     source = base.path.read_bytes()
     trailer = (
         b"if __name__ == '__main__':\n    import sys\n"
@@ -79,6 +125,7 @@ def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> Supe
     if not source.endswith(trailer):
         raise ValueError("SUPERVISOR_IMAGE_TEMPLATE_CHANGED")
     source = source[: -len(trailer)] + Path(__file__).with_name("supervisor_engine.py").read_bytes()
+    source += b"\n" + Path(__file__).with_name("inspector_engine.py").read_bytes()
     source += (
         b"\nSUPERVISOR_CONFIG = json.loads("
         + repr(json.dumps(config, sort_keys=True)).encode()
@@ -276,6 +323,8 @@ class SupervisedSession(UnifiedSession):
         self.supervisor_hello = self.supervisor_final = None
         self.zeek_snapshot = None
         super().__init__(*args, image=image, **kwargs)
+        if self.release.inspector is None:
+            raise ValueError("SUPERVISOR_INSPECTOR_MANIFEST_REQUIRED")
         scope = self.plan.broker.application.scope
         if (scope.net_namespace, scope.interface, scope.ifindex, scope.hook) != (
             image.scope_namespace,
@@ -396,7 +445,7 @@ class SupervisedSession(UnifiedSession):
                             fds.frombytes(data[: len(data) - len(data) % fds.itemsize])
                             for fd in fds:
                                 os.close(fd)
-                    if ancillary or flags:
+                    if ancillary or flags & (socket.MSG_TRUNC | socket.MSG_CTRUNC):
                         raise ValueError("ENTRY_DIAGNOSTIC_MESSAGE_REJECTED")
                     value = json.loads(body)
                     if (
@@ -427,7 +476,10 @@ class SupervisedSession(UnifiedSession):
                         stream.write("\n")
                     self._event("NATIVE_ENTRY_DIAGNOSTIC", evidence=self.entry_diagnostic)
         except (OSError, ValueError) as exc:
-            self.entry_diagnostic = {"collection_error": type(exc).__name__, "authorization": False}
+            code = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+            if not code.startswith("ENTRY_DIAGNOSTIC_"):
+                code = type(exc).__name__
+            self.entry_diagnostic = {"collection_error": code, "authorization": False}
         finally:
             listener.close()
             self.entry_diagnostic_listener = None
@@ -476,6 +528,10 @@ class SupervisedSession(UnifiedSession):
                 "lo same namespace; 300s/4096 packets/8192 events/8MiB output; CPU1/RAM512MiB"
             ),
             supervisor_scope="E0 idle; permitted/bounding CAP_BPF+CAP_NET_ADMIN; 256MiB/CPU20s",
+            inspector_scope=(
+                "Separate Root child; P/Bnd SYS_ADMIN only, E/I/A0 idle; "
+                "fixed read-only pre/post snapshots, <=330s including cleanup; 256MiB/CPU20s"
+            ),
         )
 
     def snapshot(self):

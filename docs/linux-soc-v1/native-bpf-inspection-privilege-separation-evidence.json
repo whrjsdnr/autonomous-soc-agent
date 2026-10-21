@@ -1,0 +1,111 @@
+{
+  "version": "0.5.8",
+  "manifest": "a87e355d82eea4b9c5fe319ce98f6ff2417f3c441900ef1615397dc62f6c660d",
+  "bundle": "23afc66ee561d047dc2ee20be3c1aa5cafdcb76f97a149f4541006c8cd8b63e7",
+  "sha256": "84338aa2904e28b3eb35f4a6a988ae6da145ee26cb79b81d2713ee2b5c50107a",
+  "previous_manifest": "e2720acc03d8ed9a77e7e5b69db3cd564c1b1b4607fb6556d9164400ddc0b458",
+  "files": {
+    "bootstrap": {
+      "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+      "mode": 365
+    },
+    "broker": {
+      "sha256": "9919d3c5d9e02aa88be31360c9e29a2b4c0fd6953fae03e8835c033d71809b76",
+      "mode": 365
+    },
+    "entry": {
+      "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "mode": 365
+    },
+    "libnative-tc.so": {
+      "sha256": "943f0b2e42350d661b5d20c6879ec8ce0119fbd070889e12c29ac55cd7213ae9",
+      "mode": 292
+    },
+    "manifest.bin": {
+      "sha256": "0f8bf281e8b2265d4d1606481b8d47f2e0f6bd269fa5bcd3066a219861d5a637",
+      "mode": 292
+    },
+    "pam-policy.conf": {
+      "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+      "mode": 292
+    },
+    "tc.bpf.o": {
+      "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+      "mode": 292
+    },
+    "release.json": {
+      "sha256": "a87e355d82eea4b9c5fe319ce98f6ff2417f3c441900ef1615397dc62f6c660d",
+      "mode": 292
+    },
+    "release.trust": {
+      "sha256": "60eeceb809dcf01ea17ab592e50d228e1392f01bdc89943ff978ca6fe9d0ffe1",
+      "mode": 292
+    }
+  },
+  "inspector": {
+    "contract": "READ_ONLY_SESSION_INSPECTOR_V1",
+    "capabilities": [
+      "CAP_SYS_ADMIN"
+    ],
+    "idle_effective_inheritable_ambient": "ZERO",
+    "commands": [
+      "SNAPSHOT",
+      "STOP"
+    ],
+    "snapshots": 2,
+    "lifetime_seconds": 330,
+    "address_space_mib": 256,
+    "cpu_seconds": 20,
+    "authority_transfer": "FORBIDDEN",
+    "bpftool_without_skeletons": true
+  },
+  "installed": "0.5.7",
+  "installed_manifest": "e2720acc03d8ed9a77e7e5b69db3cd564c1b1b4607fb6556d9164400ddc0b458",
+  "rollback": "/usr/libexec/.soc-agent-ebpf.rollback-e2720acc03d8ed9a77e7e5b69db3cd564c1b1b4607fb6556d9164400ddc0b458",
+  "native_actions": false,
+  "native_budget_used": 2,
+  "installation_budget_used": 2,
+  "status": "UNPRIVILEGED_CONTRACT_TESTED_NATIVE_PENDING",
+  "tests": {
+    "command": "uv run pytest tests/unit/ebpf_tc/test_inspector.py tests/unit/ebpf_tc/test_supervisor.py tests/unit/ebpf_tc/test_entry_diagnostic.py tests/unit/ebpf_tc/test_supervisor_startup.py -q",
+    "passed": 58,
+    "seconds": 27.15
+  },
+  "source_evidence": {
+    "wsl_syscall_url": "https://github.com/microsoft/WSL2-Linux-Kernel/blob/linux-msft-wsl-6.18.33.2/kernel/bpf/syscall.c",
+    "wsl_syscall_sha256": "55e59fcbeb5e0704a766b52c752b474e165fb2e13fb531381aa4c70750eabc71",
+    "bpftool_prog_url": "https://github.com/libbpf/bpftool/blob/v7.4.0/src/prog.c",
+    "bpftool_pids_url": "https://github.com/libbpf/bpftool/blob/v7.4.0/src/pids.c",
+    "tc_get_url": "https://github.com/microsoft/WSL2-Linux-Kernel/blob/linux-msft-wsl-6.18.33.2/net/core/rtnetlink.c"
+  },
+  "helper_capabilities": {
+    "bpf_program_map_link_show": [
+      "CAP_SYS_ADMIN"
+    ],
+    "tc_filter_show": []
+  },
+  "broker_capabilities": [
+    "CAP_BPF",
+    "CAP_NET_ADMIN"
+  ],
+  "inspector_initialization": "EXISTING_AUTHENTICATED_SUPERVISOR_CHILD_NO_SERVICE_NO_NEW_AUTH",
+  "inspector_runtime_caps": "E0_I0_A0_P_AND_BOUNDING_SYS_ADMIN_ONLY",
+  "inspector_queries": 2,
+  "inspector_lifetime_seconds": 330,
+  "active_seconds_including_preparation": 300,
+  "final_inspection_exit_seconds": 30,
+  "limits_are_per_process": true,
+  "installed_binary_hashes_unchanged": [
+    "bootstrap",
+    "broker",
+    "entry",
+    "libnative-tc.so",
+    "tc.bpf.o"
+  ],
+  "historical_native_errno": "UNKNOWN_NOT_RETROACTIVELY_INFERRED_FROM_SOURCE",
+  "capability_native": "PENDING",
+  "kernel_inspection_this_task": false,
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "promotion": "BLOCKED"
+}
