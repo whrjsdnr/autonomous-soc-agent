@@ -18,7 +18,14 @@ def start_live_run(preparation, *, gui: bool = False) -> dict:
         run_number=1,
     )
     try:
-        h.command(Command(command="ATTACH", plan_digest=h.plan.approval, sequence=1, run=run))
+        h.command(
+            Command(
+                command="ATTACH",
+                plan_digest=h.plan.approval,
+                sequence=h.sequence + 1,
+                run=run,
+            )
+        )
         if gui:
             from soc_agent.security_ai.ebpf_tc.gui import launch
 

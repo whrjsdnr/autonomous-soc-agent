@@ -2,14 +2,27 @@
 
 ## Latest qualification status
 
-Actual trusted installation: 0.4.4 VERIFIED. Actual OS authentication and auth-only
-Broker handoff: VERIFIED for session 13e82898-4ead-4bba-9cf1-940f67f8e094; all five
-Broker capability sets were zero. B STOP/Cleanup is UNVERIFIED due to the wire
-allowlist mismatch. No Kernel load, TCX attach, Native packet/Feature or GUI E2E
-has been performed. Release 0.4.5 corrects STOP but is only prepared pending its
-exact new Bootstrap/release approval. Native AI/DNS9/operational gates stay BLOCKED.
-Historical attempts below remain preserved as evidence of their individual stages.
+Actual installed release is 0.4.5; exact payload/Manifest/version checks passed.
+Actual B authentication, auth-only Broker handoff, all-zero capabilities, STOP
+acknowledgment, exit 0 and authorization disposal are VERIFIED for session
+bd4bd3e8-a9be-4a7b-a140-9f8e3a827140. C session
+4044126a-4f2c-442b-919c-6598958eb2d5 also authenticated/bound its capture Broker:
+Permitted/Bounding were exactly CAP_BPF+CAP_NET_ADMIN and Effective/Inheritable/
+Ambient were zero. Actual Kernel capability sufficiency remains untested.
 
+C failed in the Controller sequence check before sending ATTACH: initial STATUS
+had used sequence 1, but start_live_run hardcoded another 1. No Kernel load,
+TCX attach, packet metadata, Network14 Feature or Native GUI occurred. Two data
+frames are not two packet observations. Broker exit was 2 and cleanup remains
+CLEANUP_UNVERIFIED; no owned Kernel Link was created. No automatic retry occurred.
+The source fix uses last verified sequence + 1; four orchestration cases passed.
+It is not deployed in the installed source Bundle, so no further Native run may
+claim the modified source matches 0.4.5. Native AI/DNS9/operational Gates stay blocked.
+
+The user requested one approval workflow; see [the unified session proposal](native-unified-session-proposal.md).
+This is design only, preserving mandatory internal checks and exact new-release
+approval. No new updater, service, privilege boundary or Kernel action was applied.
+Historical attempts below remain preserved as evidence of their individual stages.
 
 ## Initial 0.4.2 attempt outcome
 
@@ -258,3 +271,30 @@ not attempted. The exact fix, real ordinary-UID C socket verification and propos
 Six relevant cases passed, with no real OS authentication or Kernel operations in
 the tests. No installed release, previous audit or Native evidence was modified
 for these tests. A new exact release approval is required for the changed Bootstrap.
+
+## Actual 0.4.5 qualification and unified-workflow preparation
+
+The approved Root update returned 0 at 2026-10-21T00:12:30 UTC. Version, Manifest,
+all nine installed file SHA/UID/GID/modes and old 0.4.4 archive were verified. Auth
+and live command paths were directly constructed for artifacts-0.4.5/release-0.4.5.
+B session bd4bd3e8-a9be-4a7b-a140-9f8e3a827140 completed actual authentication,
+Broker status, STOP response, process exit 0, CLOSED state and REVOKED authority.
+Its cleanup is AUTH_ONLY_PROCESS_EXIT_VERIFIED. The app Audit chain was verified;
+final digest 7583ae3e3f91094cdd4368a1607fa2cfd107eeb39883d8851656623e85df675e.
+This is Native OS authentication/cleanup evidence, not a Kernel capture result.
+
+C session 4044126a-4f2c-442b-919c-6598958eb2d5 verified actual authentication,
+release/peer/session binding and P/B capability mask 549755817984 (CAP_BPF plus
+CAP_NET_ADMIN); E/I/A were zero. It failed before any ATTACH wire send with
+HANDOFF_COMMAND_REPLAY_OR_SCOPE because STATUS had already consumed sequence 1.
+The Controller now derives the next sequence from the last verified command.
+Tests cover initial sequence 0/1/7 and denied attach closing once without retry.
+They are orchestration fixtures with no Kernel calls, not Native capture proof.
+
+The user then requested a single approval instead of A/B/C operator prompts.
+The proposed same-app Broker lifetime, immutable combined plan, optional exact
+update, one terminal authentication and unchanged internal safety gates are in
+[native-unified-session-proposal.md](native-unified-session-proposal.md).
+The proposal is not implemented. No additional installation/Native retry was run.
+Existing installed 0.4.5, prior archives, model/raw/user files and Native evidence
+are preserved; no source Bundle mismatch is bypassed for the client-side fix.
