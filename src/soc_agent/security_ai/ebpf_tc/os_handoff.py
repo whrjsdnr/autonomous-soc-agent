@@ -88,6 +88,8 @@ class Handoff:
         self.attempted = self.ended = False
         self.state, self.authentication = "NOT_PREPARED", "REQUIRED"
         self.cleanup = "NOT_OBSERVED"
+        self.broker_error = None
+        self.loader_diagnostics = []
         self.error: str | None = None
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
         self.qualification_only = False
@@ -497,8 +499,12 @@ class Handoff:
             if len(body) != REPLY.size:
                 raise ValueError("HANDOFF_REPLY_SCHEMA")
             seq, state, error, reserved, owner = REPLY.unpack(body)
-            if seq != value.sequence or reserved or state not in (3, 4) or error:
-                raise ValueError("HANDOFF_BROKER_REQUEST_DENIED")
+            if seq != value.sequence or reserved or state not in (3, 4):
+                raise ValueError("HANDOFF_REPLY_SCHEMA")
+            if error:
+                self.broker_error = dict(operation=value.command, sequence=seq, return_value=error)
+                self._event("BROKER_COMMAND_REJECTED", **self.broker_error)
+                raise ValueError(f"HANDOFF_BROKER_REQUEST_DENIED:{error}")
             self.data.pump()
             self.collector_state = "ACTIVE" if state == 4 else "STOPPED"
             self.sequence = seq
@@ -612,6 +618,7 @@ class Handoff:
         if self.audit_path.exists():
             try:
                 evidence = recover_native(self.audit_path, self.plan.approval)
+                self.loader_diagnostics = evidence["loader_diagnostics"]
                 if evidence["claimed_cleanup"] and self.child and self.child.returncode == 0:
                     self.cleanup = (
                         "FIXTURE_VERIFIED"
@@ -664,6 +671,8 @@ class Handoff:
             "capability_state": "UNKNOWN_NATIVE_PENDING",
             "native_gate": "BLOCKED",
             "cleanup_status": self.cleanup,
+            "broker_error": self.broker_error,
+            "loader_diagnostics": self.loader_diagnostics,
             "source": self.origin,
             "collector_state": self.collector_state,
             "tcx_link": self.link_evidence,

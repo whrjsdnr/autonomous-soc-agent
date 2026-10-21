@@ -83,7 +83,9 @@ static int create(struct soc_tcx *l) {
     struct bpf_prog_info p={0};uint32_t size=sizeof(p);
     if(bpf_prog_get_info_by_fd(l->program_fd,&p,&size) || p.type!=BPF_PROG_TYPE_SCHED_CLS ||
        p.id!=l->owner.program_id || memcmp(p.tag,l->owner.program_tag,8))return -EPERM;
-    if(soc_snapshot_tcx(l->session,&l->session->before) || l->session->before.count)return -EPERM;
+    if(soc_snapshot_tcx(l->session,&l->session->before))return -EPERM;
+    l->session->tcx_snapshot_valid=1;
+    if(l->session->before.count)return -EPERM;
     struct bpf_prog_query_opts query={.sz=sizeof(query)};
     if(bpf_prog_query_opts(l->owner.ifindex,l->owner.attach_type,&query) || query.prog_cnt || !query.revision)return -EPERM;
     /* Kernel revision compare makes empty-hook admission atomic against another

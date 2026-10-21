@@ -82,6 +82,7 @@ struct soc_state {
     int data_fd;uint32_t data_source;uint64_t data_sequence,data_loss,data_ended_generation;uint8_t data_approval[32];
     int object_fd, ipc_fd, audit_fd, stopping, loaded, attached, failed, cleanup_verified;
     uint8_t audit_previous[32];uint32_t audit_records;
+    int diagnostic_failed,diagnostic_cleanup,tcx_snapshot_valid;uint32_t diagnostic_resources;
 };
 struct soc_request {uint32_t operation,sequence;uint64_t generation;uint32_t handle,reason;
     uint8_t approval[32];struct soc_owner owner;};

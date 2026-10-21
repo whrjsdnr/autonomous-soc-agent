@@ -7,6 +7,7 @@ import struct
 from pathlib import Path
 
 from soc_agent.security_ai.ebpf_tc.contracts import OWNER
+from soc_agent.security_ai.ebpf_tc.loader_diagnostics import decode_diagnostic
 
 ROW = struct.Struct("<32s32s56sII32s32s")
 KINDS = {
@@ -53,6 +54,7 @@ def recover_native(path: Path, approval: str) -> dict:
     release_manifest_digest = None
     last_owner = None
     mutation_observed = False
+    diagnostics = []
     with os.fdopen(fd, "rb") as stream:
         while header := stream.read(64):
             if ordinal >= 1024:
@@ -62,7 +64,7 @@ def recover_native(path: Path, approval: str) -> dict:
             kind = header[32:].split(b"\0", 1)[0].decode("ascii")
             layout = (
                 RC_ROW
-                if kind == "RC_RELEASE_VERIFIED"
+                if kind in {"RC_RELEASE_VERIFIED", "LOADER_DIAGNOSTIC"}
                 else TCX_ROW
                 if kind.startswith("TCX_")
                 else ROW
@@ -76,10 +78,15 @@ def recover_native(path: Path, approval: str) -> dict:
                 or count != ordinal + 1
                 or before != previous
                 or hashlib.sha256(body[:-32]).digest() != checksum
-                or kind not in KINDS | TCX_KINDS | {"RC_RELEASE_VERIFIED"}
+                or kind not in KINDS | TCX_KINDS | {"RC_RELEASE_VERIFIED", "LOADER_DIAGNOSTIC"}
                 or sequence > 2048
             ):
                 raise ValueError("NATIVE_JOURNAL_INTEGRITY")
+            if kind == "LOADER_DIAGNOSTIC":
+                if len(diagnostics) >= 32:
+                    raise ValueError("LOADER_DIAGNOSTIC_BOUND")
+                diagnostics.append(decode_diagnostic(owner))
+                claimed_cleanup = False
             if kind == "RC_RELEASE_VERIFIED":
                 version = owner[32:48].split(b"\0", 1)[0]
                 import re
@@ -117,6 +124,7 @@ def recover_native(path: Path, approval: str) -> dict:
             raise ValueError("NATIVE_JOURNAL_CHANGED")
     return dict(
         source="NATIVE_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
+        loader_diagnostics=diagnostics,
         audit_digest=previous.hex(),
         release_manifest_digest=release_manifest_digest,
         records=ordinal,

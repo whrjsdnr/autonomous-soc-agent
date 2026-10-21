@@ -1,0 +1,110 @@
+{
+  "baseline": "85ce055f4cf64ace6de6db7b1c1c2d90f7274d84",
+  "historical_session": "9f004895-eff5-41b2-93a7-a80d2752ab04",
+  "first_known_checkpoint": "LOAD_REQUESTED",
+  "last_successful_inferred_stage": "LOAD_PREPARE_RUNTIME_ALLOCATION",
+  "first_failure_substage": null,
+  "possible_publication_boundary": "LOAD_VERIFIED_record_or_notification",
+  "actual_api_return": null,
+  "actual_errno": null,
+  "historical_verifier_log": "NOT_RECOVERED",
+  "synthetic_outer_error_path": {
+    "value": -117,
+    "name": "EUCLEAN",
+    "observed_errno": false
+  },
+  "counter_frame_proves_runtime_context": "CODE_AND_ACCEPTED_FRAME_INFERENCE_NOT_SYSCALL_TRACE",
+  "kernel_load_api_invoked": null,
+  "kernel_map_fds_created": null,
+  "kernel_program_fds_created": null,
+  "tcx_attach_reached": false,
+  "broker_pid": 725214,
+  "broker_pid_present": false,
+  "entry_exit_code": 2,
+  "cleanup": "CLEANUP_UNVERIFIED",
+  "capture_failure_sticky": true,
+  "pre_attach_snapshot_was_not_captured": true,
+  "cleanup_branch_taken": null,
+  "possible_early_release_skip": true,
+  "residual_kernel_inventory": "UNKNOWN_UNPRIVILEGED_ENUMERATION_EPERM",
+  "read_only_inventory": {
+    "map": {
+      "exit_code": 255,
+      "inventory": "UNAVAILABLE",
+      "error": "EPERM_OPERATION_NOT_PERMITTED"
+    },
+    "prog": {
+      "exit_code": 255,
+      "inventory": "UNAVAILABLE",
+      "error": "EPERM_OPERATION_NOT_PERMITTED"
+    },
+    "link": {
+      "exit_code": 255,
+      "inventory": "UNAVAILABLE",
+      "error": "EPERM_OPERATION_NOT_PERMITTED"
+    }
+  },
+  "kernel_journal_query": {
+    "window_utc": [
+      "2026-10-21T00:49:30Z",
+      "2026-10-21T00:51:00Z"
+    ],
+    "audit_auth_requested": "2026-10-21T00:50:01.637209+00:00",
+    "audit_handoff_rejected": "2026-10-21T00:50:05.765649+00:00",
+    "exit_code": 0,
+    "records_available": 0,
+    "raw_messages_retained": false,
+    "complete_log_access_proven": false
+  },
+  "native_journal_digest": "5fb7b60577209d956e2341e1c81f7ae40336a9610682ae6c7278ce0032bb9ffe",
+  "historical_files_sha256_unchanged": 4,
+  "original_user_files_preserved": 132,
+  "root_installation_changed": false,
+  "installed_release": "0.5.0",
+  "installed_manifest": "aa09194b6ad9ea4e74fe1df11718977522a2b41842eea6db0794cdb6797e4230",
+  "native_load_reruns": 0,
+  "tcx_attach_reruns": 0,
+  "sudo_pam_invocations": 0,
+  "capability_changes": 0,
+  "fault_injection_cases": 9,
+  "syscall_trace": {
+    "scenarios": 7,
+    "bpf_syscalls": 0,
+    "capset_syscalls": 0,
+    "source": "ORDINARY_UID_FIXTURE_NOT_NATIVE"
+  },
+  "preexisting_gate_test": {
+    "baseline_commit": "85ce055",
+    "baseline_installed_loader_sha256": "7905693372d14e93162ff7fbeea4068a0094a737663b2403c337630901706536",
+    "gate_fixture_exit_code": 1,
+    "bpf_syscalls": 0,
+    "capset_syscalls": 0,
+    "conclusion": "Existing test expects permanently closed TCX gate, but baseline already delegates to scoped process admission; production gate unchanged by RCA."
+  },
+  "native_release": "BLOCKED",
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_promotion": "BLOCKED",
+  "validation": {
+    "new_core_tests": 9,
+    "new_core_tests_verdict": "PASS",
+    "final_relevant_run": {
+      "passed": 23,
+      "excluded_proven_preexisting_case": 1
+    },
+    "initial_relevant_run": {
+      "passed": 23,
+      "preexisting_failed": 1
+    },
+    "ruff": "PASS_CHANGED_PYTHON_FILES",
+    "format": "PASS_4_CHANGED_PYTHON_FILES",
+    "diff": "PASS",
+    "compiler": "PASS_WALL_WEXTRA_WERROR",
+    "native_program_sha256_unchanged": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+    "admission_and_capability_source_files_unchanged": [
+      "core.c",
+      "os.c"
+    ],
+    "wheel_or_release_export": "NOT_RUN_NON_RELEASE_DIAGNOSTIC_CHANGE"
+  }
+}

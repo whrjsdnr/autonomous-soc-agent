@@ -1,6 +1,7 @@
 /* Broker-local TCX dispatcher. Same six commands, no public Link FD/ID input. */
 #define _GNU_SOURCE
 #include "tcx.h"
+#include "diagnostics.h"
 #include <linux/bpf.h>
 #include <errno.h>
 #include <stdio.h>
@@ -17,22 +18,42 @@ static uint64_t own_ticks(void) {
         if(n==19)return strtoull(token,NULL,10);
     return 0;
 }
+static int cleanup_failed(struct soc_tcx *l,int api,int rc) {
+    struct soc_state *s=l->session;
+    struct soc_load_diagnostic d={.stage=SOC_LOAD_CLEANUP,.api=api,.result=rc,
+        .errno_source=SOC_CONTRACT_ERROR,.link_fd=l->fd>=0};
+    if(l->fd>=0)d.resources|=SOC_LINK_FD_SEEN;
+    soc_diagnostic_record(s,&d,NULL,0);s->failed=1;s->cleanup_verified=0;return -EUCLEAN;
+}
 int soc_tcx_cleanup(struct soc_tcx *l) {
-    struct soc_state *s=l->session;s->stopping=1;
+    struct soc_state *s=l->session;s->stopping=1;int first=0,api=0,rc;
     if(s->attached || l->fd>=0) {
-        if(s->ops->enable(s,0) || soc_tcx_detach(l)) {
-            s->failed=1;s->cleanup_verified=0;return -EUCLEAN;
-        }
+        rc=s->ops->enable(s,0);
+        if(rc)return cleanup_failed(l,SOC_DIAG_ENABLE,rc);
+        rc=soc_tcx_detach(l);
+        if(rc)return cleanup_failed(l,SOC_DIAG_LINK_DETACH,rc);
         s->attached=0;
     }
-    if(s->context && s->ops==&soc_real_ops) {
-        struct soc_snapshot after;
-        if(soc_snapshot_tcx(s,&after) || memcmp(&after,&s->before,sizeof(after))) {s->failed=1;return -EUCLEAN;}
+    if(s->context && s->ops==&soc_real_ops && s->tcx_snapshot_valid) {
+        struct soc_snapshot after;rc=soc_snapshot_tcx(s,&after);
+        if(rc || memcmp(&after,&s->before,sizeof(after))) {
+            first=rc?rc:-EUCLEAN;api=SOC_DIAG_SNAPSHOT;
+        }
     }
-    if(s->context && s->ops==&soc_real_ops && soc_final_drain_counters(s)) {s->failed=1;return -EUCLEAN;}
-    if((s->loaded || s->context) && s->ops->release(s)) {s->failed=1;return -EUCLEAN;}
-    s->loaded=0;s->cleanup_verified=!s->failed;
-    return s->failed?-EUCLEAN:0;
+    if(s->context && s->ops==&soc_real_ops && (s->diagnostic_resources&SOC_RING_READY)) {
+        rc=soc_final_drain_counters(s);
+        if(rc && !first) {first=rc;api=SOC_DIAG_DRAIN;}
+    }
+    /* Never skip freeing the owned, unattached object merely because evidence
+     * collection failed. No guessed Link detach, no foreign-resource cleanup. */
+    if(s->loaded || s->context) {
+        rc=s->ops->release(s);
+        if(rc && !first) {first=rc;api=SOC_DIAG_OBJECT_RELEASE;}
+        if(!rc) {s->loaded=0;s->diagnostic_resources|=SOC_OBJECT_RELEASED;}
+    }
+    if(first)return cleanup_failed(l,api,first);
+    if(s->failed)return cleanup_failed(l,SOC_DIAG_CAPTURE_FAILED,-EUCLEAN);
+    s->cleanup_verified=1;return 0;
 }
 int soc_tcx_dispatch(struct soc_tcx *l,const struct soc_request *q) {
     struct soc_state *s=l->session;
@@ -51,13 +72,27 @@ int soc_tcx_dispatch(struct soc_tcx *l,const struct soc_request *q) {
     if(q->operation==5 || q->operation==6)return soc_tcx_cleanup(l);
     if(!q->generation || !q->handle || s->loaded || s->attached ||
        s->attempts>=16 || l->attempted)return -EPERM;
-    s->stopping=0;s->packet_budget_reached=0;
+    s->stopping=0;s->packet_budget_reached=0;s->tcx_snapshot_valid=0;
+    s->diagnostic_failed=s->diagnostic_cleanup=0;s->diagnostic_resources=0;
     s->generation=q->generation;s->handle=q->handle;s->started_ns=soc_now();
     s->cleanup_verified=0;s->attempts++;
-    if(s->ops->validate(s) || s->ops->record(s,"LOAD_REQUESTED") ||
-       s->ops->load(s)) {s->failed=1;return -EUCLEAN;}
+    int prepared=s->ops->validate(s),prepare_api=SOC_DIAG_VALIDATE;
+    if(!prepared) {prepared=s->ops->record(s,"LOAD_REQUESTED");prepare_api=SOC_DIAG_LOAD_RECORD;}
+    if(prepared) {
+        struct soc_load_diagnostic d={.stage=SOC_LOAD_PREPARE,.api=prepare_api,
+            .result=prepared,.errno_source=SOC_CONTRACT_ERROR};
+        soc_diagnostic_record(s,&d,NULL,0);s->failed=1;return prepared;
+    }
+    prepared=s->ops->load(s);
+    if(prepared) {s->failed=1;return prepared;}
     s->loaded=1;
-    if(!s->owner.program_id || s->ops->record(s,"LOAD_VERIFIED")) {s->failed=1;return -EUCLEAN;}
+    int verified=s->owner.program_id?s->ops->record(s,"LOAD_VERIFIED"):-EINVAL;
+    if(verified) {
+        struct soc_load_diagnostic d={.stage=SOC_MAP_INIT,
+            .api=s->owner.program_id?SOC_DIAG_VERIFIED_RECORD:SOC_DIAG_PROGRAM_INFO,
+            .result=verified,.errno_source=SOC_CONTRACT_ERROR};
+        soc_diagnostic_record(s,&d,NULL,0);s->failed=1;return verified;
+    }
     l->program_fd=soc_program_fd(s);
     l->owner=(struct soc_tcx_identity){.generation=s->generation,
         .namespace_inode=s->plan.namespace_inode,.broker_ticks=own_ticks(),
@@ -68,7 +103,13 @@ int soc_tcx_dispatch(struct soc_tcx *l,const struct soc_request *q) {
     memcpy(l->owner.application,s->plan.application,16);
     memcpy(l->owner.program_sha,s->plan.program_sha,32);
     int rc=soc_tcx_attach(l);s->attached=l->fd>=0;
-    if(rc || s->ops->enable(s,1)) {s->failed=1;return -EUCLEAN;}
+    if(rc) {
+        struct soc_load_diagnostic d={.stage=SOC_TCX_ATTACH,.api=SOC_DIAG_LINK_ATTACH,
+            .result=rc,.errno_source=SOC_CONTRACT_ERROR,.link_fd=l->fd>=0};
+        if(l->fd>=0)d.resources|=SOC_LINK_FD_SEEN;
+        soc_diagnostic_record(s,&d,NULL,0);s->failed=1;return -EUCLEAN;
+    }
+    if(s->ops->enable(s,1)) {s->failed=1;return -EUCLEAN;}
     return 0;
 }
 /* Versioned TCX rows coexist with unchanged 192-byte Legacy rows. No FD recorded. */
