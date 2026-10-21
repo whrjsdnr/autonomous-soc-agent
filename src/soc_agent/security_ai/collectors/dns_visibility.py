@@ -26,6 +26,7 @@ class DNSStages(Frozen):
     duplicate_queries: int | None = Field(default=None, ge=0, le=65536, strict=True)
     multiple_responses: int | None = Field(default=None, ge=0, le=65536, strict=True)
     response_without_query: int | None = Field(default=None, ge=0, le=65536, strict=True)
+    transport_checksum_rejected: int | None = Field(default=None, ge=0, le=65536, strict=True)
     diagnostic_truncated: bool = Field(strict=True)
 
     @model_validator(mode="after")
@@ -65,6 +66,8 @@ def diagnose(
             classification = "PORT53_NON_DNS"
         elif stages.header_invalid:
             classification = "DNS_HEADER_INVALID"
+        elif stages.transport_checksum_rejected:
+            classification = "DNS_TRANSPORT_CHECKSUM_REJECTED"
         elif stages.parse_failed:
             classification = "DNS_PARSE_FAILED"
         elif stages.transaction_ambiguous or stages.multiple_responses:
@@ -83,7 +86,13 @@ def diagnose(
         "CAPTURE_GAP"
         if capture_gap
         else "PARSE_FAILURE"
-        if classification in {"DNS_PARSE_FAILED", "DNS_HEADER_INVALID", "DNS_ADAPTER_REJECTED"}
+        if classification
+        in {
+            "DNS_PARSE_FAILED",
+            "DNS_HEADER_INVALID",
+            "DNS_ADAPTER_REJECTED",
+            "DNS_TRANSPORT_CHECKSUM_REJECTED",
+        }
         else "DNS_TRANSACTION_INCOMPLETE"
         if classification in {"DNS_RESPONSE_MISSING", "DNS_TRANSACTION_AMBIGUOUS"}
         else "DNS_VISIBLE"
@@ -107,6 +116,7 @@ def diagnose(
         if stages and (stages.header_invalid or stages.parse_failed)
         else "UNKNOWN",
         analyzer_dispatch_scope="DNS_MESSAGE_CALLBACK_NOT_ALL_DISPATCH_ATTEMPTS",
+        checksum_scope="PORT53_TRANSPORT_WEIRD_CALLBACK_NOT_PROOF_OF_DNS_CONTENT_OR_OFFLOAD",
         adapter_accepted=accepted,
         adapter_rejected=rejected,
         adapter_rejection_reason="ZEEK_RECORD_SCHEMA_REJECTED" if rejected else None,

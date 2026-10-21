@@ -13,6 +13,7 @@ export {
         duplicate_queries: count &optional;
         multiple_responses: count &optional;
         response_without_query: count &optional;
+        transport_checksum_rejected: count &optional;
         diagnostic_truncated: bool;
     };
     global counts: Counters = [$contract="soc-zeek-dns-stages:v1",
@@ -21,7 +22,7 @@ export {
         $transaction_matched=0, $event_emitted=0, $parse_failed=0,
         $response_missing_metadata=0, $transaction_ambiguous=0, $duplicate_queries=0,
         $multiple_responses=0, $response_without_query=0, $question_matched=0,
-        $question_mismatched=0, $diagnostic_truncated=F];
+        $question_mismatched=0, $transport_checksum_rejected=0, $diagnostic_truncated=F];
     global snapshot: function(): string;
 }
 # Bounded in-memory question identity only. No names/hashes/endpoints are output.
@@ -97,7 +98,11 @@ event dns_rejected(c: connection, msg: dns_msg, query: string, qtype: count, qcl
     check_question(c, msg, query, qtype, qclass);
 }
 event conn_weird(name: string, c: connection, addl: string, source: string) {
-    if ( name == "DNS_truncated_len_lt_hdr_len" ) {
+    if ( (name == "bad_UDP_checksum" || name == "bad_TCP_checksum") &&
+         (port_to_count(c$id$orig_p) == 53 || port_to_count(c$id$resp_p) == 53) ) {
+        if ( tick() ) ++counts$transport_checksum_rejected;
+    }
+    else if ( name == "DNS_truncated_len_lt_hdr_len" ) {
         if ( tick() ) ++counts$header_invalid;
     }
     else if ( /^DNS_/ in name ) {

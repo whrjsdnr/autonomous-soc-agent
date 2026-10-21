@@ -146,3 +146,121 @@ async def test_privacy_dns_log_matches_stream_metadata(tmp_path):
         assert c.store.runtime.verify_audit()
     finally:
         await c.stop()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("scenario", ["checksum", "timeout"])
+async def test_transport_rejection_and_unanswered_question_are_not_complete(tmp_path, scenario):
+    query, response = dns_frames(tmp_path / "base.pcap")
+    rows = [query]
+    if scenario == "checksum":
+        rows = []
+        for original in (query, response):
+            bad = bytearray(original)
+            bad[40:42] = struct.pack("!H", 0x1234)  # Bad non-zero IPv4 UDP checksum.
+            rows.append(bytes(bad))
+    path = tmp_path / "input.pcap"
+    sha = write_pcap(
+        path, [(1800000000000000000 + i * 50_000_000, frame) for i, frame in enumerate(rows)]
+    )
+    c = LiveZeekCollector(tmp_path / "collector", paths=research_paths())
+    try:
+        await c.prepare(pcap=path, sha256=sha)
+        await c.start()
+        await asyncio.wait_for(c.task, 40)
+        assert c.state == "STOPPED", c.last_error
+        visibility = c.snapshot()["capture_attestation"]["dns_visibility"]
+        counters = visibility["stage_counters"]
+        if scenario == "checksum":
+            assert counters["transport_checksum_rejected"] >= 1
+            assert counters["query_parsed"] == counters["response_parsed"] == 0
+            assert visibility["classification"] == "DNS_TRANSPORT_CHECKSUM_REJECTED"
+        else:
+            assert counters["query_parsed"] == 1 and counters["response_parsed"] == 0
+            assert visibility["visibility"] == "DNS_TRANSACTION_INCOMPLETE"
+        assert c.stream.closed_detail is not None
+        assert c.store.runtime.verify_audit()
+    finally:
+        await c.stop()
+
+
+def test_controlled_local_probe_wire_reaches_existing_dns_adapter(tmp_path):
+    import json
+
+    from tests.native_dns_live_probe import QUESTION, query
+
+    from soc_agent.security_ai.collectors.live_contract import new_plan
+    from soc_agent.security_ai.collectors.live_process import StreamProcess
+    from soc_agent.security_ai.collectors.live_stream import Stream, decode
+    from soc_agent.security_ai.collectors.models import Source
+
+    template, _ = dns_frames(tmp_path / "base.pcap")
+
+    def udp(transaction, response=False):
+        message = (
+            (
+                struct.pack("!6H", transaction, 0x8180, 1, 1, 0, 0)
+                + QUESTION
+                + b"\xc0\x0c"
+                + struct.pack("!HHIH", 1, 1, 60, 4)
+                + bytes([127, 0, 0, 1])
+            )
+            if response
+            else query(transaction)
+        )
+        frame = bytearray(template[:34])
+        frame[26:30], frame[30:34] = bytes([127, 0, 0, 1]), bytes([127, 0, 0, 53])
+        if response:
+            frame[26:30], frame[30:34] = frame[30:34], frame[26:30]
+        ports = (53, 42016) if response else (42016, 53)
+        header = struct.pack("!4H", *ports, len(message) + 8, 0)
+        value = checksum(
+            bytes(frame[26:34])
+            + struct.pack("!BBH", 0, 17, len(header) + len(message))
+            + header
+            + message
+        )
+        header = header[:6] + struct.pack("!H", value or 65535)
+        frame[16:18] = struct.pack("!H", 20 + len(header) + len(message))
+        return ip_checksum(bytes(frame) + header + message)
+
+    uq, ur = udp(0xC201), udp(0xC201, True)
+    tq, tr = udp(0xC202), udp(0xC202, True)
+    q, r = tq[42:], tr[42:]
+    q, r = struct.pack("!H", len(q)) + q, struct.pack("!H", len(r)) + r
+    frames = [
+        uq,
+        ur,
+        tcp_segment(tq),
+        tcp_segment(tq, reverse=True, seq=500, ack=101, flags=18),
+        tcp_segment(tq, seq=101, ack=501, flags=16),
+        tcp_segment(tq, seq=101, ack=501, flags=24, payload=q),
+        tcp_segment(tq, reverse=True, seq=501, ack=101 + len(q), flags=24, payload=r),
+        tcp_segment(tq, seq=101 + len(q), ack=501 + len(r), flags=17),
+        tcp_segment(tq, reverse=True, seq=501 + len(r), ack=102 + len(q), flags=17),
+        tcp_segment(tq, seq=102 + len(q), ack=502 + len(r), flags=16),
+    ]
+    pcap = tmp_path / "local-probe.pcap"
+    write_pcap(
+        pcap, [(1800000000000000000 + i * 50_000_000, frame) for i, frame in enumerate(frames)]
+    )
+    plan = new_plan()
+    StreamProcess(tmp_path, plan, fixture=pcap).run()
+    stream = Stream(
+        Source(session_id=plan.session_id, source_digest=plan.identity, origin="ZEEK_OFFLINE_PCAP")
+    )
+    events = []
+    for line in (tmp_path / "stream.jsonl").read_bytes().splitlines(keepends=True):
+        event = stream.accept(decode(line))
+        if event and getattr(event, "kind", None) == "dns":
+            events.append(event)
+    assert len(events) == 2
+    assert {event.transaction_id for event in events} == {0xC201, 0xC202}
+    assert all(event.ttl_seconds == (60.0,) and event.response_code == 0 for event in events)
+    assert stream.dns_stages.query_parsed == stream.dns_stages.response_parsed == 2
+    assert stream.dns_stages.question_matched == stream.dns_stages.transaction_matched == 2
+    assert stream.closed and stream.counter_snapshot.dns_events == 2
+    exit_detail = json.loads((tmp_path / "exit.json").read_text())
+    assert exit_detail["protocol_finalized"] and exit_detail["cleanup_verified"]
+    assert not exit_detail["native_capture"]
+    assert b"native-0516" not in (tmp_path / "stream.jsonl").read_bytes()

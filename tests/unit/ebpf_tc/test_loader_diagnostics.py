@@ -4,6 +4,7 @@ import errno
 import hashlib
 import json
 import subprocess
+import threading
 import time
 from collections import deque
 from pathlib import Path
@@ -116,6 +117,7 @@ def test_decoder_rejects_unknown_stage_reserved_or_unbounded_log():
 
 def test_broker_reply_error_survives_controller_rejection():
     handoff = object.__new__(Handoff)
+    handoff.control_lock, handoff.control_failures = threading.RLock(), []
     handoff.qualification_only, handoff.ended = False, False
     handoff.state, handoff.deadline = "BROKER_READY", time.monotonic() + 10
     handoff.plan = SimpleNamespace(approval="a" * 64, broker=SimpleNamespace(uid=1000, gid=1000))
@@ -251,3 +253,25 @@ def test_owned_counter_query_runs_after_drain_failure(
     assert bool(evidence["data_counter_status"][0]["totals"]) == totals
     assert result["context_released"] and result["ring_freed"] == 1
     assert evidence["fd_release_evidence"][0]["result"] == 0
+
+
+@pytest.mark.parametrize("generation", [1, 2**63 - 1, 2**63, 12918548832694615738, 2**64 - 1])
+def test_c_counter_query_preserves_uint64_and_signed_errors(fault_program, tmp_path, generation):
+    executable, object_file = fault_program
+    journal = tmp_path / "journal"
+    subprocess.run(
+        [str(executable), "12", str(object_file), str(journal), str(generation)],
+        check=True,
+        capture_output=True,
+        timeout=5,
+    )
+    original = journal.read_bytes()
+    evidence = recover_native(journal, "aa" * 32)
+    query = evidence["data_counter_queries"][0]
+    assert query["generation"] == generation
+    assert query["drain_result"] == -errno.EAGAIN
+    assert query["transmit_result"] == -errno.EPERM
+    assert evidence["data_counter_status"][0]["generation"] == generation
+    assert evidence["fd_release_evidence"][0]["all_observed_fds_closed"]
+    assert journal.read_bytes() == original
+    assert not evidence["claimed_cleanup"]  # Real fixture drain failed; no promotion.

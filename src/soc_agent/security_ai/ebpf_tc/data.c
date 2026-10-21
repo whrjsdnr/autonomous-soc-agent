@@ -136,7 +136,12 @@ int soc_data_counters(struct soc_state *s,const struct soc_counters *c,unsigned 
 int soc_data_counter_query(struct soc_state *s,int drain,int cpus,int fd,int lookup,int saved,int sent,uint64_t elapsed,unsigned flags) {
     /* Signed results retain not-attempted (-ECANCELED), syscall errno and
      * transmission failure separately. This row never depends on the socket. */
-    int64_t detail[10]={1,drain,cpus,fd,lookup,saved,sent,(int64_t)elapsed,
-        (int64_t)s->generation,(int64_t)(s->data_source|flags)};
-    return data_record(s,"DATA_COUNTER_QUERY",detail);
+    struct {
+        int64_t version,drain,cpus,fd,lookup,saved,sent,elapsed;
+        uint64_t generation;
+        int64_t source;
+    } detail={1,drain,cpus,fd,lookup,saved,sent,(int64_t)elapsed,
+        s->generation,(int64_t)(s->data_source|flags)};
+    _Static_assert(sizeof(detail)==80,"counter query ABI");
+    return data_record(s,"DATA_COUNTER_QUERY",&detail);
 }

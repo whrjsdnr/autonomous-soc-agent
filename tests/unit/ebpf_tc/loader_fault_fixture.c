@@ -90,11 +90,15 @@ int soc_final_drain_counters(struct soc_state *s) {
  }return -EPIPE;
 }
 int main(int argc,char **argv) {
- if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>13)return 2;
+ if(getuid()==0 || (argc!=4 && argc!=5))return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>13)return 2;
  int object=open(argv[2],O_RDONLY|O_NOFOLLOW),audit=open(argv[3],O_WRONLY|O_CREAT|O_EXCL|O_APPEND,0600);
  if(object<0 || audit<0)return 3;
  struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.audit_fd=audit,.ipc_fd=-1,.data_fd=-1};
  s.generation=7;s.data_source=2;s.plan.version=SOC_TCX_VERSION;s.plan.hook=1;memset(s.plan.approval,0xaa,32);
+ if(argc==5) {
+  char *end;errno=0;s.generation=strtoull(argv[4],&end,10);
+  if(errno || *end || argv[4][0]=='-' || !s.generation)return 2;
+ }
  int first=soc_real_ops.load(&s);s.loaded=!first;s.failed=1;
  if(scenario==7)s.tcx_snapshot_valid=1;
  struct soc_tcx link={.session=&s,.fd=-1,.program_fd=-1};

@@ -59,3 +59,16 @@ def test_duplicate_rcode_truncation_and_out_of_order_summary_accounting():
     assert value["counters"]["out_of_order_transaction_starts"] == 1
     assert value["query_packets"] is value["response_packets"] is None
     assert value["dns9"] == "BLOCKED" and not value["fqdn_retained"]
+
+
+def test_transport_checksum_rejection_is_observed_not_guessed():
+    value = diagnose(stages(transport_checksum_rejected=2), candidates=2, accepted=0, rejected=0)
+    assert value["visibility"] == "PARSE_FAILURE"
+    assert value["classification"] == "DNS_TRANSPORT_CHECKSUM_REJECTED"
+    assert value["analyzer_status"] == "UNKNOWN"  # Transport rejected before DNS.
+    assert "NOT_PROOF_OF_DNS_CONTENT_OR_OFFLOAD" in value["checksum_scope"]
+    assert stages().transport_checksum_rejected is None  # Historical evidence unknown.
+    assert (
+        diagnose(stages(), candidates=2, accepted=0, rejected=0)["visibility"]
+        == "DNS_VISIBILITY_UNKNOWN"
+    )

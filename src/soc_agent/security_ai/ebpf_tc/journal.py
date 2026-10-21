@@ -148,14 +148,16 @@ def recover_native(path: Path, approval: str) -> dict:
                 )
             if kind == "DATA_COUNTER_QUERY":
                 version, drain, cpus, fd, lookup, saved, sent, elapsed, generation, source = (
-                    struct.unpack("<10q", owner)
+                    # Keep signed syscall results, but preserve all generation bits.
+                    # Same 80-byte layout/digest as historical two's-complement rows.
+                    struct.unpack("<8qQq", owner)
                 )
                 if (
                     version != 1
                     or not 0 <= saved <= 4095
                     or elapsed < 0
                     or source not in {1, 2, 5, 6, 13, 14}
-                    or generation < 1
+                    or not 0 < generation < 2**64
                     or len(data_counter_queries) >= 16
                 ):
                     raise ValueError("DATA_COUNTER_QUERY_SCHEMA")
