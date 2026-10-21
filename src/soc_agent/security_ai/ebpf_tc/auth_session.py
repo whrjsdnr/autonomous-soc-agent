@@ -155,6 +155,9 @@ class AuthenticationQualification(Handoff):
                 )
             except (OSError, ValueError, EOFError):
                 self.error = self.error or "AUTH_QUALIFICATION_STOP_UNVERIFIED"
+            if self.ended:
+                # command() may already revoke and close after a rejected STOP.
+                return self.snapshot()
         self.ended, self.deadline = True, None
         if self.channel:
             self.channel.close()

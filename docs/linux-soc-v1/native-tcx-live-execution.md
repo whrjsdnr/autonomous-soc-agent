@@ -1,6 +1,17 @@
 # Phase C-2 Native Live Execution
 
-## Actual outcome
+## Latest qualification status
+
+Actual trusted installation: 0.4.4 VERIFIED. Actual OS authentication and auth-only
+Broker handoff: VERIFIED for session 13e82898-4ead-4bba-9cf1-940f67f8e094; all five
+Broker capability sets were zero. B STOP/Cleanup is UNVERIFIED due to the wire
+allowlist mismatch. No Kernel load, TCX attach, Native packet/Feature or GUI E2E
+has been performed. Release 0.4.5 corrects STOP but is only prepared pending its
+exact new Bootstrap/release approval. Native AI/DNS9/operational gates stay BLOCKED.
+Historical attempts below remain preserved as evidence of their individual stages.
+
+
+## Initial 0.4.2 attempt outcome
 
 Release 0.4.2 was installed successfully at `/usr/libexec/soc-agent-ebpf` on
 2026-10-21 KST. The authentication-only application then failed during ordinary-user
@@ -230,3 +241,20 @@ reference compilation and ordinary-user install/check/rollback simulation passed
 No actual Root update or Native retry of 0.4.4 occurred pending exact-release approval.
 Native AI, DNS9 and operational promotion remain BLOCKED; no actual Kernel packet
 has yet reached Network14. Installed 0.4.3 and the preserved 0.4.2 archive remain.
+
+## Actual 0.4.4 authentication and STOP failure
+
+The 0.4.4 root update completed and was verified. A command artifact-version mistake
+was denied during ordinary-user preparation, corrected without modifying the release,
+and all artifact/package/installed/source SHA values were revalidated before the
+next explicitly approved B attempt. Session 13e82898-4ead-4bba-9cf1-940f67f8e094
+verified real OS authentication, root-to-ordinary-UID Broker handoff, peer/session/
+Manifest identity and all-zero auth-only capability sets. Its STATUS reply passed.
+
+STOP then failed because Python sends operation 5 while the C auth-only allowlist
+incorrectly accepted 3/6. Entry exit was 0, but cleanup stays UNVERIFIED, and C was
+not attempted. The exact fix, real ordinary-UID C socket verification and proposed
+0.4.5 replacement/conditional retry are in [the STOP fix approval](native-tcx-stop-fix-approval.md).
+Six relevant cases passed, with no real OS authentication or Kernel operations in
+the tests. No installed release, previous audit or Native evidence was modified
+for these tests. A new exact release approval is required for the changed Bootstrap.

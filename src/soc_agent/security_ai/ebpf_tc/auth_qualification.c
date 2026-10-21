@@ -190,6 +190,41 @@ int soc_os_password_policy(unsigned uid,unsigned gid) {
                             strcmp(arguments+offset,"--live-qualification")))return -EPERM;
     return 0;
 }
+static int auth_wait_controller_close(int channel) {
+    /* The terminal ACK must remain attributable to the same live process while
+     * the Controller validates SCM credentials and PID/start ticks. Wait for its
+     * socket close after ACK; never exit before that identity check can finish. */
+    uint64_t deadline=soc_now()+5000000000ULL;
+    while(!closing && soc_now()<deadline) {
+        struct pollfd wait={channel,POLLIN,0};int ready=poll(&wait,1,100);
+        if(ready<0 && errno==EINTR)continue;
+        if(ready<0 || (wait.revents&(POLLERR|POLLNVAL)))return -EIO;
+        if(!ready)continue;
+        char byte;ssize_t n=recv(channel,&byte,1,MSG_PEEK|MSG_DONTWAIT);
+        if(!n)return 0;
+        if(n<0 && (errno==EAGAIN || errno==EINTR))continue;
+        return -EPROTO; /* No command, replay or trailing bytes after STOP. */
+    }
+    return -ETIMEDOUT;
+}
+static int auth_serve(int channel,const struct soc_plan *plan) {
+    uint64_t born=soc_now();uint32_t sequence=0;
+    for(unsigned count=0;!closing && count<2048 && soc_now()-born<3600000000000ULL;count++) {
+        struct pollfd wait={channel,POLLIN,0};int ready=poll(&wait,1,100);
+        if(ready<0 && errno==EINTR)continue;
+        if(ready<0 || soc_peer(channel,plan))return -EPERM;
+        if(!ready){count--;continue;}
+        struct soc_request q={0};
+        if(soc_receive_request(channel,plan,sequence,&q))return -EPROTO;
+        /* Wire ABI: STATUS=3, STOP=5. CLEANUP=6 is not an auth-only command. */
+        if(q.operation!=3 && q.operation!=5)return -EPERM;
+        sequence=q.sequence;
+        struct {uint32_t sequence,state;int32_t error;uint32_t reserved;struct soc_owner owner;} reply={sequence,3,0,0,{0}};
+        if(send(channel,&reply,sizeof(reply),MSG_NOSIGNAL)!=sizeof(reply))return -EPIPE;
+        if(q.operation==5)return auth_wait_controller_close(channel);
+    }
+    return -ETIMEDOUT;
+}
 int soc_auth_qualification(unsigned uid,unsigned gid,const uint8_t app[16],
                            const uint8_t approval[32],const uint8_t manifest[32],const uint8_t purpose[32]) {
     if(soc_os_password_policy(uid,gid))return -EPERM;
@@ -206,20 +241,8 @@ int soc_auth_qualification(unsigned uid,unsigned gid,const uint8_t app[16],
     if(soc_sha(body,sizeof(body),hash) || memcmp(hash,purpose,32) ||
        soc_handoff_reply(channel,&e,1,3) || drop(uid,gid) ||
        soc_handoff_reply(channel,&e,2,3))return -EPERM;
-    /* No privileged FD or BPF object exists. After handoff this is an unprivileged
-     * bounded status broker, not authority for an eventual Native ATTACH. */
-    uint64_t born=soc_now();uint32_t sequence=0;
-    for(unsigned count=0;!closing && count<2048 && soc_now()-born<3600000000000ULL;count++) {
-        struct pollfd wait={channel,POLLIN,0};int ready=poll(&wait,1,100);
-        if(ready<0 && errno==EINTR)continue;
-        if(ready<0 || soc_peer(channel,&e.plan))break;
-        if(!ready){count--;continue;}
-        struct soc_request q={0};if(soc_receive_request(channel,&e.plan,sequence,&q))break;
-        if(q.operation!=3 && q.operation!=6)break;
-        sequence=q.sequence;
-        struct {uint32_t sequence,state;int32_t error;uint32_t reserved;struct soc_owner owner;} reply={sequence,3,0,0,{0}};
-        if(send(channel,&reply,sizeof(reply),MSG_NOSIGNAL)!=sizeof(reply))break;
-        if(q.operation==6)break;
-    }
-    close(audit);close(plan);close(channel);return 0;
+    /* No privileged FD or BPF object exists. This is an unprivileged status-only
+     * broker; it cannot become a Native ATTACH session. */
+    int rc=auth_serve(channel,&e.plan);
+    close(audit);close(plan);close(channel);return rc;
 }
