@@ -2,7 +2,7 @@
 #include <linux/bpf.h>
 #include <linux/pkt_cls.h>
 #include <bpf/bpf_helpers.h>
-#include "../ebpf/parser.h"
+#include "packet_parser.h"
 /* Linux 6.18 TCX_NEXT preserves later TCX and Legacy TC evaluation. */
 _Static_assert(TCX_NEXT == TC_ACT_UNSPEC, "TCX continuation ABI");
 struct { __uint(type,BPF_MAP_TYPE_RINGBUF); __uint(max_entries,262144); } events SEC(".maps");
@@ -27,12 +27,9 @@ static __always_inline int observe(struct __sk_buff *skb, __u8 hook) {
         c->budget++; return TCX_NEXT;
     }
     if (skb->vlan_present || skb->gso_segs>1) {c->unsupported++; return TCX_NEXT;}
-    /* Header helper reads non-linear skb too, without modifying/pulling packet data. */
-    unsigned char header[128]={0};
-    __u32 len=skb->len < sizeof(header) ? skb->len : sizeof(header);
-    if (bpf_skb_load_bytes(skb,0,header,len)) {c->malformed++; return TCX_NEXT;}
+    /* Fixed helper destinations also support non-linear skb without pulling data. */
     struct soc_event event={0};
-    int status=soc_parse(header,len,skb->len,&event);
+    int status=soc_tcx_parse(skb,skb->len,&event);
     if (status==SOC_UNSUPPORTED) {c->unsupported++; return TCX_NEXT;}
     if (status!=SOC_OK) {
         c->malformed++; return TCX_NEXT;

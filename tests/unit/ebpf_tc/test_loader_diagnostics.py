@@ -46,7 +46,7 @@ def fault_program(tmp_path_factory):
         capture_output=True,
     )
     assert hashlib.sha256((path / "tcx.bpf.o").read_bytes()).hexdigest() == (
-        "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a"
+        "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
     )
     return executable, path / "tcx.bpf.o"
 

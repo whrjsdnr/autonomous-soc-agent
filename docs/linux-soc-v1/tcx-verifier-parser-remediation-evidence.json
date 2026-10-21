@@ -1,0 +1,110 @@
+{
+  "baseline": "95d4e0feea758599f199da045ee7df9564b5d660",
+  "installed_version": "0.5.2",
+  "installed_manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+  "version": "0.5.3",
+  "manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+  "bundle": "1b2537b1ab5b7346c665db75b4cf47a45298c24c055fbf71dd7e1cda159911a8",
+  "image": {
+    "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/tcx-parser-fix-053/candidate/unified-image.py",
+    "sha256": "bb735defd0e413e1dacc555b39a15250bfe843193bd5c169e27f5db4fd14cadb",
+    "manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+    "previous_manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+    "version": "0.5.3",
+    "action": "UPDATE_RETAIN_PREVIOUS",
+    "files": {
+      "bootstrap": {
+        "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+        "mode": 365
+      },
+      "broker": {
+        "sha256": "04c23fce1504e308f77e48ef9e86ddd7ed9c26646d50f1a7a4754a0ba2d706e0",
+        "mode": 365
+      },
+      "entry": {
+        "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+        "mode": 365
+      },
+      "libnative-tc.so": {
+        "sha256": "e427384eb0b82fc7239d5367560c4863e2636700cfe4c077d06d1369714d7b07",
+        "mode": 292
+      },
+      "manifest.bin": {
+        "sha256": "f3344070f6978afe7951d0f57e2852f346d011095d1103c597d1ec9ff16b9ab1",
+        "mode": 292
+      },
+      "pam-policy.conf": {
+        "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "mode": 292
+      },
+      "tc.bpf.o": {
+        "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+        "mode": 292
+      },
+      "release.json": {
+        "sha256": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+        "mode": 292
+      },
+      "release.trust": {
+        "sha256": "7abce70c2774f32e3e4649c0df3fee1110e4c745c28b4a1d546e7da8c71d6a79",
+        "mode": 292
+      }
+    }
+  },
+  "simulation_steps": [
+    {
+      "action": "install",
+      "manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+      "native_activation": false
+    },
+    {
+      "action": "check",
+      "manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+      "native_activation": false
+    },
+    {
+      "action": "rollback",
+      "manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+      "native_activation": false
+    },
+    {
+      "action": "install",
+      "manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+      "native_activation": false
+    },
+    {
+      "action": "check",
+      "manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+      "native_activation": false
+    }
+  ],
+  "conflict_rejected": true,
+  "old_bytes_retained": true,
+  "root_installation_performed": false,
+  "rollback_path": "/usr/libexec/.soc-agent-ebpf.rollback-7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+  "scope": {
+    "interface": "lo",
+    "namespace": "net:[4026531833]",
+    "ifindex": 1,
+    "hook": "INGRESS",
+    "seconds": 300,
+    "events": 4096,
+    "queue": 32,
+    "address_space_mib": 256,
+    "cpu_seconds": 20
+  },
+  "tests": {
+    "parser_and_return_contract": "84 passed",
+    "native_verifier": "PENDING_NOT_LOADED"
+  },
+  "preservation": {
+    "historical_evidence": "unchanged",
+    "user_files": 132,
+    "legacy_object_sha": "69de609ea8ee90ecf90d091ec361e46e61ed0638b3175390c77305145e19d5f4"
+  },
+  "gates": {
+    "native_ai": "BLOCKED",
+    "dns9": "BLOCKED",
+    "operational_promotion": "BLOCKED"
+  }
+}
