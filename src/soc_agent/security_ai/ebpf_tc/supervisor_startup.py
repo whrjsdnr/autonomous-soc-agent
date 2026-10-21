@@ -9,6 +9,7 @@ import time
 from pathlib import Path
 
 from soc_agent.security_ai.collectors.live import LiveZeekCollector
+from soc_agent.security_ai.collectors.live_contract import LivePlan
 from soc_agent.security_ai.collectors.live_process import StreamProcess
 from soc_agent.security_ai.ebpf_broker.contracts import Command
 from soc_agent.security_ai.ebpf_broker.controller import Controller
@@ -24,9 +25,11 @@ from soc_agent.security_ai.ebpf_native.loader import file_sha
 from soc_agent.security_ai.ebpf_tc.bridge import Preparation
 from soc_agent.security_ai.ebpf_tc.installation import verify_package
 from soc_agent.security_ai.ebpf_tc.supervisor import (
+    SupervisedSession,
     SupervisorImage,
     prepare_supervisor_image,
 )
+from soc_agent.security_ai.ebpf_tc.trust import release_approval
 from soc_agent.security_ai.ebpf_tc.unified_startup import prepare_candidate
 from soc_agent.security_ai.native_terminal import confirm_scope
 from soc_agent.security_ai.research.models import digest
@@ -35,10 +38,40 @@ from soc_agent.security_ai.research.models import digest
 def prepare(directory: Path) -> SupervisorImage:
     local_controller()
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
-    _, _, package, manifest = prepare_candidate(directory, version="0.5.8", inspector=True)
+    _, _, package, manifest = prepare_candidate(directory, version="0.5.9", inspector=True)
     image = prepare_supervisor_image(package, manifest, directory / "supervisor-image.py")
     (directory / "supervisor-image.json").write_text(image.model_dump_json(indent=2) + "\n")
     return image
+
+
+def prepare_run(
+    handoff: SupervisedSession, image: SupervisorImage, zeek_plan: LivePlan
+) -> RunIdentity:
+    """Validate the complete ordinary-user binding before asking for OS authority."""
+    handoff._scope()
+    plan, release = handoff.plan, handoff.release
+    scope = plan.broker.application.scope
+    if (
+        (release.identity, release.version, release.bundle_digest)
+        != (image.manifest, image.version, plan.bundle_digest)
+        or handoff.envelope != release_approval(plan, release)
+        or plan.program_sha256 != scope.program_sha256
+        or (scope.net_namespace, scope.interface, scope.ifindex, scope.hook)
+        != (image.scope_namespace, "lo", 1, "INGRESS")
+        or (scope.max_duration_seconds, scope.max_events, scope.queue_capacity)
+        != (release.duration_seconds, release.events, release.queue_capacity)
+        or zeek_plan.net_namespace != scope.net_namespace
+        or zeek_plan.interface != scope.interface
+        or zeek_plan.bundle_digest != image.zeek_bundle
+    ):
+        raise ValueError("SUPERVISOR_STARTUP_SCOPE_MISMATCH")
+    run = RunIdentity(
+        application_session=plan.broker.application.application_session,
+        scope_digest=digest(scope.model_dump(mode="json")),
+        run_number=1,
+    )
+    handoff.validate_run_identity(run)
+    return run
 
 
 def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui=False):
@@ -99,6 +132,7 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
         submit(zeek.prepare()).result(20)  # No capture/authentication.
         if zeek.plan.bundle_digest != image.zeek_bundle:
             raise ValueError("SUPERVISOR_ZEEK_SOURCE_CHANGED")
+        run = prepare_run(handoff, image, zeek.plan)
         if not confirm_scope(handoff):
             raise ValueError("SUPERVISOR_APPROVAL_DENIED")
         handoff.authenticate_native()  # Exactly one fresh OS call; no downstream sudo.
@@ -113,11 +147,6 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
             if time.monotonic() >= ready_deadline:
                 raise ValueError("SUPERVISOR_ZEEK_READY_TIMEOUT")
             time.sleep(0.05)
-        run = RunIdentity(
-            application_session=handoff.plan.broker.application.application_session,
-            scope_digest=digest(scope.model_dump(mode="json")),
-            run_number=1,
-        )
         handoff.command(
             Command(
                 command="ATTACH",

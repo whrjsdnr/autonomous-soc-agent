@@ -19,7 +19,10 @@ def candidate(tmp_path_factory):
     return directory, image
 
 
-@pytest.mark.parametrize("mismatch", [None, "legacy", "namespace", "manifest", "image"])
+@pytest.mark.parametrize(
+    "mismatch",
+    [None, "legacy", "namespace", "manifest", "image", "legacy_run", "session", "zeek_scope"],
+)
 def test_startup_validates_real_tcx_plan_before_authentication(
     candidate, tmp_path, monkeypatch, mismatch
 ):
@@ -27,6 +30,32 @@ def test_startup_validates_real_tcx_plan_before_authentication(
     directory = tmp_path / "candidate"
     shutil.copytree(source, directory)
     calls = []
+    validated_runs = []
+    original_prepare_run = startup.prepare_run
+
+    def prepare_run(handoff, image, zeek_plan):
+        if mismatch == "zeek_scope":
+            zeek_plan = zeek_plan.model_copy(update={"net_namespace": "net:[1]"})
+        if mismatch in {"legacy_run", "session"}:
+            original_run = startup.RunIdentity
+
+            def wrong_run(**values):
+                if mismatch == "legacy_run":
+                    values["scope_digest"] = startup.digest(
+                        handoff.application.plan.scope.model_dump(mode="json")
+                    )
+                else:
+                    from uuid import uuid4
+
+                    values["application_session"] = uuid4()
+                return original_run(**values)
+
+            monkeypatch.setattr(startup, "RunIdentity", wrong_run)
+        run = original_prepare_run(handoff, image, zeek_plan)
+        validated_runs.append(run)
+        return run
+
+    monkeypatch.setattr(startup, "prepare_run", prepare_run)
 
     def forbidden_auth(self):
         calls.append("AUTH")
@@ -36,6 +65,13 @@ def test_startup_validates_real_tcx_plan_before_authentication(
         calls.append("APPROVAL")
         plan = handoff.plan
         scope = plan.broker.application.scope
+        assert len(validated_runs) == 1
+        run = validated_runs[0]
+        assert run.scope_digest == startup.digest(scope.model_dump(mode="json"))
+        assert run.scope_digest != startup.digest(
+            handoff.application.plan.scope.model_dump(mode="json")
+        )
+        handoff.validate_run_identity(run)
         assert plan.mode == "B2D_TCX_BLOCKED"
         assert plan.program_sha256 == handoff.release.payloads["tc.bpf.o"].sha256
         assert plan.bundle_digest == handoff.release.bundle_digest
@@ -79,6 +115,9 @@ def test_startup_validates_real_tcx_plan_before_authentication(
         "namespace": "SUPERVISOR_NAMESPACE_CHANGED",
         "manifest": "SUPERVISOR_REVIEWED_IMAGE_REQUIRED",
         "image": "SUPERVISOR_REVIEWED_IMAGE_REQUIRED",
+        "legacy_run": "HANDOFF_RUN_SCOPE",
+        "session": "HANDOFF_RUN_SCOPE",
+        "zeek_scope": "SUPERVISOR_STARTUP_SCOPE_MISMATCH",
     }[mismatch]
     with pytest.raises(ValueError, match=error):
         startup.execute(directory, manifest, sha)

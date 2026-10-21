@@ -20,7 +20,12 @@ from pydantic import Field
 
 from soc_agent.security_ai.ebpf_broker.contracts import Command
 from soc_agent.security_ai.ebpf_native.application import Application
-from soc_agent.security_ai.ebpf_native.contracts import alive, local_controller, process_identity
+from soc_agent.security_ai.ebpf_native.contracts import (
+    RunIdentity,
+    alive,
+    local_controller,
+    process_identity,
+)
 from soc_agent.security_ai.ebpf_tc.contracts import OWNER, NativePlan, request
 from soc_agent.security_ai.ebpf_tc.data_plane import PacketChannel
 from soc_agent.security_ai.ebpf_tc.dependencies import read_held
@@ -468,6 +473,15 @@ class Handoff:
         ):
             raise ValueError("HANDOFF_READY_IDENTITY")
 
+    def validate_run_identity(self, run: RunIdentity) -> None:
+        """Check the same bound run before authentication and before sending IPC."""
+        if (
+            run.application_session != self.plan.broker.application.application_session
+            or run.scope_digest
+            != digest(self.plan.broker.application.scope.model_dump(mode="json"))
+        ):
+            raise ValueError("HANDOFF_RUN_SCOPE")
+
     def command(self, value: Command) -> dict:
         if self.qualification_only and value.command not in {"STATUS", "STOP"}:
             raise ValueError("AUTH_QUALIFICATION_NO_KERNEL_ACTION")
@@ -480,12 +494,8 @@ class Handoff:
             self._scope()
             if value.plan_digest != self.plan.approval or value.sequence != self.sequence + 1:
                 raise ValueError("HANDOFF_COMMAND_REPLAY_OR_SCOPE")
-            if value.run and (
-                value.run.application_session != self.plan.broker.application.application_session
-                or value.run.scope_digest
-                != digest(self.plan.broker.application.scope.model_dump(mode="json"))
-            ):
-                raise ValueError("HANDOFF_RUN_SCOPE")
+            if value.run:
+                self.validate_run_identity(value.run)
             now = time.monotonic()
             while self.rate and now - self.rate[0] >= 1:
                 self.rate.popleft()
