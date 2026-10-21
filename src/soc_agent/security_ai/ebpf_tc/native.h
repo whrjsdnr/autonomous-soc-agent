@@ -80,6 +80,8 @@ struct soc_state {
     uint64_t started_ns, generation;uint32_t handle, attempts, sequence;
     int packet_budget_reached;
     int data_fd;uint32_t data_source;uint64_t data_sequence,data_loss,data_ended_generation;uint8_t data_approval[32];
+    uint64_t data_send_calls,data_wait_ns,data_last_sent,data_packets_sent;
+    uint32_t data_waits,data_retries,data_pressure_recorded;
     int object_fd, ipc_fd, audit_fd, stopping, loaded, attached, failed, cleanup_verified;
     uint8_t audit_previous[32];uint32_t audit_records;
     int diagnostic_failed,diagnostic_cleanup,tcx_snapshot_valid;uint32_t diagnostic_resources;

@@ -51,6 +51,8 @@ class PacketChannel:
         self.backpressure_events = 0
         self.counter_evidence = None
         self.transport_failed = False
+        self.io_failure: dict[str, int | str | None] | None = None
+        self.cleanup_error: str | None = None
 
     def listen(self) -> None:
         self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
@@ -136,9 +138,15 @@ class PacketChannel:
     def _receive(self, *, ready: bool = False) -> None:
         if self.channel is None or self.identity is None or self.closed:
             raise ValueError("TCX_DATA_CHANNEL_NOT_READY")
-        body, ancillary, flags, _ = self.channel.recvmsg(
-            ROW_BYTES + 1, socket.CMSG_SPACE(64), socket.MSG_CMSG_CLOEXEC
-        )
+        try:
+            body, ancillary, flags, _ = self.channel.recvmsg(
+                ROW_BYTES + 1, socket.CMSG_SPACE(64), socket.MSG_CMSG_CLOEXEC
+            )
+        except OSError as exc:
+            self.io_failure = self.io_failure or dict(
+                api="recvmsg", errno=exc.errno, source="ACTUAL_OSERROR"
+            )
+            raise
         credential = None
         bad = False
         for level, kind, value in ancillary:
@@ -293,6 +301,7 @@ class PacketChannel:
                 "EBPF_CLOCK_INVALID",
                 "EBPF_REORDER_LATE_CAPTURE_GAP",
                 "EBPF_QUEUE_OVERFLOW_CAPTURE_GAP",
+                "EBPF_CPU_SEQUENCE_GAP_OR_REUSE",
             }
             self.transport_failed = code not in recoverable
             self.queue_overflows += int(self.error == "EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
@@ -314,7 +323,8 @@ class PacketChannel:
         if self.worker:
             self.worker.join(timeout=2)
             if self.worker.is_alive():
-                self.error = "TCX_DATA_WORKER_SHUTDOWN_UNVERIFIED"
+                self.cleanup_error = "TCX_DATA_WORKER_SHUTDOWN_UNVERIFIED"
+                self.error = self.error or self.cleanup_error
         try:
             if self.channel and not self.transport_failed:
                 # Bounded final drain, not an unbounded EOF wait or auto-restart.
@@ -365,6 +375,8 @@ class PacketChannel:
             processing=self.adapter._summary() if self.adapter else None,
             error=self.error,
             transport_failed=self.transport_failed,
+            io_failure=self.io_failure,
+            cleanup_error=self.cleanup_error,
             terminal_closed_observed=self.closed,
             native_ai="BLOCKED",
             automatic_restart=False,

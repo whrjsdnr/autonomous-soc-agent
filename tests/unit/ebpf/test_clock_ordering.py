@@ -55,11 +55,56 @@ def test_late_event_is_audited_not_clamped_or_accepted(stream):
     assert c.store.verify_audit()
 
 
-def test_sequence_gap_still_blocks_before_reordering(stream):
+def test_observation_attempt_gap_is_accounted_and_quarantines_features(stream):
+    c, event = stream
+    c.ingest(event(0), monotonic=1)
+    # The BPF observed counter also advances on unsupported/disabled skb;
+    # absence of a ring record for that attempt is not a duplicate delivery.
+    c.ingest(event(40_000_000_000, sequence=3), monotonic=1)
+    c.drain(final=True)
+    c.end_metadata_stream("CAPTURE_STOP")
+    assert c.accepted == c.received == 2
+    assert c.attempt_gaps == 1
+    assert c.sequence_examples[0]["actual"] == 3
+    assert all(not f["eligible"] for f in c.flow.finalized)
+    assert c._summary()["cpu_sequence"]["kernel_loss"].startswith("UNKNOWN")
+    assert c.snapshot()["ebpf"]["native_ai"] == "BLOCKED"
+    assert c.store.verify_audit()
+
+
+def test_cpu_reuse_stops_processing_but_can_account_terminal_drain(stream):
     c, event = stream
     c.ingest(event(0), monotonic=1)
     with pytest.raises(ValueError, match="CPU_SEQUENCE_GAP"):
-        c.ingest(event(1, sequence=3), monotonic=1)
+        c.ingest(event(1, sequence=1), monotonic=1)
+    c.end_metadata_stream("INCOMPLETE")
+    c.discard_after_error(event(2, sequence=1))
+    c.discard_after_error(event(3, sequence=4))
+    assert c.accepted == 0 and c.post_error_discarded == 2
+    assert c.last_error == "EBPF_CPU_SEQUENCE_GAP_OR_REUSE"
+    assert c.sequence_examples[0]["kind"] == "REUSE_OR_REGRESSION"
+    assert c.attempt_gaps == 2
+
+
+def test_first_cpu_attempt_gap_and_bounded_evidence(stream):
+    c, event = stream
+    for cpu in range(12):
+        c.ingest(event(cpu, cpu=cpu, sequence=3), monotonic=1)
+    c.end_metadata_stream("CAPTURE_STOP")
+    assert c.attempt_gaps == 24
+    assert len(c.sequence_examples) == 8
+    assert c.accepted == 12
+
+
+def test_cpu_sequence_regression_keeps_first_failure_values(stream):
+    c, event = stream
+    c.ingest(event(0, sequence=1), monotonic=1)
+    c.ingest(event(1, sequence=2), monotonic=1)
+    with pytest.raises(ValueError, match="CPU_SEQUENCE_GAP_OR_REUSE"):
+        c.ingest(event(2, sequence=1), monotonic=1)
+    assert c.sequence_examples[0]["previous"] == 2
+    assert c.sequence_examples[0]["actual"] == 1
+    assert c.cpu_sequences == {0: 2} and c.attempt_gaps == 0
 
 
 def test_dense_burst_fails_at_fixed_32_event_budget(stream):

@@ -30,6 +30,8 @@ class EBPFCollector:
         self.discarded = self.overflow_rejected = 0
         self.flow = FlowAssembly(str(plan.session_id))
         self.cpu_sequences: dict[int, int] = {}
+        self.attempt_gaps = 0
+        self.sequence_examples: list[dict[str, int | str]] = []
         self.counter_snapshots: dict[int, Counters] = {}
         self.loss: int | None = None
         self.store: RuntimeStore | None = None
@@ -115,9 +117,11 @@ class EBPFCollector:
             self.queue.clear()
         while self.queue and self.state == "METADATA_STREAM_ACTIVE":
             self.drain(final=True)
-        self.flow.finish(reason)
+        self.flow.finish("INCOMPLETE" if self.attempt_gaps else reason)
         for flow in self.flow.finalized:
             flow.pop("packets", None)
+            if self.attempt_gaps:
+                flow["eligible"] = False
         self.state = "ERROR" if self.last_error else "STOPPED"
         self.checkpoint()
 
@@ -126,6 +130,33 @@ class EBPFCollector:
         if self.store:
             self.checkpoint()
         raise ValueError(code)
+
+    def _observe_cpu_sequence(self, event: Event, *, discard: bool = False) -> None:
+        """CPU sequence counts observed skb attempts, not emitted ring records.
+
+        Native forward gaps are incomplete observation evidence, not proof of a
+        broken authenticated data channel. Reuse still stops feature processing.
+        """
+        previous = self.cpu_sequences.get(event.cpu, 0)
+        if len(self.cpu_sequences) >= 128 and event.cpu not in self.cpu_sequences:
+            self.fail("EBPF_CPU_STATE_LIMIT")
+        gap = event.cpu_sequence - previous - 1
+        if gap != 0 and len(self.sequence_examples) < 8:
+            self.sequence_examples.append(
+                dict(
+                    cpu=event.cpu,
+                    previous=previous,
+                    actual=event.cpu_sequence,
+                    delivery_sequence=event.delivery_sequence,
+                    kind="FORWARD_ATTEMPT_GAP" if gap > 0 else "REUSE_OR_REGRESSION",
+                )
+            )
+        if gap < 0 or gap > 0 and self.clock_contract is None:
+            if not discard:
+                self.fail("EBPF_CPU_SEQUENCE_GAP_OR_REUSE")
+        if gap > 0:
+            self.attempt_gaps += gap
+        self.cpu_sequences[event.cpu] = max(previous, event.cpu_sequence)
 
     def ingest(self, raw: bytes, *, monotonic: float) -> None:
         if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"}:
@@ -151,11 +182,7 @@ class EBPFCollector:
             self.plan.hook,
         ):
             self.fail("EBPF_SOURCE_IDENTITY_MISMATCH")
-        if e.cpu_sequence != self.cpu_sequences.get(e.cpu, 0) + 1:
-            self.fail("EBPF_CPU_SEQUENCE_GAP_OR_REUSE")
-        if len(self.cpu_sequences) >= 128 and e.cpu not in self.cpu_sequences:
-            self.fail("EBPF_CPU_STATE_LIMIT")
-        self.cpu_sequences[e.cpu] = e.cpu_sequence
+        self._observe_cpu_sequence(e)
         self.received += 1
         if self.clock_contract is not None:
             try:
@@ -215,6 +242,9 @@ class EBPFCollector:
                     # assembler consumes its own contiguous sorted-input sequence.
                     p = OrderedEvent(e, self.accepted + 1)
                 self.flow.add(p)
+                if self.attempt_gaps:
+                    for flow in self.flow.finalized:
+                        flow["eligible"] = False
             except ValueError as error:
                 self.fail(
                     "EBPF_CLOCK_INVALID"
@@ -245,15 +275,15 @@ class EBPFCollector:
             self.plan.hook,
         ):
             raise ValueError("EBPF_SOURCE_IDENTITY_MISMATCH")
-        if event.cpu_sequence != self.cpu_sequences.get(event.cpu, 0) + 1:
-            raise ValueError("EBPF_CPU_SEQUENCE_GAP_OR_REUSE")
         if (
             self.received >= self.plan.event_limit
             or event.cpu not in self.cpu_sequences
             and len(self.cpu_sequences) >= 128
         ):
             raise ValueError("EBPF_DISCARD_BUDGET")
-        self.cpu_sequences[event.cpu] = event.cpu_sequence
+        # Already failed processing cannot resume. Continue verifying ABI/source
+        # and accounting discarded metadata so terminal/counter evidence can drain.
+        self._observe_cpu_sequence(event, discard=True)
         self.received += 1
         self.discarded += 1
         self.post_error_discarded += 1
@@ -305,7 +335,9 @@ class EBPFCollector:
                 flow_id=f["flow_id"],
                 close_reason=f["close_reason"],
                 packet_count=f["packet_count"],
-                flow_completeness="CANDIDATE_TIMEOUT" if f["eligible"] else "INCOMPLETE",
+                flow_completeness="CANDIDATE_TIMEOUT"
+                if f["eligible"] and not self.attempt_gaps
+                else "INCOMPLETE",
                 feature_eligibility="BLOCKED_CAPTURE_INTEGRITY",
                 values_digest=f["values_digest"],
                 values=f["values"],
@@ -324,6 +356,15 @@ class EBPFCollector:
             clock=self.clock_contract.snapshot() if self.clock_contract else None,
             ordering=self.ordering.snapshot() if self.clock_contract else None,
             post_error_discarded=self.post_error_discarded,
+            cpu_sequence=dict(
+                contract="PER_CPU_KERNEL_OBSERVATION_ATTEMPTS_NOT_RING_DELIVERIES",
+                unrepresented_attempts=self.attempt_gaps,
+                status="GAPS_UNRECONCILED_CAPTURE_INELIGIBLE"
+                if self.attempt_gaps
+                else "NO_GAP_OBSERVED_NOT_CAPTURE_PROOF",
+                examples=self.sequence_examples,
+                kernel_loss="UNKNOWN_REQUIRES_COUNTER_EVIDENCE",
+            ),
             flow_policy="OBSERVED_EVENT_WATERMARK" if self.flow.event_watermark else "SAME_KEY",
             last_error=self.last_error,
             received=self.received,
@@ -418,7 +459,7 @@ class EBPFCollector:
             high_watermark=24,
             low_watermark=8,
             backpressure="HIGH" if len(self.queue) >= 24 else "NORMAL",
-            capture_gaps=1 if self.last_error else None,
+            capture_gaps=self.attempt_gaps or (1 if self.last_error else None),
             kernel_drops=None,
             kernel_events=None,
             ring_loss=self.loss,

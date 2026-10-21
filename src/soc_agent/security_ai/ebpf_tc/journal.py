@@ -58,6 +58,9 @@ def recover_native(path: Path, approval: str) -> dict:
     verifier_log = bytearray()
     log_detail = None
     fd_release_evidence = []
+    data_send_status = []
+    data_counter_status = []
+    data_delivery_failed = False
     last_link_lifecycle = None
     with os.fdopen(fd, "rb") as stream:
         while header := stream.read(64):
@@ -74,6 +77,9 @@ def recover_native(path: Path, approval: str) -> dict:
                     "LOADER_DIAGNOSTIC",
                     "LOADER_VERIFIER_LOG",
                     "FD_RELEASE_EVIDENCE",
+                    "DATA_SEND_STATUS",
+                    "DATA_COUNTER_STATUS",
+                    "FIXTURE_COUNTER_STATUS",
                 }
                 else TCX_ROW
                 if kind.startswith("TCX_")
@@ -96,12 +102,100 @@ def recover_native(path: Path, approval: str) -> dict:
                     "LOADER_DIAGNOSTIC",
                     "LOADER_VERIFIER_LOG",
                     "FD_RELEASE_EVIDENCE",
+                    "DATA_SEND_STATUS",
+                    "DATA_COUNTER_STATUS",
+                    "FIXTURE_COUNTER_STATUS",
                 }
                 or sequence > 2048
             ):
                 raise ValueError("NATIVE_JOURNAL_INTEGRITY")
             if kind in TCX_KINDS:
                 last_link_lifecycle = kind
+            if kind in {"DATA_COUNTER_STATUS", "FIXTURE_COUNTER_STATUS"}:
+                generation, stamp, *values = struct.unpack("<QQ7QII", owner)
+                totals, status, delivered = values[:7], values[7], values[8]
+                if (
+                    not generation
+                    or not stamp
+                    or status not in {1, 2}
+                    or delivered > 4096
+                    or len(data_counter_status) >= 16
+                    or status == 2
+                    and any(totals)
+                ):
+                    raise ValueError("DATA_COUNTER_STATUS_SCHEMA")
+                data_counter_status.append(
+                    dict(
+                        source="FIXTURE_COUNTER_NEVER_NATIVE"
+                        if kind.startswith("FIXTURE")
+                        else "OWNED_MAP_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
+                        generation=generation,
+                        timestamp_ns=stamp,
+                        delivered=delivered,
+                        retrieval="SUCCESS" if status == 1 else "UNVERIFIED",
+                        totals=dict(
+                            zip(
+                                (
+                                    "observed",
+                                    "emitted",
+                                    "ring_lost",
+                                    "unsupported",
+                                    "malformed",
+                                    "disabled",
+                                    "budget",
+                                ),
+                                totals,
+                                strict=True,
+                            )
+                        )
+                        if status == 1
+                        else None,
+                        scope="COUNTER_OBSERVATION_NOT_PROOF_OF_SOCKET_DELIVERY",
+                    )
+                )
+            if kind == "DATA_SEND_STATUS":
+                fields = struct.unpack("<4I5Qq4I", owner)
+                version, message, status, stopping = fields[:4]
+                seq, calls, waited, last_sent, packets, result, saved, size, waits, retries = (
+                    fields[4:]
+                )
+                if (
+                    version != 1
+                    or message not in {1, 2, 3, 4, 5}
+                    or status not in {1, 2, 3, 4}
+                    or stopping not in {0, 1}
+                    or size != 192
+                    or waits > 40
+                    or retries > waits
+                    or last_sent > seq
+                    or seq > 65568
+                    or len(data_send_status) >= 16
+                ):
+                    raise ValueError("DATA_SEND_STATUS_SCHEMA")
+                data_delivery_failed |= status in {2, 4} or status == 3 and result != 0
+                data_send_status.append(
+                    dict(
+                        message=("READY", "PACKET", "CLOSED", "RUN_END", "COUNTER")[message - 1],
+                        status={
+                            1: "BACKPRESSURE_OBSERVED",
+                            2: "FAILED",
+                            3: "FINAL",
+                            4: "POLL_FAILED",
+                        }[status],
+                        stopping=bool(stopping),
+                        sequence=seq,
+                        send_calls=calls,
+                        waited_ns=waited,
+                        last_delivered_sequence=last_sent,
+                        packets_sent=packets,
+                        result=result,
+                        saved_errno=saved,
+                        requested_bytes=size,
+                        readiness_waits=waits,
+                        resumed_sends=retries,
+                        api="poll" if status == 4 else "send" if status in {1, 2} else "data_close",
+                    )
+                )
             if kind == "FD_RELEASE_EVIDENCE":
                 detail = decode_diagnostic(owner)
                 if (
@@ -177,6 +271,7 @@ def recover_native(path: Path, approval: str) -> dict:
             after.st_ctime_ns,
         ):
             raise ValueError("NATIVE_JOURNAL_CHANGED")
+    claimed_cleanup = claimed_cleanup and not data_delivery_failed
     log_complete = bool(
         log_detail
         and len(verifier_log) == log_detail["kernel_log_bytes"]
@@ -189,6 +284,8 @@ def recover_native(path: Path, approval: str) -> dict:
     return dict(
         source="NATIVE_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
         loader_diagnostics=diagnostics,
+        data_send_status=data_send_status,
+        data_counter_status=data_counter_status,
         fd_release_evidence=fd_release_evidence,
         last_link_lifecycle=last_link_lifecycle,
         verifier_log={
