@@ -1,0 +1,244 @@
+{
+  "baseline": "ad6d1b47ef4b403d4d90859b176f6334eee40bfd",
+  "version": "0.5.1",
+  "manifest": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+  "bundle": "2ea494836e666c48a0800991bdd6e765737dfc8f442461dda4b61a95545b26d6",
+  "image_sha256": "eb17266d4319d51b03d84104dfe0703a4cfd4e5ab4db1b0ba4ee2db5a0391919",
+  "previous_manifest": "aa09194b6ad9ea4e74fe1df11718977522a2b41842eea6db0794cdb6797e4230",
+  "previous_version": "0.5.0",
+  "files": {
+    "bootstrap": {
+      "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+      "mode": "0o555",
+      "previous_sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+      "changed": false
+    },
+    "broker": {
+      "sha256": "7320657347fc2eeb028576b8ee774ba312b9125ce60c1b5a053d414cba212a6f",
+      "mode": "0o555",
+      "previous_sha256": "b872565bcd0abc67c2a5b9c7f96b21d9acb46df582870e303e067c42376254ff",
+      "changed": true
+    },
+    "entry": {
+      "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "mode": "0o555",
+      "previous_sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "changed": false
+    },
+    "libnative-tc.so": {
+      "sha256": "fe990c670902831fa63f62bd125d1ca3dc8fb010e004f5e32b7c763849057475",
+      "mode": "0o444",
+      "previous_sha256": "7905693372d14e93162ff7fbeea4068a0094a737663b2403c337630901706536",
+      "changed": true
+    },
+    "manifest.bin": {
+      "sha256": "1fa1783a2e6988973d657ce68cabe80850f0add27e47d578f1223e11526354a5",
+      "mode": "0o444",
+      "previous_sha256": "38a631d4db9364a80e7197cc53c4904374914749f0834b1e1d9b420547ec6b18",
+      "changed": true
+    },
+    "pam-policy.conf": {
+      "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+      "mode": "0o444",
+      "previous_sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+      "changed": false
+    },
+    "tc.bpf.o": {
+      "sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "mode": "0o444",
+      "previous_sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+      "changed": false
+    },
+    "release.json": {
+      "sha256": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+      "mode": "0o444",
+      "previous_sha256": "aa09194b6ad9ea4e74fe1df11718977522a2b41842eea6db0794cdb6797e4230",
+      "changed": true
+    },
+    "release.trust": {
+      "sha256": "93c45322e658fda2982a43c17adac6490c5a092f26ba884f14915bad8713e379",
+      "mode": "0o444",
+      "previous_sha256": "129933c9f81b0f1383236f876d64e66d03f8568aa643362ba42884e9613e7a4f",
+      "changed": true
+    }
+  },
+  "scope_comparison": {
+    "interfaces": {
+      "old": [
+        "lo"
+      ],
+      "new": [
+        "lo"
+      ],
+      "equal": true
+    },
+    "hooks": {
+      "old": [
+        "INGRESS",
+        "EGRESS"
+      ],
+      "new": [
+        "INGRESS",
+        "EGRESS"
+      ],
+      "equal": true
+    },
+    "duration_seconds": {
+      "old": 300,
+      "new": 300,
+      "equal": true
+    },
+    "events": {
+      "old": 4096,
+      "new": 4096,
+      "equal": true
+    },
+    "queue_capacity": {
+      "old": 32,
+      "new": 32,
+      "equal": true
+    },
+    "broker_address_space_mib": {
+      "old": 256,
+      "new": 256,
+      "equal": true
+    },
+    "cpu_seconds": {
+      "old": 20,
+      "new": 20,
+      "equal": true
+    },
+    "capabilities": {
+      "old": [
+        "CAP_BPF",
+        "CAP_NET_ADMIN"
+      ],
+      "new": [
+        "CAP_BPF",
+        "CAP_NET_ADMIN"
+      ],
+      "equal": true
+    },
+    "native_release": {
+      "old": "BLOCKED",
+      "new": "BLOCKED",
+      "equal": true
+    }
+  },
+  "prospective_run_scope": {
+    "interface": "lo",
+    "namespace": "net:[4026531833]",
+    "hook": "INGRESS",
+    "seconds": 300,
+    "events": 4096,
+    "queue": 32,
+    "address_space_mib": 256,
+    "cpu_seconds": 20
+  },
+  "simulation": {
+    "ordinary_uid": 1000,
+    "root_installation": false,
+    "steps": [
+      {
+        "action": "install",
+        "manifest": "aa09194b6ad9ea4e74fe1df11718977522a2b41842eea6db0794cdb6797e4230",
+        "native_activation": false
+      },
+      {
+        "action": "check",
+        "manifest": "aa09194b6ad9ea4e74fe1df11718977522a2b41842eea6db0794cdb6797e4230",
+        "native_activation": false
+      },
+      {
+        "conflict": "INSTALL_CONFLICT"
+      },
+      {
+        "action": "rollback",
+        "manifest": "aa09194b6ad9ea4e74fe1df11718977522a2b41842eea6db0794cdb6797e4230",
+        "native_activation": false
+      },
+      {
+        "action": "install",
+        "manifest": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+        "native_activation": false
+      },
+      {
+        "action": "check",
+        "manifest": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+        "native_activation": false
+      }
+    ]
+  },
+  "rollback_archive_collision": false,
+  "native_execution": "HELD_CLEANUP_AND_TCX_INVENTORY_UNVERIFIED",
+  "native_actions_performed": false,
+  "preflight": {
+    "map": {
+      "returncode": 255,
+      "stdout": "[{\"error\":\"can't get next map: Operation not permitted\"}]\n",
+      "stderr": ""
+    },
+    "prog": {
+      "returncode": 255,
+      "stdout": "[{\"error\":\"can't get next program: Operation not permitted\"}]\n",
+      "stderr": ""
+    },
+    "link": {
+      "returncode": 255,
+      "stdout": "[{\"error\":\"can't get next link: Operation not permitted\"}]\n",
+      "stderr": ""
+    },
+    "namespace": "net:[4026531833]",
+    "ifindex": "1",
+    "historical_broker_pid_present": false,
+    "tc qdisc show dev lo": {
+      "returncode": 0,
+      "stdout": "qdisc noqueue 0: root refcnt 2 \n",
+      "stderr": ""
+    },
+    "tc filter show dev lo ingress": {
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "tc filter show dev lo egress": {
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "historical_preservation": {
+      ".git/tcx-c2-execution/unified-app/application-83febd1ea83040bb90c5c001dfcb6ee0/session/os-handoff-journal.bin": true,
+      ".git/tcx-c2-execution/unified-app/application-83febd1ea83040bb90c5c001dfcb6ee0/session/monitor.sqlite": true,
+      ".git/tcx-c2-execution/unified-app/application-83febd1ea83040bb90c5c001dfcb6ee0/session/native-live-result.json": true,
+      ".git/tcx-c2-execution/unified-app/application-83febd1ea83040bb90c5c001dfcb6ee0/session/data-run-1/monitor.sqlite": true
+    },
+    "user_preservation": {
+      "SOC": {
+        "count": 122,
+        "unchanged": true
+      },
+      "ML": {
+        "count": 10,
+        "unchanged": true
+      }
+    }
+  },
+  "verification": {
+    "focused_pytest": "12 passed, 9 deselected",
+    "ruff": "PASS: unified_startup.py",
+    "format": "PASS: unified_startup.py",
+    "diff": "PASS",
+    "c_compile": "PASS: existing compile_native/reference artifact inspection",
+    "scope": "UNCHANGED; manifest supports both hooks; prospective diagnostic is INGRESS only"
+  },
+  "historical_result": {
+    "first_failure": "UNKNOWN after runtime allocation/OBJECT_OPEN reached, before successful LOAD_VERIFIED publication",
+    "api": null,
+    "errno": null,
+    "verifier_log": null,
+    "map_program_fd_inventory": null,
+    "tcx_attach_reached": false,
+    "cleanup": "UNVERIFIED",
+    "residual_resources": "UNKNOWN; unprivileged inventory EPERM"
+  }
+}

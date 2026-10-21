@@ -30,7 +30,7 @@ def prepare_candidate(directory: Path) -> tuple[Path, Path, Path, str]:
     compile_program(legacy)
     compile_loader(legacy)
     compile_native(artifacts)
-    release = create_package(artifacts, package, "0.5.0")
+    release = create_package(artifacts, package, "0.5.1")
     return legacy, artifacts, package, release.identity
 
 
