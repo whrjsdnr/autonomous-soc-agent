@@ -102,6 +102,7 @@ def sup_execute(command, mask, *, descriptor=None):
 
 def sup_inventory(config):
     results = {}
+    global SUP_ENTRY_STAGE
     for name, args in (
         ("programs", [config["bpftool"], "-j", "prog", "show"]),
         ("maps", [config["bpftool"], "-j", "map", "show"]),
@@ -109,6 +110,7 @@ def sup_inventory(config):
         ("ingress", [config["tc"], "-j", "filter", "show", "dev", "lo", "ingress"]),
         ("egress", [config["tc"], "-j", "filter", "show", "dev", "lo", "egress"]),
     ):
+        SUP_ENTRY_STAGE = "RESOURCE_INSPECTION_" + name.upper()
         body = sup_execute(args, SUP_MASK)
         rows = json.loads(body)
         if (
@@ -321,6 +323,18 @@ def sup_executable(path):
 
 
 def sup_tool(command, mask, *, pipe=None, descriptor=None):
+    def prepare_tool():
+        try:
+            sup_caps(mask, initial=not SUPERVISOR_REDUCED, execute=True)
+        except OSError as exc:
+            # subprocess otherwise replaces preexec errno with SubprocessError.
+            if globals().get("SUP_ENTRY_ENVELOPE") is not None:
+                try:
+                    sup_entry_failure(globals()["SUP_ENTRY_ENVELOPE"], exc)
+                except OSError:
+                    print("SOC_ENTRY_DIAGNOSTIC_DELIVERY_FAILED", flush=True)
+            raise
+
     fd = sup_executable(command[0]) if descriptor is None else os.dup(descriptor)
     try:
         return subprocess.Popen(
@@ -331,7 +345,7 @@ def sup_tool(command, mask, *, pipe=None, descriptor=None):
             close_fds=True,
             pass_fds=(fd,),
             env=SUP_ENV,
-            preexec_fn=lambda: sup_caps(mask, initial=not SUPERVISOR_REDUCED, execute=True),
+            preexec_fn=prepare_tool,
         )
     finally:
         os.close(fd)
@@ -697,13 +711,52 @@ def sup_send(channel, value, fd=None):
             os.close(fd)
 
 
+def sup_entry_failure(envelope, exc):
+    """Diagnostic only: no credentials, command strings, paths or exception text."""
+    code = str(exc).split(":", 1)[0] if isinstance(exc, ValueError) else type(exc).__name__.upper()
+    if (
+        not code
+        or len(code) > 80
+        or any(c not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" for c in code)
+    ):
+        code = "ENTRY_EXCEPTION"
+    evidence = dict(
+        contract="SOC_ENTRY_DIAGNOSTIC_V1",
+        stage=globals().get("SUP_ENTRY_STAGE", "SUPERVISOR_PREPARE"),
+        code=code,
+        errno=exc.errno if isinstance(exc, OSError) else None,
+        native_actions_started=False,
+    )
+    uid = struct.unpack_from("<I", envelope, 4)[0]
+    with socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET) as channel:
+        channel.settimeout(0.5)
+        channel.connect(f"\0soc-entry-diagnostic.{uid}.{envelope[64:80].hex()}")
+        channel.sendall(sup_json(evidence))
+
+
 def supervisor_prepare(image, envelope, approval, environment):
+    global SUP_ENTRY_STAGE
+    SUP_ENTRY_STAGE = "RESOURCE_INSPECTION"
+    globals()["SUP_ENTRY_ENVELOPE"] = envelope
+    try:
+        return _supervisor_prepare(image, envelope, approval, environment)
+    except Exception as exc:
+        try:
+            sup_entry_failure(envelope, exc)
+        except OSError:
+            # Reporting cannot replace the original failure or authorize execution.
+            print("SOC_ENTRY_DIAGNOSTIC_DELIVERY_FAILED", flush=True)
+        raise
+
+
+def _supervisor_prepare(image, envelope, approval, environment):
     # Called only after existing OS parent/policy, scope and installed-release checks.
     # Query failure prevents Bootstrap exec and therefore any BPF load/attach.
     global SUPERVISOR_REDUCED
     SUPERVISOR_REDUCED = False
     config = globals()["SUPERVISOR_CONFIG"]
     before = sup_inventory(config)
+    globals()["SUP_ENTRY_STAGE"] = "DOCKER_PREFLIGHT"
     api = DockerAPI()
     version = api.request("GET", "/version")
     if not isinstance(version, dict):
@@ -730,9 +783,11 @@ def supervisor_prepare(image, envelope, approval, environment):
     session = envelope[64:80].hex()
     namespace = "net:[" + str(struct.unpack_from("<Q", envelope, 24)[0]) + "]"
     binding = hashlib.sha256(b"SOC_SUPERVISOR_V1\0" + approval + envelope).hexdigest()
+    globals()["SUP_ENTRY_STAGE"] = "SIDECAR_PREPARE"
     read_fd, write_fd = os.pipe2(os.O_CLOEXEC)
     child = os.fork()
     if child == 0:
+        globals()["SUP_ENTRY_ENVELOPE"] = None  # Later cleanup queries are not entry failures.
         os.close(read_fd)
         # No object, journal, Link or authority FD exists at fork. Keep only ready pipe.
         os.dup2(write_fd, 3, inheritable=False)
@@ -789,6 +844,11 @@ def supervisor_prepare(image, envelope, approval, environment):
                 if core.error:
                     break
         except (OSError, ValueError, TimeoutError) as exc:
+            if core is None:
+                try:
+                    sup_entry_failure(envelope, exc)
+                except OSError:
+                    print("SOC_ENTRY_DIAGNOSTIC_DELIVERY_FAILED", flush=True)
             final = dict(error=str(exc), cleanup="CLEANUP_UNVERIFIED")
         finally:
             if core:

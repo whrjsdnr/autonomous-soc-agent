@@ -271,6 +271,8 @@ class SupervisedSession(UnifiedSession):
         if not isinstance(image, SupervisorImage):
             raise ValueError("SUPERVISOR_IMAGE_REQUIRED")
         self.supervisor_listener = self.supervisor = None
+        self.entry_diagnostic_listener = None
+        self.entry_diagnostic = None
         self.supervisor_hello = self.supervisor_final = None
         self.zeek_snapshot = None
         super().__init__(*args, image=image, **kwargs)
@@ -293,6 +295,13 @@ class SupervisedSession(UnifiedSession):
         )
         listener.listen(1)
         self.supervisor_listener = listener
+        diagnostic = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
+        diagnostic.settimeout(0.2)
+        diagnostic.bind(
+            f"\0soc-entry-diagnostic.{self.plan.broker.uid}.{self.plan.broker.application.application_session.hex}"
+        )
+        diagnostic.listen(2)
+        self.entry_diagnostic_listener = diagnostic
         return result
 
     def _authentication_verified(self):
@@ -361,7 +370,70 @@ class SupervisedSession(UnifiedSession):
                 self.close()
         return result
 
+    def _collect_entry_diagnostic(self):
+        listener = self.entry_diagnostic_listener
+        if listener is None:
+            return
+        try:
+            if self.error:
+                try:
+                    channel, _ = listener.accept()
+                except TimeoutError:
+                    return
+                with channel:
+                    channel.settimeout(0.2)
+                    pid, uid, gid = struct.unpack(
+                        "3i", channel.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12)
+                    )
+                    if (uid, gid) != (0, 0) or pid <= 0:
+                        raise ValueError("ENTRY_DIAGNOSTIC_ROOT_PEER_REQUIRED")
+                    body, ancillary, flags, _ = channel.recvmsg(
+                        1024, socket.CMSG_SPACE(256), socket.MSG_CMSG_CLOEXEC
+                    )
+                    for level, kind, data in ancillary:
+                        if level == socket.SOL_SOCKET and kind == socket.SCM_RIGHTS:
+                            fds = array.array("i")
+                            fds.frombytes(data[: len(data) - len(data) % fds.itemsize])
+                            for fd in fds:
+                                os.close(fd)
+                    if ancillary or flags:
+                        raise ValueError("ENTRY_DIAGNOSTIC_MESSAGE_REJECTED")
+                    value = json.loads(body)
+                    if (
+                        not isinstance(value, dict)
+                        or set(value)
+                        != {"contract", "stage", "code", "errno", "native_actions_started"}
+                        or value["contract"] != "SOC_ENTRY_DIAGNOSTIC_V1"
+                        or value["native_actions_started"] is not False
+                        or not all(
+                            isinstance(value[k], str)
+                            and 0 < len(value[k]) <= 80
+                            and all(c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" for c in value[k])
+                            for k in ("stage", "code")
+                        )
+                        or not (
+                            value["errno"] is None
+                            or type(value["errno"]) is int
+                            and 0 < value["errno"] < 4096
+                        )
+                    ):
+                        raise ValueError("ENTRY_DIAGNOSTIC_SCHEMA")
+                    # Root peer does not turn this advisory into an authentication receipt.
+                    self.entry_diagnostic = value | {"peer_pid": pid, "authorization": False}
+                    path = self.application.directory / "entry-diagnostic.json"
+                    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+                    with os.fdopen(fd, "w") as stream:
+                        json.dump(self.entry_diagnostic, stream, indent=2)
+                        stream.write("\n")
+                    self._event("NATIVE_ENTRY_DIAGNOSTIC", evidence=self.entry_diagnostic)
+        except (OSError, ValueError) as exc:
+            self.entry_diagnostic = {"collection_error": type(exc).__name__, "authorization": False}
+        finally:
+            listener.close()
+            self.entry_diagnostic_listener = None
+
     def close(self):
+        self._collect_entry_diagnostic()
         if self.ended:
             return self.snapshot()
         failure = None
@@ -423,6 +495,7 @@ class SupervisedSession(UnifiedSession):
         elif self.authentication == "OS_AUTHENTICATED":
             lifecycle = "AUTHENTICATED"
         return super().snapshot() | dict(
+            entry_diagnostic=self.entry_diagnostic,
             supervisor_lifecycle=lifecycle,
             supervisor_hello=self.supervisor_hello,
             supervisor_final=self.supervisor_final,

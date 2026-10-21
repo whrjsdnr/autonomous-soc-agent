@@ -1,0 +1,63 @@
+{
+  "sha256": "3216c80bf6f99cf92912bbff9fcb89ba1ba51e4d0c27205d08d0e7da2741f8e2",
+  "manifest": "6a709a4c24f461c4e1de996a8eb9e32a4928340720c93f2141615af6f521deb9",
+  "previous_manifest": "092f4d91bbe6b9eea9f8dea72ba5435f1d3b86f1ffdeccd99c89f53ea4d58aad",
+  "version": "0.5.6",
+  "action": "UPDATE_RETAIN_PREVIOUS",
+  "files": {
+    "bootstrap": {
+      "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+      "mode": 365
+    },
+    "broker": {
+      "sha256": "9919d3c5d9e02aa88be31360c9e29a2b4c0fd6953fae03e8835c033d71809b76",
+      "mode": 365
+    },
+    "entry": {
+      "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "mode": 365
+    },
+    "libnative-tc.so": {
+      "sha256": "943f0b2e42350d661b5d20c6879ec8ce0119fbd070889e12c29ac55cd7213ae9",
+      "mode": 292
+    },
+    "manifest.bin": {
+      "sha256": "efedf079d084cc28c55e1c3dcda2c905d78b195d902392dfa7ccdf89097c99f1",
+      "mode": 292
+    },
+    "pam-policy.conf": {
+      "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+      "mode": 292
+    },
+    "tc.bpf.o": {
+      "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+      "mode": 292
+    },
+    "release.json": {
+      "sha256": "6a709a4c24f461c4e1de996a8eb9e32a4928340720c93f2141615af6f521deb9",
+      "mode": 292
+    },
+    "release.trust": {
+      "sha256": "67b23d88dd3ced34516b21bb497c3f4b4d7a38b8caf4aed54fe34c95da2fecae",
+      "mode": 292
+    }
+  },
+  "supervisor_contract": "SOC_SINGLE_AUTH_SUPERVISOR_V1",
+  "zeek_bundle": "8a422950144a7070610fc5d5e8b703efc19fcbd26f95d5c239b2374c233e257d",
+  "scope_namespace": "net:[4026531833]",
+  "bundle": "ee1cfd5e5c3499fbc8f839207e7c956430487f51933eb40d2941f1de0eb72a40",
+  "installed_version": "0.5.5",
+  "rollback_next": "/usr/libexec/.soc-agent-ebpf.rollback-092f4d91bbe6b9eea9f8dea72ba5435f1d3b86f1ffdeccd99c89f53ea4d58aad",
+  "rollback_conflict": false,
+  "preserved_053_manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+  "native_execution": false,
+  "root_cause": "UNKNOWN_HISTORICAL_ROOT_STDERR_NOT_PERSISTED",
+  "tests": {
+    "focused_command": "uv run pytest tests/unit/ebpf_tc/test_entry_diagnostic.py tests/unit/ebpf_tc/test_supervisor.py tests/unit/ebpf_tc/test_supervisor_startup.py -q",
+    "passed": 33,
+    "seconds": 38.61
+  },
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "promotion": "BLOCKED"
+}
