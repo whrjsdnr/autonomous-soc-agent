@@ -31,8 +31,13 @@ from soc_agent.security_ai.collectors.offline import OfflineZeek, file_digest
 
 
 class StreamProcess:
-    def __init__(self, directory: Path, plan: LivePlan, *, fixture: Path | None = None):
+    def __init__(
+        self, directory: Path, plan: LivePlan, *, fixture: Path | None = None, supervisor=None
+    ):
         self.directory, self.plan, self.fixture = directory, plan, fixture
+        self.supervisor = supervisor
+        if fixture is not None and supervisor is not None:
+            raise ValueError("ZEEK_FIXTURE_SUPERVISOR_MIX_REJECTED")
         self.process = None
         self.output_bytes = 0
         self.stop_requested = False
@@ -47,6 +52,8 @@ class StreamProcess:
         self.stop_requested = True
 
     def _docker(self, *args):
+        if self.supervisor is not None:
+            raise ValueError("ZEEK_SUPERVISOR_ARBITRARY_DOCKER_DENIED")
         prefix = [] if self.fixture else ["sudo", "-n", "--"]
         return subprocess.run(
             prefix + ["docker", *args],
@@ -56,6 +63,8 @@ class StreamProcess:
         )
 
     def _absent(self):
+        if self.supervisor is not None:
+            return self.supervisor.stop_zeek()
         # A successful, exact-name query is required. --rm or inspect failure is not proof.
         result = self._docker(
             "container",
@@ -70,6 +79,8 @@ class StreamProcess:
         return result.returncode == 0 and result.stdout.strip() == b""
 
     def _stop_container(self):
+        if self.supervisor is not None:
+            return self.supervisor.stop_zeek()
         if self._absent():
             return True  # Exit raced the stop request; still drain stdout and verify CLOSED.
         fmt = '{"id":{{json .Id}},"image":{{json .Config.Image}},"labels":{{json .Config.Labels}}}'
@@ -106,7 +117,10 @@ class StreamProcess:
         from soc_agent.cli import terminal_authenticate
 
         try:
-            terminal_authenticate()
+            if self.supervisor is None:
+                terminal_authenticate()
+            else:
+                self.supervisor.authorize(self.plan)
         except (OSError, ValueError, subprocess.SubprocessError) as error:
             raise ValueError("ZEEK_AUTH_DENIED_CANCELLED_OR_TIMEOUT") from error
         verify(self.plan, self.plan.identity)
@@ -126,7 +140,8 @@ class StreamProcess:
             if self._authenticated_plan != self.plan.identity:
                 raise ValueError("ZEEK_APPROVAL_DIGEST_MISMATCH")
             self._controller()
-            argv = ["sudo", "-n", "--", *argv]
+            if self.supervisor is None:
+                argv = ["sudo", "-n", "--", *argv]
         self._launched = True
         identity = process_identity(os.getpid())
         write_new(
@@ -156,15 +171,18 @@ class StreamProcess:
         cleanup_attempted = False
         try:
             try:
-                self.process = subprocess.Popen(
-                    argv,
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.DEVNULL,
-                    # Keep the terminal session (sudo timestamp), but route Ctrl+C only
-                    # through the GUI controller's verified stop/drain path.
-                    **({"process_group": 0} if self.fixture is None else {}),
-                )
+                if self.supervisor is not None:
+                    self.process = self.supervisor.start(self.plan)
+                else:
+                    self.process = subprocess.Popen(
+                        argv,
+                        stdin=subprocess.DEVNULL,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.DEVNULL,
+                        # Keep the terminal session (sudo timestamp), but route Ctrl+C only
+                        # through the GUI controller's verified stop/drain path.
+                        **({"process_group": 0} if self.fixture is None else {}),
+                    )
             except OSError as error:
                 raise ValueError("ZEEK_DOCKER_START_FAILED") from error
             selector.register(self.process.stdout, selectors.EVENT_READ)
@@ -344,7 +362,11 @@ class StreamProcess:
                     cleanup_verified=self.cleanup_verified,
                     container_absent=self.container_absent,
                     container_id=self.container_identity,
-                    container_exit_source="ATTACHED_DOCKER_RUN_EXIT_STATUS",
+                    container_exit_source=(
+                        "SUPERVISOR_DOCKER_ENGINE_OWNED_CONTAINER_EXIT_STATE"
+                        if self.supervisor is not None
+                        else "ATTACHED_DOCKER_RUN_EXIT_STATUS"
+                    ),
                     termination_reason=reason,
                     stop_requested_reason=requested,
                     closed_detail=ledger.closed.model_dump(mode="json") if ledger.closed else None,

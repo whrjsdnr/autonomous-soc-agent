@@ -1,0 +1,188 @@
+{
+  "contract": "soc-unified-native-supervisor-candidate:v1",
+  "baseline": "ba119fcd44604a9ee0ed3458c615421eff6819b3",
+  "release": {
+    "version": "0.5.5",
+    "manifest": "4bba3952647a2655d877548aecc79c2821d17b708bd7d42bec5ca536b04414dd",
+    "bundle": "902eb82eb43c05ad9962c1af00d20ccee9f9e9ce965f3619c799f01555770f7b",
+    "image": "d5bfe01c749036e3ba2499d2ea3658f8b4cf51b8a730364063ce90037a905242",
+    "zeek_bundle": "8a422950144a7070610fc5d5e8b703efc19fcbd26f95d5c239b2374c233e257d",
+    "previous_manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+    "files": {
+      "bootstrap": {
+        "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+        "size": 68272,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 365
+      },
+      "broker": {
+        "sha256": "9919d3c5d9e02aa88be31360c9e29a2b4c0fd6953fae03e8835c033d71809b76",
+        "size": 86800,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 365
+      },
+      "entry": {
+        "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+        "size": 9352,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 365
+      },
+      "libnative-tc.so": {
+        "sha256": "943f0b2e42350d661b5d20c6879ec8ce0119fbd070889e12c29ac55cd7213ae9",
+        "size": 85920,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      },
+      "manifest.bin": {
+        "sha256": "1adedb16d35ae82f2ac10501cf8f6faff06eb18eb90654f4e70cf626ffc55dfc",
+        "size": 160,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      },
+      "pam-policy.conf": {
+        "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "size": 125,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      },
+      "tc.bpf.o": {
+        "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+        "size": 40736,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      }
+    },
+    "runtime_files": {
+      "bootstrap": {
+        "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+        "mode": 365
+      },
+      "broker": {
+        "sha256": "9919d3c5d9e02aa88be31360c9e29a2b4c0fd6953fae03e8835c033d71809b76",
+        "mode": 365
+      },
+      "entry": {
+        "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+        "mode": 365
+      },
+      "libnative-tc.so": {
+        "sha256": "943f0b2e42350d661b5d20c6879ec8ce0119fbd070889e12c29ac55cd7213ae9",
+        "mode": 292
+      },
+      "manifest.bin": {
+        "sha256": "1adedb16d35ae82f2ac10501cf8f6faff06eb18eb90654f4e70cf626ffc55dfc",
+        "mode": 292
+      },
+      "pam-policy.conf": {
+        "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "mode": 292
+      },
+      "tc.bpf.o": {
+        "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+        "mode": 292
+      },
+      "release.json": {
+        "sha256": "4bba3952647a2655d877548aecc79c2821d17b708bd7d42bec5ca536b04414dd",
+        "mode": 292
+      },
+      "release.trust": {
+        "sha256": "c95bb9357a5c7dedac223a299af911e29d78aa47da3e281a804c47ba0ca2c7e0",
+        "mode": 292
+      }
+    },
+    "native_gate_probe": {
+      "scope": "ORDINARY_UID_ISOLATED_PYTHON_SUFFIX_NO_SUDO_256MiB",
+      "returncode": 1,
+      "error": "UNIFIED_ROOT_ENTRY_REQUIRED",
+      "native_actions": false
+    },
+    "native_release": "BLOCKED",
+    "installed_version": "0.5.3"
+  },
+  "source_sha256": {
+    "src/soc_agent/security_ai/collectors/live_process.py": "a904a5a396508439c57fd54d0229396097e8a55243506362d46e9253ca244ac8",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "2aa3b414ba1663c4c018ad629ab3eaf64a318289a2a3bdab5571bbacee11c0bc",
+    "src/soc_agent/security_ai/ebpf_tc/unified_image_engine.py": "fef624e41f84e271fc71a76731a65be038053c3b11e8404a6599001883ecea9b",
+    "src/soc_agent/security_ai/ebpf_tc/unified_startup.py": "4b79d2c8a0d859e22aa060f46e9b5a31811517ba1e6e8e8c591fbd94fa01f066",
+    "src/soc_agent/security_ai/ebpf_tc/supervisor.py": "c2a0f1ff5dfcc3a77ecf484ffbc0406ca6a2b5fd68521917c5597cccdb94d69e",
+    "src/soc_agent/security_ai/ebpf_tc/supervisor_engine.py": "5e93c116763a2c0650f4d462cbc5035567ed4406fa9f97d9fc9eb1a3e665a722",
+    "src/soc_agent/security_ai/ebpf_tc/supervisor_startup.py": "408d0a05fe39d673a89a319726bbe7ee763a12b4f639eb20b7b117e952d1a55e",
+    "tests/unit/ebpf_tc/test_supervisor.py": "69806ccdafc169f79a5f17eb5a5a1482493e658628648229354ce69a971d3ec1"
+  },
+  "preservation": {
+    "SOC": {
+      "checked": 122,
+      "mismatches": []
+    },
+    "ML": {
+      "checked": 10,
+      "mismatches": []
+    },
+    ".git/tcx-loader-rca/historical-preservation.json": {
+      "checked": 4,
+      "mismatches": []
+    },
+    ".git/tcx-c3-stabilization/preservation.json": {
+      "checked": 6,
+      "mismatches": []
+    }
+  },
+  "tests": {
+    "release-tests.log": {
+      "result": "33 passed, 2 deselected in 18.96s",
+      "sha256": "3d79c06e6d1500fd69841e97a87fbeca9a9d2394dbbf6d44f5bc0b0f7559cb12"
+    },
+    "qualification-complete.log": {
+      "result": "29 passed in 1.57s",
+      "sha256": "43c1fda86b88b200e3dfe01c9b2d535103387edc1adaa64a9b309a60f09b4e10"
+    },
+    "accepted-paths.log": {
+      "result": "33 passed, 2 deselected in 15.12s",
+      "sha256": "25dc475f67d486686ca75bfb89919d2feb8a74050140ad23c143be15931b884e"
+    }
+  },
+  "actual_native_executed": false,
+  "gates": {
+    "native_release": "BLOCKED",
+    "native_ai": "BLOCKED",
+    "dns9": "BLOCKED",
+    "operational_promotion": "BLOCKED"
+  },
+  "capabilities": "DESIGNED_FIXTURE_ONLY_NATIVE_UNKNOWN",
+  "kernel_resource_state": "UNKNOWN_PRIOR_UNPRIVILEGED_EPERM_REQUIRES_PRIVILEGED_PRE_INSPECTION",
+  "docker_cli_address_space_probe": {
+    "command": [
+      "/usr/bin/docker",
+      "--version"
+    ],
+    "uid": 1000,
+    "address_space_mib": 256,
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "fatal error: failed to reserve page summary memory\n\nruntime stack:\nruntime.throw({0x62fabf5d8bc0?, 0x7cfd2ce2c008?})\n\t/usr/lib/go-1.24/src/runtime/panic.go:1101 +0x4a fp=0x7ffcbbc8e690 sp=0x7ffcbbc8e660 pc=0x62fabea03c2a\nruntime.(*pageAlloc).sysInit(0x62fac078b768, 0xf8?)\n\t/usr/lib/go-1.24/src/runtime/mpagealloc_64bit.go:81 +0x11c fp=0x7ffcbbc8e700 sp=0x7ffcbbc8e690 pc=0x62fabe9c2adc\nruntime.(*pageAlloc).init(0x62fac078b768, 0x62fac078b760, 0x62fac07a93f8, 0x0)\n\t/usr/lib/go-1.24/src/runtime/mpagealloc.go:320 +0x85 fp=0x7ffcbbc8e730 sp=0x7ffcbbc8e700 pc=0x62fabe9c04c5\nruntime.(*mheap).init(0x62fac078b760)\n\t/usr/lib/go-1.24/src/runtime/mheap.go:775 +0x185 fp=0x7ffcbbc8e768 sp=0x7ffcbbc8e730 pc=0x62fabe9bd105\nruntime.mallocinit()\n\t/usr/lib/go-1.24/src/runtime/malloc.go:461 +0xfd fp=0x7ffcbbc8e7a0 sp=0x7ffcbbc8e768 pc=0x62fabe9a565d\nruntime.schedinit()\n\t/usr/lib/go-1.24/src/runtime/proc.go:836 +0xd8 fp=0x7ffcbbc8e830 sp=0x7ffcbbc8e7a0 pc=0x62fabe9d1a38\nruntime.rt0_go()\n\t/usr/lib/go-1.24/src/runtime/asm_amd64.s:349 +0x120 fp=0x7ffcbbc8e838 sp=0x7ffcbbc8e830 pc=0x62fabea09c40\n"
+  },
+  "memory_pressure": "some avg10=1.13 avg60=2.97 avg300=1.93 total=377545909\nfull avg10=1.09 avg60=2.75 avg300=1.77 total=363043091\n",
+  "validation_scope": "NO_WHOLE_MODEL_OR_LARGE_REGRESSION_OR_GUI_BENCHMARK",
+  "native_approval_required": {
+    "version": "0.5.5",
+    "namespace": "net:[4026531833]",
+    "interface": "lo",
+    "hook": "INGRESS",
+    "duration_seconds": 300,
+    "tcx_events": 4096,
+    "queue": 32,
+    "address_space_mib": 256,
+    "cpu_seconds": 20,
+    "zeek_limits": "EXISTING_512MiB_CPU1_4096packets_8192events_8MiBoutput",
+    "generated_traffic": false,
+    "automatic_retry": false,
+    "pinning": false
+  }
+}

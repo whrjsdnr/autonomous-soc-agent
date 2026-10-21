@@ -20,7 +20,7 @@ from soc_agent.security_ai.native_terminal import confirm_scope
 from soc_agent.security_ai.research.models import digest
 
 
-def prepare_candidate(directory: Path) -> tuple[Path, Path, Path, str]:
+def prepare_candidate(directory: Path, *, version: str = "0.5.5") -> tuple[Path, Path, Path, str]:
     """Compile unprivileged fixed sources; never install or invoke a Kernel loader."""
     legacy, artifacts, package = (
         directory / "preparation",
@@ -30,7 +30,7 @@ def prepare_candidate(directory: Path) -> tuple[Path, Path, Path, str]:
     compile_program(legacy)
     compile_loader(legacy)
     compile_native(artifacts)
-    release = create_package(artifacts, package, "0.5.4")
+    release = create_package(artifacts, package, version)
     return legacy, artifacts, package, release.identity
 
 

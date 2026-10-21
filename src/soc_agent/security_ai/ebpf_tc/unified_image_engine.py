@@ -159,6 +159,10 @@ def unified_root_main(image: dict, previous: dict | None, args: list[str], engin
     else:
         engine["root_main"](image, "install")
     engine["root_main"](image, "check")
+    # Optional reviewed supervisor sidecar is forked before any Kernel resource
+    # or authority FD exists. This process still execs Bootstrap directly under sudo.
+    if "supervisor_prepare" in engine:
+        engine["supervisor_prepare"](image, envelope, approval, environment)
     directory = engine["_open_directory"]("/usr/libexec/soc-agent-ebpf", 0)
     try:
         bootstrap = os.open("bootstrap", os.O_RDONLY | os.O_NOFOLLOW, dir_fd=directory)

@@ -94,6 +94,9 @@ class PreparedDesktop(BrokerDesktop):
             "collector_state",
             "tcx_link",
             "qualification_only",
+            "supervisor_lifecycle",
+            "supervisor_final",
+            "zeek_summary",
         ):
             observed = handoff.get(key)
             rows.append(
