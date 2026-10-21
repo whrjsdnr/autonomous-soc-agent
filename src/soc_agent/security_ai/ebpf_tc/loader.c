@@ -229,24 +229,33 @@ int soc_program_fd(struct soc_state *s) {
 
 int soc_final_drain_counters(struct soc_state *s) {
     if(validate(s) || s->attached || !s->context)return -EPERM;
-    struct runtime *r=s->context;int status=1;
-    if(!r->ring || libbpf_get_error(r->ring))return soc_data_counters(s,NULL,2,r->emitted);
-    /* Link is detached and observation disabled. Drain queued metadata first. */
-    for(unsigned n=0;n<16;n++) {
+    struct runtime *r=s->context;int status=1,drain=0,lookup=-ECANCELED,saved=0,attempted=0,overflow=0;
+    uint64_t started=soc_now();
+    /* Counter retrieval is independent of ring delivery. Preserve the first
+     * drain failure, but always attempt the owned map and append local evidence. */
+    if(!r->ring || libbpf_get_error(r->ring))drain=-EINVAL;
+    else for(unsigned n=0;n<16;n++) {
         int rc=ring_buffer__poll(r->ring,0);
-        if(rc<0)return rc;if(!rc)break;if(n==15)return -EOVERFLOW;
+        if(rc<0) {drain=rc;break;}if(!rc)break;if(n==15)drain=-EOVERFLOW;
     }
     int cpus=libbpf_num_possible_cpus(),fd=bpf_object__find_map_fd_by_name(r->object,"counters");
     struct soc_counters total={0};
     struct soc_counters *rows=NULL;uint32_t key=s->plan.hook-1;
-    if(cpus<1 || cpus>4096 || fd<0 || !(rows=calloc(cpus,sizeof(*rows))) ||
-       bpf_map_lookup_elem(fd,&key,rows))status=2;
+    if(cpus<1 || cpus>4096 || fd<0)status=2;
+    else {
+        errno=0;rows=calloc(cpus,sizeof(*rows));saved=errno;
+        if(!rows) {status=2;lookup=-ENOMEM;}
+        else {attempted=1;errno=0;lookup=bpf_map_lookup_elem(fd,&key,rows);saved=errno;if(lookup)status=2;}
+    }
     if(status==1)for(int cpu=0;cpu<cpus;cpu++) {
         uint64_t *to=(uint64_t *)&total,*from=(uint64_t *)&rows[cpu];
         for(unsigned i=0;i<7;i++) {
-            if(UINT64_MAX-to[i]<from[i]) {status=2;break;}
+            if(UINT64_MAX-to[i]<from[i]) {status=2;overflow=1;break;}
             to[i]+=from[i];
         }
     }
-    free(rows);return soc_data_counters(s,status==1?&total:NULL,status,r->emitted);
+    free(rows);
+    int sent=soc_data_counters(s,status==1?&total:NULL,status,r->emitted);
+    int recorded=soc_data_counter_query(s,drain,cpus,fd,lookup,saved,sent,soc_now()-started,(attempted?4:0)|(overflow?8:0));
+    return drain?drain:recorded?recorded:sent?sent:status==1?0:overflow?-EOVERFLOW:lookup<0?lookup:-EIO;
 }

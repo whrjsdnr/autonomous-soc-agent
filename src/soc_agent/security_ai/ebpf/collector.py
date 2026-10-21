@@ -6,6 +6,7 @@ Reuses Network14 arithmetic, not Zeek provenance/admission. No loader or model w
 import json
 import math
 import os
+import time
 from collections import deque
 from pathlib import Path
 
@@ -41,6 +42,17 @@ class EBPFCollector:
         self.clock_contract: ClockContract | None = None
         self.ordering = EventOrdering()
         self.post_error_discarded = 0
+        self.stage_timing = {
+            name: dict(calls=0, total_ns=0, max_ns=0)
+            for name in ("clock_reordering", "flow_reconstruction", "audit_checkpoint")
+        }
+
+    def _duration(self, name: str, started: int) -> None:
+        elapsed = time.perf_counter_ns() - started
+        row = self.stage_timing[name]
+        row["calls"] += 1
+        row["total_ns"] += elapsed
+        row["max_ns"] = max(row["max_ns"], elapsed)
 
     async def prepare(self) -> dict:
         return self.prepare_metadata()
@@ -185,11 +197,14 @@ class EBPFCollector:
         self._observe_cpu_sequence(e)
         self.received += 1
         if self.clock_contract is not None:
+            started = time.perf_counter_ns()
             try:
                 self.ordering.observe(e)
             except ValueError as error:
                 self.discarded += 1
                 self.fail(str(error))
+            finally:
+                self._duration("clock_reordering", started)
         if len(self.queue) >= self.plan.queue_capacity:
             self.overflow_rejected += 1
             self.discarded += 1
@@ -241,7 +256,11 @@ class EBPFCollector:
                     # Receive sequence stays on the event/receipt. The shared flow
                     # assembler consumes its own contiguous sorted-input sequence.
                     p = OrderedEvent(e, self.accepted + 1)
-                self.flow.add(p)
+                started = time.perf_counter_ns()
+                try:
+                    self.flow.add(p)
+                finally:
+                    self._duration("flow_reconstruction", started)
                 if self.attempt_gaps:
                     for flow in self.flow.finalized:
                         flow["eligible"] = False
@@ -389,6 +408,7 @@ class EBPFCollector:
             feature_tail=features[-4:],
             finalized_count=len(features),
             native_ai="BLOCKED",
+            stage_timing={k: dict(v) for k, v in self.stage_timing.items()},
         )
 
     def checkpoint(self) -> None:
@@ -401,19 +421,23 @@ class EBPFCollector:
         text, sha = json.dumps(value), digest(value)
         if len(text.encode()) > 16384:
             raise ValueError("EBPF_CHECKPOINT_SIZE")
-        with self.store.database.transaction() as db:
-            db.execute("DELETE FROM ebpf_checkpoint")
-            db.execute("INSERT INTO ebpf_checkpoint VALUES(?,?)", (text, sha))
-            self.store._audit(
-                db,
-                "EBPF_CHECKPOINT",
-                dict(
-                    summary_digest=sha,
-                    plan_digest=self.plan.identity,
-                    program_sha256=self.plan.program_sha256,
-                    native_ai="BLOCKED",
-                ),
-            )
+        started = time.perf_counter_ns()
+        try:
+            with self.store.database.transaction() as db:
+                db.execute("DELETE FROM ebpf_checkpoint")
+                db.execute("INSERT INTO ebpf_checkpoint VALUES(?,?)", (text, sha))
+                self.store._audit(
+                    db,
+                    "EBPF_CHECKPOINT",
+                    dict(
+                        summary_digest=sha,
+                        plan_digest=self.plan.identity,
+                        program_sha256=self.plan.program_sha256,
+                        native_ai="BLOCKED",
+                    ),
+                )
+        finally:
+            self._duration("audit_checkpoint", started)
 
     async def recover(self) -> dict:
         if self.state != "IDLE":

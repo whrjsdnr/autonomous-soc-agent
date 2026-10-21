@@ -204,3 +204,89 @@ def test_recvmsg_errno_does_not_overwrite_first_processing_failure(session, tmp_
         "source": "ACTUAL_OSERROR",
     }
     assert channel.transport_failed
+
+
+@pytest.mark.parametrize("announced_loss,audit_failure", [(0, False), (1, False), (0, True)])
+def test_bounded_slow_processing_keeps_counter_and_terminal_receive(
+    session, tmp_path, monkeypatch, announced_loss, audit_failure
+):
+    import socket
+    import struct
+    import threading
+
+    from tests.zeek_producer_support import valid_wire
+
+    from soc_agent.security_ai.ebpf_native.contracts import process_identity
+    from soc_agent.security_ai.ebpf_tc import data_plane
+
+    h, _ = session
+    channel = data_plane.PacketChannel(h.plan, h.envelope[-32:].hex(), tmp_path / "slow")
+    channel.source = 2
+    channel.identity = process_identity(os.getpid())
+    channel.prepare_adapter(7)
+    raw = parser(tmp_path)(valid_wire(), 1_000_000_000, 1)[1]
+    counter = struct.pack("<QQ7QII", 7, 1_000_000_001, 44, 40, 4, 0, 0, 0, 0, 1, 40)
+    rows = []
+    for sequence, kind, payload in [(n, 2, raw) for n in range(1, 41)] + [
+        (41, 5, counter),
+        (42, 3, bytes(80)),
+    ]:
+        rows.append(
+            data_plane.HEADER.pack(
+                data_plane.MAGIC,
+                1,
+                kind,
+                2,
+                sequence + announced_loss,
+                announced_loss,
+                h.plan.broker.application.application_session.bytes,
+                bytes.fromhex(channel.approval),
+                bytes.fromhex(h.plan.program_sha256),
+            )
+            + payload
+        )
+
+    class Frames:
+        def recvmsg(self, *_args):
+            credentials = struct.pack("3i", os.getpid(), os.getuid(), os.getgid())
+            return rows.pop(0), [(socket.SOL_SOCKET, socket.SCM_CREDENTIALS, credentials)], 0, None
+
+        def close(self):
+            pass
+
+    channel.channel = Frames()
+    monkeypatch.setattr(
+        data_plane.select, "select", lambda *_: ([channel.channel] if rows else [], [], [])
+    )
+    # Deliberately hold the processing worker before starting it. The authenticated
+    # receive owner must still consume terminal evidence without running the adapter.
+    channel.processor = threading.Thread(target=channel._process)
+    channel.pump()
+    channel.pump()
+    assert (
+        channel.wire_closed and channel.counter_evidence["totals"]["ring_reservation_failures"] == 4
+    )
+    assert channel.processing_queue.qsize() == 32
+    assert channel.processing_discarded == 8 and channel.receiver_metrics["queue_full"] == 8
+    assert channel.error == (
+        "TCX_DATA_SOCKET_DELIVERY_LOSS" if announced_loss else "TCX_PROCESSING_QUEUE_OVERFLOW"
+    )
+    assert not channel.transport_failed
+    if audit_failure:
+        import errno
+
+        def failed_checkpoint():
+            raise OSError(errno.EIO, "injected audit write failure")
+
+        monkeypatch.setattr(channel.adapter, "checkpoint", failed_checkpoint)
+    channel.processor.start()
+    channel.processor.join(timeout=2)
+    assert not channel.processor.is_alive() and channel.closed
+    assert not channel.adapter.accepted
+    assert channel.adapter.post_error_discarded == 32
+    assert channel.adapter.store.verify_audit()
+    channel.close()
+    if audit_failure:
+        assert channel.processing_io_failure["errno"] == 5
+        assert channel.cleanup_error == "TCX_PROCESSING_AUDIT_UNVERIFIED"
+        assert channel.error == "TCX_PROCESSING_QUEUE_OVERFLOW"

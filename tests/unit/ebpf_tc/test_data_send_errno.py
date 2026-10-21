@@ -52,6 +52,9 @@ def test_bounded_backpressure_and_terminal_evidence(tmp_path, sender, mode, expe
     result = subprocess.check_output([str(sender), str(journal), mode], text=True, timeout=2)
     assert int(result) == expected
     evidence = recover_native(journal, "aa" * 32)
+    samples = evidence["data_socket_samples"]
+    assert samples and all(s["send_buffer_bytes"] > 0 for s in samples)
+    assert all(s["outq_result"] == 0 and s["queued_bytes"] >= 0 for s in samples)
     rows = evidence["data_send_status"]
     assert evidence["data_counter_status"][0]["source"] == "FIXTURE_COUNTER_NEVER_NATIVE"
     assert rows[-1]["status"] == "FINAL"

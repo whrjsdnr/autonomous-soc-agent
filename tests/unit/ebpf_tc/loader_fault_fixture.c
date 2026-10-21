@@ -38,7 +38,7 @@ int bpf_program__set_autoload(struct bpf_program *p,bool enabled) {
 }
 int bpf_object__load(struct bpf_object *o) {
  (void)o;load_calls++;
- if(scenario==10 || scenario==11)for(int n=0;n<4;n++) {model_fds[n]=open("/dev/null",O_RDONLY);if(model_fds[n]<0)return -errno;}
+ if(scenario>=10)for(int n=0;n<4;n++) {model_fds[n]=open("/dev/null",O_RDONLY);if(model_fds[n]<0)return -errno;}
  if(scenario==4) {strcpy(kernel_log,"fixture-verifier-no-traffic");errno=EACCES;return -EACCES;}
  if(scenario==8 || scenario==9) {
   size_t length=scenario==8?24355:65535;memset(kernel_log,'V',length);
@@ -75,13 +75,26 @@ void bpf_object__close(struct bpf_object *o) {
 }
 void ring_buffer__free(struct ring_buffer *r) {(void)r;ring_freed++;}
 int soc_snapshot_tcx(struct soc_state *s,struct soc_snapshot *out) {(void)s;(void)out;return -EAGAIN;}
-int soc_final_drain_counters(struct soc_state *s) {(void)s;drain_calls++;return -EPIPE;}
+int ring_buffer__poll(struct ring_buffer *r,int timeout) {(void)r;(void)timeout;return -EAGAIN;}
+int libbpf_num_possible_cpus(void) {return 1;}
+int bpf_map_lookup_elem(int fd,const void *key,void *value) {
+ (void)fd;(void)key;
+ if(scenario==13) {errno=EPERM;return -1;}
+ uint64_t *rows=value;for(int n=0;n<7;n++)rows[n]=(uint64_t)(n+1);return 0;
+}
+int soc_final_drain_counters(struct soc_state *s) {
+ drain_calls++;
+ if(scenario>=12) {
+  int (*real_drain)(struct soc_state *)=dlsym(RTLD_NEXT,"soc_final_drain_counters");
+  if(!real_drain)_exit(104);return real_drain(s);
+ }return -EPIPE;
+}
 int main(int argc,char **argv) {
- if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>11)return 2;
+ if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>13)return 2;
  int object=open(argv[2],O_RDONLY|O_NOFOLLOW),audit=open(argv[3],O_WRONLY|O_CREAT|O_EXCL|O_APPEND,0600);
  if(object<0 || audit<0)return 3;
  struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.audit_fd=audit,.ipc_fd=-1,.data_fd=-1};
- s.plan.version=SOC_TCX_VERSION;s.plan.hook=1;memset(s.plan.approval,0xaa,32);
+ s.generation=7;s.data_source=2;s.plan.version=SOC_TCX_VERSION;s.plan.hook=1;memset(s.plan.approval,0xaa,32);
  int first=soc_real_ops.load(&s);s.loaded=!first;s.failed=1;
  if(scenario==7)s.tcx_snapshot_valid=1;
  struct soc_tcx link={.session=&s,.fd=-1,.program_fd=-1};

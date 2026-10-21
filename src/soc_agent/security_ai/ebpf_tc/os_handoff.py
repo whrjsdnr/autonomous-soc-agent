@@ -99,6 +99,8 @@ class Handoff:
         self.fd_release_evidence = []
         self.data_send_status = []
         self.data_counter_status = []
+        self.data_counter_queries = []
+        self.data_socket_samples = []
         self.error: str | None = None
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
         self.qualification_only = False
@@ -637,6 +639,8 @@ class Handoff:
                 self.fd_release_evidence = evidence["fd_release_evidence"]
                 self.data_send_status = evidence["data_send_status"]
                 self.data_counter_status = evidence["data_counter_status"]
+                self.data_counter_queries = evidence["data_counter_queries"]
+                self.data_socket_samples = evidence["data_socket_samples"]
                 if self.link_evidence and evidence["last_link_lifecycle"] in {
                     "TCX_LINK_RELEASED",
                     "TCX_CLEANUP_VERIFIED",
@@ -703,6 +707,8 @@ class Handoff:
             "fd_release_evidence": self.fd_release_evidence,
             "data_send_status": self.data_send_status,
             "data_counter_status": self.data_counter_status,
+            "data_counter_queries": self.data_counter_queries,
+            "data_socket_samples": self.data_socket_samples,
             "source": self.origin,
             "collector_state": self.collector_state,
             "tcx_link": self.link_evidence,

@@ -227,3 +227,27 @@ def test_owned_fd_release_check_detects_partial_close_after_drain_failure(
     assert release["all_observed_fds_closed"] is closed
     assert result["context_released"] and result["drain_calls"] == 1
     assert result["cleanup_return"] < 0 and not evidence["claimed_cleanup"]
+
+
+@pytest.mark.parametrize("scenario,lookup,totals", [(12, 0, True), (13, -1, False)])
+def test_owned_counter_query_runs_after_drain_failure(
+    fault_program, tmp_path, scenario, lookup, totals
+):
+    executable, object_file = fault_program
+    journal = tmp_path / "journal"
+    result = json.loads(
+        subprocess.check_output(
+            [str(executable), str(scenario), str(object_file), str(journal)],
+            text=True,
+            timeout=5,
+        )
+    )
+    evidence = recover_native(journal, "aa" * 32)
+    query = evidence["data_counter_queries"][0]
+    assert query["drain_result"] == -errno.EAGAIN
+    assert query["lookup_attempted"] and query["lookup_result"] == lookup
+    assert query["saved_errno"] == (None if totals else errno.EPERM)
+    assert query["transmit_result"] == -errno.EPERM  # No data socket in this fixture.
+    assert bool(evidence["data_counter_status"][0]["totals"]) == totals
+    assert result["context_released"] and result["ring_freed"] == 1
+    assert evidence["fd_release_evidence"][0]["result"] == 0

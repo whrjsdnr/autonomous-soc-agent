@@ -7,6 +7,8 @@
 #include <errno.h>
 #include <string.h>
 #include <poll.h>
+#include <sys/ioctl.h>
+#include <linux/sockios.h>
 /* SOCK_SEQPACKET is atomic: never send a suffix after a short result.
  * One readiness wait and one resumed send, <=50ms per record and <=2s
  * cumulative per Broker session. No extra queue or Collector restart. */
@@ -23,6 +25,14 @@ static int data_record(struct soc_state *s,const char *kind,const void *detail) 
     if(soc_sha(&row,sizeof(row)-32,row.sha) ||
        write(s->audit_fd,&row,sizeof(row))!=sizeof(row) || fsync(s->audit_fd))return -EIO;
     memcpy(s->audit_previous,row.sha,32);s->audit_records++;return 0;
+}
+static int socket_sample(struct soc_state *s,unsigned kind,unsigned phase) {
+    int queued=0,capacity=0;socklen_t size=sizeof(capacity);
+    errno=0;int queried=ioctl(s->data_fd,SIOCOUTQ,&queued),queue_errno=errno;
+    errno=0;int buffered=getsockopt(s->data_fd,SOL_SOCKET,SO_SNDBUF,&capacity,&size),buffer_errno=errno;
+    int64_t detail[10]={1,kind,phase,(int64_t)s->data_sequence,queried,queue_errno,
+        queried? -1:queued,buffered? -buffer_errno:capacity,(int64_t)soc_now(),(int64_t)s->data_wait_ns};
+    return data_record(s,"DATA_SOCKET_SAMPLE",detail);
 }
 static int data_status(struct soc_state *s,unsigned kind,unsigned status,ssize_t result,int saved) {
     struct detail {uint32_t version,kind,status,stopping;
@@ -48,7 +58,7 @@ static int row(struct soc_state *s,unsigned kind,const struct soc_event *event) 
     if(sent<0 && (saved==EAGAIN || saved==EWOULDBLOCK)) {
         if(!s->data_pressure_recorded) {
             s->data_pressure_recorded=1;
-            if(data_status(s,kind,1,sent,saved))return -EIO;
+            if(socket_sample(s,kind,1) || data_status(s,kind,1,sent,saved))return -EIO;
         }
         uint64_t now=soc_now(),remaining=s->data_wait_ns<DATA_TOTAL_WAIT_NS?
             DATA_TOTAL_WAIT_NS-s->data_wait_ns:0;
@@ -76,7 +86,7 @@ static int row(struct soc_state *s,unsigned kind,const struct soc_event *event) 
     }
     if(sent!=(ssize_t)sizeof(r)) {
         s->data_loss++;
-        if(data_status(s,kind,2,sent,saved))return -EIO;
+        if(socket_sample(s,kind,2) || data_status(s,kind,2,sent,saved))return -EIO;
         struct soc_load_diagnostic d={.stage=s->stopping?SOC_LOAD_CLEANUP:SOC_DATA_PLANE,
             .api=SOC_DIAG_SEND_DATA,.result=sent,.saved_errno=saved,.errno_source=SOC_SYSCALL_ERRNO};
         soc_diagnostic_record(s,&d,NULL,0);
@@ -109,6 +119,7 @@ int soc_data_end(struct soc_state *s,unsigned reason) {
 int soc_data_close(struct soc_state *s) {
     if(s->data_fd<0)return 0;
     int rc=row(s,SOC_DATA_CLOSED,NULL);
+    if(socket_sample(s,SOC_DATA_CLOSED,3) && !rc)rc=-EIO;
     if(data_status(s,SOC_DATA_CLOSED,3,rc,0) && !rc)rc=-EIO;
     if(close(s->data_fd))rc=-EIO;s->data_fd=-1;return rc;
 }
@@ -120,4 +131,12 @@ int soc_data_counters(struct soc_state *s,const struct soc_counters *c,unsigned 
     if(c)payload.totals=*c;struct soc_event bytes;memcpy(&bytes,&payload,sizeof(bytes));
     if(data_record(s,s->data_source==1?"DATA_COUNTER_STATUS":"FIXTURE_COUNTER_STATUS",&payload))return -EIO;
     return row(s,SOC_DATA_COUNTER,&bytes);
+}
+
+int soc_data_counter_query(struct soc_state *s,int drain,int cpus,int fd,int lookup,int saved,int sent,uint64_t elapsed,unsigned flags) {
+    /* Signed results retain not-attempted (-ECANCELED), syscall errno and
+     * transmission failure separately. This row never depends on the socket. */
+    int64_t detail[10]={1,drain,cpus,fd,lookup,saved,sent,(int64_t)elapsed,
+        (int64_t)s->generation,(int64_t)(s->data_source|flags)};
+    return data_record(s,"DATA_COUNTER_QUERY",detail);
 }

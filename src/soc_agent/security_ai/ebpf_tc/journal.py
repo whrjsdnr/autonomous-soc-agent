@@ -60,6 +60,8 @@ def recover_native(path: Path, approval: str) -> dict:
     fd_release_evidence = []
     data_send_status = []
     data_counter_status = []
+    data_counter_queries = []
+    data_socket_samples = []
     data_delivery_failed = False
     last_link_lifecycle = None
     with os.fdopen(fd, "rb") as stream:
@@ -79,6 +81,8 @@ def recover_native(path: Path, approval: str) -> dict:
                     "FD_RELEASE_EVIDENCE",
                     "DATA_SEND_STATUS",
                     "DATA_COUNTER_STATUS",
+                    "DATA_COUNTER_QUERY",
+                    "DATA_SOCKET_SAMPLE",
                     "FIXTURE_COUNTER_STATUS",
                 }
                 else TCX_ROW
@@ -104,6 +108,8 @@ def recover_native(path: Path, approval: str) -> dict:
                     "FD_RELEASE_EVIDENCE",
                     "DATA_SEND_STATUS",
                     "DATA_COUNTER_STATUS",
+                    "DATA_COUNTER_QUERY",
+                    "DATA_SOCKET_SAMPLE",
                     "FIXTURE_COUNTER_STATUS",
                 }
                 or sequence > 2048
@@ -111,6 +117,63 @@ def recover_native(path: Path, approval: str) -> dict:
                 raise ValueError("NATIVE_JOURNAL_INTEGRITY")
             if kind in TCX_KINDS:
                 last_link_lifecycle = kind
+            if kind == "DATA_SOCKET_SAMPLE":
+                version, message, phase, seq, result, saved, queued, capacity, stamp, waited = (
+                    struct.unpack("<10q", owner)
+                )
+                if (
+                    version != 1
+                    or message not in {1, 2, 3, 4, 5}
+                    or phase not in {1, 2, 3}
+                    or not 0 <= seq <= 65568
+                    or not 0 <= saved <= 4095
+                    or stamp <= 0
+                    or waited < 0
+                    or len(data_socket_samples) >= 64
+                ):
+                    raise ValueError("DATA_SOCKET_SAMPLE_SCHEMA")
+                data_socket_samples.append(
+                    dict(
+                        message=message,
+                        phase=phase,
+                        sequence=seq,
+                        outq_result=result,
+                        outq_errno=saved or None,
+                        queued_bytes=queued if result == 0 else None,
+                        send_buffer_bytes=capacity if capacity > 0 else None,
+                        send_buffer_errno=-capacity if capacity < 0 else None,
+                        timestamp_ns=stamp,
+                        cumulative_wait_ns=waited,
+                    )
+                )
+            if kind == "DATA_COUNTER_QUERY":
+                version, drain, cpus, fd, lookup, saved, sent, elapsed, generation, source = (
+                    struct.unpack("<10q", owner)
+                )
+                if (
+                    version != 1
+                    or not 0 <= saved <= 4095
+                    or elapsed < 0
+                    or source not in {1, 2, 5, 6, 13, 14}
+                    or generation < 1
+                    or len(data_counter_queries) >= 16
+                ):
+                    raise ValueError("DATA_COUNTER_QUERY_SCHEMA")
+                data_counter_queries.append(
+                    dict(
+                        source="FIXTURE" if source & 3 == 2 else "OWNED_MAP_NATIVE_JOURNAL",
+                        drain_result=drain,
+                        possible_cpus_result=cpus,
+                        map_fd_result=fd,
+                        lookup_result=lookup,
+                        saved_errno=saved or None,
+                        transmit_result=sent,
+                        elapsed_ns=elapsed,
+                        generation=generation,
+                        lookup_attempted=bool(source & 4),
+                        sum_overflow=bool(source & 8),
+                    )
+                )
             if kind in {"DATA_COUNTER_STATUS", "FIXTURE_COUNTER_STATUS"}:
                 generation, stamp, *values = struct.unpack("<QQ7QII", owner)
                 totals, status, delivered = values[:7], values[7], values[8]
@@ -286,6 +349,8 @@ def recover_native(path: Path, approval: str) -> dict:
         loader_diagnostics=diagnostics,
         data_send_status=data_send_status,
         data_counter_status=data_counter_status,
+        data_counter_queries=data_counter_queries,
+        data_socket_samples=data_socket_samples,
         fd_release_evidence=fd_release_evidence,
         last_link_lifecycle=last_link_lifecycle,
         verifier_log={

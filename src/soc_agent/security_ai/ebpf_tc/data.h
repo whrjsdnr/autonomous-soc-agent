@@ -23,4 +23,5 @@ int soc_data_emit(struct soc_state *,const void *,size_t);
 int soc_data_end(struct soc_state *,unsigned);
 int soc_data_close(struct soc_state *);
 int soc_data_counters(struct soc_state *,const struct soc_counters *,unsigned,unsigned);
+int soc_data_counter_query(struct soc_state *,int,int,int,int,int,int,uint64_t,unsigned);
 #endif

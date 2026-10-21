@@ -2,8 +2,10 @@
 
 import array
 import os
+import queue
 import select
 import socket
+import sqlite3
 import struct
 import threading
 import time
@@ -53,6 +55,30 @@ class PacketChannel:
         self.transport_failed = False
         self.io_failure: dict[str, int | str | None] | None = None
         self.cleanup_error: str | None = None
+        self.processing_io_failure: dict | None = None
+        self.processor: threading.Thread | None = None
+        self.processing_queue: queue.Queue[tuple[bytes, int]] = queue.Queue(maxsize=32)
+        # One shared 32-record budget across ingress, in-flight and event-time
+        # reorder storage; adding a worker must not double the approved budget.
+        self.packet_slots = threading.BoundedSemaphore(32)
+        self.processing_stop = threading.Event()
+        self.wire_closed = False
+        self.end_pending: bytes | None = None
+        self.cached_processing = self.cached_queue = None
+        self.processing_discarded = self.processing_queue_peak = 0
+        self.receiver_metrics = dict(
+            recv_calls=0,
+            recv_gap_max_ns=0,
+            recv_max_ns=0,
+            processing_calls=0,
+            processing_max_ns=0,
+            queue_wait_max_ns=0,
+            queue_full=0,
+            receiver_stopped_ns=None,
+            close_requested_ns=None,
+            closed_received_ns=None,
+        )
+        self.last_receive_ns: int | None = None
 
     def listen(self) -> None:
         self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
@@ -77,13 +103,15 @@ class PacketChannel:
             raise ValueError("TCX_DATA_PEER_IDENTITY")
         self.identity = current
         self._receive(ready=True)
+        self.processor = threading.Thread(target=self._process, name="tcx-flow-worker", daemon=True)
+        self.processor.start()
         self.worker = threading.Thread(
             target=self._consume, name="tcx-metadata-reader", daemon=True
         )
         self.worker.start()
 
     def _consume(self) -> None:
-        while not self.stop_event.is_set() and not self.closed and not self.transport_failed:
+        while not self.stop_event.is_set() and not self.wire_closed and not self.transport_failed:
             try:
                 if self.channel and select.select([self.channel], [], [], 0.05)[0]:
                     self.pump()
@@ -102,7 +130,108 @@ class PacketChannel:
                         self.channel.shutdown(socket.SHUT_RDWR)
                     except OSError:
                         self.error = self.error or "TCX_DATA_SHUTDOWN_UNVERIFIED"
-                return
+                break
+        self.receiver_metrics["receiver_stopped_ns"] = time.perf_counter_ns()
+
+    def _processing_failure(self, code: str) -> None:
+        self.error = self.error or code
+        if self.adapter and not self.adapter.flow.closed:
+            self.adapter.last_error = self.error
+            self.adapter.state = "ERROR"
+            try:
+                self.adapter.end_metadata_stream("INCOMPLETE")
+            except (OSError, sqlite3.Error) as exc:
+                self._processing_io_error(exc)
+
+    def _processing_io_error(self, exc: OSError | sqlite3.Error) -> None:
+        self.processing_io_failure = self.processing_io_failure or dict(
+            api="packet_adapter_or_checkpoint",
+            errno=exc.errno if isinstance(exc, OSError) else None,
+            sqlite_errorcode=getattr(exc, "sqlite_errorcode", None),
+        )
+        self.cleanup_error = self.cleanup_error or "TCX_PROCESSING_AUDIT_UNVERIFIED"
+        self.error = self.error or self.cleanup_error
+
+    def _publish(self) -> None:
+        # Only the processing owner reads the live assembler. GUI/control gets
+        # immutable projections and never holds the receive lock across SQLite.
+        if self.adapter:
+            self.cached_processing = self.adapter._summary()
+            self.cached_queue = self.adapter.metrics()
+
+    def _process(self) -> None:
+        while True:
+            try:
+                raw, received_ns = self.processing_queue.get(timeout=0.02)
+            except queue.Empty:
+                if self.error:
+                    before = len(self.adapter.queue) if self.adapter else 0
+                    self._processing_failure(self.error)
+                    self._release_slots(before)
+                if self.end_pending is not None:
+                    end, self.end_pending = self.end_pending, None
+                    before = len(self.adapter.queue) if self.adapter else 0
+                    try:
+                        self._apply(4, end)
+                    except (ValueError, OSError, sqlite3.Error) as exc:
+                        if not isinstance(exc, ValueError):
+                            self._processing_io_error(exc)
+                        self._processing_failure(
+                            str(exc) if isinstance(exc, ValueError) else self.error
+                        )
+                    self._release_slots(before - (len(self.adapter.queue) if self.adapter else 0))
+                    self._publish()
+                if (
+                    self.wire_closed or self.processing_stop.is_set()
+                ) and self.processing_queue.empty():
+                    before = len(self.adapter.queue) if self.adapter else 0
+                    if self.adapter and not self.adapter.flow.closed:
+                        try:
+                            self.adapter.end_metadata_stream(
+                                "CAPTURE_STOP" if self.wire_closed else "INCOMPLETE"
+                            )
+                        except (OSError, sqlite3.Error, ValueError) as exc:
+                            if not isinstance(exc, ValueError):
+                                self._processing_io_error(exc)
+                            self._processing_failure(
+                                str(exc) if isinstance(exc, ValueError) else self.error
+                            )
+                    self._release_slots(before - (len(self.adapter.queue) if self.adapter else 0))
+                    self.closed = self.wire_closed
+                    self._publish()
+                    return
+                continue
+            before = len(self.adapter.queue) if self.adapter else 0
+            start = time.perf_counter_ns()
+            self.receiver_metrics["queue_wait_max_ns"] = max(
+                self.receiver_metrics["queue_wait_max_ns"], start - received_ns
+            )
+            try:
+                if self.error:
+                    self._processing_failure(self.error)
+                self._apply(2, raw)
+            except (ValueError, OSError, sqlite3.Error) as exc:
+                if not isinstance(exc, ValueError):
+                    self._processing_io_error(exc)
+                self._processing_failure(
+                    str(exc) if isinstance(exc, ValueError) else "TCX_PROCESSING_IO_FAILURE"
+                )
+            finally:
+                self.receiver_metrics["processing_calls"] += 1
+                self.receiver_metrics["processing_max_ns"] = max(
+                    self.receiver_metrics["processing_max_ns"], time.perf_counter_ns() - start
+                )
+                self._release_slots(1 + before - (len(self.adapter.queue) if self.adapter else 0))
+                self.processing_queue.task_done()
+                if (
+                    self.processing_queue.empty()
+                    or self.receiver_metrics["processing_calls"] % 32 == 0
+                ):
+                    self._publish()
+
+    def _release_slots(self, count: int) -> None:
+        for _ in range(count):
+            self.packet_slots.release()
 
     @synchronized
     def prepare_adapter(self, generation: int, clock: ClockContract | None = None) -> None:
@@ -134,13 +263,24 @@ class PacketChannel:
             time.monotonic(),
             clock or ClockContract(session_id=plan.session_id, domain=plan.clock),
         )
+        self._publish()
 
     def _receive(self, *, ready: bool = False) -> None:
         if self.channel is None or self.identity is None or self.closed:
             raise ValueError("TCX_DATA_CHANNEL_NOT_READY")
         try:
+            before = time.perf_counter_ns()
+            if self.last_receive_ns is not None:
+                self.receiver_metrics["recv_gap_max_ns"] = max(
+                    self.receiver_metrics["recv_gap_max_ns"], before - self.last_receive_ns
+                )
             body, ancillary, flags, _ = self.channel.recvmsg(
                 ROW_BYTES + 1, socket.CMSG_SPACE(64), socket.MSG_CMSG_CLOEXEC
+            )
+            self.last_receive_ns = time.perf_counter_ns()
+            self.receiver_metrics["recv_calls"] += 1
+            self.receiver_metrics["recv_max_ns"] = max(
+                self.receiver_metrics["recv_max_ns"], self.last_receive_ns - before
             )
         except OSError as exc:
             self.io_failure = self.io_failure or dict(
@@ -198,18 +338,45 @@ class PacketChannel:
             raise ValueError("TCX_DATA_SOURCE_IDENTITY")
         if loss < self.loss:
             raise ValueError("TCX_DATA_COUNTER_RESET")
-        self.loss = loss
-        if loss:
-            raise ValueError("TCX_DATA_SOCKET_DELIVERY_LOSS")
-        if sequence != (0 if ready else self.sequence + 1) or sequence > 65568:
+        missing = sequence - (0 if ready else self.sequence + 1)
+        if missing != loss - self.loss or missing < 0 or sequence > 65568:
             raise ValueError("TCX_DATA_SEQUENCE_OR_COUNTER_RESET")
         if kind not in ({1} if ready else {2, 3, 4, 5}):
             raise ValueError("TCX_DATA_KIND")
         self.sequence, self.loss = sequence, loss
         self.frames += 1
         if loss:
-            raise ValueError("TCX_DATA_SOCKET_DELIVERY_LOSS")
+            # Authenticated sender-declared loss stops feature processing, but
+            # counter/terminal records still have valid identity and sequence.
+            self.error = self.error or "TCX_DATA_SOCKET_DELIVERY_LOSS"
         raw = body[HEADER.size :]
+        if self.processor and kind == 2:
+            try:
+                if not self.packet_slots.acquire(blocking=False):
+                    raise queue.Full
+                self.processing_queue.put_nowait((raw, time.perf_counter_ns()))
+                self.processing_queue_peak = max(
+                    self.processing_queue_peak, self.processing_queue.qsize()
+                )
+            except queue.Full:
+                self.receiver_metrics["queue_full"] += 1
+                self.processing_discarded += 1
+                self.error = self.error or "TCX_PROCESSING_QUEUE_OVERFLOW"
+            return
+        if self.processor and kind == 4:
+            if self.end_pending is not None:
+                raise ValueError("TCX_DATA_DUPLICATE_END")
+            self.end_pending = raw
+            return
+        if self.processor and kind == 3:
+            if any(raw):
+                raise ValueError("TCX_DATA_CONTROL_SCHEMA")
+            self.wire_closed = True
+            self.receiver_metrics["closed_received_ns"] = time.perf_counter_ns()
+            return
+        self._apply(kind, raw)
+
+    def _apply(self, kind: int, raw: bytes) -> None:
         if kind == 2:
             if self.adapter is None:
                 raise ValueError("TCX_DATA_ADAPTER_NOT_PREPARED")
@@ -282,17 +449,22 @@ class PacketChannel:
     def pump(self, limit: int = 32) -> int:
         if not 1 <= limit <= 32:
             raise ValueError("TCX_DATA_PUMP_BOUND")
+        if self.worker and threading.current_thread() is not self.worker:
+            if self.error:
+                raise ValueError(self.error)
+            return 0
         count = 0
         try:
             while (
                 self.channel
                 and not self.closed
+                and not self.wire_closed
                 and count < limit
                 and select.select([self.channel], [], [], 0)[0]
             ):
                 self._receive()
                 count += 1
-            if self.adapter and self.adapter.queue:
+            if not self.processor and self.adapter and self.adapter.queue:
                 self.adapter.drain()
         except (ValueError, OSError) as exc:
             code = str(exc) if isinstance(exc, ValueError) else "TCX_DATA_IO_FAILURE"
@@ -305,7 +477,7 @@ class PacketChannel:
             }
             self.transport_failed = code not in recoverable
             self.queue_overflows += int(self.error == "EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
-            if self.adapter:
+            if self.adapter and not self.processor:
                 self.adapter.last_error = self.error
                 self.adapter.state = "ERROR"
                 self.adapter.end_metadata_stream(
@@ -319,6 +491,16 @@ class PacketChannel:
         return count
 
     def close(self) -> None:
+        self.receiver_metrics["close_requested_ns"] = time.perf_counter_ns()
+        if self.worker:
+            deadline = time.monotonic() + 2
+            while (
+                self.worker.is_alive()
+                and not self.wire_closed
+                and not self.transport_failed
+                and time.monotonic() < deadline
+            ):
+                time.sleep(0.005)
         self.stop_event.set()
         if self.worker:
             self.worker.join(timeout=2)
@@ -326,15 +508,32 @@ class PacketChannel:
                 self.cleanup_error = "TCX_DATA_WORKER_SHUTDOWN_UNVERIFIED"
                 self.error = self.error or self.cleanup_error
         try:
-            if self.channel and not self.transport_failed:
+            if self.channel and not self.transport_failed and not self.worker:
                 # Bounded final drain, not an unbounded EOF wait or auto-restart.
                 for _ in range(2050):
                     if self.closed or not self.pump():
                         break
-            if self.adapter and not self.adapter.flow.closed:
+            if self.processor:
+                self.processing_stop.set()
+                self.processor.join(timeout=2)
+                if not self.wire_closed:
+                    self.cleanup_error = "TCX_DATA_TERMINAL_UNVERIFIED"
+                    self.error = self.error or self.cleanup_error
+                if self.processor.is_alive():
+                    self.cleanup_error = "TCX_PROCESSOR_SHUTDOWN_UNVERIFIED"
+                    self.error = self.error or self.cleanup_error
+            if (
+                self.adapter
+                and not self.adapter.flow.closed
+                and not (self.processor and self.processor.is_alive())
+            ):
                 self.adapter.end_metadata_stream("INCOMPLETE")
-            if self.adapter:
-                self.adapter.checkpoint()
+            if self.adapter and not (self.processor and self.processor.is_alive()):
+                try:
+                    self.adapter.checkpoint()
+                except (OSError, sqlite3.Error) as exc:
+                    self._processing_io_error(exc)
+                self._publish()
         finally:
             if self.channel:
                 self.channel.close()
@@ -371,14 +570,32 @@ class PacketChannel:
             kernel_drops=None,
             queue_overflows=self.queue_overflows,
             backpressure_events=self.backpressure_events,
-            queue=self.adapter.metrics() if self.adapter else None,
-            processing=self.adapter._summary() if self.adapter else None,
+            queue=self.cached_queue
+            if self.processor
+            else self.adapter.metrics()
+            if self.adapter
+            else None,
+            processing=self.cached_processing
+            if self.processor
+            else self.adapter._summary()
+            if self.adapter
+            else None,
+            receiver=dict(self.receiver_metrics),
+            processing_queue=dict(
+                capacity=32,
+                budget="SHARED_INGRESS_INFLIGHT_AND_REORDER",
+                depth=self.processing_queue.qsize(),
+                peak=self.processing_queue_peak,
+                discarded=self.processing_discarded,
+            ),
             error=self.error,
             transport_failed=self.transport_failed,
             io_failure=self.io_failure,
+            processing_io_failure=self.processing_io_failure,
             cleanup_error=self.cleanup_error,
-            terminal_closed_observed=self.closed,
+            terminal_closed_observed=self.wire_closed if self.processor else self.closed,
             native_ai="BLOCKED",
             automatic_restart=False,
             worker_alive=bool(self.worker and self.worker.is_alive()),
+            processor_alive=bool(self.processor and self.processor.is_alive()),
         )
