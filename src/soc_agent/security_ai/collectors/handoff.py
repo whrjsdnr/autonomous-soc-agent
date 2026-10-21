@@ -125,8 +125,42 @@ def failure_evidence(error: BaseException, *, stage: str, api: str) -> dict:
     from pydantic import ValidationError
 
     if isinstance(error, ValidationError):
-        evidence["validation_types"] = [
-            row["type"] for row in error.errors(include_input=False, include_context=False)[:8]
+        errors = error.errors(include_input=False, include_context=False)
+        evidence["validation_types"] = [row["type"] for row in errors[:16]]
+        allowed = {
+            "sequence",
+            "seconds",
+            "microseconds",
+            "frame_length",
+            "captured_length",
+            "kind",
+            "source",
+            "destination",
+            "source_port",
+            "destination_port",
+            "ip_length",
+            "tcp_flags",
+            "packet_records",
+            "supported_packet_records",
+            "unsupported_packet_records",
+            "network_events",
+            "dns_events",
+            "pkts_recvd",
+            "pkts_dropped",
+            "pkts_link",
+            "bytes_recvd",
+            "stop_reason",
+            "messages_before_closed",
+            "bytes_before_closed",
+            "omitted_packet_records",
+            "omitted_events",
+        }
+        evidence["validation_fields"] = [
+            dict(
+                field=row["loc"][0] if row["loc"] and row["loc"][0] in allowed else "REDACTED",
+                type=row["type"],
+            )
+            for row in errors[:16]
         ]
     causes = []
     cause = error.__cause__

@@ -280,7 +280,8 @@ class LiveZeekCollector(ZeekCollector):
             "ZEEK_STREAM_PROGRESS",
             dict(
                 sequence=self.stream.sequence,
-                packets=self.stream.packet_count,
+                packets=self.stream.observation_count,
+                stream_counters=self.stream.diagnostics(),
                 cursor=cursor,
                 closed=self.stream.closed,
                 normalization_digest=self.stream.normalization_digest,
@@ -386,6 +387,7 @@ class LiveZeekCollector(ZeekCollector):
                         self.native_integrity = await asyncio.to_thread(persist, self)
                     if (
                         self.fixture
+                        and not self.stream.unsupported_count
                         and not self.stop_requested
                         and result.get("termination_reason") == "INPUT_EXHAUSTED"
                         and self.stream.closed_detail
@@ -728,7 +730,7 @@ class LiveZeekCollector(ZeekCollector):
         value["network"].update(
             collector_network_events=self.store.counts().get("network", 0) if self.store else None,
             collector_dns_events=self.store.counts().get("dns", 0) if self.store else None,
-            packet_metadata_count=packet_count,
+            packet_metadata_count=self.stream.observation_count if self.stream else packet_count,
             finalized_flows=len(self.stream.finalized)
             if self.stream
             else (self.native_integrity.get("flow_count") if self.native_integrity else None),
@@ -779,13 +781,18 @@ class LiveZeekCollector(ZeekCollector):
             and self.state in {"APPROVAL_REQUIRED", "AUTHENTICATING", "STARTING"}
             else ("COMMAND_VALID" if valid else self.state),
             startup_phase=self.startup_phase,
-            network_observation="OBSERVED" if packet_count else "NOT_OBSERVED",
+            network_observation="OBSERVED"
+            if (self.stream.observation_count if self.stream else packet_count)
+            else "NOT_OBSERVED",
             dns_observation="OBSERVED"
             if self.store and self.store.counts().get("dns", 0)
             else "NOT_OBSERVED",
             stop_reason=self.stop_reason,
             termination_reason=observed_exit.get("termination_reason"),
-            packet_budget=dict(used=packet_count, limit=4096),
+            stream_counters=self.stream.diagnostics() if self.stream else None,
+            packet_budget=dict(
+                used=self.stream.observation_count if self.stream else packet_count, limit=4096
+            ),
             event_budget=dict(
                 used=self.stream.sequence
                 if self.stream

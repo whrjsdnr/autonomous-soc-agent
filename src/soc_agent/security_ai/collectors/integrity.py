@@ -9,7 +9,7 @@ import struct
 from typing import Literal
 from uuid import UUID
 
-from pydantic import Field
+from pydantic import Field, SerializerFunctionWrapHandler, model_serializer
 
 from soc_agent.review.models import Hash
 from soc_agent.security_ai.collectors.finalization import Closed
@@ -209,6 +209,8 @@ class SessionReport(Frozen):
     capture: Status
     flow_completeness: Status
     packet_records: int | None = Field(default=None, ge=0, le=4096, strict=True)
+    supported_packet_records: int | None = Field(default=None, ge=0, le=4096, strict=True)
+    unsupported_packet_records: int | None = Field(default=None, ge=0, le=4096, strict=True)
     network_events: int | None = Field(default=None, ge=0, le=8192, strict=True)
     dns_events: int | None = Field(default=None, ge=0, le=8192, strict=True)
     gaps: int | None = Field(default=None, ge=0, strict=True)
@@ -216,6 +218,14 @@ class SessionReport(Frozen):
     port53_metadata_packets: int | None = Field(default=None, ge=0, le=4096, strict=True)
     dns_visibility: str = "UNKNOWN"
     native_policy: Literal["BLOCKED"] = "BLOCKED"
+
+    @model_serializer(mode="wrap")
+    def serialize_counts(self, handler: SerializerFunctionWrapHandler) -> dict:
+        value = handler(self)
+        for name in ("supported_packet_records", "unsupported_packet_records"):
+            if value.get(name) is None:
+                value.pop(name, None)
+        return value
 
 
 def assess_session(
@@ -274,6 +284,7 @@ def assess_session(
             closed.stop_reason != "ZEEK_DONE"
             or closed.omitted_events
             or closed.omitted_packet_records
+            or closed.unsupported_packet_records
         )
         else (
             "VERIFIED"
@@ -291,6 +302,8 @@ def assess_session(
         capture=capture,
         flow_completeness=complete,
         packet_records=closed.packet_records if closed else None,
+        supported_packet_records=closed.supported_packet_records if closed else None,
+        unsupported_packet_records=closed.unsupported_packet_records if closed else None,
         network_events=closed.network_events if closed else None,
         dns_events=closed.dns_events if closed else None,
         # An intact metadata stream does not attest that there were no capture gaps.

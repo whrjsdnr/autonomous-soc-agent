@@ -20,6 +20,8 @@ export {
 global messages: count = 0;
 global output_bytes: count = 0;
 global packets: count = 0;
+global supported_packets: count = 0;
+global unsupported_packets: count = 0;
 global networks: count = 0;
 global dns_events: count = 0;
 global omitted_events: count = 0;
@@ -31,30 +33,39 @@ function request_stop(reason: string) {
 }
 function emit(kind: string, data: string) {
     if ( closed ) Reporter::fatal("SOC_ZEEK_POST_CLOSED_EVENT");
-    # Reserve a terminal envelope and 2 KiB for bounded termination accounting.
+    # Reserve COUNTER + CLOSED envelopes, each bounded to 2 KiB.
     local line = fmt("{\"sequence\":%d,\"kind\":\"%s\",\"data\":%s}", messages+1, kind, data);
-    if ( messages >= 8191 ) {
+    if ( messages >= 8190 ) {
         ++omitted_events;
         request_stop("EVENT_LIMIT_REACHED");
         return;
     }
-    if ( output_bytes + |line| + 1 > 8388608 - 2048 ) {
+    if ( output_bytes + |line| + 1 > 8388608 - 4096 ) {
         ++omitted_events;
         request_stop("OUTPUT_LIMIT_REACHED");
         return;
     }
     ++messages;
     output_bytes += |line| + 1;
-    if ( kind == "packet" ) ++packets;
+    if ( kind == "packet" || kind == "unsupported" ) ++packets;
+    if ( kind == "packet" ) ++supported_packets;
+    if ( kind == "unsupported" ) ++unsupported_packets;
     if ( kind == "network" ) ++networks;
     if ( kind == "dns" ) ++dns_events;
     print line;
-    if ( messages == 8191 ) request_stop("EVENT_LIMIT_REACHED");
+    if ( messages == 8190 ) request_stop("EVENT_LIMIT_REACHED");
 }
 event SOCNetwork14::packet_limit_reached() { request_stop("PACKET_LIMIT_REACHED"); }
 event zeek_init() &priority=-20 { emit("ready", "{}"); }
 hook Log::log_stream_policy(rec: any, id: Log::ID) {
-    if ( id == SOCNetwork14::PACKETS ) emit("packet", to_json(rec));
+    if ( id == SOCNetwork14::PACKETS ) {
+        local p = rec as SOCNetwork14::Info;
+        local unsupported = p$kind == "UNSUPPORTED" || p$frame_length > 65535 ||
+            p$captured_length != p$frame_length;
+        if ( p?$ip_length && (p$ip_length > 65535 || p$ip_length + 14 > p$frame_length) )
+            unsupported = T;
+        emit(unsupported ? "unsupported" : "packet", to_json(p));
+    }
     if ( id == Conn::LOG ) {
         local c = rec as Conn::Info;
         local n: Summary = [$ts=c$ts, $uid=c$uid, $id=[$orig_h=c$id$orig_h, $orig_p=port_to_count(c$id$orig_p),
@@ -90,10 +101,19 @@ hook Log::log_stream_policy(rec: any, id: Log::ID) {
 event zeek_done() &priority=-100 {
     # This hook is the only CLOSED producer. Fatal/kill paths produce no certificate.
     local stats = get_net_stats();
+    local counter = fmt("{\"packet_records\":%d,\"supported_packet_records\":%d,\"unsupported_packet_records\":%d,\"network_events\":%d,\"dns_events\":%d,\"pkts_recvd\":%d,\"pkts_dropped\":%d,\"pkts_link\":%d,\"bytes_recvd\":%d}",
+        packets, supported_packets, unsupported_packets, networks, dns_events,
+        stats$pkts_recvd, stats$pkts_dropped, stats$pkts_link, stats$bytes_recvd);
+    local counter_line = fmt("{\"sequence\":%d,\"kind\":\"counter\",\"data\":%s}", messages+1, counter);
+    if ( |counter_line| + 1 > 2048 ) Reporter::fatal("SOC_ZEEK_COUNTER_BOUND");
+    ++messages;
+    output_bytes += |counter_line| + 1;
+    print counter_line;
     local data = fmt("{\"stop_reason\":\"%s\",\"packet_records\":%d,\"network_events\":%d,\"dns_events\":%d,\"messages_before_closed\":%d,\"bytes_before_closed\":%d,\"omitted_packet_records\":%d,\"omitted_events\":%d,\"pkts_recvd\":%d,\"pkts_dropped\":%d,\"pkts_link\":%d,\"bytes_recvd\":%d}",
         stop_reason, packets, networks, dns_events, messages, output_bytes,
         SOCNetwork14::omitted_packet_records, omitted_events,
         stats$pkts_recvd, stats$pkts_dropped, stats$pkts_link, stats$bytes_recvd);
+    data = sub_bytes(data, 0, |data|-1) + fmt(",\"supported_packet_records\":%d,\"unsupported_packet_records\":%d}", supported_packets, unsupported_packets);
     data = sub_bytes(data, 0, |data|-1) + ",\"dns_diagnostics\":" + SOCVisibility::snapshot() + "}";
     local line = fmt("{\"sequence\":%d,\"kind\":\"closed\",\"data\":%s}", messages+1, data);
     if ( |line| + 1 > 2048 ) Reporter::fatal("SOC_ZEEK_CLOSED_BOUND");

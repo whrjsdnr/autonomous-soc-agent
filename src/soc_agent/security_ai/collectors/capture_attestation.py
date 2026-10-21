@@ -149,7 +149,7 @@ def report(collector, stream=None) -> dict:
         or (c.native_integrity or {}).get("session", {}).get("capture") == "FAILED"
         else "UNVERIFIED",
         same_handle_proof="BLOCKED_STOCK_SOURCE_PRIVATE_HANDLE",
-        packet_records=stream.packet_count if stream and stream.ready else None,
+        packet_records=stream.observation_count if stream and stream.ready else None,
         packet_accounting_scope="ZEEK_DELIVERED_METADATA_NOT_KERNEL_OBSERVATIONS",
         native_ai="BLOCKED",
         provider_admission="NO_REVIEWED_NATIVE_PROVIDER",

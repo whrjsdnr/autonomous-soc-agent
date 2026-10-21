@@ -175,6 +175,8 @@ class StreamProcess:
         first_failure = None
         stage, api = "LAUNCH", "SupervisorClient.start/subprocess.Popen"
         discarded_after_adapter_failure = 0
+        ledger_attempted = True
+        envelope = None
 
         def preserve_failure(exc, failure_stage, failure_api):
             nonlocal first_failure
@@ -283,6 +285,8 @@ class StreamProcess:
                     while b"\n" in pending:
                         line, pending = pending.split(b"\n", 1)
                         line += b"\n"
+                        ledger_attempted = False
+                        envelope = None
                         stage, api = "STREAM_DECODE", "live_stream.decode"
                         envelope = decode(line)
                         stage, api = "STREAM_SEQUENCE", "Envelope.sequence"
@@ -290,11 +294,11 @@ class StreamProcess:
                             raise ValueError("ZEEK_STREAM_SEQUENCE_INTEGRITY")
                         # Validate privacy and packet schema before host persistence.
                         from soc_agent.security_ai.collectors.live_stream import SUMMARY_FIELDS
-                        from soc_agent.security_ai.collectors.packet_input import Packet
+                        from soc_agent.security_ai.collectors.packet_metadata import packet_metadata
 
                         stage, api = "STREAM_SCHEMA", "Packet.model_validate/summary_allowlist"
-                        if envelope.kind == "packet":
-                            Packet.model_validate(envelope.data)
+                        if envelope.kind in {"packet", "unsupported"}:
+                            packet_metadata(envelope.kind, envelope.data)
                         elif envelope.kind in {"dns", "network"}:
                             if not set(envelope.data) <= SUMMARY_FIELDS:
                                 raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
@@ -310,6 +314,7 @@ class StreamProcess:
                             raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
 
                         stage, api = "STREAM_ACCOUNTING", "Ledger.accept"
+                        ledger_attempted = True
                         ledger.accept(envelope, line)
                         stage, api = "STREAM_PERSIST", "stream.write"
                         output.write(line)
@@ -359,6 +364,12 @@ class StreamProcess:
             self.cleanup_verified = True
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
             preserve_failure(exc, stage, api)
+            if not ledger_attempted:
+                ledger.total_received += 1
+                ledger.invalid += 1
+                if envelope:
+                    ledger.duplicate += int(envelope.sequence <= ledger.sequence)
+                    ledger.sequence_gap += int(envelope.sequence > ledger.sequence + 1)
             code = poll_owned()
             error = error or safe_code(exc)
             reason = (
@@ -419,6 +430,7 @@ class StreamProcess:
                     plan_digest=self.plan.identity,
                     exit_code=code,
                     first_failure=first_failure,
+                    stream_counters=ledger.diagnostics(),
                     error=error,
                     stream_sha256=file_digest(self.directory / "stream.jsonl"),
                     output_bytes=self.output_bytes,

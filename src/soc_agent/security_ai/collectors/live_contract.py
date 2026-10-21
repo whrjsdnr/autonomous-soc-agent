@@ -26,6 +26,7 @@ FILES = (
     "live.zeek",
     "network14.zeek",
     "packet_input.py",
+    "packet_metadata.py",
     "packet_producer.py",
     "preprocessing.py",
     "preprocessing_store.py",

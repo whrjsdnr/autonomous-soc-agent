@@ -6,10 +6,14 @@ from decimal import Decimal
 from pydantic import Field
 
 from soc_agent.security_ai.collectors.adapter import parse_line
-from soc_agent.security_ai.collectors.finalization import Closed
+from soc_agent.security_ai.collectors.finalization import Closed, CounterSnapshot
 from soc_agent.security_ai.collectors.models import Source
-from soc_agent.security_ai.collectors.packet_input import Packet
-from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
+from soc_agent.security_ai.collectors.packet_metadata import (
+    EVENT_TYPES,
+    ObservationFlows,
+    UnsupportedPacket,
+    packet_metadata,
+)
 from soc_agent.security_ai.collectors.preprocessing import DNSPreprocessing, normalize
 from soc_agent.security_ai.research.models import Frozen, digest
 
@@ -36,8 +40,12 @@ SUMMARY_FIELDS = {
 
 class Envelope(Frozen):
     sequence: int = Field(gt=0, le=8192, strict=True)
-    kind: str = Field(pattern=r"^(ready|packet|network|dns|closed)$")
+    kind: str = Field(pattern=r"^(ready|packet|unsupported|network|dns|counter|closed)$")
     data: dict
+
+    @property
+    def event_type(self) -> str:
+        return EVENT_TYPES[self.kind]
 
 
 def decode(line: bytes) -> Envelope:
@@ -51,7 +59,7 @@ class Stream:
         self.source = source
         self.sequence = self.packet_count = self.peak = 0
         self.ready = self.closed = False
-        self.flows = FlowAssembly(str(source.session_id))
+        self.flows = ObservationFlows(str(source.session_id))
         self.active = self.flows.active
         self.finalized = self.flows.finalized
         self.normalization_digest = digest(source.model_dump(mode="json"))
@@ -64,8 +72,36 @@ class Stream:
         self.closed_detail = None
         self.dns_stages = None
         self.dns_adapter_rejected = 0
+        self.observation_count = self.unsupported_count = 0
+        self.total_received = self.invalid = self.duplicate = self.sequence_gap = 0
+        self.counter_snapshot: CounterSnapshot | None = None
+
+    def diagnostics(self) -> dict:
+        return dict(
+            total_received=self.total_received,
+            packet_observations=self.observation_count,
+            supported_packet=self.packet_count,
+            unsupported_packet=self.unsupported_count,
+            network_event=self.network_count,
+            dns_event=self.dns_count,
+            invalid_record=self.invalid,
+            duplicate=self.duplicate,
+            sequence_gap=self.sequence_gap,
+            closed=self.closed,
+            counter_snapshot=self.counter_snapshot.model_dump() if self.counter_snapshot else None,
+        )
 
     def accept(self, envelope: Envelope):
+        self.total_received += 1
+        self.duplicate += int(envelope.sequence <= self.sequence)
+        self.sequence_gap += int(envelope.sequence > self.sequence + 1)
+        try:
+            return self._accept(envelope)
+        except (ValueError, TypeError):
+            self.invalid += 1
+            raise
+
+    def _accept(self, envelope: Envelope):
         e = envelope
         if self.closed or e.sequence != self.sequence + 1:
             raise ValueError("ZEEK_STREAM_SEQUENCE_INTEGRITY")
@@ -75,9 +111,25 @@ class Stream:
             self.ready = True
         elif not self.ready:
             raise ValueError("ZEEK_STREAM_READY_MISSING")
+        elif self.counter_snapshot is not None and e.kind != "closed":
+            raise ValueError("ZEEK_STREAM_POST_COUNTER_RECORD")
+        elif e.kind == "unsupported":
+            metadata = UnsupportedPacket.model_validate(e.data)
+            if metadata.sequence != self.observation_count + 1:
+                raise ValueError("ZEEK_STREAM_PACKET_INTEGRITY")
+            self.flows.exclude(metadata)
+            self.unsupported_count += 1
+            self.observation_count += 1
+            self.normalization_digest = digest(
+                dict(
+                    previous=self.normalization_digest,
+                    excluded_unsupported=e.data,
+                    event_sequence=e.sequence,
+                )
+            )
         elif e.kind == "packet":
-            p = Packet.model_validate(e.data)
-            if p.sequence != self.packet_count + 1 or p.frame_length != p.captured_length:
+            p = packet_metadata(e.kind, e.data)
+            if p.sequence != self.observation_count + 1 or p.frame_length != p.captured_length:
                 raise ValueError("ZEEK_STREAM_PACKET_INTEGRITY")
             if self.previous_ns is not None and p.ns < self.previous_ns:
                 self.out_of_order += 1  # Different keys are independent; never reorder/clamp.
@@ -89,6 +141,7 @@ class Stream:
             )
             self.port53_metadata_packets += int(53 in (p.source_port, p.destination_port))
             self.packet_count += 1
+            self.observation_count += 1
             self.peak = max(self.peak, sum(len(w.packets) for w in self.active.values()))
             if self.peak > 4096 or len(self.finalized) > 1024:
                 raise ValueError("ZEEK_FLOW_METADATA_BUDGET")
@@ -122,6 +175,12 @@ class Stream:
                 self.dns_count += 1
             self.sequence = e.sequence
             return event
+        elif e.kind == "counter":
+            counter = CounterSnapshot.model_validate(e.data)
+            counter.verify(
+                self.observation_count, self.unsupported_count, self.network_count, self.dns_count
+            )
+            self.counter_snapshot = counter
         elif e.kind == "closed":
             counters = e.data
             if "stop_reason" in e.data:
@@ -131,10 +190,14 @@ class Stream:
                 proof = Closed.model_validate(body)
                 proof.verify(
                     sequence=e.sequence,
-                    packets=self.packet_count,
+                    packets=self.observation_count,
+                    unsupported=self.unsupported_count,
+                    counter_messages=int(self.counter_snapshot is not None),
                     network=self.network_count,
                     dns=self.dns_count,
                 )
+                if self.counter_snapshot:
+                    self.counter_snapshot.verify_closed(proof)
                 self.closed_detail = proof
                 counters = {
                     key: getattr(proof, key)
@@ -142,6 +205,8 @@ class Stream:
                 }
             elif not set(e.data) <= {"pkts_recvd", "pkts_dropped", "pkts_link", "bytes_recvd"}:
                 raise ValueError("ZEEK_STREAM_COUNTER_SCHEMA")
+            if "stop_reason" not in e.data and self.unsupported_count:
+                raise ValueError("ZEEK_CLOSED_ACCOUNTING_MISMATCH")
             if any(type(v) is not int or v < 0 for v in counters.values()):
                 raise ValueError("ZEEK_STREAM_COUNTER_SCHEMA")
             self.counters = counters

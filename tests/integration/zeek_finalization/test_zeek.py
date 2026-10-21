@@ -60,7 +60,7 @@ def test_script_event_and_output_reserve(tmp_path, environment):
         shutil.copy(policies / "network14.zeek", directory)
         shutil.copy(policies / "visibility.zeek", directory)
         text = (policies / "live.zeek").read_text()
-        text = text.replace("8191", "7") if name == "event" else text.replace("8388608", "4096")
+        text = text.replace("8190", "6") if name == "event" else text.replace("8388608", "8192")
         (directory / "live.zeek").write_text(text)
         # Lowered limits apply only to this isolated offline test script copy.
         p = subprocess.run(
@@ -76,7 +76,7 @@ def test_script_event_and_output_reserve(tmp_path, environment):
         if name == "event":
             assert len(rows) == 8 and rows[-1]["data"]["omitted_events"] > 0
         else:
-            assert len(p.stdout) <= 4096 and rows[-1]["data"]["omitted_events"] > 0
+            assert len(p.stdout) <= 8192 and rows[-1]["data"]["omitted_events"] > 0
 
 
 @pytest.mark.asyncio
