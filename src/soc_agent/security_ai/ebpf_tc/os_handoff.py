@@ -91,6 +91,7 @@ class Handoff:
         self.broker_error = None
         self.loader_diagnostics = []
         self.verifier_log = None
+        self.fd_release_evidence = []
         self.error: str | None = None
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
         self.qualification_only = False
@@ -621,6 +622,12 @@ class Handoff:
                 evidence = recover_native(self.audit_path, self.plan.approval)
                 self.loader_diagnostics = evidence["loader_diagnostics"]
                 self.verifier_log = evidence["verifier_log"]
+                self.fd_release_evidence = evidence["fd_release_evidence"]
+                if self.link_evidence and evidence["last_link_lifecycle"] in {
+                    "TCX_LINK_RELEASED",
+                    "TCX_CLEANUP_VERIFIED",
+                }:
+                    self.link_evidence["state"] = evidence["last_link_lifecycle"]
                 if evidence["claimed_cleanup"] and self.child and self.child.returncode == 0:
                     self.cleanup = (
                         "FIXTURE_VERIFIED"
@@ -631,6 +638,9 @@ class Handoff:
                 self.cleanup = "CLEANUP_UNVERIFIED"
                 self.error = self.error or "HANDOFF_JOURNAL_UNVERIFIED"
         self.authentication = "REVOKED"
+        self.collector_state = (
+            "STOPPED" if self.child and self.child.returncode is not None else "UNKNOWN"
+        )
         self.state = (
             "ERROR"
             if self.error
@@ -676,6 +686,7 @@ class Handoff:
             "broker_error": self.broker_error,
             "loader_diagnostics": self.loader_diagnostics,
             "verifier_log": self.verifier_log,
+            "fd_release_evidence": self.fd_release_evidence,
             "source": self.origin,
             "collector_state": self.collector_state,
             "tcx_link": self.link_evidence,

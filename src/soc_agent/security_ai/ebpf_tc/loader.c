@@ -15,6 +15,7 @@ extern char **environ;
 #include <string.h>
 #include <unistd.h>
 #include <poll.h>
+#include <fcntl.h>
 struct runtime {struct bpf_object *object;struct ring_buffer *ring;
     int program,config;uint32_t emitted;char kernel_log[65536];};
 static int validate(struct soc_state *s) {
@@ -180,8 +181,21 @@ static int release(struct soc_state *s) {
     if(!soc_native_gate() || s->attached)return -EPERM;
     struct runtime *r=s->context;if(r) {
         if(r->ring && !libbpf_get_error(r->ring))ring_buffer__free(r->ring);
-        if(r->object)bpf_object__close(r->object);explicit_bzero(r->kernel_log,sizeof(r->kernel_log));
+        int fds[5],count=0;unsigned maps=0,programs=0;
+        if(r->object) {
+            struct bpf_map *m;struct bpf_program *p;
+            bpf_object__for_each_map(m,r->object)if(bpf_map__fd(m)>=0 && count<5) {fds[count++]=bpf_map__fd(m);maps++;}
+            bpf_object__for_each_program(p,r->object)if(bpf_program__fd(p)>=0 && count<5) {fds[count++]=bpf_program__fd(p);programs++;}
+            bpf_object__close(r->object);
+        }
+        int checked=0;
+        /* Single-threaded Broker: allocate no FDs between close and this check.
+         * Do not close a numeric FD again if libbpf has consumed it. */
+        for(int n=0;n<count;n++) {errno=0;if(fcntl(fds[n],F_GETFD)!=-1 || errno!=EBADF)checked=-EUCLEAN;}
+        explicit_bzero(r->kernel_log,sizeof(r->kernel_log));
         free(r);s->context=NULL;s->diagnostic_resources|=SOC_OBJECT_RELEASED;
+        if(soc_fd_release_record(s,maps,programs,checked))return -EIO;
+        return checked;
     }return 0;
 }
 static int record(struct soc_state *s,const char *kind) {

@@ -1,0 +1,173 @@
+{
+  "contract": "soc-native-network-dns-stabilization:v1",
+  "baseline": "36bc288cbd18ae816b6cc4fe71df5be09dd37c99",
+  "release": {
+    "version": "0.5.4",
+    "manifest": "2d204c069897417ebee84ecbb14cb8d13fd562ec860034ccf94337974e233bd4",
+    "bundle": "e21a213b6efc519f4f3adb8a050fc150e3bab666ffdf22b3885c63bb27f38013",
+    "payloads": {
+      "bootstrap": {
+        "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+        "size": 68272,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 365
+      },
+      "broker": {
+        "sha256": "9919d3c5d9e02aa88be31360c9e29a2b4c0fd6953fae03e8835c033d71809b76",
+        "size": 86800,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 365
+      },
+      "entry": {
+        "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+        "size": 9352,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 365
+      },
+      "libnative-tc.so": {
+        "sha256": "943f0b2e42350d661b5d20c6879ec8ce0119fbd070889e12c29ac55cd7213ae9",
+        "size": 85920,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      },
+      "manifest.bin": {
+        "sha256": "451d8a8d4a29bd7268bd90d3ed027af6687433ffe3b34234298c7ff776541c5b",
+        "size": 160,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      },
+      "pam-policy.conf": {
+        "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+        "size": 125,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      },
+      "tc.bpf.o": {
+        "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+        "size": 40736,
+        "root_uid": 0,
+        "root_gid": 0,
+        "mode": 292
+      }
+    },
+    "unified_image": "80d8c0c651c23d801d051bf653764d27d49ad847fb9f6defbc78f3b2252760e7",
+    "previous_manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+    "zeek_source_bundle": "145b407bbb7c2d7c9d4953666bee9f4e3fabf4adb1358e8beea3cafa32063009",
+    "native": "PENDING_NEW_APPROVAL"
+  },
+  "historical_native": {
+    "release": "0.5.3",
+    "program_id": 4861,
+    "link_id": 1,
+    "packet_records": 129,
+    "network14_accepted": 126,
+    "feature_candidates": 4,
+    "eligible_features": 0,
+    "clock_inversion_pair": "NOT_RETAINED_UNKNOWN",
+    "final_drain": -105,
+    "original_send_errno": "UNKNOWN_SYNTHETIC_TRANSLATION",
+    "observed_post_run_maps": 0,
+    "observed_post_run_links": 0,
+    "overall_cleanup": "UNVERIFIED_INDIVIDUAL_FD_EVIDENCE_MISSING"
+  },
+  "c3_native": {
+    "executed": false,
+    "network_events": null,
+    "network14_features": null,
+    "dns_queries": null,
+    "dns_responses": null,
+    "cleanup": "PENDING",
+    "gui": "PENDING",
+    "native_ai": "BLOCKED",
+    "dns9": "BLOCKED",
+    "operational_promotion": "BLOCKED"
+  },
+  "tests": {
+    "focused-final.log": {
+      "sha256": "f605f61c31b5fcd8d8f4ef59d749d20ea577a6282538dd4901160e0d32328007",
+      "result": "27 passed in 63.83s (0:01:03)"
+    },
+    "accounting-final.log": {
+      "sha256": "fc479dae9b647f2b09e637ac4c41e98b1108a677a3899b8e41d37e6436106e23",
+      "result": "24 passed in 68.93s (0:01:08)"
+    },
+    "dns-final.log": {
+      "sha256": "86de0d7d2b839c561a24f7f49d078683a0c3136ca9c1f337920ca17e128cc966",
+      "result": "6 passed in 7.20s"
+    },
+    "dns-regression-final.log": {
+      "sha256": "494e4ea8062c09e48bac220e8f42e0d5e544ed16e68f33d2a22ebbdbf00d1c17",
+      "result": "4 passed, 2 deselected in 5.67s"
+    },
+    "dns-log-comparison-fixed.log": {
+      "sha256": "fbd8ac534a1f42dd5f4e39715ac44288b2d4f12aa8dca80628b6962a128a14cd",
+      "result": "1 passed, 6 deselected in 2.34s"
+    }
+  },
+  "performance": {
+    "scope": "ORDINARY_USER_FIXTURE_NOT_NATIVE",
+    "ordering_observe_and_snapshot": {
+      "samples": 1000,
+      "median_ns": 714.0,
+      "max_ns": 18026
+    },
+    "process_maxrss_kib": 167788,
+    "memory_pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=339740614\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=326808787\n",
+    "gui_benchmark": "NOT_REPEATED_PRESENTATION_ONLY_CHANGE",
+    "before_after_comparison": "NOT_MEASURED_NO_IMPROVEMENT_CLAIM"
+  },
+  "preservation": {
+    "SOC": {
+      "checked": 122,
+      "mismatches": []
+    },
+    "ML": {
+      "checked": 10,
+      "mismatches": []
+    },
+    "native_050": {
+      "checked": 4,
+      "mismatches": []
+    },
+    "native_053": {
+      ".git/tcx-native-verification-053/verification.md": "8fff7e7d2257f3ed5c1fcd230b77e8767e7e60ae6be357d8508bef36bced8327",
+      ".git/tcx-native-verification-053/result.json": "2b74303498c1218f8c6eddf540fd3a31bdcff8cd86b2ea7de3720e8f0efca20e",
+      ".git/tcx-native-verification-053/verification.json": "540d753b3b9d3344fabbf3d0c5eb14f3baff76884db9ece76550c143881527a6",
+      ".git/tcx-native-verification-053/post-inspection/result.json": "5425158de95388bf5343f2aaeae465198c80cbb0d8fea61c4c1a2f019fac800d",
+      ".git/tcx-native-verification-053/pre-inspection/result.json": "ac2f6ec18e4a285814fc308fc88d8b85617b8f9cb5b7a64755300fc3d00f21e2",
+      ".git/tcx-native-verification-053/session/os-handoff-journal.bin": "fc97a3332eeab62c85003684af408b60f15c1dcfdeb081b6e3f7863a5a237c91"
+    }
+  },
+  "source_sha256": {
+    "src/soc_agent/security_ai/collectors/attestation_store.py": "72548cefe09cdb7d5694e419d8c70be3d4be210ef086c91900479cd05f44e4a4",
+    "src/soc_agent/security_ai/collectors/dns_visibility.py": "7ab5bb5fdcfbf5b1276fd1e9f6a594c1fab32257d84237aa6a49a4576fd9c333",
+    "src/soc_agent/security_ai/collectors/preprocessing.py": "6a7df9ff2d6430c0d6e6a30f33d8b6e337e3380d76ca778f85d6de831395847d",
+    "src/soc_agent/security_ai/collectors/visibility.zeek": "3d3d72ad5799fc20d40279e279181000297e492d41d7d1ddae48ba25343c5ceb",
+    "src/soc_agent/security_ai/ebpf/clock.py": "8ada686c558eba496a266f56c56fbdbf99bb06281a34a33d71ec4a4cc634338e",
+    "src/soc_agent/security_ai/ebpf/collector.py": "69cdfc00924b71ec78339dce35a3bccd83c6c6c55da4bdd60c97a122451f13f8",
+    "src/soc_agent/security_ai/ebpf_tc/broker.c": "4204dfbeb9920d898fd9ea645c90822ca9c8154c1165e007bc87d95ce3b37e39",
+    "src/soc_agent/security_ai/ebpf_tc/data.c": "00a91ef47abe1e034017b4d52fa6c3db57a2de1c8e803053f304326d09e87374",
+    "src/soc_agent/security_ai/ebpf_tc/data_plane.py": "1b464a9ee53ecb5d607fcc7138ea09c534dc422a4c75b7812ac6feabb7579400",
+    "src/soc_agent/security_ai/ebpf_tc/diagnostics.h": "40fa7c94f953a420b590956499aef4230dc6618e19ab0401c16f44ef801e5851",
+    "src/soc_agent/security_ai/ebpf_tc/gui.py": "d8206fce334b08376a0319150b98b6dc501d1af08a71b3b93198d867bc7969dd",
+    "src/soc_agent/security_ai/ebpf_tc/journal.py": "8d54e56fad54b9d61f9f057ba76962c34dd156642c1de2e90afc447978e595a4",
+    "src/soc_agent/security_ai/ebpf_tc/loader.c": "fff54457aed8bb05059f3f581f5dbd1f001f3ddb1a51951b0f38f39a5da2d2ad",
+    "src/soc_agent/security_ai/ebpf_tc/loader_diagnostics.py": "b15d71064576cb7c2fc8f61ff6ae94b6574a35399c5828e2a87bea1d08386d13",
+    "src/soc_agent/security_ai/ebpf_tc/os_handoff.py": "65da614218c767ac788dd9993907f8b4f2c336cfae7b684f3bbf91300190e49b",
+    "src/soc_agent/security_ai/ebpf_tc/unified_startup.py": "1086cdc3361008f86b2d85fd8f27ea5e342c775f15e19ae413a56ddfb3208b22",
+    "tests/integration/ebpf_handoff/test_data_plane.py": "939ea31f09a95d236b9c4c512f9e3bc0c987495d28d19032e1b6af2ba4976e57",
+    "tests/unit/ebpf_tc/loader_fault_fixture.c": "490ab3fb0bf8847aa969aac6598173c38f857ec7ff4c6f6ebc03fef1131c4def",
+    "tests/unit/ebpf_tc/test_loader_diagnostics.py": "5501934817315d793d0cc436ed33b9aabca169138da72de7647d22b18183d17c",
+    "tests/unit/ebpf/test_clock_ordering.py": "4a177ec7cbfe38d5e6ee3a0835ac9fe9a3afc28f88f7c15dfe2d557a65896321",
+    "tests/unit/ebpf_tc/data_send_fixture.c": "9a96cee687dc62349fe26718407fa39745eee4e5f40777090c1ba90f0fc23844",
+    "tests/unit/ebpf_tc/test_data_send_errno.py": "128cf797764c5795d81c7f79e91ad2cd654d9485dfa8ceda60b64b275631b1bf",
+    "tests/unit/zeek_attestation/test_c3_dns.py": "3374fc904ec6d0ff4a4062c5c93e26407a4823ec9b05923f5adbe3713a5c44b3",
+    "tests/integration/zeek_attestation/test_c3_dns.py": "e09a56e427d2d78e95ffd1b47c19fbe242fe7bdc9d384d17169c21dc0415834a"
+  }
+}

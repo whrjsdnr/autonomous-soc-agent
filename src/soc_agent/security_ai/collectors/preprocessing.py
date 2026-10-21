@@ -91,6 +91,10 @@ class DNSPreprocessing:
         self.seen[event.event_id] = value
         self.counts[event.diagnostic] += 1
         self.counts[event.protocol] += 1
+        self.counts["response_records"] += event.response_code is not None
+        self.counts["truncated_records"] += event.truncated is True
+        self.counts["nxdomain_records"] += event.response_code == 3
+        self.counts["servfail_records"] += event.response_code == 2
         self.counts["missing_transaction_id"] += event.transaction_id is None
         self.counts["missing_query_type"] += event.query_type is None
         self.counts["missing_ttl_metadata"] += event.ttl_seconds is None
@@ -102,6 +106,11 @@ class DNSPreprocessing:
     def snapshot(self) -> dict:
         return dict(
             records=len(self.seen),
+            received=len(self.seen) + self.counts["duplicate_records"],
+            accepted=len(self.seen),
+            duplicate=self.counts["duplicate_records"],
+            transaction_ambiguity="UNKNOWN_WITHOUT_QUERY_PACKET_IDENTITY",
+            retransmission="NOT_IDENTIFIABLE_FROM_COMPLETED_LOG_RECORD_ALONE",
             counters=dict(self.counts),
             timestamp_scope="TRANSACTION_START_NOT_QUERY_RESPONSE_PACKET_ORDER",
             query_response_matching="ZEEK_TRANSACTION_METADATA_NOT_INDEPENDENT_PACKET_MATCH",

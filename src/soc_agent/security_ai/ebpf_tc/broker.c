@@ -65,7 +65,7 @@ static int broker(int ipc,int plan,int object,int audit) {
         }
         struct pollfd wait={ipc,POLLIN,0};int ready=poll(&wait,1,100);
         if(ready<0) {if(errno==EINTR)continue;result=-EIO;break;}
-        if(s.attached && soc_poll(&s)<0) {result=-ENOBUFS;break;}
+        if(s.attached) {int polled=soc_poll(&s);if(polled<0) {result=polled;break;}}
         if(!ready)continue;
         struct soc_request q={0};
         if(soc_receive_request(ipc,&s.plan,s.sequence,&q)) {result=-EPROTO;break;}
@@ -121,9 +121,10 @@ static int broker(int ipc,int plan,int object,int audit) {
         if(rc) {result=rc;break;}
     }
     if(work_active && soc_work_privileges(0))result=-EPERM;
-    if((tcx?soc_tcx_cleanup(&link):soc_cleanup(&s)))result=-EUCLEAN;
+    int cleanup_result=tcx?soc_tcx_cleanup(&link):soc_cleanup(&s);
+    if(cleanup_result && !result)result=cleanup_result;
     if(s.ops->record(&s,result?"CLEANUP_UNVERIFIED":"BROKER_EXITED"))result=-EIO;
-    if(soc_data_close(&s))result=-ENOBUFS;
+    int data_result=soc_data_close(&s);if(data_result && !result)result=data_result;
     close(object);close(plan);close(ipc);close(audit);return result;
 }
 int main(int argc,char **argv) {

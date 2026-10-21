@@ -50,6 +50,7 @@ class PacketChannel:
         self.queue_overflows = 0
         self.backpressure_events = 0
         self.counter_evidence = None
+        self.transport_failed = False
 
     def listen(self) -> None:
         self.listener = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
@@ -80,12 +81,18 @@ class PacketChannel:
         self.worker.start()
 
     def _consume(self) -> None:
-        while not self.stop_event.is_set() and not self.closed and not self.error:
+        while not self.stop_event.is_set() and not self.closed and not self.transport_failed:
             try:
                 if self.channel and select.select([self.channel], [], [], 0.05)[0]:
                     self.pump()
-            except (OSError, ValueError):
+            except (OSError, ValueError) as exc:
+                if isinstance(exc, OSError):
+                    self.transport_failed = True
                 self.error = self.error or "TCX_DATA_READER_FAILURE"
+                if not self.transport_failed:
+                    # Processing failed, but authenticated terminal/counter frames
+                    # still need a reader while Broker performs bounded cleanup.
+                    continue
                 # pump records the reviewed failure. Broken delivery must stop the
                 # producer, not grow buffers or keep a privileged observer running.
                 if self.channel:
@@ -198,7 +205,11 @@ class PacketChannel:
         if kind == 2:
             if self.adapter is None:
                 raise ValueError("TCX_DATA_ADAPTER_NOT_PREPARED")
-            self.adapter.ingest(raw, monotonic=time.monotonic())
+            if self.error and self.adapter.flow.closed:
+                self.adapter.discard_after_error(raw)
+            else:
+                self.adapter.ingest(raw, monotonic=time.monotonic())
+                self.adapter.drain()
             self.backpressure_events += int(len(self.adapter.queue) == 24)
         elif kind == 5:
             generation, timestamp, *values = struct.unpack("<QQ7QII", raw)
@@ -242,9 +253,16 @@ class PacketChannel:
             ) or reason not in {1, 2}:
                 raise ValueError("TCX_DATA_END_SCHEMA")
             if self.adapter:
-                if generation != self.adapter.plan.generation or self.adapter.flow.closed:
+                if (
+                    generation != self.adapter.plan.generation
+                    or self.adapter.flow.closed
+                    and not self.error
+                ):
                     raise ValueError("TCX_DATA_RUN_IDENTITY")
-                self.adapter.end_metadata_stream("PACKET_LIMIT" if reason == 2 else "CAPTURE_STOP")
+                if not self.adapter.flow.closed:
+                    self.adapter.end_metadata_stream(
+                        "PACKET_LIMIT" if reason == 2 else "CAPTURE_STOP"
+                    )
         elif any(raw):
             raise ValueError("TCX_DATA_CONTROL_SCHEMA")
         if kind == 3:
@@ -269,7 +287,14 @@ class PacketChannel:
             if self.adapter and self.adapter.queue:
                 self.adapter.drain()
         except (ValueError, OSError) as exc:
-            self.error = str(exc) if isinstance(exc, ValueError) else "TCX_DATA_IO_FAILURE"
+            code = str(exc) if isinstance(exc, ValueError) else "TCX_DATA_IO_FAILURE"
+            self.error = self.error or code
+            recoverable = {
+                "EBPF_CLOCK_INVALID",
+                "EBPF_REORDER_LATE_CAPTURE_GAP",
+                "EBPF_QUEUE_OVERFLOW_CAPTURE_GAP",
+            }
+            self.transport_failed = code not in recoverable
             self.queue_overflows += int(self.error == "EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
             if self.adapter:
                 self.adapter.last_error = self.error
@@ -291,13 +316,15 @@ class PacketChannel:
             if self.worker.is_alive():
                 self.error = "TCX_DATA_WORKER_SHUTDOWN_UNVERIFIED"
         try:
-            if self.channel and not self.error:
+            if self.channel and not self.transport_failed:
                 # Bounded final drain, not an unbounded EOF wait or auto-restart.
                 for _ in range(2050):
                     if self.closed or not self.pump():
                         break
             if self.adapter and not self.adapter.flow.closed:
                 self.adapter.end_metadata_stream("INCOMPLETE")
+            if self.adapter:
+                self.adapter.checkpoint()
         finally:
             if self.channel:
                 self.channel.close()
@@ -337,6 +364,8 @@ class PacketChannel:
             queue=self.adapter.metrics() if self.adapter else None,
             processing=self.adapter._summary() if self.adapter else None,
             error=self.error,
+            transport_failed=self.transport_failed,
+            terminal_closed_observed=self.closed,
             native_ai="BLOCKED",
             automatic_restart=False,
             worker_alive=bool(self.worker and self.worker.is_alive()),

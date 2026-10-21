@@ -14,7 +14,7 @@ from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.review.persistence.secure_storage import create_private_directory
 from soc_agent.security_ai.collectors.packet_input import Packet
 from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
-from soc_agent.security_ai.ebpf.clock import ClockContract
+from soc_agent.security_ai.ebpf.clock import ClockContract, EventOrdering, OrderedEvent
 from soc_agent.security_ai.ebpf.models import Counters, Event, Plan
 from soc_agent.security_ai.ebpf.ring import decode
 from soc_agent.security_ai.research.models import digest
@@ -37,6 +37,8 @@ class EBPFCollector:
         self.deadline: float | None = None
         self.last_processing: float | None = None
         self.clock_contract: ClockContract | None = None
+        self.ordering = EventOrdering()
+        self.post_error_discarded = 0
 
     async def prepare(self) -> dict:
         return self.prepare_metadata()
@@ -94,7 +96,7 @@ class EBPFCollector:
                     session=str(self.plan.session_id),
                     generation=self.plan.generation,
                     source=self.plan.identity,
-                    policy="TCX_C1_GLOBAL_COMPACT_V1",
+                    policy="TCX_C3_BOUNDED_EVENT_ORDER_V1",
                     clock=clock.domain,
                 )
             ),
@@ -112,7 +114,7 @@ class EBPFCollector:
             self.discarded += len(self.queue)
             self.queue.clear()
         while self.queue and self.state == "METADATA_STREAM_ACTIVE":
-            self.drain()
+            self.drain(final=True)
         self.flow.finish(reason)
         for flow in self.flow.finalized:
             flow.pop("packets", None)
@@ -155,18 +157,35 @@ class EBPFCollector:
             self.fail("EBPF_CPU_STATE_LIMIT")
         self.cpu_sequences[e.cpu] = e.cpu_sequence
         self.received += 1
+        if self.clock_contract is not None:
+            try:
+                self.ordering.observe(e)
+            except ValueError as error:
+                self.discarded += 1
+                self.fail(str(error))
         if len(self.queue) >= self.plan.queue_capacity:
             self.overflow_rejected += 1
+            self.discarded += 1
             self.fail("EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
         self.queue.append(e)
         self.queue_peak = max(self.queue_peak, len(self.queue))
 
-    def drain(self, limit: int = 32) -> None:
+    def drain(self, limit: int = 32, *, final: bool = False) -> None:
         if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"} or not 1 <= limit <= 32:
             raise ValueError("EBPF_DRAIN_DENIED")
-        processed = min(limit, len(self.queue))
-        for _ in range(processed):
-            e = self.queue[0]
+        processed = 0
+        for _ in range(min(limit, len(self.queue))):
+            e = (
+                min(self.queue, key=lambda row: (row.ns, row.sequence))
+                if self.clock_contract
+                else self.queue[0]
+            )
+            if (
+                self.clock_contract
+                and not final
+                and e.ns > self.ordering.maximum - self.ordering.lateness_ns
+            ):
+                break
             if self.clock_contract is None and (
                 e.clock != "FIXTURE_PCAP_EVENT_NS" or e.timestamp_ns % 1000
             ):
@@ -191,6 +210,10 @@ class EBPFCollector:
                         tcp_flags=e.tcp_flags,
                     )
                 )
+                if self.clock_contract:
+                    # Receive sequence stays on the event/receipt. The shared flow
+                    # assembler consumes its own contiguous sorted-input sequence.
+                    p = OrderedEvent(e, self.accepted + 1)
                 self.flow.add(p)
             except ValueError as error:
                 self.fail(
@@ -198,12 +221,43 @@ class EBPFCollector:
                     if "CLOCK" in str(error) or "TIMESTAMP" in str(error)
                     else "EBPF_FLOW_METADATA_INTEGRITY_FAILED"
                 )
-            self.queue.popleft()
+            if self.clock_contract:
+                self.ordering.reordered += int(e is not self.queue[0])
+                self.ordering.emitted = e.ns
+                self.queue.remove(e)
+            else:
+                self.queue.popleft()
             self.accepted += 1
+            processed += 1
             self.dns_candidates += int(53 in (e.source_port, e.destination_port))
             self.chain = digest(dict(previous=self.chain, event=e.model_dump(mode="json")))
         if processed and self.accepted % 64 == 0:
             self.checkpoint()
+
+    def discard_after_error(self, raw: bytes) -> None:
+        """Validate and count delivery after processing stops; never infer again."""
+        if self.state != "ERROR" or not self.flow.closed:
+            raise ValueError("EBPF_DISCARD_STATE")
+        event = decode(raw, self.plan, self.received + 1)
+        if (event.generation, event.ifindex, event.hook) != (
+            self.plan.generation,
+            self.plan.ifindex,
+            self.plan.hook,
+        ):
+            raise ValueError("EBPF_SOURCE_IDENTITY_MISMATCH")
+        if event.cpu_sequence != self.cpu_sequences.get(event.cpu, 0) + 1:
+            raise ValueError("EBPF_CPU_SEQUENCE_GAP_OR_REUSE")
+        if (
+            self.received >= self.plan.event_limit
+            or event.cpu not in self.cpu_sequences
+            and len(self.cpu_sequences) >= 128
+        ):
+            raise ValueError("EBPF_DISCARD_BUDGET")
+        self.cpu_sequences[event.cpu] = event.cpu_sequence
+        self.received += 1
+        self.discarded += 1
+        self.post_error_discarded += 1
+        self.ordering.cpu_counts[event.cpu] = self.ordering.cpu_counts.get(event.cpu, 0) + 1
 
     def counters(self, value: Counters) -> None:
         if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"}:
@@ -263,11 +317,13 @@ class EBPFCollector:
         return dict(
             plan=self.plan.model_dump(mode="json"),
             plan_digest=self.plan.identity,
-            producer_version="TCX_METADATA_NETWORK14_C1"
+            producer_version="TCX_METADATA_NETWORK14_C3"
             if self.clock_contract
             else "EBPF_FIXTURE_V1",
             state=self.state,
             clock=self.clock_contract.snapshot() if self.clock_contract else None,
+            ordering=self.ordering.snapshot() if self.clock_contract else None,
+            post_error_discarded=self.post_error_discarded,
             flow_policy="OBSERVED_EVENT_WATERMARK" if self.flow.event_watermark else "SAME_KEY",
             last_error=self.last_error,
             received=self.received,
@@ -386,6 +442,8 @@ class EBPFCollector:
             capture_integrity="UNVERIFIED",
             feature_eligibility="BLOCKED_NATIVE_POLICY",
             clock=self.clock_contract.snapshot() if self.clock_contract else None,
+            ordering=self.ordering.snapshot() if self.clock_contract else None,
+            post_error_discarded=self.post_error_discarded,
             finalized_flows=len(self.flow.finalized),
             active_flows=len(self.flow.active),
             dns_state="PORT53_CANDIDATE" if self.dns_candidates else "DNS_VISIBILITY_UNKNOWN",

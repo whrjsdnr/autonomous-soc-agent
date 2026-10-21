@@ -1,10 +1,12 @@
 """Explicit clock evidence. Metadata arithmetic never converts monotonic time to UTC."""
 
+from dataclasses import dataclass
 from typing import Literal
 from uuid import UUID
 
 from pydantic import Field, model_validator
 
+from soc_agent.security_ai.ebpf.models import Event
 from soc_agent.security_ai.research.models import Frozen
 
 
@@ -59,3 +61,89 @@ class ClockContract(Frozen):
             native_accuracy="UNVERIFIED",
             native_eligibility="BLOCKED",
         )
+
+
+class EventOrdering:
+    """Bounded event-time policy, independent of UTC/calibration or eligibility."""
+
+    lateness_ns = 10_000_000
+
+    def __init__(self):
+        self.maximum: int | None = None
+        self.emitted: int | None = None
+        self.inversions = self.max_delta = self.late = self.reordered = 0
+        self.cpu_counts: dict[int, int] = {}
+        self.examples: list[dict[str, int]] = []
+
+    def observe(self, event: Event) -> None:
+        self.cpu_counts[event.cpu] = self.cpu_counts.get(event.cpu, 0) + 1
+        previous = self.maximum
+        if previous is not None and event.ns < previous:
+            delta = previous - event.ns
+            self.inversions += 1
+            self.max_delta = max(self.max_delta, delta)
+            if len(self.examples) < 8:
+                self.examples.append(
+                    dict(
+                        sequence=event.sequence,
+                        cpu=event.cpu,
+                        cpu_sequence=event.cpu_sequence,
+                        timestamp_ns=event.ns,
+                        previous_max_ns=previous,
+                        inversion_ns=delta,
+                    )
+                )
+            if delta > self.lateness_ns or self.emitted is not None and event.ns < self.emitted:
+                self.late += 1
+                raise ValueError("EBPF_REORDER_LATE_CAPTURE_GAP")
+        self.maximum = event.ns if previous is None else max(previous, event.ns)
+
+    def snapshot(self) -> dict:
+        return dict(
+            policy="BOUNDED_EVENT_TIME_10MS_32_EVENTS",
+            lateness_ns=self.lateness_ns,
+            inversions=self.inversions,
+            max_inversion_delta_ns=self.max_delta,
+            late_events=self.late,
+            reordered_events=self.reordered,
+            cpu_distribution={str(cpu): count for cpu, count in self.cpu_counts.items()},
+            examples=list(self.examples),
+            emitted_event_ns=self.emitted,
+            timestamp_modified=False,
+            calibration="NOT_ESTABLISHED_BY_REORDERING",
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class OrderedEvent:
+    """Flow ordinal is separate from the immutable transport/delivery sequence."""
+
+    event: Event
+    sequence: int
+
+    @property
+    def ns(self) -> int:
+        return self.event.ns
+
+    @property
+    def key(self) -> tuple:
+        return self.event.key
+
+    @property
+    def source(self):
+        return self.event.source
+
+    @property
+    def source_port(self) -> int:
+        return self.event.source_port
+
+    @property
+    def ip_length(self) -> int:
+        return self.event.ip_length
+
+    @property
+    def tcp_flags(self) -> int:
+        return self.event.tcp_flags
+
+    def model_dump(self, *, mode: str) -> dict:
+        return self.event.model_dump(mode=mode) | {"flow_ordinal": self.sequence}

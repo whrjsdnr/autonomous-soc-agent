@@ -151,7 +151,11 @@ def test_verifier_log_recovery_checks_content_and_partial_evidence(
     body = journal.read_bytes()
     while body:
         kind = body[32:64].split(b"\0", 1)[0].decode()
-        size = 216 if kind in {"LOADER_DIAGNOSTIC", "LOADER_VERIFIER_LOG"} else 192
+        size = (
+            216
+            if kind in {"LOADER_DIAGNOSTIC", "LOADER_VERIFIER_LOG", "FD_RELEASE_EVIDENCE"}
+            else 192
+        )
         row, body = bytearray(body[:size]), body[size:]
         if kind == "LOADER_VERIFIER_LOG":
             if mutation == "truncated":
@@ -201,3 +205,25 @@ def test_verifier_log_chunks_cover_native_size_and_buffer_bound(
     assert evidence["loader_diagnostics"][0]["kernel_log_at_bound"] == (length == 65535)
     assert evidence["loader_diagnostics"][-1]["owned_object_released"]
     assert not evidence["claimed_cleanup"]
+
+
+@pytest.mark.parametrize("scenario,closed", [(10, True), (11, False)])
+def test_owned_fd_release_check_detects_partial_close_after_drain_failure(
+    fault_program, tmp_path, scenario, closed
+):
+    executable, object_file = fault_program
+    journal = tmp_path / "journal"
+    # Kernel BPF APIs are replaced by the existing fixture. These owned FDs
+    # are real ordinary /dev/null descriptors, not BPF maps or programs.
+    result = json.loads(
+        subprocess.check_output(
+            [str(executable), str(scenario), str(object_file), str(journal)],
+            text=True,
+        )
+    )
+    evidence = recover_native(journal, "aa" * 32)
+    release = evidence["fd_release_evidence"][0]
+    assert release["map_fds_checked"] == 3 and release["program_fds_checked"] == 1
+    assert release["all_observed_fds_closed"] is closed
+    assert result["context_released"] and result["drain_calls"] == 1
+    assert result["cleanup_return"] < 0 and not evidence["claimed_cleanup"]

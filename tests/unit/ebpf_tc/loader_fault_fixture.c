@@ -12,6 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 static int scenario,load_calls,drain_calls,ring_freed;
+static int model_fds[4]={-1,-1,-1,-1};
 static char *kernel_log;static const struct bpf_map *last_map;
 int soc_native_gate(void) {return 1;} /* This executable's test process only. */
 int soc_tcx_native_admitted(void) {return 1;}
@@ -37,6 +38,7 @@ int bpf_program__set_autoload(struct bpf_program *p,bool enabled) {
 }
 int bpf_object__load(struct bpf_object *o) {
  (void)o;load_calls++;
+ if(scenario==10 || scenario==11)for(int n=0;n<4;n++) {model_fds[n]=open("/dev/null",O_RDONLY);if(model_fds[n]<0)return -errno;}
  if(scenario==4) {strcpy(kernel_log,"fixture-verifier-no-traffic");errno=EACCES;return -EACCES;}
  if(scenario==8 || scenario==9) {
   size_t length=scenario==8?24355:65535;memset(kernel_log,'V',length);
@@ -44,8 +46,13 @@ int bpf_object__load(struct bpf_object *o) {
  }
  return 0; /* Deliberately do not load anything into the kernel. */
 }
-int bpf_map__fd(const struct bpf_map *m) {last_map=m;errno=EBADF;return load_calls?4000:-1;}
-int bpf_program__fd(const struct bpf_program *p) {return load_calls && bpf_program__autoload(p)?4001:-1;}
+int bpf_map__fd(const struct bpf_map *m) {
+ last_map=m;errno=EBADF;
+ if(scenario>=10 && load_calls) {
+  const char *name=bpf_map__name(m);return model_fds[!strcmp(name,"events")?0:!strcmp(name,"config")?1:2];
+ }return load_calls?4000:-1;
+}
+int bpf_program__fd(const struct bpf_program *p) {return load_calls && bpf_program__autoload(p)?(scenario>=10?model_fds[3]:4001):-1;}
 int bpf_object__find_map_fd_by_name(const struct bpf_object *o,const char *name) {(void)o;(void)name;return 4000;}
 int bpf_obj_get_info_by_fd(int fd,void *info,__u32 *length) {
  (void)fd;
@@ -61,11 +68,16 @@ struct ring_buffer *ring_buffer__new(int fd,ring_buffer_sample_fn cb,void *ctx,c
  (void)fd;(void)cb;(void)ctx;(void)opts;
  if(scenario==6) {errno=ENOMEM;return NULL;}return (struct ring_buffer *)0x1234;
 }
+void bpf_object__close(struct bpf_object *o) {
+ void (*real_close)(struct bpf_object *)=dlsym(RTLD_NEXT,"bpf_object__close");
+ if(!real_close)_exit(103);real_close(o);
+ if(scenario>=10)for(int n=scenario==11?1:0;n<4;n++)if(model_fds[n]>=0)close(model_fds[n]);
+}
 void ring_buffer__free(struct ring_buffer *r) {(void)r;ring_freed++;}
 int soc_snapshot_tcx(struct soc_state *s,struct soc_snapshot *out) {(void)s;(void)out;return -EAGAIN;}
 int soc_final_drain_counters(struct soc_state *s) {(void)s;drain_calls++;return -EPIPE;}
 int main(int argc,char **argv) {
- if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>9)return 2;
+ if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>11)return 2;
  int object=open(argv[2],O_RDONLY|O_NOFOLLOW),audit=open(argv[3],O_WRONLY|O_CREAT|O_EXCL|O_APPEND,0600);
  if(object<0 || audit<0)return 3;
  struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.audit_fd=audit,.ipc_fd=-1,.data_fd=-1};
@@ -78,5 +90,6 @@ int main(int argc,char **argv) {
         "\"cleanup_return\":%d,\"context_released\":%s,\"load_api_calls\":%d,"
         "\"drain_calls\":%d,\"ring_freed\":%d,\"cleanup_verified\":%d}\n",
         first,cleaned,s.context?"false":"true",load_calls,drain_calls,ring_freed,s.cleanup_verified);
+ if(scenario==11 && model_fds[0]>=0)close(model_fds[0]);
  close(object);close(audit);return 0;
 }

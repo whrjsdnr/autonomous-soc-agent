@@ -12,6 +12,7 @@ STAGES = (
     "RING_BUFFER_INIT",
     "TCX_ATTACH",
     "CLEANUP",
+    "DATA_PLANE",
 )
 APIS = (
     "soc_validate",
@@ -42,6 +43,8 @@ APIS = (
     "soc_tcx_detach",
     "LOAD_REQUESTED_record_and_notification",
     "LOAD_VERIFIED_record_and_notification",
+    "send_data",
+    "object_fd_closed_check",
 )
 SOURCES = (
     "CONTRACT_ERRNO_NOT_EXPOSED",

@@ -17,6 +17,10 @@ def summary(c, stream) -> dict:
         accepted=stream.dns_count,
         rejected=stream.dns_adapter_rejected,
         missing_response=stream.dns_preprocessing.counts["MISSING_RESPONSE_METADATA"],
+        capture_gap=bool(
+            stream.closed_detail
+            and (stream.closed_detail.omitted_events or stream.closed_detail.omitted_packet_records)
+        ),
     )
     return dict(
         contract="soc-zeek-attestation-dns-summary:v1",

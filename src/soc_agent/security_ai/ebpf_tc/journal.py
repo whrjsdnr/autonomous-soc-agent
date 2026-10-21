@@ -57,6 +57,8 @@ def recover_native(path: Path, approval: str) -> dict:
     diagnostics = []
     verifier_log = bytearray()
     log_detail = None
+    fd_release_evidence = []
+    last_link_lifecycle = None
     with os.fdopen(fd, "rb") as stream:
         while header := stream.read(64):
             if ordinal >= 1024:
@@ -66,7 +68,13 @@ def recover_native(path: Path, approval: str) -> dict:
             kind = header[32:].split(b"\0", 1)[0].decode("ascii")
             layout = (
                 RC_ROW
-                if kind in {"RC_RELEASE_VERIFIED", "LOADER_DIAGNOSTIC", "LOADER_VERIFIER_LOG"}
+                if kind
+                in {
+                    "RC_RELEASE_VERIFIED",
+                    "LOADER_DIAGNOSTIC",
+                    "LOADER_VERIFIER_LOG",
+                    "FD_RELEASE_EVIDENCE",
+                }
                 else TCX_ROW
                 if kind.startswith("TCX_")
                 else ROW
@@ -83,10 +91,37 @@ def recover_native(path: Path, approval: str) -> dict:
                 or kind
                 not in KINDS
                 | TCX_KINDS
-                | {"RC_RELEASE_VERIFIED", "LOADER_DIAGNOSTIC", "LOADER_VERIFIER_LOG"}
+                | {
+                    "RC_RELEASE_VERIFIED",
+                    "LOADER_DIAGNOSTIC",
+                    "LOADER_VERIFIER_LOG",
+                    "FD_RELEASE_EVIDENCE",
+                }
                 or sequence > 2048
             ):
                 raise ValueError("NATIVE_JOURNAL_INTEGRITY")
+            if kind in TCX_KINDS:
+                last_link_lifecycle = kind
+            if kind == "FD_RELEASE_EVIDENCE":
+                detail = decode_diagnostic(owner)
+                if (
+                    detail["api"] != "object_fd_closed_check"
+                    or detail["stage"] != "CLEANUP"
+                    or not detail["fd_inventory_available"]
+                    or not detail["owned_object_released"]
+                    or len(fd_release_evidence) >= 16
+                ):
+                    raise ValueError("FD_RELEASE_EVIDENCE_SCHEMA")
+                fd_release_evidence.append(
+                    dict(
+                        map_fds_checked=detail["map_fds_observed"],
+                        program_fds_checked=detail["program_fds_observed"],
+                        all_observed_fds_closed=detail["return_value"] == 0,
+                        result=detail["return_value"],
+                        method="LIBBPF_CLOSE_THEN_F_GETFD_EBADF_SINGLE_THREADED",
+                        raw_close_returnvalues_observed=False,
+                    )
+                )
             if kind == "LOADER_DIAGNOSTIC":
                 if len(diagnostics) >= 32:
                     raise ValueError("LOADER_DIAGNOSTIC_BOUND")
@@ -154,6 +189,8 @@ def recover_native(path: Path, approval: str) -> dict:
     return dict(
         source="NATIVE_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
         loader_diagnostics=diagnostics,
+        fd_release_evidence=fd_release_evidence,
+        last_link_lifecycle=last_link_lifecycle,
         verifier_log={
             "complete": log_complete,
             "bytes_observed": len(verifier_log),

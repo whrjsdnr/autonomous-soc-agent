@@ -159,6 +159,13 @@ def launch(preparation: Preparation) -> int:
         GUIConfig(data_directory=preparation.controller.application.directory),
         worker=PreparedWorker(preparation),
     )
-    root.title("SOC B-2A · NATIVE GATE CLOSED / MOCK AUTH ONLY")
+    handoff = preparation._os_handoff
+    native = handoff and handoff.origin in {
+        "TCX_UNIFIED_SESSION_NATIVE",
+        "TCX_LIVE_QUALIFICATION_NATIVE",
+    }
+    root.title(
+        "SOC · TCX NATIVE METADATA / AI BLOCKED" if native else "SOC · TCX FIXTURE / AI BLOCKED"
+    )
     root.mainloop()
     return 0

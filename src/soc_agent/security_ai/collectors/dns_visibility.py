@@ -21,6 +21,11 @@ class DNSStages(Frozen):
     transaction_ambiguous: int | None = Field(default=None, ge=0, le=65536, strict=True)
     non_dns_confirmed: int | None = Field(default=None, ge=0, le=4096, strict=True)
     analyzer_attached: bool | None = Field(default=None, strict=True)
+    question_matched: int | None = Field(default=None, ge=0, le=65536, strict=True)
+    question_mismatched: int | None = Field(default=None, ge=0, le=65536, strict=True)
+    duplicate_queries: int | None = Field(default=None, ge=0, le=65536, strict=True)
+    multiple_responses: int | None = Field(default=None, ge=0, le=65536, strict=True)
+    response_without_query: int | None = Field(default=None, ge=0, le=65536, strict=True)
     diagnostic_truncated: bool = Field(strict=True)
 
     @model_validator(mode="after")
@@ -49,6 +54,8 @@ def diagnose(
     accepted: int,
     rejected: int,
     missing_response: int = 0,
+    capture_gap: bool = False,
+    encrypted_only: bool = False,
 ) -> dict:
     classification = "DNS_VISIBILITY_UNKNOWN"
     if rejected:
@@ -60,11 +67,11 @@ def diagnose(
             classification = "DNS_HEADER_INVALID"
         elif stages.parse_failed:
             classification = "DNS_PARSE_FAILED"
-        elif stages.transaction_ambiguous:
+        elif stages.transaction_ambiguous or stages.multiple_responses:
             classification = "DNS_TRANSACTION_AMBIGUOUS"
         elif stages.analyzer_attached is False and candidates:
             classification = "DNS_ANALYZER_NOT_ATTACHED"
-        elif stages.response_missing_metadata or missing_response:
+        elif stages.response_missing_metadata or stages.response_without_query or missing_response:
             classification = "DNS_RESPONSE_MISSING"
         elif stages.query_parsed and not stages.event_emitted:
             classification = "DNS_EVENT_NOT_EMITTED"
@@ -72,7 +79,23 @@ def diagnose(
             classification = "NO_DNS_TRAFFIC_OBSERVED"
         elif accepted and stages.event_emitted:
             classification = "DNS_METADATA_OBSERVED"
+    visibility = (
+        "CAPTURE_GAP"
+        if capture_gap
+        else "PARSE_FAILURE"
+        if classification in {"DNS_PARSE_FAILED", "DNS_HEADER_INVALID", "DNS_ADAPTER_REJECTED"}
+        else "DNS_TRANSACTION_INCOMPLETE"
+        if classification in {"DNS_RESPONSE_MISSING", "DNS_TRANSACTION_AMBIGUOUS"}
+        else "DNS_VISIBLE"
+        if classification == "DNS_METADATA_OBSERVED"
+        else "NO_DNS_OBSERVED"
+        if classification == "NO_DNS_TRAFFIC_OBSERVED"
+        else "ENCRYPTED_DNS_UNOBSERVABLE"
+        if encrypted_only and not accepted
+        else "DNS_VISIBILITY_UNKNOWN"
+    )
     return dict(
+        visibility=visibility,
         classification=classification,
         scope="OBSERVED_PLAINTEXT_DNS_WINDOW_NOT_NETWORK_WIDE",
         encrypted_dns="DOH_DOT_PLAINTEXT_QUERY_NOT_VISIBLE",
@@ -90,7 +113,13 @@ def diagnose(
         dns9_features_generated=0,
         dns9="BLOCKED",
         header_scope="ZEEK_HEADER_EVENT_NOT_FULL_MESSAGE_VALIDATION",
-        matching_scope="EXISTING_ZEEK_TRANSACTION_METADATA",
+        matching_scope="ZEEK_TRANSACTION_METADATA_PLUS_IN_MEMORY_QUESTION_FINGERPRINT_CALLBACKS"
+        if stages and stages.question_matched is not None
+        else "EXISTING_ZEEK_TRANSACTION_METADATA",
+        qname_plaintext_retained=False,
+        qname_comparison="OBSERVED_CALLBACK_MATCH"
+        if stages and stages.question_matched
+        else "NOT_OBSERVED",
         payload_retained=False,
         fqdn_retained=False,
     )

@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
 #include "data.h"
 #include "handoff.h"
+#include "diagnostics.h"
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
@@ -12,8 +13,13 @@ static int row(struct soc_state *s,unsigned kind,const struct soc_event *event) 
     if(kind!=SOC_DATA_READY)r.sequence=++s->data_sequence;
     memcpy(r.application,s->plan.application,16);memcpy(r.approval,s->data_approval,32);
     memcpy(r.program,s->plan.program_sha,32);if(event)r.event=*event;
-    if(send(s->data_fd,&r,sizeof(r),MSG_DONTWAIT|MSG_NOSIGNAL)!=(ssize_t)sizeof(r)) {
-        s->data_loss++;return -ENOBUFS;
+    errno=0;ssize_t sent=send(s->data_fd,&r,sizeof(r),MSG_DONTWAIT|MSG_NOSIGNAL);int saved=errno;
+    if(sent!=(ssize_t)sizeof(r)) {
+        s->data_loss++;
+        struct soc_load_diagnostic d={.stage=s->stopping?SOC_LOAD_CLEANUP:SOC_DATA_PLANE,
+            .api=SOC_DIAG_SEND_DATA,.result=sent,.saved_errno=saved,.errno_source=SOC_SYSCALL_ERRNO};
+        soc_diagnostic_record(s,&d,NULL,0);
+        return sent<0 && saved?-saved:-EIO;
     }return 0;
 }
 int soc_data_open(struct soc_state *s,unsigned source,const uint8_t approval[32]) {

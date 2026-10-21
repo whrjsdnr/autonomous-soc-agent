@@ -74,3 +74,37 @@ def test_c_data_plane_golden_control_independence_and_recovery(
                 indent=2,
             )
         )
+
+
+def test_processing_failure_keeps_authenticated_terminal_reader_until_closed(session, tmp_path):
+    import time
+
+    h, _ = session
+    execute = parser(tmp_path)
+    from tests.zeek_producer_support import valid_wire
+
+    packets = tuple(
+        execute(valid_wire(), 1_000_000_000 + ns, i)[1]
+        for i, ns in enumerate((0, 20_000_000, 1_000_000, 21_000_000), 1)
+    )
+    h.approve(h.approval)
+    h.authenticate_fixture(AuthenticationFixture(), packets=packets)
+    h.data.prepare_adapter(7)
+    try:
+        h.command(Command(command="PREPARE", plan_digest=h.plan.approval, sequence=1))
+        # A completed control reply can race the processing error. Neither case
+        # authorizes another run; close the same authenticated producer once.
+        deadline = time.monotonic() + 2
+        while not h.data.error and time.monotonic() < deadline:
+            time.sleep(0.01)
+    except ValueError:
+        pass
+    final = h.close()
+    assert final["data_plane"]["error"] == "EBPF_REORDER_LATE_CAPTURE_GAP"
+    assert final["data_plane"]["terminal_closed_observed"]
+    assert not final["data_plane"]["transport_failed"]
+    assert h.child.poll() == 0
+    assert h.data.adapter.accepted == 1
+    assert h.data.adapter.received == 4
+    assert h.data.adapter.post_error_discarded == 1
+    assert h.data.adapter.store.verify_audit()
