@@ -115,3 +115,51 @@ def test_dense_burst_fails_at_fixed_32_event_budget(stream):
     with pytest.raises(ValueError, match="QUEUE_OVERFLOW_CAPTURE_GAP"):
         c.ingest(event(32, sequence=33), monotonic=1)
     assert len(c.queue) == 32 and c.overflow_rejected == 1
+
+
+def test_slow_full_checkpoint_commit_does_not_block_flow_processing(stream):
+    import threading
+
+    from soc_agent.security_ai.ebpf.checkpoint import CheckpointWriter
+
+    c, event = stream
+    started, release = threading.Event(), threading.Event()
+    original = c._persist_checkpoint
+
+    def persist(text, sha):
+        started.set()
+        assert release.wait(3)
+        original(text, sha)
+
+    c.checkpoint_writer = CheckpointWriter(persist)
+    try:
+        for n in range(1, 130):
+            c.ingest(event(n * 20_000_000, sequence=n), monotonic=1)
+            c.drain()
+        assert started.wait(1)
+        assert c.accepted == 128 and c.checkpoint_writer.committed == 0
+        c.end_metadata_stream("CAPTURE_STOP")
+        assert c.accepted == 129
+        assert c.checkpoint_writer.snapshot()["outstanding"] == 3
+    finally:
+        release.set()
+        c.checkpoint_writer.close()
+    assert c.checkpoint_writer.committed == c.checkpoint_writer.submitted == 3
+    assert not c.checkpoint_writer.worker.is_alive()
+    assert c.store.verify_audit()
+
+
+def test_first_packet_error_survives_checkpoint_backpressure(stream, monkeypatch):
+    from soc_agent.security_ai.ebpf.checkpoint import CheckpointFailure
+
+    c, event = stream
+    c.ingest(event(0), monotonic=1)
+
+    def reject():
+        raise CheckpointFailure("EBPF_CHECKPOINT_BACKPRESSURE")
+
+    monkeypatch.setattr(c, "request_checkpoint", reject)
+    with pytest.raises(ValueError, match="EBPF_CPU_SEQUENCE_GAP_OR_REUSE") as failure:
+        c.ingest(event(1, sequence=1), monotonic=1)
+    assert isinstance(failure.value.__cause__, CheckpointFailure)
+    assert c.last_error == "EBPF_CPU_SEQUENCE_GAP_OR_REUSE"

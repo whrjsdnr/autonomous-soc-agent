@@ -27,7 +27,15 @@ def bundle() -> dict[str, str]:
         }
     )
     # Bind the unprivileged metadata/feature contract as well as privileged code.
-    for name in ("clock.py", "collector.py", "models.py", "ring.py", "event.h", "parser.h"):
+    for name in (
+        "checkpoint.py",
+        "clock.py",
+        "collector.py",
+        "models.py",
+        "ring.py",
+        "event.h",
+        "parser.h",
+    ):
         p = ROOT.parent / "ebpf" / name
         result["data_adapter/" + name] = hashlib.sha256(p.read_bytes()).hexdigest()
     p = ROOT.parent / "collectors" / "packet_producer.py"

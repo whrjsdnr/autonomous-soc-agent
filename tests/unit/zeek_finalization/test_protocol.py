@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from soc_agent.security_ai.collectors.finalization import Closed, Ledger, termination_reason
+from soc_agent.security_ai.collectors.finalization import (
+    Closed,
+    Ledger,
+    publish,
+    termination_reason,
+)
 from soc_agent.security_ai.collectors.live_contract import new_plan
 from soc_agent.security_ai.collectors.live_process import StreamProcess
 from soc_agent.security_ai.collectors.live_stream import Envelope
@@ -163,7 +168,7 @@ async def test_stop_keeps_draining_while_container_waits(
         await asyncio.sleep(0.01)
     await asyncio.sleep(0.1)  # Fixture has installed its signal handler.
     if stop_reason:
-        (tmp_path / "stop.request").write_text(json.dumps(dict(reason=stop_reason)))
+        publish(tmp_path / "stop.request", dict(reason=stop_reason))
     r.stop()
     r.stop()
     await asyncio.wait_for(task, 8)
@@ -261,3 +266,48 @@ def test_malformed_docker_labels_never_signal_an_unverified_container(
     monkeypatch.setattr(r, "_docker", docker)
     assert not r._stop_container()
     assert calls == ["inspect"]
+
+
+def test_adapter_failure_still_records_valid_closed_and_cleanup(tmp_path, monkeypatch):
+    r = runner(tmp_path, monkeypatch, "normal")
+    monkeypatch.setattr(r, "_stop_container", lambda: True)
+
+    def failed_adapter(_):
+        raise ValueError("ZEEK_RECORD_SCHEMA_REJECTED")
+
+    with pytest.raises(ValueError, match="ZEEK_RECORD_SCHEMA_REJECTED"):
+        r.run(on_line=failed_adapter)
+    result = json.loads((tmp_path / "exit.json").read_text())
+    assert result["closed_observed"] and result["closed_detail"] is not None
+    assert not result["protocol_finalized"] and result["cleanup_verified"]
+    assert result["error"] == result["adapter_failure"] == "ZEEK_RECORD_SCHEMA_REJECTED"
+    assert result["discarded_after_adapter_failure"] == 1
+
+
+def test_status_rpc_failure_cannot_skip_exit_evidence_or_replace_first_error(tmp_path, monkeypatch):
+    r = runner(tmp_path, monkeypatch, "missing")
+    monkeypatch.setattr(r, "_stop_container", lambda: True)
+    original = subprocess.Popen
+
+    class StatusFailure:
+        def __init__(self, *args, **kwargs):
+            self.real = original(*args, **kwargs)
+            self.stdout = self.real.stdout
+
+        def poll(self):
+            raise ValueError("SUPERVISOR_STATUS_LOST")
+
+        def wait(self, timeout):
+            return self.real.wait(timeout=timeout)
+
+        def kill(self):
+            raise ValueError("SUPERVISOR_STOP_LOST")
+
+    monkeypatch.setattr(subprocess, "Popen", StatusFailure)
+    with pytest.raises(ValueError, match="ZEEK_CONTAINER_EXIT_UNVERIFIED"):
+        r.run()
+    result = json.loads((tmp_path / "exit.json").read_text())
+    assert result["error"] == "ZEEK_CONTAINER_EXIT_UNVERIFIED"
+    assert not result["closed_observed"] and result["exit_code"] is None
+    assert any(x["stage"] == "STATUS" for x in result["cleanup_failures"])
+    assert result["container_absent"] and result["cleanup_verified"]

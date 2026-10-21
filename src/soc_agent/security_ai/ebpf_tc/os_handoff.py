@@ -646,7 +646,15 @@ class Handoff:
                     "TCX_CLEANUP_VERIFIED",
                 }:
                     self.link_evidence["state"] = evidence["last_link_lifecycle"]
-                if evidence["claimed_cleanup"] and self.child and self.child.returncode == 0:
+                if (
+                    evidence["claimed_cleanup"]
+                    and self.child
+                    and self.child.returncode == 0
+                    and not self.data.cleanup_error
+                    and (
+                        self.qualification_only or self.data.snapshot()["drain_state"] == "VERIFIED"
+                    )
+                ):
                     self.cleanup = (
                         "FIXTURE_VERIFIED"
                         if self.origin == "B2J_TRANSPORT_FIXTURE_NOT_OS_AUTH"

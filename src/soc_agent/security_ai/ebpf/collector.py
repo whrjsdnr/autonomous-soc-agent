@@ -15,6 +15,7 @@ from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.review.persistence.secure_storage import create_private_directory
 from soc_agent.security_ai.collectors.packet_input import Packet
 from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
+from soc_agent.security_ai.ebpf.checkpoint import CheckpointFailure, CheckpointWriter
 from soc_agent.security_ai.ebpf.clock import ClockContract, EventOrdering, OrderedEvent
 from soc_agent.security_ai.ebpf.models import Counters, Event, Plan
 from soc_agent.security_ai.ebpf.ring import decode
@@ -42,6 +43,7 @@ class EBPFCollector:
         self.clock_contract: ClockContract | None = None
         self.ordering = EventOrdering()
         self.post_error_discarded = 0
+        self.checkpoint_writer: CheckpointWriter | None = None
         self.stage_timing = {
             name: dict(calls=0, total_ns=0, max_ns=0)
             for name in ("clock_reordering", "flow_reconstruction", "audit_checkpoint")
@@ -135,12 +137,15 @@ class EBPFCollector:
             if self.attempt_gaps:
                 flow["eligible"] = False
         self.state = "ERROR" if self.last_error else "STOPPED"
-        self.checkpoint()
+        self.request_checkpoint()
 
     def fail(self, code: str) -> None:
         self.state, self.last_error = "ERROR", code
         if self.store:
-            self.checkpoint()
+            try:
+                self.request_checkpoint()
+            except CheckpointFailure as audit_error:
+                raise ValueError(code) from audit_error
         raise ValueError(code)
 
     def _observe_cpu_sequence(self, event: Event, *, discard: bool = False) -> None:
@@ -281,7 +286,7 @@ class EBPFCollector:
             self.dns_candidates += int(53 in (e.source_port, e.destination_port))
             self.chain = digest(dict(previous=self.chain, event=e.model_dump(mode="json")))
         if processed and self.accepted % 64 == 0:
-            self.checkpoint()
+            self.request_checkpoint()
 
     def discard_after_error(self, raw: bytes) -> None:
         """Validate and count delivery after processing stops; never infer again."""
@@ -409,9 +414,10 @@ class EBPFCollector:
             finalized_count=len(features),
             native_ai="BLOCKED",
             stage_timing={k: dict(v) for k, v in self.stage_timing.items()},
+            checkpoint_writer=self.checkpoint_writer.snapshot() if self.checkpoint_writer else None,
         )
 
-    def checkpoint(self) -> None:
+    def _checkpoint_text(self) -> tuple[str, str]:
         if self.store is None:
             raise ValueError("EBPF_STORE_NOT_PREPARED")
         if sum(p.stat().st_size for p in self.directory.iterdir() if p.is_file()) > 8 * 1024**2:
@@ -421,6 +427,23 @@ class EBPFCollector:
         text, sha = json.dumps(value), digest(value)
         if len(text.encode()) > 16384:
             raise ValueError("EBPF_CHECKPOINT_SIZE")
+        return text, sha
+
+    def request_checkpoint(self) -> str:
+        """Explicit pending request during Native processing, never a durable receipt."""
+        if self.checkpoint_writer is None:
+            self.checkpoint()
+            return "COMMITTED"
+        self.checkpoint_writer.submit(*self._checkpoint_text())
+        return "PENDING"
+
+    def checkpoint(self) -> None:
+        """Keep the synchronous API: returning means this snapshot committed FULL."""
+        if self.checkpoint_writer is not None:
+            self.checkpoint_writer.flush()
+        self._persist_checkpoint(*self._checkpoint_text())
+
+    def _persist_checkpoint(self, text: str, sha: str) -> None:
         started = time.perf_counter_ns()
         try:
             with self.store.database.transaction() as db:

@@ -169,6 +169,30 @@ class StreamProcess:
         )
         stop_future = None
         cleanup_attempted = False
+        cleanup_failures = []
+        adapter_failure = None
+        discarded_after_adapter_failure = 0
+
+        def failure_detail(stage, exc):
+            if len(cleanup_failures) < 8 and not any(
+                row["stage"] == stage for row in cleanup_failures
+            ):
+                cleanup_failures.append(
+                    dict(
+                        stage=stage,
+                        code=safe_code(exc),
+                        category=type(exc).__name__,
+                        errno=exc.errno if isinstance(exc, OSError) else None,
+                    )
+                )
+
+        def poll_owned():
+            try:
+                return self.process.poll() if self.process else None
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                failure_detail("STATUS", exc)
+                return None
+
         try:
             try:
                 if self.supervisor is not None:
@@ -183,8 +207,8 @@ class StreamProcess:
                         # through the GUI controller's verified stop/drain path.
                         **({"process_group": 0} if self.fixture is None else {}),
                     )
-            except OSError as error:
-                raise ValueError("ZEEK_DOCKER_START_FAILED") from error
+            except OSError as start_error:
+                raise ValueError("ZEEK_DOCKER_START_FAILED") from start_error
             selector.register(self.process.stdout, selectors.EVENT_READ)
             pending = b""
             stop_sent = False
@@ -226,7 +250,7 @@ class StreamProcess:
                     if time.monotonic() - started > self.plan.duration_seconds + 15:
                         raise ValueError("ZEEK_PROCESS_DEADLINE_EXCEEDED")
                     if not selector.select(0.1):
-                        if self.process.poll() is not None:
+                        if poll_owned() is not None:
                             # Drain the pipe even after process exit; EOF is the boundary.
                             continue
                         continue
@@ -269,13 +293,23 @@ class StreamProcess:
                         closed = envelope.kind == "closed"
                         if closed:
                             drain_started = drain_started or time.monotonic()
-                        if on_line:
-                            on_line(line)
+                        if on_line and adapter_failure is None:
+                            try:
+                                on_line(line)
+                            except (OSError, ValueError) as exc:
+                                adapter_failure = safe_code(exc)
+                                failure_detail("ADAPTER", exc)
+                                self.stop_requested = True
+                                requested = "CONTROLLER_STOP"
+                        elif on_line and adapter_failure is not None:
+                            discarded_after_adapter_failure += 1
                     if len(pending) > 16384:
                         raise ValueError("ZEEK_STREAM_RECORD_BOUND")
             code = self.process.wait(timeout=5)
             if stop_future and not stop_future.result(timeout=15):
                 raise ValueError("ZEEK_CONTAINER_STOP_UNVERIFIED")
+            if adapter_failure is not None:
+                raise ValueError(adapter_failure)
             if pending:
                 raise ValueError("ZEEK_PARTIAL_RECORD_ON_CLOSE")
             if controller_error:
@@ -293,8 +327,8 @@ class StreamProcess:
                 raise ValueError("ZEEK_CONTAINER_CLEANUP_UNVERIFIED")
             self.cleanup_verified = True
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
-            code = self.process.poll() if self.process else None
-            error = safe_code(exc)
+            code = poll_owned()
+            error = error or safe_code(exc)
             reason = (
                 "CONTROLLER_STOP"
                 if controller_error
@@ -308,42 +342,42 @@ class StreamProcess:
         finally:
             selector.close()
             if self.process is not None:
-                if self.process.poll() is None:
-                    try:
+                try:
+                    if poll_owned() is None and not cleanup_attempted:
                         cleanup_attempted = True
-                        stopped = (
-                            stop_future.result(timeout=15)
-                            if stop_future
-                            else self._stop_container()
-                        )
-                    except (OSError, subprocess.SubprocessError):
-                        stopped = False
-                    finally:
-                        if self.process.poll() is None:
-                            self.process.kill()
-                            self.process.wait(timeout=5)
+                        self._stop_container()  # One owned cleanup attempt, never recapture.
+                    if stop_future:
+                        stop_future.result(timeout=15)
+                    if self.supervisor is None and poll_owned() is None:
+                        self.process.kill()  # Existing non-supervised subprocess ownership.
+                        self.process.wait(timeout=5)
+                except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                    failure_detail("STOP", exc)
+                    error = error or safe_code(exc)
+                finally:
+                    try:
                         self.process.stdout.close()
-                    if not stopped:
-                        error = "ZEEK_CONTAINER_STOP_UNVERIFIED"
-                        self.cleanup_verified = False
-                else:
-                    self.process.stdout.close()
+                    except OSError as exc:
+                        failure_detail("PIPE_CLOSE", exc)
+                        error = error or safe_code(exc)
             try:
                 self.container_absent = self._absent() if self.process is not None else False
-            except (OSError, subprocess.SubprocessError):
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                failure_detail("ABSENCE", exc)
                 self.container_absent = False
-            # An exited Docker client does not prove its container has stopped.
             if self.process is not None and not self.container_absent and not cleanup_attempted:
                 try:
-                    self._stop_container()  # One identity-checked cleanup attempt, never recapture.
+                    cleanup_attempted = True
+                    self._stop_container()
                     self.container_absent = self._absent()
-                except (OSError, subprocess.SubprocessError):
+                except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                    failure_detail("EXITED_CONTAINER_CLEANUP", exc)
                     self.container_absent = False
             stopper.shutdown(wait=True)
             # Cleanup proof is independent of stream/process success.
             self.cleanup_verified = self.container_absent
             if self.process is not None:
-                code = self.process.poll()
+                code = poll_owned()
             cleanup_failed_late = error is None and not self.cleanup_verified
             if cleanup_failed_late:
                 error, reason = "ZEEK_CONTAINER_CLEANUP_UNVERIFIED", "DOCKER_FAILURE"
@@ -360,6 +394,9 @@ class StreamProcess:
                     stopped=self.stop_requested,
                     elapsed_seconds=time.monotonic() - started,
                     cleanup_verified=self.cleanup_verified,
+                    cleanup_failures=cleanup_failures,
+                    adapter_failure=adapter_failure,
+                    discarded_after_adapter_failure=discarded_after_adapter_failure,
                     container_absent=self.container_absent,
                     container_id=self.container_identity,
                     container_exit_source=(

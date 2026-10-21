@@ -12,6 +12,7 @@ import time
 from functools import wraps
 from pathlib import Path
 
+from soc_agent.security_ai.ebpf.checkpoint import CheckpointFailure, CheckpointWriter
 from soc_agent.security_ai.ebpf.clock import ClockContract
 from soc_agent.security_ai.ebpf.collector import EBPFCollector
 from soc_agent.security_ai.ebpf.models import Plan
@@ -27,7 +28,12 @@ ROW_BYTES = HEADER.size + 80
 def synchronized(method):
     @wraps(method)
     def call(self, *args, **kwargs):
+        started = time.perf_counter_ns()
         with self.lock:
+            if method.__name__ == "pump":
+                self.receiver_metrics["pump_lock_wait_max_ns"] = max(
+                    self.receiver_metrics["pump_lock_wait_max_ns"], time.perf_counter_ns() - started
+                )
             return method(self, *args, **kwargs)
 
     return call
@@ -61,6 +67,8 @@ class PacketChannel:
         # One shared 32-record budget across ingress, in-flight and event-time
         # reorder storage; adding a worker must not double the approved budget.
         self.packet_slots = threading.BoundedSemaphore(32)
+        self.processing_idle = threading.Event()
+        self.processing_idle.set()
         self.processing_stop = threading.Event()
         self.wire_closed = False
         self.end_pending: bytes | None = None
@@ -70,6 +78,8 @@ class PacketChannel:
             recv_calls=0,
             recv_gap_max_ns=0,
             recv_max_ns=0,
+            pump_lock_wait_max_ns=0,
+            validation_max_ns=0,
             processing_calls=0,
             processing_max_ns=0,
             queue_wait_max_ns=0,
@@ -140,10 +150,10 @@ class PacketChannel:
             self.adapter.state = "ERROR"
             try:
                 self.adapter.end_metadata_stream("INCOMPLETE")
-            except (OSError, sqlite3.Error) as exc:
+            except (OSError, sqlite3.Error, CheckpointFailure) as exc:
                 self._processing_io_error(exc)
 
-    def _processing_io_error(self, exc: OSError | sqlite3.Error) -> None:
+    def _processing_io_error(self, exc: OSError | sqlite3.Error | CheckpointFailure) -> None:
         self.processing_io_failure = self.processing_io_failure or dict(
             api="packet_adapter_or_checkpoint",
             errno=exc.errno if isinstance(exc, OSError) else None,
@@ -164,6 +174,7 @@ class PacketChannel:
             try:
                 raw, received_ns = self.processing_queue.get(timeout=0.02)
             except queue.Empty:
+                self.processing_idle.clear()
                 if self.error:
                     before = len(self.adapter.queue) if self.adapter else 0
                     self._processing_failure(self.error)
@@ -199,8 +210,11 @@ class PacketChannel:
                     self._release_slots(before - (len(self.adapter.queue) if self.adapter else 0))
                     self.closed = self.wire_closed
                     self._publish()
+                    self.processing_idle.set()
                     return
+                self.processing_idle.set()
                 continue
+            self.processing_idle.clear()
             before = len(self.adapter.queue) if self.adapter else 0
             start = time.perf_counter_ns()
             self.receiver_metrics["queue_wait_max_ns"] = max(
@@ -209,6 +223,12 @@ class PacketChannel:
             try:
                 if self.error:
                     self._processing_failure(self.error)
+                if (
+                    self.adapter
+                    and self.adapter.checkpoint_writer
+                    and self.adapter.checkpoint_writer.failure
+                ):
+                    raise CheckpointFailure("EBPF_CHECKPOINT_WRITER_FAILED")
                 self._apply(2, raw)
             except (ValueError, OSError, sqlite3.Error) as exc:
                 if not isinstance(exc, ValueError):
@@ -228,6 +248,7 @@ class PacketChannel:
                     or self.receiver_metrics["processing_calls"] % 32 == 0
                 ):
                     self._publish()
+                self.processing_idle.set()
 
     def _release_slots(self, count: int) -> None:
         for _ in range(count):
@@ -239,6 +260,10 @@ class PacketChannel:
             raise ValueError("TCX_DATA_RUN_DENIED")
         if self.adapter and not self.adapter.flow.closed:
             raise ValueError("TCX_DATA_PREVIOUS_RUN_UNFINISHED")
+        if self.adapter and self.adapter.checkpoint_writer:
+            if not self.processing_idle.wait(timeout=2):
+                raise ValueError("TCX_DATA_PROCESSING_NOT_IDLE")
+            self.adapter.checkpoint_writer.close()
         if generation in self.generations:
             raise ValueError("TCX_DATA_GENERATION_REPLAY")
         scope = self.plan.broker.application.scope
@@ -263,6 +288,8 @@ class PacketChannel:
             time.monotonic(),
             clock or ClockContract(session_id=plan.session_id, domain=plan.clock),
         )
+        if self.processor:
+            self.adapter.checkpoint_writer = CheckpointWriter(self.adapter._persist_checkpoint)
         self._publish()
 
     def _receive(self, *, ready: bool = False) -> None:
@@ -349,6 +376,10 @@ class PacketChannel:
             # Authenticated sender-declared loss stops feature processing, but
             # counter/terminal records still have valid identity and sequence.
             self.error = self.error or "TCX_DATA_SOCKET_DELIVERY_LOSS"
+        self.receiver_metrics["validation_max_ns"] = max(
+            self.receiver_metrics["validation_max_ns"],
+            time.perf_counter_ns() - self.last_receive_ns,
+        )
         raw = body[HEADER.size :]
         if self.processor and kind == 2:
             try:
@@ -530,11 +561,19 @@ class PacketChannel:
                 self.adapter.end_metadata_stream("INCOMPLETE")
             if self.adapter and not (self.processor and self.processor.is_alive()):
                 try:
+                    if self.adapter.checkpoint_writer:
+                        self.adapter.checkpoint_writer.flush()
                     self.adapter.checkpoint()
-                except (OSError, sqlite3.Error) as exc:
+                except (OSError, sqlite3.Error, CheckpointFailure) as exc:
                     self._processing_io_error(exc)
                 self._publish()
         finally:
+            if self.adapter and self.adapter.checkpoint_writer:
+                try:
+                    self.adapter.checkpoint_writer.close()
+                except CheckpointFailure as exc:
+                    self._processing_io_error(exc)
+                self._publish()
             if self.channel:
                 self.channel.close()
                 self.channel = None
@@ -598,4 +637,25 @@ class PacketChannel:
             automatic_restart=False,
             worker_alive=bool(self.worker and self.worker.is_alive()),
             processor_alive=bool(self.processor and self.processor.is_alive()),
+            processing_pending=self.processing_queue.unfinished_tasks,
+            audit_writer=self.adapter.checkpoint_writer.snapshot()
+            if self.adapter and self.adapter.checkpoint_writer
+            else None,
+            drain_state="FAILED"
+            if self.error or self.cleanup_error
+            else "PENDING"
+            if not self.closed
+            or self.processing_queue.unfinished_tasks
+            or self.worker
+            and self.worker.is_alive()
+            or self.processor
+            and self.processor.is_alive()
+            or self.adapter
+            and self.adapter.checkpoint_writer
+            and (
+                self.adapter.checkpoint_writer.worker.is_alive()
+                or self.adapter.checkpoint_writer.submitted
+                != self.adapter.checkpoint_writer.committed
+            )
+            else "VERIFIED",
         )

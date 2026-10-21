@@ -272,6 +272,8 @@ class SupervisorCore:
             first_error=self.error,
             after=after,
             inspector_exit=getattr(getattr(self.ops, "inspector", None), "exit_evidence", None),
+            zeek_cleanup_steps=getattr(self.ops, "lifecycle", None),
+            zeek_container_removed=getattr(self.ops, "container_removed", None),
             native_ai="BLOCKED",
             dns9="BLOCKED",
         )
@@ -413,8 +415,12 @@ class DockerAPI:
         connection.sock = channel
         return connection
 
-    def request(self, method, path, data=None, *, stream=False):
-        connection = self.connect(5)
+    def request(self, method, path, data=None, *, stream=False, missing_ok=False, timeout=5):
+        if missing_ok and method != "GET":
+            raise ValueError("SUPERVISOR_ABSENCE_READ_ONLY")
+        if not 0 < timeout <= 5:
+            raise ValueError("SUPERVISOR_DOCKER_TIMEOUT_BOUND")
+        connection = self.connect(timeout)
         channel = connection.sock
         try:
             body = None if data is None else sup_json(data)
@@ -423,6 +429,8 @@ class DockerAPI:
             api_path = path if path == "/version" else "/v1.51" + path
             connection.request(method, api_path, body, {"Content-Type": "application/json"})
             response = connection.getresponse()
+            if missing_ok and method == "GET" and response.status == 404:
+                return True
             if response.status not in {200, 201, 204, 304}:
                 detail = response.read(1024).decode(errors="replace")
                 raise ValueError(f"SUPERVISOR_DOCKER_API:{response.status}:{detail}")
@@ -434,7 +442,9 @@ class DockerAPI:
             if len(body) > SUP_LIMIT:
                 raise ValueError("SUPERVISOR_DOCKER_RESPONSE_BOUND")
             try:
-                return json.loads(body) if body else None
+                # Only the HTTP404 branch proves absence; a successful response
+                # containing JSON null/true must never become an absence receipt.
+                return False if missing_ok else json.loads(body) if body else None
             except (TypeError, ValueError) as exc:
                 raise ValueError("SUPERVISOR_DOCKER_JSON_SCHEMA") from exc
         except http.client.HTTPException as exc:
@@ -449,6 +459,7 @@ class DaemonCapture:
         self.api, self.identity, self.write_fd = api, identity, write_fd
         self.error = None
         self.output_bytes = 0
+        self.eof = self.forced_close = False
         self.connection, self.response = api.request(
             "POST", f"/containers/{identity}/attach?stream=1&stdout=1&stderr=0", stream=True
         )
@@ -477,6 +488,7 @@ class DaemonCapture:
                         raise ValueError("SUPERVISOR_ZEEK_BACKPRESSURE_CAPTURE_GAP")
                     if select.select([], [self.write_fd], [], 0.05)[1]:
                         offset += os.write(self.write_fd, part[offset:])
+            self.eof = True
         except (OSError, ValueError, TimeoutError, http.client.HTTPException) as exc:
             self.error = str(exc)
         finally:
@@ -484,9 +496,13 @@ class DaemonCapture:
             self.response.close()
             self.connection.close()
 
-    def close(self):
-        self.worker.join(timeout=5)
+    def close(self, timeout=5):
+        if not 0 < timeout <= 5:
+            raise ValueError("SUPERVISOR_STREAM_TIMEOUT_BOUND")
+        deadline = time.monotonic() + timeout
+        self.worker.join(timeout=max(0, timeout - 1))
         if self.worker.is_alive():
+            self.forced_close = True
             channel = getattr(self.connection, "supervisor_socket", None)
             if channel is not None:
                 try:
@@ -494,9 +510,11 @@ class DaemonCapture:
                 except OSError:
                     pass
             self.connection.close()
-            self.worker.join(timeout=1)
+            self.worker.join(timeout=max(0, deadline - time.monotonic()))
             if self.worker.is_alive():
                 raise ValueError("SUPERVISOR_ZEEK_STREAM_CLOSE_UNVERIFIED")
+        if self.error or self.forced_close or not self.eof:
+            raise ValueError("SUPERVISOR_ZEEK_STREAM_DRAIN_UNVERIFIED")
 
 
 def sup_container(plan, config, policy, identity):
@@ -549,14 +567,16 @@ class RootOperations:
         self.policy = None
         self.started = self.stopped = self.attempted = False
         self.exit_code = None
+        self.container_stopped = self.container_removed = False
+        self.lifecycle = []
 
     def inspect(self):
         return self.inspector.snapshot()
 
-    def owned(self):
+    def owned(self, timeout=5):
         if self.identity is None:
             raise ValueError("SUPERVISOR_CONTAINER_ID_UNKNOWN")
-        row = self.api.request("GET", f"/containers/{self.identity}/json")
+        row = self.api.request("GET", f"/containers/{self.identity}/json", timeout=timeout)
         if (
             not isinstance(row, dict)
             or not isinstance(row.get("Config"), dict)
@@ -609,7 +629,7 @@ class RootOperations:
         return read_fd
 
     def status(self):
-        if self.identity and not self.stopped:
+        if self.identity and not self.container_removed:
             row = self.owned()
             if not row["State"]["Running"] and self.started:
                 self.exit_code = row["State"]["ExitCode"]
@@ -619,6 +639,9 @@ class RootOperations:
             zeek_exit=self.exit_code,
             zeek_started=self.started,
             zeek_stopped=self.stopped,
+            zeek_container_stopped=self.container_stopped,
+            zeek_container_removed=self.container_removed,
+            zeek_cleanup_steps=list(self.lifecycle),
             clock_domains="SEPARATE_TCX_MONOTONIC_ZEEK_EVENT",
             counter_scope="SEPARATE_NO_CROSS_COLLECTOR_ATTESTATION",
         )
@@ -627,21 +650,87 @@ class RootOperations:
         if self.stopped:
             return
         if self.attempted and not self.identity:
-            # Ambiguous create response: never adopt/delete a name-only container.
             raise ValueError("SUPERVISOR_CONTAINER_CREATE_CLEANUP_UNVERIFIED")
+        failures = []
+        deadline = time.monotonic() + 10
+
+        def remaining():
+            value = min(5, deadline - time.monotonic())
+            if value <= 0:
+                raise TimeoutError("SUPERVISOR_STOP_BUDGET_EXHAUSTED")
+            return value
+
+        def step(name, operation):
+            started = time.monotonic_ns()
+            try:
+                result = operation()
+                self.lifecycle.append(
+                    dict(stage=name, result="SUCCESS", elapsed_ns=time.monotonic_ns() - started)
+                )
+                return result
+            except (OSError, ValueError, TimeoutError) as exc:
+                self.lifecycle.append(
+                    dict(
+                        stage=name,
+                        result="FAILED",
+                        category=type(exc).__name__,
+                        errno=exc.errno if isinstance(exc, OSError) else None,
+                        elapsed_ns=time.monotonic_ns() - started,
+                    )
+                )
+                failures.append(name)
+                return None
+
         if self.identity:
-            row = self.owned()
+            row = step("OWNERSHIP", lambda: self.owned(timeout=remaining()))
+            if row is None:
+                raise ValueError("SUPERVISOR_CONTAINER_OWNERSHIP_UNVERIFIED")
             if row["State"]["Running"]:
-                self.api.request("POST", f"/containers/{self.identity}/stop?t=2")
-                row = self.owned()
-            if row["State"]["Running"]:
-                raise ValueError("SUPERVISOR_CONTAINER_STOP_UNVERIFIED")
-            self.exit_code = row["State"]["ExitCode"]
+                step(
+                    "DOCKER_STOP",
+                    lambda: self.api.request(
+                        "POST", f"/containers/{self.identity}/stop?t=2", timeout=remaining()
+                    ),
+                )
+            # A failed stop response is not proof of a running or stopped container.
+            row = step("STOPPED_IDENTITY", lambda: self.owned(timeout=remaining()))
+            self.container_stopped = bool(row and not row["State"]["Running"])
+            if self.container_stopped:
+                self.exit_code = row["State"]["ExitCode"]
+            else:
+                failures.append("CONTAINER_STOP_UNVERIFIED")
             if self.capture:
-                self.capture.close()
-            # Exact created ID + verified immutable labels + stopped state only.
-            self.api.request("DELETE", f"/containers/{self.identity}?v=0&force=0")
-        self.stopped = True
+                step("STREAM_DRAIN", lambda: self.capture.close(timeout=remaining()))
+            # Stream failure must not skip removal of our proven-stopped exact ID.
+            # Revalidate ownership immediately before deletion; never use a name.
+            if self.container_stopped:
+                row = step("REMOVE_IDENTITY", lambda: self.owned(timeout=remaining()))
+                if row and not row["State"]["Running"]:
+                    before = len(failures)
+                    step(
+                        "DOCKER_REMOVE",
+                        lambda: self.api.request(
+                            "DELETE",
+                            f"/containers/{self.identity}?v=0&force=0",
+                            timeout=remaining(),
+                        ),
+                    )
+                    if len(failures) == before:
+                        absent = step(
+                            "VERIFY_ABSENT",
+                            lambda: self.api.request(
+                                "GET",
+                                f"/containers/{self.identity}/json",
+                                missing_ok=True,
+                                timeout=remaining(),
+                            ),
+                        )
+                        self.container_removed = len(failures) == before and absent is True
+                        if not self.container_removed:
+                            failures.append("CONTAINER_ABSENCE_UNVERIFIED")
+        self.stopped = not self.identity or self.container_stopped and self.container_removed
+        if failures:
+            raise ValueError("SUPERVISOR_ZEEK_CLEANUP_UNVERIFIED:" + ";".join(failures))
 
     def quiesce(self):
         # No fork/preexec helper is started while the metadata thread is active.

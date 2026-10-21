@@ -37,6 +37,12 @@ def test_c_data_plane_golden_control_independence_and_recovery(
     assert result["state"] == 3  # Never fabricate Kernel ACTIVE.
     h.command(Command(command="STATUS", plan_digest=h.plan.approval, sequence=2))
     actual = h.data.adapter
+    import time
+
+    deadline = time.monotonic() + 2
+    while not actual.flow.closed and time.monotonic() < deadline:
+        time.sleep(0.005)
+    assert actual.flow.closed
     expected = aggregate(tuple(reference(pcap)), str(actual.plan.session_id))
     assert [f["values"] for f in actual.flow.finalized] == [f["values"] for f in expected["flows"]]
     assert [f["values_digest"] for f in actual.flow.finalized] == [
@@ -52,6 +58,9 @@ def test_c_data_plane_golden_control_independence_and_recovery(
     assert final["data_plane"]["state"] == "CLOSED"
     assert h.child.poll() == 0 and final["native_gate"] == "BLOCKED"
     assert actual.store.verify_audit() and h.application.store.verify_audit()
+    writer = final["data_plane"]["audit_writer"]
+    assert writer["submitted"] == writer["committed"] and not writer["worker_alive"]
+    assert final["data_plane"]["drain_state"] == "VERIFIED"
     from soc_agent.security_ai.ebpf.collector import EBPFCollector
 
     restored = EBPFCollector(actual.directory, actual.plan)
@@ -112,7 +121,14 @@ def test_processing_failure_keeps_authenticated_terminal_reader_until_closed(
     )
     assert final["data_plane"]["terminal_closed_observed"]
     assert not final["data_plane"]["transport_failed"]
-    assert h.child.poll() == 0
+    # Revocation can close the control socket before the C peer sends its reply.
+    # That peer reports 2 on control EOF/send failure; terminal evidence must still
+    # drain, and neither exit path may claim successful end-to-end cleanup.
+    assert h.child.poll() in {0, 2}
+    assert final["cleanup_status"] == "CLEANUP_UNVERIFIED"
+    assert not final["data_plane"]["processor_alive"]
+    writer = final["data_plane"]["audit_writer"]
+    assert writer["committed"] == writer["submitted"] and not writer["worker_alive"]
     assert h.data.adapter.accepted == 1
     assert h.data.adapter.received == (4 if failure == "late" else 3)
     assert h.data.adapter.post_error_discarded == 1
@@ -279,6 +295,7 @@ def test_bounded_slow_processing_keeps_counter_and_terminal_receive(
             raise OSError(errno.EIO, "injected audit write failure")
 
         monkeypatch.setattr(channel.adapter, "checkpoint", failed_checkpoint)
+        monkeypatch.setattr(channel.adapter, "request_checkpoint", failed_checkpoint)
     channel.processor.start()
     channel.processor.join(timeout=2)
     assert not channel.processor.is_alive() and channel.closed
@@ -290,3 +307,16 @@ def test_bounded_slow_processing_keeps_counter_and_terminal_receive(
         assert channel.processing_io_failure["errno"] == 5
         assert channel.cleanup_error == "TCX_PROCESSING_AUDIT_UNVERIFIED"
         assert channel.error == "TCX_PROCESSING_QUEUE_OVERFLOW"
+
+
+def test_closed_with_pending_processing_never_claims_drain_complete(session, tmp_path):
+    from soc_agent.security_ai.ebpf_tc.data_plane import PacketChannel
+
+    h, _ = session
+    channel = PacketChannel(h.plan, h.envelope[-32:].hex(), tmp_path)
+    channel.source = 2
+    channel.closed = channel.wire_closed = True
+    channel.processing_queue.put_nowait((bytes(80), 1))
+    result = channel.snapshot()
+    assert result["terminal_closed_observed"]
+    assert result["processing_pending"] == 1 and result["drain_state"] == "PENDING"

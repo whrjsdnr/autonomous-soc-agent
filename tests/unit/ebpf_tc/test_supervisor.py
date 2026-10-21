@@ -305,7 +305,7 @@ def test_foreign_container_identity_never_stopped_or_deleted(monkeypatch):
         def __init__(self, *_):
             pass
 
-        def request(self, method, path):
+        def request(self, method, path, **_kwargs):
             self.calls.append((method, path))
             return {"Id": "b" * 64, "Config": {"Image": "foreign"}}
 
@@ -374,3 +374,80 @@ def test_unclosed_stream_still_uses_isolated_inspector_without_local_fork():
     final = core.finish()
     assert final["cleanup"] == "CLEANUP_UNVERIFIED"
     assert "inspect" in ops.calls and "close" in ops.calls
+
+
+@pytest.mark.parametrize("failure", [None, "stop_response", "stream"])
+def test_owned_exited_container_removed_even_after_independent_cleanup_error(monkeypatch, failure):
+    import errno
+
+    class API:
+        def __init__(self, *_):
+            self.calls = []
+            self.running = True
+            self.removed = False
+
+        def request(self, method, path, **kwargs):
+            self.calls.append((method, path))
+            assert 0 < kwargs.get("timeout", 5) <= 5
+            if method == "POST":
+                self.running = False
+                if failure == "stop_response":
+                    raise TimeoutError(errno.ETIMEDOUT, "response lost after stop")
+                return None
+            if method == "DELETE":
+                assert not self.running
+                self.removed = True
+                return None
+            if self.removed:
+                assert kwargs["missing_ok"]
+                return True
+            return dict(
+                Id="a" * 64,
+                Config=dict(
+                    Image="trusted",
+                    Labels={
+                        "soc.plan": engine.hashlib.sha256(
+                            engine.sup_json({"controller_generation": "g"})
+                        ).hexdigest(),
+                        "soc.generation": "g",
+                    },
+                ),
+                State=dict(Running=self.running, ExitCode=0),
+            )
+
+    def close(**kwargs):
+        assert 0 < kwargs["timeout"] <= 5
+        if failure == "stream":
+            raise ValueError("MISSING_STREAM_EOF")
+
+    monkeypatch.setattr(engine, "DockerAPI", API)
+    ops = engine.RootOperations({"zeek_scope": {"image": "trusted"}}, "net:[4026531833]", "s", None)
+    ops.identity = "a" * 64
+    ops.plan = {"controller_generation": "g"}
+    ops.capture = SimpleNamespace(close=close)
+    if failure:
+        with pytest.raises(ValueError, match="CLEANUP_UNVERIFIED"):
+            ops.stop()
+    else:
+        ops.stop()
+    assert ops.container_stopped and ops.container_removed and ops.stopped
+    assert len([x for x in ops.api.calls if x[0] == "DELETE"]) == 1
+    assert ops.lifecycle[-1]["stage"] == "VERIFY_ABSENT"
+    assert any(x["result"] == "FAILED" for x in ops.lifecycle) == bool(failure)
+
+
+@pytest.mark.parametrize("status,expected", [(200, False), (404, True), (500, None)])
+def test_absence_requires_http404_not_nullable_json(monkeypatch, status, expected):
+    api = engine.DockerAPI()
+    connection = SimpleNamespace(
+        sock=None,
+        request=lambda *a: None,
+        getresponse=lambda: SimpleNamespace(status=status, read=lambda *a: b"null"),
+        close=lambda: None,
+    )
+    monkeypatch.setattr(api, "connect", lambda timeout: connection)
+    if expected is None:
+        with pytest.raises(ValueError, match="DOCKER_API"):
+            api.request("GET", "/containers/" + "a" * 64 + "/json", missing_ok=True)
+    else:
+        assert api.request("GET", "/containers/" + "a" * 64 + "/json", missing_ok=True) is expected
