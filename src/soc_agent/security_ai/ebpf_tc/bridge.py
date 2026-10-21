@@ -308,10 +308,21 @@ class Preparation:
         qualification_only: bool = False,
         live_qualification: bool = False,
         unified_image=None,
+        supervisor_image=None,
     ):
         from soc_agent.security_ai.ebpf_tc.os_handoff import Handoff
 
-        if sum((qualification_only, live_qualification, unified_image is not None)) > 1:
+        if (
+            sum(
+                (
+                    qualification_only,
+                    live_qualification,
+                    unified_image is not None,
+                    supervisor_image is not None,
+                )
+            )
+            > 1
+        ):
             raise ValueError("QUALIFICATION_MODE_CONFLICT")
         if live_qualification:
             from soc_agent.security_ai.ebpf_tc.auth_session import LiveQualification
@@ -325,6 +336,10 @@ class Preparation:
             from soc_agent.security_ai.ebpf_tc.unified import UnifiedSession
 
             Handoff = UnifiedSession
+        if supervisor_image is not None:
+            from soc_agent.security_ai.ebpf_tc.supervisor import SupervisedSession
+
+            Handoff = SupervisedSession
         if self._os_handoff is not None:
             raise ValueError("OS_HANDOFF_ALREADY_PREPARED")
         from soc_agent.security_ai.ebpf_tc.installation import verify_package
@@ -351,7 +366,11 @@ class Preparation:
             package,
             manifest_sha,
             self.artifacts,
-            **({"image": unified_image} if unified_image is not None else {}),
+            **(
+                {"image": supervisor_image if supervisor_image is not None else unified_image}
+                if supervisor_image is not None or unified_image is not None
+                else {}
+            ),
         )
         self._os_handoff.prepare()
         return self._os_handoff

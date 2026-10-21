@@ -24,7 +24,6 @@ from soc_agent.security_ai.ebpf_native.loader import file_sha
 from soc_agent.security_ai.ebpf_tc.bridge import Preparation
 from soc_agent.security_ai.ebpf_tc.installation import verify_package
 from soc_agent.security_ai.ebpf_tc.supervisor import (
-    SupervisedSession,
     SupervisorImage,
     prepare_supervisor_image,
 )
@@ -94,16 +93,9 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
     try:
         preparation = Preparation(owner, directory / "artifacts")
         preparation.prepare()
-        handoff = SupervisedSession(
-            owner.application,
-            preparation.plan,
-            directory / "release",
-            image.manifest,
-            directory / "artifacts",
-            image=image,
+        handoff = preparation.os_auth_handoff(
+            directory / "release", image.manifest, supervisor_image=image
         )
-        handoff.prepare()
-        preparation._os_handoff = handoff
         submit(zeek.prepare()).result(20)  # No capture/authentication.
         if zeek.plan.bundle_digest != image.zeek_bundle:
             raise ValueError("SUPERVISOR_ZEEK_SOURCE_CHANGED")

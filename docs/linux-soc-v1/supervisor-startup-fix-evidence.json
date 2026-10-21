@@ -1,0 +1,67 @@
+{
+  "version": "0.5.5",
+  "manifest": "092f4d91bbe6b9eea9f8dea72ba5435f1d3b86f1ffdeccd99c89f53ea4d58aad",
+  "bundle": "1a71e435ac461311aeaa8f1110ab54998b6ba0e5002dd12631e194680e98f7e8",
+  "sha256": "54b1f365b835472f2594c7d264787aa3351004bdeec3582f9ff35f61fa17b960",
+  "previous_manifest": "5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+  "files": {
+    "bootstrap": {
+      "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+      "package_mode": "0o444"
+    },
+    "broker": {
+      "sha256": "9919d3c5d9e02aa88be31360c9e29a2b4c0fd6953fae03e8835c033d71809b76",
+      "package_mode": "0o444"
+    },
+    "entry": {
+      "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "package_mode": "0o444"
+    },
+    "libnative-tc.so": {
+      "sha256": "943f0b2e42350d661b5d20c6879ec8ce0119fbd070889e12c29ac55cd7213ae9",
+      "package_mode": "0o444"
+    },
+    "manifest.bin": {
+      "sha256": "7dff5a0d5f708efb8d2bce6377109d5a15fc88524769be31b40b66b50453f43c",
+      "package_mode": "0o444"
+    },
+    "pam-policy.conf": {
+      "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+      "package_mode": "0o444"
+    },
+    "release.json": {
+      "sha256": "092f4d91bbe6b9eea9f8dea72ba5435f1d3b86f1ffdeccd99c89f53ea4d58aad",
+      "package_mode": "0o444"
+    },
+    "release.trust": {
+      "sha256": "81dfb179b34a8180628e669dce5eafc137a1f7ed013580eaaac29bc1706461e4",
+      "package_mode": "0o444"
+    },
+    "tc.bpf.o": {
+      "sha256": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+      "package_mode": "0o444"
+    }
+  },
+  "tcx_sha": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+  "zeek_bundle": "8a422950144a7070610fc5d5e8b703efc19fcbd26f95d5c239b2374c233e257d",
+  "scope_namespace": "net:[4026531833]",
+  "tests": {
+    "command": "uv run pytest tests/unit/ebpf_tc/test_supervisor_startup.py tests/unit/ebpf_tc/test_supervisor.py -q",
+    "passed": 26,
+    "seconds": 35.72,
+    "native_actions": false
+  },
+  "quality": {
+    "ruff": "PASS",
+    "format": "PASS",
+    "diff": "PASS"
+  },
+  "installed_release": "0.5.3",
+  "installation_action": "UPDATE_RETAIN_PREVIOUS",
+  "rollback": "/usr/libexec/.soc-agent-ebpf.rollback-5b135c3da785ea250664387b8e6e128412a0e260b8cc416d89118a30d84b8d19",
+  "rollback_conflict": false,
+  "native_execution": false,
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_promotion": "BLOCKED"
+}

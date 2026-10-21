@@ -274,6 +274,14 @@ class SupervisedSession(UnifiedSession):
         self.supervisor_hello = self.supervisor_final = None
         self.zeek_snapshot = None
         super().__init__(*args, image=image, **kwargs)
+        scope = self.plan.broker.application.scope
+        if (scope.net_namespace, scope.interface, scope.ifindex, scope.hook) != (
+            image.scope_namespace,
+            "lo",
+            1,
+            "INGRESS",
+        ):
+            raise ValueError("SUPERVISOR_TCX_SCOPE_MISMATCH")
 
     def prepare(self):
         result = super().prepare()
