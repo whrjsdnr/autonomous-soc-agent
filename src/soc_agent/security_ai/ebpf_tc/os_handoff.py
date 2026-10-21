@@ -90,6 +90,7 @@ class Handoff:
         self.cleanup = "NOT_OBSERVED"
         self.broker_error = None
         self.loader_diagnostics = []
+        self.verifier_log = None
         self.error: str | None = None
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
         self.qualification_only = False
@@ -619,6 +620,7 @@ class Handoff:
             try:
                 evidence = recover_native(self.audit_path, self.plan.approval)
                 self.loader_diagnostics = evidence["loader_diagnostics"]
+                self.verifier_log = evidence["verifier_log"]
                 if evidence["claimed_cleanup"] and self.child and self.child.returncode == 0:
                     self.cleanup = (
                         "FIXTURE_VERIFIED"
@@ -673,6 +675,7 @@ class Handoff:
             "cleanup_status": self.cleanup,
             "broker_error": self.broker_error,
             "loader_diagnostics": self.loader_diagnostics,
+            "verifier_log": self.verifier_log,
             "source": self.origin,
             "collector_state": self.collector_state,
             "tcx_link": self.link_evidence,

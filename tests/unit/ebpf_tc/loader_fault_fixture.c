@@ -38,6 +38,10 @@ int bpf_program__set_autoload(struct bpf_program *p,bool enabled) {
 int bpf_object__load(struct bpf_object *o) {
  (void)o;load_calls++;
  if(scenario==4) {strcpy(kernel_log,"fixture-verifier-no-traffic");errno=EACCES;return -EACCES;}
+ if(scenario==8 || scenario==9) {
+  size_t length=scenario==8?24355:65535;memset(kernel_log,'V',length);
+  kernel_log[length]=0;errno=EACCES;return -EACCES;
+ }
  return 0; /* Deliberately do not load anything into the kernel. */
 }
 int bpf_map__fd(const struct bpf_map *m) {last_map=m;errno=EBADF;return load_calls?4000:-1;}
@@ -61,7 +65,7 @@ void ring_buffer__free(struct ring_buffer *r) {(void)r;ring_freed++;}
 int soc_snapshot_tcx(struct soc_state *s,struct soc_snapshot *out) {(void)s;(void)out;return -EAGAIN;}
 int soc_final_drain_counters(struct soc_state *s) {(void)s;drain_calls++;return -EPIPE;}
 int main(int argc,char **argv) {
- if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>7)return 2;
+ if(getuid()==0 || argc!=4)return 2;scenario=atoi(argv[1]);if(scenario<1 || scenario>9)return 2;
  int object=open(argv[2],O_RDONLY|O_NOFOLLOW),audit=open(argv[3],O_WRONLY|O_CREAT|O_EXCL|O_APPEND,0600);
  if(object<0 || audit<0)return 3;
  struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.audit_fd=audit,.ipc_fd=-1,.data_fd=-1};

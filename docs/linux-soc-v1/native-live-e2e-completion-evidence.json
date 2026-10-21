@@ -1,0 +1,305 @@
+{
+  "baseline": "02dafc27d186a812a6ba7be4970164eecee43e06",
+  "session": "6c2999eb-cefd-4535-a3b9-3fde60851b88",
+  "release_executed": {
+    "version": "0.5.1",
+    "manifest": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+    "bundle": "2ea494836e666c48a0800991bdd6e765737dfc8f442461dda4b61a95545b26d6"
+  },
+  "release_candidate": {
+    "version": "0.5.2",
+    "manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+    "bundle": "0d57b6cbd0de48ff9a48702dcd2849760e1855bd578643049dcf196c35e2984d",
+    "image": {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/tcx-native-e2e-051/candidate-052/unified-image.py",
+      "sha256": "3933398bb61421e197bd97e14b602ebb93d4e9724eb34d1e21be46f8fcbb5777",
+      "manifest": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+      "previous_manifest": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+      "version": "0.5.2",
+      "action": "UPDATE_RETAIN_PREVIOUS",
+      "files": {
+        "bootstrap": {
+          "sha256": "80b1e23e0213cfcdb0543be5094c118b91c4c343575d8956a855326d6359ea9a",
+          "mode": 365
+        },
+        "broker": {
+          "sha256": "04c23fce1504e308f77e48ef9e86ddd7ed9c26646d50f1a7a4754a0ba2d706e0",
+          "mode": 365
+        },
+        "entry": {
+          "sha256": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+          "mode": 365
+        },
+        "libnative-tc.so": {
+          "sha256": "e427384eb0b82fc7239d5367560c4863e2636700cfe4c077d06d1369714d7b07",
+          "mode": 292
+        },
+        "manifest.bin": {
+          "sha256": "f5e450fc8b025b25838dda66366bb5d566b8d8d7051c6f65a1c34fa028ac3b18",
+          "mode": 292
+        },
+        "pam-policy.conf": {
+          "sha256": "93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696",
+          "mode": 292
+        },
+        "tc.bpf.o": {
+          "sha256": "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a",
+          "mode": 292
+        },
+        "release.json": {
+          "sha256": "7471b886adda9dff073e2f601091a9dece5eedc9a46c4c7a3f2111d77c34fadf",
+          "mode": 292
+        },
+        "release.trust": {
+          "sha256": "3066dd7256719a3ea2d6efeb11f8250d245684823e91c09d84f54f36a4ee9c67",
+          "mode": 292
+        }
+      }
+    }
+  },
+  "first_failure": {
+    "stage": "BPF_OBJECT_LOAD",
+    "api": "bpf_object__load",
+    "return_value": -13,
+    "saved_errno": 13,
+    "error_source": "LIBBPF_RETURN",
+    "resources": 273,
+    "fd_inventory_available": true,
+    "map_fds_observed": 0,
+    "program_fds_observed": 0,
+    "link_fd_observed": false,
+    "kernel_load_api_called": true,
+    "owned_object_released": false,
+    "kernel_log_bytes": 24355,
+    "kernel_log_sha256": "3b5671a1a050248564f99486ff8af63cc7f651f6ee14068075bcb382c644ef4d",
+    "kernel_log_scope": "LIBBPF_SHARED_BTF_OR_PROGRAM_LOG_LAST_CONTENTS",
+    "kernel_log_at_bound": false,
+    "raw_kernel_log_retained": false
+  },
+  "cleanup_diagnostic": {
+    "stage": "CLEANUP",
+    "api": "capture_failure_sticky",
+    "return_value": -117,
+    "saved_errno": null,
+    "error_source": "CONTRACT_ERRNO_NOT_EXPOSED",
+    "resources": 49,
+    "fd_inventory_available": false,
+    "map_fds_observed": null,
+    "program_fds_observed": null,
+    "link_fd_observed": false,
+    "kernel_load_api_called": true,
+    "owned_object_released": true,
+    "kernel_log_bytes": 0,
+    "kernel_log_sha256": null,
+    "kernel_log_scope": "LIBBPF_SHARED_BTF_OR_PROGRAM_LOG_LAST_CONTENTS",
+    "kernel_log_at_bound": false,
+    "raw_kernel_log_retained": false
+  },
+  "broker_error": {
+    "operation": "ATTACH",
+    "sequence": 2,
+    "return_value": -13
+  },
+  "broker_ready_state": "BROKER_READY",
+  "capabilities_observed": {
+    "CapInh": 0,
+    "CapPrm": 549755817984,
+    "CapEff": 0,
+    "CapBnd": 549755817984,
+    "CapAmb": 0
+  },
+  "entry_exit_code": 2,
+  "installation": "ROOT_FILES_VERIFIED_NATIVE",
+  "cleanup": "CLEANUP_UNVERIFIED",
+  "authentication_final": "REVOKED",
+  "native_journal": {
+    "source": "NATIVE_JOURNAL_CLAIM_NOT_RUNTIME_ATTESTATION",
+    "loader_diagnostics": [
+      {
+        "stage": "BPF_OBJECT_LOAD",
+        "api": "bpf_object__load",
+        "return_value": -13,
+        "saved_errno": 13,
+        "error_source": "LIBBPF_RETURN",
+        "resources": 273,
+        "fd_inventory_available": true,
+        "map_fds_observed": 0,
+        "program_fds_observed": 0,
+        "link_fd_observed": false,
+        "kernel_load_api_called": true,
+        "owned_object_released": false,
+        "kernel_log_bytes": 24355,
+        "kernel_log_sha256": "3b5671a1a050248564f99486ff8af63cc7f651f6ee14068075bcb382c644ef4d",
+        "kernel_log_scope": "LIBBPF_SHARED_BTF_OR_PROGRAM_LOG_LAST_CONTENTS",
+        "kernel_log_at_bound": false,
+        "raw_kernel_log_retained": false
+      },
+      {
+        "stage": "CLEANUP",
+        "api": "capture_failure_sticky",
+        "return_value": -117,
+        "saved_errno": null,
+        "error_source": "CONTRACT_ERRNO_NOT_EXPOSED",
+        "resources": 49,
+        "fd_inventory_available": false,
+        "map_fds_observed": null,
+        "program_fds_observed": null,
+        "link_fd_observed": false,
+        "kernel_load_api_called": true,
+        "owned_object_released": true,
+        "kernel_log_bytes": 0,
+        "kernel_log_sha256": null,
+        "kernel_log_scope": "LIBBPF_SHARED_BTF_OR_PROGRAM_LOG_LAST_CONTENTS",
+        "kernel_log_at_bound": false,
+        "raw_kernel_log_retained": false
+      }
+    ],
+    "verifier_log": {
+      "complete": false,
+      "bytes_observed": 0,
+      "text": null
+    },
+    "audit_digest": "c10512d3e3d240a4b2b36114ed4e3d619de51346395249c5bd70049db7777bdc",
+    "release_manifest_digest": "892bb7ab00a4bb47637f6ce9e5409dbe2864a0db9ba632b3012dae7138c45f7d",
+    "records": 8,
+    "claimed_cleanup": false,
+    "last_owner_observed": false,
+    "state": "RECOVERY_REQUIRES_USER_REVIEW",
+    "process_exit": "UNKNOWN",
+    "authentication_restored": false,
+    "automatic_attach": false,
+    "automatic_inference": false,
+    "native_ai": "BLOCKED"
+  },
+  "application_audit": {
+    "records": 24,
+    "digest": "76dfb70b39e62dbfe3e876476c3c745fcf9d7f34d81454e2b2791db431d428ff"
+  },
+  "post_inspection": {
+    "started": "2026-10-21T01:48:35.245608+00:00",
+    "commands": [
+      {
+        "command": [
+          "/usr/bin/sudo",
+          "-n",
+          "/usr/lib/linux-tools-6.8.0-147/bpftool",
+          "prog",
+          "show"
+        ],
+        "returncode": 0,
+        "stdout": "3: cgroup_device  name sd_devices  tag 4ea3934a7fabf5c3  gpl\n\tloaded_at 2026-10-16T10:32:36+0900  uid 0\n\txlated 504B  jited 318B  memlock 4096B\n4: cgroup_skb  name sd_fw_egress  tag 772db7720b2728e9  gpl\n\tloaded_at 2026-10-16T10:32:36+0900  uid 0\n\txlated 64B  jited 63B  memlock 4096B\n5: cgroup_skb  name sd_fw_ingress  tag 772db7720b2728e9  gpl\n\tloaded_at 2026-10-16T10:32:36+0900  uid 0\n\txlated 64B  jited 63B  memlock 4096B\n6: cgroup_skb  name sd_fw_egress  tag 772db7720b2728e9  gpl\n\tloaded_at 2026-10-16T10:32:37+0900  uid 0\n\txlated 64B  jited 63B  memlock 4096B\n7: cgroup_skb  name sd_fw_ingress  tag 772db7720b2728e9  gpl\n\tloaded_at 2026-10-16T10:32:37+0900  uid 0\n\txlated 64B  jited 63B  memlock 4096B\n8: cgroup_device  name sd_devices  tag 4b13b8318fb7df93  gpl\n\tloaded_at 2026-10-16T10:32:54+0900  uid 0\n\txlated 464B  jited 297B  memlock 4096B\n9: cgroup_device  name sd_devices  tag a97c143260cd9940  gpl\n\tloaded_at 2026-10-16T10:32:54+0900  uid 0\n\txlated 416B  jited 267B  memlock 4096B\n10: cgroup_device  name sd_devices  tag c887b70b3ad4a38c  gpl\n\tloaded_at 2026-10-16T10:32:55+0900  uid 0\n\txlated 744B  jited 456B  memlock 4096B\n11: cgroup_skb  name sd_fw_egress  tag 772db7720b2728e9  gpl\n\tloaded_at 2026-10-16T10:32:55+0900  uid 0\n\txlated 64B  jited 63B  memlock 4096B\n12: cgroup_skb  name sd_fw_ingress  tag 772db7720b2728e9  gpl\n\tloaded_at 2026-10-16T10:32:55+0900  uid 0\n\txlated 64B  jited 63B  memlock 4096B\n79: cgroup_device  name sd_devices  tag b3333f074dcc518c  gpl\n\tloaded_at 2026-10-17T01:16:35+0900  uid 0\n\txlated 184B  jited 110B  memlock 4096B\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/usr/bin/sudo",
+          "-n",
+          "/usr/lib/linux-tools-6.8.0-147/bpftool",
+          "map",
+          "show"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/usr/bin/sudo",
+          "-n",
+          "/usr/lib/linux-tools-6.8.0-147/bpftool",
+          "link",
+          "show"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/usr/bin/sudo",
+          "-n",
+          "/usr/sbin/tc",
+          "filter",
+          "show",
+          "dev",
+          "lo",
+          "ingress"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "/usr/bin/sudo",
+          "-n",
+          "/usr/sbin/tc",
+          "filter",
+          "show",
+          "dev",
+          "lo",
+          "egress"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "authentication": "SUDO_SUCCESS_FRESH_PASSWORD_USER_CONFIRMED",
+    "native_mutations": false,
+    "initial_timestamp_invalidation_returncode": 0,
+    "authentication_command": [
+      "/usr/bin/sudo",
+      "-p",
+      "[SOC read-only inspection] OS password: ",
+      "-v"
+    ],
+    "authentication_returncode": 0,
+    "fresh_password_user_confirmed": true,
+    "cache_validation": {
+      "command": [
+        "/usr/bin/sudo",
+        "-n",
+        "-v"
+      ],
+      "returncode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "terminal_timestamp_invalidation_returncode": 0,
+    "finished": "2026-10-21T01:48:47.836470+00:00"
+  },
+  "packet_events": 0,
+  "features": 0,
+  "tcx_link": null,
+  "historical_evidence_unchanged": true,
+  "user_baseline_files_preserved": 132,
+  "root_cause": "Actual load API EACCES established; rejecting instruction/internal syscall and verifier reason UNKNOWN because 0.5.1 retained only log size/SHA. No assumption of missing capability or unsupported TCX justified.",
+  "diagnostic_remedy": "0.5.2 bounded verifier-text chunks in existing private hash-chained Journal; complete byte count/SHA validation before exposing text; partial logs never complete. No new native attempt or install.",
+  "verdict": {
+    "TRUSTED_INSTALL_NATIVE": "VERIFIED",
+    "OS_AUTH_NATIVE": "VERIFIED",
+    "BROKER_HANDOFF_NATIVE": "VERIFIED",
+    "TCX_VERIFIER_NATIVE": "FAILED",
+    "TCX_ATTACH_NATIVE": "PENDING",
+    "TCX_DATA_PLANE_NATIVE": "PENDING",
+    "NETWORK14_NATIVE": "PENDING",
+    "GUI_NATIVE": "PENDING",
+    "AUDIT_NATIVE": "VERIFIED",
+    "CLEANUP_NATIVE": "UNKNOWN"
+  },
+  "gates": {
+    "native_ai": "BLOCKED",
+    "dns9": "BLOCKED",
+    "operational_promotion": "BLOCKED"
+  },
+  "broker_pid": 783878,
+  "broker_process_absent": true,
+  "rollback_050_retained": true,
+  "tests": {
+    "loader_diagnostics": "15 cases: injected failures, complete text, offset/padding/digest rejection, partial log, 24355/65535-byte bounds",
+    "journal_dispatch_regression": "11 passed, 4 deselected; no unrelated gate test rerun",
+    "kernel_actions_in_fixtures": "mocked; no real load/attach",
+    "root_install_or_native_retry_052": false
+  }
+}

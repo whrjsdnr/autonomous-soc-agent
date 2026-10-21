@@ -75,7 +75,7 @@ static int load(struct soc_state *s) {
     if(!r) {free(body);return load_failed(s,NULL,SOC_LOAD_PREPARE,SOC_DIAG_ALLOCATE,-ENOMEM,saved,SOC_ALLOCATOR_ERRNO);}
     s->context=r;libbpf_set_print(NULL);
     /* Request a bounded kernel log on the first API attempt; never re-invoke load
-     * to obtain diagnostics. Persist only presence/length/SHA, never raw text. */
+     * to obtain diagnostics. Keep text only in the private diagnostic journal. */
     struct bpf_object_open_opts options={.sz=sizeof(options),.kernel_log_buf=r->kernel_log,
         .kernel_log_size=sizeof(r->kernel_log),.kernel_log_level=1};
     errno=0;r->object=bpf_object__open_mem(body,st.st_size,&options);saved=errno;free(body);

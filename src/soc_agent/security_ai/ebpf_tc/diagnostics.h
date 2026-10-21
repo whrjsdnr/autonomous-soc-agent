@@ -45,5 +45,21 @@ static inline void soc_diagnostic_record(struct soc_state *s,
        write(s->audit_fd,&row,sizeof(row))!=sizeof(row) || fsync(s->audit_fd)) {s->failed=1;return;}
     memcpy(s->audit_previous,row.sha,32);s->audit_records++;
     /* Journal only: do not inject this row or verifier text into control/data IPC. */
+    /* A digest alone cannot explain a verifier rejection. Retain bounded kernel
+     * diagnostics in the same private append-only journal, never packet payload.
+     * Each chunk shares the existing hash chain and has canonical zero padding. */
+    for(size_t offset=0;offset<length;offset+=72) {
+        struct {uint32_t offset,length;uint8_t bytes[72];} chunk={0};
+        size_t count=length-offset;if(count>72)count=72;
+        chunk.offset=offset;chunk.length=count;memcpy(chunk.bytes,log+offset,count);
+        if(s->audit_records>=1024) {s->failed=1;return;}
+        memset(&row,0,sizeof(row));memcpy(row.plan,s->plan.approval,32);
+        strcpy(row.kind,"LOADER_VERIFIER_LOG");memcpy(&row.detail,&chunk,sizeof(chunk));
+        row.sequence=s->sequence;row.ordinal=s->audit_records+1;
+        memcpy(row.previous,s->audit_previous,32);
+        if(soc_sha(&row,sizeof(row)-32,row.sha) ||
+           write(s->audit_fd,&row,sizeof(row))!=sizeof(row) || fsync(s->audit_fd)) {s->failed=1;return;}
+        memcpy(s->audit_previous,row.sha,32);s->audit_records++;
+    }
 }
 #endif

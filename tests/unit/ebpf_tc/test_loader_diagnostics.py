@@ -90,7 +90,12 @@ def test_first_failure_and_cleanup_are_separate(
             detail["kernel_log_sha256"]
             == hashlib.sha256(b"fixture-verifier-no-traffic").hexdigest()
         )
-        assert not detail["raw_kernel_log_retained"]
+        assert detail["raw_kernel_log_retained"]
+        assert recovered["verifier_log"] == {
+            "complete": True,
+            "bytes_observed": len(b"fixture-verifier-no-traffic"),
+            "text": "fixture-verifier-no-traffic",
+        }
         assert (
             detail["saved_errno"] != errno.EIO
         )  # Later cleanup errno cannot overwrite first failure.
@@ -124,3 +129,75 @@ def test_broker_reply_error_survives_controller_rejection():
     with pytest.raises(ValueError, match="HANDOFF_BROKER_REQUEST_DENIED:-117"):
         handoff.command(Command(command="STATUS", sequence=1, plan_digest="a" * 64))
     assert handoff.broker_error == dict(operation="STATUS", sequence=1, return_value=-errno.EUCLEAN)
+
+
+@pytest.mark.parametrize("mutation", ["offset", "padding", "digest", "truncated"])
+def test_verifier_log_recovery_checks_content_and_partial_evidence(
+    fault_program, tmp_path, mutation
+):
+    executable, object_file = fault_program
+    journal = tmp_path / "journal"
+    subprocess.run(
+        [str(executable), "4", str(object_file), str(journal)],
+        check=True,
+        capture_output=True,
+        timeout=5,
+    )
+    # Recompute the ordinary journal chain to exercise the content contract,
+    # rather than merely its outer checksum. No privileged API is called.
+    import struct
+
+    rows = []
+    body = journal.read_bytes()
+    while body:
+        kind = body[32:64].split(b"\0", 1)[0].decode()
+        size = 216 if kind in {"LOADER_DIAGNOSTIC", "LOADER_VERIFIER_LOG"} else 192
+        row, body = bytearray(body[:size]), body[size:]
+        if kind == "LOADER_VERIFIER_LOG":
+            if mutation == "truncated":
+                break
+            if mutation == "offset":
+                struct.pack_into("<I", row, 64, 1)
+            elif mutation == "padding":
+                row[143] = 1
+            else:
+                row[72] ^= 1
+        rows.append(row)
+    before = bytes(32)
+    for row in rows:
+        row[-64:-32] = before
+        row[-32:] = hashlib.sha256(row[:-32]).digest()
+        before = bytes(row[-32:])
+    journal.write_bytes(b"".join(rows))
+    if mutation == "truncated":
+        evidence = recover_native(journal, "aa" * 32)
+        assert not evidence["verifier_log"]["complete"]
+        assert evidence["verifier_log"]["text"] is None
+        assert not evidence["claimed_cleanup"]
+    else:
+        with pytest.raises(ValueError, match="NATIVE_VERIFIER_LOG"):
+            recover_native(journal, "aa" * 32)
+
+
+@pytest.mark.parametrize("scenario,length", [(8, 24355), (9, 65535)])
+def test_verifier_log_chunks_cover_native_size_and_buffer_bound(
+    fault_program, tmp_path, scenario, length
+):
+    executable, object_file = fault_program
+    journal = tmp_path / "journal"
+    subprocess.run(
+        [str(executable), str(scenario), str(object_file), str(journal)],
+        check=True,
+        capture_output=True,
+        timeout=10,
+    )
+    evidence = recover_native(journal, "aa" * 32)
+    assert evidence["verifier_log"] == {
+        "complete": True,
+        "bytes_observed": length,
+        "text": "V" * length,
+    }
+    assert evidence["records"] < 1024
+    assert evidence["loader_diagnostics"][0]["kernel_log_at_bound"] == (length == 65535)
+    assert evidence["loader_diagnostics"][-1]["owned_object_released"]
+    assert not evidence["claimed_cleanup"]
