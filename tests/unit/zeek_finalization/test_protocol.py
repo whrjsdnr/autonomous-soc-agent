@@ -311,3 +311,57 @@ def test_status_rpc_failure_cannot_skip_exit_evidence_or_replace_first_error(tmp
     assert not result["closed_observed"] and result["exit_code"] is None
     assert any(x["stage"] == "STATUS" for x in result["cleanup_failures"])
     assert result["container_absent"] and result["cleanup_verified"]
+
+
+def test_missing_closed_retains_original_failure_before_normalization(tmp_path, monkeypatch):
+    r = runner(tmp_path, monkeypatch, "missing")
+    with pytest.raises(ValueError):
+        r.run()
+    result = json.loads((tmp_path / "exit.json").read_text())
+    first = result["first_failure"]
+    assert first["stage"] == "STREAM_FINALIZE"
+    assert first["original_code"] == "ZEEK_CONTAINER_EXIT_UNVERIFIED"
+    assert first["api"] == "CLOSED_AND_EXIT_VALIDATION"
+    assert first["errno"] is None and not first["closed_observed"]
+    assert result["cleanup_verified"] and not result["protocol_finalized"]
+
+
+@pytest.mark.parametrize(
+    "failure", [OSError(5, "private secret text"), ValueError("ZEEK_NEW_PARSER_FAULT")]
+)
+def test_original_stream_failure_is_preserved_even_if_cleanup_also_fails(
+    tmp_path, monkeypatch, failure
+):
+    r = runner(tmp_path, monkeypatch, "normal")
+
+    def denied(_):
+        raise failure
+
+    monkeypatch.setattr("soc_agent.security_ai.collectors.live_process.decode", denied)
+    monkeypatch.setattr(r, "_absent", lambda: False)
+    monkeypatch.setattr(r, "_stop_container", lambda: False)
+    with pytest.raises(ValueError):
+        r.run()
+    result = json.loads((tmp_path / "exit.json").read_text())
+    first = result["first_failure"]
+    assert first["stage"] == "STREAM_DECODE"
+    assert first["exception_class"] == type(failure).__name__
+    assert first["errno"] == (5 if isinstance(failure, OSError) else None)
+    assert first["original_code"] == (None if isinstance(failure, OSError) else str(failure))
+    assert "private secret text" not in json.dumps(result)
+    assert not result["cleanup_verified"] and not result["protocol_finalized"]
+
+
+def test_wrapped_docker_errno_retained_without_secret_exception_text():
+    from soc_agent.security_ai.collectors.handoff import failure_evidence
+
+    try:
+        try:
+            raise OSError(13, "sensitive system path")
+        except OSError as exc:
+            raise ValueError("ZEEK_DOCKER_START_FAILED") from exc
+    except ValueError as exc:
+        result = failure_evidence(exc, stage="LAUNCH", api="SupervisorClient.start")
+    assert result["original_code"] == "ZEEK_DOCKER_START_FAILED"
+    assert result["causes"][0]["errno"] == 13
+    assert "sensitive system path" not in str(result)

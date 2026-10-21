@@ -3,9 +3,11 @@
 import asyncio
 import json
 import os
+import re
 import socket
 import sqlite3
 import struct
+import subprocess
 from pathlib import Path
 from typing import Literal
 from uuid import UUID
@@ -98,6 +100,56 @@ ERRORS = frozenset(
 def safe_code(error: object) -> str:
     code = str(error)
     return code if code in ERRORS else "ZEEK_LIVE_INTEGRITY_FAILED"
+
+
+def failure_evidence(error: BaseException, *, stage: str, api: str) -> dict:
+    """Keep the original failure before normalization, without input/secret text.
+
+    Only fixed symbolic codes are stored verbatim. Validation errors retain types
+    rather than their messages/inputs; arbitrary OS/subprocess text is redacted.
+    A missing return value is unknown, never a synthesized kernel errno.
+    """
+    text = str(error)
+    symbolic = bool(
+        re.fullmatch(r"(?:ZEEK|HANDOFF|SUPERVISOR|TCX)_[A-Z0-9_]{1,100}(?::-[0-9]{1,5})?", text)
+    )
+    evidence = dict(
+        stage=stage,
+        api=api,
+        exception_class=type(error).__name__,
+        original_code=text if symbolic else None,
+        message_redacted=not symbolic,
+        errno=error.errno if isinstance(error, OSError) else None,
+        return_value=error.returncode if isinstance(error, subprocess.CalledProcessError) else None,
+    )
+    from pydantic import ValidationError
+
+    if isinstance(error, ValidationError):
+        evidence["validation_types"] = [
+            row["type"] for row in error.errors(include_input=False, include_context=False)[:8]
+        ]
+    causes = []
+    cause = error.__cause__
+    seen = {id(error)}
+    while cause is not None and id(cause) not in seen and len(causes) < 3:
+        seen.add(id(cause))
+        text = str(cause)
+        symbolic = bool(
+            re.fullmatch(r"(?:ZEEK|HANDOFF|SUPERVISOR|TCX)_[A-Z0-9_]{1,100}(?::-[0-9]{1,5})?", text)
+        )
+        causes.append(
+            dict(
+                exception_class=type(cause).__name__,
+                original_code=text if symbolic else None,
+                errno=cause.errno if isinstance(cause, OSError) else None,
+                return_value=(
+                    cause.returncode if isinstance(cause, subprocess.CalledProcessError) else None
+                ),
+            )
+        )
+        cause = cause.__cause__
+    evidence["causes"] = causes
+    return evidence
 
 
 def process_identity(pid: int) -> dict:

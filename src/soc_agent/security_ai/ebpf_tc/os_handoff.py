@@ -11,6 +11,7 @@ import select
 import socket
 import struct
 import subprocess
+import threading
 import time
 from collections import deque
 from pathlib import Path
@@ -18,6 +19,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from soc_agent.security_ai.collectors.handoff import failure_evidence
 from soc_agent.security_ai.ebpf_broker.contracts import Command
 from soc_agent.security_ai.ebpf_native.application import Application
 from soc_agent.security_ai.ebpf_native.contracts import (
@@ -101,6 +103,10 @@ class Handoff:
         self.data_counter_status = []
         self.data_counter_queries = []
         self.data_socket_samples = []
+        self.control_lock = threading.RLock()
+        self.control_failures = []
+        self.control_audit_failed = False
+        self.control_io = None
         self.error: str | None = None
         self.origin = "NATIVE_PENDING_NOT_EXECUTED"
         self.qualification_only = False
@@ -385,9 +391,11 @@ class Handoff:
                 break
             if time.monotonic() >= deadline:
                 raise ValueError("HANDOFF_CONTROL_TIMEOUT")
+        self.control_io = dict(api="socket.recvmsg", return_value=None)
         body, ancillary, flags, _ = self.channel.recvmsg(
             4096, socket.CMSG_SPACE(4 * CREDENTIAL.size), socket.MSG_CMSG_CLOEXEC
         )
+        self.control_io["return_value"] = len(body)
         credential = None
         invalid = False
         for level, kind, data in ancillary:
@@ -487,10 +495,16 @@ class Handoff:
             raise ValueError("HANDOFF_RUN_SCOPE")
 
     def command(self, value: Command) -> dict:
+        with self.control_lock:
+            return self._command(value)
+
+    def _command(self, value: Command) -> dict:
         if self.qualification_only and value.command not in {"STATUS", "STOP"}:
             raise ValueError("AUTH_QUALIFICATION_NO_KERNEL_ACTION")
         if self.state != "BROKER_READY" or self.ended or self.deadline is None:
             raise ValueError("HANDOFF_SESSION_NOT_READY")
+        self.control_io = None
+        stage, api = "COMMAND_VALIDATE", "Handoff._scope"
         try:
             if time.monotonic() >= self.deadline:
                 self._event("BROKER_SESSION_EXPIRED")
@@ -509,8 +523,13 @@ class Handoff:
             wire = request(value)
             if value.command == "ATTACH":
                 self.data.prepare_adapter(int.from_bytes(value.run.generation.bytes[:8], "little"))
-            if self.channel.send(wire) != len(wire):
+            stage, api = "COMMAND_SEND", "socket.send"
+            self.control_io = dict(api="socket.send", return_value=None)
+            sent = self.channel.send(wire)
+            self.control_io["return_value"] = sent
+            if sent != len(wire):
                 raise ValueError("HANDOFF_REQUEST_BOUND")
+            stage, api = "COMMAND_RECEIVE", "Handoff._next/socket.recvmsg"
             body = self._next(uid=self.plan.broker.uid, gid=self.plan.broker.gid)
             if len(body) != REPLY.size:
                 raise ValueError("HANDOFF_REPLY_SCHEMA")
@@ -521,6 +540,7 @@ class Handoff:
                 self.broker_error = dict(operation=value.command, sequence=seq, return_value=error)
                 self._event("BROKER_COMMAND_REJECTED", **self.broker_error)
                 raise ValueError(f"HANDOFF_BROKER_REQUEST_DENIED:{error}")
+            stage, api = "COMMAND_DATA_PUMP", "PacketChannel.pump"
             self.data.pump()
             self.collector_state = "ACTIVE" if state == 4 else "STOPPED"
             self.sequence = seq
@@ -529,11 +549,18 @@ class Handoff:
                 "state": state,
                 "owner_observed": owner != bytes(OWNER.size),
             }
-        except (OSError, ValueError, EOFError):
-            self._reject("HANDOFF_COMMAND_FAILED")
+        except (OSError, ValueError, EOFError) as exc:
+            try:
+                self.record_control_failure(exc, stage=stage, api=api, command=value.command)
+            finally:
+                self._reject("HANDOFF_COMMAND_FAILED")
             raise
 
     def stop(self) -> dict:
+        with self.control_lock:
+            return self._stop()
+
+    def _stop(self) -> dict:
         if self.state == "BROKER_READY" and not self.ended:
             self.command(
                 Command(
@@ -570,6 +597,10 @@ class Handoff:
         }
 
     def observe(self) -> dict:
+        with self.control_lock:
+            return self._observe()
+
+    def _observe(self) -> dict:
         if self.state == "BROKER_READY" and not self.ended:
             try:
                 self.command(
@@ -583,14 +614,33 @@ class Handoff:
         return self.snapshot()
 
     def _reject(self, code: str) -> None:
-        self.error = code
+        self.error = self.error or code
         self.state, self.authentication = "ERROR", "REVOKED"
         try:
             self._event("HANDOFF_REJECTED", code=code)
         finally:
             self.close()
 
+    def record_control_failure(self, exc, *, stage, api, command):
+        detail = failure_evidence(exc, stage=stage, api=api) | dict(
+            command=command,
+            request_sequence=self.sequence + 1,
+            io_observation=dict(self.control_io) if self.control_io is not None else None,
+        )
+        if len(self.control_failures) < 8:
+            self.control_failures.append(detail)
+        try:
+            self._event("HANDOFF_CONTROL_FAILURE", evidence=detail)
+        except (OSError, ValueError):
+            # Diagnostic persistence must not prevent owned-FD cleanup/revocation.
+            self.control_audit_failed = True
+            self.error = self.error or "HANDOFF_DIAGNOSTIC_AUDIT_FAILED"
+
     def close(self) -> dict:
+        with self.control_lock:
+            return self._close()
+
+    def _close(self) -> dict:
         if self.ended:
             return self.snapshot()
         if self.state == "BROKER_READY" and self.error is None:
@@ -651,6 +701,7 @@ class Handoff:
                     and self.child
                     and self.child.returncode == 0
                     and not self.data.cleanup_error
+                    and not self.control_audit_failed
                     and (
                         self.qualification_only or self.data.snapshot()["drain_state"] == "VERIFIED"
                     )
@@ -710,6 +761,8 @@ class Handoff:
             "native_gate": "BLOCKED",
             "cleanup_status": self.cleanup,
             "broker_error": self.broker_error,
+            "control_failures": list(self.control_failures),
+            "control_diagnostic_audit_failed": self.control_audit_failed,
             "loader_diagnostics": self.loader_diagnostics,
             "verifier_log": self.verifier_log,
             "fd_release_evidence": self.fd_release_evidence,

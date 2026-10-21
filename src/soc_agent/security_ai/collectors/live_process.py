@@ -20,6 +20,7 @@ from soc_agent.security_ai.collectors.finalization import Ledger, termination_re
 from soc_agent.security_ai.collectors.finalization import publish as write_new
 from soc_agent.security_ai.collectors.handoff import (
     exchange,
+    failure_evidence,
     process_identity,
     read_controller,
     safe_code,
@@ -171,9 +172,19 @@ class StreamProcess:
         cleanup_attempted = False
         cleanup_failures = []
         adapter_failure = None
+        first_failure = None
+        stage, api = "LAUNCH", "SupervisorClient.start/subprocess.Popen"
         discarded_after_adapter_failure = 0
 
+        def preserve_failure(exc, failure_stage, failure_api):
+            nonlocal first_failure
+            if first_failure is None:
+                first_failure = failure_evidence(exc, stage=failure_stage, api=failure_api) | dict(
+                    stream_sequence=sequence, closed_observed=closed, container_exit_code=code
+                )
+
         def failure_detail(stage, exc):
+            preserve_failure(exc, stage, "StreamProcess." + stage.lower())
             if len(cleanup_failures) < 8 and not any(
                 row["stage"] == stage for row in cleanup_failures
             ):
@@ -215,6 +226,7 @@ class StreamProcess:
             controller_checked = 0.0
             with (self.directory / "stream.jsonl").open("ab", buffering=0) as output:
                 while True:
+                    stage, api = "STOP_REQUEST", "stop.request.read_text/json.loads"
                     if (self.directory / "stop.request").exists():
                         self.stop_requested = True
                         tombstone = json.loads((self.directory / "stop.request").read_text())
@@ -232,6 +244,9 @@ class StreamProcess:
                         try:
                             self._controller()
                         except (OSError, ValueError) as failure:
+                            preserve_failure(
+                                failure, "CONTROLLER_IDENTITY", "StreamProcess._controller"
+                            )
                             controller_error = safe_code(failure)
                             requested = "CONTROLLER_STOP"
                             self.stop_requested = True
@@ -243,20 +258,24 @@ class StreamProcess:
                         stop_sent = True
                         cleanup_attempted = True
                         stop_future = stopper.submit(self._stop_container)
+                    stage, api = "CONTAINER_STOP", "Future.result/StreamProcess._stop_container"
                     if stop_future and stop_future.done() and not stop_future.result():
                         raise ValueError("ZEEK_CONTAINER_STOP_UNVERIFIED")
                     if drain_started and time.monotonic() - drain_started > 10:
                         raise ValueError("ZEEK_STOP_DEADLINE_UNVERIFIED")
                     if time.monotonic() - started > self.plan.duration_seconds + 15:
                         raise ValueError("ZEEK_PROCESS_DEADLINE_EXCEEDED")
+                    stage, api = "STREAM_WAIT", "selectors.select"
                     if not selector.select(0.1):
                         if poll_owned() is not None:
                             # Drain the pipe even after process exit; EOF is the boundary.
                             continue
                         continue
+                    stage, api = "STREAM_RECEIVE", "os.read"
                     chunk = os.read(self.process.stdout.fileno(), 16384)
                     if not chunk:
                         break
+                    stage, api = "OUTPUT_BOUND", "StreamProcess.output_bytes"
                     self.output_bytes += len(chunk)
                     if self.output_bytes > self.plan.output_bytes:
                         raise ValueError("ZEEK_STREAM_OUTPUT_BUDGET")
@@ -264,13 +283,16 @@ class StreamProcess:
                     while b"\n" in pending:
                         line, pending = pending.split(b"\n", 1)
                         line += b"\n"
+                        stage, api = "STREAM_DECODE", "live_stream.decode"
                         envelope = decode(line)
+                        stage, api = "STREAM_SEQUENCE", "Envelope.sequence"
                         if envelope.sequence != sequence + 1 or closed:
                             raise ValueError("ZEEK_STREAM_SEQUENCE_INTEGRITY")
                         # Validate privacy and packet schema before host persistence.
                         from soc_agent.security_ai.collectors.live_stream import SUMMARY_FIELDS
                         from soc_agent.security_ai.collectors.packet_input import Packet
 
+                        stage, api = "STREAM_SCHEMA", "Packet.model_validate/summary_allowlist"
                         if envelope.kind == "packet":
                             Packet.model_validate(envelope.data)
                         elif envelope.kind in {"dns", "network"}:
@@ -287,7 +309,9 @@ class StreamProcess:
                         elif envelope.kind == "ready" and envelope.data:
                             raise ValueError("ZEEK_STREAM_PRIVACY_REJECTED")
 
+                        stage, api = "STREAM_ACCOUNTING", "Ledger.accept"
                         ledger.accept(envelope, line)
+                        stage, api = "STREAM_PERSIST", "stream.write"
                         output.write(line)
                         sequence = envelope.sequence
                         closed = envelope.kind == "closed"
@@ -297,23 +321,29 @@ class StreamProcess:
                             try:
                                 on_line(line)
                             except (OSError, ValueError) as exc:
+                                preserve_failure(exc, "ADAPTER", "on_line")
                                 adapter_failure = safe_code(exc)
                                 failure_detail("ADAPTER", exc)
                                 self.stop_requested = True
                                 requested = "CONTROLLER_STOP"
                         elif on_line and adapter_failure is not None:
                             discarded_after_adapter_failure += 1
+                    stage, api = "STREAM_RECORD_BOUND", "pending_record_length"
                     if len(pending) > 16384:
                         raise ValueError("ZEEK_STREAM_RECORD_BOUND")
+            stage, api = "CONTAINER_EXIT", "ZeekProcess.wait/subprocess.wait"
             code = self.process.wait(timeout=5)
+            stage, api = "CONTAINER_STOP", "Future.result/StreamProcess._stop_container"
             if stop_future and not stop_future.result(timeout=15):
                 raise ValueError("ZEEK_CONTAINER_STOP_UNVERIFIED")
             if adapter_failure is not None:
                 raise ValueError(adapter_failure)
+            stage, api = "STREAM_FINALIZE", "PENDING_RECORD_VALIDATION"
             if pending:
                 raise ValueError("ZEEK_PARTIAL_RECORD_ON_CLOSE")
             if controller_error:
                 raise ValueError(controller_error)
+            stage, api = "STREAM_FINALIZE", "CLOSED_AND_EXIT_VALIDATION"
             if code not in {0, 124} or not closed:
                 raise ValueError("ZEEK_CONTAINER_EXIT_UNVERIFIED")
             if not self.fixture:
@@ -322,11 +352,13 @@ class StreamProcess:
             if not self.fixture and reason == "INPUT_EXHAUSTED":
                 reason = "ZEEK_RUNTIME_FAILURE"
                 raise ValueError("ZEEK_NATIVE_UNREQUESTED_EXIT")
+            stage, api = "CONTAINER_ABSENCE", "StreamProcess._absent"
             self.container_absent = self._absent()
             if not self.container_absent:
                 raise ValueError("ZEEK_CONTAINER_CLEANUP_UNVERIFIED")
             self.cleanup_verified = True
         except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            preserve_failure(exc, stage, api)
             code = poll_owned()
             error = error or safe_code(exc)
             reason = (
@@ -386,6 +418,7 @@ class StreamProcess:
                 dict(
                     plan_digest=self.plan.identity,
                     exit_code=code,
+                    first_failure=first_failure,
                     error=error,
                     stream_sha256=file_digest(self.directory / "stream.jsonl"),
                     output_bytes=self.output_bytes,

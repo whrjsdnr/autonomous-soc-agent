@@ -410,6 +410,10 @@ class SupervisedSession(UnifiedSession):
         return super().command(value)
 
     def observe(self):
+        with self.control_lock:
+            return self._observe_supervised()
+
+    def _observe_supervised(self):
         result = super().observe()
         if self.supervisor and not self.ended and not self.supervisor.stopping:
             try:
@@ -485,6 +489,10 @@ class SupervisedSession(UnifiedSession):
             self.entry_diagnostic_listener = None
 
     def close(self):
+        with self.control_lock:
+            return self._close_supervised()
+
+    def _close_supervised(self):
         self._collect_entry_diagnostic()
         if self.ended:
             return self.snapshot()
@@ -494,8 +502,11 @@ class SupervisedSession(UnifiedSession):
                 self.supervisor.request(
                     "STOP"
                 )  # Stop Zeek first, then existing FD-owning TCX cleanup.
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError, EOFError) as exc:
             failure = str(exc)
+            self.record_control_failure(
+                exc, stage="SUPERVISOR_STOP", api="SupervisorClient.request", command="STOP"
+            )
         try:
             super().close()
         finally:

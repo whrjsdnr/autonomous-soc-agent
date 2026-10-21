@@ -122,3 +122,43 @@ def test_startup_validates_real_tcx_plan_before_authentication(
     with pytest.raises(ValueError, match=error):
         startup.execute(directory, manifest, sha)
     assert calls == (["APPROVAL"] if mismatch is None else [])
+
+
+@pytest.mark.asyncio
+async def test_control_heartbeat_does_not_depend_on_gui_or_dns_task():
+    class Session:
+        ended = False
+        polls = 0
+
+        def observe(self):
+            self.polls += 1
+            self.ended = self.polls == 3
+
+    session = Session()
+    await startup.watch_control(session)
+    assert session.polls == 3
+
+
+@pytest.mark.parametrize("failed_stage", [None, "native", "dns"])
+def test_privileged_cleanup_precedes_dns_wait_and_partial_failure_is_independent(failed_stage):
+    from types import SimpleNamespace
+
+    calls = []
+
+    def action(name):
+        def run(*_):
+            calls.append(name)
+            if name == failed_stage:
+                raise ValueError("SUPERVISOR_FIXTURE_STOP_FAILED")
+
+        return run
+
+    failures = startup.shutdown_collectors(
+        SimpleNamespace(close=action("native")),
+        SimpleNamespace(stop=action("dns")),
+        SimpleNamespace(result=action("drain")),
+    )
+    assert calls == ["native", "dns", "drain"]
+    assert len(failures) == bool(failed_stage)
+    if failed_stage:
+        assert failures[0]["original_code"] == "SUPERVISOR_FIXTURE_STOP_FAILED"

@@ -8,6 +8,7 @@ import threading
 import time
 from pathlib import Path
 
+from soc_agent.security_ai.collectors.handoff import failure_evidence
 from soc_agent.security_ai.collectors.live import LiveZeekCollector
 from soc_agent.security_ai.collectors.live_contract import LivePlan
 from soc_agent.security_ai.collectors.live_process import StreamProcess
@@ -38,7 +39,7 @@ from soc_agent.security_ai.research.models import digest
 def prepare(directory: Path) -> SupervisorImage:
     local_controller()
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
-    _, _, package, manifest = prepare_candidate(directory, version="0.5.13", inspector=True)
+    _, _, package, manifest = prepare_candidate(directory, version="0.5.14", inspector=True)
     image = prepare_supervisor_image(package, manifest, directory / "supervisor-image.py")
     (directory / "supervisor-image.json").write_text(image.model_dump_json(indent=2) + "\n")
     return image
@@ -72,6 +73,30 @@ def prepare_run(
     )
     handoff.validate_run_identity(run)
     return run
+
+
+async def watch_control(handoff):
+    """Heartbeat the authenticated session independently of GUI and DNS completion."""
+    while not handoff.ended:
+        await asyncio.to_thread(handoff.observe)
+        await asyncio.sleep(0.5)
+
+
+def shutdown_collectors(handoff, runner, future) -> list[dict]:
+    """Revoke privileged work before user-side drain, attempt each cleanup independently."""
+    failures = []
+    operations = [
+        ("NATIVE_CLOSE", "SupervisedSession.close", handoff.close if handoff else None),
+        ("DNS_STOP", "StreamProcess.stop", runner.stop if runner else None),
+        ("DNS_DRAIN", "Future.result", (lambda: future.result(20)) if future else None),
+    ]
+    for stage, api, operation in operations:
+        if operation is not None:
+            try:
+                operation()
+            except (OSError, ValueError, EOFError, TimeoutError) as exc:
+                failures.append(failure_evidence(exc, stage=stage, api=api))
+    return failures
 
 
 def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui=False):
@@ -123,6 +148,8 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
         finally:
             handoff.zeek_snapshot = zeek.snapshot()
 
+    control_future = None
+
     try:
         preparation = Preparation(owner, directory / "artifacts")
         preparation.prepare()
@@ -136,6 +163,7 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
         if not confirm_scope(handoff):
             raise ValueError("SUPERVISOR_APPROVAL_DENIED")
         handoff.authenticate_native()  # Exactly one fresh OS call; no downstream sudo.
+        control_future = submit(watch_control(handoff))
         runner = StreamProcess(zeek.directory, zeek.plan, supervisor=handoff.supervisor)
         runner.authenticate()  # Session claim only; no password API in this branch.
         future = submit(watch_dns())
@@ -147,14 +175,15 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
             if time.monotonic() >= ready_deadline:
                 raise ValueError("SUPERVISOR_ZEEK_READY_TIMEOUT")
             time.sleep(0.05)
-        handoff.command(
-            Command(
-                command="ATTACH",
-                plan_digest=handoff.plan.approval,
-                sequence=handoff.sequence + 1,
-                run=run,
+        with handoff.control_lock:
+            handoff.command(
+                Command(
+                    command="ATTACH",
+                    plan_digest=handoff.plan.approval,
+                    sequence=handoff.sequence + 1,
+                    run=run,
+                )
             )
-        )
         if gui:
             from soc_agent.security_ai.ebpf_tc.gui import launch
 
@@ -171,16 +200,22 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
                 time.sleep(0.2)
     finally:
         # Both cleanup paths run even if the other's stop/teardown raises.
-        failures = []
+        failures = shutdown_collectors(handoff, runner, future)
         try:
-            if runner:
-                runner.stop()
-            if future:
+            try:
+                submit(zeek.stop()).result(35)
+            except (OSError, ValueError, TimeoutError) as exc:
+                failures.append(
+                    failure_evidence(exc, stage="DNS_ADAPTER_STOP", api="LiveZeekCollector.stop")
+                )
+            if control_future:
                 try:
-                    future.result(20)
+                    control_future.result(6)
                 except (OSError, ValueError, TimeoutError) as exc:
-                    failures.append(str(exc))
-            submit(zeek.stop()).result(35)
+                    control_future.cancel()
+                    failures.append(
+                        failure_evidence(exc, stage="HEARTBEAT_STOP", api="Future.result")
+                    )
         finally:
             try:
                 if handoff:
