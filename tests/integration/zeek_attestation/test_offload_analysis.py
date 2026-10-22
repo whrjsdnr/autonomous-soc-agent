@@ -1,0 +1,132 @@
+"""Real pinned Zeek, synthetic memory input; never Native capture or traffic."""
+
+import json
+import struct
+from pathlib import Path
+
+import pytest
+from tests.integration.zeek_attestation.test_c3_dns import dns_frames, tcp_segment
+from tests.integration.zeek_attestation.test_checksum_root_cause import modeled_frame
+from tests.unit.collectors.test_checksum_evidence import aux
+
+from soc_agent.security_ai.collectors.live_contract import docker_argv, new_plan
+from soc_agent.security_ai.collectors.live_process import StreamProcess
+from soc_agent.security_ai.collectors.offload_copy import analysis_copy, memory_pcap
+
+
+@pytest.mark.parametrize("transport", ["udp", "tcp"])
+def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport):
+    q, r = dns_frames(tmp_path / "fixture.pcap")
+    frames = [q, r]
+    if transport == "tcp":
+        qb, rb = q[42:], r[42:]
+        qb, rb = struct.pack("!H", len(qb)) + qb, struct.pack("!H", len(rb)) + rb
+        frames = [
+            tcp_segment(q),
+            tcp_segment(q, reverse=True, seq=500, ack=101, flags=18),
+            tcp_segment(q, seq=101, ack=501, flags=16),
+            tcp_segment(q, seq=101, ack=501, flags=24, payload=qb),
+            tcp_segment(q, reverse=True, seq=501, ack=101 + len(qb), flags=24, payload=rb),
+            tcp_segment(q, seq=101 + len(qb), ack=501 + len(rb), flags=17),
+            tcp_segment(q, reverse=True, seq=501 + len(rb), ack=102 + len(qb), flags=17),
+            tcp_segment(q, seq=102 + len(qb), ack=502 + len(rb), flags=16),
+        ]
+    copies = []
+    for i, frame in enumerate(frames):
+        # Rebind fixture's endpoint pair to the explicitly supported local scope,
+        # then recompute IP checksum before modeling the partial seed.
+        from soc_agent.security_ai.collectors.offload_copy import checksum
+
+        changed = bytearray(frame)
+        changed[26:30] = b"\x7f\0\0\x35" if frame[34:36] == b"\0\x35" else b"\x7f\0\0\1"
+        changed[30:34] = b"\x7f\0\0\1" if changed[26:30] == b"\x7f\0\0\x35" else b"\x7f\0\0\x35"
+        changed[24:26] = bytes(2)
+        changed[24:26] = struct.pack("!H", checksum(changed[14:34]))
+        raw = modeled_frame(bytes(changed), "partial_seed")[14:]
+        result = analysis_copy(raw, aux(raw, 9))
+        assert result.status == "CHECKSUM_PARTIAL_CONFIRMED"
+        copies.append((1800000000000000000 + i * 50_000_000, result.packet))
+    plan = new_plan()
+    runner = StreamProcess(tmp_path, plan, pcap_input=memory_pcap(copies))
+    from soc_agent.security_ai.collectors.live_stream import Stream, decode
+    from soc_agent.security_ai.collectors.models import Source
+
+    stream = Stream(
+        Source(session_id=plan.session_id, source_digest="0" * 64, origin="SYNTHETIC_ZEEK_JSON")
+    )
+    runner.run(on_line=lambda line: stream.accept(decode(line)))
+    assert stream.dns_count == 1
+    assert stream.dns_adapter_rejected == 0
+    assert stream.closed and stream.dns_stages.transaction_matched == 1
+    rows = [json.loads(x) for x in (tmp_path / "stream.jsonl").read_text().splitlines()]
+    assert rows[-1]["kind"] == "closed"
+    dns = rows[-1]["data"]["dns_diagnostics"]
+    assert dns["query_parsed"] == dns["response_parsed"] == dns["transaction_matched"] == 1
+    assert dns["transport_checksum_rejected"] == 0
+    receipt = json.loads((tmp_path / "exit.json").read_text())
+    assert receipt["protocol_finalized"] and receipt["cleanup_verified"]
+    assert receipt["analysis_copy_input"] and not receipt["native_capture"]
+    argv = docker_argv(plan, tmp_path, stdin_pcap=True)
+    assert "--network=none" in argv and "--cap-drop=ALL" in argv
+    assert "--cap-add=NET_RAW" not in argv and "-C" not in argv
+    assert "-r -" in argv[-3]
+
+
+def test_existing_supervisor_proxy_needs_no_stdin_attribute(tmp_path, monkeypatch):
+    """Mock authentication, actual file-only Zeek. Never open a Native interface."""
+    import subprocess
+    from types import SimpleNamespace
+
+    source = tmp_path / "input.pcap"
+    dns_frames(source)
+    plan = new_plan()
+    process = None
+
+    class FixtureSupervisor:
+        def start(self, requested):
+            nonlocal process
+            process = subprocess.Popen(
+                docker_argv(
+                    requested,
+                    Path(__file__).resolve().parents[3] / "src/soc_agent/security_ai/collectors",
+                    fixture=source,
+                ),
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+            # The production ZeekProcess proxy intentionally has no stdin.
+            return SimpleNamespace(stdout=process.stdout, poll=process.poll, wait=process.wait)
+
+        def stop_zeek(self):
+            if process and process.poll() is None:
+                subprocess.run(
+                    ["docker", "stop", "--time=2", "soc-zeek-" + plan.session_id.hex],
+                    capture_output=True,
+                    timeout=5,
+                    check=False,
+                )
+            result = subprocess.run(
+                [
+                    "docker",
+                    "container",
+                    "ls",
+                    "--all",
+                    "--filter",
+                    "name=^/soc-zeek-" + plan.session_id.hex + "$",
+                    "--format",
+                    "{{.ID}}",
+                ],
+                capture_output=True,
+                timeout=3,
+                check=False,
+            )
+            return result.returncode == 0 and not result.stdout.strip()
+
+    runner = StreamProcess(tmp_path, plan, supervisor=FixtureSupervisor())
+    runner._authenticated_plan = plan.identity  # Test-only auth fixture, never Native success.
+    monkeypatch.setattr(runner, "_controller", lambda *args: {})
+    with pytest.raises(ValueError, match="ZEEK_NATIVE_UNREQUESTED_EXIT"):
+        runner.run()  # File EOF must still be rejected as an unsolicited Native exit.
+    exit_record = json.loads((tmp_path / "exit.json").read_text())
+    assert exit_record["closed_observed"] and exit_record["cleanup_verified"]

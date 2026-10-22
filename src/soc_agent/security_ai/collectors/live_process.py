@@ -33,10 +33,29 @@ from soc_agent.security_ai.collectors.offline import OfflineZeek, file_digest
 
 class StreamProcess:
     def __init__(
-        self, directory: Path, plan: LivePlan, *, fixture: Path | None = None, supervisor=None
+        self,
+        directory: Path,
+        plan: LivePlan,
+        *,
+        fixture: Path | None = None,
+        supervisor=None,
+        pcap_input: bytes | None = None,
     ):
         self.directory, self.plan, self.fixture = directory, plan, fixture
         self.supervisor = supervisor
+        self.pcap_input = pcap_input
+        self.file_input = fixture is not None or pcap_input is not None
+        if pcap_input is not None and (
+            fixture is not None
+            or supervisor is not None
+            or not 24 <= len(pcap_input) <= 24 + 32 * (512 + 16)
+            or pcap_input[:4] != b"\x4d\x3c\xb2\xa1"
+        ):
+            raise ValueError("ZEEK_MEMORY_PCAP_SCOPE")
+        if pcap_input is not None:
+            from soc_agent.security_ai.collectors.offload_copy import validate_memory_pcap
+
+            validate_memory_pcap(pcap_input)
         if fixture is not None and supervisor is not None:
             raise ValueError("ZEEK_FIXTURE_SUPERVISOR_MIX_REJECTED")
         self.process = None
@@ -55,7 +74,7 @@ class StreamProcess:
     def _docker(self, *args):
         if self.supervisor is not None:
             raise ValueError("ZEEK_SUPERVISOR_ARBITRARY_DOCKER_DENIED")
-        prefix = [] if self.fixture else ["sudo", "-n", "--"]
+        prefix = [] if self.file_input else ["sudo", "-n", "--"]
         return subprocess.run(
             prefix + ["docker", *args],
             capture_output=True,
@@ -111,7 +130,7 @@ class StreamProcess:
 
     def authenticate(self):
         """Main terminal thread only. No capture, password handling or persisted auth token."""
-        if self.fixture or self._authenticated_plan is not None or self._launched:
+        if self.file_input or self._authenticated_plan is not None or self._launched:
             raise ValueError("ZEEK_SESSION_REUSE_DENIED")
         verify(self.plan, self.plan.identity)
         self._controller("claim")
@@ -133,8 +152,13 @@ class StreamProcess:
         if self._launched:
             raise ValueError("ZEEK_SESSION_REUSE_DENIED")
         OfflineZeek().environment()
-        argv = docker_argv(self.plan, Path(__file__).parent.absolute(), fixture=self.fixture)
-        if not self.fixture:
+        argv = docker_argv(
+            self.plan,
+            Path(__file__).parent.absolute(),
+            fixture=self.fixture,
+            stdin_pcap=self.pcap_input is not None,
+        )
+        if not self.file_input:
             if self._authenticated_plan is None:
                 self.authenticate()
             verify(self.plan, self.plan.identity)
@@ -153,7 +177,8 @@ class StreamProcess:
                 generation=str(self.plan.controller_generation),
                 launcher=identity,
                 image=self.plan.image,
-                native_capture=self.fixture is None,
+                native_capture=not self.file_input,
+                analysis_copy_input=self.pcap_input is not None,
             ),
         )
         started = time.monotonic()
@@ -171,6 +196,7 @@ class StreamProcess:
         stop_future = None
         cleanup_attempted = False
         cleanup_failures = []
+        input_pending = memoryview(self.pcap_input or b"")
         adapter_failure = None
         first_failure = None
         stage, api = "LAUNCH", "SupervisorClient.start/subprocess.Popen"
@@ -213,16 +239,21 @@ class StreamProcess:
                 else:
                     self.process = subprocess.Popen(
                         argv,
-                        stdin=subprocess.DEVNULL,
+                        stdin=subprocess.PIPE
+                        if self.pcap_input is not None
+                        else subprocess.DEVNULL,
                         stdout=subprocess.PIPE,
                         stderr=subprocess.DEVNULL,
                         # Keep the terminal session (sudo timestamp), but route Ctrl+C only
                         # through the GUI controller's verified stop/drain path.
-                        **({"process_group": 0} if self.fixture is None else {}),
+                        **({"process_group": 0} if not self.file_input else {}),
                     )
             except OSError as start_error:
                 raise ValueError("ZEEK_DOCKER_START_FAILED") from start_error
             selector.register(self.process.stdout, selectors.EVENT_READ)
+            if self.pcap_input is not None:
+                os.set_blocking(self.process.stdin.fileno(), False)
+                selector.register(self.process.stdin, selectors.EVENT_WRITE)
             pending = b""
             stop_sent = False
             controller_checked = 0.0
@@ -239,7 +270,7 @@ class StreamProcess:
                         )
                     now = time.monotonic()
                     if (
-                        not self.fixture
+                        not self.file_input
                         and not self.stop_requested
                         and now - controller_checked >= 0.5
                     ):
@@ -268,7 +299,21 @@ class StreamProcess:
                     if time.monotonic() - started > self.plan.duration_seconds + 15:
                         raise ValueError("ZEEK_PROCESS_DEADLINE_EXCEEDED")
                     stage, api = "STREAM_WAIT", "selectors.select"
-                    if not selector.select(0.1):
+                    events = selector.select(0.1)
+                    for key, _ in events:
+                        if self.pcap_input is not None and key.fileobj is self.process.stdin:
+                            stage, api = "PCAP_INPUT", "os.write"
+                            try:
+                                sent = os.write(self.process.stdin.fileno(), input_pending[:4096])
+                            except BlockingIOError:
+                                continue
+                            if sent <= 0:
+                                raise ValueError("ZEEK_PCAP_INPUT_WRITE")
+                            input_pending = input_pending[sent:]
+                            if not input_pending:
+                                selector.unregister(self.process.stdin)
+                                self.process.stdin.close()
+                    if not any(key.fileobj is self.process.stdout for key, _ in events):
                         if poll_owned() is not None:
                             # Drain the pipe even after process exit; EOF is the boundary.
                             continue
@@ -344,6 +389,8 @@ class StreamProcess:
             if adapter_failure is not None:
                 raise ValueError(adapter_failure)
             stage, api = "STREAM_FINALIZE", "PENDING_RECORD_VALIDATION"
+            if input_pending:
+                raise ValueError("ZEEK_PCAP_INPUT_INCOMPLETE")
             if pending:
                 raise ValueError("ZEEK_PARTIAL_RECORD_ON_CLOSE")
             if controller_error:
@@ -351,10 +398,10 @@ class StreamProcess:
             stage, api = "STREAM_FINALIZE", "CLOSED_AND_EXIT_VALIDATION"
             if code not in {0, 124} or not closed:
                 raise ValueError("ZEEK_CONTAINER_EXIT_UNVERIFIED")
-            if not self.fixture:
+            if not self.file_input:
                 verify(self.plan, self.plan.identity)
             reason = termination_reason(ledger.closed, code, requested)
-            if not self.fixture and reason == "INPUT_EXHAUSTED":
+            if not self.file_input and reason == "INPUT_EXHAUSTED":
                 reason = "ZEEK_RUNTIME_FAILURE"
                 raise ValueError("ZEEK_NATIVE_UNREQUESTED_EXIT")
             stage, api = "CONTAINER_ABSENCE", "StreamProcess._absent"
@@ -400,6 +447,8 @@ class StreamProcess:
                 finally:
                     try:
                         self.process.stdout.close()
+                        if self.pcap_input is not None and not self.process.stdin.closed:
+                            self.process.stdin.close()
                     except OSError as exc:
                         failure_detail("PIPE_CLOSE", exc)
                         error = error or safe_code(exc)
@@ -455,7 +504,8 @@ class StreamProcess:
                     drain_seconds=time.monotonic() - drain_started if drain_started else None,
                     protocol_finalized=ledger.closed is not None and error is None,
                     capture_integrity="UNVERIFIED",
-                    native_capture=self.fixture is None,
+                    native_capture=not self.file_input,
+                    analysis_copy_input=self.pcap_input is not None,
                     exit_digest_scope="PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
                 ),
             )

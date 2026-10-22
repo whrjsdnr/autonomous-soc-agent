@@ -36,6 +36,7 @@ FILES = (
     "visibility.zeek",
     "privacy.zeek",
     "offline.py",
+    "offload_copy.py",
     "reader.py",
     "models.py",
     "adapter.py",
@@ -116,8 +117,13 @@ def command(directory: Path, plan: LivePlan) -> str:
     )
 
 
-def docker_argv(plan: LivePlan, policy: Path, *, fixture: Path | None = None) -> list[str]:
+def docker_argv(
+    plan: LivePlan, policy: Path, *, fixture: Path | None = None, stdin_pcap: bool = False
+) -> list[str]:
     """Only manual launcher calls this with a live interface. Never run by GUI prepare."""
+    if stdin_pcap and fixture is not None:
+        raise ValueError("ZEEK_INPUT_MODES_EXCLUSIVE")
+    file_input = fixture is not None or stdin_pcap
     if not re.fullmatch(r"[a-f0-9]{64}", plan.bundle_digest):
         raise ValueError("ZEEK_LIVE_BUNDLE_INVALID")
     if any(c in str(policy) for c in ",\n\r"):
@@ -136,7 +142,7 @@ def docker_argv(plan: LivePlan, policy: Path, *, fixture: Path | None = None) ->
         "--log-driver=none",
         "--name",
         "soc-zeek-" + plan.session_id.hex,
-        "--network=none" if fixture else "--network=host",
+        "--network=none" if file_input else "--network=host",
         "--cap-drop=ALL",
         "--read-only",
         "--security-opt=no-new-privileges",
@@ -151,16 +157,18 @@ def docker_argv(plan: LivePlan, policy: Path, *, fixture: Path | None = None) ->
         "--ulimit",
         "fsize=8388608:8388608",
     ]
+    if file_input:
+        argv += ["--user", f"{os.getuid()}:{os.getgid()}"]
+    if stdin_pcap:
+        argv += ["--interactive"]
     if fixture:
         if any(c in str(fixture) for c in ",\n\r"):
             raise ValueError("ZEEK_FIXTURE_PATH_INVALID")
         argv += [
-            "--user",
-            f"{os.getuid()}:{os.getgid()}",
             "--mount",
             f"type=bind,source={fixture.absolute()},target=/input/input.pcap,readonly",
         ]
-    else:
+    elif not stdin_pcap:
         argv += ["--cap-add=NET_RAW", "--user", "0:0"]
     # Mount only reviewed scripts. No host output mount, Docker socket or raw PCAP writing.
     for name in ("live.zeek", "network14.zeek", "visibility.zeek"):
@@ -168,9 +176,11 @@ def docker_argv(plan: LivePlan, policy: Path, *, fixture: Path | None = None) ->
     argv += ["--entrypoint", "/bin/sh", IMAGE, "-c"]
     program = "exec /usr/bin/timeout -s INT -k 2s " + str(plan.duration_seconds)
     program += "s /usr/local/zeek/bin/zeek "
-    program += "-r /input/input.pcap" if fixture else "-i lo -f 'ip or ip6'"
+    program += (
+        "-r -" if stdin_pcap else "-r /input/input.pcap" if fixture else "-i lo -f 'ip or ip6'"
+    )
     program += " /policy/live.zeek"
-    if not fixture:
+    if not file_input:
         # No interface is opened until the Docker daemon's namespace matches the GUI's.
         program = '[ "$(readlink /proc/self/ns/net)" = "$1" ] || exit 70; ' + program
     argv += [program, "soc-zeek", plan.net_namespace]

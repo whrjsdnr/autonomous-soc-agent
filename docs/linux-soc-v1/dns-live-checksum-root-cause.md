@@ -167,3 +167,347 @@ not acquire the missing evidence and repeating it cannot establish this cause.
 New campaign remains Native **0/3**, Root installation **0/3**. No old ledger,
 Audit, PCAP or Native diagnostic was rewritten. The historical full E2E remains
 failed; this offline experiment is not Native success.
+
+## Diagnostic capture candidate (2026-10-22; not executed)
+
+The missing evidence now has a separate implementation in
+`collectors/checksum_evidence.py` and a preparation-only image builder in
+`ebpf_tc/checksum_image.py`. Existing Native receipts, ledgers, installed release,
+TCX ABI, Network14, models, GUI, and Zeek checksum policy are unchanged.
+
+The observer uses an IPv4 AF_PACKET/SOCK_DGRAM socket with PACKET_AUXDATA and
+SO_TIMESTAMPNS. A locked classic socket filter limits delivery to nonfragmented
+TCP/UDP between 127.0.0.1 and 127.0.0.53, port 53. This is a socket filter, not a
+BPF_PROG_LOAD, tracing attachment, or TCX program. A protocol-zero socket prevents
+pre-bind traffic delivery. The fixed socket binds only to lo/ifindex 1 in
+net:[4026531833]. There is no packet transmission method in the observer.
+
+Each received packet produces a single metadata receipt: L3 byte digest, capture
+sequence, kernel realtime timestamp, packet type/direction, IP ID, endpoint tuple,
+TCP sequence when applicable, actual and independently recomputed IP/transport
+checksums, pseudo-header seed, lengths, auxiliary status, and DNS transaction ID
+when a complete DNS message is present in that packet. TCP fragments of a DNS
+message are not invented or reassembled into a claimed transaction. Header options
+are included in checksum computation. Incomplete, fragmented, invalid-length and
+truncated inputs cannot acquire a valid checksum verdict. IPv4 UDP checksum zero
+means absent, not a successful checksum verification.
+
+The entire transport segment is needed to recompute a checksum. At most 512 bytes
+are received per packet and raw bytes are held only in RAM, with core dumps
+disabled. Oversized or missing ancillary metadata fails explicitly. Up to 32
+metadata records are retained for at most 10 seconds; no unbounded queue exists.
+Receipts are emitted incrementally so a subsequent failure does not erase prior
+observations. PACKET_STATISTICS socket drops are reported separately from checksum
+mismatch, and socket context cleanup runs on both success and failure.
+
+### Kernel evidence and limits
+
+Linux v6.18 `packet_recvmsg()` constructs auxiliary status from the same skb whose
+bytes are delivered: CHECKSUM_PARTIAL sets CSUMNOTREADY; non-outgoing
+`skb_csum_unnecessary()` sets CSUM_VALID; TCP GSO sets GSO_TCP. See the
+[official Linux packet socket implementation](https://github.com/torvalds/linux/blob/v6.18/net/packet/af_packet.c)
+and [UAPI flags](https://github.com/torvalds/linux/blob/v6.18/include/uapi/linux/if_packet.h).
+These are upstream source contracts; running WSL2 behavior still requires the
+approved observation. Current local headers contain the same three flags.
+
+CSUM_VALID does not distinguish all internal checksum states. GRO state, GSO size,
+segment count, and COMPLETE versus UNNECESSARY remain explicitly UNKNOWN. The
+observer does not claim PCAP reveals them. An exact internal-state trace would
+require a separately reviewed and approved kernel observation path; none is
+implemented or loaded here. A same-packet partial flag plus checksum mismatch and
+pseudo-header seed provides evidence unavailable in historical Zeek records, but
+cannot retroactively prove the historical rejection cause. GSO checksum arithmetic
+is recorded as arithmetic, not a packet-corruption verdict. Same-packet Zeek
+rejection/correlation remains PENDING until evidence is actually collected.
+
+### Trusted execution candidate and approval boundary
+
+The diagnostic image embeds the existing installer verification helpers and OS
+entry policy helpers. It reuses `unified_image.pinned_command()` for isolated
+`/usr/bin/sudo -k -u root -- /usr/bin/python3 -I -S -c <SHA-held entry>` execution.
+The root entry checks the held image bytes, fresh controller PID/start ticks,
+numeric caller, namespace, release/bundle/program envelope and approval digest,
+system dependencies, installed release integrity and password policy. Its only
+installer action is `check`: it never installs, rolls back, starts Bootstrap
+handoff, or starts TCX/Zeek collectors. Existing authentication mechanisms are
+reused; no new setuid path or arbitrary shell is introduced.
+
+After creating and locking the receive socket, the observer clears supplementary
+groups and switches permanently to the original numeric UID/GID. Effective,
+permitted, inheritable and ambient capabilities must be zero. PR_SET_DUMPABLE=0
+protects the retained receive socket from ordinary same-UID ptrace; NO_NEW_PRIVS
+prevents later privilege gains. The observer never passes this socket to GUI/AI
+workers, spawns children, or executes additional commands. Privilege-drop behavior
+is tested with mocks only, not claimed Native verified.
+
+Prepared image (0400, private, no execution):
+
+- Path: `.git/dns-checksum-evidence-capture/capture-image-v2.py`
+- SHA256: `beb6e5b60d059e8a389cbbf4419867f6a14dcd2112234b56113954c63889dd8b`
+- Scope digest: `3bc9933f715af29761cde1c5c64e95e7ae408ed29c995651a436eeb6920cdef7`
+- Installed manifest: `2e5faaf4dac7381157adcc82b61465316946aa115c501073f25eb95ee9282289`
+- Installed bundle: `bddd454656af79a4fac26ce0d4f20cb1d00f3afc2012e7531ce3f7778c271916`
+- Installed release remains 0.5.16. No replacement release/install is required for
+  this diagnostic. The diagnostic image itself requires explicit SHA approval.
+- Candidate resource limits: address space 256MiB, CPU 20 seconds, observer wall
+  time 10 seconds, 32 records, snaplen 512. No network or offload configuration
+  changes. No BPF load or kernel hook.
+
+An approved session would create a fresh standard envelope, verify image and
+release again, bind the existing approval digest to that envelope and image SHA,
+and use the existing pinned command. Do not reuse a historical session envelope
+or mistake the release manifest digest for the session approval digest.
+
+A separate ordinary-user process may run the existing fixed DNS probe only after
+explicit approval and OBSERVER_READY: one UDP and one TCP A query for
+native-0516.localhost. to the existing 127.0.0.53:53 service. There is no external
+query, resolver setting change, or replacement DNS server. Probe source SHA is
+`1b466afcb1fbaf0b5d9a56744640140ef07389342537f5d1bbb9245a2e403f8f`;
+its traffic plan digest is
+`0b6c59f501489f67da18e5a7f671b80853542376a8df7a2b0495cd9fbdeb5757`.
+Approval of capture alone does not authorize this probe or a Zeek/TCX restart.
+
+### Verification and current verdict
+
+Ten focused nonprivileged tests pass: UDP/TCP completed/partial-seed models,
+IP options, both filter directions and out-of-scope rejection, truncated/missing
+auxiliary data, GSO status, rejected unprivileged entry, mocked UID-drop/socket
+cleanup/drop statistics, and no-install/no-collector entry contract. Ruff and
+format checks pass for changed Python files. No live socket, sudo authentication,
+DNS probe, BPF load, collector restart, or configuration mutation was performed.
+
+Read-only preflight still reports kernel 6.18.33.2-microsoft-standard-WSL2,
+net:[4026531833], lo checksum offload/GSO/GRO/TSO on, and existing UDP/TCP listeners
+at 127.0.0.53:53. These settings alone do not prove offload caused rejection.
+Actual Native checksum fields/recomputed values/kernel per-packet flags remain
+UNKNOWN until approved capture. Historical Zeek rejected 12 transport packets;
+this observation remains unchanged. ROOT_CAUSE_UNKNOWN remains the verdict.
+Campaign budget is unchanged at Native 0/3 and root installations 0/3. Native AI,
+DNS9 and operational promotion remain BLOCKED.
+
+## Approved Live diagnostic result (2026-10-22)
+
+**CHECKSUM_OFFLOAD_CONFIRMED for the current controlled loopback test.** This is
+new same-packet evidence; it does not replace or rewrite the historical Native
+receipts, whose individual kernel flags remain unavailable.
+
+Executed exactly the approved diagnostic image
+`beb6e5b60d059e8a389cbbf4419867f6a14dcd2112234b56113954c63889dd8b`
+in net:[4026531833], lo/ifindex 1. Root installation, TCX attachment and Zeek restart
+were not performed. One OS authentication request was used. After readiness,
+the existing local DNS probe sent exactly one UDP and one TCP A query for
+native-0516.localhost. to the existing 127.0.0.53:53 service. Both received matching
+55-byte responses, RCODE 0, transaction IDs 49665/49666. No external resolver
+request or settings change was made.
+
+The observer received 12 packets: UDP 2, TCP 10, all HOST packet type 0. Each
+packet was joined to the probe's actual ephemeral port (UDP 45662, TCP 32961),
+addresses, protocol and transaction ID where a complete DNS message was present.
+All 12 had valid IPv4 header checksums, unequal stored/recomputed transport
+checksums, and a stored transport checksum equal to the folded pseudo-header
+seed. The same recvmsg's auxiliary status was 9 (USER | CSUMNOTREADY) in all 12.
+This directly establishes CHECKSUM_PARTIAL at this packet-socket observation
+point: the transport field has not yet become a completed checksum. This is not
+evidence of a damaged DNS message or a completed bad checksum on an external wire.
+
+Representative actual packet values (hexadecimal; full metadata receipt is private):
+
+| Packet | IPv4 checksum, stored = recomputed | Transport stored | Transport recomputed | Kernel partial |
+| --- | --- | --- | --- | --- |
+| UDP query | 0x3a48 | 0xfe76 | 0x36b2 | true |
+| UDP response | 0x1897 | 0xfe86 | 0x9dd1 | true |
+| TCP DNS query segment | 0xc441 | 0xfe85 | 0xdf3e | true |
+| TCP DNS response segment | 0x290d | 0xfe95 | 0x4632 | true |
+
+GSO_TCP was false for every observed packet. Therefore enabled GSO/TSO settings
+are not proof that these particular DNS packets were segmented. GRO internal
+state, CHECKSUM_COMPLETE and CHECKSUM_UNNECESSARY remain UNKNOWN; CSUM_VALID was
+not exported for these packets. No raw frame/DNS payload was persisted.
+
+### Comparison with Zeek
+
+Historical Zeek evidence recorded the same controlled test shape: UDP 2, TCP 10,
+transport checksum rejected 12, DNS analyzer entered 0. Today's observation
+establishes the missing kernel state for today's packets. The historical and
+current packets have different ephemeral ports/timestamps; they are not presented
+as the same capture. Zeek was not restarted under this diagnostic-only approval,
+and a current same-packet Zeek rejection counter was therefore not measured.
+
+The verified Zeek v9 UDP/TCP path rejects an uncompleted seed when it is treated
+as a finished checksum, before forwarding to DNS. See the official
+[UDP checksum gate](https://github.com/zeek/zeek/blob/v9.0.0/src/packet_analysis/protocol/udp/UDP.cc)
+and [TCP checksum gate](https://github.com/zeek/zeek/blob/v9.0.0/src/packet_analysis/protocol/tcp/TCP.cc).
+Together with the previously documented loss of checksum auxiliary metadata in
+the pcap-to-Zeek input path and the completed/partial fixture comparison, this
+explains the observed rejection mechanism. It does not retroactively recover the
+historical packets or prove every future checksum failure is offload-related.
+
+A subsequent fix should preserve kernel checksum provenance in the dedicated
+loopback capture input and review a tightly scoped partial-checksum handling
+policy. CHECKSUM_PARTIAL must not simply be relabeled as an already validated
+checksum. Completed bad checksums, untrusted sources, truncation and malformed
+packets must continue to fail. No global `-C`, offload toggle, parser bypass or
+checksum rewriting policy was enabled by this diagnostic.
+
+### Closure, timing and preservation
+
+Counter reports socket_packets=12, socket_drops=0. Capture sequence 1..12 is intact,
+CLOSED arrived, and exit status was 0. All observed packets span 30.834ms between
+first and last kernel timestamps and match the two approved local transactions.
+The configured receive deadline was 10 seconds; the measured observer elapsed
+time was **10.010559 seconds**, a 10.559ms timeout/completion overrun. Its exact
+scheduling/syscall contribution was not separately instrumented. This overrun is
+recorded rather than silently reported as strictly <=10 seconds. No additional
+capture or retry followed.
+
+After socket setup the observer reported CapEff/CapPrm/CapInh/CapAmb all zero.
+The sudo child, ordinary-user controller and diagnostic terminal exited.
+`/proc/net/packet` contained only its header after completion (no remaining packet
+sockets). CLOSED, normal exit and process absence establish diagnostic FD/process
+cleanup. No BPF object/link was created, so no TCX detach or kernel resource
+deletion was attempted. Per-close syscall return values were not instrumented.
+
+The first terminal UI launcher exited before starting the one-shot script; the
+persistent terminal then started it once. The exclusive `started` reservation,
+one sudo process record and one probe receipt demonstrate one Native diagnostic,
+not two capture attempts. Existing DNS listeners remained present. SHA comparisons
+verified the installed release files, old Native verification, and historical
+budget/audit files unchanged. The append-only supplemental diagnostic ledger
+records this one attempt: campaign Native diagnostic usage 1/3, remaining 2;
+root installation usage 0/3. Historical budget files are preserved byte-for-byte.
+
+Private evidence:
+`.git/dns-checksum-evidence-capture/live-attempt-1/{capture.jsonl,probe.json,completion.json,verification.json,preservation.json}`.
+No product source changed during this approved execution, no broad regression was
+repeated, and no commit/push was made. Native AI, DNS9 and operational promotion
+remain BLOCKED. Zeek Native DNS E2E success is not claimed from this diagnostic.
+
+## Offload remediation candidate 0.5.17 (approval pending)
+
+The selected fix is a DNS analysis sidecar, not a replacement TCX collector or a
+system checksum setting. The root-installed TCX release remains **0.5.16** and its
+nine files are not installed, replaced or rolled back by this candidate. Version
+0.5.17 identifies the separately SHA-approved DNS sidecar manifest and execution
+image; it is not a claim that a new root release was installed.
+
+Path: reviewed OS entry -> bounded AF_PACKET/AUXDATA capture -> ordinary UID ->
+validated memory-only checksum copies -> pipe-backed PCAP -> pinned unprivileged
+Zeek -> existing Producer/Consumer -> DNSPreprocessing -> append-only receipts.
+Capture is limited to net:[4026531833], lo, the existing 127.0.0.53:53 endpoint and
+its local test client. Only the actual probe's UDP/TCP client ports are forwarded
+to Zeek; other local DNS observations are explicitly counted as excluded. The
+root observer requests no installation, TCX or external network operation.
+
+The existing capture filter, privilege drop, process restrictions, OS policy
+checks and SHA-held entry are reused. A nine-second receive deadline reserves
+margin below the approved ten-second diagnostic budget; each record is <=512
+bytes and the entire memory batch is <=32 packets. The inherited output pipe
+uses nonblocking writes with bounded POLLOUT waits. Error metadata retains stage
+and errno; receive/copy/pipe failure still exits the socket context. Normal and
+error paths do not automatically recapture or regenerate traffic.
+
+### Four checksum states and copy contract
+
+`offload_copy.analysis_copy()` returns one of:
+
+- CHECKSUM_VALID: complete packet bytes independently verify; no rewrite.
+- CHECKSUM_PARTIAL_CONFIRMED: kernel auxiliary status reports partial, the stored
+  transport field exactly matches the expected pseudo-header seed, and IP,
+  length, local endpoint and TCP/UDP bounds all validate. Only the two checksum
+  bytes of an immutable analysis copy are changed.
+- CHECKSUM_INVALID: completed checksum failure, wrong partial seed, invalid IP
+  checksum, conflicting flags or malformed lengths; no analysis packet emitted.
+- CHECKSUM_UNKNOWN: missing metadata, absent IPv4 UDP checksum, unsupported
+  auxiliary flags, fragmentation, GSO/VLAN, unhandled IPv6 extension headers or
+  out-of-scope source; no analysis packet emitted.
+
+IPv4 and plain IPv6 TCP/UDP are covered by pure normalizer tests. The Native
+candidate capture remains IPv4-only at the approved 127.0.0.53 endpoint; it does
+not silently expand capture to IPv6. GSO packets are rejected instead of guessed.
+CHECKSUM_COMPLETE, UNNECESSARY and GRO internal states remain unclaimed.
+
+Each transformation receipt preserves original frame SHA256, original transport
+checksum, IPv4 checksum where present, auxiliary status, analysis checksum and
+analysis frame SHA256. Sequence, timestamp, packet type and complete auxiliary
+bytes join the receipt digest chain. The controller reconstructs the original
+checksum bytes from the analysis copy and independently verifies both hashes and
+the transformation before forwarding it. Original packet bytes stay unchanged in
+RAM; raw originals/copies/PCAP are not written to host disk or audit. Metadata
+receipts are appended and fsynced before further processing.
+
+Partial provenance cannot independently prove arbitrary payload authenticity:
+a payload bit change before checksum completion is not detectable by a checksum
+that has not yet been computed. The fix therefore never relabels a partial copy
+as completed CHECKSUM_VALID, never claims full end-to-end Capture Integrity,
+and never opens Native AI/DNS9/operational gates. Known completed bad checksums
+remain rejected even if a kernel-valid flag is present. This limitation is tested,
+not hidden by a false integrity claim.
+
+### Existing Zeek integration and permissions
+
+The official Zeek v9 source supports `-r -` input through stdin; its existing
+`ExtractNextPacket()` path constructs Packet from pcap bytes without AUXDATA.
+See [PcapSource](https://github.com/zeek/zeek/blob/v9.0.0/src/iosource/pcap/Source.cc).
+The sidecar uses that existing input API instead of inventing a Zeek plugin or
+passing privileged sockets to the container. Existing live.zeek, visibility.zeek,
+Network14 policy, Producer/Consumer, DNS parser and transaction diagnostics are
+reused without changing the checksum-validation policy.
+
+`StreamProcess(pcap_input=...)` validates the entire bounded nanosecond/raw-IP PCAP
+layout before launching Docker. It feeds stdin with the existing selector loop
+while draining stdout, avoiding a blocking feed/read deadlock. Zeek runs with the
+existing pinned image, network=none, cap-drop=ALL, ordinary numeric UID/GID,
+read-only filesystem, no-new-privileges, RAM512MiB/CPU1 and owned-container cleanup.
+It receives no CAP_NET_RAW, host network, Docker socket mount or original payload
+file. No `-C` or ignore-checksums network policy is added.
+
+Reports distinguish the Native AUXDATA capture from Zeek's memory-file analysis;
+`native_capture` in the Zeek subprocess receipt remains false and
+`analysis_copy_input` is true. The enclosing session carries the approved Native
+source provenance. File-fixture and memory-copy success cannot manufacture a
+Native capture receipt. Existing Supervisor proxies need only stdout/poll/wait;
+new stdin handling is conditional and preserves the prior live path.
+
+### Qualification, release identity and rollback
+
+Focused qualification covers IPv4/IPv6 TCP/UDP partial/valid copies, corrupt
+completed checksums, wrong seed, missing/conflicting metadata, fragments,
+truncation, unsupported GSO, Queue32/PCAP bounds, transformation digest tampering,
+pre-authentication manifest rejection, capture-bind failure cleanup, exact
+embedded-image wiring without privileged entry execution, actual pinned Zeek DNS
+parsing from synthetic memory copies, legacy Supervisor proxy behavior and
+existing checksum/unsupported-stream regressions. Real Zeek file-only tests show
+one UDP and one TCP transaction independently producing query=1, response=1,
+matched=1, checksum rejection=0, DNS adapter acceptance, CLOSED and container
+cleanup. These are non-Native integration results. Existing checksum rejection
+fixtures still reject corrupt input. No broad model or GUI regression was run.
+
+Prepared sidecar candidate:
+
+- Version: 0.5.17, contract soc-dns-analysis-sidecar-release:v1.
+- Manifest: `8c716217f14de4ee3c1279ccb0b426df080882c4a9215ea469f682d7b996ac7a`
+- Source bundle: `be9c4ce3799475399ac41431fe9c8789733c0c657af8c79c4dda79e80fb00973`
+- Execution image: `0828050020dfc047b3b2100877763a6677290fa91d6a79d758168fbd463f576b`
+- Private directory: `.git/dns-offload-remediation-0517/candidate-final/`.
+- Base installed root manifest remains
+  `2e5faaf4dac7381157adcc82b61465316946aa115c501073f25eb95ee9282289`.
+- TCX object remains
+  `9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06`.
+- Existing Zeek image remains
+  `zeek/zeek@sha256:3fac39de707be96cb1a8163cab98a11bb2a1aa9e3535247db0f17b9c4670a019`.
+
+Rollback requires no root file operation because the sidecar does not install or
+replace files. Stop the single observer/owned container and retain the original
+installed release and historical evidence. Future execution refuses changed
+source/image/base-release identity, reserves an exclusive one-shot attempt
+folder, and will not repeat after failure. A fresh session envelope and image
+approval digest are generated; the sidecar manifest is not substituted for the
+installed root manifest or the authentication digest.
+
+No new Native capture, query or root execution was performed during this
+remediation. The prior diagnostic remains 1/3 used, 2 remaining; root installs
+remain 0/3 in its supplemental ledger, with historical ledgers unchanged. The
+new image and its two-query local DNS test require explicit approval before
+Native E2E can be judged. Live DNS analyzer counts, Native copy-path integrity
+and cleanup for this candidate remain PENDING. Native AI, DNS9 and operational
+promotion remain BLOCKED.
