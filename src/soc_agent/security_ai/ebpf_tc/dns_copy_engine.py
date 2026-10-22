@@ -57,6 +57,7 @@ def capture_analysis(
     *,
     start_gate: bool = False,
     session_started: float | None = None,
+    start_context: dict | None = None,
 ) -> dict:
     # Existing diagnostic socket setup/filter/drop routines are embedded verbatim.
     if os.geteuid() != 0 or uid <= 0 or gid <= 0:
@@ -71,18 +72,25 @@ def capture_analysis(
             stage = "ANALYSIS_START_GATE"
             if time.monotonic() >= session_deadline - 0.75:
                 raise ValueError("DNS_COPY_SESSION_DEADLINE")
-            emit_result(
-                dict(
-                    state="DNS_COPY_AUTHENTICATED",
-                    scope_digest=scope_digest,
-                    session_started=session_started,
-                    deadline=session_deadline,
+            if start_context is None:
+                raise ValueError("DNS_START_CONTEXT_REQUIRED")
+            # Functions are embedded from the same SHA-held source, never imported as Root.
+            controller_pid = start_context["controller_pid"]
+            binding = start_context["binding"]
+            with globals()["start_connect"](
+                uid, gid, controller_pid, binding, session_deadline - 0.75
+            ) as control:
+                emit_result(
+                    dict(
+                        state="DNS_COPY_AUTHENTICATED",
+                        scope_digest=scope_digest,
+                        session_started=session_started,
+                        deadline=session_deadline,
+                        root_pid=os.getpid(),
+                        binding=binding,
+                    )
                 )
-            )
-            # Fixed control token only: no path, command, program or deadline input.
-            remaining = max(0, min(9, session_deadline - time.monotonic()))
-            if not select.select([0], [], [], remaining)[0] or os.read(0, 6) != b"START\n":
-                raise ValueError("DNS_COPY_ANALYSIS_START_REQUIRED")
+                globals()["start_receive"](control, binding, session_deadline - 0.75)
             if time.monotonic() >= session_deadline - 0.75:
                 raise ValueError("DNS_COPY_SESSION_DEADLINE")
         capture_started = time.monotonic()

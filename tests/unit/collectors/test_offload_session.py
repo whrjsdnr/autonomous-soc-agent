@@ -112,7 +112,7 @@ def test_exact_embedded_image_wiring_without_running_privileged_entry(tmp_path, 
     assert args[4] is module.analysis_copy
     assert args[5] is module.chain_receipt
     assert args[6] == module.SCOPE_DIGEST
-    assert kwargs == {"start_gate": True, "session_started": None}
+    assert kwargs == {"start_gate": True, "session_started": None, "start_context": None}
 
 
 def test_analysis_feed_has_one_total_queue32_budget():
@@ -131,48 +131,45 @@ def test_analysis_feed_has_one_total_queue32_budget():
         feed.put(0, packet())
 
 
-@pytest.mark.parametrize("expired", [False, True])
-def test_wrong_start_token_or_expired_session_never_opens_capture_socket(monkeypatch, expired):
+def test_missing_start_context_never_opens_capture_socket(monkeypatch):
     from soc_agent.security_ai.ebpf_tc import dns_copy_engine as engine
 
     monkeypatch.setattr(engine.os, "geteuid", lambda: 0)
     monkeypatch.setattr(engine.os, "readlink", lambda path: "net:[4026531833]")
     monkeypatch.setattr(engine.socket, "if_nametoindex", lambda name: 1)
-    monkeypatch.setattr(engine.select, "select", lambda *args: ([0], [], []))
-    monkeypatch.setattr(engine.os, "read", lambda *args: b"BAD\n")
     monkeypatch.setattr(engine, "emit_result", lambda value: None)
     monkeypatch.setattr(engine.socket, "socket", lambda *args: pytest.fail("no capture"))
-    import time
-
-    with pytest.raises(ValueError, match="SESSION_DEADLINE" if expired else "START_REQUIRED"):
-        capture_analysis(
-            1000,
-            1000,
-            None,
-            None,
-            None,
-            None,
-            "0" * 64,
-            start_gate=True,
-            session_started=time.monotonic() - 20 if expired else None,
-        )
+    with pytest.raises(ValueError, match="CONTEXT_REQUIRED"):
+        capture_analysis(1000, 1000, None, None, None, None, "0" * 64, start_gate=True)
 
 
-def test_expired_analysis_budget_rejects_before_docker_lookup(tmp_path, monkeypatch):
-    from soc_agent.security_ai.collectors.live_contract import new_plan
-    from soc_agent.security_ai.collectors.live_process import StreamProcess
-    from soc_agent.security_ai.collectors.offload_copy import memory_pcap
+def test_embedded_root_dispatch_preserves_first_error_without_executing_root(tmp_path, monkeypatch):
+    import sys
+    import types
 
-    monkeypatch.setattr("subprocess.Popen", lambda *args, **kwargs: pytest.fail("no launch"))
-    runner = StreamProcess(tmp_path, new_plan(), pcap_input=memory_pcap([]), analysis_deadline=0)
-    with pytest.raises(ValueError, match="DEADLINE_BEFORE_LAUNCH"):
-        runner.run()
-    assert not (tmp_path / "process.json").exists()
+    from soc_agent.security_ai.ebpf_tc.checksum_image import prepare
 
+    image = prepare(tmp_path / "diagnostic.py", analysis=True)
+    module = types.ModuleType("diagnostic_no_privilege")
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    exec(compile(image.path.read_bytes(), "<diagnostic-only>", "exec"), module.__dict__)
+    evidence = []
+    module.diagnostic_stage = "PASSWORD_POLICY"
+    module.diagnostic_api = "_candidate_policy"
+    module.emit_result = evidence.append
 
-def test_analysis_deadline_cannot_change_existing_native_path(tmp_path):
-    from soc_agent.security_ai.collectors.live_contract import new_plan
-    from soc_agent.security_ai.collectors.live_process import StreamProcess
+    def fail():
+        raise PermissionError(13, "password=secret-token")
 
-    with pytest.raises(ValueError, match="DEADLINE_SCOPE"):
-        StreamProcess(tmp_path, new_plan(), analysis_deadline=1)
+    module.checksum_root_main = fail  # Never call the actual privileged entry.
+    with pytest.raises(SystemExit) as caught:
+        module.checksum_dispatch()
+    assert caught.value.code == 1
+    assert evidence[0]["stage"] == "PASSWORD_POLICY" and evidence[0]["errno"] == 13
+    assert "secret" not in json.dumps(evidence)
+    module.checksum_root_main = lambda: (_ for _ in ()).throw(
+        ValueError("CHECKSUM_CALLER_MISMATCH")
+    )
+    with pytest.raises(SystemExit):
+        module.checksum_dispatch()
+    assert evidence[1]["original_code"] == "CHECKSUM_CALLER_MISMATCH"

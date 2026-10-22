@@ -21,6 +21,13 @@ from soc_agent.security_ai.collectors.live_stream import Stream, decode
 from soc_agent.security_ai.collectors.models import Source
 from soc_agent.security_ai.collectors.offline import IMAGE, OfflineZeek
 from soc_agent.security_ai.collectors.offload_copy import analysis_copy, chain_receipt
+from soc_agent.security_ai.collectors.start_channel import (
+    start_binding,
+    start_listener,
+    start_peer,
+    start_send,
+    start_timeout,
+)
 from soc_agent.security_ai.ebpf_broker.contracts import BrokerPlan
 from soc_agent.security_ai.ebpf_native.contracts import ApplicationPlan, Scope, local_controller
 from soc_agent.security_ai.ebpf_tc.checksum_image import prepare as prepare_image
@@ -40,11 +47,23 @@ PROBE_APPROVAL = "0b6c59f501489f67da18e5a7f671b80853542376a8df7a2b0495cd9fbdeb57
 
 
 def sources() -> dict[str, str]:
-    from soc_agent.security_ai.collectors import analysis_feed, checksum_evidence, offload_copy
+    from soc_agent.security_ai.collectors import (
+        analysis_feed,
+        checksum_evidence,
+        offload_copy,
+        start_channel,
+    )
     from soc_agent.security_ai.ebpf_tc import checksum_image, dns_copy_engine
 
     result = bundle()
-    for module in (analysis_feed, checksum_evidence, offload_copy, checksum_image, dns_copy_engine):
+    for module in (
+        analysis_feed,
+        checksum_evidence,
+        offload_copy,
+        start_channel,
+        checksum_image,
+        dns_copy_engine,
+    ):
         result[module.__name__] = hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()
     result["soc_agent.security_ai.collectors.offload_session"] = hashlib.sha256(
         Path(__file__).read_bytes()
@@ -67,7 +86,7 @@ def prepare(directory: Path) -> dict:
     source = sources()
     value = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
-        version="0.5.19",
+        version="0.5.20",
         installed_tcx_release="0.5.16_PRESERVED_NO_INSTALL",
         base_manifest=image.manifest,
         image=image.model_dump(mode="json"),
@@ -75,7 +94,7 @@ def prepare(directory: Path) -> dict:
         sources=source,
         zeek_image=IMAGE,
         capture_scope_digest=hashlib.sha256(
-            b"DNS_LOCAL_PARTIAL_COPY_V3:net4026531833:lo:7s:32:512:prewarm:shared10s"
+            b"DNS_LOCAL_PARTIAL_COPY_V4:net4026531833:lo:7s:32:512:prewarm:shared10s:tty:seqpacket"
         ).hexdigest(),
         scope=dict(
             namespace="net:[4026531833]",
@@ -208,6 +227,10 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         out / "reserved.json",
         dict(manifest=manifest_sha, image=image_sha, auto_retry=False, scope=candidate["scope"]),
     )
+    binding = start_binding(
+        wire, image_sha, candidate["base_manifest"], approval, candidate["capture_scope_digest"]
+    )
+    listener = control = None
     child = None
     feed = AnalysisFeed()
     analysis_worker = None
@@ -239,7 +262,9 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     active_started = active_deadline = None
     first_failure = None
     try:
-        child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        listener = start_listener(os.getuid(), binding)
+        # Authentication stdin and stderr remain the actual OS terminal.
+        child = subprocess.Popen(command, stdin=None, stdout=subprocess.PIPE, text=True)
         with (out / "transformations.jsonl").open("x") as audit:
             while line := child.stdout.readline(4097):
                 if len(line) > 4096 or not line.endswith("\n"):
@@ -248,6 +273,8 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                 if row.get("state") == "DNS_COPY_AUTHENTICATED":
                     if authenticated or row["scope_digest"] != candidate["capture_scope_digest"]:
                         raise ValueError("DNS_COPY_AUTHENTICATED_SCOPE")
+                    if row.get("binding") != binding:
+                        raise ValueError("DNS_START_BINDING_MISMATCH")
                     authenticated = row
                     active_started = row["session_started"]
                     active_deadline = row["deadline"]
@@ -256,6 +283,11 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                         or active_deadline - active_started != 10
                     ):
                         raise ValueError("DNS_COPY_SESSION_DEADLINE")
+                    start_timeout(listener, active_deadline - 0.75)
+                    control, _ = listener.accept()
+                    start_peer(control, 0, 0, row["root_pid"])
+                    listener.close()
+                    listener = None
                     times["authenticated"] = active_started
                     plan = new_plan()
                     source = Source(
@@ -277,9 +309,9 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     if analysis_errors:
                         raise analysis_errors[0]
                     times["zeek_ready"] = time.monotonic()
-                    child.stdin.write("START\n")
-                    child.stdin.flush()
-                    child.stdin.close()
+                    start_send(control, binding, active_deadline - 0.75)
+                    control.close()
+                    control = None
                 elif row.get("state") == "DNS_COPY_READY":
                     if (
                         not authenticated
@@ -362,12 +394,28 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     closed = row
                     times["capture_closed_received"] = time.monotonic()
                     feed.close()
+                elif row.get("state") == "DNS_COPY_ROOT_ERROR":
+                    publish(out / "root-error.json", row)
+                    first_failure = first_failure or row["original_code"]
                 elif row.get("state") == "DNS_COPY_ERROR":
                     publish(out / "capture-error.json", row)
                     first_failure = first_failure or "DNS_COPY_CAPTURE_FAILED"
                 elif row.get("action") != "check":
                     raise ValueError("DNS_COPY_MESSAGE_SCHEMA")
         code = child.wait(timeout=12)
+        if code and not authenticated and first_failure is None:
+            publish(
+                out / "entry-error.json",
+                dict(
+                    stage="OS_AUTH_OR_IMAGE_ENTRY",
+                    api="pinned sudo/python entry",
+                    exit_code=code,
+                    errno=None,
+                    original_code="UNKNOWN_NO_ROOT_DIAGNOSTIC",
+                    stderr_policy="OS_TTY_ONLY_NOT_RECORDED",
+                ),
+            )
+            first_failure = "DNS_COPY_ENTRY_FAILED"
         if (
             code
             or not closed
@@ -444,6 +492,10 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         )
         raise
     finally:
+        if control is not None:
+            control.close()
+        if listener is not None:
+            listener.close()
         feed.close()
         if analysis_worker is not None and analysis_worker.is_alive():
             runner.stop()
@@ -452,8 +504,6 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         times["finalization_started"] = time.monotonic()
         if child is not None:
             child.stdout.close()
-            if not child.stdin.closed:
-                child.stdin.close()
             # Closing the pipe ends a failed sender; do not start another capture.
             try:
                 code = child.wait(timeout=12)

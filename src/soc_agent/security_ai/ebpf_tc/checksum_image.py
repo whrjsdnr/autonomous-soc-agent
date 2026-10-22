@@ -3,6 +3,7 @@
 Preparation never authenticates, installs, captures, loads BPF, or sends traffic.
 """
 
+import ast
 import hashlib
 import json
 import os
@@ -18,6 +19,8 @@ ENTRY = """
 def checksum_root_main():
     import sys, resource
     root_entry_started = time.monotonic()
+    global diagnostic_stage, diagnostic_api
+    diagnostic_stage, diagnostic_api = "ROOT_ENTRY", "credential_checks"
     args = sys.argv
     if (len(args) != 7 or args[1] != 'run'
             or any((os.getuid(), os.geteuid(), os.getgid(), os.getegid()))):
@@ -30,6 +33,7 @@ def checksum_root_main():
         LABEL + envelope + image_sha + bytes.fromhex(IMAGE['manifest_sha256'])).digest()
     if len(image_sha) != 32 or expected != approval:
         raise ValueError('CHECKSUM_APPROVAL_MISMATCH')
+    diagnostic_stage, diagnostic_api = "SCOPE_VERIFY", "_validate_envelope"
     _validate_envelope(envelope, IMAGE, uid, gid)
     pid = struct.unpack_from('<I', envelope, 12)[0]
     ticks, namespace = struct.unpack_from('<QQ', envelope, 16)
@@ -38,17 +42,26 @@ def checksum_root_main():
             or os.stat(f'/proc/{pid}/ns/net').st_ino != namespace
             or os.stat('/proc/self/ns/net').st_ino != namespace):
         raise ValueError('CHECKSUM_CONTROLLER_IDENTITY')
+    diagnostic_stage, diagnostic_api = "OS_ENTRY_VERIFY", "_sudo_parent"
     _sudo_parent()
     environment = _safe_environment(uid, gid)
+    diagnostic_stage, diagnostic_api = "DEPENDENCY_VERIFY", "_verify_dependencies"
     _verify_dependencies(IMAGE)
+    diagnostic_stage, diagnostic_api = "INSTALLATION_VERIFY", "root_main(check)"
     root_main(IMAGE, 'check')
+    diagnostic_stage, diagnostic_api = "PASSWORD_POLICY", "_candidate_policy"
     _candidate_policy(IMAGE, uid, gid, environment)
     os.environ.clear()
     os.environ.update(environment)
+    diagnostic_stage, diagnostic_api = "RESOURCE_LIMITS", "setrlimit"
     resource.setrlimit(resource.RLIMIT_AS, (256 * 1024**2, 256 * 1024**2))
     resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    result = (capture(uid, gid, session_started=root_entry_started)
+    diagnostic_stage, diagnostic_api = "CAPTURE_PREPARE", "capture"
+    start_context = (dict(controller_pid=pid, binding=start_binding(
+        envelope, args[5], IMAGE["manifest_sha256"], args[6], SCOPE_DIGEST))
+        if "start_binding" in globals() else None)
+    result = (capture(uid, gid, session_started=root_entry_started, start_context=start_context)
               if 'capture_analysis' in globals() else capture(uid, gid))
     result.update(image_sha256=args[5], manifest=IMAGE['manifest_sha256'],
                   scope_digest=SCOPE_DIGEST)
@@ -57,8 +70,21 @@ def checksum_root_main():
     else:
         print(json.dumps(result, sort_keys=True), flush=True)
 
+def checksum_dispatch():
+    import sys
+    if 'root_error' not in globals():
+        checksum_root_main()
+    else:
+        try:
+            checksum_root_main()
+        except Exception as exc:
+            emit_result(root_error(exc, globals().get('diagnostic_stage', 'ROOT_ENTRY'),
+                                   globals().get('diagnostic_api', 'checksum_root_main')))
+            print('DNS_COPY_ROOT_ERROR', file=sys.stderr, flush=True)
+            sys.exit(1)
+
 if __name__ == '__main__':
-    checksum_root_main()
+    checksum_dispatch()
 """
 
 
@@ -81,20 +107,36 @@ def prepare(output: Path, *, analysis: bool = False) -> UnifiedImage:
         for module in (install_engine, unified_image_engine, checksum_evidence)
     )
     if analysis:
-        from soc_agent.security_ai.collectors import offload_copy
+        from soc_agent.security_ai.collectors import offload_copy, start_channel
         from soc_agent.security_ai.ebpf_tc import dns_copy_engine
 
         source += b"\n" + Path(offload_copy.__file__).read_bytes()
+        source += b"\n" + Path(start_channel.__file__).read_bytes()
         source += b"\n" + Path(dns_copy_engine.__file__).read_bytes()
         source += (
             b"\nSCOPE_DIGEST = hashlib.sha256("
-            b"b'DNS_LOCAL_PARTIAL_COPY_V3:net4026531833:lo:7s:32:512:prewarm:shared10s').hexdigest()\n"
-            b"\ndef capture(uid, gid, session_started=None):\n"
+            b"b'DNS_LOCAL_PARTIAL_COPY_V4:net4026531833:lo:7s:32:512:prewarm:shared10s:tty:seqpacket').hexdigest()\n"
+            b"\ndef capture(uid, gid, session_started=None, start_context=None):\n"
             b"    return capture_analysis(uid, gid, attach_filter,\n"
             b"                            restrict_process, analysis_copy, chain_receipt,\n"
             b"                            SCOPE_DIGEST, start_gate=True,\n"
-            b"                            session_started=session_started)\n"
+            b"                            session_started=session_started,\n"
+            b"                            start_context=start_context)\n"
         )
+    if analysis:
+        tree = ast.parse(source.decode() + "\n" + ENTRY)
+        codes = sorted(
+            {
+                node.exc.args[0].value
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Raise)
+                and isinstance(node.exc, ast.Call)
+                and node.exc.args
+                and isinstance(node.exc.args[0], ast.Constant)
+                and isinstance(node.exc.args[0].value, str)
+            }
+        )
+        source += b"\nROOT_ERROR_CODES = frozenset(" + repr(codes).encode() + b")\n"
     source += (
         b"\nIMAGE = json.loads("
         + repr(json.dumps(image, sort_keys=True)).encode()
