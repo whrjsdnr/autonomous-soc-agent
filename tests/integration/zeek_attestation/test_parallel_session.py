@@ -5,17 +5,21 @@ import json
 import os
 import subprocess
 import time
+from types import SimpleNamespace
 
 import pytest
 
 from soc_agent.security_ai.collectors import offload_session as session
 
 
-@pytest.mark.parametrize("authentication_failed", [False, True, "no_diagnostic"])
+@pytest.mark.parametrize("authentication_failed", [False, True, "no_diagnostic", "supervised"])
 def test_authenticated_session_waits_for_real_zeek_ready_before_start(
     tmp_path, monkeypatch, authentication_failed
 ):
     candidate = tmp_path / "candidate"
+    supervised_mode = authentication_failed == "supervised"
+    if supervised_mode:
+        authentication_failed = False
     identity = session.prepare(candidate)
     scope = json.loads((candidate / "release.json").read_text())["capture_scope_digest"]
     real_popen, real_run = subprocess.Popen, subprocess.run
@@ -149,6 +153,31 @@ def test_authenticated_session_waits_for_real_zeek_ready_before_start(
     monkeypatch.setattr(subprocess, "run", run)
     from pathlib import Path
 
+    supervised = None
+    audit_events = []
+    if supervised_mode:
+        body = json.loads((candidate / "release.json").read_text())
+        image = session.UnifiedImage.model_validate(body["image"])
+        wire = session.envelope(session.installed_release())
+        approval = "f" * 64
+        binding = session.start_binding(wire, image.sha256, image.manifest, approval, scope)
+
+        def start_dns():
+            nonlocal root
+            root = FakeRoot()
+            order.append("supervised_start_no_auth")
+            return root
+
+        supervised = SimpleNamespace(
+            image=image,
+            release=SimpleNamespace(identity=body["base_manifest"]),
+            supervisor=SimpleNamespace(start_dns=start_dns),
+            ended=False,
+            envelope=wire,
+            approval=approval,
+            _event=lambda name, **details: audit_events.append((name, details)),
+        )
+        monkeypatch.setattr(session, "pinned_command", lambda *a: pytest.fail("second auth"))
     if authentication_failed:
         code = (
             "DNS_COPY_ENTRY_FAILED"
@@ -180,8 +209,19 @@ def test_authenticated_session_waits_for_real_zeek_ready_before_start(
         identity["manifest"],
         identity["image"],
         probe=Path("tests/native_dns_live_probe.py"),
+        supervised=supervised,
     )
-    assert order == ["start", "mock_probe"]
+    assert order == (["supervised_start_no_auth"] if supervised_mode else []) + [
+        "start",
+        "mock_probe",
+    ]
+    if supervised_mode:
+        from soc_agent.security_ai.collectors.store import CollectorStore
+
+        recovered = CollectorStore(Path(result["diagnostics_store"]))
+        recovered.verify()  # Recovery reads the chain; never authenticates or captures.
+        assert supervised.zeek_snapshot == result
+        assert audit_events[0][0] == "PHASE_D_DNS_COMPLETED"
     assert result["phase_times"]["zeek_ready"] <= result["phase_times"]["capture_ready"]
     assert result["zeek_exit"]["closed_observed"] and result["zeek_exit"]["cleanup_verified"]
     assert result["verdict"] == "DNS_NATIVE_ANALYSIS_COPY_E2E_INCOMPLETE"

@@ -68,12 +68,17 @@ def test_confirmed_partial_memory_copies_reach_real_zeek_dns(
     stream = Stream(
         Source(session_id=plan.session_id, source_digest="0" * 64, origin="SYNTHETIC_ZEEK_JSON")
     )
+    from soc_agent.security_ai.collectors.store import CollectorStore
+
+    diagnostics = CollectorStore(tmp_path / "diagnostics", stream.source)
     errors = []
     ready = threading.Event()
 
     def consume(line):
         message = decode(line)
-        stream.accept(message)
+        event = stream.accept(message)
+        if event is not None:
+            diagnostics.commit(event.kind, [event], dict(sequence=message.sequence))
         if message.kind == "ready":
             ready.set()
 
@@ -103,6 +108,9 @@ def test_confirmed_partial_memory_copies_reach_real_zeek_dns(
     assert stream.dns_count == 1
     assert stream.dns_adapter_rejected == 0
     assert stream.closed and stream.dns_stages.transaction_matched == 1
+    recovered = CollectorStore(tmp_path / "diagnostics")
+    recovered.verify()  # Normalized DNS event + append-only Audit survives read-only recovery.
+    assert recovered.counts()["dns"] == 1
     rows = [json.loads(x) for x in (tmp_path / "stream.jsonl").read_text().splitlines()]
     assert rows[-1]["kind"] == "closed"
     dns = rows[-1]["data"]["dns_diagnostics"]

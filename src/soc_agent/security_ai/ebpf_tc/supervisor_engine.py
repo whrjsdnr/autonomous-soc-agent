@@ -33,7 +33,7 @@ INSPECT_QUERY_SECONDS: int
 
 SUP_LIMIT = 16384
 SUP_MASK = (1 << 39) | (1 << 12)
-SUP_COMMANDS = {"STATUS", "START_ZEEK", "STOP_ZEEK", "STOP"}
+SUP_COMMANDS = {"STATUS", "START_ZEEK", "STOP_ZEEK", "STOP", "START_DNS"}
 SUP_ENV = {"PATH": "/usr/bin:/bin", "LANG": "C"}
 
 
@@ -181,6 +181,7 @@ class SupervisorCore:
         self.sequence = 0
         self.state = "TCX_READY"
         self.started = self.closed = False
+        self.dns_started = False
         self.stop_attempted = False
         self.error = None
         self.chain = "0" * 64
@@ -193,7 +194,12 @@ class SupervisorCore:
         if self.closed:
             raise ValueError("SUPERVISOR_SESSION_CLOSED")
         try:
-            if command == "START_ZEEK":
+            if command == "START_DNS":
+                if self.dns_started or self.error:
+                    raise ValueError("DNS_SUPERVISOR_NO_RESTART")
+                self.dns_started = True
+                fd = self.ops.start_dns()
+            elif command == "START_ZEEK":
                 if self.started or self.error:
                     raise ValueError("SUPERVISOR_NO_RESTART")
                 self.started = True  # A failed start also consumes the attempt.
@@ -558,8 +564,10 @@ def sup_container(plan, config, policy, identity):
 
 
 class RootOperations:
-    def __init__(self, config, namespace, session, inspector):
+    def __init__(self, config, namespace, session, inspector, dns=None):
         self.inspector = inspector
+        self.dns = dns
+        self.collector_cleanup_errors = []
         self.config, self.namespace = config, namespace
         self.api = DockerAPI(config.get("daemon_peer"))
         self.capture = None
@@ -628,6 +636,11 @@ class RootOperations:
                 os.close(write_fd)
         return read_fd
 
+    def start_dns(self):
+        if self.dns is None:
+            raise ValueError("DNS_SUPERVISOR_NOT_PREPARED")
+        return self.dns.start()
+
     def status(self):
         if self.identity and not self.container_removed:
             row = self.owned()
@@ -636,6 +649,8 @@ class RootOperations:
         if self.capture and self.capture.error:
             raise ValueError(self.capture.error)
         return dict(
+            dns_worker=self.dns.status() if self.dns else None,
+            collector_cleanup_errors=self.collector_cleanup_errors,
             zeek_exit=self.exit_code,
             zeek_started=self.started,
             zeek_stopped=self.stopped,
@@ -647,6 +662,29 @@ class RootOperations:
         )
 
     def stop(self):
+        failures = []
+        if self.dns:
+            try:
+                self.dns.close()
+            except (OSError, ValueError, TimeoutError) as exc:
+                failures.append(("DNS_CLOSE", exc))
+        try:
+            self._stop_zeek()
+        except (OSError, ValueError, TimeoutError) as exc:
+            failures.append(("ZEEK_CLOSE", exc))
+        if failures:
+            self.collector_cleanup_errors.extend(
+                dict(
+                    stage=stage, result="FAILED", error=str(exc), errno=getattr(exc, "errno", None)
+                )
+                for stage, exc in failures
+            )
+            raise ValueError(
+                "SUPERVISOR_COLLECTOR_CLEANUP_UNVERIFIED:"
+                + ";".join(stage + ":" + str(exc) for stage, exc in failures)
+            ) from failures[0][1]
+
+    def _stop_zeek(self):
         if self.stopped:
             return
         if self.attempted and not self.identity:
@@ -929,7 +967,10 @@ def _supervisor_prepare(image, envelope, approval, environment):
         core = None
         final = None
         inspector = None
+        dns = None
         try:
+            if "start_dns_worker" in globals():
+                dns = globals()["start_dns_worker"](image, envelope, approval)
             # Fork before reduction: no capability restoration or second sudo call.
             inspector = globals()["start_inspector"](
                 config, binding, namespace, (controller, ticks, uid)
@@ -963,7 +1004,7 @@ def _supervisor_prepare(image, envelope, approval, environment):
             os.write(3, b"1")
             os.close(3)
             core = SupervisorCore(
-                RootOperations(config, namespace, session, inspector), binding, before
+                RootOperations(config, namespace, session, inspector, dns), binding, before
             )
             deadline, window, count = inspector.started + 300, time.monotonic(), 0
             stopping = []
@@ -1007,6 +1048,11 @@ def _supervisor_prepare(image, envelope, approval, environment):
                     final = dict(
                         final or {}, inspector_error=str(exc), cleanup="CLEANUP_UNVERIFIED"
                     )
+            if dns:
+                try:
+                    dns.close()
+                except (OSError, ValueError) as exc:
+                    final = dict(final or {}, dns_cleanup=str(exc), cleanup="CLEANUP_UNVERIFIED")
             if channel:
                 try:
                     sup_send(channel, dict(final=final, binding=binding))

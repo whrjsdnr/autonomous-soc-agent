@@ -2,6 +2,7 @@
 
 import argparse
 import asyncio
+import hashlib
 import json
 import os
 import threading
@@ -24,7 +25,7 @@ from soc_agent.security_ai.ebpf_native.contracts import (
 from soc_agent.security_ai.ebpf_native.loader import bundle as preparation_bundle
 from soc_agent.security_ai.ebpf_native.loader import file_sha
 from soc_agent.security_ai.ebpf_tc.bridge import Preparation
-from soc_agent.security_ai.ebpf_tc.installation import verify_package
+from soc_agent.security_ai.ebpf_tc.installation import canonical, verify_package
 from soc_agent.security_ai.ebpf_tc.supervisor import (
     SupervisedSession,
     SupervisorImage,
@@ -82,14 +83,28 @@ async def watch_control(handoff):
         await asyncio.sleep(0.5)
 
 
-def shutdown_collectors(handoff, runner, future) -> list[dict]:
+def shutdown_collectors(handoff, runner, future, *, phase_d=False) -> list[dict]:
     """Revoke privileged work before user-side drain, attempt each cleanup independently."""
     failures = []
-    operations = [
-        ("NATIVE_CLOSE", "SupervisedSession.close", handoff.close if handoff else None),
-        ("DNS_STOP", "StreamProcess.stop", runner.stop if runner else None),
-        ("DNS_DRAIN", "Future.result", (lambda: future.result(20)) if future else None),
-    ]
+    if phase_d:
+        # TCX can reach its packet budget while DNS is inside its separate 10s window.
+        # Release the owned link, then finish the bounded DNS task before revoking
+        # its control session. Do not close its status channel underneath wait().
+        def detach():
+            if handoff and not handoff.ended and handoff.link_evidence:
+                handoff.stop()  # Existing scoped STOP releases owned Link, keeps Broker alive.
+
+        operations = [
+            ("TCX_STOP", "SupervisedSession.stop", detach),
+            ("DNS_DRAIN", "Future.result", (lambda: future.result(12)) if future else None),
+            ("NATIVE_CLOSE", "SupervisedSession.close", handoff.close if handoff else None),
+        ]
+    else:
+        operations = [
+            ("NATIVE_CLOSE", "SupervisedSession.close", handoff.close if handoff else None),
+            ("DNS_STOP", "StreamProcess.stop", runner.stop if runner else None),
+            ("DNS_DRAIN", "Future.result", (lambda: future.result(20)) if future else None),
+        ]
     for stage, api, operation in operations:
         if operation is not None:
             try:
@@ -99,7 +114,9 @@ def shutdown_collectors(handoff, runner, future) -> list[dict]:
     return failures
 
 
-def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui=False):
+def execute(
+    directory: Path, expected_manifest: str, expected_image: str, *, gui=False, phase_d=None
+):
     local_controller()  # No Root GUI/runtime or inherited capabilities.
     image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
     image.verify()
@@ -108,6 +125,22 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
     verify_package(directory / "release", expected_manifest)
     if os.readlink("/proc/self/ns/net") != image.scope_namespace:
         raise ValueError("SUPERVISOR_NAMESPACE_CHANGED")
+    if phase_d is not None:
+        from soc_agent.security_ai.collectors.offload_session import preflight
+        from soc_agent.security_ai.ebpf_tc.phase_d import validate
+
+        checked = validate(
+            directory, hashlib.sha256(canonical(phase_d)).hexdigest(), expected_image
+        )
+        if checked != phase_d:
+            raise ValueError("PHASE_D_CONTRACT_MISMATCH")
+        preflight(
+            directory / "dns-sidecar",
+            phase_d["dns_manifest"],
+            expected_image,
+            Path("tests/native_dns_live_probe.py").absolute(),
+            previous_manifest=image.previous_manifest,
+        )
     legacy = directory / "preparation"
     scope = Scope(
         hook="INGRESS",
@@ -164,26 +197,50 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
             raise ValueError("SUPERVISOR_APPROVAL_DENIED")
         handoff.authenticate_native()  # Exactly one fresh OS call; no downstream sudo.
         control_future = submit(watch_control(handoff))
-        runner = StreamProcess(zeek.directory, zeek.plan, supervisor=handoff.supervisor)
-        runner.authenticate()  # Session claim only; no password API in this branch.
-        future = submit(watch_dns())
-        ready_deadline = time.monotonic() + 10
-        while not (handoff.zeek_snapshot and handoff.zeek_snapshot.get("collection_live")):
-            if future.done():
-                future.result()
-                raise ValueError("SUPERVISOR_ZEEK_EXIT_BEFORE_READY")
-            if time.monotonic() >= ready_deadline:
-                raise ValueError("SUPERVISOR_ZEEK_READY_TIMEOUT")
-            time.sleep(0.05)
-        with handoff.control_lock:
-            handoff.command(
-                Command(
-                    command="ATTACH",
-                    plan_digest=handoff.plan.approval,
-                    sequence=handoff.sequence + 1,
-                    run=run,
+        if phase_d is not None:
+            from soc_agent.security_ai.collectors.offload_session import execute as dns_execute
+
+            with handoff.control_lock:
+                handoff.command(
+                    Command(
+                        command="ATTACH",
+                        plan_digest=handoff.plan.approval,
+                        sequence=handoff.sequence + 1,
+                        run=run,
+                    )
+                )
+            future = submit(
+                asyncio.to_thread(
+                    dns_execute,
+                    directory / "dns-sidecar",
+                    phase_d["dns_manifest"],
+                    image.sha256,
+                    probe=Path("tests/native_dns_live_probe.py").absolute(),
+                    supervised=handoff,
                 )
             )
+        else:
+            runner = StreamProcess(zeek.directory, zeek.plan, supervisor=handoff.supervisor)
+        if phase_d is None:
+            runner.authenticate()  # Session claim only; no password API in this branch.
+            future = submit(watch_dns())
+            ready_deadline = time.monotonic() + 10
+            while not (handoff.zeek_snapshot and handoff.zeek_snapshot.get("collection_live")):
+                if future.done():
+                    future.result()
+                    raise ValueError("SUPERVISOR_ZEEK_EXIT_BEFORE_READY")
+                if time.monotonic() >= ready_deadline:
+                    raise ValueError("SUPERVISOR_ZEEK_READY_TIMEOUT")
+                time.sleep(0.05)
+            with handoff.control_lock:
+                handoff.command(
+                    Command(
+                        command="ATTACH",
+                        plan_digest=handoff.plan.approval,
+                        sequence=handoff.sequence + 1,
+                        run=run,
+                    )
+                )
         if gui:
             from soc_agent.security_ai.ebpf_tc.gui import launch
 
@@ -194,13 +251,15 @@ def execute(directory: Path, expected_manifest: str, expected_image: str, *, gui
                 handoff.observe()
                 if future.done():
                     future.result()  # Preserve first DNS failure; never retry.
-                    break
+                    if phase_d is None:
+                        break
+                    handoff.zeek_snapshot = future.result()
                 if handoff.data.adapter and handoff.data.adapter.flow.closed:
                     break
                 time.sleep(0.2)
     finally:
         # Both cleanup paths run even if the other's stop/teardown raises.
-        failures = shutdown_collectors(handoff, runner, future)
+        failures = shutdown_collectors(handoff, runner, future, phase_d=phase_d is not None)
         try:
             try:
                 submit(zeek.stop()).result(35)

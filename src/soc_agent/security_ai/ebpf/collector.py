@@ -370,7 +370,22 @@ class EBPFCollector:
             )
             for f in self.flow.finalized
         ]
+        from soc_agent.security_ai.ebpf.eligibility import candidate_rca
+
+        eligibility = candidate_rca(
+            dict(
+                feature_tail=features,
+                finalized_count=len(features),
+                cpu_sequence=dict(unrepresented_attempts=self.attempt_gaps),
+                clock=self.clock_contract.snapshot() if self.clock_contract else None,
+                ordering=self.ordering.snapshot() if self.clock_contract else None,
+                last_error=self.last_error,
+                queue_discarded=self.discarded,
+                queue_rejected=self.overflow_rejected,
+            )
+        )
         return dict(
+            candidate_eligibility=eligibility,
             plan=self.plan.model_dump(mode="json"),
             plan_digest=self.plan.identity,
             producer_version="TCX_METADATA_NETWORK14_C3"

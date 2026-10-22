@@ -30,6 +30,7 @@ class SupervisorImage(UnifiedImage):
     supervisor_contract: Literal["SOC_SINGLE_AUTH_SUPERVISOR_V1"] = "SOC_SINGLE_AUTH_SUPERVISOR_V1"
     zeek_bundle: Hash
     scope_namespace: Literal["net:[4026531833]"]
+    dns_sidecar: bool = False
 
 
 def inspection_tool_version(path: Path, expected_sha: str) -> dict:
@@ -68,7 +69,9 @@ def inspection_tool_version(path: Path, expected_sha: str) -> dict:
     return version
 
 
-def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> SupervisorImage:
+def prepare_supervisor_image(
+    package: Path, manifest: str, output: Path, *, dns_sidecar: bool = False
+) -> SupervisorImage:
     """Build bytes only. No auth, install, inventory syscall, Docker run or capability changes."""
     if os.readlink("/proc/self/ns/net") != "net:[4026531833]":
         raise ValueError("SUPERVISOR_REVIEWED_NAMESPACE_CHANGED")
@@ -131,6 +134,36 @@ def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> Supe
         + repr(json.dumps(config, sort_keys=True)).encode()
         + b")\n"
     )
+    if dns_sidecar:
+        import ast
+
+        from soc_agent.security_ai.collectors import checksum_evidence, offload_copy, start_channel
+        from soc_agent.security_ai.ebpf_tc import dns_copy_engine, phase_d_dns_engine
+
+        for module in (
+            checksum_evidence,
+            offload_copy,
+            start_channel,
+            dns_copy_engine,
+            phase_d_dns_engine,
+        ):
+            source += b"\n" + Path(module.__file__).read_bytes()
+        source += (
+            b"\nDNS_SCOPE_DIGEST = hashlib.sha256("
+            b"b'DNS_LOCAL_PARTIAL_COPY_V4:net4026531833:lo:7s:32:512:prewarm:shared10s:tty:seqpacket').hexdigest()\n"
+        )
+        codes = sorted(
+            {
+                node.exc.args[0].value
+                for node in ast.walk(ast.parse(source))
+                if isinstance(node, ast.Raise)
+                and isinstance(node.exc, ast.Call)
+                and node.exc.args
+                and isinstance(node.exc.args[0], ast.Constant)
+                and isinstance(node.exc.args[0].value, str)
+            }
+        )
+        source += b"\nROOT_ERROR_CODES = frozenset(" + repr(codes).encode() + b")\n"
     source += trailer
     compile(source, "<supervisor-image>", "exec")
     if len(source) > 1048576:
@@ -148,6 +181,7 @@ def prepare_supervisor_image(package: Path, manifest: str, output: Path) -> Supe
                 sha256=hashlib.sha256(source).hexdigest(),
                 zeek_bundle=plan.bundle_digest,
                 scope_namespace=plan.net_namespace,
+                dns_sidecar=dns_sidecar,
             )
         )
     )
@@ -230,7 +264,7 @@ class SupervisorClient:
             body = sup_json(request)
             if len(body) > SUP_LIMIT or self.channel.send(body) != len(body):
                 raise ValueError("SUPERVISOR_REQUEST_BOUND")
-            response, fd = self.receive(fd_allowed=command == "START_ZEEK")
+            response, fd = self.receive(fd_allowed=command in {"START_ZEEK", "START_DNS"})
             if "final" in response:
                 self.final = response
                 raise ValueError("SUPERVISOR_SESSION_TERMINATED")
@@ -279,6 +313,12 @@ class SupervisorClient:
             raise ValueError("SUPERVISOR_DATA_FD_MISSING")
         return ZeekProcess(self, fd)
 
+    def start_dns(self):
+        response, fd = self.request("START_DNS")
+        if fd is None:
+            raise ValueError("DNS_SUPERVISOR_PIPE_MISSING")
+        return DNSProcess(self, fd, response["status"]["dns_worker"]["pid"])
+
     def stop_zeek(self):
         if self.stopping:
             return self.last_status["zeek_stopped"]
@@ -311,6 +351,25 @@ class ZeekProcess:
     def kill(self):
         # This means identity-checked container stop, never arbitrary PID signal.
         self.client.stop_zeek()
+
+
+class DNSProcess:
+    """Only a read-only metadata pipe; no authority/Link FD or authentication API."""
+
+    def __init__(self, client, fd, pid):
+        self.client, self.pid = client, pid
+        self.stdout = os.fdopen(fd, "r")
+
+    def wait(self, timeout):
+        import subprocess
+
+        until = time.monotonic() + timeout
+        while time.monotonic() < until:
+            state = self.client.status()["dns_worker"]
+            if state["exited"]:
+                return state["exit_code"]
+            time.sleep(0.1)
+        raise subprocess.TimeoutExpired("SUPERVISED_DNS", timeout)
 
 
 class SupervisedSession(UnifiedSession):
@@ -532,7 +591,7 @@ class SupervisedSession(UnifiedSession):
         return self.snapshot()
 
     def approval_scope(self):
-        return super().approval_scope() | dict(
+        value = super().approval_scope() | dict(
             supervisor="READ_ONLY_INSPECTION_TCX_BROKER_BOUNDED_ZEEK_NO_SUDO_CACHE",
             zeek_bundle=self.image.zeek_bundle,
             zeek_scope=(
@@ -544,6 +603,20 @@ class SupervisedSession(UnifiedSession):
                 "fixed read-only pre/post snapshots, <=330s including cleanup; 256MiB/CPU20s"
             ),
         )
+        if self.image.dns_sidecar:
+            value.update(
+                dns_sidecar="FIXED_SINGLE_USE_START_DNS_SAME_AUTHENTICATED_SESSION",
+                dns_scope=(
+                    "lo same namespace; active10s/capture7s/32 packets/snap512/Queue32; "
+                    "controlled 127.0.0.53:53 native-0516.localhost. A UDP1/TCP1; no external DNS"
+                ),
+                dns_worker_scope=(
+                    "Separate child before Broker/Inspector FDs; idle E/I/A0, "
+                    "P/Bnd NET_RAW+SETUID+SETGID until bind; then E/P/I/A0, bounded mask retained; "
+                    "256MiB/CPU20s; no second sudo; analysis container network=none/cap-drop=ALL"
+                ),
+            )
+        return value
 
     def snapshot(self):
         lifecycle = "PREPARE"
@@ -555,13 +628,22 @@ class SupervisedSession(UnifiedSession):
             )
         elif self.supervisor_hello:
             lifecycle = "TCX_READY"
+            if self.image.dns_sidecar and self.link_evidence:
+                if self.link_evidence.get("state") == "TCX_LINK_VERIFIED":
+                    lifecycle = "ACTIVE"
             if self.zeek_snapshot and self.zeek_snapshot.get("collection_live"):
                 lifecycle = "ZEEK_READY"
                 if self.link_evidence and self.link_evidence.get("state") == "TCX_LINK_VERIFIED":
                     lifecycle = "ACTIVE"
         elif self.authentication == "OS_AUTHENTICATED":
             lifecycle = "AUTHENTICATED"
-        return super().snapshot() | dict(
+        base = super().snapshot()
+        from soc_agent.security_ai.ebpf.eligibility import candidate_rca
+
+        transport = base.get("data_plane") or {}
+        processing = transport.get("processing") or {}
+        return base | dict(
+            candidate_eligibility=candidate_rca(processing, transport),
             entry_diagnostic=self.entry_diagnostic,
             supervisor_lifecycle=lifecycle,
             supervisor_hello=self.supervisor_hello,
@@ -572,6 +654,8 @@ class SupervisedSession(UnifiedSession):
                     "state": self.zeek_snapshot.get("state"),
                     "origin": self.zeek_snapshot.get("input_origin"),
                     "network": self.zeek_snapshot.get("network"),
+                    "dns_transactions": self.zeek_snapshot.get("dns"),
+                    "diagnostics_counts": self.zeek_snapshot.get("diagnostics_counts"),
                     "dns_visibility": self.zeek_snapshot.get("capture_attestation", {}).get(
                         "dns_visibility"
                     ),

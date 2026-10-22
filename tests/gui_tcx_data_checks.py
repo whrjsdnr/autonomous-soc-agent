@@ -1,5 +1,7 @@
 """Real C packet transport projected in WSLg; never Native capture or authentication."""
 
+import asyncio
+import time
 import tkinter as tk
 
 import pytest
@@ -35,6 +37,10 @@ async def test_packet_data_four_screens_source_and_app_close(tmp_path):
     )
     handoff.data.prepare_adapter(7)
     handoff.command(Command(command="PREPARE", plan_digest=handoff.plan.approval, sequence=1))
+    deadline = time.monotonic() + 2
+    while not handoff.data.adapter.flow.closed and time.monotonic() < deadline:
+        await asyncio.sleep(0.005)
+    assert handoff.data.adapter.flow.closed  # Bounded asynchronous processing, not command ACK.
     assert handoff.data.adapter.accepted == 2
     pid = handoff.identity
     root = tk.Tk()
@@ -55,6 +61,8 @@ async def test_packet_data_four_screens_source_and_app_close(tmp_path):
         assert "UNKNOWN_NATIVE_PENDING" in text
         assert "TCX Data state   BOUND" in text
         assert "TCX Data ring_loss   UNKNOWN" in text
+        assert "Feature eligibility reasons" in text
+        assert "DNS transactions" in text
         assert app.snapshot["os_auth_handoff"]["data_plane"]["processing"]["accepted"] == 2
         assert handoff.data.adapter.snapshot()["ebpf"]["native_ai"] == "BLOCKED"
         assert not app.snapshot["collection_live"] and app.snapshot["native_ai"] == "BLOCKED"

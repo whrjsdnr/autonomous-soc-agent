@@ -118,6 +118,18 @@ class PreparedDesktop(BrokerDesktop):
             rows.append(
                 "TCX Data " + key + "   " + ("UNKNOWN" if observed is None else str(observed))
             )
+        processing = data.get("processing") or {}
+        rows.append(
+            "Feature eligibility reasons   "
+            + str(
+                handoff.get(
+                    "candidate_eligibility", processing.get("candidate_eligibility", "UNKNOWN")
+                )
+            )
+        )
+        dns = handoff.get("zeek_summary") or {}
+        rows.append("DNS transactions   " + str(dns.get("dns_transactions", "UNKNOWN")))
+        rows.append("DNS quality   " + str(dns.get("dns_visibility", "UNKNOWN")))
         installation = self.snapshot.get("installation", {})
         for key in (
             "release_candidate",

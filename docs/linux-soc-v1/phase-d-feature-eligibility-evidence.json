@@ -1,0 +1,449 @@
+{
+  "contract": "PHASE_D_CANDIDATE_EVIDENCE_RCA_V1",
+  "sources": {
+    ".git/journal-dns-integration-0516/candidate/session/data-run-1/monitor.sqlite": "bb1b7f6c262efd5eccb3f2217ec4145e20e2539eebeca4d60d1f6e302cdf6cc5",
+    ".git/journal-dns-integration-0516/candidate/supervised-result.json": "ea9e304941dbe73a794a404fb6eb9776396fa928333e1eef6909c4801fd184ae"
+  },
+  "checkpoint_digest": "a3b5fc468fbc49d0706fbdc9948b30f7a936cbe70c3c95f6d10797f4045872eb",
+  "source_version": "0.5.16",
+  "received": 179,
+  "accepted": 90,
+  "queue_discarded": 89,
+  "queue_rejected": 0,
+  "ordering": {
+    "policy": "BOUNDED_EVENT_TIME_10MS_32_EVENTS",
+    "lateness_ns": 10000000,
+    "inversions": 0,
+    "max_inversion_delta_ns": 0,
+    "late_events": 0,
+    "reordered_events": 0,
+    "cpu_distribution": {
+      "6": 31,
+      "0": 41,
+      "8": 44,
+      "10": 1,
+      "1": 38,
+      "3": 8,
+      "4": 14,
+      "5": 2
+    },
+    "examples": [],
+    "emitted_event_ns": 465696786466002,
+    "timestamp_modified": false,
+    "calibration": "NOT_ESTABLISHED_BY_REORDERING"
+  },
+  "clock": {
+    "domain": "KERNEL_MONOTONIC_NS",
+    "unit": "NANOSECONDS_INTEGER_NO_ROUNDING",
+    "utc_conversion": "NOT_PERFORMED",
+    "calibration": "DECLARED_ONLY",
+    "offset_interval_ns": null,
+    "native_accuracy": "UNVERIFIED",
+    "native_eligibility": "BLOCKED"
+  },
+  "cpu_sequence": {
+    "contract": "PER_CPU_KERNEL_OBSERVATION_ATTEMPTS_NOT_RING_DELIVERIES",
+    "unrepresented_attempts": 3,
+    "status": "GAPS_UNRECONCILED_CAPTURE_INELIGIBLE",
+    "examples": [
+      {
+        "cpu": 8,
+        "previous": 0,
+        "actual": 2,
+        "delivery_sequence": 7,
+        "kind": "FORWARD_ATTEMPT_GAP"
+      },
+      {
+        "cpu": 1,
+        "previous": 0,
+        "actual": 2,
+        "delivery_sequence": 10,
+        "kind": "FORWARD_ATTEMPT_GAP"
+      },
+      {
+        "cpu": 6,
+        "previous": 18,
+        "actual": 20,
+        "delivery_sequence": 99,
+        "kind": "FORWARD_ATTEMPT_GAP"
+      }
+    ],
+    "kernel_loss": "UNKNOWN_REQUIRES_COUNTER_EVIDENCE"
+  },
+  "final_counter": {
+    "generation": 7585321303251989912,
+    "monotonic_ns": 465699767680390,
+    "retrieval": "SUCCESS",
+    "source": "TCX_OWNED_MAP_HOOK_PER_CPU_CUMULATIVE_NOT_ZEEK_PCAP_OR_KERNEL_DROPS",
+    "delivered": 181,
+    "totals": {
+      "observed": 432,
+      "emitted": 385,
+      "ring_reservation_failures": 0,
+      "unsupported": 0,
+      "malformed": 0,
+      "disabled": 47,
+      "budget": 0
+    }
+  },
+  "candidates": [
+    {
+      "flow_id": "89751ff9e100edced31335693f2baf5b48ec14b7252b93c334f8b38043e0df21",
+      "close_reason": "INCOMPLETE",
+      "packet_count": 16,
+      "values_digest": "ffe133941fd755d13b8ac65e21de23b5f936230f38b0eddcec0d4d3a1ea3ceb9",
+      "values_digest_valid": true,
+      "network14_float32_contract": true,
+      "reasons": [
+        "CAPTURE_INTEGRITY_UNVERIFIED",
+        "NATIVE_AI_POLICY_BLOCKED",
+        "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+        "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+        "CLOCK_CALIBRATION_UNVERIFIED",
+        "SOCKET_DELIVERY_FAILED",
+        "PROCESSING_DISCARDED",
+        "EMITTED_DELIVERY_NOT_RECONCILED",
+        "NATIVE_GOLDEN_PARITY_UNKNOWN",
+        "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+      ],
+      "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+      "ring_reservation_failures": 0,
+      "cpu_attempt_gaps": 3,
+      "bounded_clock_inversions": 0,
+      "eligible": false,
+      "native_ai": "BLOCKED"
+    },
+    {
+      "flow_id": "6e6e7bcce5394c6bc85daf6ee864a3975851ae4f1325f668ca6a70f7cabb02a9",
+      "close_reason": "INCOMPLETE",
+      "packet_count": 24,
+      "values_digest": "1c17e150616b19110f5b60c9f498880853ddf673f49ecec7ab309c30d7e10c3a",
+      "values_digest_valid": true,
+      "network14_float32_contract": true,
+      "reasons": [
+        "CAPTURE_INTEGRITY_UNVERIFIED",
+        "NATIVE_AI_POLICY_BLOCKED",
+        "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+        "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+        "CLOCK_CALIBRATION_UNVERIFIED",
+        "SOCKET_DELIVERY_FAILED",
+        "PROCESSING_DISCARDED",
+        "EMITTED_DELIVERY_NOT_RECONCILED",
+        "NATIVE_GOLDEN_PARITY_UNKNOWN",
+        "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+      ],
+      "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+      "ring_reservation_failures": 0,
+      "cpu_attempt_gaps": 3,
+      "bounded_clock_inversions": 0,
+      "eligible": false,
+      "native_ai": "BLOCKED"
+    },
+    {
+      "flow_id": "7254400bd0f1440a98256b038a8f04268a2a4cbd87b9b09be3f2bed914df781f",
+      "close_reason": "INCOMPLETE",
+      "packet_count": 22,
+      "values_digest": "d74602c27ffbc09d3da255c5885b65f89b3c73f5e32bc6257a2fbad439d4fc09",
+      "values_digest_valid": true,
+      "network14_float32_contract": true,
+      "reasons": [
+        "CAPTURE_INTEGRITY_UNVERIFIED",
+        "NATIVE_AI_POLICY_BLOCKED",
+        "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+        "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+        "CLOCK_CALIBRATION_UNVERIFIED",
+        "SOCKET_DELIVERY_FAILED",
+        "PROCESSING_DISCARDED",
+        "EMITTED_DELIVERY_NOT_RECONCILED",
+        "NATIVE_GOLDEN_PARITY_UNKNOWN",
+        "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+      ],
+      "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+      "ring_reservation_failures": 0,
+      "cpu_attempt_gaps": 3,
+      "bounded_clock_inversions": 0,
+      "eligible": false,
+      "native_ai": "BLOCKED"
+    },
+    {
+      "flow_id": "6e8caf439886e0d6967942577157c2c1ed4ca2093cc243f748345b09b2642773",
+      "close_reason": "INCOMPLETE",
+      "packet_count": 28,
+      "values_digest": "77192659418f8335d826c587b2766405601660137d443d8449135742e1e6a54b",
+      "values_digest_valid": true,
+      "network14_float32_contract": true,
+      "reasons": [
+        "CAPTURE_INTEGRITY_UNVERIFIED",
+        "NATIVE_AI_POLICY_BLOCKED",
+        "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+        "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+        "CLOCK_CALIBRATION_UNVERIFIED",
+        "SOCKET_DELIVERY_FAILED",
+        "PROCESSING_DISCARDED",
+        "EMITTED_DELIVERY_NOT_RECONCILED",
+        "NATIVE_GOLDEN_PARITY_UNKNOWN",
+        "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+      ],
+      "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+      "ring_reservation_failures": 0,
+      "cpu_attempt_gaps": 3,
+      "bounded_clock_inversions": 0,
+      "eligible": false,
+      "native_ai": "BLOCKED"
+    }
+  ],
+  "native_ai": "BLOCKED",
+  "dns9": "BLOCKED",
+  "operational_promotion": "BLOCKED",
+  "secondary_0513": {
+    "source": ".git/native-e2e-remediation-campaign-059/candidate-0513-release/supervised-result.json",
+    "sha256": "c937d0206a7ca54c553564f639b4693dbfc8fa17436651109b376252d0c253f2",
+    "received": 4096,
+    "accepted": 4096,
+    "finalized_count": 6,
+    "cpu_sequence": {
+      "contract": "PER_CPU_KERNEL_OBSERVATION_ATTEMPTS_NOT_RING_DELIVERIES",
+      "unrepresented_attempts": 3,
+      "status": "GAPS_UNRECONCILED_CAPTURE_INELIGIBLE",
+      "examples": [
+        {
+          "cpu": 2,
+          "previous": 0,
+          "actual": 2,
+          "delivery_sequence": 1,
+          "kind": "FORWARD_ATTEMPT_GAP"
+        },
+        {
+          "cpu": 5,
+          "previous": 0,
+          "actual": 2,
+          "delivery_sequence": 7,
+          "kind": "FORWARD_ATTEMPT_GAP"
+        },
+        {
+          "cpu": 0,
+          "previous": 0,
+          "actual": 2,
+          "delivery_sequence": 9,
+          "kind": "FORWARD_ATTEMPT_GAP"
+        }
+      ],
+      "kernel_loss": "UNKNOWN_REQUIRES_COUNTER_EVIDENCE"
+    },
+    "ordering": {
+      "policy": "BOUNDED_EVENT_TIME_10MS_32_EVENTS",
+      "lateness_ns": 10000000,
+      "inversions": 8,
+      "max_inversion_delta_ns": 1445,
+      "late_events": 0,
+      "reordered_events": 8,
+      "cpu_distribution": {
+        "2": 290,
+        "6": 659,
+        "4": 427,
+        "7": 481,
+        "5": 503,
+        "0": 159,
+        "8": 562,
+        "11": 272,
+        "10": 380,
+        "1": 176,
+        "9": 64,
+        "3": 123
+      },
+      "examples": [
+        {
+          "sequence": 499,
+          "cpu": 6,
+          "cpu_sequence": 73,
+          "timestamp_ns": 459113809288729,
+          "previous_max_ns": 459113809288736,
+          "inversion_ns": 7
+        },
+        {
+          "sequence": 1472,
+          "cpu": 11,
+          "cpu_sequence": 142,
+          "timestamp_ns": 459117426795785,
+          "previous_max_ns": 459117426795951,
+          "inversion_ns": 166
+        },
+        {
+          "sequence": 1742,
+          "cpu": 2,
+          "cpu_sequence": 123,
+          "timestamp_ns": 459118432109948,
+          "previous_max_ns": 459118432110063,
+          "inversion_ns": 115
+        },
+        {
+          "sequence": 1892,
+          "cpu": 11,
+          "cpu_sequence": 201,
+          "timestamp_ns": 459119010113928,
+          "previous_max_ns": 459119010113994,
+          "inversion_ns": 66
+        },
+        {
+          "sequence": 2302,
+          "cpu": 1,
+          "cpu_sequence": 73,
+          "timestamp_ns": 459120482584075,
+          "previous_max_ns": 459120482585520,
+          "inversion_ns": 1445
+        },
+        {
+          "sequence": 3384,
+          "cpu": 5,
+          "cpu_sequence": 345,
+          "timestamp_ns": 459124522325341,
+          "previous_max_ns": 459124522325458,
+          "inversion_ns": 117
+        },
+        {
+          "sequence": 3404,
+          "cpu": 7,
+          "cpu_sequence": 390,
+          "timestamp_ns": 459124589558182,
+          "previous_max_ns": 459124589558251,
+          "inversion_ns": 69
+        },
+        {
+          "sequence": 3413,
+          "cpu": 7,
+          "cpu_sequence": 391,
+          "timestamp_ns": 459124624957374,
+          "previous_max_ns": 459124624957443,
+          "inversion_ns": 69
+        }
+      ],
+      "emitted_event_ns": 459127018398137,
+      "timestamp_modified": false,
+      "calibration": "NOT_ESTABLISHED_BY_REORDERING"
+    },
+    "counter_evidence": {
+      "generation": 4632208201968905792,
+      "monotonic_ns": 459127118562696,
+      "retrieval": "SUCCESS",
+      "source": "TCX_OWNED_MAP_HOOK_PER_CPU_CUMULATIVE_NOT_ZEEK_PCAP_OR_KERNEL_DROPS",
+      "delivered": 4096,
+      "totals": {
+        "observed": 4122,
+        "emitted": 4119,
+        "ring_reservation_failures": 0,
+        "unsupported": 0,
+        "malformed": 0,
+        "disabled": 3,
+        "budget": 0
+      }
+    },
+    "queue_rejected": 0,
+    "queue_discarded": 0,
+    "candidates": [
+      {
+        "flow_id": "0cfd3b34ffe47b34742ed64e2965ce0bd3f513d4cffd437e2f58585aabe68374",
+        "close_reason": "INCOMPLETE",
+        "packet_count": 715,
+        "values_digest": "48076f7005407bc0c7fa722d628d328de4e6b8dad5155564bcd085c64f714fe6",
+        "values_digest_valid": true,
+        "network14_float32_contract": true,
+        "reasons": [
+          "CAPTURE_INTEGRITY_UNVERIFIED",
+          "NATIVE_AI_POLICY_BLOCKED",
+          "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+          "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+          "CLOCK_CALIBRATION_UNVERIFIED",
+          "EMITTED_DELIVERY_NOT_RECONCILED",
+          "NATIVE_GOLDEN_PARITY_UNKNOWN",
+          "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+        ],
+        "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+        "ring_reservation_failures": 0,
+        "cpu_attempt_gaps": 3,
+        "bounded_clock_inversions": 8,
+        "eligible": false,
+        "native_ai": "BLOCKED"
+      },
+      {
+        "flow_id": "dd62505a4a6ad85c33005da5121c60fb46b7a27ed352dd767f7d8cb562f99647",
+        "close_reason": "INCOMPLETE",
+        "packet_count": 833,
+        "values_digest": "2c93d072e4ec28415434674c7ee0636e391f3150a6a899357b886f0d5513066a",
+        "values_digest_valid": true,
+        "network14_float32_contract": true,
+        "reasons": [
+          "CAPTURE_INTEGRITY_UNVERIFIED",
+          "NATIVE_AI_POLICY_BLOCKED",
+          "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+          "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+          "CLOCK_CALIBRATION_UNVERIFIED",
+          "EMITTED_DELIVERY_NOT_RECONCILED",
+          "NATIVE_GOLDEN_PARITY_UNKNOWN",
+          "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+        ],
+        "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+        "ring_reservation_failures": 0,
+        "cpu_attempt_gaps": 3,
+        "bounded_clock_inversions": 8,
+        "eligible": false,
+        "native_ai": "BLOCKED"
+      },
+      {
+        "flow_id": "45fccc537ca45e7440b44df289ccb987a82e36c6fe6008f4db47445bbf83586d",
+        "close_reason": "INCOMPLETE",
+        "packet_count": 4,
+        "values_digest": "b1cf29eeba371827490d65fe203329164ba541829d5c9a9e23cbb0c4994c7296",
+        "values_digest_valid": true,
+        "network14_float32_contract": true,
+        "reasons": [
+          "CAPTURE_INTEGRITY_UNVERIFIED",
+          "NATIVE_AI_POLICY_BLOCKED",
+          "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+          "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+          "CLOCK_CALIBRATION_UNVERIFIED",
+          "EMITTED_DELIVERY_NOT_RECONCILED",
+          "NATIVE_GOLDEN_PARITY_UNKNOWN",
+          "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+        ],
+        "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+        "ring_reservation_failures": 0,
+        "cpu_attempt_gaps": 3,
+        "bounded_clock_inversions": 8,
+        "eligible": false,
+        "native_ai": "BLOCKED"
+      },
+      {
+        "flow_id": "7f51bb9b9a20e2a3c48f24dc6ca2f4a5325e418ec849c0a0f22ee9d7b1a1764b",
+        "close_reason": "INCOMPLETE",
+        "packet_count": 4,
+        "values_digest": "d82cc0bf080d01be3117c6e23b9e26860bc0a7e69f70a18802563d70482710de",
+        "values_digest_valid": true,
+        "network14_float32_contract": true,
+        "reasons": [
+          "CAPTURE_INTEGRITY_UNVERIFIED",
+          "NATIVE_AI_POLICY_BLOCKED",
+          "FLOW_NOT_PROVEN_COMPLETE:INCOMPLETE",
+          "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+          "CLOCK_CALIBRATION_UNVERIFIED",
+          "EMITTED_DELIVERY_NOT_RECONCILED",
+          "NATIVE_GOLDEN_PARITY_UNKNOWN",
+          "MODEL_ARTIFACT_RECEIPT_UNKNOWN"
+        ],
+        "reason_scope": "CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
+        "ring_reservation_failures": 0,
+        "cpu_attempt_gaps": 3,
+        "bounded_clock_inversions": 8,
+        "eligible": false,
+        "native_ai": "BLOCKED"
+      },
+      {
+        "flow_id": null,
+        "unretained_candidates": 2,
+        "reasons": [
+          "HISTORICAL_CANDIDATE_DETAILS_UNKNOWN"
+        ],
+        "eligible": false
+      }
+    ]
+  }
+}

@@ -183,8 +183,15 @@ def verify_frame(row: dict) -> bytes | None:
     return packet
 
 
-def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) -> dict:
-    """Only invoke after new SHA and two-query traffic approval; never auto-retry."""
+def preflight(
+    directory: Path,
+    manifest_sha: str,
+    image_sha: str,
+    probe: Path,
+    *,
+    previous_manifest: str | None = None,
+):
+    """Read-only full DNS launch contract; call before shared OS authentication."""
     local_controller()
     body = read_held(directory / "release.json", owner=os.getuid(), limit=65536)
     if hashlib.sha256(body).hexdigest() != manifest_sha:
@@ -195,7 +202,7 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     if image.sha256 != image_sha or candidate["sources"] != sources():
         raise ValueError("DNS_COPY_IMAGE_OR_SOURCE_CHANGED")
     release = installed_release()
-    if release.identity != candidate["base_manifest"]:
+    if release.identity != (previous_manifest or candidate["base_manifest"]):
         raise ValueError("DNS_COPY_BASE_RELEASE_CHANGED")
     if (
         os.readlink("/proc/self/ns/net") != "net:[4026531833]"
@@ -216,13 +223,37 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     )
     if not all(text in listeners.stdout for text in ("127.0.0.53", "tcp", "udp")):
         raise ValueError("DNS_COPY_EXISTING_LOCAL_SERVICE_REQUIRED")
+    return candidate, image, release, probe_body
+
+
+def execute(
+    directory: Path, manifest_sha: str, image_sha: str, *, probe: Path, supervised=None
+) -> dict:
+    """Only invoke after new SHA and two-query traffic approval; never auto-retry."""
+    candidate, image, release, probe_body = preflight(directory, manifest_sha, image_sha, probe)
     out = directory / "live-attempt-1"
     out.mkdir(mode=0o700, exist_ok=False)  # Failed attempts cannot silently repeat.
-    wire = envelope(release)
-    approval = hashlib.sha256(
-        LABEL + wire + bytes.fromhex(image.sha256) + bytes.fromhex(image.manifest)
-    ).hexdigest()
-    command = pinned_command(image, wire, approval, os.getuid(), os.getgid())
+    wire = supervised.envelope if supervised is not None else envelope(release)
+    approval = (
+        supervised.approval
+        if supervised is not None
+        else hashlib.sha256(
+            LABEL + wire + bytes.fromhex(image.sha256) + bytes.fromhex(image.manifest)
+        ).hexdigest()
+    )
+    if supervised is not None:
+        if (
+            supervised.image.sha256 != image_sha
+            or supervised.release.identity != candidate["base_manifest"]
+            or supervised.supervisor is None
+            or supervised.ended
+        ):
+            raise ValueError("PHASE_D_AUTHENTICATED_SESSION_REQUIRED")
+    command = (
+        None
+        if supervised is not None
+        else pinned_command(image, wire, approval, os.getuid(), os.getgid())
+    )
     publish(
         out / "reserved.json",
         dict(manifest=manifest_sha, image=image_sha, auto_retry=False, scope=candidate["scope"]),
@@ -236,6 +267,7 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     analysis_worker = None
     runner = None
     stream = None
+    diagnostic_store = None
     analysis_errors: list[BaseException] = []
     zeek_ready = threading.Event()
     times: dict[str, float] = {}
@@ -245,7 +277,19 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
 
             def accept(line):
                 message = decode(line)
-                stream.accept(message)
+                event = stream.accept(message)
+                if event is not None and diagnostic_store is not None:
+                    diagnostic_store.commit(
+                        event.kind,
+                        [event],
+                        dict(
+                            sequence=message.sequence,
+                            source_manifest=manifest_sha,
+                            collector="DNS_ANALYSIS_COPY",
+                            application_session=binding["session"],
+                            approval_digest=binding["approval"],
+                        ),
+                    )
                 if message.kind == "ready":
                     zeek_ready.set()
 
@@ -264,7 +308,11 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     try:
         listener = start_listener(os.getuid(), binding)
         # Authentication stdin and stderr remain the actual OS terminal.
-        child = subprocess.Popen(command, stdin=None, stdout=subprocess.PIPE, text=True)
+        child = (
+            supervised.supervisor.start_dns()
+            if supervised is not None
+            else subprocess.Popen(command, stdin=None, stdout=subprocess.PIPE, text=True)
+        )
         with (out / "transformations.jsonl").open("x") as audit:
             while line := child.stdout.readline(4097):
                 if len(line) > 4096 or not line.endswith("\n"):
@@ -288,6 +336,13 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     start_peer(control, 0, 0, row["root_pid"])
                     listener.close()
                     listener = None
+                    if supervised is not None:
+                        supervised.zeek_snapshot = dict(
+                            state="DNS_AUTHENTICATED",
+                            input_origin="NATIVE_ANALYSIS_COPY",
+                            native_ai="BLOCKED",
+                            dns9="BLOCKED",
+                        )
                     times["authenticated"] = active_started
                     plan = new_plan()
                     source = Source(
@@ -297,6 +352,10 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                         capture_integrity="UNVERIFIED",
                     )
                     stream = Stream(source)
+                    if supervised is not None:
+                        from soc_agent.security_ai.collectors.store import CollectorStore
+
+                        diagnostic_store = CollectorStore(out / "diagnostics", source)
                     zeek = out / "zeek"
                     zeek.mkdir(mode=0o700)
                     runner = StreamProcess(
@@ -322,6 +381,16 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     ):
                         raise ValueError("DNS_COPY_DUPLICATE_READY_OR_CAPABILITIES")
                     ready = row
+                    if supervised is not None:
+                        supervised.zeek_snapshot = dict(
+                            state="DNS_CAPTURE_ACTIVE",
+                            collection_live=True,
+                            input_origin="NATIVE_ANALYSIS_COPY",
+                            capture_integrity="PARTIAL_PROVENANCE_ONLY",
+                            clock="ZEEK_EVENT_TIME_SEPARATE_FROM_KERNEL",
+                            native_ai="BLOCKED",
+                            dns9="BLOCKED",
+                        )
                     times["capture_ready"] = time.monotonic()
                     # Execute the SHA-held probe snapshot, not a reopened mutable path.
                     result = subprocess.run(
@@ -480,6 +549,16 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
             else "DNS_NATIVE_ANALYSIS_COPY_E2E_INCOMPLETE"
         )
     except (OSError, ValueError, EOFError, subprocess.SubprocessError) as exc:
+        if supervised is not None:
+            supervised.zeek_snapshot = dict(
+                state="ERROR",
+                error=type(exc).__name__ + ":" + str(exc),
+                errno=getattr(exc, "errno", None),
+                input_origin="NATIVE_ANALYSIS_COPY",
+                dns_visibility="UNKNOWN",
+                native_ai="BLOCKED",
+                dns9="BLOCKED",
+            )
         publish(
             out / "failure.json",
             dict(
@@ -548,6 +627,27 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     result["capture_time_budget_met"] = closed["capture_elapsed_seconds"] <= 7
     if not result["active_time_budget_met"] or not result["capture_time_budget_met"]:
         result["verdict"] = "DNS_NATIVE_ANALYSIS_COPY_E2E_INCOMPLETE"
+    if supervised is not None:
+        result.update(
+            state="CLOSED",
+            collection_live=False,
+            application_session=binding["session"],
+            collector_identity=str(stream.source.session_id),
+            approval_digest=binding["approval"],
+            input_origin="NATIVE_ANALYSIS_COPY",
+            capture_attestation=dict(
+                dns_visibility="DNS_VISIBLE_CONTROLLED_LOCAL_TEST" if dns_complete else "UNKNOWN"
+            ),
+            diagnostics_store=str(out / "diagnostics"),
+            diagnostics_counts=diagnostic_store.counts(),
+        )
+        supervised.zeek_snapshot = result
+        supervised._event(
+            "PHASE_D_DNS_COMPLETED",
+            dns=result["dns"],
+            stream=result["stream"],
+            manifest=manifest_sha,
+        )
     publish(out / "completion.json", result)
     if time.monotonic() > active_deadline:
         publish(
