@@ -200,7 +200,7 @@ def test_phase_d_cli_to_real_tcx_plan_and_dns_preflight_before_auth(
         calls.append("DNS_PREFLIGHT")
         assert (
             kwargs["previous_manifest"]
-            == "2e5faaf4dac7381157adcc82b61465316946aa115c501073f25eb95ee9282289"
+            == json.loads((directory / "supervisor-image.json").read_text())["previous_manifest"]
         )
         return original(*args, **kwargs)  # Read-only environment, source and TTY contract.
 

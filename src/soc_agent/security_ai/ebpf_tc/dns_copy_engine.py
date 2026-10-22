@@ -46,6 +46,17 @@ class CopyReceipt(Protocol):
     def receipt(self) -> dict: ...
 
 
+def capture_deadline(started: float, session_deadline: float, *, start_gate: bool) -> float:
+    # The analysis worker must exit by session_deadline - 0.5. The old capture
+    # endpoint (-0.75) left only 0.25s for EOF, Zeek finalization and Docker exit.
+    # Reserve 0.75s for that work and keep the existing final 0.5s for cleanup.
+    # Shorten observation on cold starts; never extend either outer deadline.
+    deadline = min(started + 6.9, session_deadline - 1.25) if start_gate else started + 6.9
+    if deadline <= started:
+        raise ValueError("DNS_COPY_CAPTURE_START_DEADLINE")
+    return deadline
+
+
 def capture_analysis(
     uid: int,
     gid: int,
@@ -116,11 +127,7 @@ def capture_analysis(
             if len(caps) != 4 or any(caps.values()):
                 raise ValueError("DNS_COPY_CAPABILITY_LEAK")
             # Reserve socket-close scheduling time inside the seven-second cap.
-            deadline = (
-                min(capture_started + 6.9, session_deadline - 0.75)
-                if start_gate
-                else capture_started + 6.9
-            )
+            deadline = capture_deadline(capture_started, session_deadline, start_gate=start_gate)
             os.set_blocking(1, False)
             emit_json(
                 dict(state="DNS_COPY_READY", capabilities=caps, scope_digest=scope_digest), deadline

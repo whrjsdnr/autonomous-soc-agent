@@ -15,6 +15,7 @@ import time
 from pathlib import Path
 
 from soc_agent.security_ai.collectors.analysis_feed import AnalysisFeed
+from soc_agent.security_ai.collectors.handoff import failure_evidence
 from soc_agent.security_ai.collectors.live_contract import bundle, new_plan
 from soc_agent.security_ai.collectors.live_process import StreamProcess
 from soc_agent.security_ai.collectors.live_stream import Stream, decode
@@ -566,6 +567,9 @@ def execute(
                 detail=str(exc),
                 errno=getattr(exc, "errno", None),
                 first_failure=first_failure,
+                original_failure=failure_evidence(
+                    exc, stage="DNS_ANALYSIS_OR_CAPTURE", api="offload_session.execute"
+                ),
                 auto_retry=False,
             ),
         )

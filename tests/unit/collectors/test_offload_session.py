@@ -21,6 +21,31 @@ def row():
     )
 
 
+@pytest.fixture(scope="module")
+def diagnostic_baseline(tmp_path_factory):
+    # Build the historical diagnostic contract as an ordinary-user fixture.
+    # Its source embedding must not depend on the currently installed release.
+    from soc_agent.security_ai.ebpf_tc.installation import verify_package
+    from soc_agent.security_ai.ebpf_tc.unified_startup import prepare_candidate
+
+    directory = tmp_path_factory.mktemp("diagnostic-baseline")
+    _, _, package, identity = prepare_candidate(directory, version="0.5.16")
+    return package, verify_package(package, identity)
+
+
+def bind_diagnostic_baseline(monkeypatch, diagnostic_baseline):
+    from soc_agent.security_ai.ebpf_tc import checksum_image
+    from soc_agent.security_ai.ebpf_tc.install_image import payload_from_release
+
+    package, release = diagnostic_baseline
+    monkeypatch.setattr(checksum_image, "installed_release", lambda: release)
+    monkeypatch.setattr(
+        checksum_image,
+        "payload_from_release",
+        lambda _path, expected: payload_from_release(package, expected),
+    )
+
+
 def test_original_can_be_reconstructed_without_persisting_payload():
     value = row()
     assert verify_frame(value) == base64.b64decode(value["analysis_frame"])
@@ -87,12 +112,15 @@ def test_capture_drop_failure_closes_socket_and_preserves_stage(monkeypatch):
     assert "packet" not in json.dumps(events[1])
 
 
-def test_exact_embedded_image_wiring_without_running_privileged_entry(tmp_path, monkeypatch):
+def test_exact_embedded_image_wiring_without_running_privileged_entry(
+    tmp_path, monkeypatch, diagnostic_baseline
+):
     import sys
     import types
 
     from soc_agent.security_ai.ebpf_tc.checksum_image import prepare
 
+    bind_diagnostic_baseline(monkeypatch, diagnostic_baseline)
     image = prepare(tmp_path / "image.py", analysis=True)
     image.verify()
     module = types.ModuleType("reviewed_dns_copy_image")
@@ -143,12 +171,15 @@ def test_missing_start_context_never_opens_capture_socket(monkeypatch):
         capture_analysis(1000, 1000, None, None, None, None, "0" * 64, start_gate=True)
 
 
-def test_embedded_root_dispatch_preserves_first_error_without_executing_root(tmp_path, monkeypatch):
+def test_embedded_root_dispatch_preserves_first_error_without_executing_root(
+    tmp_path, monkeypatch, diagnostic_baseline
+):
     import sys
     import types
 
     from soc_agent.security_ai.ebpf_tc.checksum_image import prepare
 
+    bind_diagnostic_baseline(monkeypatch, diagnostic_baseline)
     image = prepare(tmp_path / "diagnostic.py", analysis=True)
     module = types.ModuleType("diagnostic_no_privilege")
     monkeypatch.setitem(sys.modules, module.__name__, module)

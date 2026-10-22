@@ -1,271 +1,260 @@
-# NATIVE_SOC_PHASE_D Final Report
+# NATIVE_SOC_PHASE_D Native Verification Report
 
 ## Overall Status
 
-**BLOCKED — exact-image installation/Native approval pending.**
+**PARTIALLY_VERIFIED.** The authorized 0.6.1 integrated execution ran once.
+TCX load/attach, packet delivery, owned-resource cleanup and actual DNS parsing
+were observed. The integrated execution **FAILED** its DNS analysis deadline;
+there was no automatic retry. DNS CLOSED is not equivalent to timely process exit.
+The 0.6.2 fix below has only nonprivileged validation and needs separate approval.
+Native AI, DNS9 and production promotion remain BLOCKED.
 
-The instruction to investigate/stabilize is not approval of a new SHA. The actual
-campaign budget and creation ledger authorize development only. No sudo/PAM,
-Root installation, privileged inventory, BPF load, TCX attach, Native capture or
-DNS query was performed in this work. Native/Root usage remains **0/5, 0/5**.
-The existing0.6.0 approval request was withdrawn after a termination defect was
-identified. One combined installation/Native request was presented for the fixed
-0.6.1 candidate below; no approval receipt has been manufactured.
+## Approval
 
-## Git / Release
+- Git execution baseline: `8cb39798574dbfa329d101756fdf1620bd4bac2a` (then HEAD = origin/main).
+- Release: **0.6.1**.
+- Manifest SHA: `6aed33cbf761adb2e391783b6746a7815a5ce7a054953bd7214350ff82d0c2d3`.
+- Bundle SHA: `ef7e223759b3efbb36486b53a5076ed87aed1934bf2195af26abd39890add812`.
+- Execution image SHA: `c3857752a1ab8abdefd7c14516a66fb3740b01d14e9dd5ea9447d344db98e562`.
+- Root manifest SHA: `1f205935cdb344178a848108b508d20a9f6e1028ad56f718b0a61cb4269478d3`.
+- TCX object SHA: `9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06`.
+- Approval receipt SHA: `8be0ef066b5be369df49fd7e4eed21570749108104f24faefa6ed8736aba465e`.
+- Receipt: `.git/native-soc-phase-d/stabilization-061/approval-061-user.json`,
+  materialized from the user's explicit exact-image approval, not inferred from a
+  development instruction. It is public decision metadata, not an auth token.
+- Scope: `net:[4026531833]`, lo/Ingress, <=300s/4096 events/Queue32;
+  privileged roles AS256MiB/CPU20s. DNS: same namespace/lo, <=10s total,
+  <=7s capture,32 packets,snaplen512, local127.0.0.53:53,
+  native-0516.localhost. A, exactly UDP1/TCP1. No external queries.
+- Existing systemd-resolved listener was reused; no DNS/offload/settings change.
 
-Baseline HEAD and origin/main: `754ea8dfbd2e96836249b024092d1e3beae022c5`.
-Git commit identity and the following artifact identities are separate.
+## Execution
 
-|0.6.1 identifier|SHA256|
-|---|---|
-|Integrated manifest|`6aed33cbf761adb2e391783b6746a7815a5ce7a054953bd7214350ff82d0c2d3`|
-|Runtime bundle|`ef7e223759b3efbb36486b53a5076ed87aed1934bf2195af26abd39890add812`|
-|Execution image|`c3857752a1ab8abdefd7c14516a66fb3740b01d14e9dd5ea9447d344db98e562`|
-|Root release manifest|`1f205935cdb344178a848108b508d20a9f6e1028ad56f718b0a61cb4269478d3`|
-|Unchanged TCX object|`9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06`|
+- Attempt: `e97ef66d2ef547eb942ad06457db1166`; reserved before the executor.
+- One visible OS terminal, one pinned `sudo -k -u root -- /usr/bin/python3 -I -S -c`
+  invocation. Scope confirmation used `yes`; passwords were neither captured nor logged.
+- Installation: **VERIFIED**, nine Root-owned files, modes0555/0444, payload/dependency
+  verification passed after installation. Only manifest.bin/release.json/release.trust
+  changed from the previous install; unchanged binaries retained their SHA.
+- Installed version: **0.6.1**. Original0.5.16 retained under
+  `/usr/libexec/.soc-agent-ebpf.rollback-2e5faaf4dac7381157adcc82b61465316946aa115c501073f25eb95ee9282289`.
+  No rollback was executed. The prior install was never silently deleted.
+- Supervisor session: `aa793b01-027b-4f43-9b57-ca69a73afb26`.
+- Inspector: own SYS_ADMIN permitted/bounding mask2097152, effective/inheritable/ambient0
+  while idle; authenticated pre/post inspection succeeded. Broker idle E/I/A0,
+  P/Bounding549755817984 = BPF+NET_ADMIN. SYS_ADMIN was not given to the Broker.
+- TCX: **VERIFIED** Native load and attach, Program6286/tag5d24af0965a164b7,
+  Link10, ifindex1, attach type46, no pinning.
+- TCX packets: **2763 received / 2763 Network14 accepted**, zero discarded/rejected.
+- DNS: **12 copied packets**, UDP2/TCP10, all CHECKSUM_PARTIAL_CONFIRMED,
+  GSO false, no copy rejections. Original/corrected receipts and chain verified by
+  the existing consumer; raw analysis frames were not persisted.
+- Zeek: **2 queries,2 responses,2 matched transactions (UDP1/TCP1)**,
+  Analyzer dispatch4, checksum rejection0, DNS adapter accepted2/rejected0.
+  Raw-IP metadata12 remained UNSUPPORTED and was excluded from Network14.
+- Counter and CLOSED were received, sequence19, no duplicate/sequence gap.
+  Docker exit0/container absent, but `protocol_finalized=false` because the strict
+  analysis deadline failed. Session DNS visibility remains UNKNOWN; readonly
+  stream review independently proves only the controlled local DNS was observed.
+- GUI: not launched in this headless qualification; actual rendering remains PENDING.
+  Ordinary-user normalized DNS diagnostics persisted four events. No AI inference.
 
-Candidate: `.git/native-soc-phase-d/stabilization-061/candidate/`.
-Existing0.6.0 artifacts and verification receipts remain intact.
+## Root Cause Analysis
 
-Installed0.5.16 remains unchanged. Its Root manifest is
-`2e5faaf4dac7381157adcc82b61465316946aa115c501073f25eb95ee9282289` and
-bundle is `bddd454656af79a4fac26ce0d4f20cb1d00f3afc2012e7531ce3f7778c271916`.
-Read-only installed-file ownership/mode/SHA/dependency verification passed.
-The planned rollback path is `/usr/libexec/.soc-agent-ebpf.rollback-` followed by
-that manifest. No conflict exists at the inspected time; recheck before install.
-No rollback path was created or installation file replaced.
+### First failure and evidence
 
-The DNS0.5.20 baseline remains:
-manifest `414aea0feb53a5b1e424d4157a602687f3b8906f484d64e6bda6d1ca260087d5`,
-bundle `de4208dc9c1439135baf2d05bed4a89b0249dfd59b72036fd723bfcee10f76d0`,
-image `a2ad9ecccb569f185323f78d62a4cf7fc805a9670a84e4b0d4e35e34ab571e39`.
-These identify baseline evidence; integrated execution uses the new image SHA.
+- Surface: DNS_TASK / Future.result / ZEEK_LIVE_INTEGRITY_FAILED.
+- Original: **ANALYSIS_BUDGET / time.monotonic / ZEEK_ANALYSIS_SESSION_DEADLINE**.
+- Exception: ValueError; errno **not applicable**, not a Kernel permission errno.
+  No signal, container exit0. Original cause is retained in Zeek exit.json and
+  Supervisor first_failure; it is separate from TCX cleanup.
+- Evidence: `.git/native-soc-phase-d/stabilization-061/candidate/`
+  `supervised-result.json`, DNS `live-attempt-1/zeek/exit.json`, stream.jsonl,
+  session-timing.json, container-timing.json and probe.json. Immutable hashes are
+  in `native-attempt-1-file-hashes.json`; none of those records were edited.
 
-## Unified Collector
+### Reconstructed timeline (one monotonic domain)
 
-- Supervisor / shared Session, Release, Approval: implemented; Native PENDING.
-- TCX program, packet ABI, Loader, data plane and owned-Link contracts: unchanged.
-- DNS TTY/START, checksum-copy, Analyzer and Counter/CLOSED paths: unchanged.
-- New source fixes do not add authentication, Supervisor, Root shell or setuid.
-- GUI, Network14 and model workers remain ordinary user processes.
-- Inspector SYS_ADMIN and Broker BPF+NET_ADMIN profiles remain separate.
-- Real concurrent delivery, capabilities and combined cleanup: PENDING.
+|Stage|Seconds since DNS worker authentication|
+|---|---:|
+|Analysis process launched|0.091721|
+|Zeek script init|2.424574|
+|Zeek READY|2.443022|
+|Capture started|2.443523|
+|Capture CLOSED|9.280183|
+|Analysis input closed|9.375903|
+|Counter received|9.441751|
+|Zeek CLOSED received|9.441965|
+|Strict analysis deadline|9.500000|
+|All DNS cleanup complete|9.774063|
 
-### Termination and original-error defect
+Docker wall-clock events independently recorded create/start/die/destroy; those
+wall timestamps were not directly compared to Kernel packet timestamps.
+Capture lasted6.836659s, below7s. The overall10s limit was met, but the separate
+9.5s analysis limit was not. Post-CLOSED process EOF/exit was still pending.
 
-Previously the ordinary Controller had no SIGTERM handler. A real ordinary-child
-reproduction confirmed that default SIGTERM exits without Python `finally`.
-Thus parent audit finalization could be skipped even if child/Kernel FD lifetime
-later released resources. These are different cleanup claims.
+### Hypotheses and conclusion
 
-`supervisor_startup.execute()` now installs a main-thread termination boundary,
-unwinds once through existing cleanup, ignores repeated stop signals during that
-bounded cleanup, and restores previous handlers. The original signal number is
-retained. SIGKILL remains uncatchable; its audit/cleanup outcome cannot be proven
-by this handler or inferred from a fixture.
+|Hypothesis|Check / actual evidence|Decision|
+|Checksum or DNS parser failure|Analyzer2 queries/2 responses, rejected0|Excluded for this local test|
+|Missing stream terminal|Counter and CLOSED sequence19 present|Excluded|
+|Counter/schema corruption|Readonly replay validated all19 records|Excluded|
+|Whole DNS session exceeded10s|Cleanup at9.774063s|Excluded for recorded completion|
+|Cold start consumed finalization budget|READY2.443s; capture allowed until9.25s, analysis deadline9.5s; exit pending at cutoff|Confirmed budget-allocation defect|
+|Resource leak caused the timeout|Owned workers exited, container absent, final maps/links empty|No evidence of leak|
 
-The execution wrapper now records safe first-failure Stage/API/class/errno/signal
-separately from cleanup errors. A repeated final-close error is recorded without
-preventing the result receipt or replacing the first failure. Tests inject a
-read error errno5 and a separate close error errno9; these are **fixture errors,
-not actual Kernel errno**. No raw error input or password is saved.
+The old capture endpoint reserved only0.25s before the strict analysis deadline,
+although completion also required stdin EOF, Zeek finalization and Docker EOF/exit.
+Actual CLOSED arrived before that cutoff, but Docker exit did not. This is a
+stage-budget defect, not evidence that successful DNS parsing can waive deadlines.
 
-### Campaign launch contract
+### Fix / reproduction / uncertainty
 
-`native_campaign.py` supplies bookkeeping for the qualification CLI, not a new
-privilege/authentication authority. Existing TTY confirmation and OS authentication
-remain required. The CLI requires explicit campaign and exact approval receipt
-arguments; an absent/changed receipt prevents execution.
-
-The initial budget/baseline and old ledger prefix are never rewritten. Under an
-exclusive file lock, the runner verifies the ledger anchor/hash chain, exact
-release and approved scope, independent Native/Root limits, then appends and
-fsyncs reservation **before** calling the existing executor. A failure consumes
-the reserved attempt. A consumed approval cannot launch another session.
-Concurrent requests cannot consume one approval twice. Final records preserve
-failure metadata and never automatically pronounce Native VERIFIED.
-
-`budget.json` remains the initial declaration. Effective usage is that declaration
-plus append-only `NATIVE_ATTEMPT_RESERVED` records; do not reset the declaration
-or infer remaining budget without reading the ledger. In the actual campaign
-there are no such records yet, hence usage0/5 for both budgets. Approval receipts
-are public decision metadata, not authentication tokens, and must only be created
-after the user's exact-image decision. Preparation/tests do not create one.
+- `dns_copy_engine.capture_deadline()` now stops capture by total deadline-1.25s,
+  leaving0.75s before the unchanged analysis deadline and the existing0.5s final
+  cleanup reserve. Capture still never exceeds6.9s; a late READY shortens capture
+  or fails before READY. Neither the10s outer limit nor9.5s analysis limit increased.
+- `offload_session` failure receipts now retain the safe original exception chain;
+  secret/raw stderr is not recorded. Existing Supervisor original-cause handling stays.
+- New tests reproduce the recorded budget overlap, cold/late READY boundaries and
+  strict failure even when CLOSED exists. No assertion grants an overdue run success.
+- Two diagnostic embedding tests now use an actual ordinary-user0.5.16 package
+  fixture instead of depending on the host's installed version. The Phase D preauth
+  test verifies the descriptor's exact previous manifest rather than a fixed old SHA.
+  Production installation checks were not relaxed.
+- Additional0.5s finalization headroom is not a Native performance guarantee.
+  Native0.6.2 timing and successful combined termination remain **PENDING**.
 
 ## Network14
 
-### Candidate Eligibility / Capture Integrity
+- Counter generation1389916063768940779: observed2769,emitted2763,
+  delivered2763,disabled6,unsupported0,malformed0,ring reservation failure0.
+  Snapshot query succeeded; observed=emitted+disabled. Kernel-wide drops UNKNOWN.
+- Data sequence2766 includes terminal/control frames; packet count2763 is separate.
+- CPU observation attempts have4 initial forward gaps. They are not4 lost delivered
+  packets. Disabled observations can create gaps, but aggregate counters do not
+  prove per-packet/per-flow attribution. Completeness remains conservative.
+- Four clock inversions, max309ns, reordered4,late0 under10ms/32-event policy.
+  Original Kernel ns were retained; calibration DECLARED_ONLY/native accuracy UNVERIFIED.
+- Nine feature candidates, all INCOMPLETE and Native AI blocked. Their packets sum2763.
+  Stop was triggered by DNS failure before idle30s/active120s observation evidence;
+  attempt-gap quarantine also prevents completeness. FIN/RST do not independently
+  override the trained timeout-window contract.
+- All nine retained checkpoint vector receipts have valid14-feature float32/digest
+  evidence. Raw vectors are retained for only the final four and revalidated there;
+  the preceding five use checkpoint receipts, not invented raw vectors.
 
-The immutable [D-1 evidence](phase-d-feature-eligibility-evidence.json) was reused.
-The four0.5.16 candidates retain their original vectors/digests and INCOMPLETE
-termination. New annotations do not modify those records:
+|Flow prefix|Packets|Input state|Vector evidence|
+|`338ca50430a9`|540|INCOMPLETE|CHECKPOINT_RECEIPT|
+|`4ee2b99ab029`|894|INCOMPLETE|CHECKPOINT_RECEIPT|
+|`a753f2e4813e`|478|INCOMPLETE|CHECKPOINT_RECEIPT|
+|`90f0f27c43a7`|827|INCOMPLETE|CHECKPOINT_RECEIPT|
+|`484764f21044`|4|INCOMPLETE|CHECKPOINT_RECEIPT|
+|`fafc1e1957a0`|2|INCOMPLETE|VALUES|
+|`b628bf37f067`|10|INCOMPLETE|VALUES|
+|`1f4cd9686455`|4|INCOMPLETE|VALUES|
+|`53d8ac3b89c1`|4|INCOMPLETE|VALUES|
 
-|Flow prefix|Packets|Input state|Native AI|
-|---|---:|---|---|
-|89751ff9e100|16|INCOMPLETE|BLOCKED|
-|6e6e7bcce539|24|INCOMPLETE|BLOCKED|
-|7254400bd0f1|22|INCOMPLETE|BLOCKED|
-|6e8caf439886|28|INCOMPLETE|BLOCKED|
-
-The earlier0.5.13 six-candidate run retained four detailed receipts and lost two
-candidate details. The unretained two remain UNKNOWN. No Flow IDs or reasons
-were invented for them.
-
-### Counter
-
-Historical0.5.16:179 received,90 accepted,89 discarded,0 queue rejected. Final
-owned-map counters: observed432, emitted385, delivered181, disabled47, ring
-reservation failure0. Difference204 is unreconciled delivery, not proof of204
-Ring losses. Three CPU observation-attempt gaps are not necessarily lost emitted
-records. There is no per-packet evidence attributing them to individual flows.
-Current0.6.1 counters are NOT OBSERVED. Counter epoch/generation, replay, reset,
-missing CLOSED and unknown-loss behavior are covered by nonprivileged tests.
-
-### Clock
-
-Historical0.5.16 inversions0/late0; calibration DECLARED_ONLY. Kernel monotonic,
-userspace processing time, Zeek event time and wall/audit time are not compared
-as one clock. Reordering preserves original ns timestamps, with bounded10ms/
-32-event behavior. Neither reordering nor fixture calibration proves Native clock
-accuracy. Session/domain mismatch and late-event rejection remain enforced.
-
-### Flow Lifecycle / Feature Generation
-
-Idle30s/active120s, direction, key, packet/byte counts, float32 order and digest
-contracts are unchanged. FIN/RST are observed features; the trained window
-contract does not treat them alone as new completion authority. No new TCP
-completion policy or timeout threshold was introduced.
-
-Unreconciled attempts conservatively quarantine outstanding flows. The retained
-short0.5.16 candidates have no full timeout-window evidence. PACKET_LIMIT,
-CAPTURE_STOP, QUEUE_OVERFLOW, CLOCK_INVALID, NORMAL_END and INCOMPLETE remain
-separate; changing a label does not establish completeness. Event cap4096 can
-end collection before a30s/120s observation window completes; no packet limit was
-increased and stopped intervals were not filled using wall time.
-
-### RCA implementation defects fixed
-
-1. Final Supervisor RCA previously recomputed from only the last four vectors,
-   losing already retained per-candidate RCA receipts. It now retains bounded
-   full receipts while adding terminal counter context. Missing raw vectors are
-   explicitly marked checkpoint-receipt-only, not claimed revalidated. The test
-   uses eight receipts/four vectors and preserves all eight identities.
-2. NaN/Inf/noncanonical values could raise during digest calculation, preventing
-   an INVALID report. They now produce INVALID with no imputation or inference.
-3. Input states distinguish INVALID, INCOMPLETE and UNKNOWN. A correctly shaped
-   timeout candidate with unproven capture/parity/model evidence remains UNKNOWN.
-   No candidate is granted ELIGIBLE without the missing Native evidence; Native
-   AI policy remains BLOCKED independently.
-
-Native Golden Parity, bound model artifact receipt and current complete capture
-remain unproven. Existing offline model success does not supply those receipts.
+- Final top-level candidate RCA incorporates terminal counter evidence (ring0).
+  Nested processing checkpoint `RING_LOSS_UNKNOWN` predates final counters and is
+  not the final RCA. No old receipt was rewritten to conceal this distinction.
+- Other remaining reasons: capture integrity unproven, clock calibration unverified,
+  Native golden parity unknown, model artifact receipt unknown, policy blocked.
+- Historical four0.5.16 candidates remain INCOMPLETE; two unpreserved historical
+  candidates remain UNKNOWN. These nine are a separate Native observation.
 
 ## Performance
 
-Baseline Native metrics are historical, not before/after0.6.1 measurements.
-No0.6.1 Native rate, drop count, eligibility rate, processing latency, peak RSS,
-CPU or cleanup duration was measured. No throughput improvement is claimed.
-At a read-only development checkpoint MemAvailable was4609504KiB; memory PSI
-avg10/avg60 were0.00. These are host observations, not collector benchmarks.
-No GUI performance/full model benchmark or unrelated optimization was performed.
+- Queue peak14/32; socket send failures0/EAGAIN0; queue rejection0/discard0.
+- Receiver max recv gap743.013469ms includes waiting for traffic; it is not proof
+  of a743ms processing stall. Max recv syscall1.667139ms, packet processing1.763052ms,
+  queue wait3.088412ms; no unsupported throughput claim.
+- Audit16/16 FULL SQLite commits, failure0/rejection0/outstanding0;
+  max commit23.540475ms, total259.720367ms.
+- No before/after Native performance comparison: only0.6.1 ran. Peak RSS/CPU and
+  full end-to-end capture rate were not measured. No GUI/model benchmark repeated.
+
+## Cleanup
+
+- TCX Ring/Data/Processing/Audit Drain: **VERIFIED**; CLOSED received, queue0,
+  workers exited. Map3/Program1 observed FDs returned EBADF after libbpf close;
+  raw close return values were not observed. Link state TCX_CLEANUP_VERIFIED.
+- Root Supervisor and Inspector exit0, Inspector authority revoked/channel closed;
+  application authorization REVOKED/Broker CLOSED. No automatic restart.
+- Post-inspection: maps0,links0,lo ingress0/egress0, same11 cgroup Programs retained.
+  New TCX program absent. Query success, not EPERM interpreted as absence.
+- DNS capture worker exited0; Docker die/destroy observed, container absent,
+  analysis worker exited; sockets finalized. Resource cleanup is VERIFIED by the
+  separate owned-process/container and Inspector evidence. DNS protocol/deadline
+  integrity FAILED; that failure is not reclassified as a successful normal drain.
+- Root summary `zeek_container_removed=false` applies to its unused legacy Zeek
+  branch. Analysis-copy container absence is evidenced independently in DNS exit.json.
 
 ## Verification
 
-Tests distinguish ordinary-process signals, mocked authority/approval paths,
-real Unix metadata transport and actual Kernel capture. No test here loads BPF,
-opens a capture interface, changes capabilities or generates DNS traffic.
+- Changed budget/embedding/preauth contracts: **38 passed**.
+- Actual pinned Zeek with synthetic memory-only input: **7 passed**, network-none,
+  cap-drop-ALL; these are offline Analyzer tests, not additional Native capture.
+- Existing122 related cases: **122 passed in225.87s**, recorded in post-native-regression.log.
+- Independent source export: **38 passed in32.83s**.
+- Ruff/Format/Diff: all six changed Python files passed; no diff whitespace errors.
+- No full model regression or GUI performance work; those components were unchanged.
 
-- Real SIGTERM/default-vs-guard cleanup and original errno/cleanup separation.
-- Exact SHA approval, scope, missing approval, duplicate/concurrent launch,
-  independent budgets, no refund, invalid initial budget and append-only chain.
-- Native input states, NaN/Inf/type/digest, retained receipts and historical UNKNOWN.
-- Existing TCX startup, clock, frame/counter scope, loss, flow and Golden contracts.
-- C fixture transport/Counter/CLOSED/drain regression; no Native equivalence claim.
+## Evidence
 
-Some older tests assumed immediate processing despite the existing10ms reorder
-window, contiguous observation-attempt numbers, or an EOF mock without the real
-transport-fatal flag. These fixtures now drive explicit observed-tail drain,
-late-event violations beyond10ms and accurate terminal frames. Queue conservation
-asserts33 received =33 discarded (32 queued plus1 rejected), rather than omitting
-the rejected record. Production limits/validation were not weakened. An obsolete
-EOF mock was interrupted as an owned test process after looping; no Native or
-user process was signalled. All original behavior areas remain asserted.
+- Native reservation/finish appended to existing execution-ledger.jsonl; its initial
+  creation line and budget/baseline bytes remain unchanged. No ledger reset.
+- Prior report preserved as stabilization-061/report-before-native.md.
+- All104 historical evidence hashes and8 user modifications preserved.
+- Four current SQLite audit chains read with mode=ro and independently verified:
+  Controller26, preparation collector6, TCX processing20, DNS diagnostics6 records.
+  No recovery/checkpoint was applied to historical databases.
+- Pre-execution Workspace/HEAD/export SHA equal for all10 prior task files.
+  New source/export/index comparison is in remediation-062/verification.json.
+  Runtime source bytes changed after the authorized run; the original approved
+  image/manifest/evidence remain frozen and were not rebuilt in place.
 
-Final test and source/Export/index results are recorded below after qualification.
-The unchanged D-1 file-only DNS/GUI/model-related source results remain baseline
-regressions; they are not reported as new Native tests.
+## Budget
 
-## Evidence / Budgets / Approval
+- Native: **1/5 used,4 remaining**.
+- Root installation: **1/5 reserved/used,4 remaining**; actual replacement succeeded.
+- Original budget declaration remains0/5; effective use derives from the append-only
+  reservation. Failed execution consumed its one reservation. No second session ran.
 
-Historical104 receipt hashes, eight user-file hashes, existing install hashes,
-old0.6.0 candidate and existing ledgers are preserved. Native sessions, raw/model
-artifacts and datasets are excluded from source commits/exports. New preparation
-artifacts live under `.git/native-soc-phase-d/stabilization-061/`.
+## Git / Next Release
 
-Read-only environment: kernel6.18.33.2-microsoft-standard-WSL2,
-namespace`net:[4026531833]`, lo ifindex1; UDP/TCP listeners for127.0.0.53:53 exist.
-No local service was replaced or DNS query sent. Current privileged Program/Map/
-Link/TC-filter inventory is UNKNOWN until the approved Inspector runs; past zero
-counts do not establish present absence or retroactively verify old cleanup.
+Prepared but **not installed or executed**: **0.6.2**.
 
-Requested combined approval: install0.6.1 preserving0.5.16 rollback, one OS
-terminal authentication, Inspector preflight, then only if clear lo/Ingress
-<=300s/4096 metadata/Queue32/256MiB/CPU20s per privileged role. DNS remains same
-namespace/lo, active<=10s/capture<=7s/32 packets/snaplen512/Queue32, fixed local
-127.0.0.53:53 native-0516.localhost. A UDP1/TCP1, no external DNS or settings
-change. Zeek retains RAM512MiB/CPU1 and capless isolated analysis. No auto-retry,
-no pinning, no packet modification/drop, no arbitrary foreign cleanup.
-
-## Native Verdict / Remaining Blockers
-
-|Area|Current verdict|
+|Identifier|SHA256|
 |---|---|
-|Unified Supervisor Native|PENDING approval and actual execution|
-|TCX Native Counter/Clock/Capture Integrity|PENDING; historical incomplete evidence retained|
-|DNS Sidecar Native TTY/START/lifecycle|PENDING for integrated0.6.1|
-|Network14 Native eligibility|BLOCKED; incomplete/unknown evidence|
-|Current privileged resources / capabilities|UNKNOWN; not queried without approval|
-|Native GUI / combined cleanup|PENDING|
-|Nonprivileged regression / evidence preservation|Qualified separately below|
-|Native AI / DNS9 / operational promotion|BLOCKED|
+|Manifest|`a63034f77d3a4ea9b1b2f9398adb2c2ceef53eff8ac3db3b21f5d16b14d09416`|
+|Bundle|`d2425596030b1bc07b6e60e6c0bedacbeaf9deb2c8b9d029c042d1b8d802cc6d`|
+|Execution image|`e131aafd8c5f52664c78b3585f0c0638696d76f5d3e4a69e1866faba3ace1b0c`|
+|Root manifest|`56e1b7bc8a2a7a2ebd6902899f349b5fae7432f24d492ce8dab1a92b90e72dc4`|
 
-The work must resume with the exact0.6.1 decision, not assume that this task or
-an old0.6.0 approval permits its new SHA. If approved, reserve before launch,
-use the existing terminal path once, inspect before attach, preserve actual first
-failure and all cleanup evidence, then review actual packet/DNS/feature outcomes.
-A failed Native attempt does not start a new session automatically.
+Candidate `.git/native-soc-phase-d/remediation-062/candidate/` validates against
+current source. TCX object unchanged. Its pinned image expects current0.6.1 and
+retains that version as rollback on an approved atomic replacement. Existing0.5.16
+rollback remains untouched. No0.6.2 approval receipt has been created.
 
-## Qualification Results
+## Final Decision
 
-The frozen independent Export passed121 focused cases on its first run. One
-feature-reference case failed because the Export intentionally contains no sibling
-ML repository; it passed after supplying the existing explicit test-only source
-roots (`SOC_RESEARCH_VALIDATION_REPOSITORY` / `SOC_RESEARCH_VALIDATION_ML_SOURCE`).
-Both independent producer source SHAs match the reviewed catalogue. Thus **122
-focused cases passed**, with no assertion removed or model binary copied/loaded.
-This includes actual signals only for owned ordinary fixture children, never
-Native collectors. Workspace focused runs also passed49 contract cases and73
-flow/counter/qualification cases. Ruff/Format/Diff passed on changed files.
-No entire-project regression, full model, GUI benchmark or Wheel run was added.
+|Area|Decision|
+|Unified Native integration|FAILED at DNS analysis deadline|
+|Single authentication/session/Inspector|VERIFIED within this run|
+|TCX load/attach/data delivery|VERIFIED|
+|DNS controlled-local parsing/matching|VERIFIED by retained Native stream review|
+|DNS complete lifecycle within all stage budgets|FAILED;0.6.2 Native PENDING|
+|Network14 Native input eligibility|INCOMPLETE;9 candidates,0 eligible|
+|Kernel/container resource cleanup|VERIFIED with stated FD evidence limits|
+|GUI rendering|PENDING; headless qualification|
+|Audit chains|VERIFIED read-only|
+|Native AI / DNS9 / production promotion|BLOCKED|
 
-The new qualification CLI requires `--campaign`, `--approval-file` and
-`--approval-sha` with the exact release `--manifest` / `--image`. The approval
-file has not been created; it must represent a real explicit decision, not an
-inferred instruction or an authentication token. Before Native launch, recheck
-all file SHAs, previous install/rollback conflict, namespace, local listener and
-Inspector resource/hook evidence.
+## Remaining Work
 
-### Installation payloads (prepared only;9 files)
-
-|File|SHA256|Root mode after approved installation|
-|---|---|---|
-|bootstrap|`df183f29c4b73d5cd401e37d51ac4a95a13a756411df7ce21e1f6c5361372ee2`|0555|
-|broker|`62b2019d09f606e0c59d8b47ca216c23240b725294f1f929b9fed9ae442725ee`|0555|
-|entry|`8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455`|0555|
-|libnative-tc.so|`138b6a4f7a30db599635a523c7abfbd912758ebee5624f00a7d5fc221c8f09e3`|0444|
-|manifest.bin|`b247a42e124e28242c61ed31468bbd1125b4d5ac2e0442b4f351a7033722626a`|0444|
-|pam-policy.conf|`93af76067bf513b4db8c5a9bd606e348ccde334b83e52f7dc71544c9c1f82696`|0444|
-|release.json|`1f205935cdb344178a848108b508d20a9f6e1028ad56f718b0a61cb4269478d3`|0444|
-|release.trust|`0cd588ea8c3eb01ebe6f6afcb32f8ed19dee549cbaea43494c509dc7a89b713c`|0444|
-|tc.bpf.o|`9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06`|0444|
+Separately approve exact0.6.2 installation and one Native run in the unchanged
+scope to test the stage-budget fix. No automatic retry is authorized. Verify
+cold-start exit timing and the complete10s lifecycle. Clock calibration, complete
+flow observation, Native golden parity/model receipt and actual GUI rendering
+still need evidence before AI input or broader E2E success can be declared.
