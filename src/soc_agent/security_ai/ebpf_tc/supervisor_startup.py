@@ -5,8 +5,10 @@ import asyncio
 import hashlib
 import json
 import os
+import signal
 import threading
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 from soc_agent.security_ai.collectors.handoff import failure_evidence
@@ -83,6 +85,37 @@ async def watch_control(handoff):
         await asyncio.sleep(0.5)
 
 
+class SupervisorTermination(KeyboardInterrupt):
+    """A real terminal/process signal, never successful collector completion."""
+
+    def __init__(self, signum: int):
+        self.signum = signum
+        super().__init__("SUPERVISOR_SIGNAL_" + signal.Signals(signum).name)
+
+
+@contextmanager
+def termination_boundary():
+    """Unwind through the existing cleanup once; a second signal cannot skip it."""
+    if threading.current_thread() is not threading.main_thread():
+        raise ValueError("SUPERVISOR_MAIN_THREAD_REQUIRED")
+    requested = False
+
+    def stop(signum, _frame):
+        nonlocal requested
+        if not requested:
+            requested = True
+            raise SupervisorTermination(signum)
+
+    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
+    try:
+        for sig in previous:
+            signal.signal(sig, stop)
+        yield
+    finally:
+        for sig, handler in previous.items():
+            signal.signal(sig, handler)
+
+
 def shutdown_collectors(handoff, runner, future, *, phase_d=False) -> list[dict]:
     """Revoke privileged work before user-side drain, attempt each cleanup independently."""
     failures = []
@@ -115,6 +148,13 @@ def shutdown_collectors(handoff, runner, future, *, phase_d=False) -> list[dict]
 
 
 def execute(
+    directory: Path, expected_manifest: str, expected_image: str, *, gui=False, phase_d=None
+):
+    with termination_boundary():
+        return _execute(directory, expected_manifest, expected_image, gui=gui, phase_d=phase_d)
+
+
+def _execute(
     directory: Path, expected_manifest: str, expected_image: str, *, gui=False, phase_d=None
 ):
     local_controller()  # No Root GUI/runtime or inherited capabilities.
@@ -182,6 +222,8 @@ def execute(
             handoff.zeek_snapshot = zeek.snapshot()
 
     control_future = None
+    first_failure = None
+    stage, api = "PREPARE", "Preparation.prepare"
 
     try:
         preparation = Preparation(owner, directory / "artifacts")
@@ -193,13 +235,16 @@ def execute(
         if zeek.plan.bundle_digest != image.zeek_bundle:
             raise ValueError("SUPERVISOR_ZEEK_SOURCE_CHANGED")
         run = prepare_run(handoff, image, zeek.plan)
+        stage, api = "APPROVAL_CONFIRMATION", "confirm_scope"
         if not confirm_scope(handoff):
             raise ValueError("SUPERVISOR_APPROVAL_DENIED")
+        stage, api = "OS_AUTHENTICATION", "SupervisedSession.authenticate_native"
         handoff.authenticate_native()  # Exactly one fresh OS call; no downstream sudo.
         control_future = submit(watch_control(handoff))
         if phase_d is not None:
             from soc_agent.security_ai.collectors.offload_session import execute as dns_execute
 
+            stage, api = "TCX_ATTACH", "SupervisedSession.command"
             with handoff.control_lock:
                 handoff.command(
                     Command(
@@ -209,6 +254,7 @@ def execute(
                         run=run,
                     )
                 )
+            stage, api = "DNS_TASK", "offload_session.execute"
             future = submit(
                 asyncio.to_thread(
                     dns_execute,
@@ -244,12 +290,15 @@ def execute(
         if gui:
             from soc_agent.security_ai.ebpf_tc.gui import launch
 
+            stage, api = "GUI", "PreparedDesktop.launch"
             launch(preparation)
         else:
+            stage, api = "COLLECTOR_LOOP", "SupervisedSession.observe"
             until = time.monotonic() + 300
             while time.monotonic() < until and not handoff.error:
                 handoff.observe()
                 if future.done():
+                    stage, api = "DNS_TASK", "Future.result"
                     future.result()  # Preserve first DNS failure; never retry.
                     if phase_d is None:
                         break
@@ -257,6 +306,13 @@ def execute(
                 if handoff.data.adapter and handoff.data.adapter.flow.closed:
                     break
                 time.sleep(0.2)
+                stage, api = "COLLECTOR_LOOP", "SupervisedSession.observe"
+    except BaseException as exc:
+        # Cleanup must also run for signals/interruption. Re-raise the exact
+        # original exception after retaining safe metadata, never normalize errno.
+        first_failure = failure_evidence(exc, stage=stage, api=api)
+        first_failure["signal"] = getattr(exc, "signum", None)
+        raise
     finally:
         # Both cleanup paths run even if the other's stop/teardown raises.
         failures = shutdown_collectors(handoff, runner, future, phase_d=phase_d is not None)
@@ -278,11 +334,21 @@ def execute(
         finally:
             try:
                 if handoff:
-                    handoff.close()
+                    try:
+                        handoff.close()
+                    except (OSError, ValueError, EOFError, TimeoutError) as exc:
+                        failures.append(
+                            failure_evidence(
+                                exc, stage="FINAL_NATIVE_CLOSE", api="SupervisedSession.close"
+                            )
+                        )
                     (directory / "supervised-result.json").write_text(
                         json.dumps(
                             dict(
-                                tcx=handoff.snapshot(), zeek=handoff.zeek_snapshot, errors=failures
+                                tcx=handoff.snapshot(),
+                                zeek=handoff.zeek_snapshot,
+                                errors=failures,
+                                first_failure=first_failure,
                             ),
                             indent=2,
                         )

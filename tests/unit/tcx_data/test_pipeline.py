@@ -48,6 +48,7 @@ def test_exact_ns_watermark_and_no_utc_or_native_promotion(tmp_path, family, pro
     for i, (stamp, port) in enumerate([(1001, 12345), (3002, 12345), (31_000_003_002, 5555)], 1):
         c.ingest(raw(stamp, i, port=port, family=family, proto=proto), monotonic=i)
         c.drain()
+    c.drain(final=True)  # Consume the observed tail held by the bounded reorder window.
     first = c.flow.finalized[0]
     assert first["close_reason"] == "IDLE_TIMEOUT" and first["eligible"]
     assert first["values"][0] == pytest.approx(2001 / 1e9)
@@ -66,11 +67,11 @@ def test_active_boundary_precedes_idle_and_packet_budget_remains_incomplete(tmp_
     c.ingest(raw(1_000, 1), monotonic=1)
     c.drain()
     c.ingest(raw(120_000_001_000, 2, port=5555), monotonic=2)
-    c.drain()
+    c.drain(final=True)
     assert c.flow.finalized[0]["close_reason"] == "ACTIVE_TIMEOUT"
     for i in range(3, 130):
         c.ingest(raw(120_000_001_000 + i, i, port=5555), monotonic=2 + i / 100)
-        c.drain()
+        c.drain(final=True)
     assert len(c.flow.active[next(iter(c.flow.active))].packets) == 2
     assert len(c.flow.finalized) == 1  # Retention no longer truncates at 128 packets.
     c.end_metadata_stream("PACKET_LIMIT")
@@ -84,8 +85,20 @@ def test_active_boundary_precedes_idle_and_packet_budget_remains_incomplete(tmp_
 )
 def test_invalid_stream_never_silently_succeeds(tmp_path, fault):
     c = adapter(tmp_path)
-    c.ingest(raw(), monotonic=1)
+    c.ingest(raw(20_000_000 if fault == "clock" else 1_000_000), monotonic=1)
     c.drain()
+    if fault == "cpu_gap":
+        # Observation attempts include non-emitted skb. Forward gaps are quality
+        # evidence, while duplicates/regressions below remain hard failures.
+        c.ingest(raw(sequence=4), monotonic=2)
+        c.drain(final=True)
+        c.end_metadata_stream("CAPTURE_STOP")
+        assert c.attempt_gaps == 2 and c.received == c.accepted == 2
+        assert all(
+            f["close_reason"] == "INCOMPLETE" and not f["eligible"] for f in c.flow.finalized
+        )
+        assert c.snapshot()["ebpf"]["native_ai"] == "BLOCKED" and not c.network_events()
+        return
     with pytest.raises(ValueError):
         if fault == "queue":
             for i in range(2, 35):
@@ -171,7 +184,7 @@ def test_compact_dense_window_all14_independent_ml_reference(tmp_path, monkeypat
         )
     assert not c.flow.finalized and len(next(iter(c.flow.active.values())).packets) == 2
     c.ingest(raw(31_000_000_000, 301, port=5555), monotonic=1)
-    c.drain()
+    c.drain(final=True)
     expected = network_features(
         tuple(
             MLPacket(**v)

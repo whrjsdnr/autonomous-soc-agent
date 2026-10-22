@@ -41,6 +41,9 @@ DNS_SCOPE = dict(
 def runtime_bundle():
     result = offload_session.sources()
     root = Path(__file__).parent.parent
+    result["soc_agent.security_ai.native_campaign"] = hashlib.sha256(
+        (root / "native_campaign.py").read_bytes()
+    ).hexdigest()
     for package in ("ebpf", "ebpf_tc", "ebpf_broker"):
         for path in sorted((root / package).glob("*.py")):
             name = "soc_agent.security_ai." + package + "." + path.stem
@@ -50,7 +53,7 @@ def runtime_bundle():
 
 def prepare(directory: Path) -> dict:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
-    _, _, package, manifest = prepare_candidate(directory, version="0.6.0", inspector=True)
+    _, _, package, manifest = prepare_candidate(directory, version="0.6.1", inspector=True)
     image = prepare_supervisor_image(
         package, manifest, directory / "supervisor-image.py", dns_sidecar=True
     )
@@ -62,7 +65,7 @@ def prepare(directory: Path) -> dict:
     )
     dns = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
-        version="0.6.0_INTEGRATED_DNS_0520",
+        version="0.6.1_INTEGRATED_DNS_0520",
         base_manifest=manifest,
         image=base.model_dump(mode="json"),
         sources=offload_session.sources(),
@@ -76,7 +79,7 @@ def prepare(directory: Path) -> dict:
     release = verify_package(package, manifest)
     value = dict(
         contract="SOC_PHASE_D_UNIFIED_V1",
-        version="0.6.0",
+        version="0.6.1",
         tcx_manifest=manifest,
         tcx_program=release.payloads["tc.bpf.o"].sha256,
         dns_baseline_image=DNS_BASELINE_IMAGE,
@@ -156,11 +159,28 @@ def main():
     parser.add_argument("--manifest")
     parser.add_argument("--image")
     parser.add_argument("--gui", action="store_true")
+    parser.add_argument("--campaign", type=Path)
+    parser.add_argument("--approval-file", type=Path)
+    parser.add_argument("--approval-sha")
     args = parser.parse_args()
     if args.execute:
-        if not args.manifest or not args.image:
-            parser.error("execution requires separately approved --manifest and --image")
-        print(execute(args.directory, args.manifest, args.image, gui=args.gui))
+        if not all(
+            (args.manifest, args.image, args.campaign, args.approval_file, args.approval_sha)
+        ):
+            parser.error("execution requires exact release, campaign and explicit approval receipt")
+        from soc_agent.security_ai.native_campaign import execute_phase_d
+
+        print(
+            execute_phase_d(
+                args.directory,
+                args.manifest,
+                args.image,
+                campaign=args.campaign,
+                approval_file=args.approval_file,
+                approval_sha=args.approval_sha,
+                gui=args.gui,
+            )
+        )
     else:
         print(json.dumps(prepare(args.directory), indent=2))
 

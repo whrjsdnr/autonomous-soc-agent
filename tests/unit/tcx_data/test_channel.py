@@ -106,7 +106,9 @@ def test_queue_overflow_marks_incomplete_and_unknown_kernel_loss(channel):
     snap = c.snapshot()
     assert snap["queue_overflows"] == 1 and snap["kernel_drops"] is None
     assert not c.adapter.queue and c.adapter.flow.closed
-    assert c.adapter.metrics()["queue_discarded"] == 32
+    # Discard includes the rejected 33rd record and the 32 queued records.
+    assert c.adapter.metrics()["queue_discarded"] == c.adapter.received == 33
+    assert c.adapter.accepted == 0
     assert c.adapter.metrics()["queue_rejected"] == 1
 
 
@@ -141,6 +143,7 @@ def test_consumer_shutdown_error_preserves_first_failure(channel, monkeypatch):
 
     def fail():
         c.error = "TCX_DATA_EOF_WITHOUT_CLOSED"
+        c.transport_failed = True  # Real pump marks EOF fatal; a processing error alone must drain.
         raise ValueError(c.error)
 
     monkeypatch.setattr(
@@ -162,10 +165,16 @@ def test_reader_delivers_without_any_control_request(channel):
     c.worker.start()
     try:
         peer.send(frame(c))
+        import struct
+
+        end = struct.pack("<Q", 7) + bytes(24) + struct.pack("<I", 1) + bytes(44)
+        peer.send(frame(c, kind=4, sequence=2, packet=end))
+        peer.send(frame(c, kind=3, sequence=3, packet=bytes(80)))
         deadline = time.monotonic() + 2
-        while c.adapter.accepted != 1 and time.monotonic() < deadline:
+        while not (c.adapter.accepted == 1 and c.closed) and time.monotonic() < deadline:
             time.sleep(0.005)
-        assert c.adapter.accepted == 1 and c.sequence == 1
+        assert c.adapter.accepted == 1 and c.sequence == 3
+        assert c.adapter.flow.closed and c.closed
         assert c.snapshot()["processing"]["accepted"] == 1
         assert c.snapshot()["source"] == "ORDINARY_UID_PACKET_FIXTURE"
     finally:

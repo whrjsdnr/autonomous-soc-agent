@@ -21,6 +21,14 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
     counters = transport.get("counter_evidence") or {}
     totals = counters.get("totals") or {}
     rows = summary.get("feature_tail", [])
+    retained = summary.get("candidate_eligibility") or []
+    retained = [r for r in retained if isinstance(r, dict) and r.get("flow_id")]
+    if len(retained) > len(rows):
+        # The checkpoint retains bounded RCA receipts for all candidates but raw
+        # feature vectors only for the tail. Do not discard those receipts when
+        # adding final transport evidence, or pretend to revalidate absent vectors.
+        vectors = {r.get("flow_id"): r for r in rows}
+        rows = [vectors.get(r["flow_id"], r) for r in retained]
     result = []
     for row in rows:
         reasons = ["CAPTURE_INTEGRITY_UNVERIFIED", "NATIVE_AI_POLICY_BLOCKED"]
@@ -58,24 +66,63 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
         emitted, delivered = totals.get("emitted"), counters.get("delivered")
         if emitted is not None and delivered is not None and emitted != delivered:
             reasons.append("EMITTED_DELIVERY_NOT_RECONCILED")
-        values = row.get("values", [])
-        contract = (
-            row.get("feature_names") == [entry[0] for entry in NETWORK14]
-            and len(values) == 14
-            and all(float32_value(v) for v in values)
-        )
-        values_digest = bool(values) and digest(values) == row.get("values_digest")
+        retained_receipt = "values" not in row and "network14_float32_contract" in row
+        values = row.get("values")
+        if retained_receipt:
+            contract = row.get("network14_float32_contract") is True
+            values_digest = row.get("values_digest_valid") is True
+            reasons.append("RAW_VECTOR_NOT_RETAINED_CHECKPOINT_RECEIPT_ONLY")
+        else:
+            contract = (
+                row.get("feature_names") == [entry[0] for entry in NETWORK14]
+                and isinstance(values, (list, tuple))
+                and len(values) == 14
+                and all(float32_value(v) for v in values)
+            )
+            try:
+                values_digest = (
+                    isinstance(values, (list, tuple))
+                    and bool(values)
+                    and digest(values) == row.get("values_digest")
+                )
+            except (ValueError, TypeError, OverflowError):
+                values_digest = False  # Non-canonical/non-finite input is INVALID, never imputed.
         if not contract or not values_digest:
             reasons.append("MODEL_INPUT_CONTRACT_OR_DIGEST_INVALID")
+        if "values" not in row and not retained_receipt:
+            input_state = "UNKNOWN"
+        elif not contract or not values_digest:
+            input_state = "INVALID"
+        elif (
+            close not in {"IDLE_TIMEOUT", "ACTIVE_TIMEOUT"}
+            or row.get("flow_completeness") != "CANDIDATE_TIMEOUT"
+            or any(
+                r in reasons
+                for r in (
+                    "SOCKET_DELIVERY_FAILED",
+                    "PROCESSING_DISCARDED",
+                    "QUEUE_REJECTED",
+                    "RING_RESERVATION_LOSS",
+                    "LATE_EVENT",
+                    "UNRECONCILED_CPU_OBSERVATION_ATTEMPTS",
+                )
+            )
+        ):
+            input_state = "INCOMPLETE"
+        else:
+            input_state = "UNKNOWN"  # Capture/parity/model evidence is still unproven.
         reasons.extend(["NATIVE_GOLDEN_PARITY_UNKNOWN", "MODEL_ARTIFACT_RECEIPT_UNKNOWN"])
         result.append(
             dict(
                 flow_id=row.get("flow_id"),
                 close_reason=close,
+                flow_completeness=row.get("flow_completeness", "UNKNOWN"),
                 packet_count=row.get("packet_count"),
                 values_digest=row.get("values_digest"),
                 values_digest_valid=values_digest,
                 network14_float32_contract=contract,
+                vector_validation_source="CHECKPOINT_RECEIPT" if retained_receipt else "VALUES",
+                input_state=input_state,
                 reasons=reasons,
                 reason_scope="CANDIDATE_AND_SESSION_CONTEXT_NOT_PER_PACKET_ATTRIBUTION",
                 ring_reservation_failures=ring,
@@ -91,6 +138,7 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
             dict(
                 flow_id=None,
                 unretained_candidates=missing,
+                input_state="UNKNOWN",
                 reasons=["HISTORICAL_CANDIDATE_DETAILS_UNKNOWN"],
                 eligible=False,
             )
