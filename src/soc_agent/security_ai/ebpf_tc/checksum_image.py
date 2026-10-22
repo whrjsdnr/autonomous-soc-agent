@@ -17,6 +17,7 @@ from soc_agent.security_ai.ebpf_tc.unified_image import UnifiedImage, installed_
 ENTRY = """
 def checksum_root_main():
     import sys, resource
+    root_entry_started = time.monotonic()
     args = sys.argv
     if (len(args) != 7 or args[1] != 'run'
             or any((os.getuid(), os.geteuid(), os.getgid(), os.getegid()))):
@@ -47,7 +48,8 @@ def checksum_root_main():
     resource.setrlimit(resource.RLIMIT_AS, (256 * 1024**2, 256 * 1024**2))
     resource.setrlimit(resource.RLIMIT_CPU, (20, 20))
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-    result = capture(uid, gid)
+    result = (capture(uid, gid, session_started=root_entry_started)
+              if 'capture_analysis' in globals() else capture(uid, gid))
     result.update(image_sha256=args[5], manifest=IMAGE['manifest_sha256'],
                   scope_digest=SCOPE_DIGEST)
     if 'emit_result' in globals():
@@ -86,11 +88,12 @@ def prepare(output: Path, *, analysis: bool = False) -> UnifiedImage:
         source += b"\n" + Path(dns_copy_engine.__file__).read_bytes()
         source += (
             b"\nSCOPE_DIGEST = hashlib.sha256("
-            b"b'DNS_LOCAL_PARTIAL_COPY_V2:net4026531833:lo:7s:32:512').hexdigest()\n"
-            b"\ndef capture(uid, gid):\n"
+            b"b'DNS_LOCAL_PARTIAL_COPY_V3:net4026531833:lo:7s:32:512:prewarm:shared10s').hexdigest()\n"
+            b"\ndef capture(uid, gid, session_started=None):\n"
             b"    return capture_analysis(uid, gid, attach_filter,\n"
             b"                            restrict_process, analysis_copy, chain_receipt,\n"
-            b"                            SCOPE_DIGEST)\n"
+            b"                            SCOPE_DIGEST, start_gate=True,\n"
+            b"                            session_started=session_started)\n"
         )
     source += (
         b"\nIMAGE = json.loads("

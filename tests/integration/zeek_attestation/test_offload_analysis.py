@@ -2,6 +2,7 @@
 
 import json
 import struct
+import threading
 import time
 from pathlib import Path
 
@@ -16,8 +17,10 @@ from soc_agent.security_ai.collectors.offload_copy import analysis_copy, memory_
 
 
 @pytest.mark.parametrize("transport", ["udp", "tcp"])
-@pytest.mark.parametrize("bounded_deadline", [False, True])
-def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport, bounded_deadline):
+@pytest.mark.parametrize("bounded_deadline,streamed", [(False, False), (True, False), (True, True)])
+def test_confirmed_partial_memory_copies_reach_real_zeek_dns(
+    tmp_path, transport, bounded_deadline, streamed
+):
     q, r = dns_frames(tmp_path / "fixture.pcap")
     frames = [q, r]
     if transport == "tcp":
@@ -49,10 +52,14 @@ def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport
         assert result.status == "CHECKSUM_PARTIAL_CONFIRMED"
         copies.append((1800000000000000000 + i * 50_000_000, result.packet))
     plan = new_plan()
+    from soc_agent.security_ai.collectors.analysis_feed import AnalysisFeed
+
+    feed = AnalysisFeed() if streamed else None
     runner = StreamProcess(
         tmp_path,
         plan,
-        pcap_input=memory_pcap(copies),
+        pcap_input=None if streamed else memory_pcap(copies),
+        analysis_feed=feed,
         analysis_deadline=time.monotonic() + 5 if bounded_deadline else None,
     )
     from soc_agent.security_ai.collectors.live_stream import Stream, decode
@@ -61,7 +68,38 @@ def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport
     stream = Stream(
         Source(session_id=plan.session_id, source_digest="0" * 64, origin="SYNTHETIC_ZEEK_JSON")
     )
-    runner.run(on_line=lambda line: stream.accept(decode(line)))
+    errors = []
+    ready = threading.Event()
+
+    def consume(line):
+        message = decode(line)
+        stream.accept(message)
+        if message.kind == "ready":
+            ready.set()
+
+    def run():
+        try:
+            runner.run(on_line=consume)
+        except (OSError, ValueError) as exc:
+            errors.append(exc)
+            ready.set()
+
+    if streamed:
+        worker = threading.Thread(target=run)
+        worker.start()
+        try:
+            assert ready.wait(4), "Zeek must be READY before any packet or EOF"
+            assert not errors
+            assert runner.phase_times["script_init"] <= runner.phase_times["ready"]
+            assert not feed.exhausted
+            for stamp, packet in copies:
+                feed.put(stamp, packet)
+        finally:
+            feed.close()
+            worker.join(10)
+        assert not worker.is_alive() and not errors
+    else:
+        runner.run(on_line=consume)
     assert stream.dns_count == 1
     assert stream.dns_adapter_rejected == 0
     assert stream.closed and stream.dns_stages.transaction_matched == 1
@@ -73,6 +111,15 @@ def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport
     receipt = json.loads((tmp_path / "exit.json").read_text())
     assert receipt["protocol_finalized"] and receipt["cleanup_verified"]
     assert receipt["analysis_copy_input"] and not receipt["native_capture"]
+    if streamed:
+        timing = runner.analysis_container_timing()
+        (tmp_path / "container-timing.json").write_text(json.dumps(timing))
+        assert timing["verified"]
+        actions = {event["action"]: event["wall_ns"] for event in timing["events"]}
+        assert actions["create"] <= actions["start"] <= runner.phase_wall_ns["ready"]
+        assert runner.phase_times["ready"] < runner.phase_times["input_closed"]
+        assert runner.phase_times["input_closed"] <= runner.phase_times["counter"]
+        assert runner.phase_times["counter"] <= runner.phase_times["closed"]
     argv = docker_argv(plan, tmp_path, stdin_pcap=True)
     assert "--network=none" in argv and "--cap-drop=ALL" in argv
     assert "--cap-add=NET_RAW" not in argv and "-C" not in argv

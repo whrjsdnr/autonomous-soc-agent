@@ -104,13 +104,58 @@ def test_exact_embedded_image_wiring_without_running_privileged_entry(tmp_path, 
     assert copy.status == "CHECKSUM_PARTIAL_CONFIRMED"
     assert module.analysis_copy(copy.packet, aux(value)).status == "CHECKSUM_VALID"
     calls = []
-    module.capture_analysis = lambda *args: calls.append(args)
+    module.capture_analysis = lambda *args, **kwargs: calls.append((args, kwargs))
     module.capture(1000, 1000)
-    assert calls[0][:2] == (1000, 1000)
-    assert calls[0][2] is module.attach_filter
-    assert calls[0][4] is module.analysis_copy
-    assert calls[0][5] is module.chain_receipt
-    assert calls[0][6] == module.SCOPE_DIGEST
+    args, kwargs = calls[0]
+    assert args[:2] == (1000, 1000)
+    assert args[2] is module.attach_filter
+    assert args[4] is module.analysis_copy
+    assert args[5] is module.chain_receipt
+    assert args[6] == module.SCOPE_DIGEST
+    assert kwargs == {"start_gate": True, "session_started": None}
+
+
+def test_analysis_feed_has_one_total_queue32_budget():
+    from soc_agent.security_ai.collectors.analysis_feed import AnalysisFeed
+
+    feed = AnalysisFeed()
+    for i in range(32):
+        feed.put(i, packet())
+    assert feed.count == feed.peak == 32
+    assert feed.take() is not None
+    with pytest.raises(ValueError, match="LIMIT"):
+        feed.put(33, packet())  # Consuming does not reset the total packet budget.
+    feed.clear()
+    assert feed.exhausted
+    with pytest.raises(ValueError, match="CLOSED"):
+        feed.put(0, packet())
+
+
+@pytest.mark.parametrize("expired", [False, True])
+def test_wrong_start_token_or_expired_session_never_opens_capture_socket(monkeypatch, expired):
+    from soc_agent.security_ai.ebpf_tc import dns_copy_engine as engine
+
+    monkeypatch.setattr(engine.os, "geteuid", lambda: 0)
+    monkeypatch.setattr(engine.os, "readlink", lambda path: "net:[4026531833]")
+    monkeypatch.setattr(engine.socket, "if_nametoindex", lambda name: 1)
+    monkeypatch.setattr(engine.select, "select", lambda *args: ([0], [], []))
+    monkeypatch.setattr(engine.os, "read", lambda *args: b"BAD\n")
+    monkeypatch.setattr(engine, "emit_result", lambda value: None)
+    monkeypatch.setattr(engine.socket, "socket", lambda *args: pytest.fail("no capture"))
+    import time
+
+    with pytest.raises(ValueError, match="SESSION_DEADLINE" if expired else "START_REQUIRED"):
+        capture_analysis(
+            1000,
+            1000,
+            None,
+            None,
+            None,
+            None,
+            "0" * 64,
+            start_gate=True,
+            session_started=time.monotonic() - 20 if expired else None,
+        )
 
 
 def test_expired_analysis_budget_rejects_before_docker_lookup(tmp_path, monkeypatch):

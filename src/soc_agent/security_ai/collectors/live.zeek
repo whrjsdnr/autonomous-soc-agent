@@ -56,7 +56,8 @@ function emit(kind: string, data: string) {
     if ( messages == 8190 ) request_stop("EVENT_LIMIT_REACHED");
 }
 event SOCNetwork14::packet_limit_reached() { request_stop("PACKET_LIMIT_REACHED"); }
-event zeek_init() &priority=-20 { emit("ready", "{}"); }
+event zeek_init() &priority=100 { print open("/dev/stderr"), "SOC_ZEEK_INIT"; flush_all(); }
+event zeek_init() &priority=-20 { emit("ready", "{}"); flush_all(); }
 hook Log::log_stream_policy(rec: any, id: Log::ID) {
     if ( id == SOCNetwork14::PACKETS ) {
         local p = rec as SOCNetwork14::Info;

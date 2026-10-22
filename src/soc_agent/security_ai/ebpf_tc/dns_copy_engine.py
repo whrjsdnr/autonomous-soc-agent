@@ -54,6 +54,9 @@ def capture_analysis(
     normalize: Callable[[bytes, bytes], CopyReceipt],
     receipt_chain: Callable[[str, dict], str],
     scope_digest: str,
+    *,
+    start_gate: bool = False,
+    session_started: float | None = None,
 ) -> dict:
     # Existing diagnostic socket setup/filter/drop routines are embedded verbatim.
     if os.geteuid() != 0 or uid <= 0 or gid <= 0:
@@ -62,6 +65,27 @@ def capture_analysis(
         raise ValueError("DNS_COPY_NAMESPACE_INTERFACE")
     stage = "SOCKET_OPEN"
     try:
+        session_started = time.monotonic() if session_started is None else session_started
+        session_deadline = session_started + 10
+        if start_gate:
+            stage = "ANALYSIS_START_GATE"
+            if time.monotonic() >= session_deadline - 0.75:
+                raise ValueError("DNS_COPY_SESSION_DEADLINE")
+            emit_result(
+                dict(
+                    state="DNS_COPY_AUTHENTICATED",
+                    scope_digest=scope_digest,
+                    session_started=session_started,
+                    deadline=session_deadline,
+                )
+            )
+            # Fixed control token only: no path, command, program or deadline input.
+            remaining = max(0, min(9, session_deadline - time.monotonic()))
+            if not select.select([0], [], [], remaining)[0] or os.read(0, 6) != b"START\n":
+                raise ValueError("DNS_COPY_ANALYSIS_START_REQUIRED")
+            if time.monotonic() >= session_deadline - 0.75:
+                raise ValueError("DNS_COPY_SESSION_DEADLINE")
+        capture_started = time.monotonic()
         with socket.socket(socket.AF_PACKET, socket.SOCK_DGRAM, 0) as channel:
             stage = "SOCKET_FILTER"
             filter_socket(channel)
@@ -83,8 +107,12 @@ def capture_analysis(
                 }
             if len(caps) != 4 or any(caps.values()):
                 raise ValueError("DNS_COPY_CAPABILITY_LEAK")
-            # Reserve three seconds for downstream analysis within the shared budget.
-            deadline = time.monotonic() + 7
+            # Reserve socket-close scheduling time inside the seven-second cap.
+            deadline = (
+                min(capture_started + 6.9, session_deadline - 0.75)
+                if start_gate
+                else capture_started + 6.9
+            )
             os.set_blocking(1, False)
             emit_json(
                 dict(state="DNS_COPY_READY", capabilities=caps, scope_digest=scope_digest), deadline
@@ -132,6 +160,7 @@ def capture_analysis(
                 emit_json(row, deadline)
             stage = "SOCKET_COUNTER"
             packets, drops = struct.unpack("=II", channel.getsockopt(263, 6, 8))
+        capture_closed = time.monotonic()
         return dict(
             state="CLOSED",
             received=received,
@@ -140,6 +169,9 @@ def capture_analysis(
             socket_packets=packets,
             socket_drops=drops,
             final_chain=sequence_digest,
+            capture_started=capture_started,
+            capture_closed=capture_closed,
+            capture_elapsed_seconds=capture_closed - capture_started,
             capture_integrity="ANALYSIS_COPY_PROVENANCE_ONLY_NOT_NATIVE_AI_ELIGIBILITY",
         )
     except (OSError, ValueError) as exc:

@@ -17,6 +17,7 @@ import time
 from pathlib import Path
 
 from soc_agent.review.persistence.secure_storage import create_private_file
+from soc_agent.security_ai.collectors.analysis_feed import AnalysisFeed
 from soc_agent.security_ai.collectors.finalization import Ledger, termination_reason
 from soc_agent.security_ai.collectors.finalization import publish as write_new
 from soc_agent.security_ai.collectors.handoff import (
@@ -42,10 +43,20 @@ class StreamProcess:
         supervisor=None,
         pcap_input: bytes | None = None,
         analysis_deadline: float | None = None,
+        analysis_feed: AnalysisFeed | None = None,
     ):
         self.directory, self.plan, self.fixture = directory, plan, fixture
         self.supervisor = supervisor
+        self.analysis_feed = analysis_feed
+        if analysis_feed is not None:
+            if pcap_input is not None or fixture is not None or analysis_deadline is None:
+                raise ValueError("ZEEK_ANALYSIS_FEED_SCOPE")
+            from soc_agent.security_ai.collectors.offload_copy import memory_pcap
+
+            pcap_input = memory_pcap([])
         self.pcap_input = pcap_input
+        self.phase_times: dict[str, float] = {}
+        self.phase_wall_ns: dict[str, int] = {}
         self.analysis_deadline = analysis_deadline
         if analysis_deadline is not None and (
             pcap_input is None or not math.isfinite(analysis_deadline)
@@ -77,6 +88,39 @@ class StreamProcess:
 
     def deadline_expired(self) -> bool:
         return self.analysis_deadline is not None and time.monotonic() >= self.analysis_deadline
+
+    def analysis_container_timing(self) -> dict:
+        """Fixed, read-only, exact-plan Docker events; never a capture or retry."""
+        if self.analysis_feed is None or "process_launched" not in self.phase_wall_ns:
+            raise ValueError("ZEEK_ANALYSIS_TIMING_SCOPE")
+        result = self._docker(
+            "events",
+            "--since",
+            str(self.phase_wall_ns["process_launched"] // 10**9),
+            "--until",
+            str(time.time()),
+            "--filter",
+            "type=container",
+            "--filter",
+            "label=soc.plan=" + self.plan.identity,
+            "--format",
+            "{{json .}}",
+        )
+        if result.returncode or len(result.stdout) > 131072:
+            return dict(verified=False, returncode=result.returncode)
+        events = [json.loads(line) for line in result.stdout.splitlines()]
+        if len(events) > 32:
+            raise ValueError("ZEEK_ANALYSIS_TIMING_BOUND")
+        return dict(
+            verified=True,
+            clock="DOCKER_AND_CONTROLLER_WALL_NS_NOT_KERNEL_CLOCK",
+            events=[
+                dict(action=e["Action"], wall_ns=e["timeNano"])
+                for e in events
+                if e["Action"] in {"create", "start", "die", "destroy"}
+            ],
+            controller_phase_wall_ns=self.phase_wall_ns,
+        )
 
     def stop(self):
         self.stop_requested = True
@@ -261,7 +305,9 @@ class StreamProcess:
                         if self.pcap_input is not None
                         else subprocess.DEVNULL,
                         stdout=subprocess.PIPE,
-                        stderr=subprocess.DEVNULL,
+                        stderr=subprocess.PIPE
+                        if self.analysis_feed is not None
+                        else subprocess.DEVNULL,
                         # Keep the terminal session (sudo timestamp), but route Ctrl+C only
                         # through the GUI controller's verified stop/drain path.
                         **({"process_group": 0} if not self.file_input else {}),
@@ -269,6 +315,13 @@ class StreamProcess:
             except OSError as start_error:
                 raise ValueError("ZEEK_DOCKER_START_FAILED") from start_error
             selector.register(self.process.stdout, selectors.EVENT_READ)
+            if self.analysis_feed is not None:
+                selector.register(self.process.stderr, selectors.EVENT_READ)
+            self.phase_times["process_launched"] = time.monotonic()
+            self.phase_wall_ns["process_launched"] = time.time_ns()
+            stderr_pending = b""
+            stderr_bytes = 0
+            input_registered = self.pcap_input is not None
             if self.pcap_input is not None:
                 os.set_blocking(self.process.stdin.fileno(), False)
                 selector.register(self.process.stdin, selectors.EVENT_WRITE)
@@ -287,6 +340,16 @@ class StreamProcess:
                             else "CONTROLLER_STOP"
                         )
                     now = time.monotonic()
+                    if self.analysis_feed is not None and not input_pending:
+                        next_record = self.analysis_feed.take()
+                        if next_record is not None:
+                            input_pending = memoryview(next_record)
+                            if not input_registered:
+                                selector.register(self.process.stdin, selectors.EVENT_WRITE)
+                                input_registered = True
+                        elif self.analysis_feed.exhausted and not self.process.stdin.closed:
+                            self.process.stdin.close()
+                            self.phase_times["input_closed"] = now
                     if self.deadline_expired():
                         stage, api = "ANALYSIS_BUDGET", "time.monotonic"
                         raise ValueError("ZEEK_ANALYSIS_SESSION_DEADLINE")
@@ -322,6 +385,19 @@ class StreamProcess:
                     stage, api = "STREAM_WAIT", "selectors.select"
                     events = selector.select(0.1)
                     for key, _ in events:
+                        if self.analysis_feed is not None and key.fileobj is self.process.stderr:
+                            diagnostic = os.read(self.process.stderr.fileno(), 4096)
+                            stderr_bytes += len(diagnostic)
+                            if stderr_bytes > 8192:
+                                raise ValueError("ZEEK_ANALYSIS_STDERR_BOUND")
+                            if not diagnostic:
+                                selector.unregister(self.process.stderr)
+                            stderr_pending += diagnostic
+                            while b"\n" in stderr_pending:
+                                marker, stderr_pending = stderr_pending.split(b"\n", 1)
+                                if marker == b"SOC_ZEEK_INIT":
+                                    self.phase_times.setdefault("script_init", time.monotonic())
+                                    self.phase_wall_ns.setdefault("script_init", time.time_ns())
                         if self.pcap_input is not None and key.fileobj is self.process.stdin:
                             stage, api = "PCAP_INPUT", "os.write"
                             try:
@@ -333,7 +409,9 @@ class StreamProcess:
                             input_pending = input_pending[sent:]
                             if not input_pending:
                                 selector.unregister(self.process.stdin)
-                                self.process.stdin.close()
+                                input_registered = False
+                                if self.analysis_feed is None:
+                                    self.process.stdin.close()
                     if not any(key.fileobj is self.process.stdout for key, _ in events):
                         if poll_owned() is not None:
                             # Drain the pipe even after process exit; EOF is the boundary.
@@ -386,6 +464,13 @@ class StreamProcess:
                         output.write(line)
                         sequence = envelope.sequence
                         closed = envelope.kind == "closed"
+                        if self.analysis_feed is not None and envelope.kind in {
+                            "ready",
+                            "counter",
+                            "closed",
+                        }:
+                            self.phase_times[envelope.kind] = time.monotonic()
+                            self.phase_wall_ns[envelope.kind] = time.time_ns()
                         if closed:
                             drain_started = drain_started or time.monotonic()
                         if on_line and adapter_failure is None:
@@ -473,6 +558,8 @@ class StreamProcess:
                         self.process.stdout.close()
                         if self.pcap_input is not None and not self.process.stdin.closed:
                             self.process.stdin.close()
+                        if self.analysis_feed is not None:
+                            self.process.stderr.close()
                     except OSError as exc:
                         failure_detail("PIPE_CLOSE", exc)
                         error = error or safe_code(exc)
@@ -531,6 +618,8 @@ class StreamProcess:
                     native_capture=not self.file_input,
                     analysis_copy_input=self.pcap_input is not None,
                     analysis_deadline_expired=self.deadline_expired(),
+                    analysis_phase_times=self.phase_times,
+                    analysis_phase_wall_ns=self.phase_wall_ns,
                     exit_digest_scope="PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
                 ),
             )

@@ -10,15 +10,17 @@ import json
 import os
 import struct
 import subprocess
+import threading
 import time
 from pathlib import Path
 
+from soc_agent.security_ai.collectors.analysis_feed import AnalysisFeed
 from soc_agent.security_ai.collectors.live_contract import bundle, new_plan
 from soc_agent.security_ai.collectors.live_process import StreamProcess
 from soc_agent.security_ai.collectors.live_stream import Stream, decode
 from soc_agent.security_ai.collectors.models import Source
 from soc_agent.security_ai.collectors.offline import IMAGE, OfflineZeek
-from soc_agent.security_ai.collectors.offload_copy import analysis_copy, chain_receipt, memory_pcap
+from soc_agent.security_ai.collectors.offload_copy import analysis_copy, chain_receipt
 from soc_agent.security_ai.ebpf_broker.contracts import BrokerPlan
 from soc_agent.security_ai.ebpf_native.contracts import ApplicationPlan, Scope, local_controller
 from soc_agent.security_ai.ebpf_tc.checksum_image import prepare as prepare_image
@@ -38,11 +40,11 @@ PROBE_APPROVAL = "0b6c59f501489f67da18e5a7f671b80853542376a8df7a2b0495cd9fbdeb57
 
 
 def sources() -> dict[str, str]:
-    from soc_agent.security_ai.collectors import checksum_evidence, offload_copy
+    from soc_agent.security_ai.collectors import analysis_feed, checksum_evidence, offload_copy
     from soc_agent.security_ai.ebpf_tc import checksum_image, dns_copy_engine
 
     result = bundle()
-    for module in (checksum_evidence, offload_copy, checksum_image, dns_copy_engine):
+    for module in (analysis_feed, checksum_evidence, offload_copy, checksum_image, dns_copy_engine):
         result[module.__name__] = hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest()
     result["soc_agent.security_ai.collectors.offload_session"] = hashlib.sha256(
         Path(__file__).read_bytes()
@@ -65,7 +67,7 @@ def prepare(directory: Path) -> dict:
     source = sources()
     value = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
-        version="0.5.18",
+        version="0.5.19",
         installed_tcx_release="0.5.16_PRESERVED_NO_INSTALL",
         base_manifest=image.manifest,
         image=image.model_dump(mode="json"),
@@ -73,7 +75,7 @@ def prepare(directory: Path) -> dict:
         sources=source,
         zeek_image=IMAGE,
         capture_scope_digest=hashlib.sha256(
-            b"DNS_LOCAL_PARTIAL_COPY_V2:net4026531833:lo:7s:32:512"
+            b"DNS_LOCAL_PARTIAL_COPY_V3:net4026531833:lo:7s:32:512:prewarm:shared10s"
         ).hexdigest(),
         scope=dict(
             namespace="net:[4026531833]",
@@ -207,32 +209,88 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         dict(manifest=manifest_sha, image=image_sha, auto_retry=False, scope=candidate["scope"]),
     )
     child = None
-    packets = []
+    feed = AnalysisFeed()
+    analysis_worker = None
+    runner = None
+    stream = None
+    analysis_errors: list[BaseException] = []
+    zeek_ready = threading.Event()
+    times: dict[str, float] = {}
+
+    def analyze():
+        try:
+
+            def accept(line):
+                message = decode(line)
+                stream.accept(message)
+                if message.kind == "ready":
+                    zeek_ready.set()
+
+            runner.run(on_line=accept)
+        except (OSError, ValueError, subprocess.SubprocessError) as exc:
+            analysis_errors.append(exc)
+            zeek_ready.set()  # Wake the controller to report the failure, not READY.
+
     received = accepted = rejected = 0
     probe_ports: set[tuple[int, int]] = set()
     excluded = 0
     chain = "0" * 64
-    ready = closed = None
+    authenticated = ready = closed = None
     active_started = active_deadline = None
     first_failure = None
     try:
-        child = subprocess.Popen(command, stdout=subprocess.PIPE, text=True)
+        child = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
         with (out / "transformations.jsonl").open("x") as audit:
             while line := child.stdout.readline(4097):
                 if len(line) > 4096 or not line.endswith("\n"):
                     raise ValueError("DNS_COPY_MESSAGE_BOUND")
                 row = json.loads(line)
-                if row.get("state") == "DNS_COPY_READY":
+                if row.get("state") == "DNS_COPY_AUTHENTICATED":
+                    if authenticated or row["scope_digest"] != candidate["capture_scope_digest"]:
+                        raise ValueError("DNS_COPY_AUTHENTICATED_SCOPE")
+                    authenticated = row
+                    active_started = row["session_started"]
+                    active_deadline = row["deadline"]
                     if (
-                        ready
+                        not 0 < active_deadline - time.monotonic() <= 10
+                        or active_deadline - active_started != 10
+                    ):
+                        raise ValueError("DNS_COPY_SESSION_DEADLINE")
+                    times["authenticated"] = active_started
+                    plan = new_plan()
+                    source = Source(
+                        session_id=plan.session_id,
+                        source_digest=manifest_sha,
+                        origin="ZEEK_NATIVE_LIVE",
+                        capture_integrity="UNVERIFIED",
+                    )
+                    stream = Stream(source)
+                    zeek = out / "zeek"
+                    zeek.mkdir(mode=0o700)
+                    runner = StreamProcess(
+                        zeek, plan, analysis_feed=feed, analysis_deadline=active_deadline - 0.5
+                    )
+                    analysis_worker = threading.Thread(target=analyze, name="bounded-zeek-analysis")
+                    analysis_worker.start()
+                    if not zeek_ready.wait(max(0, active_deadline - time.monotonic() - 0.75)):
+                        raise ValueError("DNS_COPY_ZEEK_READY_DEADLINE")
+                    if analysis_errors:
+                        raise analysis_errors[0]
+                    times["zeek_ready"] = time.monotonic()
+                    child.stdin.write("START\n")
+                    child.stdin.flush()
+                    child.stdin.close()
+                elif row.get("state") == "DNS_COPY_READY":
+                    if (
+                        not authenticated
+                        or ready
                         or set(row["capabilities"]) != {"CapEff", "CapPrm", "CapInh", "CapAmb"}
                         or any(row["capabilities"].values())
                         or row["scope_digest"] != candidate["capture_scope_digest"]
                     ):
                         raise ValueError("DNS_COPY_DUPLICATE_READY_OR_CAPABILITIES")
                     ready = row
-                    active_started = time.monotonic()
-                    active_deadline = active_started + 10
+                    times["capture_ready"] = time.monotonic()
                     # Execute the SHA-held probe snapshot, not a reopened mutable path.
                     result = subprocess.run(
                         [
@@ -289,7 +347,7 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                         source_port, target_port = struct.unpack("!HH", packet[ihl : ihl + 4])
                         client_port = target_port if source_port == 53 else source_port
                         if (packet[9], client_port) in probe_ports:
-                            packets.append((row["timestamp_ns"], packet))
+                            feed.put(row["timestamp_ns"], packet)
                         else:
                             excluded += 1
                     else:
@@ -302,6 +360,8 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     if closed:
                         raise ValueError("DNS_COPY_DUPLICATE_CLOSED")
                     closed = row
+                    times["capture_closed_received"] = time.monotonic()
+                    feed.close()
                 elif row.get("state") == "DNS_COPY_ERROR":
                     publish(out / "capture-error.json", row)
                     first_failure = first_failure or "DNS_COPY_CAPTURE_FAILED"
@@ -322,25 +382,19 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         publish(out / "capture-closed.json", closed)
         if first_failure:
             raise ValueError(first_failure)
-        plan = new_plan()
-        # Native origin is attributable to this approved capture, not Zeek's own
-        # socket. The existing model still deliberately leaves integrity UNVERIFIED.
-        source = Source(
-            session_id=plan.session_id,
-            source_digest=chain,
-            origin="ZEEK_NATIVE_LIVE",
-            capture_integrity="UNVERIFIED",
-        )
-        stream = Stream(source)
-        zeek = out / "zeek"
-        zeek.mkdir(mode=0o700)
-        runner = StreamProcess(
-            zeek, plan, pcap_input=memory_pcap(packets), analysis_deadline=active_deadline - 0.5
-        )
-        runner.run(on_line=lambda line: stream.accept(decode(line)))
+        feed.close()
+        analysis_worker.join(timeout=max(0, active_deadline - time.monotonic()))
+        if analysis_worker.is_alive():
+            raise ValueError("DNS_COPY_ANALYSIS_JOIN_DEADLINE")
+        if analysis_errors:
+            raise analysis_errors[0]
+        times["analysis_cleanup_complete"] = time.monotonic()
         result = dict(
             source="NATIVE_AUXDATA_CAPTURE_ANALYSIS_COPY",
-            forwarded_probe_packets=len(packets),
+            forwarded_probe_packets=feed.count,
+            queue_peak=feed.peak,
+            phase_times=times,
+            zeek_phase_times=runner.phase_times,
             other_local_dns_excluded=excluded,
             capture_accounting_consistent=(
                 closed["socket_packets"] == received
@@ -377,10 +431,6 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
             and result["zeek_exit"]["protocol_finalized"]
             else "DNS_NATIVE_ANALYSIS_COPY_E2E_INCOMPLETE"
         )
-        publish(out / "completion.json", result)
-        if time.monotonic() > active_deadline:
-            raise ValueError("DNS_COPY_ACTIVE_SESSION_DEADLINE")
-        return result
     except (OSError, ValueError, EOFError, subprocess.SubprocessError) as exc:
         publish(
             out / "failure.json",
@@ -394,9 +444,16 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         )
         raise
     finally:
-        packets.clear()  # Memory-only analysis copies, no raw PCAP path.
+        feed.close()
+        if analysis_worker is not None and analysis_worker.is_alive():
+            runner.stop()
+            analysis_worker.join(timeout=12)
+        feed.clear()  # Memory-only analysis copies, no raw PCAP path.
+        times["finalization_started"] = time.monotonic()
         if child is not None:
             child.stdout.close()
+            if not child.stdin.closed:
+                child.stdin.close()
             # Closing the pipe ends a failed sender; do not start another capture.
             try:
                 code = child.wait(timeout=12)
@@ -408,6 +465,51 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     out / "capture-process-exit.json",
                     dict(pid=child.pid, exited=False, cleanup="UNVERIFIED"),
                 )
+        if runner is not None:
+            try:
+                publish(out / "container-timing.json", runner.analysis_container_timing())
+            except (OSError, ValueError, subprocess.SubprocessError) as exc:
+                publish(
+                    out / "container-timing.json",
+                    dict(
+                        verified=False, code=type(exc).__name__, errno=getattr(exc, "errno", None)
+                    ),
+                )
+        times["cleanup_complete"] = time.monotonic()
+        publish(
+            out / "session-timing.json",
+            dict(
+                phase_times=times,
+                zeek_phase_times=runner.phase_times if runner else {},
+                active_elapsed_seconds=time.monotonic() - active_started
+                if active_started
+                else None,
+                whole_deadline_met=time.monotonic() <= active_deadline
+                if active_deadline
+                else False,
+                worker_exited=analysis_worker is None or not analysis_worker.is_alive(),
+                queue_peak=feed.peak,
+                forwarded_probe_packets=feed.count,
+            ),
+        )
+    # Final qualification is after socket/process/worker cleanup, not before finally.
+    result["active_elapsed_seconds"] = time.monotonic() - active_started
+    result["active_time_budget_met"] = time.monotonic() <= active_deadline
+    result["capture_time_budget_met"] = closed["capture_elapsed_seconds"] <= 7
+    if not result["active_time_budget_met"] or not result["capture_time_budget_met"]:
+        result["verdict"] = "DNS_NATIVE_ANALYSIS_COPY_E2E_INCOMPLETE"
+    publish(out / "completion.json", result)
+    if time.monotonic() > active_deadline:
+        publish(
+            out / "deadline-failure.json",
+            dict(
+                code="DNS_COPY_ACTIVE_SESSION_DEADLINE",
+                actual_elapsed_seconds=time.monotonic() - active_started,
+                auto_retry=False,
+            ),
+        )
+        raise ValueError("DNS_COPY_ACTIVE_SESSION_DEADLINE")
+    return result
 
 
 def main() -> None:
