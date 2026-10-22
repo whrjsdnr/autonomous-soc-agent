@@ -22,6 +22,47 @@ def candidate(tmp_path_factory):
     return directory, identity
 
 
+@pytest.mark.parametrize("failed", [False, True])
+def test_native_cli_exit_status_reflects_result_without_native_execution(monkeypatch, failed):
+    import sys
+
+    from soc_agent.security_ai import native_campaign
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "phase_d",
+            "candidate",
+            "--execute",
+            "--manifest",
+            "m",
+            "--image",
+            "i",
+            "--campaign",
+            "campaign",
+            "--approval-file",
+            "approval",
+            "--approval-sha",
+            "a",
+        ],
+    )
+    monkeypatch.setattr(
+        native_campaign,
+        "execute_phase_d",
+        lambda *args, **kwargs: dict(
+            last_error="HANDOFF_COMMAND_FAILED" if failed else None,
+            cleanup_status="CLEANUP_UNVERIFIED" if failed else "PROCESS_AND_AUDIT_VERIFIED",
+        ),
+    )
+    if failed:
+        with pytest.raises(SystemExit) as caught:
+            phase_d.main()
+        assert caught.value.code == 1
+    else:
+        assert phase_d.main() is None
+
+
 def test_combined_release_source_and_component_identity(candidate):
     directory, identity = candidate
     value = phase_d.validate(directory, identity["manifest"], identity["image"])

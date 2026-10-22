@@ -53,7 +53,7 @@ def runtime_bundle():
 
 def prepare(directory: Path) -> dict:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
-    _, _, package, manifest = prepare_candidate(directory, version="0.6.2", inspector=True)
+    _, _, package, manifest = prepare_candidate(directory, version="0.6.3", inspector=True)
     image = prepare_supervisor_image(
         package, manifest, directory / "supervisor-image.py", dns_sidecar=True
     )
@@ -65,7 +65,7 @@ def prepare(directory: Path) -> dict:
     )
     dns = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
-        version="0.6.2_INTEGRATED_DNS_0520",
+        version="0.6.3_INTEGRATED_DNS_0520",
         base_manifest=manifest,
         image=base.model_dump(mode="json"),
         sources=offload_session.sources(),
@@ -79,7 +79,7 @@ def prepare(directory: Path) -> dict:
     release = verify_package(package, manifest)
     value = dict(
         contract="SOC_PHASE_D_UNIFIED_V1",
-        version="0.6.2",
+        version="0.6.3",
         tcx_manifest=manifest,
         tcx_program=release.payloads["tc.bpf.o"].sha256,
         dns_baseline_image=DNS_BASELINE_IMAGE,
@@ -170,17 +170,18 @@ def main():
             parser.error("execution requires exact release, campaign and explicit approval receipt")
         from soc_agent.security_ai.native_campaign import execute_phase_d
 
-        print(
-            execute_phase_d(
-                args.directory,
-                args.manifest,
-                args.image,
-                campaign=args.campaign,
-                approval_file=args.approval_file,
-                approval_sha=args.approval_sha,
-                gui=args.gui,
-            )
+        result = execute_phase_d(
+            args.directory,
+            args.manifest,
+            args.image,
+            campaign=args.campaign,
+            approval_file=args.approval_file,
+            approval_sha=args.approval_sha,
+            gui=args.gui,
         )
+        print(result)
+        if result.get("last_error") or result.get("cleanup_status") != "PROCESS_AND_AUDIT_VERIFIED":
+            raise SystemExit(1)
     else:
         print(json.dumps(prepare(args.directory), indent=2))
 

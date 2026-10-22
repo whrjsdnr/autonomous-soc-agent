@@ -55,6 +55,19 @@ def test_late_event_is_audited_not_clamped_or_accepted(stream):
     assert c.store.verify_audit()
 
 
+def test_native_062_observed_inversion_stays_ineligible_without_widening_window(stream):
+    c, event = stream
+    c.ingest(event(194_004_499, cpu=0), monotonic=1)
+    with pytest.raises(ValueError, match="EBPF_REORDER_LATE_CAPTURE_GAP"):
+        c.ingest(event(0, cpu=1), monotonic=1)
+    assert c.ordering.lateness_ns == 10_000_000
+    assert c.ordering.max_delta == 194_004_499 and c.ordering.late == 1
+    assert c.ordering.examples[-1]["timestamp_ns"] == 1_000_000_000
+    c.end_metadata_stream("INCOMPLETE")
+    assert c.accepted == 0 and c.discarded == 2
+    assert c.last_error == "EBPF_REORDER_LATE_CAPTURE_GAP"
+
+
 def test_observation_attempt_gap_is_accounted_and_quarantines_features(stream):
     c, event = stream
     c.ingest(event(0), monotonic=1)

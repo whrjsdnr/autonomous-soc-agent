@@ -191,7 +191,7 @@ class SupervisorClient:
     def __init__(self, channel, identity, binding, record=None):
         self.channel, self.identity, self.binding = channel, identity, binding
         self.record = record
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.sequence = 0
         self.chain = "0" * 64
         self.final = None
@@ -297,10 +297,13 @@ class SupervisorClient:
             return response, fd
 
     def status(self):
-        if self.stopping:
-            return self.last_status
-        response, _ = self.request("STATUS")
-        return response["status"]
+        # STOP can finish between an unlocked check and request(). Return only
+        # its already authenticated final status; never send STATUS after STOP.
+        with self.lock:
+            if self.stopping:
+                return self.last_status
+            response, _ = self.request("STATUS")
+            return response["status"]
 
     def authorize(self, plan):
         if plan.bundle_digest != digest(zeek_bundle()):

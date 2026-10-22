@@ -383,7 +383,7 @@ class Handoff:
             raise ValueError("HANDOFF_CHANNEL_REQUIRED")
         deadline = time.monotonic() + 5
         while True:
-            if self.data.error:
+            if self.data.error and (self.data.worker is None or self.data.transport_failed):
                 raise ValueError("HANDOFF_DATA_INTEGRITY_FAILED")
             if select.select([self.channel], [], [], min(0.1, max(0, deadline - time.monotonic())))[
                 0
@@ -499,6 +499,8 @@ class Handoff:
             return self._command(value)
 
     def _command(self, value: Command) -> dict:
+        if self.data.error and value.command in {"PREPARE", "ATTACH"}:
+            raise ValueError("HANDOFF_NEW_WORK_AFTER_DATA_FAILURE")
         if self.qualification_only and value.command not in {"STATUS", "STOP"}:
             raise ValueError("AUTH_QUALIFICATION_NO_KERNEL_ACTION")
         if self.state != "BROKER_READY" or self.ended or self.deadline is None:
@@ -541,7 +543,12 @@ class Handoff:
                 self._event("BROKER_COMMAND_REJECTED", **self.broker_error)
                 raise ValueError(f"HANDOFF_BROKER_REQUEST_DENIED:{error}")
             stage, api = "COMMAND_DATA_PUMP", "PacketChannel.pump"
-            self.data.pump()
+            # The background reader owns Native data delivery. A flow-processing
+            # failure must stop that collector, but is not a failed authenticated
+            # control reply: STOP/CLEANUP and the companion DNS drain still need
+            # this session. Broken transport remains an immediate rejection.
+            if self.data.worker is None or self.data.transport_failed:
+                self.data.pump()
             self.collector_state = "ACTIVE" if state == 4 else "STOPPED"
             self.sequence = seq
             return {

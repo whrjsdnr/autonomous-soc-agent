@@ -73,6 +73,32 @@ def test_signal_handlers_restored_and_cleanup_once():
     assert all(signal.getsignal(s) == h for s, h in previous.items())
 
 
+def test_processing_failure_is_first_failure_and_does_not_require_control_revocation(
+    candidate, tmp_path, monkeypatch
+):
+    source, identity = candidate
+    directory = tmp_path / "candidate"
+    shutil.copytree(source, directory)
+    monkeypatch.setattr(offload_session.os, "isatty", lambda fd: True)
+    monkeypatch.setattr(startup, "confirm_scope", lambda *_: True)
+    monkeypatch.setattr(SupervisedSession, "authenticate_native", lambda *_: None)
+    monkeypatch.setattr(SupervisedSession, "observe", lambda self: self.snapshot())
+
+    def command(self, value):
+        if value.command == "ATTACH":
+            self.data.error = "EBPF_REORDER_LATE_CAPTURE_GAP"
+
+    monkeypatch.setattr(SupervisedSession, "command", command)
+    monkeypatch.setattr(offload_session, "execute", lambda *args, **kwargs: {"state": "CLOSED"})
+    with pytest.raises(ValueError, match="EBPF_REORDER_LATE_CAPTURE_GAP"):
+        phase_d.execute(directory, identity["manifest"], identity["image"])
+    result = json.loads((directory / "supervised-result.json").read_text())
+    assert result["first_failure"]["original_code"] == "EBPF_REORDER_LATE_CAPTURE_GAP"
+    assert result["first_failure"]["stage"] == "TCX_DATA_PROCESSING"
+    assert result["first_failure"]["errno"] is None
+    assert not result["tcx"]["control_failures"]
+
+
 @pytest.fixture(scope="module")
 def candidate(tmp_path_factory):
     p = tmp_path_factory.mktemp("supervisor-termination") / "candidate"

@@ -472,6 +472,14 @@ def execute(
                     first_failure = first_failure or "DNS_COPY_CAPTURE_FAILED"
                 elif row.get("action") != "check":
                     raise ValueError("DNS_COPY_MESSAGE_SCHEMA")
+        if closed:
+            # A subsequent Supervisor status/wait failure must not erase the
+            # terminal counters already observed on this metadata pipe. This is
+            # explicitly not the later identity/accounting/process-exit verdict.
+            publish(
+                out / "capture-terminal-observed.json",
+                dict(state="OBSERVED_NOT_VERIFIED", terminal=closed, process_exit="PENDING"),
+            )
         code = child.wait(timeout=12)
         if code and not authenticated and first_failure is None:
             publish(

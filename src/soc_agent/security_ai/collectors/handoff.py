@@ -111,7 +111,9 @@ def failure_evidence(error: BaseException, *, stage: str, api: str) -> dict:
     """
     text = str(error)
     symbolic = bool(
-        re.fullmatch(r"(?:ZEEK|HANDOFF|SUPERVISOR|TCX)_[A-Z0-9_]{1,100}(?::-[0-9]{1,5})?", text)
+        re.fullmatch(
+            r"(?:ZEEK|HANDOFF|SUPERVISOR|TCX|EBPF)_[A-Z0-9_]{1,100}(?::-[0-9]{1,5})?", text
+        )
     )
     evidence = dict(
         stage=stage,

@@ -14,6 +14,39 @@ from soc_agent.security_ai.ebpf_tc import supervisor_engine as engine
 from soc_agent.security_ai.ebpf_tc.supervisor import SupervisorClient
 
 
+def test_dns_status_racing_stop_returns_authenticated_final_snapshot_without_new_request():
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+
+    client = SupervisorClient(None, None, "b" * 64)
+    entered = threading.Event()
+    lock = threading.RLock()
+
+    class ContendedLock:
+        def __enter__(self):
+            entered.set()
+            lock.acquire()
+
+        def __exit__(self, *_):
+            lock.release()
+
+    client.lock = ContendedLock()
+    final_status = {"dns_worker": {"exited": True, "exit_code": 0}}
+    lock.acquire()
+    with ThreadPoolExecutor(max_workers=1) as workers:
+        pending = workers.submit(client.status)
+        try:
+            assert entered.wait(2)
+            # Model STOP completing while the DNS waiter is waiting for the
+            # same lock. The old unlocked guard entered request() and failed.
+            client.last_status = final_status
+            client.stopping = True
+        finally:
+            lock.release()
+        assert pending.result(2) == final_status
+    assert client.sequence == 0  # No new request/authority after the STOP snapshot.
+
+
 def inventory():
     return {key: {"rows": []} for key in ("programs", "maps", "links", "ingress", "egress")}
 

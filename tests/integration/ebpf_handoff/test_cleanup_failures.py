@@ -72,3 +72,75 @@ def test_concurrent_heartbeat_and_gui_status_use_one_request_sequence(session):
             assert future.result(5)["last_error"] is None
     assert h.sequence == 6 and not h.ended
     assert h.close()["cleanup_status"] == "FIXTURE_VERIFIED"
+
+
+def test_processing_error_does_not_turn_valid_status_or_stop_into_control_failure(session):
+    from soc_agent.security_ai.ebpf_broker.contracts import Command
+    from soc_agent.security_ai.ebpf_native.contracts import RunIdentity
+    from soc_agent.security_ai.research.models import digest
+
+    h, _ = session
+    h.approve(h.approval)
+    # Select the real ordinary-UID data-channel peer. No PREPARE is sent, so
+    # this placeholder record is never decoded or forwarded as a packet.
+    h.authenticate_fixture(AuthenticationFixture(), packets=(bytes(80),))
+    assert h.data.worker is not None
+    h.data.error = "EBPF_REORDER_LATE_CAPTURE_GAP"
+    # Reproduce the Native COMMAND_DATA_PUMP failure without Kernel activity.
+    with pytest.raises(ValueError, match="EBPF_REORDER_LATE_CAPTURE_GAP"):
+        h.data.pump()
+    h.command(Command(command="STATUS", plan_digest=h.plan.approval, sequence=1))
+    assert not h.ended and h.state == "BROKER_READY" and h.error is None
+    run = RunIdentity(
+        application_session=h.plan.broker.application.application_session,
+        scope_digest=digest(h.plan.broker.application.scope.model_dump(mode="json")),
+        run_number=1,
+    )
+    for command in ("PREPARE", "ATTACH"):
+        with pytest.raises(ValueError, match="HANDOFF_NEW_WORK_AFTER_DATA_FAILURE"):
+            h.command(
+                Command(
+                    command=command,
+                    plan_digest=h.plan.approval,
+                    sequence=2,
+                    run=run if command == "ATTACH" else None,
+                )
+            )
+        assert h.sequence == 1 and not h.ended
+    h.stop()  # Same control session remains usable for owned cleanup / DNS drain.
+    assert not h.ended and h.sequence == 2 and h.data.error == "EBPF_REORDER_LATE_CAPTURE_GAP"
+    assert h.control_failures == []
+    result = h.close()
+    assert h.ended and h.authentication == "REVOKED"
+    assert result["data_plane"]["error"] == "EBPF_REORDER_LATE_CAPTURE_GAP"
+    assert result["cleanup_status"] == "CLEANUP_UNVERIFIED"  # Never hide the data failure.
+
+
+def test_broken_data_transport_still_revokes_control_session(session):
+    from soc_agent.security_ai.ebpf_broker.contracts import Command
+
+    h, _ = session
+    h.approve(h.approval)
+    h.authenticate_fixture(AuthenticationFixture(), packets=(bytes(80),))
+    h.data.error = "TCX_DATA_EOF_WITHOUT_CLOSED"
+    h.data.transport_failed = True
+    with pytest.raises(ValueError, match="HANDOFF_DATA_INTEGRITY_FAILED"):
+        h.command(Command(command="STATUS", plan_digest=h.plan.approval, sequence=1))
+    assert h.ended and h.authentication == "REVOKED"
+    assert h.control_failures[0]["stage"] == "COMMAND_RECEIVE"
+    assert h.data.error == "TCX_DATA_EOF_WITHOUT_CLOSED"
+
+
+def test_ebpf_symbolic_root_error_is_retained_but_unstructured_text_is_redacted():
+    from soc_agent.security_ai.collectors.handoff import failure_evidence
+
+    original = failure_evidence(
+        ValueError("EBPF_REORDER_LATE_CAPTURE_GAP"),
+        stage="TCX_DATA_PROCESSING",
+        api="PacketChannel.error",
+    )
+    assert original["original_code"] == "EBPF_REORDER_LATE_CAPTURE_GAP"
+    assert original["errno"] is None and not original["message_redacted"]
+    secret = failure_evidence(ValueError("EBPF_PRIVATE password=hidden"), stage="TEST", api="TEST")
+    assert secret["original_code"] is None and secret["message_redacted"]
+    assert "hidden" not in str(secret)

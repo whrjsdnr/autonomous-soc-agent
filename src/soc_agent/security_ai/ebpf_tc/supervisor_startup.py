@@ -297,6 +297,12 @@ def _execute(
             until = time.monotonic() + 300
             while time.monotonic() < until and not handoff.error:
                 handoff.observe()
+                if handoff.data.error:
+                    stage, api = "TCX_DATA_PROCESSING", "PacketChannel.error"
+                    raise ValueError(handoff.data.error)
+                if handoff.error:
+                    stage, api = "CONTROL_STATUS", "SupervisedSession.observe"
+                    raise ValueError(handoff.error)
                 if future.done():
                     stage, api = "DNS_TASK", "Future.result"
                     future.result()  # Preserve first DNS failure; never retry.
