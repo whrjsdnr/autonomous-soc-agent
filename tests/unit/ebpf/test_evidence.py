@@ -27,14 +27,26 @@ def test_current_sources_and_explicit_native_blockers():
         "src/soc_agent/security_ai/ebpf/ring.py",
         "src/soc_agent/security_ai/collectors/packet_producer.py",
     }
+    successor = json.loads(
+        (ROOT / "docs/linux-soc-v1/phase-d-063-rca-source-amendment.json").read_text()
+    )
+    assert (
+        successor["previous_amendment_sha256"]
+        == hashlib.sha256(
+            (ROOT / "docs/linux-soc-v1/tcx-packet-data-plane-amendment.json").read_bytes()
+        ).hexdigest()
+    )
+    assert successor["native_approval_required"] and successor["native_release"] == "BLOCKED"
     for name, expected in v["source_sha256"].items():
         record = amendment["historical_sources"].get(name)
         historical = ROOT / record["snapshot"] if record else ROOT / name
         assert hashlib.sha256(historical.read_bytes()).hexdigest() == expected
         if record:
             assert record["previous_sha256"] == expected
+            current = successor["historical_source_successors"][name]
+            assert current["previous_sha256"] == record["current_sha256"]
             assert (
-                hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == record["current_sha256"]
+                hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == current["current_sha256"]
             )
     assert amendment["native_approval_required"] and amendment["native_release"] == "BLOCKED"
     assert digest(v["source_sha256"]) == v["foundation_bundle_digest"]

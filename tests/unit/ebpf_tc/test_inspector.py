@@ -2,6 +2,7 @@
 
 import os
 import socket
+import threading
 from types import SimpleNamespace
 
 import pytest
@@ -14,7 +15,10 @@ from soc_agent.security_ai.ebpf_tc.unified import UnifiedSession
 
 
 def empty_inventory():
-    return {name: {"rows": []} for name in ("programs", "maps", "links", "ingress", "egress")}
+    return {
+        name: {"rows": []}
+        for name in ("programs", "maps", "links", "cgroup_tree", "ingress", "egress")
+    }
 
 
 def request(command, sequence=1, binding="b" * 64):
@@ -36,10 +40,11 @@ def test_readonly_role_capabilities_and_fixed_inventory_commands(monkeypatch):
         ["-j", "prog", "show"],
         ["-j", "map", "show"],
         ["-j", "link", "show"],
+        ["-j", "cgroup", "tree", "/sys/fs/cgroup"],
         ["-j", "filter", "show", "dev", "lo", "ingress"],
         ["-j", "filter", "show", "dev", "lo", "egress"],
     ]
-    assert [mask for _, mask in calls] == [1 << 21, 1 << 21, 1 << 21, 0, 0]
+    assert [mask for _, mask in calls] == [1 << 21, 1 << 21, 1 << 21, 1 << 21, 0, 0]
     assert supervisor.SUP_MASK == (1 << 39) | (1 << 12)
     assert not supervisor.SUP_MASK & (1 << 21)
     assert inspector.inspector_expected_caps() == dict(
@@ -119,7 +124,7 @@ def test_foreign_link_is_not_adopted_or_deleted(monkeypatch):
         supervisor.sup_inventory(
             dict(bpftool="/fixed/bpftool", tc="/fixed/tc"), mask=inspector.INSPECT_MASK
         )
-    assert len(calls) == 5 and all("show" in argv for argv in calls)
+    assert len(calls) == 6 and all("show" in argv or "tree" in argv for argv in calls)
 
 
 def test_real_ipc_credentials_reject_forged_root_peer():
@@ -183,6 +188,13 @@ def test_post_inspection_failure_does_not_skip_inspector_disposal():
 def test_supervisor_failure_still_calls_owned_tcx_cleanup(monkeypatch):
     calls = []
     session = object.__new__(SupervisedSession)
+    # This fixture bypasses __init__; retain the real control serialization and
+    # diagnostic fields added to Handoff rather than bypassing cleanup methods.
+    session.control_lock = threading.RLock()
+    session.control_failures = []
+    session.control_io = None
+    session.control_audit_failed = False
+    session.sequence = 0
     session.entry_diagnostic_listener = None
     session.ended = False
     session.error = None

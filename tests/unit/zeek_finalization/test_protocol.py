@@ -229,7 +229,7 @@ def test_closed_without_eof_has_bounded_drain_and_no_orphan(tmp_path, monkeypatc
     offset = [0]
     monkeypatch.setattr(
         "soc_agent.security_ai.collectors.live_process.time",
-        SimpleNamespace(monotonic=lambda: time.monotonic() + offset[0]),
+        SimpleNamespace(monotonic=lambda: time.monotonic() + offset[0], time_ns=time.time_ns),
     )
 
     def observed(line):

@@ -119,13 +119,14 @@ def sup_inventory(config, *, mask=SUP_MASK, allow_existing=False):
         ("programs", [config["bpftool"], "-j", "prog", "show"]),
         ("maps", [config["bpftool"], "-j", "map", "show"]),
         ("links", [config["bpftool"], "-j", "link", "show"]),
+        ("cgroup_tree", [config["bpftool"], "-j", "cgroup", "tree", "/sys/fs/cgroup"]),
         ("ingress", [config["tc"], "-j", "filter", "show", "dev", "lo", "ingress"]),
         ("egress", [config["tc"], "-j", "filter", "show", "dev", "lo", "egress"]),
     ):
         SUP_ENTRY_STAGE = "RESOURCE_INSPECTION_" + name.upper()
         query_mask = mask
         if mask & (1 << 21):
-            query_mask = (1 << 21) if name in {"programs", "maps", "links"} else 0
+            query_mask = (1 << 21) if name in {"programs", "maps", "links", "cgroup_tree"} else 0
         body = sup_execute(args, query_mask)
         rows = json.loads(body)
         if (
@@ -186,6 +187,7 @@ class SupervisorCore:
         self.error = None
         self.chain = "0" * 64
         self.cleanup_errors = []
+        self.control_errors = []
 
     def dispatch(self, request):
         command = sup_validate_request(request, self.sequence + 1, self.binding)
@@ -213,7 +215,9 @@ class SupervisorCore:
                 self.closed = command == "STOP"
             status = self.ops.status()
         except (OSError, ValueError, TimeoutError) as exc:
-            self.error = str(exc)
+            self.error = self.error or str(exc)
+            if len(self.control_errors) < 8:
+                self.control_errors.append(dict(command=command, error=str(exc)))
             if command in {"STOP", "STOP_ZEEK"}:
                 self.cleanup_errors.append(str(exc))
             self.state = "ERROR"
@@ -262,6 +266,17 @@ class SupervisorCore:
                     self.before[key]["rows"], fields
                 ):
                     failures.append("SUPERVISOR_RESOURCE_SET_CHANGED:" + key)
+            # Attach target evidence is additional and never authorizes detach.
+            # Old offline fixtures may omit it; newly generated Native images
+            # always obtain it through the fixed read-only Inspector command.
+            if "cgroup_tree" in self.before or "cgroup_tree" in after:
+                if (
+                    "cgroup_tree" not in self.before
+                    or "cgroup_tree" not in after
+                    or sup_json(self.before["cgroup_tree"]["rows"])
+                    != sup_json(after["cgroup_tree"]["rows"])
+                ):
+                    failures.append("SUPERVISOR_RESOURCE_SET_CHANGED:cgroup_tree")
         except (OSError, ValueError, TimeoutError) as exc:
             after = None
             failures.append(str(exc))
@@ -276,6 +291,7 @@ class SupervisorCore:
             cleanup="VERIFIED" if not failures else "CLEANUP_UNVERIFIED",
             failures=failures,
             first_error=self.error,
+            control_errors=list(self.control_errors),
             after=after,
             inspector_exit=getattr(getattr(self.ops, "inspector", None), "exit_evidence", None),
             zeek_cleanup_steps=getattr(self.ops, "lifecycle", None),

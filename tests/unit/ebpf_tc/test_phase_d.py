@@ -79,6 +79,30 @@ def test_combined_release_source_and_component_identity(candidate):
     assert value["native_ai"] == value["dns9"] == "BLOCKED"
 
 
+def test_independent_build_directories_share_verified_launch_identity(candidate, tmp_path):
+    first, identity = candidate
+    second = tmp_path / "independent-build"
+    assert phase_d.prepare(second, deployment_directory=first) == identity
+    first_files = {
+        str(p.relative_to(first)): p.read_bytes() for p in first.rglob("*") if p.is_file()
+    }
+    second_files = {
+        str(p.relative_to(second)): p.read_bytes() for p in second.rglob("*") if p.is_file()
+    }
+    assert first_files == second_files
+    phase_d.validate(second, identity["manifest"], identity["image"])
+
+
+def test_common_launch_path_cannot_substitute_unreviewed_image(candidate, tmp_path):
+    destination = tmp_path / "unreviewed-launch"
+    destination.mkdir()
+    image = destination / "supervisor-image.py"
+    image.write_bytes(b"unreviewed bytes")
+    image.chmod(0o400)
+    with pytest.raises(ValueError, match="UNIFIED_IMAGE_CHANGED"):
+        phase_d.prepare(tmp_path / "rejected-build", deployment_directory=destination)
+
+
 @pytest.mark.parametrize("mutation", ["scope", "source", "dns_scope"])
 def test_scope_or_source_failure_stops_before_authentication(candidate, monkeypatch, mutation):
     directory, identity = candidate

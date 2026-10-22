@@ -29,9 +29,9 @@ def test_current_bundle_and_native_boundaries():
     c1 = json.loads((ROOT / "docs/linux-soc-v1/tcx-packet-data-plane-amendment.json").read_text())
     assert amendment["current_bundle"] == c1["previous_zeek_bundle"]
     assert amendment["current_bundle_digest"] == c1["previous_zeek_bundle_digest"]
-    assert c1["current_zeek_bundle"] == bundle()
-    assert c1["current_zeek_bundle_digest"] == digest(bundle())
-    assert {k for k in bundle() if bundle()[k] != v["bundle"][k]} == {
+    historical = c1["current_zeek_bundle"]
+    assert c1["current_zeek_bundle_digest"] == digest(historical)
+    assert {k for k in historical if historical[k] != v["bundle"][k]} == {
         "live_process.py",
         "packet_producer.py",
     }
@@ -39,17 +39,32 @@ def test_current_bundle_and_native_boundaries():
     assert c1["native_approval_required"] is True
     assert amendment["changed_files"] == ["live_process.py"]
     assert amendment["native_approval_required"] is True
+    successor = json.loads(
+        (ROOT / "docs/linux-soc-v1/phase-d-063-rca-source-amendment.json").read_text()
+    )
+    assert (
+        successor["previous_amendment_sha256"]
+        == hashlib.sha256(
+            (ROOT / "docs/linux-soc-v1/tcx-packet-data-plane-amendment.json").read_bytes()
+        ).hexdigest()
+    )
+    assert successor["previous_zeek_bundle"] == historical
+    assert successor["current_zeek_bundle"] == bundle()
+    assert successor["current_zeek_bundle_digest"] == digest(bundle())
+    assert successor["zeek_changed_sources"] == sorted(
+        k for k in set(bundle()) | set(historical) if bundle().get(k) != historical.get(k)
+    )
+    assert successor["native_approval_required"] and successor["native_release"] == "BLOCKED"
     for name, sha in v["source_sha256"].items():
         if name == "src/soc_agent/gui/operator_view.py":
             # Immutable f020f71 presentation evidence; later views may add collectors.
             assert sha == "eb208b3276762b64bdcfd0775ae85ca184917a29314ec9debf00ffb2d722d87e"
             continue
-        current_sha = hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-        if name == "src/soc_agent/security_ai/collectors/live_process.py":
-            assert sha == amendment["previous_bundle"]["live_process.py"]
-            assert current_sha == amendment["current_bundle"]["live_process.py"]
-        else:
-            assert current_sha == sha
+        # Old Native evidence records its old source bundle, not current code.
+        # The immutable successor amendment separately pins every current file.
+        key = Path(name).name
+        assert sha == v["bundle"][key]
+        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == bundle()[key]
     assert v["verdict"] == "PARTIAL"
     assert v["same_handle_native_proof"] == "BLOCKED_NO_REVIEWED_NATIVE_PROVIDER"
     assert v["native_counter_retrieval"] == "UNKNOWN"

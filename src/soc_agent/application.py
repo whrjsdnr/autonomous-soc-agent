@@ -6,9 +6,9 @@ from pathlib import Path
 
 from soc_agent.api.service import ApplicationService
 from soc_agent.api.startup import open_store
+from soc_agent.application_contracts import DeploymentDescriptor
 from soc_agent.approval import ApprovalManager
 from soc_agent.assessment import ThreatAssessor
-from soc_agent.deployment import DeploymentDescriptor
 from soc_agent.evaluation import migrate_evaluations
 from soc_agent.execution import GovernedExecutor
 from soc_agent.execution.durable import DurableExecutor, ExecutionStore

@@ -143,7 +143,8 @@ def test_inventory_failure_and_foreign_resources_never_admit_attach(monkeypatch)
     monkeypatch.setattr(engine, "sup_execute", execute)
     with pytest.raises(ValueError, match="EXISTING_LINK"):
         engine.sup_inventory(dict(bpftool="/fixed/bpftool", tc="/fixed/tc"))
-    assert len(calls) == 5
+    assert len(calls) == 6
+    assert calls[3] == ["/fixed/bpftool", "-j", "cgroup", "tree", "/sys/fs/cgroup"]
 
     def denied(*_):
         raise ValueError("QUERY_EPERM")

@@ -20,6 +20,27 @@ def test_authenticated_session_waits_for_real_zeek_ready_before_start(
     supervised_mode = authentication_failed == "supervised"
     if supervised_mode:
         authentication_failed = False
+
+    # TTY/START lifecycle uses an explicitly inert ordinary-user image. The real
+    # standalone 0.5.16 installation gate is not this mocked Root boundary.
+    def inert_image(output, *, analysis=False):
+        import hashlib
+
+        assert analysis
+        release = session.installed_release()  # Read-only current installation.
+        body = b"raise SystemExit('MOCK_ROOT_IMAGE_MUST_NOT_EXECUTE')\n"
+        output.write_bytes(body)
+        output.chmod(0o400)
+        return session.UnifiedImage(
+            path=output.absolute(),
+            sha256=hashlib.sha256(body).hexdigest(),
+            manifest=release.identity,
+            previous_manifest=release.identity,
+            version=release.version,
+            action="CHECK",
+        )
+
+    monkeypatch.setattr(session, "prepare_image", inert_image)
     identity = session.prepare(candidate)
     scope = json.loads((candidate / "release.json").read_text())["capture_scope_digest"]
     real_popen, real_run = subprocess.Popen, subprocess.run
@@ -121,6 +142,11 @@ def test_authenticated_session_waits_for_real_zeek_ready_before_start(
         return real_popen(argv, **kwargs)
 
     def run(argv, **kwargs):
+        if argv == ["/usr/bin/ss", "-lnut", "sport = :53"]:
+            # Only the modeled probe is used; no test DNS server or query runs.
+            return subprocess.CompletedProcess(
+                argv, 0, "tcp LISTEN 127.0.0.53:53\nudp UNCONN 127.0.0.53:53\n", ""
+            )
         if "--approve" not in argv:
             return real_run(argv, **kwargs)
         order.append("mock_probe")
@@ -228,3 +254,23 @@ def test_authenticated_session_waits_for_real_zeek_ready_before_start(
     assert result["forwarded_probe_packets"] == 0
     timing = json.loads((candidate / "live-attempt-1/session-timing.json").read_text())
     assert timing["worker_exited"] and timing["whole_deadline_met"]
+
+
+@pytest.mark.parametrize("version", [None, "0.6.2", "0.6.3"])
+def test_real_standalone_image_keeps_exact_installed_version_gate(tmp_path, monkeypatch, version):
+    from soc_agent.security_ai.ebpf_tc import checksum_image
+
+    monkeypatch.setattr(
+        checksum_image,
+        "installed_release",
+        lambda: None if version is None else SimpleNamespace(version=version),
+    )
+    monkeypatch.setattr(
+        checksum_image,
+        "payload_from_release",
+        lambda *args: pytest.fail("Unapproved installation reached payload preparation"),
+    )
+    output = tmp_path / "never-created.py"
+    with pytest.raises(ValueError, match="CHECKSUM_INSTALLED_0516_REQUIRED"):
+        checksum_image.prepare(output, analysis=True)
+    assert not output.exists()

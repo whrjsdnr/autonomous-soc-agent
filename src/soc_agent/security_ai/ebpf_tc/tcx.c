@@ -9,10 +9,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-int soc_tcx_native_admitted(void) {
-    /* Same process-local root-authority admission; no global release enable. */
-    return soc_native_gate();
-}
 static int fail(struct soc_tcx *l) {
     if(l->phase!=SOC_LINK_ORPHANED)l->phase=SOC_LINK_UNVERIFIED;l->ops->record(l,"TCX_CLEANUP_UNVERIFIED");return -EUCLEAN;
 }

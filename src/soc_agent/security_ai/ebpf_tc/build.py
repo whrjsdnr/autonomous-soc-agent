@@ -44,6 +44,13 @@ def bundle() -> dict[str, str]:
 
 
 def compile_native(destination: Path) -> dict[str, str]:
+    from soc_agent.security_ai.ebpf_tc.source_guard import SourceGuard
+
+    with SourceGuard(ROOT.parent.parent):
+        return _compile_native(destination)
+
+
+def _compile_native(destination: Path) -> dict[str, str]:
     from soc_agent.security_ai.ebpf_tc.password_policy import validate_pam_inputs
 
     validate_pam_inputs({key: path.read_text() for key, path in AUTH_POLICY.items()})

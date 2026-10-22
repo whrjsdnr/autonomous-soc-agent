@@ -70,6 +70,7 @@ class EventOrdering:
 
     def __init__(self):
         self.maximum: int | None = None
+        self.maximum_source: dict[str, int] | None = None
         self.emitted: int | None = None
         self.inversions = self.max_delta = self.late = self.reordered = 0
         self.cpu_counts: dict[int, int] = {}
@@ -91,11 +92,20 @@ class EventOrdering:
                         timestamp_ns=event.ns,
                         previous_max_ns=previous,
                         inversion_ns=delta,
+                        previous_max_cpu=self.maximum_source["cpu"],
+                        previous_max_cpu_sequence=self.maximum_source["cpu_sequence"],
+                        previous_max_delivery_sequence=self.maximum_source["delivery_sequence"],
                     )
                 )
             if delta > self.lateness_ns or self.emitted is not None and event.ns < self.emitted:
                 self.late += 1
                 raise ValueError("EBPF_REORDER_LATE_CAPTURE_GAP")
+        if previous is None or event.ns > previous:
+            self.maximum_source = dict(
+                cpu=event.cpu,
+                cpu_sequence=event.cpu_sequence,
+                delivery_sequence=event.delivery_sequence,
+            )
         self.maximum = event.ns if previous is None else max(previous, event.ns)
 
     def snapshot(self) -> dict:

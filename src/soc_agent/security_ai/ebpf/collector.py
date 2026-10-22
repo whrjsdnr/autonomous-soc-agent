@@ -30,6 +30,9 @@ class EBPFCollector:
         self.queue: deque[Event] = deque()
         self.queue_peak = self.received = self.accepted = self.dns_candidates = 0
         self.discarded = self.overflow_rejected = 0
+        self.discard_reasons = dict(
+            REORDER_REJECT=0, QUEUE_REJECT=0, ERROR_PENDING_ABORT=0, POST_ERROR_POLICY_DISCARD=0
+        )
         self.flow = FlowAssembly(str(plan.session_id))
         self.cpu_sequences: dict[int, int] = {}
         self.attempt_gaps = 0
@@ -127,6 +130,7 @@ class EBPFCollector:
         if self.flow.closed:
             return
         if self.state == "ERROR":
+            self.discard_reasons["ERROR_PENDING_ABORT"] += len(self.queue)
             self.discarded += len(self.queue)
             self.queue.clear()
         while self.queue and self.state == "METADATA_STREAM_ACTIVE":
@@ -140,7 +144,7 @@ class EBPFCollector:
         self.request_checkpoint()
 
     def fail(self, code: str) -> None:
-        self.state, self.last_error = "ERROR", code
+        self.state, self.last_error = "ERROR", self.last_error or code
         if self.store:
             try:
                 self.request_checkpoint()
@@ -206,12 +210,14 @@ class EBPFCollector:
             try:
                 self.ordering.observe(e)
             except ValueError as error:
+                self.discard_reasons["REORDER_REJECT"] += 1
                 self.discarded += 1
                 self.fail(str(error))
             finally:
                 self._duration("clock_reordering", started)
         if len(self.queue) >= self.plan.queue_capacity:
             self.overflow_rejected += 1
+            self.discard_reasons["QUEUE_REJECT"] += 1
             self.discarded += 1
             self.fail("EBPF_QUEUE_OVERFLOW_CAPTURE_GAP")
         self.queue.append(e)
@@ -311,6 +317,7 @@ class EBPFCollector:
         self.received += 1
         self.discarded += 1
         self.post_error_discarded += 1
+        self.discard_reasons["POST_ERROR_POLICY_DISCARD"] += 1
         self.ordering.cpu_counts[event.cpu] = self.ordering.cpu_counts.get(event.cpu, 0) + 1
 
     def counters(self, value: Counters) -> None:
@@ -395,6 +402,7 @@ class EBPFCollector:
             clock=self.clock_contract.snapshot() if self.clock_contract else None,
             ordering=self.ordering.snapshot() if self.clock_contract else None,
             post_error_discarded=self.post_error_discarded,
+            discard_accounting=self.discard_accounting(),
             cpu_sequence=dict(
                 contract="PER_CPU_KERNEL_OBSERVATION_ATTEMPTS_NOT_RING_DELIVERIES",
                 unrepresented_attempts=self.attempt_gaps,
@@ -515,6 +523,23 @@ class EBPFCollector:
     def dns_events(self) -> list[dict]:
         return []  # Port 53 candidates are not Zeek DNS transactions.
 
+    def discard_accounting(self) -> dict:
+        """Disjoint userspace domains, never an inferred kernel loss counter."""
+        return dict(
+            domain="DECODED_USERSPACE_METADATA",
+            session_id=str(self.plan.session_id),
+            generation=self.plan.generation,
+            reasons=dict(self.discard_reasons),
+            reason_sum=sum(self.discard_reasons.values()),
+            discarded=self.discarded,
+            received=self.received,
+            applied=self.accepted,
+            pending=len(self.queue),
+            balanced=self.received == self.accepted + len(self.queue) + self.discarded,
+            kernel_drop=None,
+            post_error_is_subset=True,
+        )
+
     def metrics(self) -> dict:
         return dict(
             fixture_events=self.received if self.plan.origin.endswith("FIXTURE") else None,
@@ -547,6 +572,7 @@ class EBPFCollector:
             clock=self.clock_contract.snapshot() if self.clock_contract else None,
             ordering=self.ordering.snapshot() if self.clock_contract else None,
             post_error_discarded=self.post_error_discarded,
+            discard_accounting=self.discard_accounting(),
             finalized_flows=len(self.flow.finalized),
             active_flows=len(self.flow.active),
             dns_state="PORT53_CANDIDATE" if self.dns_candidates else "DNS_VISIBILITY_UNKNOWN",

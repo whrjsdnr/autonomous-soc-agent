@@ -120,6 +120,7 @@ def test_broker_reply_error_survives_controller_rejection():
     handoff.control_lock, handoff.control_failures = threading.RLock(), []
     handoff.qualification_only, handoff.ended = False, False
     handoff.state, handoff.deadline = "BROKER_READY", time.monotonic() + 10
+    handoff.data = SimpleNamespace(error=None)  # __new__ fixture retains real command preflight.
     handoff.plan = SimpleNamespace(approval="a" * 64, broker=SimpleNamespace(uid=1000, gid=1000))
     handoff.sequence, handoff.rate = 0, deque(maxlen=32)
     handoff._scope = lambda: None

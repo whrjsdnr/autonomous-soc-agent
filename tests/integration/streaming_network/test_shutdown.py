@@ -303,7 +303,8 @@ async def test_duplicate_stop_and_backend_close_wait_for_closed_and_drain(tmp_pa
     monkeypatch.setattr("soc_agent.security_ai.research.adapter.defaults", research_paths)
     owner, client = await connected(tmp_path / "session", monkeypatch)
     backend = Backend(GUIConfig(data_directory=tmp_path / "backend"))
-    backend.streaming_monitoring = owner
+    monkeypatch.setitem(backend._owners, "streaming_monitoring", owner)
+    assert backend.streaming_monitoring is owner
     entered, release = asyncio.Event(), asyncio.Event()
     original = owner.observe
 

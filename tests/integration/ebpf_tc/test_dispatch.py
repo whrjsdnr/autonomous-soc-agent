@@ -158,7 +158,7 @@ int main(void) {
     struct soc_state s={0};s.plan.version=SOC_TCX_VERSION;s.context=(void *)1;
     struct soc_tcx l={.session=&s,.ops=&soc_tcx_real_ops,.fd=-1};
     struct soc_request q={.operation=2};
-    return !soc_tcx_native_admitted() && soc_tcx_dispatch(&l,&q)==-EPERM &&
+    return soc_native_gate()==1 && !soc_tcx_native_admitted() && soc_tcx_dispatch(&l,&q)==-EPERM &&
         soc_program_fd(&s)==-EPERM?0:1;
 }
 """)

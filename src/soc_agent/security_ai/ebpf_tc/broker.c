@@ -131,7 +131,7 @@ int main(int argc,char **argv) {
     if(argc==2 && !strcmp(argv[1],"--inspect") && getuid()==geteuid() && getuid()) {
         puts("{\"stage\":\"B2A\",\"native_gate\":false,\"kernel_load\":false,\"tc_attach\":false}");return 0;
     }
-    if(argc!=5)return 2;
+    if(argc!=5) {fputs("EBPF_BROKER_NATIVE_EXECUTION_BLOCKED:ARGC\n",stderr);return 2;}
     int fd[4];for(int i=0;i<4;i++) {char *end;long n=strtol(argv[i+1],&end,10);
         if(*end || n<3 || n>31)return 2;fd[i]=n;}
     for(int i=0;i<4;i++)for(int j=i+1;j<4;j++)if(fd[i]==fd[j])return 2;

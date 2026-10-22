@@ -80,6 +80,24 @@ def test_processing_failure_is_first_failure_and_does_not_require_control_revoca
     directory = tmp_path / "candidate"
     shutil.copytree(source, directory)
     monkeypatch.setattr(offload_session.os, "isatty", lambda fd: True)
+    # Phase D must never enter the failed legacy reader or Operator API path.
+    # Authentication and DNS capture are explicitly mocked; no Root or traffic.
+    from soc_agent.linux_runtime.operator import OperatorServer
+
+    calls = []
+
+    async def forbidden_start(*_args, **_kwargs):
+        pytest.fail("Phase D entered a legacy reader or Operator START path")
+
+    original_stop = startup.LiveZeekCollector.stop
+
+    async def adapter_stop(self, *args, **kwargs):
+        calls.append("shared_adapter_stop")
+        return await original_stop(self, *args, **kwargs)
+
+    monkeypatch.setattr(startup.LiveZeekCollector, "start", forbidden_start)
+    monkeypatch.setattr(OperatorServer, "start", forbidden_start)
+    monkeypatch.setattr(startup.LiveZeekCollector, "stop", adapter_stop)
     monkeypatch.setattr(startup, "confirm_scope", lambda *_: True)
     monkeypatch.setattr(SupervisedSession, "authenticate_native", lambda *_: None)
     monkeypatch.setattr(SupervisedSession, "observe", lambda self: self.snapshot())
@@ -89,7 +107,12 @@ def test_processing_failure_is_first_failure_and_does_not_require_control_revoca
             self.data.error = "EBPF_REORDER_LATE_CAPTURE_GAP"
 
     monkeypatch.setattr(SupervisedSession, "command", command)
-    monkeypatch.setattr(offload_session, "execute", lambda *args, **kwargs: {"state": "CLOSED"})
+
+    def dns_execute(*_args, **_kwargs):
+        calls.append("phase_d_dns")
+        return {"state": "CLOSED"}
+
+    monkeypatch.setattr(offload_session, "execute", dns_execute)
     with pytest.raises(ValueError, match="EBPF_REORDER_LATE_CAPTURE_GAP"):
         phase_d.execute(directory, identity["manifest"], identity["image"])
     result = json.loads((directory / "supervised-result.json").read_text())
@@ -97,6 +120,7 @@ def test_processing_failure_is_first_failure_and_does_not_require_control_revoca
     assert result["first_failure"]["stage"] == "TCX_DATA_PROCESSING"
     assert result["first_failure"]["errno"] is None
     assert not result["tcx"]["control_failures"]
+    assert calls == ["phase_d_dns", "shared_adapter_stop"]
 
 
 @pytest.fixture(scope="module")

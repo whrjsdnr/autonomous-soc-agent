@@ -10,6 +10,9 @@
  * a reviewed code/release change, new hashes and explicit installation approval. */
 static int qualification_admitted;
 int soc_native_gate(void) {return qualification_admitted;}
+/* TCX must read the sealed-authority admission itself, not a preemptible
+ * public gate symbol. Interposing the Legacy gate cannot grant TCX admission. */
+int soc_tcx_native_admitted(void) {return qualification_admitted;}
 /* Admission is process-local and has no environment/CLI toggle. The root entry
  * calls this only after OS policy and purpose-bound human scope verification.
  * An exec'd Broker must present a root-created, sealed authority FD, never an

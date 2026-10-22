@@ -1,303 +1,644 @@
-# NATIVE_SOC_PHASE_D Final Verification
+# NATIVE_SOC_PHASE_D Diagnostic E2E Report
 
 ## Overall Status
 
-**FAILED — the one authorized0.6.2 integrated execution failed.**
-DNS analysis met its internal deadline and parsed the controlled UDP/TCP test.
-TCX encountered an out-of-window timestamp inversion; subsequent Control and DNS
-shutdown failures prevented complete integration. Kernel Maps/Links/lo filters
-were empty at final inspection, but the global Program set changed, so overall
-Cleanup remains UNVERIFIED. There was no second Native execution or Root retry.
-Nonprivileged RCA/fixes/tests produced a separate, unexecuted0.6.3 candidate.
+**BLOCKED awaiting exact-SHA diagnostic-only approval and privileged preflight.**
+Offline diagnostic preparation is verified; actual Unified Native E2E is PENDING.
+Production qualification remains FAILED because the full Export regression had
+2 failures. Those results are not erased or called flaky. No Root installation,
+OS authentication, Native capture, BPF load/attach or DNS traffic was executed.
+Native AI, DNS9 and production promotion remain BLOCKED.
 
-## Git / Release / SHA
+## Export Failure Assessment
 
-Execution Git: `b05927d02324a086b3c414e2fdcebe56d44cd7be` (HEAD=origin/main at launch).
-Release installed and executed: **0.6.2**.
+| Failure | Diagnostic-only impact | Remaining concern |
+|---|---|---|
+| Operator response Timeout | NON_BLOCKING_FOR_DIAGNOSTIC_E2E for the direct headless Phase D entry | Not used by that entry; operational API timeout/outcome ambiguity still unresolved |
+| Legacy Zeek READY/ACTIVE assertion | NON_BLOCKING_FOR_DIAGNOSTIC_E2E for this specific polling assertion | Preparation, cleanup, decoder and host resources remain shared; resource latency not proven harmless |
+| Targeted SIGTERM negative-control child READY timeout | NON_BLOCKING_FOR_DIAGNOSTIC_E2E for failure before the unguarded baseline received a signal | Historical child startup delay UNKNOWN; actual protected branch passed |
+| Existing Hook/resource ownership | Conditional privileged preflight required | UNKNOWN is not absence; Inspector failure/conflict blocks attach |
 
-|Approved artifact|SHA256|
+These classifications do not waive the required Native READY, START, STOP,
+SIGTERM, Deadline, integrity or cleanup gates. They justify requesting one limited
+diagnostic execution, not executing it without explicit approval.
+
+### Operator evidence
+
+Full test: `test_fixture_pipeline_peer_approval_simulation_and_restart[SCRIPTED]`.
+`operator_request` timed out at `reader.readuntil`, asyncio TIMEOUT5s, not a kernel
+errno. Original immutable read-only test Audit records execute request, STARTED,
+SIMULATED with real_os_handler_calls0, and OPERATOR_RECEIPT. The pure operation
+committed despite missing the client response deadline; automatic retry is unsafe.
+Per-stage monotonic latency, original CPU/memory/thread/process residual state
+and I/O contention were not recorded. Stored wall timestamps are not substituted
+for those missing measurements. Exact latency cause remains UNKNOWN.
+
+The direct Phase D path runs `phase_d.execute -> supervisor_startup.execute ->
+SupervisedSession.command / offload_session.execute`. It does not start the
+Operator API or call operator_request. The real startup regression now fails if
+OperatorServer.start is reached. No Operator timeout, permission or audit policy
+was changed to obtain this classification.
+
+### Zeek READY evidence and shared boundary
+
+Full test: `test_partial_append_drains_after_exit_and_recovers_no_inference`.
+A complete sequence1 READY line exists in the original mock stream. Its immutable
+Audit records ZEEK_STREAM_PROGRESS sequence1 and total_received1, proving the
+record was consumed. COLLECTOR_STARTED/ACTIVE was not observed before the test's
+fixed100ms assertion; this does not prove READY was absent. Exact historical
+thread scheduling remains UNKNOWN. The existing legacy path offloads polling,
+including empty network/DNS persistence and progress audit, through to_thread.
+
+Phase D prepares that adapter and closes it, but does not call its `start()`;
+DNS uses offload_session's separate analysis-worker READY Event. This branch
+checks analysis_errors after wake-up, verifies START peer/session/release/scope/
+sequence, then sends the one-shot START before capture. A new assertion in the
+existing real startup test forbids the legacy start path and confirms both the
+Phase D DNS worker and shared adapter stop execute, even after TCX processing
+failure. Decoder, persistence and host resources are still shared risks: actual
+DNS deadline and cleanup must be observed in the authorized Native run.
+
+### Additional targeted startup observation
+
+The first focused root-worktree run was173PASS/1FAIL: the unguarded SIGTERM
+negative-control child did not print READY within its test's3s readiness bound.
+No signal had yet been delivered. The guarded actual termination case passed.
+The complete module subsequently passed7/7 in isolation. Current ordinary-user
+import-to-READY measured1.304s, available memory7,339,504kB and loadavg0.37/0.67/1.03;
+these current samples do not reconstruct the historical failure. No timeout was
+increased. The final fresh independent Export focused run passed all174 tests.
+
+## Approval / Existing Policy
+
+No approval verifier was modified. AGENTS.md requires relevant pytest/security
+validation; the existing NativeCampaign enforces exact Release/Scope, single-use
+approval bytes/hash, budget and OS authority. It contains no all-pytest-pass gate.
+Prior full-suite-only release qualification remains failed. The latest user
+instruction permits preparing a limited diagnostic exception request while
+preserving production constraints, not automatic Root/Native execution.
+
+A diagnostic-purpose approval must explicitly acknowledge the unresolved full
+regression and grant exactly one fixed-image installation and one Native attempt.
+This report/request is REQUESTED, not APPROVED. The existing receipt and terminal
+scope confirmation remain required. Unknown privileged resources are investigated
+by the approved fixed Inspector before any TCX attach; no foreign resources may
+be deleted. No policy code or Native Gate was weakened.
+
+## Release — Diagnostic Candidate Only
+
+| Identity | SHA256 |
 |---|---|
-|Manifest|`a63034f77d3a4ea9b1b2f9398adb2c2ceef53eff8ac3db3b21f5d16b14d09416`|
-|Bundle|`d2425596030b1bc07b6e60e6c0bedacbeaf9deb2c8b9d029c042d1b8d802cc6d`|
-|Execution image|`e131aafd8c5f52664c78b3585f0c0638696d76f5d3e4a69e1866faba3ace1b0c`|
-|Root manifest|`56e1b7bc8a2a7a2ebd6902899f349b5fae7432f24d492ce8dab1a92b90e72dc4`|
-|TCX object|`9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06`|
+| Version | `0.6.3`, LIMITED_DIAGNOSTIC_NOT_PRODUCTION |
+| Phase D Manifest | `06a86ab9357803a586880d9a255a86fdf4509e154beb7688341b006602ec1fb2` |
+| Source Bundle | `00cedc05322547f87798ef8f248b6edbaae68098b772af5691b707bfb4263ab9` |
+| Execution Image | `7789cefc7c5215f093452fb2b3971d1927773fbf388f2644557a7bb7d5e83d8d` |
+| Root Manifest | `162d2f949ebb923b7aa83410615cde8bcdbaa836705768c61364e1bf0c52bc01` |
+| Frozen source snapshot,1,699 inputs | `66faec30073be62ac7395014c2b5ffe4b4ef9269272d9a57c128ec2825638860` |
+| TCX object | `9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06` |
 
-All nine installed files were verified read-only for SHA,root:root and0555/0444.
-The prior0.6.1 installation is retained at `/usr/libexec/.soc-agent-ebpf.rollback-`
-plus `1f205935cdb344178a848108b508d20a9f6e1028ad56f718b0a61cb4269478d3`.
-The older0.5.16 rollback is also preserved. No rollback was executed.
+The only new code edit in this task strengthens an existing branch-selection and
+shared-cleanup regression; product sources and authority rules are unchanged.
+A single formatting blank line was normalized with AST identity proven. Fresh
+builds after that edit, not earlier build certificates, are the final diagnostic
+build evidence. All26 artifacts match between independent build-A/build-B;
+physical build directories differ while the reviewed immutable deployment path
+is the explicit same input. Runtime artifact hashes also match the earlier
+candidate; this does not transfer any previous approval to this purpose.
 
-## Approval / Budget
+Baseline Git is9a12fe9e5b7a3569f9cfcf82cbdd92e55e8436b0. The existing release
+branch is `release/native-soc-phase-d-0.6.3`; no shared-main push is allowed.
+Final Commit/Tree and index-to-snapshot proof are recorded after commit in private
+`diagnostic-e2e-review/post-commit.json` and `diagnostic-approval-request.md`.
+The generated report is excluded from its own source digest; its final bytes
+are bound by that Git tree. This avoids claiming a self-referential Commit SHA.
 
-- Exact user approval materialized as `live-062/approval-062-user.json`.
-- Approval receipt SHA: `9dbcca0ee2633ed2069ec5962c152b69bb4693d1b34db98c7ec264622c632f64`.
-- Attempt: `fd1a892416fd4bccab579d5ae57764da`; public approval metadata is not an auth token.
-- Scope: net:[4026531833],lo/Ingress,300s/4096/Queue32,privileged roleAS256MiB/CPU20s.
-  DNS: same namespace/lo,127.0.0.53:53,native-0516.localhost. A,UDP1/TCP1,
-  <=10s active/7s capture/32 packets/snaplen512; ZeekRAM512MiB/CPU1.
-- One terminal scope confirmation and one pinned sudo authentication invocation;
-  password remained in the OS TTY. No downstream sudo-cache dependency.
-- Native **2/5 used**, Root **2/5 used**; each3 remaining. One reservation was
-  appended before this executor, then FAILED finish, sequence4. The original
-  declaration and older campaign records were not reset. Installation succeeded.
-- No0.6.3 receipt, reservation, installation, authentication, load or attach.
+## Verification
 
-## Unified Supervisor
+- Final independent Export safety/core regression: **174PASS**,88.12s, exit0.
+- Includes exact receipt/budget/single use, Inspector privilege isolation and
+  owned-resource preservation, TTY/START peer/session/replay/timeouts, SIGTERM,
+  first-error/partial failure cleanup, Clock194ms/10ms bound, Phase D Plan/Scope,
+  flow eligibility, real capless file-only Zeek READY before START, and the two
+  previously failing modules. All Root/authentication/capture entries are mocked
+  or denied; real IPC and owned ordinary-user test-child signals are distinguished
+  from actual Native capture. No new test count is treated as Native evidence.
+- Final SourceGuard and start/end path-hash maps match in release view and fresh
+  Export. The earlier user Workspace remains dirty; only the qualified source
+  view, Export and index are compared, not unrelated user files.
+- Fresh independent dual build:26/26 equal. BuildA 10.466s;
+  BuildB 10.376s. These are build timings, not Capture metrics.
+- Previous full Export remains5909PASS/2FAIL/30SKIP. **Not rerun** under the latest
+  E2E-first priority; not called production qualified. Prior Workspace3286PASS
+  supplementary result is historical; it is not a fresh whole-suite success.
+- Earlier isolated modules33PASS and first diagnostic Export174PASS are separate
+  evidence; the root173PASS/1FAIL is retained, not overwritten by later passes.
+- Ruff/Format/Diff and actual staged-blob/Source Snapshot comparisons are required
+  before the diagnostic-branch commit; final results are in the postcommit proof.
 
-Session: `fe6d42c5-c314-4075-91dd-bfe298d9b795`.
-The existing Inspector verified pre-attach resource inventory with no Hook conflict.
-Broker P/BoundingBPF+NET_ADMIN, E/I/A0 while idle; Inspector separately retained
-SYS_ADMIN. GUI/Network14/DNS adapters remained ordinary user components.
-Shared Release/Session/Approval and separate collector provenance were preserved.
+## Native E2E / Eligibility — NOT EXECUTED
 
-The actual saved Supervisor `first_failure` was **null**, despite a processing
-failure: background STATUS handling recorded HANDOFF_COMMAND_FAILED instead of
-raising through the main-loop exception boundary. Do not mistake null for no error.
-The precise first data failure is preserved in data_plane.error, processing.last_error
-and ordering.examples. Main CLI returned0 even though result and Ledger said FAILED;
-this exit-status defect is fixed for the new candidate, not rewritten in old evidence.
+TCX Capture, Network14 new candidates, DNS capture/analysis, Supervisor Native
+lifecycle and whole Native Cleanup are PENDING. No new packet, feature, DNS,
+loss, CPU/RSS, flow completion or cleanup measurements exist.
+Historical Release0.6.2 remains FAILED:194.004499ms inversion root cause UNKNOWN;
+10ms bound unchanged. Historical dispositions remain late reject1 + pending
+abort1 + post-error policy discard2245 =2247. Existing four Network14 candidates
+remain INCOMPLETE; unpreserved candidates UNKNOWN. No eligibility relaxation,
+NaN/Inf replacement, timestamp rewrite or fixture-to-Native promotion occurred.
 
-## TCX Native Capture
+## cgroup Ownership and Minimum Native Conditions
 
-- Load/Attach VERIFIED: Program6331,tag5d24af0965a164b7,Link11,ifindex1,attach type46.
-- Generation **9245281928320049646**, above2^63, retained as positive uint64 in
-  journal/link/counter evidence. No generation coercion or SQL overflow was observed.
-- **2433 received /186 Network14 accepted /2247 discarded**, queue rejection0.
-  Post-error discard2245 is a subset of2247; the remaining two were pending/error
-  metadata. Do not double-count those subsets or call them Kernel packet loss.
-- Owned final Counter: observed2435,emitted2433,delivered2433,unsupported2,
-  ring reservation failures0,malformed0,disabled0,budget0. Counter query succeeded.
-- Final data sequence2435,2436 total frames; Counter and CLOSED received.
-  Socket send failures0, no EAGAIN. Kernel-wide drops UNKNOWN.
-- Ring/terminal transport accounting survived the processing error, but normal
-  processing Drain is FAILED. Receipt closure is not successful feature processing.
+Historical cgroup programs6332/6336 ownership stays UNKNOWN. Their absence,
+ownership or leak status cannot be inferred from the ordinary-user diagnostics.
+Before any approved attach the fixed privileged Inspector must successfully
+snapshot Program/Map/Link, `/sys/fs/cgroup` attach targets and lo ingress/egress
+filters, check TCX ownership/collision, and bind observations to this session.
+After owned TCX FD release it repeats the inspection. Other-service programs are
+never detached. Query failure is not absence; unknown unsafe Hook ownership blocks
+capture. Historical zero owned Maps/Links/lo-filters does not upgrade global Cleanup.
 
-## DNS Native Analysis
+## Budget / Requested Scope
 
-### Capture / Analysis / Export
+Actual Ledger usage stays Native2/5 and Root2/5, three remaining each. No new
+reservation or attempt was made. All8 protected user files and104 historical
+records are unchanged; Ledger SHA remains
+`a8c59d0468ad30bdd313b2d98538c6ae531371edb205fdf782efdf2cd4b2df60`.
+Existing0.6.2 installation remains unchanged, Root Manifest
+`56e1b7bc8a2a7a2ebd6902899f349b5fae7432f24d492ce8dab1a92b90e72dc4`.
 
-- Controlled UDP and TCP each sent exactly one query and received a response.
-- Twelve metadata copies reached Zeek: UDP2/TCP10, CHECKSUM_PARTIAL_CONFIRMED,
-  checksum rejection0. Original/corrected provenance chain checks remained enforced;
-  no raw PCAP was persisted. No offload, DNS configuration or external traffic change.
-- Zeek parsed **2 queries /2 responses /2 matching transactions** (UDP1/TCP1).
-  Analyzer dispatch4, emitted DNS events2, adapter rejected0. Normalized diagnostics
-  persisted two DNS plus two Network events; four audit chains verify read-only.
-- Counter/CLOSED observed, final stream sequence19, duplicates0,gaps0,
-  `protocol_finalized=true`, container exit0/absent, no analysis cleanup failures.
-- Raw-IP metadata12 remains UNSUPPORTED for Network14, never converted into TCP/UDP.
-- Sidecar completion still FAILED with SUPERVISOR_CLIENT_CLOSED while waiting for
-  the Supervisor-owned capture child. No completion.json was produced. Root capture
-  terminal metadata had been read but was not published before this wait failure;
-  final Root socket-drop counters cannot be recovered from the retained receipts.
-  Zeek input counters are not substitutes for those socket counters.
-- DNS parsing/matching and the analysis deadline are independently VERIFIED for
-  this controlled test. Full capture/export/lifecycle integrity remains INCOMPLETE;
-  saved session DNS visibility UNKNOWN is not retroactively rewritten.
+Requested diagnostic exception, after explicit exact-SHA approval only:
 
-### Timing (one monotonic domain, relative to DNS worker start530711.480792154)
+- One fixed-image Root update of9 files in `/usr/libexec/soc-agent-ebpf`, root:root,
+  executables0555, others0444. Atomically retain exact0.6.2 rollback at
+  `/usr/libexec/.soc-agent-ebpf.rollback-56e1b7bc8a2a7a2ebd6902899f349b5fae7432f24d492ce8dab1a92b90e72dc4`;
+  verify no backup collision and installed SHA before operation.
+- One Unified Supervisor Native attempt. TCX net:[4026531833],lo/Ingress,
+  max300s/4096 metadata/Queue32, each privileged role AS256MiB/CPU20s.
+- DNS same namespace/lo,127.0.0.53:53, `native-0516.localhost.` A, UDP1/TCP1;
+  shared10s/capture<=7s/packets32/snaplen512/Queue32. Existing loopback resolver
+  listener is observed read-only; never replace an existing conflicting service.
+  Zeek existing RAM512MiB/CPU1 profile. No external DNS or settings changes.
+- Inspector SYS_ADMIN read-only; Broker BPF+NET_ADMIN; GUI/Network14 ordinary UID.
+  Existing TTY scope confirmation and one fresh sudo/PAM password, entered directly
+  by the user. Never store, collect or log the password.
+- No automatic retry, new-SHA approval inheritance, pinning, external deletion,
+  packet drop/modification or unapproved traffic. Preserve first failure and
+  independent collector results; actual completeness/quality is evaluated anew.
 
-|Stage|Elapsed seconds|Limit / interpretation|
-|---|---:|---|
-|Analysis process launched|0.118174|Inside DNS10s window|
-|Zeek script init|2.578780|Cold startup included|
-|Zeek READY|2.606705|Before START-triggered capture|
-|Capture READY observed|2.608485|Capture overlaps analysis|
-|Capture CLOSED received|8.771544|Capture starts/stops exact socket timestamps not retained|
-|Analysis input closed|8.826374|EOF initiates final analysis|
-|Counter received|8.946414|Before9.5s analysis cutoff|
-|Zeek CLOSED received|8.946550|Before9.5s cutoff|
-|Analysis process / protocol exit|9.265899|Recorded elapsed9.147726s since process launch|
-|DNS finalization starts|9.274621|No second capture|
-|DNS cleanup complete|9.317348|Total10s limit met|
+## Next Required Action
 
-`analysis_deadline_expired=false`; internal deadline9.5s, outer deadline10s,
-remaining margin about0.1827s at cleanup. This verifies the0.6.2 analysis-budget
-change in this run, not a latency guarantee. DNS worker start is after OS auth;
-user typing/authentication time is not falsely included in this active interval.
-Export-only and Supervisor-exit-only substage durations were not separately recorded.
-The receipt's overall active_elapsed_seconds is9.317369; differences of microseconds
-reflect later measurement, not a different clock. No wall/monotonic subtraction.
+Review the final exact Commit/Tree, SHA, known failed regression and bounded scope
+in `diagnostic-approval-request.md`. Grant or reject the one-shot diagnostic
+exception using the existing approval contract. Without that explicit approval,
+installation/authentication/attach/capture remains blocked. A diagnostic success
+still does not authorize Native AI, DNS9 or production promotion.
 
-## Network14 RCA
+Private proof directory: `.git/native-soc-phase-d/worktree-063/diagnostic-e2e-review/`.
+Includes failure-impact-assessment, environment snapshot, import-timing samples,
+root safety failure/isolation logs, old/new source maps, final dual-build evidence,
+final Export174 log, and append-only pending approval/commit proofs.
 
-Four new candidates; all **INCOMPLETE /0 eligible**. Sum of candidate packets186
-matches accepted count, not the full2433 received. Full receipts are independently
-reproduced in `live-062/candidate-readonly-review.json` with session,generation,
-source receipt SHA, Counter, Clock and feature fingerprints.
+---
 
-|Candidate prefix|Accepted packets|State|Feature integrity|
-|`fc7fe230ae84`|46|INCOMPLETE|valid float32/digest|
-|`e6f1d3e3bc0b`|33|INCOMPLETE|valid float32/digest|
-|`229fdda8d522`|65|INCOMPLETE|valid float32/digest|
-|`8d14c2d92a14`|42|INCOMPLETE|valid float32/digest|
+## Prior full-regression failure report retained unchanged
 
-- Counter: matching epoch and successful final owned-map snapshot; emitted=delivered.
-  Two forward observation-attempt gaps occurred midstream on CPUs1/8. Unsupported2
-  is consistent at aggregate level, but does not prove per-CPU/time/flow attribution.
-- Clock: Kernel monotonic ns preserved; calibration DECLARED_ONLY/native accuracy
-  unverified. Three inversions,max **194004499ns**,late1. The late sample was CPU1,
-  cpu_sequence28,data sequence188,timestamp530711793501600; prior max530711987506099.
-  It exceeds the unchanged10ms admission window. No clamp, fabricated timestamp,
-  larger reorder window or silent drop was introduced.
-- Flow: no30s Idle/120s Active completion evidence. Flows were quarantined after
-  the real late-event error; FIN/RST counts alone do not override the model window.
-- Features: all four retained raw vectors pass14-feature order,float32,finite and
-  digest checks. Valid arithmetic does not establish complete Native capture.
-- Reasons: LATE_EVENT,PROCESSING_DISCARDED,unreconciled observation attempts,
-  Flow incompleteness,unverified clock/capture/golden parity/model receipt.
-- Historical0.6.1 nine candidates remain INCOMPLETE; earlier two unpreserved
-  candidates remain UNKNOWN. No historical status or feature vector was modified.
+# NATIVE_SOC_PHASE_D Release 0.6.3 — Full Export Qualification
 
-## Root Cause / Minimal Fixes
+## Overall Status
 
-### First observation and uncertainty
+**BLOCKED: mandatory full independent Export regression failed.**
+This is not READY_FOR_APPROVAL. No installation, authentication, BPF load/attach,
+Native capture or DNS traffic occurred. No APPROVED receipt, budget reservation,
+Stage, Commit or Push was performed. Latest explicit user instruction withholds
+Root and Native approval. Native AI, DNS9 and production promotion remain BLOCKED.
 
-First processing error: **EBPF_REORDER_LATE_CAPTURE_GAP**, EventOrdering.observe,
-no system errno. The recorded194ms event-time inversion is confirmed. Its underlying
-WSL scheduling/pre-reservation delay is **UNKNOWN**; no Kernel scheduling trace or
-second per-event timestamp was captured. SQLite latency is not proof of its cause.
+## Latest Validation
 
-Local BPF source samples time before parsing/reserving. Upstream documentation
-states delivery follows reservation order, which is not evidence of monotonicity
-for timestamps sampled earlier. This explains why that assumption is unsafe, but
-is not proof of the exact194ms delay on this Kernel.
-[Linux BPF ring buffer documentation](https://www.kernel.org/doc/html/v6.2/bpf/ringbuf.html).
-
-### Confirmed implementation defects and corrections
-
-1. Successful authenticated Control responses called data.pump(), which rethrew
-   the background Flow error. The _packet() receive guard also rejected any data
-   processing error. This revoked/closed the whole Supervisor and interfered with
-   DNS finalization. Control and processing failure were incorrectly coupled.
-   Both boundaries now distinguish background processing failure from broken
-   transport. STATUS/STOP/DETACH/CLEANUP remain usable; PREPARE/ATTACH are explicitly
-   denied after a data failure. Broken transport still revokes immediately.
-2. Main loop now records/raises the original data error through TCX_DATA_PROCESSING
-   before the later cleanup path. Safe EBPF symbolic codes are preserved rather
-   than redacted as unrecognized text. Arbitrary error input remains redacted.
-3. SupervisorClient.status() checked stopping outside its request lock. A concurrent
-   STOP could win before request(), yielding SUPERVISOR_CLIENT_CLOSED. A deterministic
-   ordinary-thread test reproduces that race. The check and request now share an
-   RLock; completed STOP returns only its already authenticated final status.
-   Exact live lock interleaving was not logged, so this is a reproduced defect
-   consistent with the live failure, not invented scheduler evidence.
-4. Observed Root capture terminal metadata is now saved as OBSERVED_NOT_VERIFIED
-   before child.wait(). This preserves Counter evidence if status/wait fails;
-   existing identity/accounting/process-exit validation still determines success.
-5. CLI now returns nonzero for a failed result/cleanup instead of printing an
-   ERROR result and exiting0. The frozen0.6.2 exit0 receipt remains unchanged.
-
-The194ms admission failure itself is **not fixed or waived**. The new candidate
-contains failure-isolation/diagnostic fixes; it does not claim Native eligibility.
-
-## Cleanup / Remaining Resources
-
-- Map3/Program1 observed FDs returned EBADF after libbpf close, Link11 state
-  TCX_CLEANUP_VERIFIED. Individual raw close() return values remain unobserved.
-- Final Inspector query succeeded: Maps0,Links0,lo ingress0/egress0; owned TCX
-  Program6331 absent. Original11 cgroup Programs retained.
-- Two additional cgroup_device Programs6332/6336 were present, total13. Inspector
-  correctly reported **SUPERVISOR_RESOURCE_SET_CHANGED:programs**. Attribution
-  to a container or unrelated process is UNKNOWN; no cgroup attachment ownership
-  proof was collected. They were not deleted or exempted from comparison.
-- Root entry exit2; Inspector exited0/revoked its authority. Broker/session closed
-  and OS authorization revoked. Capture child exited0, analysis worker exited,
-  Docker die/destroy and container absence observed. No automatic restart.
-- Overall Cleanup **UNVERIFIED**, independently from the confirmed absence of
-  owned TCX Maps/Links. Zero Maps/Links does not erase the global Program mismatch.
-
-## Performance
-
-|Metric|0.6.1 baseline|0.6.2 observed|
-|---|---:|---:|
-|DNS final active elapsed|9.774063s|9.317369s|
-|DNS analysis internal deadline|FAILED|met|
-|TCX received / accepted|2763/2763|2433/186|
-|Processing discarded|0|2247|
-|Max audit commit|23.540475ms|365.714223ms|
-|Ring reservation / socket-send failure|0/0|0/0|
-
-Different traffic, timing and failure paths prohibit a throughput/improvement
-percentage claim. Current recv-gap max824.444671ms includes waiting for traffic;
-max recv syscall1.432863ms,processing6.423440ms,queue wait8.069356ms. Audit3/3
-committed,rejected0,outstanding0; audit drain completed but processing quality failed.
-Peak RSS,CPU,export-only latency and a trusted complete-window capture rate were
-not measured. No GUI or model performance test was repeated.
-
-## Regression Tests
-
-- Control isolation, preauth/startup, error/signal preservation and CLI:38 passed.
-- Supervisor contract and deterministic STATUS/STOP race:28 passed.
-- Formatted safe-error/CLI checks:3 passed.
-- Related security/Flow/Clock/budget/Deadline regression: **77 passed**. That batch
-  preceded the final STATUS-lock/new-work guard changes; final changed boundaries
-  were checked again in the **62 passed** independent-export cases.
-- Final startup/control batch:37 passed plus the corrected valid-ATTACH guard case
-  passed separately (1). Its earlier failure constructed an invalid Command before
-  reaching the intended guard; no production assertion was weakened.
-- Independent export: **62 passed in25.80s**, including the final source STATUS/STOP
-  race and real ordinary-UID Control/STOP/new-work-denial path.
-- Ruff and Format passed all11 changed Python files; Diff whitespace check passed.
-- The194004499ns fixture still fails admission; assertions retain10ms and exact
-  timestamps. No failure is promoted to normal processing or Native success.
-- Test development failures are preserved: two initial fixture-expectation failures
-  and one SHA mismatch when a candidate/source edit overlapped a test build.
-  Final checks use frozen source; no Native execution was retried for those tests.
-
-## Evidence Integrity
-
-Private evidence: `.git/native-soc-phase-d/live-062/`. Reservation/FAILED finish are
-append-only in the existing campaign ledger. `native-attempt-file-hashes.json`
-freezes the executed candidate/session files; evidence-review.json, DNS replay,
-Audit review and installed-file review are new separate files. Four SQLite audit
-chains were checked using mode=ro, without recovery/checkpoint or record rewriting.
-Previous0.6.1 receipts,104 historical records and8 user modifications are preserved.
-
-Before execution, bound source/artifact validation and Workspace/Export/Index
-checks passed. New implementation changes intentionally produce a new identity;
-the approved0.6.2 image/package/Native receipts were not rebuilt in place. The
-pre-execution report is preserved as live-062/report-before-live.md.
-
-## Next Release — Not Executed
-
-Prepared final candidate: **0.6.3**, `.git/native-soc-phase-d/remediation-063/candidate-final/`.
-No installation or Native approval is inferred from the0.6.2 approval.
-
-|Identifier|SHA256|
+| Verification | Observed result |
 |---|---|
-|Manifest|`b1de40f8b801ff9345aefd37d128575438cbaa023618df724e50dc213331349e`|
-|Bundle|`c25de380629e312b7feb1a091ae2e3692482459c400a60c4ea764317b71740a9`|
-|Execution image|`7f8e299f4b9f7755005a87f5b857cb4d988c6cfa30499b2a8a6e2d8fecf29625`|
-|Root manifest|`0bffe3b6fcf36931aa8ea6716bb8883cace3d50ffce5f27ddbb07c5a0e6cd743`|
+| Workspace supplementary run | 3,286 passed / 30 skipped; 271.34s |
+| Workspace current-node coverage | 6,029 nodes: those fresh passes/skips plus 2,713 exact-source unchanged complete-file passes reused; not a single full-command pass |
+| Independent Export full fresh run | **5,909 passed / 2 failed / 30 skipped**, exit1, 3,240.02s |
+| Isolated reproduction, both failed modules | 33 passed / 0 failed, 7.71s; does not override full-run failures |
+| Source before/after | All 1,700 selected file hashes unchanged in release Worktree and physical Export |
+| Existing dual build | 26/26 identical; candidate only, not final qualified Release |
+| Protected user/evidence inputs | 8 user files + 104 historical evidence files unchanged |
+| Installed Root release | Existing 0.6.2, all 9 file hashes/ownership/permissions unchanged |
+| Ruff / Format / Diff | PASS in Workspace and release Worktree; 1,401 / 1,357 Python files formatted |
+| Root / Native budgets | Both **2/5 used, 3 remain**; zero used in this task |
 
-The earlier unapproved preparation candidate in remediation-063/candidate/ is
-preserved and superseded; only candidate-final matches final source. The new image
-expects installed0.6.2 and retains it as rollback upon a separately approved atomic
-replacement. Older0.6.1/0.5.16 backups stay intact. No capability/scope expansion.
+Export contains 5,941 selected tests. The larger Workspace has 88 additional
+user/untracked cases outside the reviewed release. The Export run reused zero
+prior passes. Thirty skips retain existing explicit environment/soak prerequisites;
+no live LLM/API tests were enabled. Seven upstream fork-in-multithreaded-process
+warnings are retained in the raw log. No test or assertion was removed to pass.
 
-## Final Decisions
+## Failure 1 — Operator response timeout
 
-|Area|Decision|
-|Integrated Native E2E|FAILED|
-|OS authentication/shared session|VERIFIED within this run|
-|TCX Kernel load/attach/data transport|VERIFIED|
-|TCX processing/Capture Integrity|FAILED at recorded late event|
-|DNS controlled parsing and internal analysis deadline|VERIFIED|
-|DNS complete sidecar lifecycle/Root capture Counter|INCOMPLETE / UNKNOWN|
-|Network14 candidates|4 INCOMPLETE,0 eligible|
-|Owned TCX Maps/Links absent|VERIFIED at final Inspector observation|
-|Overall Cleanup/global Program preservation|UNVERIFIED|
-|GUI rendering|PENDING; headless qualification|
-|Audit chain verification|VERIFIED read-only|
-|Native AI / DNS9 / Production|BLOCKED|
+Test: `tests/integration/linux_runtime/test_final_integration_audit.py::test_fixture_pipeline_peer_approval_simulation_and_restart[SCRIPTED]`.
+First API: `operator_request` awaiting `asyncio.wait_for(reader.readuntil(...),
+timeout=TIMEOUT)` in `linux_runtime/operator.py`; original exception TimeoutError,
+configured limit 5s. This is an asyncio deadline, not a kernel errno.
 
-## Remaining Blockers
+The original failed test database was opened with SQLite `mode=ro&immutable=1`.
+Audit sequence20 records execute request; sequence21 STARTED; sequence22 SIMULATED
+with real_os_handler_calls0; sequence23 OPERATOR_RECEIPT. Therefore the pure
+simulation and Receipt were committed despite the client not receiving a response
+within its deadline. No real OS response action occurred. A timeout must not be
+replayed automatically as though no work happened.
 
-Identify the cause of the large pre-reservation event-time inversion without
-fabricating times or weakening admission. Establish attribution for the extra
-cgroup Programs before asserting complete resource preservation. Verify the new
-Control/DNS isolation and terminal-evidence fixes under a separately approved
-exact0.6.3 run; no automatic retry. Native clock attestation, complete Flow windows,
-golden parity/model receipt and GUI rendering still need their own evidence.
+Code inspection shows request validation, synchronous Audit operations and final
+Receipt work outside the server dispatch-only `wait_for` interval, while the
+client bounds the complete response wait. This identifies the timing boundary
+and committed outcome, not the exact historical monotonic latency of each step.
+The stored wall timestamps are not substituted for missing monotonic timings.
+Exact scheduler/I/O/resource causality remains UNKNOWN. The same two-mode module
+passes in isolation without changing production deadlines or source.
+
+Necessary next evidence: per-step monotonic instrumentation for request validation,
+dispatch, receipt commit and socket send, with a controlled slow-audit reproduction.
+Only then choose a minimal protocol/performance correction. Do not simply increase
+TIMEOUT or suppress the timeout. No unproven production change was made here.
+
+## Failure 2 — asynchronous Zeek readiness assumption
+
+Test: `tests/unit/zeek_live/test_contract.py::test_partial_append_drains_after_exit_and_recovers_no_inference`.
+After appending the remaining READY line the test sleeps a fixed 100ms and expects
+ACTIVE; actual state remained LAUNCHER_STARTING. The collector performs `_poll`
+through `asyncio.to_thread`, so fixed elapsed sleep does not prove polling and
+state transition have completed. A thread/loop completion signal is the correct
+synchronization candidate; the original failed run retained no thread scheduling
+trace. This test and its whole module pass in isolation, so no Stream parser,
+TTY/START or Capture defect is confirmed by this failure alone.
+
+A future minimal test correction must await actual poll/state completion under a
+bounded test deadline and inject a slow reader to prove the race, while retaining
+partial-line, ACTIVE, CLOSED, no-inference and Cleanup assertions. No production
+state or eligibility check was weakened. No timing-based source patch is accepted
+as a final release fix without its reproduction and full revalidation.
+
+## Source and Artifact Identity — provisional, NOT executable approval
+
+Baseline HEAD / origin/main observed:
+`9a12fe9e5b7a3569f9cfcf82cbdd92e55e8436b0`.
+Existing release branch: `release/native-soc-phase-d-0.6.3`.
+No new Worktree was created after restart. Shared main/user changes are preserved;
+the existing release Worktree remains the reviewed export/index view.
+
+| Candidate identity | SHA256 |
+|---|---|
+| Phase D Manifest | `06a86ab9357803a586880d9a255a86fdf4509e154beb7688341b006602ec1fb2` |
+| Source Bundle | `00cedc05322547f87798ef8f248b6edbaae68098b772af5691b707bfb4263ab9` |
+| Execution Image | `7789cefc7c5215f093452fb2b3971d1927773fbf388f2644557a7bb7d5e83d8d` |
+| Root Manifest | `162d2f949ebb923b7aa83410615cde8bcdbaa836705768c61364e1bf0c52bc01` |
+| TCX Object | `9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06` |
+| Candidate source snapshot, 1,699 files | `49f114930db133b1c56c852e05bd4628ac3daebfdc5f696e233613de091608a6` |
+
+The generated report is excluded from its own source digest; a future successful
+Stage/Commit must bind its final bytes separately. No source/test change occurred
+after the failing Export run. The 26 equal artifacts remain candidate evidence,
+not proof that mandatory regression passed. Any future source/test fix requires a
+new frozen snapshot, fresh dual build and appropriate regression; old results
+must not be relabelled as results for the amended input.
+
+The runner checked all SourceGuards before asserting pytest's nonzero exit. Its
+failure was the failed tests, not SOURCE_CHANGED_DURING_BUILD. An explicit after-
+failure map confirms original start hashes match all 1,700 paths in both views.
+Earlier failed/interrupted logs are unchanged; aggregate rechecks do not erase
+this full-run failure.
+
+## Preservation / Git / Approval
+
+The append-only Ledger remains SHA256
+`a8c59d0468ad30bdd313b2d98538c6ae531371edb205fdf782efdf2cd4b2df60`;
+its chain was verified before this run. Original creation-time budget JSON is not
+rewritten; actual reservation history is Native2/5 and Root2/5. Existing Audit,
+Native evidence, user files, models and raw datasets are not staged or altered.
+
+**Commit/Push and final approval request are withheld** because the user requires
+all mandatory validation to pass first. There is no newly confirmed Commit/Tree,
+no final Stage equality proof, and no authorization to execute the provisional
+Artifact. Prepared private finalization scripts were not executed after failure.
+The request can be finalized only after the failed gate is resolved and the exact
+amended source/export/index/artifact identities are checked.
+
+Future requested scope remains one exact-SHA Root update preserving installed
+0.6.2 and one Supervisor run: net:[4026531833], lo/Ingress, max300s, 4,096 metadata,
+Queue32, each privileged task AS256MiB/CPU20s; DNS existing local-only one UDP and
+one TCP query, 10s overall/7s capture/32 packets/snaplen512. No approval or budget
+reservation for that scope is created here. Password, if later required, is entered
+by the user directly in the real OS terminal and never stored/logged/transmitted
+through application configuration.
+
+## Historical Native blockers, unchanged
+
+The actual 0.6.2 execution stays FAILED: 194.004499ms inversion cause UNKNOWN;
+10ms reorder bound unchanged. Historical 2,247 dispositions remain late reject1,
+pending abort1, post-error policy discard2,245. Four retained Network14 candidates
+stay INCOMPLETE; unpreserved candidates UNKNOWN. Cgroup6332/6336 ownership UNKNOWN;
+historical owned Map/Link/lo-filter zero does not prove global Cleanup. No offline
+run upgrades these Native findings. Native AI, DNS9 and promotion stay BLOCKED.
+
+## Evidence
+
+Private `.git/native-soc-phase-d/worktree-063/` records:
+`cycle-11/export-full.log`, `cycle-11/progress.json`,
+`cycle-11/input-start.json`, `cycle-11/input-end-after-failure.json`,
+`export-two-failures-reproduction.log`, `export-full-failure-analysis.json`,
+`final-c9-build.json`, `final-c9-source.json`, `final-preservation-before.json`.
+Both prior reports were copied unchanged to `blocked-export-full-report/`.
+
+---
+
+## Earlier report retained unchanged — historical identities, not this approval
+
+# NATIVE_SOC_PHASE_D — Source Stabilization & Native Evidence Recovery
+
+## Overall Status
+
+| Independent verdict | Result |
+|---|---|
+| SOURCE_STABILIZED | VERIFIED for the observed frozen source/export |
+| TIMESTAMP_DIAGNOSTICS_VERIFIED | VERIFIED offline; exact historical kernel delay UNKNOWN |
+| TCX_DISCARD_ACCOUNTING_VERIFIED | VERIFIED for retained counters and reconstruction fixtures |
+| NETWORK14_OFFLINE_VERIFIED | VERIFIED for saved vector/schema/digest and synthetic formula parity |
+| NATIVE_LIVE_REVIEW_READY | READY; REQUESTED review is not execution approval |
+| Actual Root / Native Live | BLOCKED awaiting a new explicit approval receipt |
+
+Offline source stabilization is verified for a separately hashed export.
+**Actual Root / Native verification remains BLOCKED pending a fresh exact-SHA
+approval receipt.** The executed Release0.6.2 remains FAILED. No historical
+result or Network14 candidate is upgraded. Native AI, DNS9 and production
+promotion remain BLOCKED.
+
+Project: `/home/geonug/kdt-linux/autonomous-soc-agent`.
+HEAD and origin/main: `9a12fe9e5b7a3569f9cfcf82cbdd92e55e8436b0`, branch main.
+The previous report was copied unchanged to the new evidence directory before
+this update. Earlier failed/interrupted runs and stale review materials remain.
+
+## Source changes and attribution
+
+`build.py` was changed at14:48:24KST, and `source_guard.py` at14:52:49KST on
+2026-10-22. The old task recorded two different source SHA values during its
+candidate preparation. Git Diff, file timestamps and process snapshots do not
+identify the writing PID or human/session author: **writer UNKNOWN**. Other
+processes were neither stopped nor modified.
+
+The existing build wrapper and SourceGuard were preserved byte-for-byte during
+this task. SourceGuard uses bounded inotify plus file hashes, including transient
+write/restore detection, and keeps a detected failure sticky. This is detection,
+not an immutable lock against another process with the same UID.
+
+The previously failed test was:
+`test_phase_d_cli_to_real_tcx_plan_and_dns_preflight_before_auth`.
+Expected: `SUPERVISOR_APPROVAL_DENIED`; actual: `SOURCE_CHANGED_DURING_BUILD`.
+A fresh unchanged-source reproduction passed without changing its Assertion.
+Instrumentation recorded six successful Guard checks over593 input files and
+no hash changes. The old run did not retain sufficient event details to identify
+the exact writer/path responsible for its failure; its historical cause cannot
+be narrowed beyond the observed guard rejection and source-change evidence.
+
+## Confirmed correction and stable execution source
+
+The compiler guard covered an individual `compile_native` call but not the
+subsequent package assembly / Python image hashing interval. `phase_d.prepare`
+now reuses the same SourceGuard around the **whole prepare transaction**.
+A mutation after compilation, including modification followed by restoring the
+same bytes, prevents a candidate from being returned as successful. A real build
+exception remains the first error, and observer FDs close on failure.
+
+Changed runtime file:
+
+- `src/soc_agent/security_ai/ebpf_tc/phase_d.py`
+- Before: `954d5acc546a0145dd884ada634bd0c8b47add0324ee3496f98224c4f17ee7e2`
+- After: `36f7c284d671d9988106e59ee1ad8236b245c3587cb6841ddc48f8db8d264133`
+
+Added behavior tests:
+
+- `tests/unit/ebpf_tc/test_source_stabilization.py`
+- SHA-256: `7c67d72ec35d3252c097f5180ac1bc0a43b1166627a913ca2775d7387d9d286a`
+
+No changes to `build.py`, `source_guard.py`, kernel event timestamps, reorder
+thresholds, TCX attach/cleanup policy or Feature eligibility were needed.
+
+Sources, tests and documentation were copied to a new private `source-export`
+while the original inputs were watched. Original and exported hashes agreed.
+Build/test execution uses that export with an explicit PYTHONPATH and ordinary
+UID; compiled output, candidate/session data and test results are outside source
+inputs. Guards check inputs around compilation, tests and final sealing.
+
+Full593-file source SHA-256:
+`20420e2a40f0eadc0ccbf7b98258d0e60f278cc9126513332d6e19953d8f7d49`.
+This is an observed, revalidated snapshot. Future execution still must revalidate
+it; a later modification cannot inherit this verification.
+
+## Timestamp analysis
+
+Historical fatal event: ordinal188, CPU1, CPU observation attempt28.
+Timestamp `530711793501600ns`, previous maximum `530711987506099ns`:
+**194004499ns =194.004499ms** inversion, exceeding the unchanged10ms policy.
+Two earlier inversions (173ns and152ns) were within the window.
+
+The source path is:
+
+```text
+bpf_ktime_get_ns -> parse -> shared BPF ring reservation/submit
+ -> ABI integer ns decode -> EventOrdering -> bounded queue -> Flow Assembly
+```
+
+One shared BPF ring is used; CPU attempt counters are not per-CPU buffers or a
+global generation sequence. Userspace delivery ordinal, per-CPU attempt sequence
+and sorted Flow ordinal have distinct meanings. Original event ns are neither
+clamped nor converted to wall time before validation.
+
+The timestamp is sampled before ring reservation. A deterministic interleaving
+fixture reproduces inversion without claiming that the ring reordered its
+reservations. Kernel ring semantics are documented in the
+[official ring-buffer documentation](https://docs.kernel.org/bpf/ringbuf.html).
+The exact194ms kernel scheduling/producer/reservation delay is **UNKNOWN**:
+there is no historical reservation/commit/receive timestamp pair or previous-max
+CPU for that record. No global sequence or buffer identity is invented.
+
+Current host observations: clocksource `tsc`; Python monotonic clock uses
+`clock_gettime(CLOCK_MONOTONIC)`,1ns reported resolution. These current facts are
+not retrospective proof of Native calibration or clock accuracy. Historical
+ClockContract remains KERNEL_MONOTONIC_NS / DECLARED_ONLY / UNVERIFIED.
+
+Retained aggregate metrics:
+
+| Metric | Historical value |
+|---|---:|
+| Maximum processing queue wait | 8.069356ms |
+| Maximum processing call | 6.423440ms |
+| Maximum receive gap | 824.444671ms |
+| Maximum checkpoint write | 365.700903ms |
+
+These aggregates are not per-event correlation. In particular the checkpoint
+maximum does not establish the194ms root cause, and a receiver pause alone does
+not invert monotonically ordered event timestamps. Flow merge happens after the
+observed rejection, so it is not the rejection stage. Current0.6.3 retains the
+previous-max CPU/attempt/delivery provenance diagnostics for the next approved run.
+
+## TCX discard and counter domains
+
+Historical session: `fe6d42c5-c314-4075-91dd-bfe298d9b795`.
+Generation: **9245281928320049646**, preserved as uint64 above2^63.
+
+| Domain / stage | Count |
+|---|---:|
+| Owned hook observations | 2435 |
+| Unsupported, not emitted | 2 |
+| Emitted / delivered | 2433 /2433 |
+| Decoded userspace received | 2433 |
+| Applied to Flow Assembly | 186 |
+| Userspace discarded | 2247 |
+| Reorder reject, reconstructed | 1 |
+| Pending-at-error abort, reconstructed | 1 |
+| Persisted post-error discard subset | 2245 |
+| Queue rejects / ring reservation failures | 0 /0 |
+| Kernel-wide packet drops | UNKNOWN |
+
+Before ordinal188:187 received,186 applied,1 pending. Fatal rejection contributes
+one discard, pending abort contributes one, and2245 later decoded records are
+counted under fail-closed discard. The1/1/2245 split is reconstructed from code,
+recorded totals and a metadata fixture; it is not newly recovered historical
+per-packet reason counters. Current reason totals are disjoint and bound to
+Session/generation; first error is retained across later errors.
+
+Counter/CLOSED and final2436 transport frames were observed. This does not turn
+failed processing Drain into successful Feature Drain. Processing queue peak14,
+reorder queue peak10, both within32; no recorded queue rejection/backpressure.
+
+The two CPU attempt gaps occur at delivery297 (CPU1,41->43) and548 (CPU8,84->86),
+**after** the fatal188th event. They cannot explain that first failure. Aggregate
+unsupported2 is numerically consistent with two absent attempts, but no per-CPU
+unsupported breakdown was retained, so exact reconciliation remains UNKNOWN.
+
+## Network14 — four real retained candidates
+
+Current eligibility was recomputed from the actual saved vectors and transport
+receipt and exactly matched the historical candidate receipts.
+
+| Flow ID prefix | Packets | Retained Feature fields | Eligibility |
+|---|---:|---|---|
+| fc7fe230ae84 | 46 | All14 finite float32, names/digest valid | INCOMPLETE |
+| e6f1d3e3bc0b | 33 | All14 finite float32, names/digest valid | INCOMPLETE |
+| 229fdda8d522 | 65 | All14 finite float32, names/digest valid | INCOMPLETE |
+| 8d14c2d92a14 | 42 | All14 finite float32, names/digest valid | INCOMPLETE |
+
+Total packet count186 matches applied metadata. No required field is absent in
+those vectors; this is not proof of complete Capture/Flow windows. Source receipt
+SHA, per-vector input digest, values digest and eligibility output digest are
+recorded in `native-evidence-recovery-v2.json`.
+
+Blocking categories remain capture integrity / processing discards, session CPU
+attempt gaps, clock calibration, INCOMPLETE Flow closure, Golden Native parity
+and model-artifact provenance. All raw packet metadata for those186 records is
+not retained here, so full raw-packet statistical reconstruction is unavailable.
+No value imputation, lifecycle relaxation or retrospective eligibility promotion.
+
+Independent C-parser/ML Feature parity uses five **synthetic PCAP fixtures**
+(IPv4/IPv6, TCP/UDP, idle/active windows). It verifies offline formulas and all14
+features, not actual Native window completion or Native model inference.
+
+## DNS / Supervisor reuse
+
+Existing0.6.3 first-error, STATUS/STOP serialization, SIGTERM, CLI exit and Cleanup
+regressions were retained. Historical DNS2 Queries/2 Responses/2 Transactions
+and internal deadline success remain valid; its full sidecar completion failed
+with SUPERVISOR_CLIENT_CLOSED. Successful analysis is not Unified success.
+
+Current Phase D headless loop can continue TCX after DNS finishes; only the legacy
+non-Phase-D branch breaks on DNS completion. No DNS deadline increase is needed
+or made. Observed event time still governs30s idle/120s active Flow completion;
+approved capture/event caps cannot guarantee a candidate completes.
+
+## cgroup ownership — read-only only
+
+Historical Program6332 and6336 were cgroup_device objects, tags
+`461f9f5162fd8042` and `b8f4fb5f08605bc5`. Attach Target / Creator / Session
+ownership remain UNKNOWN. Owned TCX6331/Link11 and final Map/Link/lo-filter cleanup
+were separately recorded; global Cleanup remains CLEANUP_UNVERIFIED.
+
+Current UID1000, CapEff/CapPrm0, namespace `net:[4026531833]`, cgroup `/init.scope`.
+The generic bpftool launcher could not find a kernel-specific binary. The existing
+pinned bpftool was then used for fixed read-only program-ID, link and cgroup-tree
+queries; all failed with Operation not permitted. This is not proof that the
+programs exist or are absent now. No capability escalation, detach, map change or
+program deletion occurred. Root observations require the new explicit approval.
+
+## Regression / quality
+
+- Former failed preflight test: passed unchanged with Guard instrumentation.
+- SourceGuard/assembly behavior fixtures:12 passed.
+- Independent export related unit tests: **504 passed**.
+- Integration initially could not import the existing independent ML Feature
+  module from the export's default sibling path:5 failures. Existing explicit
+  validation-root settings corrected the test environment; no package download,
+  model inference or Assertion change. The5 affected tests passed on rerun.
+- Initial integration:251 passed /5 failed solely on the missing validation-root
+  input. Corrected rerun:all5 affected tests passed. Therefore all256 unique
+  related integration tests are verified; the initial failures remain recorded.
+- Source/test guards reported no changes throughout candidate preparation and
+  the complete unit/integration runs. No existing assertion was changed.
+- Ruff check, Ruff format --check (1399 files) and git diff --check passed.
+  Exact commands, exit codes and timings are retained in evidence metadata.
+- No test was removed, skipped to hide failure, or changed to accept a weaker
+  boundary. The newly added tests check stage races and first-error preservation.
+- Root / Native runs in this task: **0 /0**, no approval or reservation issued.
+
+## New candidate and Native approval boundary
+
+Prepared Release0.6.3 from the frozen export:
+
+| Identity | SHA-256 |
+|---|---|
+| Manifest | `fb6be75d18736657693707d749624bad0e3eb8708d9e3a242483b935a55e9b0c` |
+| Bundle | `8d90d78c67f5481f3198f4721d87efae5cb8947a7530f735c31a1cfbc460b332` |
+| Native execution image | `9178f63ecaadf24ad989120f24620005ddfaa9703d8958c863cd0d23c1b2776f` |
+| Root Manifest | `230d92ead48cf4e43b3d70078368f893f12fd2f3aeb58078daa6b576a6c88545` |
+| TCX object, unchanged | `9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06` |
+
+Build Manifest and the new REQUESTED review bind these identities to the full
+source snapshot, dependencies, namespace/lo INGRESS, isolated capabilities,
+Zeek command/probe, resources, output paths, new execution ID and Cleanup policy.
+The future command imports only the hashed source export through an explicit
+PYTHONPATH; it does not silently use a changing Workspace or prior stale review.
+
+Native and Root remain **2/5 used,3 remaining each**. Proposed future scope is one
+installation/replacement and one Unified Supervisor Native run, no automatic
+retry. Existing TCX300s/4096/Queue32/AS256MiB/CPU20s and DNS loopback-only
+UDP1/TCP1/active10s/capture7s/32records/snaplen512 limits remain unchanged.
+Root Inspector snapshots are read-only and cannot detach foreign resources.
+
+No new review is an approval receipt. No install/load/attach/capture/DNS traffic
+may occur until an explicit receipt matches the newly sealed exact identities.
+
+Fresh review path:
+`artifacts/native-soc-phase-d-source-stabilization-20261022/execution-approval-request.json`.
+
+Review SHA-256:
+`2b6c6f592e1937e6a6c1ea8d4c7440308956f97b06121466cb5580198548482e`.
+
+Build Manifest SHA-256:
+`a7e6de4df35218f0140cc2e9e6e9e2977f87c7ac6d9ff700d32232fbc9936207`.
+
+Review planned execution ID: `25ffc87d-5848-4050-a139-e79e94da8a18`.
+Review expiry:2026-10-23 06:24:21 UTC /15:24:21 KST.
+The approval-user.json, Native session/result and DNS execution markers are absent.
+These are future absence checks, not authority tokens or reserved budget.
+
+## Preservation and remaining limits
+
+Previous approval/receipt/audit/ledger/failure records, installation0.6.2,
+rollbacks and user changes remain. All1609 protected files and47 historical
+Native artifact hashes were checked. Four SQLite Audit chains (6/6/7/28 records)
+were verified with mode=ro, immutable=1 and query_only=ON; their file hashes did
+not change. The original five-row Ledger chain verifies, with no new reservation. Git Stage/Commit/Push were not performed.
+The Git index is preserved; source identity is proved by the independently
+hashed export rather than falsely equating an unchanged Stage with edited source.
+
+UNKNOWN remains: historical source writer, exact194ms producer delay, complete
+historical packet replay, cgroup ownership/current object presence, Native clock
+calibration and actual0.6.3 Native results. These do not become success through
+an offline pass. Native AI / DNS9 / production promotion remain BLOCKED.

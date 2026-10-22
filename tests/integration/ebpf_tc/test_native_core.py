@@ -65,18 +65,36 @@ def test_partial_attach_stops_and_cleans_only_proven_own_filter(compiled, number
     assert value["foreign_program"] == 77
 
 
-def test_native_entrypoints_gate_before_pam_or_privileged_syscall(compiled):
+def test_native_entrypoints_gate_before_pam_or_privileged_syscall(compiled, tmp_path):
     for name in ("bootstrap", "broker"):
         p = subprocess.run([str(compiled / name), "--inspect"], capture_output=True, text=True)
         assert p.returncode == 0 and not json.loads(p.stdout)["native_gate"]
         for args in ([], ["3", "4", "5"], ["--native"], ["--enable"]):
-            p = subprocess.run([str(compiled / name), *args], capture_output=True, text=True)
+            trace = tmp_path / (name + "-" + str(len(args)) + "-" + "_".join(args))
+            p = subprocess.run(
+                [
+                    "strace",
+                    "-f",
+                    "-e",
+                    "trace=bpf,capset,setuid,setgid",
+                    "-o",
+                    str(trace),
+                    str(compiled / name),
+                    *args,
+                ],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
             expected = (
                 "EBPF_B2A_NATIVE_EXECUTION_BLOCKED:OS_AUTH_QUALIFICATION_PENDING"
                 if name == "bootstrap"
-                else "EBPF_B2A_NATIVE_EXECUTION_BLOCKED"
+                else "EBPF_BROKER_NATIVE_EXECUTION_BLOCKED:ARGC"
             )
             assert p.returncode == 2 and p.stderr.strip() == expected
+            assert not p.stdout
+            observed = trace.read_text()
+            assert all(call not in observed for call in ("bpf(", "capset(", "setuid(", "setgid("))
     lib = ctypes.CDLL(str(compiled / "libnative-tc.so"))
     assert lib.soc_native_gate() == 0
     assert lib.soc_reduce(1000, 1000) != 0  # Gate precedes setgroups/UID/capset calls.

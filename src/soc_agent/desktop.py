@@ -19,7 +19,7 @@ from soc_agent.application import (
     compose_application,
     open_application_store,
 )
-from soc_agent.deployment import DeploymentDescriptor, DeploymentProfile
+from soc_agent.application_contracts import DeploymentDescriptor, DeploymentProfile
 from soc_agent.ingestion import EventIngestor, migrate_ingestion
 from soc_agent.llm import LLMClient
 from soc_agent.llm.models import LLMRequest

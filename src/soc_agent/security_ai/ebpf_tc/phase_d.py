@@ -8,6 +8,7 @@ from pathlib import Path
 from soc_agent.security_ai.collectors import offload_session
 from soc_agent.security_ai.ebpf_tc import supervisor_startup
 from soc_agent.security_ai.ebpf_tc.installation import canonical, verify_package
+from soc_agent.security_ai.ebpf_tc.source_guard import SourceGuard
 from soc_agent.security_ai.ebpf_tc.supervisor import SupervisorImage, prepare_supervisor_image
 from soc_agent.security_ai.ebpf_tc.unified_image import UnifiedImage
 from soc_agent.security_ai.ebpf_tc.unified_startup import prepare_candidate
@@ -51,12 +52,28 @@ def runtime_bundle():
     return result
 
 
-def prepare(directory: Path) -> dict:
+def prepare(directory: Path, *, deployment_directory: Path | None = None) -> dict:
+    # Keep compilation, package assembly and Python image hashing in one input
+    # observation window. A compiler-only guard misses writes between stages.
+    with SourceGuard(Path(__file__).parents[2]):
+        return _prepare(directory, deployment_directory=deployment_directory)
+
+
+def _prepare(directory: Path, *, deployment_directory: Path | None = None) -> dict:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
     _, _, package, manifest = prepare_candidate(directory, version="0.6.3", inspector=True)
     image = prepare_supervisor_image(
         package, manifest, directory / "supervisor-image.py", dns_sidecar=True
     )
+    image.verify()
+    if deployment_directory is not None:
+        # Physical build outputs may differ; the reviewed launch location remains
+        # an explicit common input. Never substitute a path without verifying the
+        # same immutable, owner-controlled executable bytes at that location.
+        image = image.model_copy(
+            update={"path": deployment_directory.absolute() / "supervisor-image.py"}
+        )
+        image.verify()
     (directory / "supervisor-image.json").write_text(image.model_dump_json(indent=2) + "\n")
     sidecar = directory / "dns-sidecar"
     sidecar.mkdir(mode=0o700)

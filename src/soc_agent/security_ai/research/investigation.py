@@ -6,7 +6,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from soc_agent.application import compose_application
-from soc_agent.deployment import DeploymentDescriptor
+from soc_agent.application_contracts import DeploymentDescriptor
 from soc_agent.desktop import OfflineDesktopClient, ReadReportInput
 from soc_agent.llm import LLMRequest
 from soc_agent.security_ai.external.projection import EXTERNAL_KEY, RULES

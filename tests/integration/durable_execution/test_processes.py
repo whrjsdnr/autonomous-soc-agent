@@ -10,6 +10,7 @@ from tests.unit.execution.conftest import SampleInput, SampleOutput
 from tests.unit.promotion.conftest import promoted
 
 from soc_agent.execution.durable import DurableExecutor, ExecutionStore, Lifecycle
+from soc_agent.execution.durable import store as store_module
 from soc_agent.execution.durable.errors import ClaimConflict
 from soc_agent.policy import PolicyEngine
 from soc_agent.review.persistence import SQLiteGovernanceStore
@@ -17,6 +18,12 @@ from soc_agent.tools import Tool, ToolRegistry
 
 
 def worker(path, identity, barrier, output, marker, mode):
+    # Crash-point tests exercise recovery, not elapsed-time lease expiry. Keep
+    # their child-local store clock fixed while validation is scheduled; the
+    # parent still reopens/recoveries using real time and the one-second lease.
+    if mode in ("boundary", "side_effect", "tool_failure"):
+        frozen_now = store_module.utc_now()
+        store_module.utc_now = lambda: frozen_now
     store = ExecutionStore(SQLiteGovernanceStore(path))
     record = store.load(identity)
     registry = ToolRegistry()
@@ -65,6 +72,14 @@ def worker(path, identity, barrier, output, marker, mode):
             store.claim(identity, claimant=str(os.getpid()))
         else:
             executor = DurableExecutor(store=store, registry=registry, policy=PolicyEngine())
+            if mode == "tool_failure":
+                check = executor.validation.check
+
+                def delayed_check(*args, **kwargs):
+                    time.sleep(1.05)  # Explicitly cross the real one-second lease.
+                    return check(*args, **kwargs)
+
+                executor.validation.check = delayed_check
             asyncio.run(executor.execute(identity, claimant=str(os.getpid()), lease_seconds=1))
         outcome = "success"
     except ClaimConflict:

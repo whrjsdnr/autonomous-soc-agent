@@ -7,6 +7,8 @@ import os
 import socket
 import stat
 import subprocess
+import threading
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -106,8 +108,17 @@ def test_pam_policy_change_or_bypass_is_not_qualified():
         validate_pam_inputs(inputs)
 
 
-def test_authentication_purpose_is_distinct_and_cannot_load():
+def authentication_shell():
+    # These narrow guard tests deliberately bypass expensive release construction;
+    # supply the synchronization invariant normally set by Handoff.__init__.
     auth = object.__new__(AuthenticationQualification)
+    auth.control_lock = threading.RLock()
+    auth.data = SimpleNamespace(error=None)
+    return auth
+
+
+def test_authentication_purpose_is_distinct_and_cannot_load():
+    auth = authentication_shell()
     auth.envelope = bytes(range(256)) + bytes(96)
     assert auth.approval != auth.envelope[-32:].hex()
     auth.qualification_only = True
@@ -118,7 +129,7 @@ def test_authentication_purpose_is_distinct_and_cannot_load():
 
 
 def test_authentication_replay_and_expiration_fail_closed():
-    auth = object.__new__(AuthenticationQualification)
+    auth = authentication_shell()
     auth.state, auth.attempted, auth.ended = "AUTHENTICATION_REQUIRED", True, False
     with pytest.raises(ValueError, match="AUTH_QUALIFICATION_REPLAY"):
         auth.authenticate_native()
@@ -129,7 +140,7 @@ def test_authentication_replay_and_expiration_fail_closed():
 
 def test_real_unprivileged_peer_cannot_claim_root_handoff():
     a, b = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
-    auth = object.__new__(AuthenticationQualification)
+    auth = authentication_shell()
     auth.listener = SimpleNamespace(accept=lambda: (a, None), close=lambda: None)
     auth.plan = SimpleNamespace(broker=SimpleNamespace(uid=os.getuid(), gid=os.getgid()))
     try:
@@ -142,7 +153,17 @@ def test_real_unprivileged_peer_cannot_claim_root_handoff():
 
 def test_compiled_auth_entry_denies_unprivileged_execution_and_preserves_kernel_gate(tmp_path):
     hashes = compile_native(tmp_path / "build")
-    assert hashes["tcx.bpf.o"] == "928a8afc1a75ce97acef5edaa6b5bb8823b681a0784bed7e067fc9f90cf50e4a"
+    # The reviewed 0.5.3 parser repair replaced the pre-verifier object. Preserve
+    # that historical evidence and pin today's unchanged object to its full SHA.
+    evidence = json.loads(
+        (
+            Path(__file__).resolve().parents[2]
+            / "docs/linux-soc-v1/tcx-verifier-parser-remediation-evidence.json"
+        ).read_text()
+    )
+    expected = "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
+    assert evidence["image"]["files"]["tc.bpf.o"]["sha256"] == expected
+    assert hashes["tcx.bpf.o"] == expected
     bootstrap = tmp_path / "build/bootstrap"
     inspected = subprocess.run(
         [str(bootstrap), "--inspect"], capture_output=True, text=True, check=True
@@ -222,7 +243,7 @@ def test_counter_snapshot_zero_is_not_unknown_or_kernel_drop(tmp_path):
 def test_auth_failure_does_not_retry_or_leave_session_authority(tmp_path, monkeypatch):
     import soc_agent.security_ai.ebpf_tc.auth_session as module
 
-    auth = object.__new__(AuthenticationQualification)
+    auth = authentication_shell()
     auth.state, auth.attempted, auth.ended = "AUTHENTICATION_REQUIRED", False, False
     auth.release = object()
     auth.plan = SimpleNamespace(broker=SimpleNamespace(uid=os.getuid()))

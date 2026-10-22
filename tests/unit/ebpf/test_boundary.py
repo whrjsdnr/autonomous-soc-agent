@@ -21,15 +21,32 @@ def test_zeek_bundle_changes_only_for_reviewed_failure_certificate_order():
         amendment["previous_zeek_bundle_digest"]
         == "2b005190106f94d0ee3d28adab3a18af1601b7bc2b5ebbabebc75ada803f2045"
     )
-    assert {k for k in bundle() if bundle()[k] != amendment["previous_zeek_bundle"][k]} == {
+    # The old certificate pins a historical release, never today's source.
+    historical = amendment["current_zeek_bundle"]
+    assert {k for k in historical if historical[k] != amendment["previous_zeek_bundle"][k]} == {
         "packet_producer.py"
     }
-    assert digest(bundle()) == amendment["current_zeek_bundle_digest"]
-    assert bundle() == amendment["current_zeek_bundle"]
+    assert digest(historical) == amendment["current_zeek_bundle_digest"]
     assert amendment["native_approval_required"] is True
-    assert bundle()["live_process.py"] == (
+    assert historical["live_process.py"] == (
         "d47439e384c301265e32daee906a927b668c4f7d8961f834bc55abf90b748dda"
     )
+    import hashlib
+
+    root = Path(__file__).resolve().parents[3] / "docs/linux-soc-v1"
+    successor = json.loads((root / "phase-d-063-rca-source-amendment.json").read_text())
+    assert (
+        successor["previous_amendment_sha256"]
+        == hashlib.sha256((root / "tcx-packet-data-plane-amendment.json").read_bytes()).hexdigest()
+    )
+    assert successor["previous_zeek_bundle"] == historical
+    assert bundle() == successor["current_zeek_bundle"]
+    assert digest(bundle()) == successor["current_zeek_bundle_digest"]
+    assert (
+        sorted(k for k in set(bundle()) | set(historical) if bundle().get(k) != historical.get(k))
+        == successor["zeek_changed_sources"]
+    )
+    assert successor["native_approval_required"] and successor["native_release"] == "BLOCKED"
 
 
 def test_no_native_attach_or_zeek_selection_on_preparation_cli():
