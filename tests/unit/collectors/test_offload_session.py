@@ -111,3 +111,23 @@ def test_exact_embedded_image_wiring_without_running_privileged_entry(tmp_path, 
     assert calls[0][4] is module.analysis_copy
     assert calls[0][5] is module.chain_receipt
     assert calls[0][6] == module.SCOPE_DIGEST
+
+
+def test_expired_analysis_budget_rejects_before_docker_lookup(tmp_path, monkeypatch):
+    from soc_agent.security_ai.collectors.live_contract import new_plan
+    from soc_agent.security_ai.collectors.live_process import StreamProcess
+    from soc_agent.security_ai.collectors.offload_copy import memory_pcap
+
+    monkeypatch.setattr("subprocess.Popen", lambda *args, **kwargs: pytest.fail("no launch"))
+    runner = StreamProcess(tmp_path, new_plan(), pcap_input=memory_pcap([]), analysis_deadline=0)
+    with pytest.raises(ValueError, match="DEADLINE_BEFORE_LAUNCH"):
+        runner.run()
+    assert not (tmp_path / "process.json").exists()
+
+
+def test_analysis_deadline_cannot_change_existing_native_path(tmp_path):
+    from soc_agent.security_ai.collectors.live_contract import new_plan
+    from soc_agent.security_ai.collectors.live_process import StreamProcess
+
+    with pytest.raises(ValueError, match="DEADLINE_SCOPE"):
+        StreamProcess(tmp_path, new_plan(), analysis_deadline=1)

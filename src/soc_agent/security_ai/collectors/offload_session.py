@@ -10,6 +10,7 @@ import json
 import os
 import struct
 import subprocess
+import time
 from pathlib import Path
 
 from soc_agent.security_ai.collectors.live_contract import bundle, new_plan
@@ -64,7 +65,7 @@ def prepare(directory: Path) -> dict:
     source = sources()
     value = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
-        version="0.5.17",
+        version="0.5.18",
         installed_tcx_release="0.5.16_PRESERVED_NO_INSTALL",
         base_manifest=image.manifest,
         image=image.model_dump(mode="json"),
@@ -72,13 +73,13 @@ def prepare(directory: Path) -> dict:
         sources=source,
         zeek_image=IMAGE,
         capture_scope_digest=hashlib.sha256(
-            b"DNS_LOCAL_PARTIAL_COPY_V1:net4026531833:lo:9s:32:512"
+            b"DNS_LOCAL_PARTIAL_COPY_V2:net4026531833:lo:7s:32:512"
         ).hexdigest(),
         scope=dict(
             namespace="net:[4026531833]",
             interface="lo",
             ifindex=1,
-            capture_seconds=9,
+            capture_seconds=7,
             max_seconds=10,
             records=32,
             snaplen=512,
@@ -212,6 +213,7 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
     excluded = 0
     chain = "0" * 64
     ready = closed = None
+    active_started = active_deadline = None
     first_failure = None
     try:
         child = subprocess.Popen(command, stdout=subprocess.PIPE, text=True)
@@ -229,6 +231,8 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
                     ):
                         raise ValueError("DNS_COPY_DUPLICATE_READY_OR_CAPABILITIES")
                     ready = row
+                    active_started = time.monotonic()
+                    active_deadline = active_started + 10
                     # Execute the SHA-held probe snapshot, not a reopened mutable path.
                     result = subprocess.run(
                         [
@@ -307,6 +311,7 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         if (
             code
             or not closed
+            or not ready
             or closed.get("image_sha256") != image_sha
             or closed.get("manifest") != candidate["base_manifest"]
             or closed.get("scope_digest") != candidate["capture_scope_digest"]
@@ -329,7 +334,9 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
         stream = Stream(source)
         zeek = out / "zeek"
         zeek.mkdir(mode=0o700)
-        runner = StreamProcess(zeek, plan, pcap_input=memory_pcap(packets))
+        runner = StreamProcess(
+            zeek, plan, pcap_input=memory_pcap(packets), analysis_deadline=active_deadline - 0.5
+        )
         runner.run(on_line=lambda line: stream.accept(decode(line)))
         result = dict(
             source="NATIVE_AUXDATA_CAPTURE_ANALYSIS_COPY",
@@ -359,15 +366,20 @@ def execute(directory: Path, manifest_sha: str, image_sha: str, *, probe: Path) 
             and stream.dns_count == 2
             and stream.dns_adapter_rejected == 0
         )
+        result["active_elapsed_seconds"] = time.monotonic() - active_started
+        result["active_time_budget_met"] = result["active_elapsed_seconds"] <= 10
         result["verdict"] = (
             "DNS_NATIVE_ANALYSIS_COPY_E2E_VERIFIED"
             if dns_complete
+            and result["active_time_budget_met"]
             and result["capture_accounting_consistent"]
             and result["zeek_exit"]["cleanup_verified"]
             and result["zeek_exit"]["protocol_finalized"]
             else "DNS_NATIVE_ANALYSIS_COPY_E2E_INCOMPLETE"
         )
         publish(out / "completion.json", result)
+        if time.monotonic() > active_deadline:
+            raise ValueError("DNS_COPY_ACTIVE_SESSION_DEADLINE")
         return result
     except (OSError, ValueError, EOFError, subprocess.SubprocessError) as exc:
         publish(

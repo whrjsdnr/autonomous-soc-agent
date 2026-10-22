@@ -2,6 +2,7 @@
 
 import json
 import struct
+import time
 from pathlib import Path
 
 import pytest
@@ -15,7 +16,8 @@ from soc_agent.security_ai.collectors.offload_copy import analysis_copy, memory_
 
 
 @pytest.mark.parametrize("transport", ["udp", "tcp"])
-def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport):
+@pytest.mark.parametrize("bounded_deadline", [False, True])
+def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport, bounded_deadline):
     q, r = dns_frames(tmp_path / "fixture.pcap")
     frames = [q, r]
     if transport == "tcp":
@@ -47,7 +49,12 @@ def test_confirmed_partial_memory_copies_reach_real_zeek_dns(tmp_path, transport
         assert result.status == "CHECKSUM_PARTIAL_CONFIRMED"
         copies.append((1800000000000000000 + i * 50_000_000, result.packet))
     plan = new_plan()
-    runner = StreamProcess(tmp_path, plan, pcap_input=memory_pcap(copies))
+    runner = StreamProcess(
+        tmp_path,
+        plan,
+        pcap_input=memory_pcap(copies),
+        analysis_deadline=time.monotonic() + 5 if bounded_deadline else None,
+    )
     from soc_agent.security_ai.collectors.live_stream import Stream, decode
     from soc_agent.security_ai.collectors.models import Source
 

@@ -8,6 +8,7 @@ call sudo or open an interface.
 import argparse
 import concurrent.futures
 import json
+import math
 import os
 import selectors
 import subprocess
@@ -40,10 +41,16 @@ class StreamProcess:
         fixture: Path | None = None,
         supervisor=None,
         pcap_input: bytes | None = None,
+        analysis_deadline: float | None = None,
     ):
         self.directory, self.plan, self.fixture = directory, plan, fixture
         self.supervisor = supervisor
         self.pcap_input = pcap_input
+        self.analysis_deadline = analysis_deadline
+        if analysis_deadline is not None and (
+            pcap_input is None or not math.isfinite(analysis_deadline)
+        ):
+            raise ValueError("ZEEK_ANALYSIS_DEADLINE_SCOPE")
         self.file_input = fixture is not None or pcap_input is not None
         if pcap_input is not None and (
             fixture is not None
@@ -67,6 +74,9 @@ class StreamProcess:
         self.container_identity = None
         self._authenticated_plan = None
         self._launched = False
+
+    def deadline_expired(self) -> bool:
+        return self.analysis_deadline is not None and time.monotonic() >= self.analysis_deadline
 
     def stop(self):
         self.stop_requested = True
@@ -151,7 +161,13 @@ class StreamProcess:
     def run(self, *, on_line=None):
         if self._launched:
             raise ValueError("ZEEK_SESSION_REUSE_DENIED")
-        OfflineZeek().environment()
+        if self.deadline_expired():
+            raise ValueError("ZEEK_ANALYSIS_DEADLINE_BEFORE_LAUNCH")
+        # Deadline-bound sidecar sessions already inspect the immutable image
+        # before authentication. Do not repeat a ten-second daemon query here;
+        # --pull=never and the fixed digest remain enforced by docker_argv.
+        if self.analysis_deadline is None:
+            OfflineZeek().environment()
         argv = docker_argv(
             self.plan,
             Path(__file__).parent.absolute(),
@@ -234,6 +250,8 @@ class StreamProcess:
 
         try:
             try:
+                if self.deadline_expired():
+                    raise ValueError("ZEEK_ANALYSIS_DEADLINE_BEFORE_LAUNCH")
                 if self.supervisor is not None:
                     self.process = self.supervisor.start(self.plan)
                 else:
@@ -269,6 +287,9 @@ class StreamProcess:
                             else "CONTROLLER_STOP"
                         )
                     now = time.monotonic()
+                    if self.deadline_expired():
+                        stage, api = "ANALYSIS_BUDGET", "time.monotonic"
+                        raise ValueError("ZEEK_ANALYSIS_SESSION_DEADLINE")
                     if (
                         not self.file_input
                         and not self.stop_requested
@@ -395,6 +416,9 @@ class StreamProcess:
                 raise ValueError("ZEEK_PARTIAL_RECORD_ON_CLOSE")
             if controller_error:
                 raise ValueError(controller_error)
+            if self.deadline_expired():
+                stage, api = "ANALYSIS_BUDGET", "time.monotonic"
+                raise ValueError("ZEEK_ANALYSIS_SESSION_DEADLINE")
             stage, api = "STREAM_FINALIZE", "CLOSED_AND_EXIT_VALIDATION"
             if code not in {0, 124} or not closed:
                 raise ValueError("ZEEK_CONTAINER_EXIT_UNVERIFIED")
@@ -506,6 +530,7 @@ class StreamProcess:
                     capture_integrity="UNVERIFIED",
                     native_capture=not self.file_input,
                     analysis_copy_input=self.pcap_input is not None,
+                    analysis_deadline_expired=self.deadline_expired(),
                     exit_digest_scope="PROCESS_AND_PROTOCOL_ONLY_NOT_CAPTURE_QUALITY",
                 ),
             )

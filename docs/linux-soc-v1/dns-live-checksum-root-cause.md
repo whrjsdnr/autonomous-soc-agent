@@ -511,3 +511,142 @@ new image and its two-query local DNS test require explicit approval before
 Native E2E can be judged. Live DNS analyzer counts, Native copy-path integrity
 and cleanup for this candidate remain PENDING. Native AI, DNS9 and operational
 promotion remain BLOCKED.
+
+## Approved 0.5.17 Native sidecar verification (2026-10-22)
+
+The user approved commit 9c1ee1b, sidecar manifest
+8c716217f14de4ee3c1279ccb0b426df080882c4a9215ea469f682d7b996ac7a,
+bundle be9c4ce3799475399ac41431fe9c8789733c0c657af8c79c4dda79e80fb00973,
+and image 0828050020dfc047b3b2100877763a6677290fa91d6a79d758168fbd463f576b.
+These identities, source bytes, namespace, interface and installed base were
+verified before the single execution. One OS authentication request was made.
+No root install, TCX operation, offload toggle or DNS configuration change occurred.
+
+**Functional Native DNS path VERIFIED; whole-session time qualification FAILED.**
+The application's original completion receipt is retained unchanged; this
+postflight qualification explicitly includes the timing check absent in 0.5.17.
+
+Actual results, from the same captured packets and the pinned Zeek analyzer:
+
+| Observation | Actual result |
+| --- | --- |
+| UDP query / received response | 1 / 1, transaction 49665, RCODE 0 |
+| TCP query / received response | 1 / 1, transaction 49666, RCODE 0 |
+| Kernel packet observations | 12: UDP 2, TCP 10 |
+| CHECKSUM_PARTIAL_CONFIRMED / analysis copies | 12 / 12 |
+| Normalizer rejection / socket drops | 0 / 0 |
+| Independently verified original/copy digest pairs | 12 |
+| DNS analyzer dispatch | 4 |
+| Zeek parsed queries / responses | 2 / 2 |
+| Zeek transaction / question matching | 2 / 2 |
+| Zeek checksum rejection / parse failure | 0 / 0 |
+| DNS Adapter received / accepted | 2 / 2 |
+| Root capture counter and CLOSED | received, 12 packets |
+| Zeek Counter / CLOSED / exit | received / received / 0 |
+| Zeek stream records / sequence gaps / invalid records | 19 / 0 / 0 |
+| Largest captured packet / configured maximum | 109 / 512 bytes |
+| Observed packets / maximum | 12 / 32 |
+
+Every kernel auxiliary status was 9 (USER | CSUMNOTREADY); GSO_TCP was unset.
+Original transport fields were preserved as metadata, and every copy digest
+matched the independently reconstructed original + permitted two-byte checksum
+change. Original/copy hashes differ as expected because the copies changed;
+"verified digest pairs" does not mean the two packets are byte-identical.
+Representative actual transport fields -> analysis checksum: UDP query
+0xfe76 -> 0x5568; UDP response 0xfe86 -> 0xbc87; TCP DNS query segment
+0xfe85 -> 0xd816; TCP DNS response segment 0xfe95 -> 0x3f0b. IPv4 header checksums
+were validated and preserved. No raw packet/PCAP was retained on disk.
+
+The UDP client was 127.0.0.1:37800 and TCP client 127.0.0.1:41523, both targeting
+the existing 127.0.0.53:53 service. Both responses matched the approved question.
+The matching Zeek DNS records have those same client ports, transaction IDs,
+QTYPE A and RCODE 0. This is live-source analysis, not a synthesized DNS receipt.
+Only the two approved queries were generated; no bad-packet or missing-metadata
+traffic injection was authorized or performed. Their rejection contracts remain
+supported by the prior nonprivileged tests, not claimed as new Native adversarial
+observations.
+
+### Integrity and remaining metadata limitation
+
+The existing Zeek raw-IP input produces all 12 packet summaries as UNSUPPORTED:
+live.zeek checks `ip_length + 14 <= frame_length`, assuming an Ethernet header,
+while this LINKTYPE_RAW input contains L3 bytes only. The summaries retain correct
+TCP/UDP endpoints; the DNS analyzer and Network/DNS events succeeded. This
+fail-closed classification is preserved and not relabeled as Network14 input.
+The sidecar did not run TCX or prove a new Network14 path. The existing installed
+TCX/Network14 path was unchanged.
+
+Socket accounting, receipt chain and analysis-copy provenance are verified for
+this controlled sample. This does not attest arbitrary payload authenticity,
+CHECKSUM_COMPLETE/UNNECESSARY or GRO state. Zeek's subprocess receipt correctly
+says native_capture=false and analysis_copy_input=true; Native provenance belongs
+to the preceding approved AUXDATA observer. Native AI/DNS9/operational gates remain
+BLOCKED despite successful DNS analysis.
+
+### Time failure root cause and actual cleanup
+
+A read-only observer recorded the packet socket appearing and disappearing; the
+final `/proc/net/packet` table was empty. Controller observation of capture READY
+to CLOSED was 9.018970756 seconds. Zeek processing and cleanup then took
+1.166150447 seconds. These sequential monotonic intervals alone total at least
+10.185121203 seconds. READY to the result file's timestamp was approximately
+10.284795301 seconds. Thus the capture fits ten seconds, but the complete active
+capture+analysis session does **not** meet the user's whole-session ten-second
+limit. Authentication time is excluded from these measurements.
+
+Failure stage: END_TO_END_TIME_BUDGET. API path:
+offload_session.execute -> StreamProcess.run. Qualification code:
+POLICY_WALL_TIME_EXCEEDED. errno: none (a policy/budget failure, not a kernel
+syscall failure). Root and container exit codes were both 0. Root cause: the
+nine-second capture and subsequent Zeek analysis were serial phases without a
+shared absolute deadline; the original functional verdict omitted elapsed time.
+No automatic Native retry followed.
+
+Capture, normalizer/analysis and cleanup remain independently recorded: root
+counter/CLOSED and Zeek counter/CLOSED were delivered, stream protocol finalized,
+container absence was positively queried, the sudo/observer/controller/terminal
+exited, and no packet socket remained. No privileged FD was delivered to GUI/AI.
+Per-close syscall return values were not separately instrumented; process exit,
+closed socket context and absence checks support diagnostic cleanup. All installed
+root files (SHA, owner, group, mode), pre-existing Native evidence, historical
+ledger files and original user changes matched the preservation snapshot.
+
+Private immutable attempt evidence is under:
+`.git/dns-offload-remediation-0517/candidate-final/live-attempt-1/` and
+`.git/dns-offload-remediation-0517/live-launch-1/`. The supplemental execution
+ledger references the old ledger digest without changing it: aggregate diagnostics
+2/3 used, 1 remaining; root installation attempts remain 0. The old 0.5.17
+manifest/image and raw application completion receipt are preserved.
+
+### Minimal nonprivileged time-contract remediation: candidate 0.5.18
+
+The fix reserves seven seconds for capture and shares a ten-second active-session
+deadline, starting at authenticated observer readiness, with the analysis phase.
+StreamProcess accepts that deadline only for bounded memory-PCAP analysis, not
+for existing Native/Supervisor paths. Expired budgets reject before launch; the
+analysis receive loop and completion checks also enforce the deadline. A half
+second is reserved for finalization. The immutable pinned-image lookup is already
+performed before authentication, so the deadline-bound analysis does not repeat
+an independent ten-second Docker lookup after capture.
+
+Deadline failure cannot skip owned-container or socket cleanup. Cleanup may need
+to continue after a deadline under OS/daemon stalls; that is a reported budget
+failure, never a false time-compliance claim. The final Native verdict now includes
+elapsed-time eligibility rather than DNS parser success alone. This is not a hard
+real-time scheduling guarantee. A new measured Native attempt is required.
+
+Twelve focused nonprivileged tests passed: exact embedded image wiring, digest
+rejection and bind-failure cleanup, expired deadline before Docker launch, rejection
+of deadline changes to the legacy Native path, UDP/TCP analysis with and without
+a shared deadline, and the unchanged Supervisor proxy contract. Actual Zeek in
+these tests used generated file/memory input only; no new capture/query occurred.
+
+Prepared DNS sidecar 0.5.18, **not executed**:
+
+- Manifest: `35443757635f4dd5d4426fb9e0ba054cc5f83688518ad34f06cc9ac72441a443`
+- Bundle: `ded51c5c57bfae846e59a7a78f0c71a59d45eddba3d8dfe46bc101587f6adb7f`
+- Image: `1c4a2db64d625bb6d95bdc9f5d4d3137a30b2a4b439098ef67eda3edfdba4027`
+- Directory: `.git/dns-offload-remediation-0518/candidate-final/`.
+- The installed root/TCX release stays 0.5.16; no install/rollback action is needed.
+- Namespace/interface/endpoint/question and UDP/TCP query counts remain fixed.
+- Remaining Native diagnostics: 1. New SHA approval is required before using it.

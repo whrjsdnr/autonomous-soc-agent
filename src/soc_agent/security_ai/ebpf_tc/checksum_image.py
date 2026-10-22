@@ -86,7 +86,7 @@ def prepare(output: Path, *, analysis: bool = False) -> UnifiedImage:
         source += b"\n" + Path(dns_copy_engine.__file__).read_bytes()
         source += (
             b"\nSCOPE_DIGEST = hashlib.sha256("
-            b"b'DNS_LOCAL_PARTIAL_COPY_V1:net4026531833:lo:9s:32:512').hexdigest()\n"
+            b"b'DNS_LOCAL_PARTIAL_COPY_V2:net4026531833:lo:7s:32:512').hexdigest()\n"
             b"\ndef capture(uid, gid):\n"
             b"    return capture_analysis(uid, gid, attach_filter,\n"
             b"                            restrict_process, analysis_copy, chain_receipt,\n"

@@ -83,8 +83,8 @@ def capture_analysis(
                 }
             if len(caps) != 4 or any(caps.values()):
                 raise ValueError("DNS_COPY_CAPABILITY_LEAK")
-            # One second reserved below the approved ten-second receive budget.
-            deadline = time.monotonic() + 9
+            # Reserve three seconds for downstream analysis within the shared budget.
+            deadline = time.monotonic() + 7
             os.set_blocking(1, False)
             emit_json(
                 dict(state="DNS_COPY_READY", capabilities=caps, scope_digest=scope_digest), deadline
