@@ -411,3 +411,53 @@ def test_all_candidate_receipts_survive_bounded_raw_tail_without_trusting_retain
     assert all(r["input_state"] == "INCOMPLETE" for r in receipts[3:])
     assert not any(r["eligible"] or r["model_executed"] for r in receipts)
     assert len(summary["feature_tail"]) == 4
+
+
+@pytest.mark.parametrize(
+    "last_ns,count,expected",
+    [
+        (13_000_001_000, 4096, "CAP_REACHED_BEFORE_MINIMUM_IDLE_SPAN"),
+        (29_999_999_999 + 1000, 3, "OBSERVED_SPAN_BELOW_MINIMUM_IDLE"),
+        (30_000_000_000 + 1000, 3, "EVENT_SPAN_SUFFICIENT_DURATION_ONLY"),
+        (120_000_000_000 + 1000, 4096, "EVENT_SPAN_SUFFICIENT_DURATION_ONLY"),
+    ],
+)
+def test_observation_budget_explains_cap_without_advancing_timeout(last_ns, count, expected):
+    from soc_agent.security_ai.ebpf_tc.window_evidence import observation_budget
+
+    summary, transport, *_ = complete()
+    summary["plan"]["event_limit"] = 4096
+    summary["received"] = count
+    summary["cpu_sequence"]["intervals"]["0"]["last_ns"] = last_ns
+    transport["delivery_accounting"] = dict(generation=7)
+    before = copy.deepcopy((summary, transport))
+    result = observation_budget(summary, transport)
+    assert result["state"] == expected
+    assert result["observed_event_span_ns"] == last_ns - 1000
+    assert not result["post_stop_wall_clock_completes_flow"]
+    assert not result["completion_or_eligibility_proven"]
+    assert result["native_ai"] == "BLOCKED"
+    assert (summary, transport) == before
+
+
+def test_unknown_epoch_or_window_does_not_predict_completion():
+    from soc_agent.security_ai.ebpf_tc.window_evidence import observation_budget
+
+    assert observation_budget({}, {})["state"] == "UNKNOWN"
+    summary, transport, *_ = complete()
+    summary["plan"]["event_limit"] = 4096
+    transport["delivery_accounting"] = dict(generation=8)
+    assert observation_budget(summary, transport)["state"] == "UNKNOWN"
+
+
+def test_stop_freezes_watermark_even_with_both_fin_and_later_packet():
+    flow = FlowAssembly("s", compact=True, event_watermark=True)
+    flow.add(packet(1, 1000, flags=1))
+    flow.add(packet(2, 2000, flags=1, reverse=True))
+    flow.finish("CAPTURE_STOP")
+    before = copy.deepcopy(flow.finalized)
+    with pytest.raises(ValueError, match="SEQUENCE_INTEGRITY"):
+        flow.add(packet(3, 31_000_002_000, kind="udp"))
+    assert flow.finalized == before
+    assert not before[0]["eligible"]
+    assert before[0]["lifecycle"]["timeout_witness_ns"] is None

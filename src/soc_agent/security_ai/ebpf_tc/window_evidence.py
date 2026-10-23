@@ -199,3 +199,56 @@ def assess_clock(samples: list, processing: dict) -> dict:
         authority="AUTHENTICATED_BROKER_MONOTONIC_REALTIME_BRACKETS",
         scope="SAME_HOST_DECLARED_KERNEL_DOMAIN_NOT_EXTERNAL_CLOCK_ACCURACY",
     )
+
+
+def observation_budget(processing: dict, transport: dict) -> dict:
+    """Explain event-time exhaustion; this diagnostic never authorizes capture or AI.
+
+    Waiting after STOP cannot advance the producer's observed-event watermark.
+    A sufficient duration alone proves neither loss-free capture nor a timeout.
+    """
+    plan = processing.get("plan") or {}
+    delivery = transport.get("delivery_accounting") or {}
+    intervals = (processing.get("cpu_sequence") or {}).get("intervals") or {}
+    rows = list(intervals.values()) if isinstance(intervals, dict) else intervals
+    bounds = [(r.get("first_ns"), r.get("last_ns")) for r in rows if isinstance(r, dict)]
+    complete = (
+        bool(bounds)
+        and len(bounds) == len(rows)
+        and all(type(a) is int and type(b) is int and 0 <= a <= b for a, b in bounds)
+    )
+    span = max(b for _, b in bounds) - min(a for a, _ in bounds) if complete else None
+    received, limit = processing.get("received"), plan.get("event_limit")
+    valid_count = (
+        type(received) is int and type(limit) is int and limit == 4096 and 0 <= received <= limit
+    )
+    cap = received == limit if valid_count else None
+    epoch = bool(plan.get("generation")) and plan.get("generation") == delivery.get("generation")
+    state = (
+        "UNKNOWN"
+        if span is None or not valid_count or not epoch
+        else "CAP_REACHED_BEFORE_MINIMUM_IDLE_SPAN"
+        if cap and span < 30_000_000_000
+        else "OBSERVED_SPAN_BELOW_MINIMUM_IDLE"
+        if span < 30_000_000_000
+        else "EVENT_SPAN_SUFFICIENT_DURATION_ONLY"
+    )
+    return dict(
+        contract="soc-capture-observation-budget:v1",
+        state=state,
+        observed_event_span_ns=span,
+        event_limit_reached=cap,
+        received=received,
+        event_limit=limit,
+        same_counter_epoch=epoch,
+        clock_domain=(processing.get("clock") or {}).get("domain"),
+        timeout_authority="OBSERVED_EVENT_WATERMARK",
+        idle_timeout_ns=30_000_000_000,
+        active_timeout_ns=120_000_000_000,
+        post_stop_wall_clock_completes_flow=False,
+        rate_control="NONE_IN_CURRENT_FULL_SCOPE_CAPTURE_CONTRACT",
+        capture_integrity=(transport.get("capture_evidence") or {}).get("status", "UNKNOWN"),
+        completion_or_eligibility_proven=False,
+        scope="DURATION_DIAGNOSTIC_ONLY_NOT_A_CAPTURE_OR_ELIGIBILITY_DECISION",
+        native_ai="BLOCKED",
+    )

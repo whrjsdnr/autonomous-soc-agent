@@ -286,3 +286,77 @@ Ledger-derived Campaign Native2/10, Root2/10; Batch2 Native1/2, Root1/2. At most
 ## Remaining Blockers / Next Batch Readiness
 
 Exact-SHA approval and safe review are pending. Under current background traffic, full-window/timeout/raw-vector evidence is not guaranteed by another identical run. P02/P03/P04 are not VERIFIED. If no qualified long observation window can be obtained in approved scope, request a separately bound capture/traffic design rather than weakening gates or consuming the last attempt blindly. Native AI, DNS9 and production promotion remain BLOCKED.
+
+
+# Batch 2 — Safe reattempt review and capture observation budget
+
+## Overall Status
+
+**BLOCKED** for Native execution; the new duration diagnostic is **INSTRUMENTED**. No Root installation, authentication, attachment, capture or traffic was performed. No ledger flag was changed or reservation made. P02/P03/P04 retain their original Native INCOMPLETE states and Native eligible0/7. A longer valid Flow window is not manufactured by the new diagnostic.
+
+## Why safe_for_next_attempt is false
+
+The authoritative record is sequence8, DIAGNOSTIC_E2E_EVIDENCE_REVIEW_COMPLETED, attempt0648d6b41f204377854e58fb76c3aa36, record SHA16c4cf5d3b891a0dfa005e03fd7d3ac97f2108ed35473a3e27136a304f4b258f. It explicitly records current_session_cleanup_verified=true, global_cleanup_verified=false, overall_status=FAILED and safe_for_next_attempt=false. The last flag was an ordinary-UID evidence-review decision, not an Inspector-generated owned-resource leak counter. The previous review conservatively left admission blocked after global resource equality failed. There is no implemented automatic rule that converts an external resource removal into a positive safety review.
+
+The controller's `_locked` contract requires every prior reservation to be finished and to have an append-only review with safe_for_next_attempt exactly true before another reservation; otherwise STABILIZATION_PREVIOUS_ATTEMPT_UNREVIEWED. This gating code and the stored record remain unchanged. A new Artifact approval alone does not remove that prerequisite. No true review event was appended and no old event was edited.
+
+### Independent cleanup facts
+
+- Owned TCX:3 map FDs +1 program FD observed closed by F_GETFD/EBADF after libbpf close; map/link/lo ingress/egress inventories0 after cleanup; ring/processing/audit drained, workers stopped. Raw close returnvalues were not observed.
+- DNS: Counter/CLOSED, container absence and cleanup receipt verified.
+- Global programs12→11/cgroup targets7→6: only the pre-existing cgroup_device Program1145, sd_devices, tag4b13b8318fb7df93, attach target `/sys/fs/cgroup/system.slice/wsl-pro.service` disappeared. No new Program remained. Session-owned TCX cleanup and this foreign attach target are distinct evidence domains.
+- The exact external removal trigger/creator process was not observed and remains UNKNOWN. Foreign target attribution does not prove full global stability or authorize ignoring the mismatch. Global cleanup remains UNVERIFIED and original Native FAILED.
+
+Private `window-safety-review-1/safety-review-draft.json` links the original review, FD/drain proof, foreign attach target and global diff. It is a read-only draft for the existing governed reassessment procedure, not a replacement decision. To clear admission, that procedure must review the owned cleanup receipts, Program ID/tag/attach-target identities, lack of newly added resources, residual uncertainty, and the new session's required authenticated preflight. If policy acceptance of external drift is needed, request that explicitly; do not alter the Root equality guard. Past snapshots cannot retroactively establish the exact missing external removal event.
+
+## Capture limit / STOP / timeout findings
+
+The delivered event cap is exactly4096. In loader.emit, reaching it sets packet_budget_reached; additional callbacks are counted as budget_excluded rather than admitted. At the next bounded Broker loop, packet_budget_reached or300s expiry invokes TCX cleanup and terminal data finalization. This is not a mechanism for keeping a complete sampled capture alive. The terminal drain/counter/CLOSED paths still run.
+
+The metadata adapter drains accepted work, calls FlowAssembly.finish and closes the assembly. Its observed-event watermark cannot advance after STOP. A subsequent event is rejected; merely waiting30s after STOP creates neither an event nor an idle witness. Timeout is measured in **kernel event nanoseconds**, with generation-bound same-host clock evidence; it is not userspace receive time or wall-clock elapsed time. IDLE_TIMEOUT requires an actual later event at least30s after that flow's last observed packet; ACTIVE_TIMEOUT requires an actual event at least120s after its first. A later event on another flow may witness an idle timeout while capture is still active. FIN/RST remain transport evidence; there is no existing FIN-only Native input eligibility branch.
+
+The full Capture Window and an individual Flow timeout window are related but not identical: the model Flow window/witness must lie inside the verified owned Capture Window; the Flow need not occupy its entirety. Neither a complete finalization/FIN nor a long global capture alone proves a qualified Flow. STOP-only candidates remain incomplete.
+
+### Can a valid window fit within existing scope?
+
+Yes **conditionally**, within300s, if the actual population stays below4096 long enough to retain an observed30s/120s witness, no integrity gate fails, and the candidate's raw vector/provenance receipt survives retention. The existing one TCP DNS query already supplies a local bidirectional TCP exchange/FIN and is reused; no extra TCP server or traffic is necessary for that fact. The existing UDP query remains one. DNS Sidecar's10s deadline is independent of a potentially longer TCX capture; DNS need not stay open30s to support TCX event-time processing.
+
+There is no approved packet-generation/rate/sample/filter parameter in the full-scope Plan. Broker command-rate slots rate-limit control requests, not captured packet events. Slowing receive/poll increases buffer pressure and cannot be used as a capture completeness solution. Pausing capture, silently excluding packets, increasing4096 or shortening30s would change the evidence contract and is not implemented. Waiting after detachment is not an alternative. Before spending the last Batch2 attempt, the operator needs a sufficiently quiet existing lo observation interval; the previous aggregate275.87 packets/s sample is not a supported-TCX rate or a promise of future conditions.
+
+If the current host cannot supply that condition, a narrower explicitly described capture population or separately bounded diagnostic traffic/witness would require separate scope/artifact/tooling approval. An attested end-of-window heartbeat as new idle authority would also require a reviewed evidence contract; the present post-detach timestamp is not automatically proof of uninterrupted capture until that instant. None of these extensions was implemented or approved here. Existing four-vector retention may still leave a correctly timed earlier flow without independently revalidatable raw values; no receipt/vector is invented to overcome this limitation.
+
+## Minimal diagnostic improvement
+
+`SupervisedSession.snapshot.capture_observation_budget` composes a pure observation-budget explanation from existing processing CPU intervals, generation and delivery accounting. It reports actual observed event span, whether4096 was reached, counter epoch agreement, existing clock domain and30s/120s event-time contract, and explicitly says post-STOP wall time does not complete a flow. It returns UNKNOWN for missing/invalid count/epoch/interval evidence. A sufficient duration is labelled DURATION_ONLY and never treated as capture, completion or AI eligibility proof.
+
+The actual saved run replays to observed_event_span_ns=12873273541, event_limit_reached=true, same_counter_epoch=true, state=CAP_REACHED_BEFORE_MINIMUM_IDLE_SPAN. This is a new **offline derived diagnostic**, not a new Native result or original timestamp. Original result SHA e845b1493de6256fc868783932f5d41b6b2580842577e537b9bb79c323fa16b8 is unchanged. Private `window-safety-review-1/observation-budget-replay.json` retains this distinction.
+
+Only window_evidence.py, supervisor.py and the existing window test file changed functionally. No C/BPF, Capture/Flow/eligibility gate, rate, queue, timeout, checkpoint, authentication or campaign controller policy changed. The new Snapshot field is outside the checkpoint summary; raw vector retention and16KiB failure handling remain intact. No new queue, thread, dependency, network operation or model inference was added.
+
+## Nonprivileged verification
+
+Fresh Workspace331 PASS (31.74s); independent frozen Export283 PASS (145.67s), including supervisor first-error preservation, checkpoint boundaries/recovery, flow/window/clock, campaign-budget and DNS finalization contracts. Window tests cover a4096-event13s stop,30s boundary,120s duration, missing/mismatched epoch, non-mutating diagnostic output and rejected post-STOP events despite both FINs; the existing synthetic complete-window/event-witness fixture remains eligible only as FIXTURE_NOT_NATIVE with no model execution. No prior Native candidate is promoted by fixtures.
+
+Two fresh independent builds from frozen source1711 produced26 identical file SHA values. BuildA27.857s, BuildB28.019s. Source start/end unchanged; snapshot `846e871eb7bb3a2a0d5c4ee6f236787eff6fba622c8e92947c566fe664247e6c`. Workspace/Export and stage/index equality are checked before selective commit. Ruff/format/diff pass. Data-channel integration and final preservation results are recorded below when completed; no test is represented as Native success. Historical full-suite Operator Timeout/legacy READY failures remain unresolved production qualification items.
+
+## New artifact and approval request
+
+Release0.6.3_BATCH2_OBSERVATION_BUDGET_DIAGNOSTIC, branch fix/native-stabilization-batch2. The implementation/report commit and Git tree are recorded after selective commit in private `window-safety-review-1/approval-request.json`.
+
+- Manifest `3761b57f58a8632f942af6c18abcee47f6b4e5beea6e0f1c882dff8afa9bee05`
+- Bundle `119f189c061775b737391eb97e123ae2af7ee98a8a1139477e5e3d9079bb04ec`
+- Execution Image `d5980ab96da947c9d6bd0657da2c9c52e9484d4e6b30a853af308fe7432d61f9`
+- Root Manifest `da894f80a427cee4d2d5991f9c736acbbed31e89d689ff141ba8035919a181f6`
+
+Requested operations, **not approved or executed**: existing SHA-bound installation1 of fixed9 files under `/usr/libexec/soc-agent-ebpf`, preserving currently installed f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3 and all rollback material; Unified Supervisor diagnostic1 after positive governed safety reassessment and new exact-SHA/Session/Release/Scope Approval Receipt. The current stored false review remains unchanged. User directly enters any OS password in the trusted TTY; no agent secret collection.
+
+Unchanged scope: net:[4026531833], lo/Ingress, <=300s,4096 metadata, Queue32,256MiB address space/20s CPU per privileged task; Zeek512MiB/CPU1 same namespace/lo; DNS10s total/7s capture/32packets/512B, local127.0.0.53:53 native-0516.localhost. A UDP1/TCP1. Admission50ms, reorder10ms and checkpoint16384B unchanged. Fixed9: bootstrap, broker, entry, libnative-tc.so, manifest.bin, pam-policy.conf, tc.bpf.o, release.json, release.trust. Root files and modes are explicitly listed in the request. No extra traffic, interfaces, unknown-program removal or global cleanup policy exception is requested with this artifact.
+
+Before any actual run, recheck source/artifacts/installed/rollback, budget, prior safe review and new receipt; authenticated Inspector must obtain new FD/kernel/cgroup/hook inventories before attach. Preserve first error separately from cleanup; stop on failure and never retry automatically. If scope, source or SHA changes, request a new approval. A fresh execution could still legitimately produce0 eligible candidates; the diagnostic exposes that condition, it does not remove it.
+
+## Budget / final decisions
+
+Campaign Native2/10, Root2/10; Batch2 Native1/2, Root1/2. No reservation, install or Native cost incurred by this task. Current Ledger bytes and false flag are preserved; historical failures and104 evidence records +8 user changes remain protected. P02 INCOMPLETE, P03 INCOMPLETE, P04 Native eligible0/7; owned cleanup VERIFIED independently, global cleanup UNVERIFIED. Final readiness is BLOCKED by safety review and execution approval, with duration feasibility conditional on actual in-scope traffic. Native AI, DNS9 and production promotion remain BLOCKED.
+
+
+Final verification for this revision: ordinary-UID data-channel/Drain integration15 PASS (275.61s); Ruff PASS, format1368 PASS, diff PASS. Workspace331 and Export283 are the newly executed results above; overlapping test sets are not summed as independent tests. Source1711/stage equality, immutable old Native49/protected112/current ledger and installed/rollback checks are recorded in private `window-safety-review-1/final-preservation.json` and `window-safety-review-1/installed-rollback-check.json`. Only the two diagnostic source files, one existing test file and this report are selected for commit; main and user changes are excluded. Final Git commit/tree/remote equality and the new exact-SHA request are recorded after commit in `window-safety-review-1/approval-request.json`.

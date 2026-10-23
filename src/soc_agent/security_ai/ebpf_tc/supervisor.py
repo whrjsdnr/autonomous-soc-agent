@@ -643,10 +643,12 @@ class SupervisedSession(UnifiedSession):
         base = super().snapshot()
         from soc_agent.security_ai.ebpf.eligibility import candidate_rca
         from soc_agent.security_ai.ebpf.input_eligibility import input_receipts
+        from soc_agent.security_ai.ebpf_tc.window_evidence import observation_budget
 
         transport = base.get("data_plane") or {}
         processing = transport.get("processing") or {}
         return base | dict(
+            capture_observation_budget=observation_budget(processing, transport),
             candidate_eligibility=candidate_rca(processing, transport),
             network14_input_receipts=input_receipts(processing, transport),
             entry_diagnostic=self.entry_diagnostic,
