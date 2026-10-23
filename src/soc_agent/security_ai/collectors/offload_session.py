@@ -43,7 +43,7 @@ from soc_agent.security_ai.ebpf_tc.unified_image import (
 )
 from soc_agent.security_ai.ebpf_tc.unified_image_engine import LABEL
 
-PROBE_SHA = "1b466afcb1fbaf0b5d9a56744640140ef07389342537f5d1bbb9245a2e403f8f"
+PROBE_SHA = "f180463489bd051c6a6f6b22758c1a70c27c02e468bf3893062eb9363bfe7d2a"
 PROBE_APPROVAL = "0b6c59f501489f67da18e5a7f671b80853542376a8df7a2b0495cd9fbdeb5757"
 
 

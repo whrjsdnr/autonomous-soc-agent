@@ -538,3 +538,164 @@ Approved review contract/schema and authority/controller/adapter; execution-cont
 Current runtime identity remains17241f76510b9d1e60562eca9d1803bf6b2d20ba / Manifest3761b57f58a8632f942af6c18abcee47f6b4e5beea6e0f1c882dff8afa9bee05; Bundle119f189c061775b737391eb97e123ae2af7ee98a8a1139477e5e3d9079bb04ec; Imaged5980ab96da947c9d6bd0657da2c9c52e9484d4e6b30a853af308fe7432d61f9; Rootda894f80a427cee4d2d5991f9c736acbbed31e89d689ff141ba8035919a181f6. These do not implement R1/R2.
 
 Campaign Native/Root2/10, Batch2 Native/Root1/2 unchanged. Original Ledger, negative review, audit, Native49 hashes and protected112 files are preserved. No policy activation or new operational approval exists. Final state: **UNAPPROVED_DRAFT_CONTRACT_VALIDATED / NATIVE_BLOCKED**; P02/P03/P04 INCOMPLETE, Native AI/DNS9/production BLOCKED.
+
+## R1/R2 operational implementation — separate authority grants still required
+
+Status: **NONPRIVILEGED_IMPLEMENTATION_VERIFIED; NATIVE_BLOCKED_PENDING_APPROVAL**.
+The implementation approval does not issue a procedure/reassessment/admission/
+traffic/execution receipt. No actual campaign record, safe flag, installation,
+PAM authentication, capture or DNS traffic was created during this work.
+
+### R1 implementation and activation boundary
+
+`ebpf_tc/reassessment.py` validates held owner/mode/length-checked receipt bytes
+against separately supplied SHA256 trust anchors. Strict, immutable models bind
+previous/next Git commit/tree, Release identities, sessions, scope, original
+negative review, evidence catalog, reviewer, procedure approval and expiry.
+It verifies the previous reservation's Artifact/Git/session and FAILED finish,
+source evidence file digests and the latest negative review. Under the existing
+flock/hash-chain/fsync writer it checks the current ledger tip again, rejects
+replay/duplicate human references and appends only `SAFETY_REASSESSMENT_RECORDED_V1`.
+It never emits a legacy positive review or changes the original false/FAILED.
+
+Cleanup fields are explicit reviewer-attested interpretations, not an automatic
+parser proving Kernel ownership. Their raw source digests must be supplied and
+verified. ALLOW requires owned cleanup, no new unknown programs, an attributed
+external owner and explicit acceptance of the UNKNOWN removal cause. Historical
+Program 1145 removal cause and historical global cleanup remain UNKNOWN/UNVERIFIED.
+
+`ebpf_tc/reassessment_admission.py` supplies a separate opt-in versioned adapter.
+It is disabled without an exact, independently human-approved
+`SOC_REASSESSMENT_ADMISSION_AMENDMENT_V1` with
+`activate_versioned_admission=true`. This is a policy-change authorization and
+is **not granted by implementation approval**. AGENTS.md §33 and the current
+user instruction require separate human review before it can be activated.
+The pinned legacy controller and budget were not edited. Legacy admission still
+rejects the original false review, even after a new reassessment event exists.
+
+The versioned adapter requires the latest unexpired positive reassessment,
+unchanged original negative review, current ledger tip, exact next session /
+Artifact / base scope and a separate execution approval. It delegates base scope,
+Root/global budget and approval consumption checks to the existing campaign;
+Batch 2 remains at most two Root and Native reservations. A reassessment may
+support only one reservation. No prior result is relabeled successful. The R2
+Supervisor branch verifies this reservation under the same ledger lock before
+OS authentication and refuses missing/completed reservations.
+
+There is no receipt issuer, bypass flag, Root shell or alternative authentication
+implementation. SHA pins are operator-provided approval trust anchors, not digital
+signatures or independently discovered reviewer identities.
+
+### R2 implementation and limits
+
+`ebpf_tc/r2_diagnostic.py` and the opt-in existing Supervisor path require a
+separately pinned `SOC_R2_TRAFFIC_APPROVAL_V1` binding session, Artifact, exact
+scenario, implementation SHA, expiry and exclusive claim path. The claim is
+consumed before authentication; crash/send failure cannot trigger an automatic
+retry. Claim-path substitution and already-created claims are rejected. The
+ordinary-UID/capability-free helper can send only the single fixed C203 UDP query
+at 127.0.0.53:53, `native-0516.localhost.` A, with a one-second response bound
+and 512-byte maximum. It records response identity, monotonic timestamps and
+digest, and closes its socket. No resolver API or fallback server is used.
+
+The initial Sidecar keeps UDP1/TCP1 and its unchanged ten-second internal bound.
+The initial probe now records the actual **local socket close** monotonic time;
+this is not inferred peer FIN evidence. Its exact pinned PROBE_SHA was updated,
+not removed. The additional UDP witness is requested at TCP local-close +35s,
+after initial Sidecar completion; the existing Supervisor requests normal STOP
+at +45s. The planned capture cap is 60s after ATTACH and the original hard cap
+remains 300s. Queue32 / admission50ms / reorder10ms / checkpoint16384B and the
+4,096-event / 256MiB / CPU20s limits remain unchanged.
+
+This is total UDP2/TCP1. The late witness is **TCX observation**, not a third
+Sidecar/Zeek transaction. Existing Source Provenance, actual Kernel timestamps,
+CPU/Clock window validation, Flow termination and eligibility evaluators retain
+authority. Waiting, a successful DNS response or PLANNED_STOP never asserts
+ELIGIBLE. Early capture close, event limit or absent late witness stays INCOMPLETE.
+The user must manually disconnect noisy VS Code Remote sessions; no process is
+killed, event discarded, counter corrected, timeout shortened or limit expanded.
+Quiet loopback and at least one eligible flow are not guaranteed by this launcher.
+
+### Regression finding and minimal correction
+
+The initial broad run had 409 PASS / 1 FAIL before any final builds: a signal
+fixture exceeded its unchanged three-second READY wait **before sending SIGTERM**.
+Supervisor import pulls scipy/sklearn (a measured import trace was about 1.918s;
+exact scheduling contribution to the failed run is UNKNOWN). An isolated run
+passed. To remove this irrelevant coupling from the signal fixture, the same
+signal-only implementation was moved unchanged to `ebpf_tc/termination.py`.
+Supervisor public aliases remain; an added identity assertion verifies it uses
+those exact functions/classes. All signal and cleanup assertions and deadlines
+remain unchanged. Earlier development failures, including the expected stale
+probe pin and signal readiness failures, remain in qualification logs and are
+not final-source verification results.
+
+### Final qualification and preservation
+
+- Related Workspace: **411 PASS**, `r1r2-operational-3/workspace-tests.log`;
+  the exact final source snapshot matches that run. No Workspace source mutation
+  was detected. This is not a claim that the historical full-suite failures are fixed.
+- Final independent Export: **411 PASS**, `r1r2-operational-5/export-tests.log`.
+- Operational R1/R2 cases: **37 PASS**, including real temporary hash-chain writes
+  and one-shot dispatch to a mocked existing Supervisor; no real authority granted.
+- Prior draft cases: **53 PASS**, still explicitly synthetic/inactive.
+- Ruff / Format / Diff: PASS; 1,375 Python files format-checked.
+- Source snapshot SHA256: `22dd59c8feb04dc50fa4ddc662259109da667a4ef5690367545dfce31692133a`; **1,718 files**,
+  Workspace/Export start/end equal. Final change guards passed.
+- Build A/B: **26/26 byte digests identical**, 21.962s /
+  21.531s. Stage file hashes are in `qualification.json`;
+  the build contract does not define a separate aggregate Stage identity.
+- Manifest: `b82681b295ce458a6bf08be1b48b4e05c992c0c552af3a0ddef70b6b3a36fb33`
+- Bundle: `fd4693384b6eb0d94e370b4cd3b2c14439e7d91d5207cb940ddd0b43bbffc576`
+- Execution Image: `5d555ba00c9ff9f59d09fcfaab9358b58035b49d53c2d992b28d9433996c9cda`
+- Root Manifest: `9983f2c3b90c82382466c3d83f84ab082b0ac2381851cab74525456e4ba46e76`
+- Existing protected files: **112/112**, including the original eight user files
+  and 104 evidence entries. Prior Native evidence **49/49** unchanged.
+- Actual execution ledger SHA256 remains
+  `f6a18f079ab88b4fa3f55daea7d3ccad004d47dd3d82567f59a3d125b3b6761a`.
+- The first guarded Export attempt was rejected: a fresh pytest cache atomically
+  creates `pytest-cache-files-*` in the source root before renaming to `.pytest_cache`.
+  An instrumented diagnostic reproduced those exact non-input directory events;
+  its observer-induced teardown errors are not qualification results. Installed
+  `_pytest/cacheprovider.py::_make_cachedir` confirms this behavior. Input byte hashes
+  and file sets were unchanged. The final runner relocates pytest's cache outside
+  the source tree (`-o cache_dir=...`), with the strict SourceGuard unchanged.
+  Final Export and both new builds passed their guards. Rejected cycles remain
+  preserved; their Artifact identities are not approved or reused.
+- Current installed Root Manifest remains
+  `f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3`.
+  Old full Workspace/Export failures are not reclassified by these related tests.
+
+
+The final commit/tree are recorded after commit in the private
+`r1r2-operational-5/approval-request.json`; embedding this document's own commit
+hash in its contents would be self-referential. Only the two historical report
+Markdown files are excluded from the build-source snapshot. They are not runtime
+build inputs; post-commit code/input hashes must still match the frozen snapshot.
+
+Campaign Native / Root remain **2/10 each**, Batch 2 **1/2 each**. Old Phase D
+budgets remain exhausted and separate. No real reassessment/admission event was
+appended; `safe_for_next_attempt=false` and the previous Native FAILED are intact.
+P02/P03 remain INCOMPLETE, P04 remains 0/7 historical eligible, and Native AI,
+DNS9 and production remain BLOCKED.
+
+### Required human decisions before any future Native execution
+
+1. Review/approve the R1 procedure and the separately scoped versioned admission
+   amendment under AGENTS.md §33. The approved implementation itself grants neither.
+2. A named human reviewer must approve the exact source evidence catalog, UNKNOWN
+   external-removal risk, previous failed session and proposed next session / SHA.
+   Append a separately pinned review receipt only after that authorization.
+3. Pin the new R2 traffic receipt (UDP2/TCP1), next-session UUID and exclusive
+   claim path, plus the reassessment record and admission amendment hashes.
+4. Separately approve the exact Root Manifest nine-file installation once,
+   preserving installed release and rollback, and one Native diagnostic reservation.
+   Maintain net:[4026531833], lo/INGRESS, 300s, 4096 events, Queue32,
+   privileged-operation AS256MiB/CPU20s, original container resource limits.
+   The user enters any password directly into the existing trusted terminal path.
+5. Recheck current ledger tip, remaining Batch 2 allowance, owned/global resource
+   baseline, source and artifact hashes, and STOP/SIGTERM/cleanup contract. Stop on
+   a mismatch; no automatic reinstall, replay, Native retry or unknown-program detach.
+
+The exact pending Artifact identities and operation request are in the private
+approval request. No approval can be inherited from the ca5b7cb or older images.

@@ -22,7 +22,7 @@ def test_real_sigterm_default_skips_finally_but_boundary_preserves_cleanup(tmp_p
 import os,signal,sys
 from contextlib import nullcontext
 from pathlib import Path
-from soc_agent.security_ai.ebpf_tc.supervisor_startup import (
+from soc_agent.security_ai.ebpf_tc.termination import (
     termination_boundary, SupervisorTermination,
 )
 try:
@@ -203,3 +203,13 @@ def test_returned_cleanup_failure_is_top_level_without_replacing_primary(primary
 def test_successful_final_snapshot_does_not_manufacture_failure():
     result = startup.final_result(dict(last_error=None), {}, [], None)
     assert result["first_failure"] is None and not result["errors"]
+
+
+def test_supervisor_uses_exact_signal_only_boundary():
+    from soc_agent.security_ai.ebpf_tc.termination import (
+        SupervisorTermination,
+        termination_boundary,
+    )
+
+    assert startup.SupervisorTermination is SupervisorTermination
+    assert startup.termination_boundary is termination_boundary

@@ -1,0 +1,270 @@
+"""Opt-in versioned admission amendment; inert without separately pinned human approval.
+
+The old controller/budget and negative review are immutable. This adapter uses
+its hash-chain writer and the same global/batch counters. It authorizes no Root
+command and performs no authentication, installation, capture or network I/O.
+"""
+
+import hashlib
+import time
+from pathlib import Path
+from typing import Literal
+
+from soc_agent.security_ai.ebpf_tc.reassessment import (
+    Binding,
+    Contract,
+    Hash,
+    Identity,
+    digest,
+    held_json,
+)
+from soc_agent.security_ai.native_campaign import NativeCampaign
+from soc_agent.security_ai.stabilization_campaign import StabilizationCampaign
+
+
+class AdmissionAmendment(Contract):
+    contract: Literal["SOC_REASSESSMENT_ADMISSION_AMENDMENT_V1"] = (
+        "SOC_REASSESSMENT_ADMISSION_AMENDMENT_V1"
+    )
+    decision: Literal["APPROVED"]
+    approver: Identity
+    human_reference_sha: Hash
+    implementation_sha: Hash
+    base_controller_sha: Hash
+    budget_sha: Hash
+    baseline_sha: Hash
+    binding: Binding
+    reassessment_record_sha: Hash
+    review_receipt_sha: Hash
+    expires_at: int
+    # Approval of THIS versioned admission rule is separate from execution approval.
+    activate_versioned_admission: Literal[True]
+    original_result_unchanged: Literal[True] = True
+    root_commands_authorized: Literal[False] = False
+
+
+class ReassessedCampaign(StabilizationCampaign):
+    def __init__(self, directory: Path, *, amendment_file: Path, amendment_sha: str):
+        super().__init__(directory, "BATCH2")
+        self.amendment = AdmissionAmendment.model_validate(held_json(amendment_file, amendment_sha))
+        self.amendment_sha = amendment_sha
+        a = self.amendment
+        if (
+            a.implementation_sha != hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+            or a.base_controller_sha != self.controller_sha
+            or a.budget_sha != hashlib.sha256(self.budget_body).hexdigest()
+            or a.baseline_sha != hashlib.sha256(self.baseline_body).hexdigest()
+            or time.time() >= a.expires_at
+        ):
+            raise ValueError("REASSESSMENT_AMENDMENT_BINDING")
+
+    def reserve(
+        self, identity, scope, dns_scope, approval_file, approval_sha, *, root_cost, git_commit=None
+    ):
+        receipt = held_json(approval_file, approval_sha)
+        a = self.amendment
+        if (
+            receipt.get("admission_amendment_sha") != self.amendment_sha
+            or receipt.get("next_session") != a.binding.next_session
+            or receipt.get("reassessment_record_sha") != a.reassessment_record_sha
+            or receipt.get("r2_receipt_sha") is None
+            or digest(scope) != a.binding.scope_sha
+            or git_commit not in (None, a.binding.next_artifact.git_commit)
+        ):
+            raise ValueError("REASSESSMENT_EXECUTION_APPROVAL_BINDING")
+        # One controller instance is bound to a single immutable execution receipt.
+        self.execution_receipt = receipt
+        self.execution_receipt_sha = approval_sha
+        return super().reserve(
+            identity,
+            scope,
+            dns_scope,
+            approval_file,
+            approval_sha,
+            root_cost=root_cost,
+            git_commit=a.binding.next_artifact.git_commit,
+        )
+
+    def _locked(self, operation):
+        def guarded(rows):
+            event = operation(rows)
+            if event["event"] != "NATIVE_ATTEMPT_RESERVED":
+                return event
+            a = self.amendment
+            if (
+                time.time() >= a.expires_at
+                or event["approval_sha256"] != self.execution_receipt_sha
+            ):
+                raise ValueError("REASSESSMENT_ADMISSION_EXPIRED")
+            if rows[-1].get("record_sha256") != a.reassessment_record_sha:
+                raise ValueError("REASSESSMENT_ADMISSION_STALE_LEDGER")
+            reviews = [
+                r
+                for r in rows
+                if r.get("event") == "SAFETY_REASSESSMENT_RECORDED_V1"
+                and r.get("binding", {}).get("previous_attempt") == a.binding.previous_attempt
+            ]
+            if not reviews:
+                raise ValueError("REASSESSMENT_ADMISSION_REVIEW_MISSING")
+            review = reviews[-1]
+            if (
+                review.get("record_sha256") != a.reassessment_record_sha
+                or review.get("receipt_sha256") != a.review_receipt_sha
+                or review.get("binding") != a.binding.model_dump()
+                or review.get("decision") != "ALLOW_NEXT_ADMISSION_ONLY"
+                or time.time() >= review.get("expires_at", 0)
+            ):
+                raise ValueError("REASSESSMENT_ADMISSION_REVIEW_INVALID")
+            reservations = [r for r in rows if r["event"] == "NATIVE_ATTEMPT_RESERVED"]
+            finished = {
+                r.get("attempt_id") for r in rows if r["event"] == "NATIVE_ATTEMPT_FINISHED"
+            }
+            for old in reservations:
+                if old.get("attempt_id") not in finished:
+                    raise ValueError("REASSESSMENT_PRIOR_ATTEMPT_UNFINISHED")
+                legacy = [
+                    r
+                    for r in rows
+                    if r["event"] == "DIAGNOSTIC_E2E_EVIDENCE_REVIEW_COMPLETED"
+                    and r.get("attempt_id") == old["attempt_id"]
+                ]
+                if not legacy:
+                    raise ValueError("REASSESSMENT_PRIOR_REVIEW_MISSING")
+                if old["attempt_id"] == a.binding.previous_attempt:
+                    if legacy[-1].get("record_sha256") != a.binding.negative_review_sha:
+                        raise ValueError("REASSESSMENT_STALE_NEGATIVE_REVIEW")
+                elif legacy[-1].get("safe_for_next_attempt") is not True:
+                    raise ValueError("REASSESSMENT_OTHER_ATTEMPT_BLOCKED")
+                if old.get("reassessment_record_sha") == a.reassessment_record_sha:
+                    raise ValueError("REASSESSMENT_ADMISSION_REPLAY")
+            batch = [r for r in reservations if r.get("batch") == "BATCH2"]
+            if len(batch) >= 2 or sum(r["root_cost"] for r in batch) + event["root_cost"] > 2:
+                raise ValueError("STABILIZATION_BATCH_BUDGET_EXHAUSTED")
+            prior = a.binding.next_artifact
+            if event["release"] != dict(
+                manifest=prior.manifest,
+                bundle=prior.bundle,
+                image=prior.image,
+                tcx_manifest=prior.root_manifest,
+            ):
+                raise ValueError("REASSESSMENT_NEXT_ARTIFACT")
+            event.update(
+                batch="BATCH2",
+                controller_sha256=self.controller_sha,
+                admission_amendment_sha=self.amendment_sha,
+                reassessment_record_sha=a.reassessment_record_sha,
+                next_session=a.binding.next_session,
+                r2_receipt_sha=self.execution_receipt["r2_receipt_sha"],
+            )
+            return event
+
+        return NativeCampaign._locked(self, guarded)
+
+
+def require_r2_reservation(
+    directory: Path, *, session: str, receipt_sha: str, identity: dict
+) -> None:
+    """Read/validate the existing chain under its lock, without appending an event."""
+    campaign = StabilizationCampaign(directory, "BATCH2")
+
+    class Checked(Exception):
+        pass
+
+    def inspect(rows):
+        matching = [
+            r
+            for r in rows
+            if r["event"] == "NATIVE_ATTEMPT_RESERVED"
+            and r.get("next_session") == session
+            and r.get("r2_receipt_sha") == receipt_sha
+            and r.get("release") == identity
+            and r.get("admission_amendment_sha")
+            and r.get("reassessment_record_sha")
+        ]
+        finished = {r.get("attempt_id") for r in rows if r["event"] == "NATIVE_ATTEMPT_FINISHED"}
+        if len(matching) != 1 or matching[0]["attempt_id"] in finished:
+            raise ValueError("R2_APPROVED_RESERVATION_REQUIRED")
+        raise Checked
+
+    try:
+        NativeCampaign._locked(campaign, inspect)
+    except Checked:
+        return
+
+
+def execute(
+    directory: Path,
+    manifest: str,
+    image: str,
+    *,
+    campaign: Path,
+    amendment_file: Path,
+    amendment_sha: str,
+    approval_file: Path,
+    approval_sha: str,
+    traffic_file: Path,
+    traffic_sha: str,
+    claim_file: Path,
+) -> dict:
+    """Existing Supervisor/TTY path, once, after independent amendment + execution + R2 grants."""
+    import json
+
+    from soc_agent.security_ai.ebpf_tc import phase_d
+    from soc_agent.security_ai.ebpf_tc.r2_diagnostic import LaunchApproval, R2Launcher
+    from soc_agent.security_ai.ebpf_tc.unified_image import installed_release
+
+    value = phase_d.validate(directory, manifest, image)
+    ledger = ReassessedCampaign(
+        campaign, amendment_file=amendment_file, amendment_sha=amendment_sha
+    )
+    receipt = held_json(approval_file, approval_sha)
+    binding = ledger.amendment.binding
+    launch = LaunchApproval(
+        traffic_file, traffic_sha, binding.next_session, binding.next_artifact, claim_file, campaign
+    )
+    R2Launcher(launch)  # Validate without traffic/claim/authentication before reserving.
+    if receipt.get("r2_receipt_sha") != traffic_sha:
+        raise ValueError("R2_EXECUTION_RECEIPT_MISMATCH")
+    identity = dict(
+        manifest=manifest, bundle=value["bundle"], image=image, tcx_manifest=value["tcx_manifest"]
+    )
+    dns = json.loads((directory / "dns-sidecar/release.json").read_bytes())["scope"]
+    reserved = ledger.reserve(
+        identity,
+        value["scope"],
+        dns,
+        approval_file,
+        approval_sha,
+        root_cost=int(installed_release().identity != value["tcx_manifest"]),
+        git_commit=binding.next_artifact.git_commit,
+    )
+    try:
+        result = phase_d.execute(directory, manifest, image, gui=False, r2_approval=launch)
+    except BaseException as exc:
+        try:
+            ledger.finish(
+                reserved["attempt_id"],
+                outcome="FAILED",
+                evidence=dict(
+                    exception_class=type(exc).__name__, errno=getattr(exc, "errno", None)
+                ),
+            )
+        except (OSError, ValueError) as audit_error:
+            exc.add_note("REASSESSMENT_FINAL_AUDIT_FAILED:" + type(audit_error).__name__)
+            raise exc from audit_error
+        raise
+    failed = bool(result.get("last_error")) or result.get("cleanup_status") != (
+        "PROCESS_AND_AUDIT_VERIFIED"
+    )
+    ledger.finish(
+        reserved["attempt_id"],
+        outcome="FAILED" if failed else ("RETURNED_PENDING_EVIDENCE_REVIEW"),
+        evidence=dict(
+            result_sha256=hashlib.sha256(
+                (directory / "supervised-result.json").read_bytes()
+            ).hexdigest(),
+            application_session=result.get("broker_session"),
+            native_verified=False,
+        ),
+    )
+    return result

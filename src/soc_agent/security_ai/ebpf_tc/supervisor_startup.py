@@ -5,10 +5,8 @@ import asyncio
 import hashlib
 import json
 import os
-import signal
 import threading
 import time
-from contextlib import contextmanager
 from pathlib import Path
 
 from soc_agent.security_ai.collectors.handoff import failure_evidence
@@ -32,6 +30,12 @@ from soc_agent.security_ai.ebpf_tc.supervisor import (
     SupervisedSession,
     SupervisorImage,
     prepare_supervisor_image,
+)
+from soc_agent.security_ai.ebpf_tc.termination import (
+    SupervisorTermination as SupervisorTermination,
+)
+from soc_agent.security_ai.ebpf_tc.termination import (
+    termination_boundary as termination_boundary,
 )
 from soc_agent.security_ai.ebpf_tc.trust import release_approval
 from soc_agent.security_ai.ebpf_tc.unified_startup import prepare_candidate
@@ -85,37 +89,6 @@ async def watch_control(handoff):
         await asyncio.sleep(0.5)
 
 
-class SupervisorTermination(KeyboardInterrupt):
-    """A real terminal/process signal, never successful collector completion."""
-
-    def __init__(self, signum: int):
-        self.signum = signum
-        super().__init__("SUPERVISOR_SIGNAL_" + signal.Signals(signum).name)
-
-
-@contextmanager
-def termination_boundary():
-    """Unwind through the existing cleanup once; a second signal cannot skip it."""
-    if threading.current_thread() is not threading.main_thread():
-        raise ValueError("SUPERVISOR_MAIN_THREAD_REQUIRED")
-    requested = False
-
-    def stop(signum, _frame):
-        nonlocal requested
-        if not requested:
-            requested = True
-            raise SupervisorTermination(signum)
-
-    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
-    try:
-        for sig in previous:
-            signal.signal(sig, stop)
-        yield
-    finally:
-        for sig, handler in previous.items():
-            signal.signal(sig, handler)
-
-
 def shutdown_collectors(handoff, runner, future, *, phase_d=False) -> list[dict]:
     """Revoke privileged work before user-side drain, attempt each cleanup independently."""
     failures = []
@@ -166,14 +139,33 @@ def final_result(snapshot: dict, zeek: dict, failures: list[dict], first: dict |
 
 
 def execute(
-    directory: Path, expected_manifest: str, expected_image: str, *, gui=False, phase_d=None
+    directory: Path,
+    expected_manifest: str,
+    expected_image: str,
+    *,
+    gui=False,
+    phase_d=None,
+    r2_approval=None,
 ):
     with termination_boundary():
-        return _execute(directory, expected_manifest, expected_image, gui=gui, phase_d=phase_d)
+        return _execute(
+            directory,
+            expected_manifest,
+            expected_image,
+            gui=gui,
+            phase_d=phase_d,
+            r2_approval=r2_approval,
+        )
 
 
 def _execute(
-    directory: Path, expected_manifest: str, expected_image: str, *, gui=False, phase_d=None
+    directory: Path,
+    expected_manifest: str,
+    expected_image: str,
+    *,
+    gui=False,
+    phase_d=None,
+    r2_approval=None,
 ):
     local_controller()  # No Root GUI/runtime or inherited capabilities.
     image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
@@ -199,6 +191,36 @@ def _execute(
             Path("tests/native_dns_live_probe.py").absolute(),
             previous_manifest=image.previous_manifest,
         )
+    r2 = None
+    if r2_approval is not None:
+        from soc_agent.security_ai.ebpf_tc.r2_diagnostic import R2Launcher
+
+        if gui or phase_d is None:
+            raise ValueError("R2_PHASE_D_HEADLESS_REQUIRED")
+        approved = r2_approval.artifact
+        if (approved.manifest, approved.image, approved.bundle, approved.root_manifest) != (
+            hashlib.sha256(canonical(phase_d)).hexdigest(),
+            expected_image,
+            phase_d["bundle"],
+            expected_manifest,
+        ):
+            raise ValueError("R2_RELEASE_BINDING")
+        from soc_agent.security_ai.ebpf_tc.reassessment_admission import require_r2_reservation
+
+        if r2_approval.campaign_directory is None:
+            raise ValueError("R2_CAMPAIGN_RESERVATION_REQUIRED")
+        require_r2_reservation(
+            r2_approval.campaign_directory,
+            session=r2_approval.session,
+            receipt_sha=r2_approval.receipt_sha,
+            identity=dict(
+                manifest=approved.manifest,
+                bundle=approved.bundle,
+                image=approved.image,
+                tcx_manifest=approved.root_manifest,
+            ),
+        )
+        r2 = R2Launcher(r2_approval)
     legacy = directory / "preparation"
     scope = Scope(
         hook="INGRESS",
@@ -211,7 +233,12 @@ def _execute(
     owner = Controller(
         Application(
             directory / "session",
-            ApplicationPlan(controller=local_controller(), scope=scope, mode="PHASE_A_FIXTURE"),
+            ApplicationPlan(
+                controller=local_controller(),
+                scope=scope,
+                mode="PHASE_A_FIXTURE",
+                **({"application_session": r2_approval.session} if r2 else {}),
+            ),
             legacy / "tc.bpf.o",
             legacy / "phase-a-loader",
         )
@@ -257,6 +284,8 @@ def _execute(
         if not confirm_scope(handoff):
             raise ValueError("SUPERVISOR_APPROVAL_DENIED")
         stage, api = "OS_AUTHENTICATION", "SupervisedSession.authenticate_native"
+        if r2:
+            r2.claim()  # Extra traffic approval is consumed before OS authentication.
         handoff.authenticate_native()  # Exactly one fresh OS call; no downstream sudo.
         control_future = submit(watch_control(handoff))
         if phase_d is not None:
@@ -272,6 +301,8 @@ def _execute(
                         run=run,
                     )
                 )
+            if r2:
+                r2.start(time.monotonic_ns())
             stage, api = "DNS_TASK", "offload_session.execute"
             future = submit(
                 asyncio.to_thread(
@@ -327,7 +358,30 @@ def _execute(
                     if phase_d is None:
                         break
                     handoff.zeek_snapshot = future.result()
-                if handoff.data.adapter and handoff.data.adapter.flow.closed:
+                flow_closed = bool(handoff.data.adapter and handoff.data.adapter.flow.closed)
+                if r2:
+                    tcp_closed = None
+                    if future.done():
+                        from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+
+                        probe_file = directory / "dns-sidecar/live-attempt-1/probe.json"
+                        probe = held_json(
+                            probe_file, hashlib.sha256(probe_file.read_bytes()).hexdigest()
+                        )
+                        tcp_records = [v for v in probe["records"] if v["transport"] == "TCP"]
+                        if len(tcp_records) != 1:
+                            raise ValueError("R2_INITIAL_TCP_EVIDENCE")
+                        tcp_closed = tcp_records[0]["socket_closed_monotonic_ns"]
+                    stage, api = "R2_DIAGNOSTIC", "R2Launcher.advance"
+                    if r2.advance(
+                        time.monotonic_ns(),
+                        tcp_closed_ns=tcp_closed,
+                        sidecar_closed=future.done(),
+                        received=handoff.data.adapter.received if handoff.data.adapter else 0,
+                        capture_closed=flow_closed,
+                    ):
+                        break
+                elif flow_closed:
                     break
                 time.sleep(0.2)
                 stage, api = "COLLECTOR_LOOP", "SupervisedSession.observe"
@@ -366,6 +420,17 @@ def _execute(
                                 exc, stage="FINAL_NATIVE_CLOSE", api="SupervisedSession.close"
                             )
                         )
+                    if r2:
+                        try:
+                            (directory / "r2-observation.json").write_text(
+                                json.dumps(r2.snapshot(), indent=2) + "\n"
+                            )
+                        except OSError as exc:
+                            failures.append(
+                                failure_evidence(
+                                    exc, stage="R2_OBSERVATION_SAVE", api="Path.write_text"
+                                )
+                            )
                     (directory / "supervised-result.json").write_text(
                         json.dumps(
                             final_result(

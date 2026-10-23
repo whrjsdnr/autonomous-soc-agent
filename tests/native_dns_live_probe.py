@@ -123,6 +123,8 @@ def execute(approval: str) -> list[dict]:
                     elapsed_ns=int((time.monotonic() - started) * 1e9),
                 )
             )
+        # Recorded after socket context exits: local close, not inferred peer FIN.
+        records[-1]["socket_closed_monotonic_ns"] = time.monotonic_ns()
     return records
 
 
