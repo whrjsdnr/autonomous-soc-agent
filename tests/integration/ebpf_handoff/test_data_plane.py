@@ -170,6 +170,10 @@ def test_counter_and_closed_frames_drain_after_processing_failure(session, tmp_p
         )
 
     class Frames:
+        def recv(self, size, flags):
+            assert flags == socket.MSG_PEEK | socket.MSG_DONTWAIT
+            return rows[0][:size]
+
         def recvmsg(self, *_args):
             credentials = struct.pack("3i", os.getpid(), os.getuid(), os.getgid())
             return rows.pop(0), [(socket.SOL_SOCKET, socket.SCM_CREDENTIALS, credentials)], 0, None
@@ -263,6 +267,10 @@ def test_bounded_slow_processing_keeps_counter_and_terminal_receive(
         )
 
     class Frames:
+        def recv(self, size, flags):
+            assert flags == socket.MSG_PEEK | socket.MSG_DONTWAIT
+            return rows[0][:size]
+
         def recvmsg(self, *_args):
             credentials = struct.pack("3i", os.getpid(), os.getuid(), os.getgid())
             return rows.pop(0), [(socket.SOL_SOCKET, socket.SCM_CREDENTIALS, credentials)], 0, None
@@ -320,3 +328,147 @@ def test_closed_with_pending_processing_never_claims_drain_complete(session, tmp
     result = channel.snapshot()
     assert result["terminal_closed_observed"]
     assert result["processing_pending"] == 1 and result["drain_state"] == "PENDING"
+
+
+@pytest.mark.parametrize("failure", [None, "credentials", "queue", "recvmsg"])
+def test_packet_slot_reserved_before_receive_and_released_on_failure(session, tmp_path, failure):
+    import errno
+    import queue
+    import socket
+    import struct
+    import threading
+
+    from soc_agent.security_ai.ebpf_native.contracts import process_identity
+    from soc_agent.security_ai.ebpf_tc import data_plane
+
+    h, _ = session
+    channel = data_plane.PacketChannel(h.plan, h.envelope[-32:].hex(), tmp_path)
+    channel.identity = process_identity(os.getpid())
+    channel.source = 2
+    channel.processor = threading.Thread(target=lambda: None)
+    body = data_plane.HEADER.pack(
+        data_plane.MAGIC,
+        1,
+        2,
+        2,
+        1,
+        0,
+        h.plan.broker.application.application_session.bytes,
+        bytes.fromhex(channel.approval),
+        bytes.fromhex(h.plan.program_sha256),
+    ) + bytes(80)
+    for _ in range(31):
+        assert channel.packet_slots.acquire(blocking=False)
+
+    class Frames:
+        def recv(self, size, flags):
+            assert size == 16 and flags == socket.MSG_PEEK | socket.MSG_DONTWAIT
+            return body[:size]
+
+        def recvmsg(self, *_args):
+            # The last shared slot must already be reserved before consuming
+            # the complete record. A blocked admission cannot retain packet33.
+            assert not channel.packet_slots.acquire(blocking=False)
+            if failure == "recvmsg":
+                raise OSError(errno.ECONNRESET, "injected")
+            uid = os.getuid() + int(failure == "credentials")
+            credentials = struct.pack("3i", os.getpid(), uid, os.getgid())
+            return body, [(socket.SOL_SOCKET, socket.SCM_CREDENTIALS, credentials)], 0, None
+
+    channel.channel = Frames()
+    if failure == "queue":
+
+        def full(_item):
+            raise queue.Full
+
+        channel.processing_queue.put_nowait = full
+    if failure == "credentials":
+        with pytest.raises(ValueError, match="TCX_DATA_CREDENTIALS"):
+            channel._receive()
+    elif failure == "recvmsg":
+        with pytest.raises(OSError):
+            channel._receive()
+        assert channel.io_failure == dict(
+            api="recvmsg", errno=errno.ECONNRESET, source="ACTUAL_OSERROR"
+        )
+    else:
+        channel._receive()
+    if failure:
+        assert channel.packet_slots.acquire(blocking=False)
+    else:
+        assert channel.processing_queue.qsize() == 1
+        assert not channel.packet_slots.acquire(blocking=False)
+    if failure == "queue":
+        assert channel.error == "TCX_PROCESSING_QUEUE_OVERFLOW"
+        assert channel.processing_discarded == 1
+
+
+def test_transient_shared_budget_pressure_waits_before_consuming(session, tmp_path):
+    import socket
+    import struct
+    import threading
+
+    from soc_agent.security_ai.ebpf_native.contracts import process_identity
+    from soc_agent.security_ai.ebpf_tc import data_plane
+
+    h, _ = session
+    channel = data_plane.PacketChannel(h.plan, h.envelope[-32:].hex(), tmp_path)
+    channel.identity = process_identity(os.getpid())
+    channel.source = 2
+    channel.processor = threading.Thread(target=lambda: None)
+    body = data_plane.HEADER.pack(
+        data_plane.MAGIC,
+        1,
+        2,
+        2,
+        1,
+        0,
+        h.plan.broker.application.application_session.bytes,
+        bytes.fromhex(channel.approval),
+        bytes.fromhex(h.plan.program_sha256),
+    ) + bytes(80)
+    slots = channel.packet_slots
+    for _ in range(32):
+        assert slots.acquire(blocking=False)
+    waiting = threading.Event()
+    consumed = threading.Event()
+
+    class ObservedSlots:
+        def acquire(self, *, blocking=True, timeout=None):
+            if timeout is not None:
+                waiting.set()
+                return slots.acquire(timeout=timeout)
+            return slots.acquire(blocking=blocking)
+
+        def release(self):
+            slots.release()
+
+    class Frames:
+        def recv(self, size, _flags):
+            return body[:size]
+
+        def recvmsg(self, *_args):
+            consumed.set()
+            credentials = struct.pack("3i", os.getpid(), os.getuid(), os.getgid())
+            return body, [(socket.SOL_SOCKET, socket.SCM_CREDENTIALS, credentials)], 0, None
+
+    def release_one():
+        assert waiting.wait(1)
+        assert not consumed.is_set()
+        slots.release()
+
+    channel.packet_slots = ObservedSlots()
+    channel.channel = Frames()
+    releaser = threading.Thread(target=release_one)
+    releaser.start()
+    try:
+        channel._receive()
+    finally:
+        releaser.join(1)
+    assert not releaser.is_alive()
+    assert consumed.is_set() and channel.error is None
+    assert channel.processing_queue.qsize() == 1
+    assert channel.receiver_metrics["admission_waits"] == 1
+    assert channel.receiver_metrics["admission_resumed"] == 1
+    assert channel.receiver_metrics["admission_timeouts"] == 0
+    assert not slots.acquire(blocking=False)

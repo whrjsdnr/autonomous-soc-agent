@@ -23,6 +23,7 @@ HEADER = struct.Struct("<4IQQ16s32s32s")
 CREDENTIAL = struct.Struct("3i")
 MAGIC = 0x31445053
 ROW_BYTES = HEADER.size + 80
+PACKET_ADMISSION_TIMEOUT_SECONDS = 0.05
 
 
 def synchronized(method):
@@ -84,6 +85,11 @@ class PacketChannel:
             processing_max_ns=0,
             queue_wait_max_ns=0,
             queue_full=0,
+            admission_waits=0,
+            admission_resumed=0,
+            admission_timeouts=0,
+            admission_wait_total_ns=0,
+            admission_wait_max_ns=0,
             receiver_stopped_ns=None,
             close_requested_ns=None,
             closed_received_ns=None,
@@ -295,6 +301,45 @@ class PacketChannel:
     def _receive(self, *, ready: bool = False) -> None:
         if self.channel is None or self.identity is None or self.closed:
             raise ValueError("TCX_DATA_CHANNEL_NOT_READY")
+        # Peek only the fixed header for scheduling. Authentication still happens
+        # on the complete recvmsg record below. Reserve before consuming a packet
+        # so an admission wait cannot create a 33rd retained packet.
+        reserved = False
+        transferred = False
+        peek_kind = None
+        try:
+            if self.processor:
+                try:
+                    prefix = self.channel.recv(16, socket.MSG_PEEK | socket.MSG_DONTWAIT)
+                except OSError as exc:
+                    self.io_failure = self.io_failure or dict(
+                        api="recv(MSG_PEEK)", errno=exc.errno, source="ACTUAL_OSERROR"
+                    )
+                    raise
+                if len(prefix) == 16:
+                    peek_kind = struct.unpack("<4I", prefix)[2]
+                if peek_kind == 2:
+                    reserved = self.packet_slots.acquire(blocking=False)
+                    if not reserved and not self.error:
+                        started = time.perf_counter_ns()
+                        self.receiver_metrics["admission_waits"] += 1
+                        reserved = self.packet_slots.acquire(
+                            timeout=PACKET_ADMISSION_TIMEOUT_SECONDS
+                        )
+                        elapsed = time.perf_counter_ns() - started
+                        self.receiver_metrics["admission_wait_total_ns"] += elapsed
+                        self.receiver_metrics["admission_wait_max_ns"] = max(
+                            self.receiver_metrics["admission_wait_max_ns"], elapsed
+                        )
+                        self.receiver_metrics[
+                            "admission_resumed" if reserved else "admission_timeouts"
+                        ] += 1
+            transferred = self._receive_record(ready=ready, reserved=reserved, peek_kind=peek_kind)
+        finally:
+            if reserved and not transferred:
+                self.packet_slots.release()
+
+    def _receive_record(self, *, ready: bool, reserved: bool, peek_kind: int | None) -> bool:
         try:
             before = time.perf_counter_ns()
             if self.last_receive_ns is not None:
@@ -370,6 +415,8 @@ class PacketChannel:
             raise ValueError("TCX_DATA_SEQUENCE_OR_COUNTER_RESET")
         if kind not in ({1} if ready else {2, 3, 4, 5}):
             raise ValueError("TCX_DATA_KIND")
+        if self.processor and peek_kind != kind:
+            raise ValueError("TCX_DATA_PEEK_KIND_CHANGED")
         self.sequence, self.loss = sequence, loss
         self.frames += 1
         if loss:
@@ -383,29 +430,31 @@ class PacketChannel:
         raw = body[HEADER.size :]
         if self.processor and kind == 2:
             try:
-                if not self.packet_slots.acquire(blocking=False):
+                if not reserved:
                     raise queue.Full
                 self.processing_queue.put_nowait((raw, time.perf_counter_ns()))
                 self.processing_queue_peak = max(
                     self.processing_queue_peak, self.processing_queue.qsize()
                 )
+                return True
             except queue.Full:
                 self.receiver_metrics["queue_full"] += 1
                 self.processing_discarded += 1
                 self.error = self.error or "TCX_PROCESSING_QUEUE_OVERFLOW"
-            return
+            return False
         if self.processor and kind == 4:
             if self.end_pending is not None:
                 raise ValueError("TCX_DATA_DUPLICATE_END")
             self.end_pending = raw
-            return
+            return False
         if self.processor and kind == 3:
             if any(raw):
                 raise ValueError("TCX_DATA_CONTROL_SCHEMA")
             self.wire_closed = True
             self.receiver_metrics["closed_received_ns"] = time.perf_counter_ns()
-            return
+            return False
         self._apply(kind, raw)
+        return False
 
     def _apply(self, kind: int, raw: bytes) -> None:
         if kind == 2:
