@@ -202,3 +202,87 @@ No new approval receipt, budget reservation or Native launch is created. Before 
 Final ordinary-UID C/socket integration:15 PASS in278.36s. No kernel attach, container launch or DNS traffic in these tests. Final stage blobs match all1711 frozen source inputs (reports excluded by the declared source inventory rule); Workspace/Export/Stage SHA is the same8bdedfc6… snapshot. The preservation checker validates ledger record hashes over the exact newline-terminated JSONL bytes, as the campaign controller does; an initial ad-hoc check omitted those newlines and was corrected without changing any ledger bytes.
 
 Post-run implementation/report Git operation is limited to these9 files on `fix/native-stabilization-batch2`, with no shared main update or force push. Final full commit/tree and remote equality are recorded after commit in private `postnative-release.json`; the executed ca5b7cb identity remains the Native evidence reference. Post-run qualification is nonprivileged only and does not change the actual FAILED / INCOMPLETE decisions above.
+
+
+# SOC Native Stabilization Batch 2 — Final Native Qualification Preparation
+
+## Overall Status
+
+**BLOCKED_FOR_NATIVE_APPROVAL_AND_SAFE_REVIEW; nonprivileged preparation complete.** This task does not authorize a new install, authentication, attachment, capture or traffic. No new run was attempted or reserved. Actual prior Native result remains FAILED; this preparation is not a Native pass. The d56f45e runtime code is unchanged, with no new implementation defect confirmed requiring another patch.
+
+## P02 Capture Integrity
+
+All four possible CPUs have pre-attach/post-detach boundaries (eight records), with six generation-bound clock samples. Same-host clock brackets are VERIFIED; external UTC calibration remains UNKNOWN. Epoch15224515642550003925, KERNEL_MONOTONIC_NS. Corrected baseline/clock reason codes were verified without changing any integrity gate.
+
+Original window identity `d5c0c2162901067afe1a906c96e9d15e844ab12746c8f20648d4ff859086febf`. All seven candidates bind this Session/window. Per-CPU emitted/delivered deficits sum17, matching the known post-limit exclusion total, but excluded packet CPU/attempt identities are not retained. Two CPU3 attempt gaps remain unattributed; they are not proof that CPUs were not observed. Unsupported1 and delivered-prefix truncation prevent full-window proof. Owned ring reservation failures0; system-wide loss UNKNOWN. Decision: INCOMPLETE, not a clock-calibration failure.
+
+Next run must retain both CPU boundary sets, six paired clock samples, same generation, all branch populations, delivery counters and exclusions, event intervals, Counter/CLOSED/drain and window digest. Missing or nonzero/truncated evidence must still fail the existing gate. No zero-traffic timestamps or guessed offset may substitute for records.
+
+## P03 Flow Completeness / P04 Network14
+
+| Full candidate identity | Protocol | TCP termination evidence | Raw vector retained | Historical candidate state |
+|---|---|---|---|---|
+| 1 `2c2e85eafb6943d1006b79a00a45deb530e1961b0699254b7739a25f7f4c19d3` | tcp | NOT_OBSERVED | no | INCOMPLETE |
+| 2 `bc15badf915c84f6b89de24b9d1d618764ed38ea32e4183a73bfe85e00043e30` | tcp | NOT_OBSERVED | no | INCOMPLETE |
+| 3 `95747c2651407f52d0413f21680e75d959c4853273fa1fd33c09149c049d19b4` | tcp | NOT_OBSERVED | no | INCOMPLETE |
+| 4 `7458bea030fcd93bc0f78ecb54f82a927c4c1ef4298c727b7365a262c00b6f88` | tcp | NOT_OBSERVED | yes | INCOMPLETE |
+| 5 `e6926a9069358ccf6ed4eba71d19ef8fb338069dde59eb39edf1a010ec47e117` | udp | NOT_OBSERVED | yes | INCOMPLETE |
+| 6 `772fcbd9028f18eceedf1c0a6d261ba02f37d78660305c7c41c75d007b94e131` | tcp | BOTH_FIN_OBSERVED | yes | INCOMPLETE |
+| 7 `10688c1c68967d0a8e2ba37ba617a6fc3fe6928b02114bc7e8544f02fd1cd84f` | udp | NOT_OBSERVED | yes | INCOMPLETE |
+
+All seven flows are bidirectional (none is disqualified as unidirectional). Candidate6 has BOTH_FIN_OBSERVED; the others have no TCP termination proof or are UDP. All seven retain PACKET_LIMIT source finalization, no timeout witness and no complete capture window. Feature validation/fingerprints passed when captured; no feature calculation defect was identified. Source provenance and retained RCA receipts exist for all seven. Three raw vectors are absent, so independent raw-value revalidation is UNKNOWN for those; this does not rewrite their historical INCOMPLETE states. The d56f45e input-receipt correction preserves all seven with missing vectors explicitly UNKNOWN, rather than silently omitting them.
+
+**Native candidates7; ELIGIBLE0; historical INCOMPLETE7; no confirmed INVALID feature.** P03 INCOMPLETE, P04 INCOMPLETE. Full per-candidate Session/generation/window/clock/flow/provenance/schema/fingerprint/reason metadata is stored separately in private `final-qualification-preparation-1/candidate-rca.json`; original Native output is untouched.
+
+The current model-window contract requires an observed event-time30s IDLE_TIMEOUT or120s ACTIVE_TIMEOUT witness. FIN/RST alone and STOP do not satisfy it. Prior capture occupied approximately13s before the4096 limit: it could not supply a30s idle witness. Arrival timing is not replaceable by waiting on a wall clock. Idle completion may be witnessed by a later actual event on another flow, as already tested by the synthetic pipeline. Synthetic ELIGIBLE remains FIXTURE_NOT_NATIVE with model_executed=false.
+
+### Minimal TCP diagnostic scenario, within existing traffic approval scope
+
+Reuse the **existing one TCP DNS query** to127.0.0.53:53 (`native-0516.localhost.`, A) as the single local TCP bidirectional exchange/FIN scenario; the prior run already observed both FIN directions. Keep the existing one UDP DNS query. No additional listener, TCP client, UDP witness, DNS query or external traffic is proposed for automatic execution with this artifact. Zeek retains its10s deadline; TCX may independently continue up to300s.
+
+To prove timeout without new traffic, TCX must observe a later natural packet at least30s after that flow's last event, before the4096 metadata limit, with all integrity gates satisfied. If no natural witness arrives, no flow is eligible on that basis. Even a witnessed timeout needs its raw vector retained in the bounded four-vector evidence set; no extra raw vectors or receipt truncation bypass is proposed. An early timeout vector can still be displaced by later exports, so an eligible candidate cannot be promised.
+
+Read-only aggregate `/sys/class/net/lo/statistics` observation, not packet capture:1380 packets over5.002386506s, approximately275.87 packets/s; rx_dropped/rx_errors did not increase during those two aggregate samples. This is not a TCX supported-event rate or capture-loss proof. It corroborates the risk of reaching4096 before the required30s window; no future rate is guaranteed. The operator should not consume the last Batch2 attempt expecting a guaranteed eligible candidate under sustained background traffic. No unrelated application/service was stopped or reconfigured. Narrowed filtering, an isolated namespace or an extra timed local witness would change the scope/artifact/tooling and require separate preparation and approval; none was implemented or silently authorized.
+
+## Cleanup
+
+Owned TCX FD/map/link/filter cleanup and DNS container absence are independently VERIFIED for the prior run. Global equality failed because pre-existing wsl-pro.service cgroup_device Program1145/tag4b13b8318fb7df93 was removed; no added Program was observed. The attach target is known, exact external removal mechanism UNKNOWN. It is not a newly leaked SOC-owned Program, and it is not grounds to override the strict global guard. Global Cleanup UNVERIFIED and prior exit1 remain unchanged.
+
+The registered execution controller currently rejects a new reservation because the prior evidence review has safe_for_next_attempt=false. This is an additional real blocker beyond missing exact-SHA approval. Controller/Root guard/Receipt enforcement were not modified. A reviewed, append-only safe-to-attempt decision must be completed before reservation; that decision must distinguish permission to attempt again from changing the prior failed outcome. If an operator wishes to accept the identified external removal for *future admission only*, that must be explicitly reviewed, while fresh authenticated kernel/hook/FD/cgroup preflight and the existing strict post-run equality guard remain required. No record was changed to true by this task. An owned-only cleanup acceptance policy would be a separate policy change, not part of the request below.
+
+## Native E2E evidence retained
+
+Prior TCX4096/4096, DNS UDP1/TCP1 matched transaction, Counter/CLOSED, Checkpoint14818B, Audit hash-chain and copy-only recovery verified. Actual Supervisor exit1 with global cleanup mismatch; the old top-level first_failure omission is retained in raw evidence and reproduced/corrected offline. The DNS exit diagnostic recomputes analysis_deadline_expired after cleanup; exact earlier guard instant remains UNKNOWN although no deadline exception was raised and authenticated total9.765661s met10s. That measurement caveat is not recast as errno or silently resolved.
+
+## RCA / Fixes / Regression Tests
+
+No functional source change in this preparation: d56f45e already fixes returned cleanup failure propagation, independent clock/baseline diagnostics and all-candidate input receipts. The exact runtime source was rechecked against its frozen Export.
+
+Fresh related Workspace325 PASS (24.90s); fresh frozen Export core117 PASS (4.05s), including Window/Clock, flow, checkpoint, campaign-budget and Zeek finalization contracts. These overlap prior tests and are not summed as distinct coverage. Unchanged-source qualification retains focused46 PASS, broader Export277 PASS, ordinary-UID C/socket integration15 PASS, Ruff/format/diff PASS from the post-run verification. No synthetic/ordinary-UID test is a Native execution. Full historical regression failures (Operator timeout / legacy Zeek READY) remain explicitly unresolved for production.
+
+## Source / Artifact SHA
+
+Implementation Git `d56f45e5c85527866a186dd96a5f33d09176b406`, implementation tree `1e762a0bee01a243b75773bf0fd4c70413c84c90`. Final report-only commit/tree is recorded in the private approval request after commit. The two report documents are excluded by the already declared frozen-source inventory; no runtime source or build input was changed.
+
+Workspace/Export/Stage source snapshot `8bdedfc6c3f9853ba3b0caa0c7b5c6753e2d2811939890dad5fbe64f8bf66cdc`,1711 files. Existing independent BuildA/BuildB26-file sets and every artifact SHA were rechecked against qualification; they remain identical. New compilation was unnecessary because inputs/toolchain/deployment identity and artifacts are unchanged; no earlier result is attributed to changed source.
+
+## Exact-SHA approval request — NOT APPROVED / NOT EXECUTED
+
+- Manifest `38375eea0f2b120bbdf1722c42959aca477be7c1a115e96d08b464b63adebf16`
+- Bundle `c566375a8f12168cb7ae207970c1854cedb304e542a22c33d8506229797f5b54`
+- Execution Image `1677d1b23dba9ce7fe8c3d7d20c08b41d2ef2ce24f842b157bca7bf51910a4f9`
+- Root Manifest `58f9db57c65082edb5a7c00c26957a32d7c9a0b64d2a07020ad780939196dbc3`
+
+Request existing9-file installation1 under `/usr/libexec/soc-agent-ebpf`: bootstrap, broker, entry, libnative-tc.so, manifest.bin, pam-policy.conf, tc.bpf.o, release.json, release.trust. Preserve currently installed Root Manifest f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3 and all existing rollback directories; expected new rollback path `/usr/libexec/.soc-agent-ebpf.rollback-f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3`. Use the existing SHA-bound installation image/CLI/TTY flow, not arbitrary Root commands. User enters any password directly into the OS terminal.
+
+Request Unified Supervisor diagnostic Native1, net:[4026531833], lo/Ingress, <=300s/4096metadata/Queue32; each privileged task256MiB address space/20s CPU; Zeek same namespace/lo512MiB/CPU1. DNS <=10s total/7s capture/32packets/512B/Queue32, UDP1 and TCP1 to127.0.0.53:53, native-0516.localhost., A. Queue admission50ms, reorder10ms, checkpoint16384B unchanged. No added generic TCP/UDP traffic, extra DNS, offload/settings changes, foreign detach, external scans or AI inference.
+
+Required before execution: explicit approval of these exact SHAs and final Git binding; prior-attempt safe-review prerequisite; new session/release/scope-bound Approval Receipt; fresh authenticated Inspector/hook/FD/cgroup preflight; source/artifact/installed/rollback checks. Do not generate a reservation or authenticate from this document. On failure preserve first/cleanup errors and stop; no reinstall/retry or SHA approval inheritance. Record actual P02/P03/P04 independently even if eligibility stays0.
+
+## Campaign / Batch Budget / Evidence
+
+Ledger-derived Campaign Native2/10, Root2/10; Batch2 Native1/2, Root1/2. At most one further Batch2 attempt/install remains, conditional on approval and review; no new cost incurred. Existing failed outcome and safe-review flag remain unchanged. Protected112 files (104 historical evidence +8 user changes), original Native49 hashes, historical ledgers and the current registered ledger prefix/hash chain are preserved. Private preparation proof and candidate RCA are new files; old execution artifacts were not rewritten.
+
+## Remaining Blockers / Next Batch Readiness
+
+Exact-SHA approval and safe review are pending. Under current background traffic, full-window/timeout/raw-vector evidence is not guaranteed by another identical run. P02/P03/P04 are not VERIFIED. If no qualified long observation window can be obtained in approved scope, request a separately bound capture/traffic design rather than weakening gates or consuming the last attempt blindly. Native AI, DNS9 and production promotion remain BLOCKED.
