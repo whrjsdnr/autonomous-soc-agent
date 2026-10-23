@@ -143,6 +143,8 @@ class EBPFCollector:
             self.drain(final=True)
         self.flow.finish("INCOMPLETE" if self.attempt_gaps else reason)
         for flow in self.flow.finalized:
+            flow["lifecycle"]["source_stop_reason"] = reason
+        for flow in self.flow.finalized:
             flow.pop("packets", None)
             if self.attempt_gaps:
                 flow["eligible"] = False

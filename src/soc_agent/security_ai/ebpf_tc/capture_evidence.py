@@ -45,6 +45,8 @@ def assess_capture(
     error: str | None,
     source: int,
     scope: dict,
+    cpu_windows: list | None = None,
+    clock_samples: list | None = None,
 ) -> dict:
     """Never turn a final aggregate snapshot into proof of an entire window."""
     reasons = []
@@ -108,6 +110,8 @@ def assess_capture(
             if delivery[key]:
                 reasons.append("DELIVERY_" + key.upper())
     if processing:
+        if processing.get("accepted") != processing.get("received") or processing.get("last_error"):
+            reasons.append("PROCESSING_NOT_FULLY_APPLIED")
         if processing.get("queue_discarded") or processing.get("queue_rejected"):
             reasons.append("PROCESSING_DISCARDED_OR_REJECTED")
         if (processing.get("cpu_sequence") or {}).get("unrepresented_attempts"):
@@ -123,8 +127,29 @@ def assess_capture(
             "KERNEL_WIDE_DROPS_UNKNOWN",
         ]
     )
+    from soc_agent.security_ai.ebpf_tc.window_evidence import assess_windows
+
+    window = assess_windows(
+        cpu_windows or [], processing or {}, totals, delivery or {}, clock_samples
+    )
+    if window["status"] == "VERIFIED" and balance == "RECONCILED":
+        # Per-CPU emitted == received, stable zero baseline, all branch populations
+        # and paired clock brackets prove the owned hook, not pre-hook traffic.
+        reconciled = {
+            "ATOMIC_CAPTURE_WINDOW_NOT_ATTESTED",
+            "INITIAL_PER_CPU_BASELINE_NOT_OBSERVED",
+            "CLOCK_CALIBRATION_NOT_ATTESTED",
+            "KERNEL_WIDE_DROPS_UNKNOWN",
+            "CPU_ATTEMPT_GAPS_UNRECONCILED",
+        }
+        reasons = [r for r in reasons if r not in reconciled]
     return dict(
-        status="INCOMPLETE",
+        window_evidence=window,
+        status="INVALID"
+        if window["status"] == "INVALID"
+        else "VERIFIED"
+        if window["status"] == "VERIFIED" and not reasons
+        else "INCOMPLETE",
         counter_reconciliation=balance,
         same_epoch=same_epoch,
         source="KERNEL_TCX_NATIVE" if source == 1 else "FIXTURE_NOT_NATIVE",
@@ -138,5 +163,7 @@ def assess_capture(
             hook=(processing or {}).get("plan", {}).get("hook"),
         ),
         reasons=reasons,
+        scope="OWNED_HOOK_SUPPORTED_METADATA_ONLY",
+        kernel_wide_drops="UNKNOWN",
         native_ai="BLOCKED",
     )

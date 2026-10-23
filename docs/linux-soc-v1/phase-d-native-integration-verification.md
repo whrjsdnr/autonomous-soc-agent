@@ -1864,3 +1864,7 @@ Owned FD/Program/Link cleanup verified;Map/Link/lo filters0,cgroup inventory
 unchanged11Programs/6targets. No foreign detach,policy change or second run.
 New Native1/10,Root1/10;Batch1 Native1/2,Root1/2. OverallPARTIALLY_VERIFIED.
 Native AI,DNS9,productionBLOCKED;prior full-Export failures remain unresolved.
+
+## SOC Native Stabilization Batch 2 — nonprivileged evidence integration
+
+See [Batch 2 report](native-stabilization-batch2-report.md) for the separate CPU-boundary/clock records, observed flow lifecycle, input-only eligibility receipts, final source/dual-build identity and new approval request. Historical Batch 1 seven INCOMPLETE candidates, Phase D exhausted ledger, current campaign usage 1/10 Native and 1/10 Root, and Native AI/DNS9/production BLOCKED states remain unchanged. No Native or Root attempt was made during this preparation.

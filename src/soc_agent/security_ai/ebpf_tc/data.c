@@ -152,3 +152,15 @@ int soc_data_accounting(struct soc_state *s,const struct soc_delivery_accounting
     struct soc_event bytes;memcpy(&bytes,detail,sizeof(bytes));
     return row(s,SOC_DATA_ACCOUNTING,&bytes);
 }
+
+int soc_data_cpu_window(struct soc_state *s,const struct soc_cpu_window *detail) {
+    if(data_record(s,"DATA_CPU_WINDOW",detail))return -EIO;
+    struct soc_event bytes;memcpy(&bytes,detail,sizeof(bytes));
+    return row(s,SOC_DATA_CPU_WINDOW,&bytes);
+}
+
+int soc_data_clock_sample(struct soc_state *s,const uint64_t detail[10]) {
+    if(data_record(s,"DATA_CLOCK_SAMPLE",detail))return -EIO;
+    struct soc_event bytes;memcpy(&bytes,detail,sizeof(bytes));
+    return row(s,SOC_DATA_CLOCK_SAMPLE,&bytes);
+}

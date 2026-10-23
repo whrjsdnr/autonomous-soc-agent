@@ -9,6 +9,11 @@
 #define SOC_DATA_RUN_END 4
 #define SOC_DATA_COUNTER 5
 #define SOC_DATA_ACCOUNTING 6
+#define SOC_DATA_CPU_WINDOW 7
+#define SOC_DATA_CLOCK_SAMPLE 8
+/* Separate bounded evidence; packet and data envelope ABI remain unchanged. */
+struct soc_cpu_window {uint32_t cpu,phase_count;uint64_t before_ns,after_ns;struct soc_counters counters;};
+_Static_assert(sizeof(struct soc_cpu_window)==80,"CPU window ABI");
 /* Separate terminal accounting; packet ABI and 192-byte envelope stay unchanged. */
 struct soc_delivery_accounting {
     uint64_t version,generation,callbacks,delivered,budget_excluded,invalid,send_failed;
@@ -33,4 +38,9 @@ int soc_data_close(struct soc_state *);
 int soc_data_counters(struct soc_state *,const struct soc_counters *,unsigned,unsigned);
 int soc_data_accounting(struct soc_state *,const struct soc_delivery_accounting *);
 int soc_data_counter_query(struct soc_state *,int,int,int,int,int,int,uint64_t,unsigned);
+
+int soc_data_cpu_window(struct soc_state *,const struct soc_cpu_window *);
+
+int soc_data_clock_sample(struct soc_state *,const uint64_t[10]);
+
 #endif

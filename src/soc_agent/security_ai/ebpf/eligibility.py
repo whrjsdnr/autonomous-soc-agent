@@ -31,17 +31,26 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
         rows = [vectors.get(r["flow_id"], r) for r in retained]
     result = []
     for row in rows:
-        reasons = ["CAPTURE_INTEGRITY_UNVERIFIED", "NATIVE_AI_POLICY_BLOCKED"]
+        capture = transport.get("capture_evidence") or {}
+        verified_window = capture.get("status") == "VERIFIED"
+        reasons = ["NATIVE_AI_POLICY_BLOCKED"]
+        if not verified_window:
+            reasons.insert(0, "CAPTURE_INTEGRITY_UNVERIFIED")
         close = row.get("close_reason", "UNKNOWN")
         if (
             close not in {"IDLE_TIMEOUT", "ACTIVE_TIMEOUT"}
             or row.get("flow_completeness") != "CANDIDATE_TIMEOUT"
         ):
             reasons.append("FLOW_NOT_PROVEN_COMPLETE:" + close)
-        if (summary.get("cpu_sequence") or {}).get("unrepresented_attempts", 0):
+        if not verified_window and (summary.get("cpu_sequence") or {}).get(
+            "unrepresented_attempts", 0
+        ):
             reasons.append("UNRECONCILED_CPU_OBSERVATION_ATTEMPTS")
         clock = summary.get("clock") or {}
-        if clock.get("calibration") != "VERIFIED":
+        if clock.get("calibration") != "VERIFIED" and not (
+            verified_window
+            and capture.get("window_evidence", {}).get("clock", {}).get("status") == "VERIFIED"
+        ):
             reasons.append("CLOCK_CALIBRATION_UNVERIFIED")
         if (summary.get("ordering") or {}).get("late_events", 0):
             reasons.append("LATE_EVENT")

@@ -46,6 +46,15 @@ def test_zeek_bundle_changes_only_for_reviewed_failure_certificate_order():
         == hashlib.sha256((root / "phase-d-063-rca-source-amendment.json").read_bytes()).hexdigest()
     )
     assert batch["previous_zeek_bundle"] == successor["current_zeek_bundle"]
+    previous = batch
+    batch = json.loads((root / "native-stabilization-batch2-source-amendment.json").read_text())
+    assert (
+        batch["previous_amendment_sha256"]
+        == hashlib.sha256(
+            (root / "native-stabilization-batch1-source-amendment.json").read_bytes()
+        ).hexdigest()
+    )
+    assert batch["previous_zeek_bundle"] == previous["current_zeek_bundle"]
     assert bundle() == batch["current_zeek_bundle"]
     assert digest(bundle()) == batch["current_zeek_bundle_digest"]
     assert {k for k in bundle() if bundle()[k] != batch["previous_zeek_bundle"][k]} == {

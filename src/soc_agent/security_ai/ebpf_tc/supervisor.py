@@ -642,11 +642,13 @@ class SupervisedSession(UnifiedSession):
             lifecycle = "AUTHENTICATED"
         base = super().snapshot()
         from soc_agent.security_ai.ebpf.eligibility import candidate_rca
+        from soc_agent.security_ai.ebpf.input_eligibility import input_receipts
 
         transport = base.get("data_plane") or {}
         processing = transport.get("processing") or {}
         return base | dict(
             candidate_eligibility=candidate_rca(processing, transport),
+            network14_input_receipts=input_receipts(processing, transport),
             entry_diagnostic=self.entry_diagnostic,
             supervisor_lifecycle=lifecycle,
             supervisor_hello=self.supervisor_hello,

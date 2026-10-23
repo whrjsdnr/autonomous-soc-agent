@@ -16,9 +16,53 @@ extern char **environ;
 #include <unistd.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <time.h>
 struct runtime {struct bpf_object *object;struct ring_buffer *ring;
     int program,config;uint32_t admitted;
     uint64_t callbacks,delivered,budget_excluded,invalid,send_failed;char kernel_log[65536];};
+/* Snapshot only when no owned program is attached: counters cannot change.
+ * Bound the CPU set and journal rows explicitly; never truncate possible CPUs.
+ * CLOCK_MONOTONIC brackets are not a UTC calibration or a global drop claim. */
+static int cpu_window(struct soc_state *s,unsigned phase) {
+    if(s->attached || !s->context || (phase!=1 && phase!=2))return -EPERM;
+    /* bpf_ktime_get_ns is host monotonic. Reject a time-namespace offset;
+     * a userspace wall/monotonic bracket alone cannot establish kernel parity. */
+    /* Read only our own kernel-exported offsets. /proc/1/ns/time may require
+     * ptrace authority that this least-privilege Broker must not acquire. */
+    FILE *offsets=fopen("/proc/self/timens_offsets","re");if(!offsets)return -EXDEV;
+    char name[32];long long seconds,nanos;int matched=0;
+    for(unsigned n=0;n<2;n++) {
+        if(fscanf(offsets,"%31s %lld %lld",name,&seconds,&nanos)!=3)break;
+        if(!strcmp(name,"monotonic") && seconds==0 && nanos==0)matched=1;
+    }
+    fclose(offsets);if(!matched)return -EXDEV;
+    struct runtime *r=s->context;int cpus=libbpf_num_possible_cpus();
+    if(cpus<1 || cpus>128)return -E2BIG;
+    int fd=bpf_object__find_map_fd_by_name(r->object,"counters");
+    if(fd<0)return fd;
+    struct soc_counters *rows=calloc(cpus,sizeof(*rows));if(!rows)return -ENOMEM;
+    uint32_t key=s->plan.hook-1;uint64_t before=soc_now();errno=0;
+    int rc=bpf_map_lookup_elem(fd,&key,rows),saved=errno;uint64_t after=soc_now();
+    if(rc) {free(rows);return saved?-saved:-EIO;}
+    int first=0;
+    for(int cpu=0;cpu<cpus;cpu++) {
+        struct soc_cpu_window detail={.cpu=cpu,.phase_count=phase|((unsigned)cpus<<16),
+            .before_ns=before,.after_ns=after,.counters=rows[cpu]};
+        int sent=soc_data_cpu_window(s,&detail);if(sent && !first)first=sent;
+        if(sent)break; /* No unbounded retransmission, retained journal is authoritative. */
+    }
+    free(rows);
+    if(first)return first;
+    for(unsigned sample=0;sample<3;sample++) {
+        struct timespec wall;uint64_t before=soc_now();errno=0;
+        int rc=clock_gettime(CLOCK_REALTIME,&wall),saved=errno;uint64_t after=soc_now();
+        if(rc)return saved?-saved:-EIO;
+        uint64_t detail[10]={1,phase,s->generation,before,
+            (uint64_t)wall.tv_sec*1000000000ULL+wall.tv_nsec,after,0,0,0,0};
+        int sent=soc_data_clock_sample(s,detail);if(sent)return sent;
+    }
+    return 0;
+}
 static int validate(struct soc_state *s) {
     if(!soc_native_gate() || (s->plan.version==SOC_TCX_VERSION && !soc_tcx_native_admitted()))return -EPERM;
     return soc_plan_validate(&s->plan) ||
@@ -147,7 +191,7 @@ static int load(struct soc_state *s) {
     if(fd<0)return load_failed(s,r,SOC_RING_BUFFER_INIT,SOC_DIAG_CONFIG_FD,fd,saved,SOC_LIBBPF_RETURN);
     errno=0;r->ring=ring_buffer__new(fd,emit,s,NULL);saved=errno;error=libbpf_get_error(r->ring);
     if(!r->ring || error) {r->ring=NULL;return load_failed(s,r,SOC_RING_BUFFER_INIT,SOC_DIAG_RING_NEW,error?error:-EINVAL,saved,SOC_LIBBPF_POINTER);}
-    s->diagnostic_resources|=SOC_RING_READY;return 0;
+    s->diagnostic_resources|=SOC_RING_READY;return cpu_window(s,1);
 }
 static struct bpf_tc_hook hook(struct soc_state *s) {
     return (struct bpf_tc_hook){.sz=sizeof(struct bpf_tc_hook),.ifindex=s->plan.ifindex,
@@ -238,7 +282,7 @@ int soc_program_fd(struct soc_state *s) {
 int soc_final_drain_counters(struct soc_state *s) {
     if(validate(s) || s->attached || !s->context)return -EPERM;
     struct runtime *r=s->context;int status=1,drain=0,lookup=-ECANCELED,saved=0,attempted=0,overflow=0;
-    uint64_t started=soc_now();
+    uint64_t started=soc_now();int window_result=cpu_window(s,2);
     /* Counter retrieval is independent of ring delivery. Preserve the first
      * drain failure, but always attempt the owned map and append local evidence. */
     if(!r->ring || libbpf_get_error(r->ring))drain=-EINVAL;
@@ -270,5 +314,5 @@ int soc_final_drain_counters(struct soc_state *s) {
         .start_config_ns=s->started_ns,.final_drain_started_ns=started,.drain_result=drain};
     int accounted=soc_data_accounting(s,&accounting);
     int recorded=soc_data_counter_query(s,drain,cpus,fd,lookup,saved,sent,soc_now()-started,(attempted?4:0)|(overflow?8:0));
-    return drain?drain:recorded?recorded:accounted?accounted:sent?sent:status==1?0:overflow?-EOVERFLOW:lookup<0?lookup:-EIO;
+    return drain?drain:window_result?window_result:recorded?recorded:accounted?accounted:sent?sent:status==1?0:overflow?-EOVERFLOW:lookup<0?lookup:-EIO;
 }

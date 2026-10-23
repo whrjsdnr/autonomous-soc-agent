@@ -100,6 +100,11 @@ class Window:
             close_reason=reason,
             packet_count=n,
             lifecycle=dict(
+                protocol=self.packets[0].key[0],
+                forward_packets=self.forward,
+                backward_packets=n - self.forward,
+                forward_ip_bytes=self.forward_bytes,
+                backward_ip_bytes=self.backward_bytes,
                 first_event_ns=self.packets[0].ns,
                 last_event_ns=self.packets[-1].ns,
                 timeout_witness_ns=witness_ns,

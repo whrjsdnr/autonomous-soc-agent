@@ -46,6 +46,15 @@ def test_current_sources_and_explicit_native_blockers():
         ).hexdigest()
     )
     assert batch["native_approval_required"] and batch["native_release"] == "BLOCKED"
+    previous_batch = batch
+    next_path = ROOT / "docs/linux-soc-v1/native-stabilization-batch2-source-amendment.json"
+    batch = json.loads(next_path.read_text())
+    assert batch["previous_amendment_sha256"] == hashlib.sha256(batch_path.read_bytes()).hexdigest()
+    for name, entry in batch["historical_source_successors"].items():
+        assert (
+            entry["previous_sha256"]
+            == previous_batch["historical_source_successors"][name]["current_sha256"]
+        )
     for name, expected in v["source_sha256"].items():
         record = amendment["historical_sources"].get(name)
         historical = ROOT / record["snapshot"] if record else ROOT / name
@@ -55,7 +64,10 @@ def test_current_sources_and_explicit_native_blockers():
             current = successor["historical_source_successors"][name]
             assert current["previous_sha256"] == record["current_sha256"]
             latest = batch["historical_source_successors"][name]
-            assert latest["previous_sha256"] == current["current_sha256"]
+            assert (
+                previous_batch["historical_source_successors"][name]["previous_sha256"]
+                == current["current_sha256"]
+            )
             assert (
                 hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == latest["current_sha256"]
             )

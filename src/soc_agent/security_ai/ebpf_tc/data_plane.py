@@ -60,6 +60,8 @@ class PacketChannel:
         self.backpressure_events = 0
         self.counter_evidence = None
         self.delivery_accounting = None
+        self.cpu_windows = []
+        self.clock_samples = []
         self.transport_failed = False
         self.io_failure: dict[str, int | str | None] | None = None
         self.cleanup_error: str | None = None
@@ -288,6 +290,8 @@ class PacketChannel:
         )
         self.counter_evidence = None
         self.delivery_accounting = None
+        self.cpu_windows = []
+        self.clock_samples = []
         self.runs += 1
         self.generations.add(generation)
         self.adapter = EBPFCollector(self.directory / f"data-run-{self.runs}", plan)
@@ -415,7 +419,7 @@ class PacketChannel:
         missing = sequence - (0 if ready else self.sequence + 1)
         if missing != loss - self.loss or missing < 0 or sequence > 65568:
             raise ValueError("TCX_DATA_SEQUENCE_OR_COUNTER_RESET")
-        if kind not in ({1} if ready else {2, 3, 4, 5, 6}):
+        if kind not in ({1} if ready else {2, 3, 4, 5, 6, 7, 8}):
             raise ValueError("TCX_DATA_KIND")
         if self.processor and peek_kind != kind:
             raise ValueError("TCX_DATA_PEEK_KIND_CHANGED")
@@ -468,6 +472,18 @@ class PacketChannel:
                 self.adapter.ingest(raw, monotonic=time.monotonic())
                 self.adapter.drain()
             self.backpressure_events += int(len(self.adapter.queue) == 24)
+        elif kind == 8:
+            from soc_agent.security_ai.ebpf_tc.window_evidence import accept_clock_sample
+
+            if self.adapter is None:
+                raise ValueError("TCX_CLOCK_WITHOUT_SESSION")
+            accept_clock_sample(self.clock_samples, raw, self.adapter.plan.generation)
+        elif kind == 7:
+            from soc_agent.security_ai.ebpf_tc.window_evidence import accept_cpu_window
+
+            if self.adapter is None:
+                raise ValueError("TCX_CPU_WINDOW_WITHOUT_SESSION")
+            accept_cpu_window(self.cpu_windows, raw)
         elif kind == 6:
             from soc_agent.security_ai.ebpf_tc.capture_evidence import decode_accounting
 
@@ -659,6 +675,8 @@ class PacketChannel:
             error=self.error or self.cleanup_error,
             source=self.source,
             scope=dict(program_sha256=self.plan.program_sha256, approval_digest=self.approval),
+            cpu_windows=self.cpu_windows,
+            clock_samples=self.clock_samples,
         )
 
     @synchronized
@@ -687,6 +705,8 @@ class PacketChannel:
             ),
             counter_evidence=self.counter_evidence,
             delivery_accounting=self.delivery_accounting,
+            cpu_windows=list(self.cpu_windows),
+            clock_samples=list(self.clock_samples),
             capture_evidence=self.capture_evidence(),
             kernel_drops=None,
             queue_overflows=self.queue_overflows,
