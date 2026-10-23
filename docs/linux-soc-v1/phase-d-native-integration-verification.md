@@ -1840,3 +1840,27 @@ Native execution remainsBLOCKED by approval/Root-budget/new-campaign registratio
 P01 historical12 remainsUNKNOWN;P02/P03 remainINSTRUMENTED. No historical candidate
 isELIGIBLE. Native AI,DNS9 and production remainBLOCKED. Prior whole-Export
 5909PASS/2FAIL/30SKIP is not requalified by these targeted tests.
+
+
+## Batch 1 actual Native result — registered campaign, attempt 1
+
+See [Batch 1 Final Report](native-stabilization-batch1-final-report.md).
+Following explicit user execution/all-budget approval,the separate registered
+SOC_NATIVE_STABILIZATION contract is now Native10/Root10,max2 each perBatch.
+Authoritative Ledger is `.git/native-stabilization-batch1/execution-v1/`;
+old Phase D5/5+5/5 and development-only records remain unchanged.
+
+Current approved Artifact537a278/four SHAs unchanged;ordinary-UID bookkeeping
+adapter8ba3b18 delegates to the same Supervisor/Root image. One actual run:
+CLI0,no first error,4096received/applied,Queue reject/timeout0.
+Kernel observed4140=emitted4138+unsupported1+disabled1;
+callbacks4138=delivered4096+explicit after-cap exclusions42.
+P01VERIFIED for this epoch,not retrospective proof about historical12.
+P02INCOMPLETE:CPU attempt gaps2,missing atomic window/calibration evidence.
+P03PARTIALLY_VERIFIED:one bidirectional FIN receipt;all7 candidatesINCOMPLETE.
+DNSUDP1/TCP1 transactions,9.508s active,CLOSED/container cleanup verified.
+Native shared-RCA checkpoint13213B,7receipts,copy recovery/Audit Drain verified.
+Owned FD/Program/Link cleanup verified;Map/Link/lo filters0,cgroup inventory
+unchanged11Programs/6targets. No foreign detach,policy change or second run.
+New Native1/10,Root1/10;Batch1 Native1/2,Root1/2. OverallPARTIALLY_VERIFIED.
+Native AI,DNS9,productionBLOCKED;prior full-Export failures remain unresolved.
