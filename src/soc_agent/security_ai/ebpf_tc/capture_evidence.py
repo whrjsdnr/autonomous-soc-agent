@@ -132,6 +132,12 @@ def assess_capture(
     window = assess_windows(
         cpu_windows or [], processing or {}, totals, delivery or {}, clock_samples
     )
+    # Observed sub-evidence remains observed even when another window gate fails.
+    # This changes diagnostics only; the complete window still gates eligibility.
+    if window.get("initial_baseline") == "VERIFIED_ZERO_OWNED_MAP":
+        reasons.remove("INITIAL_PER_CPU_BASELINE_NOT_OBSERVED")
+    if window.get("clock", {}).get("status") == "VERIFIED":
+        reasons.remove("CLOCK_CALIBRATION_NOT_ATTESTED")
     if window["status"] == "VERIFIED" and balance == "RECONCILED":
         # Per-CPU emitted == received, stable zero baseline, all branch populations
         # and paired clock brackets prove the owned hook, not pre-hook traffic.

@@ -48,8 +48,7 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
             reasons.append("UNRECONCILED_CPU_OBSERVATION_ATTEMPTS")
         clock = summary.get("clock") or {}
         if clock.get("calibration") != "VERIFIED" and not (
-            verified_window
-            and capture.get("window_evidence", {}).get("clock", {}).get("status") == "VERIFIED"
+            capture.get("window_evidence", {}).get("clock", {}).get("status") == "VERIFIED"
         ):
             reasons.append("CLOCK_CALIBRATION_UNVERIFIED")
         if (summary.get("ordering") or {}).get("late_events", 0):

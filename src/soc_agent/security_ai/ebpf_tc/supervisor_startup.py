@@ -147,6 +147,24 @@ def shutdown_collectors(handoff, runner, future, *, phase_d=False) -> list[dict]
     return failures
 
 
+def final_result(snapshot: dict, zeek: dict, failures: list[dict], first: dict | None) -> dict:
+    """A returned final failure is evidence too; never replace an earlier primary."""
+    failures = list(failures)
+    code = snapshot.get("last_error")
+    if code:
+        detail = failure_evidence(
+            ValueError(code), stage="FINAL_NATIVE_STATE", api="SupervisedSession.snapshot"
+        )
+        if detail not in failures:
+            failures.append(detail)
+    return dict(
+        tcx=snapshot,
+        zeek=zeek,
+        errors=failures,
+        first_failure=first if first is not None else failures[0] if failures else None,
+    )
+
+
 def execute(
     directory: Path, expected_manifest: str, expected_image: str, *, gui=False, phase_d=None
 ):
@@ -350,11 +368,8 @@ def _execute(
                         )
                     (directory / "supervised-result.json").write_text(
                         json.dumps(
-                            dict(
-                                tcx=handoff.snapshot(),
-                                zeek=handoff.zeek_snapshot,
-                                errors=failures,
-                                first_failure=first_failure,
+                            final_result(
+                                handoff.snapshot(), handoff.zeek_snapshot, failures, first_failure
                             ),
                             indent=2,
                         )

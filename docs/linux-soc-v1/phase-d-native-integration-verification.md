@@ -1868,3 +1868,16 @@ Native AI,DNS9,productionBLOCKED;prior full-Export failures remain unresolved.
 ## SOC Native Stabilization Batch 2 — nonprivileged evidence integration
 
 See [Batch 2 report](native-stabilization-batch2-report.md) for the separate CPU-boundary/clock records, observed flow lifecycle, input-only eligibility receipts, final source/dual-build identity and new approval request. Historical Batch 1 seven INCOMPLETE candidates, Phase D exhausted ledger, current campaign usage 1/10 Native and 1/10 Root, and Native AI/DNS9/production BLOCKED states remain unchanged. No Native or Root attempt was made during this preparation.
+
+
+## SOC Native Stabilization Batch 2 — actual Native review, 2026-10-23
+
+Approved ca5b7cb Batch2 install1/Native1 completed, exit1. TCX4096/4096, Queue32 no timeout/reject/discard, clock maximum606487ns <10ms. DNS local UDP/TCP1 transaction each, Counter/CLOSED and container cleanup verified, active9.765661s. Checkpoint14818B with7 receipts and uint64 Generation15224515642550003925 passed copy-only digest/Audit/recovery checks.
+
+P02 INCOMPLETE despite VERIFIED same-host clock and all4CPU boundary snapshots:1 unsupported and17 post-limit exclusions,2 unrepresented CPU attempts without exact attribution. P03 no witnessed30s/120s timeout;7 candidates remain INCOMPLETE and Native eligible0. One bidirectional FIN is not proof of a complete model window.
+
+Global before/after guard failed on removal of pre-existing wsl-pro.service cgroup Program1145; no added Programs. Owned TCX FD/map/link/filter and DNS container cleanup verified independently; global Cleanup UNVERIFIED and actual FAILED result preserved. No ownership guard was relaxed or foreign resource removed.
+
+Confirmed Python defects corrected without rerun: snapshot cleanup failure now reaches top-level first_failure when no primary exists; observed clock/baseline is no longer mislabelled missing when another gate fails; all7 input receipts survive the raw4-vector tail (missing3 vectors UNKNOWN, no invented ELIGIBLE). Actual artifacts/evidence are unchanged. Detailed Native/reproduction/qualification results: [Batch2 report](native-stabilization-batch2-report.md).
+
+Campaign Native/Root2/10 each; Batch2 Native/Root1/2 each. Existing PhaseD5/5 and old evidence preserved. No additional Root, authentication, Native or traffic. New SHA needs a new approval. NativeAI/DNS9/production BLOCKED.

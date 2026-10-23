@@ -186,3 +186,20 @@ def test_real_startup_retains_first_failure_before_cleanup(
         assert any(
             row["stage"] == "FINAL_NATIVE_CLOSE" and row["errno"] == 9 for row in final["errors"]
         )
+
+
+@pytest.mark.parametrize("primary", [None, dict(stage="PROCESSING", original_code="FIRST_ERROR")])
+def test_returned_cleanup_failure_is_top_level_without_replacing_primary(primary):
+    snapshot = dict(last_error="SUPERVISOR_CLEANUP_UNVERIFIED", cleanup_status="CLEANUP_UNVERIFIED")
+    result = startup.final_result(snapshot, dict(state="CLOSED"), [], primary)
+    detail = result["errors"][0]
+    assert detail["original_code"] == "SUPERVISOR_CLEANUP_UNVERIFIED"
+    assert detail["errno"] is None
+    assert detail["stage"] == "FINAL_NATIVE_STATE"
+    assert result["first_failure"] == (primary or detail)
+    assert result["tcx"] == snapshot and result["zeek"]["state"] == "CLOSED"
+
+
+def test_successful_final_snapshot_does_not_manufacture_failure():
+    result = startup.final_result(dict(last_error=None), {}, [], None)
+    assert result["first_failure"] is None and not result["errors"]

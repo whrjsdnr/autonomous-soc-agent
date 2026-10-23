@@ -22,7 +22,12 @@ def input_receipts(summary: dict, transport: dict) -> list[dict]:
     provenance = capture.get("source_provenance") or {}
     plan = summary.get("plan") or {}
     names = [n for n, _, _ in NETWORK14]
-    rows = summary.get("feature_tail") or []
+    rows = list(summary.get("feature_tail") or [])
+    # Retain one receipt for every candidate, without inventing missing raw vectors.
+    # Raw vectors remain bounded to the tail; retained eligibility flags are not proof.
+    represented = {r.get("flow_id") for r in rows}
+    retained = summary.get("candidate_eligibility") or []
+    rows = [r for r in retained if r.get("flow_id") not in represented] + rows
     duplicates = {
         r.get("flow_id")
         for r in rows

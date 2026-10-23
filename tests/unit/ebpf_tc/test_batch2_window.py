@@ -364,3 +364,50 @@ def test_full_authenticated_wire_to_window_flow_and_input_receipt(tmp_path):
     finally:
         left.close()
         right.close()
+
+
+def test_partial_window_keeps_observed_clock_and_baseline_without_eligibility():
+    summary, _, windows, samples, counters, delivery = complete()
+    delivery["budget_excluded"] = 1
+    result = assess_capture(
+        counters,
+        delivery,
+        summary,
+        closed=True,
+        error=None,
+        source=2,
+        scope={},
+        cpu_windows=windows,
+        clock_samples=samples,
+    )
+    assert result["status"] == "INCOMPLETE"
+    assert result["window_evidence"]["clock"]["status"] == "VERIFIED"
+    assert "CLOCK_CALIBRATION_NOT_ATTESTED" not in result["reasons"]
+    assert "INITIAL_PER_CPU_BASELINE_NOT_OBSERVED" not in result["reasons"]
+    assert "DELIVERY_BUDGET_EXCLUDED" in result["reasons"]
+    assert "ATOMIC_CAPTURE_WINDOW_NOT_ATTESTED" in result["reasons"]
+    from soc_agent.security_ai.ebpf.eligibility import candidate_rca
+
+    assert all(
+        "CLOCK_CALIBRATION_UNVERIFIED" not in r["reasons"]
+        for r in candidate_rca(summary, dict(capture_evidence=result))
+    )
+    assert not any(r["eligible"] for r in input_receipts(summary, dict(capture_evidence=result)))
+
+
+def test_all_candidate_receipts_survive_bounded_raw_tail_without_trusting_retained_flags():
+    summary, transport, *_ = complete()
+    template = summary["feature_tail"][1]
+    rows = [dict(template, flow_id=f"{i:064x}") for i in range(7)]
+    summary["candidate_eligibility"] = [
+        {k: v for k, v in r.items() if k != "values"} | dict(eligible=True) for r in rows
+    ]
+    summary["feature_tail"] = rows[-4:]
+    receipts = input_receipts(summary, transport)
+    assert len(receipts) == 7
+    assert [r["flow_id"] for r in receipts] == [r["flow_id"] for r in rows]
+    assert all(r["input_state"] == "UNKNOWN" for r in receipts[:3])
+    assert all("RAW_VECTOR_NOT_RETAINED" in r["reasons"] for r in receipts[:3])
+    assert all(r["input_state"] == "INCOMPLETE" for r in receipts[3:])
+    assert not any(r["eligible"] or r["model_executed"] for r in receipts)
+    assert len(summary["feature_tail"]) == 4

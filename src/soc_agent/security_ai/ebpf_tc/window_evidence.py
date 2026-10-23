@@ -134,6 +134,11 @@ def assess_windows(
         else "INCOMPLETE"
         if reasons
         else "VERIFIED",
+        initial_baseline=(
+            "VERIFIED_ZERO_OWNED_MAP"
+            if not any(any(r["counters"].values()) for r in initial)
+            else "INVALID_NONZERO_OWNED_MAP"
+        ),
         clock=clock_evidence,
         reasons=sorted(set(reasons)),
         start_bound_ns=start,
