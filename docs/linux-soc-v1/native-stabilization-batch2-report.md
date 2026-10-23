@@ -360,3 +360,80 @@ Campaign Native2/10, Root2/10; Batch2 Native1/2, Root1/2. No reservation, instal
 
 
 Final verification for this revision: ordinary-UID data-channel/Drain integration15 PASS (275.61s); Ruff PASS, format1368 PASS, diff PASS. Workspace331 and Export283 are the newly executed results above; overlapping test sets are not summed as independent tests. Source1711/stage equality, immutable old Native49/protected112/current ledger and installed/rollback checks are recorded in private `window-safety-review-1/final-preservation.json` and `window-safety-review-1/installed-rollback-check.json`. Only the two diagnostic source files, one existing test file and this report are selected for commit; main and user changes are excluded. Final Git commit/tree/remote equality and the new exact-SHA request are recorded after commit in `window-safety-review-1/approval-request.json`.
+
+
+# Batch 2 — Operator decision package: reassessment and a bounded long-window scenario
+
+## Result: BLOCKED; two concrete decisions, no new execution
+
+This revision performs no test rerun, feature implementation, installation, authentication, capture or traffic generation. Runtime implementation remains17241f76510b9d1e60562eca9d1803bf6b2d20ba. It clarifies the missing review procedure and presents a scoped alternative to another identical short capture. P02/P03/P04 remain INCOMPLETE; Native AI/DNS9/production BLOCKED.
+
+## 1. Safety reassessment: verified evidence and procedural gap
+
+Owned cleanup and global stability are independent. The original Session's3map/1program FD release receipts, zero remaining maps/links/lo filters, drained workers/audit and absent DNS container support owned cleanup VERIFIED. The global diff instead removes pre-existing Program1145/tag4b13b8318fb7df93, cgroup_device target `/sys/fs/cgroup/system.slice/wsl-pro.service`; no added Program was observed. Exact external removal cause/creator remains UNKNOWN. The old global UNVERIFIED, exit1 and FAILED result stay unchanged.
+
+**Correction to earlier wording:** the repository does not provide a completed formal reassessment service/CLI or a dedicated review-approval receipt validator. It provides a hash-chained, locked, fsynced append primitive and an execution gate consuming DIAGNOSTIC_E2E_EVIDENCE_REVIEW_COMPLETED. The tests synthesize such a record through the private `_locked` method; that is not evidence of an authorized operator review workflow. The gate checks for a matching positive review event, not an authenticated latest reviewer decision with evidence/Release binding. Existing exact-SHA execution receipt checks do not by themselves validate a safety-review decision.
+
+The sequence8 false decision (record SHA16c4cf5d3b891a0dfa005e03fd7d3ac97f2108ed35473a3e27136a304f4b258f) was an explicit conservative ordinary-UID review after global equality failed. It was not an owned leak detector. Removing the gate or adding a bare private-API true event would bypass the requested governance. Neither was done.
+
+### R1 — request approval of a formal reassessment/conditional-admission procedure
+
+Private `decision-package-1/safety-reassessment-request.json` pins original attempt0648d6b41f204377854e58fb76c3aa36, negative review, original result/recovery/resource-diff/Ledger hashes and the exact residual risk. Proposed procedure, for human review before any implementation or recording:
+
+1. Operator reviews owned FD/map/link/container proof separately from external Program ID/tag/attach target and unknown removal cause. Reject or defer if any owned resource/binding is uncertain or an added unknown resource remains.
+2. A dedicated review receipt must bind reviewer identity, attempt, latest review record, evidence hashes, decision/risk scope and the next Release/execution contract. The only requested positive decision would authorize **future single-attempt admission**, never certify old global cleanup or Native success.
+3. A reviewed validator/recording path must validate that receipt and current review history, preserve the false record, append a new traceable decision through the canonical writer, and reject stale/unbound/revoked decisions. Direct flag replacement or a private lambda setting true is not the authorized procedure.
+4. Fresh exact-SHA execution approval/receipt, budget check and authenticated Inspector/kernel/hook/FD/cgroup preflight still precede attach. The strict final global equality guard remains unchanged and can legitimately fail the next run if foreign resources change again.
+
+This is a **proposed governance change**, not a currently available tool or an automatically satisfied condition. AGENTS.md §15/§33 require human review of approval/authorization-rule changes. Request approval of this procedure/implementation and a human decision on the documented residual risk; do not infer either from the current analysis instruction. The existing immutable campaign budget/controller pins must be preserved under any versioned amendment; no silent controller hash update, budget rewrite or campaign reset is permitted. No positive review was recorded here.
+
+## 2. Read-only workload finding: a practical source to quiet
+
+Current socket diagnostics show4 established loopback connections (8 endpoint rows), all readable owners being UID1000 VS Code Remote Node processes under `.vscode-server/bin/.../node`. Two read-only TCP_INFO/sysfs samples over5.010s show1678 aggregate lo RX packets and roughly1672 summed client-side TCP in/out segment increments on those connections. These metrics have different units/read brackets, so this is not an exact TCX reconciliation or a99% attribution claim. It is direct evidence of substantial **current** VS Code loopback activity. Attribution of historical candidate IDs to these sockets remains UNKNOWN because endpoint evidence was not retained for that comparison.
+
+Private `decision-package-1/current-loopback-owner-observation.json` records PID/executable/start-tick ownership and counter samples, without packet payloads, command-line secrets or process signals. No process/service was stopped. This gives a concrete operator preparation: save work and disconnect the operator's own VS Code Remote WSL windows, use an independent OS terminal for Native authentication/launch, and avoid tests/tool-shell polling during Live. The agent must not kill these PIDs or alter networking. Socket ownership/rate must be rechecked read-only after the user makes that choice; an idle forecast cannot replace final Native counter/integrity proof.
+
+## 3. Executable choices and limits
+
+### A — existing artifact/scope, opportunistic only
+
+The existing initial UDP1/TCP1 DNS probe may run in a quiet lo interval, followed by passive TCX observation up to300s. The later natural packet must witness30s of idle before4096; final counter/CPU/clock/window and retained raw-vector gates must all pass. This needs no extra traffic scope, but if disconnecting VS Code removes the last periodic traffic source, there may be **no later packet at all**. Waiting after STOP does not help. Therefore A is technically possible but not a reproducible guarantee; do not spend the last Batch2 slot assuming eligibility.
+
+### B — preferred bounded controlled scenario, requires R2 approval and new tooling
+
+R2 is a **scope-change/development request**, not an execution approval and not implemented by the current Artifact:
+
+- Retain net:[4026531833], lo/Ingress, full unsampled capture, <=4096 events/300s, Queue32, Admission50ms, reorder10ms and checkpoint16KiB. Retain all CPU snapshots/clock/counter/loss requirements. No interface/filter/offload/DNS-setting changes.
+- First perform the existing UDP1/TCP1 local DNS exchange inside unchanged Sidecar10s total/7s capture/32packets/512B. The TCP exchange supplies bidirectional data/FIN evidence. Sidecar Counter/CLOSED/container cleanup complete normally within its own10s; no deadline extension.
+- **35s after the initial TCP probe closes**, make exactly **one additional UDP A query** to127.0.0.53:53 for native-0516.localhost. This is a TCX kernel-event witness. One send, <=512B response,1s response deadline, no retry/TCP fallback/system resolver/external DNS. It runs as an ordinary UID with no capabilities, at most one socket, proposed64MiB/CPU2s/wall40s after authenticated initial probe completion; close its FD on every exit, spawn with close_fds and no inherited Broker/Inspector/authority FDs, and accept no arbitrary command/environment input. Scheduling intent uses userspace monotonic time, but only actual captured kernel timestamps can prove the30s gap.
+- Scenario total: **UDP2/TCP1**, versus current UDP1/TCP1. The late UDP witness is outside the already closed Zeek Sidecar; expected Zeek completed transactions remain the initial2, not3. Do not call its absence a Zeek capture failure or claim it was analysed by a closed collector.
+- Target the existing Supervisor's normal scoped TCX STOP at initial TCP-close+45s; planned capture-stop upper bound60s after attach, within the unchanged300s contract. If startup/witness timing cannot fit, stop normally with INCOMPLETE evidence; no retry. Use existing STOP/Counter/CLOSED/drain/FD paths, not SIGTERM as a normal completion and not a second Supervisor/authentication.
+- Under genuinely quiet traffic, the later UDP packet can cause existing event-watermark logic to finalize the original DNS UDP/TCP windows as IDLE_TIMEOUT. Approximately3 controlled flows fit the current four-vector tail. Raw-vector retention and capture integrity must nevertheless be checked; background noise, unsupported input, late events or other exports may still prevent eligibility. FIN, the35s scheduler or a clean response is never a substitute for those gates.
+
+The extra query and bounded timing/STOP adapter need a separately pinned helper/launcher SHA, explicit traffic approval and a reviewed execution-contract amendment. `NativeCampaign.reserve` currently compares the Sidecar DNS counters to the immutable budget, so simply changing UDP1 to2 in an old receipt fails NATIVE_CAMPAIGN_APPROVED_SCOPE_CHANGED. Do not smuggle the late probe through the old receipt or execute an unbound helper. A versioned explicit TCX-witness scope must preserve the original Sidecar limits, historical budget/Ledger and their2/10 usage, followed by a newly built Artifact and exact-SHA execution approval. Current scenarioB helper/image SHA is **NOT BUILT**; none is invented or authorized here.
+
+### Risk/stop conditions
+
+Operator workload quiescence may be inconvenient and cannot guarantee future packet rate. The late helper adds a local UDP request and FD outside the current Sidecar lifecycle; it must be independently bounded/audited and included in cleanup evidence. Full-scope unexpected traffic may still exhaust4096 or make integrity incomplete. wsl-pro.service can still change global resources; no service stop/foreign detach or global-guard relaxation is requested. Any such drift still yields the actual strict cleanup result. No test traffic goes to an external endpoint, and there is no active scan. Any exceeded bound, conflicting service/identity, missing receipt or uncertain cleanup stops the attempt without automatic reexecution.
+
+## 4. Current Git/artifacts/budget, not an approval for B
+
+Current implementation Git17241f76510b9d1e60562eca9d1803bf6b2d20ba, tree a95c7fd5ebc97b2bb6bb75f913b244c135b0d180. Only this report changes in the present task; final report-only Git identity is recorded in the decision-package index after commit. The existing frozen1711 source inputs and26 artifact SHA values were rechecked; no recompilation/test repetition is attributed to this documentation task.
+
+- Existing Manifest `3761b57f58a8632f942af6c18abcee47f6b4e5beea6e0f1c882dff8afa9bee05`
+- Existing Bundle `119f189c061775b737391eb97e123ae2af7ee98a8a1139477e5e3d9079bb04ec`
+- Existing Image `d5980ab96da947c9d6bd0657da2c9c52e9484d4e6b30a853af308fe7432d61f9`
+- Existing Root Manifest `da894f80a427cee4d2d5991f9c736acbbed31e89d689ff141ba8035919a181f6`
+- Existing source snapshot `846e871eb7bb3a2a0d5c4ee6f236787eff6fba622c8e92947c566fe664247e6c`
+
+These identify the existing diagnostic implementation and possible A; they **do not include the R1 procedure or scenario B**. Their old approval requests remain unapproved. Current installed Root Manifest remains f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3 with rollback preservation required. A B execution request cannot truthfully bind current hashes; issue new full identities only after an approved implementation is built/qualified.
+
+Ledger-derived Campaign Native2/10 and Root2/10; Batch2 Native1/2 and Root1/2. No new reservation or cost. Original49 Native files, protected104 historical records +8 user files and registered ledger bytes are preserved. No true review event or other Ledger update was made.
+
+## Decisions requested / remaining blockers
+
+1. **R1:** approve the formal evidence-bound reassessment procedure/implementation and review the documented prior-attempt residual risk, for future admission only. This does not itself install, run, certify old cleanup or authorize a raw flag write.
+2. **R2:** approve preparation of the described quiet-workload + one late local UDP witness + bounded normal STOP scenario and its versioned scope/contract amendment. This is not Native/Root execution approval; current hashes do not cover that work.
+3. After those decisions, prepare/qualify the bound tooling and ask separately for exact-SHA installation1/Native1 within the remaining Batch2 budget. If changes are rejected, A remains a conditional diagnostic with no eligibility guarantee; do not silently substitute it for B.
+
+Safety admission remains BLOCKED, B remains DESIGNED_NOT_IMPLEMENTED, A remains CONDITIONAL_EXISTING_SCOPE. No new Native evidence exists. P02/P03/P04 remain INCOMPLETE; Native AI/DNS9/production remain BLOCKED. This package makes the actual missing procedure and specific scope delta reviewable instead of repeatedly asking to rerun the same13s capture.
