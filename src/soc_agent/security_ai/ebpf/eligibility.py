@@ -64,8 +64,16 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
         elif ring:
             reasons.append("RING_RESERVATION_LOSS")
         emitted, delivered = totals.get("emitted"), counters.get("delivered")
+        accounting = transport.get("capture_evidence") or {}
         if emitted is not None and delivered is not None and emitted != delivered:
-            reasons.append("EMITTED_DELIVERY_NOT_RECONCILED")
+            excluded = (transport.get("delivery_accounting") or {}).get("budget_excluded")
+            if (
+                accounting.get("counter_reconciliation") == "RECONCILED"
+                and excluded == emitted - delivered
+            ):
+                reasons.append("CAPTURE_BUDGET_EXCLUDED")
+            else:
+                reasons.append("EMITTED_DELIVERY_NOT_RECONCILED")
         retained_receipt = "values" not in row and "network14_float32_contract" in row
         values = row.get("values")
         if retained_receipt:
@@ -118,6 +126,7 @@ def candidate_rca(summary: dict, transport: dict | None = None) -> list[dict]:
                 close_reason=close,
                 flow_completeness=row.get("flow_completeness", "UNKNOWN"),
                 packet_count=row.get("packet_count"),
+                lifecycle=row.get("lifecycle"),
                 values_digest=row.get("values_digest"),
                 values_digest_valid=values_digest,
                 network14_float32_contract=contract,

@@ -40,6 +40,7 @@ class EBPFCollector:
         )
         self.flow = FlowAssembly(str(plan.session_id))
         self.cpu_sequences: dict[int, int] = {}
+        self.cpu_intervals: dict[int, dict[str, int]] = {}
         self.attempt_gaps = 0
         self.sequence_examples: list[dict[str, int | str]] = []
         self.counter_snapshots: dict[int, Counters] = {}
@@ -183,6 +184,19 @@ class EBPFCollector:
         if gap > 0:
             self.attempt_gaps += gap
         self.cpu_sequences[event.cpu] = max(previous, event.cpu_sequence)
+        row = self.cpu_intervals.setdefault(
+            event.cpu,
+            dict(
+                first_attempt=event.cpu_sequence,
+                last_attempt=event.cpu_sequence,
+                first_ns=event.ns,
+                last_ns=event.ns,
+                received=0,
+            ),
+        )
+        row["last_attempt"] = event.cpu_sequence
+        row["last_ns"] = event.ns
+        row["received"] += 1
 
     def ingest(self, raw: bytes, *, monotonic: float) -> None:
         if self.state not in {"FIXTURE_ACTIVE", "METADATA_STREAM_ACTIVE"}:
@@ -371,6 +385,7 @@ class EBPFCollector:
                 flow_id=f["flow_id"],
                 close_reason=f["close_reason"],
                 packet_count=f["packet_count"],
+                lifecycle=f.get("lifecycle"),
                 flow_completeness="CANDIDATE_TIMEOUT"
                 if f["eligible"] and not self.attempt_gaps
                 else "INCOMPLETE",
@@ -411,6 +426,8 @@ class EBPFCollector:
             cpu_sequence=dict(
                 contract="PER_CPU_KERNEL_OBSERVATION_ATTEMPTS_NOT_RING_DELIVERIES",
                 unrepresented_attempts=self.attempt_gaps,
+                intervals={str(cpu): dict(v) for cpu, v in sorted(self.cpu_intervals.items())},
+                interval_scope="RECEIVED_EVENTS_ONLY_NOT_PROOF_OF_SILENT_CPU_OR_DISABLED_INTERVALS",
                 status="GAPS_UNRECONCILED_CAPTURE_INELIGIBLE"
                 if self.attempt_gaps
                 else "NO_GAP_OBSERVED_NOT_CAPTURE_PROOF",

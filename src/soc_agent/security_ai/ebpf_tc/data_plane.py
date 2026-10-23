@@ -59,6 +59,7 @@ class PacketChannel:
         self.queue_overflows = 0
         self.backpressure_events = 0
         self.counter_evidence = None
+        self.delivery_accounting = None
         self.transport_failed = False
         self.io_failure: dict[str, int | str | None] | None = None
         self.cleanup_error: str | None = None
@@ -286,6 +287,7 @@ class PacketChannel:
             clock="KERNEL_MONOTONIC_NS",
         )
         self.counter_evidence = None
+        self.delivery_accounting = None
         self.runs += 1
         self.generations.add(generation)
         self.adapter = EBPFCollector(self.directory / f"data-run-{self.runs}", plan)
@@ -413,7 +415,7 @@ class PacketChannel:
         missing = sequence - (0 if ready else self.sequence + 1)
         if missing != loss - self.loss or missing < 0 or sequence > 65568:
             raise ValueError("TCX_DATA_SEQUENCE_OR_COUNTER_RESET")
-        if kind not in ({1} if ready else {2, 3, 4, 5}):
+        if kind not in ({1} if ready else {2, 3, 4, 5, 6}):
             raise ValueError("TCX_DATA_KIND")
         if self.processor and peek_kind != kind:
             raise ValueError("TCX_DATA_PEEK_KIND_CHANGED")
@@ -466,6 +468,17 @@ class PacketChannel:
                 self.adapter.ingest(raw, monotonic=time.monotonic())
                 self.adapter.drain()
             self.backpressure_events += int(len(self.adapter.queue) == 24)
+        elif kind == 6:
+            from soc_agent.security_ai.ebpf_tc.capture_evidence import decode_accounting
+
+            value = decode_accounting(raw)
+            if (
+                self.adapter is None
+                or self.delivery_accounting is not None
+                or value["generation"] != self.adapter.plan.generation
+            ):
+                raise ValueError("TCX_ACCOUNTING_SCOPE_OR_DUPLICATE")
+            self.delivery_accounting = value
         elif kind == 5:
             generation, timestamp, *values = struct.unpack("<QQ7QII", raw)
             totals, status, delivered = values[:7], values[7], values[8]
@@ -630,6 +643,24 @@ class PacketChannel:
                 self.listener.close()
                 self.listener = None
 
+    def capture_evidence(self) -> dict:
+        from soc_agent.security_ai.ebpf_tc.capture_evidence import assess_capture
+
+        processing = (
+            self.cached_processing
+            if self.processor
+            else (self.adapter._summary() if self.adapter else None)
+        )
+        return assess_capture(
+            self.counter_evidence,
+            self.delivery_accounting,
+            processing,
+            closed=self.wire_closed if self.processor else self.closed,
+            error=self.error or self.cleanup_error,
+            source=self.source,
+            scope=dict(program_sha256=self.plan.program_sha256, approval_digest=self.approval),
+        )
+
     @synchronized
     def snapshot(self) -> dict:
         return dict(
@@ -655,6 +686,8 @@ class PacketChannel:
                 else None
             ),
             counter_evidence=self.counter_evidence,
+            delivery_accounting=self.delivery_accounting,
+            capture_evidence=self.capture_evidence(),
             kernel_drops=None,
             queue_overflows=self.queue_overflows,
             backpressure_events=self.backpressure_events,

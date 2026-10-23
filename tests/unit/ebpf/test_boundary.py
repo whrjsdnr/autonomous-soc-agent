@@ -40,13 +40,19 @@ def test_zeek_bundle_changes_only_for_reviewed_failure_certificate_order():
         == hashlib.sha256((root / "tcx-packet-data-plane-amendment.json").read_bytes()).hexdigest()
     )
     assert successor["previous_zeek_bundle"] == historical
-    assert bundle() == successor["current_zeek_bundle"]
-    assert digest(bundle()) == successor["current_zeek_bundle_digest"]
+    batch = json.loads((root / "native-stabilization-batch1-source-amendment.json").read_text())
     assert (
-        sorted(k for k in set(bundle()) | set(historical) if bundle().get(k) != historical.get(k))
-        == successor["zeek_changed_sources"]
+        batch["previous_amendment_sha256"]
+        == hashlib.sha256((root / "phase-d-063-rca-source-amendment.json").read_bytes()).hexdigest()
     )
+    assert batch["previous_zeek_bundle"] == successor["current_zeek_bundle"]
+    assert bundle() == batch["current_zeek_bundle"]
+    assert digest(bundle()) == batch["current_zeek_bundle_digest"]
+    assert {k for k in bundle() if bundle()[k] != batch["previous_zeek_bundle"][k]} == {
+        "packet_producer.py"
+    }
     assert successor["native_approval_required"] and successor["native_release"] == "BLOCKED"
+    assert batch["native_approval_required"] and batch["native_release"] == "BLOCKED"
 
 
 def test_no_native_attach_or_zeek_selection_on_preparation_cli():

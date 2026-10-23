@@ -45,6 +45,7 @@ class Window:
     rst: int = 0
     iat_sum: int = 0
     iat_max: int = 0
+    fin_directions: int = 0
 
     def add(self, p: FeaturePacket):
         if self.packets:
@@ -64,6 +65,8 @@ class Window:
         self.maximum = max(self.maximum, p.ip_length)
         self.syn += bool(p.tcp_flags & 2)
         self.fin += bool(p.tcp_flags & 1)
+        if p.tcp_flags & 1:
+            self.fin_directions |= 1 if forward else 2
         self.rst += bool(p.tcp_flags & 4)
         self.count += 1
         if self.compact and self.packets:
@@ -71,7 +74,7 @@ class Window:
         else:
             self.packets.append(p)
 
-    def finish(self, reason: str, session: str) -> dict:
+    def finish(self, reason: str, session: str, witness_ns: int | None = None) -> dict:
         n = self.count
         values = (
             (self.packets[-1].ns - self.packets[0].ns) / 1e9,
@@ -96,6 +99,23 @@ class Window:
             ),
             close_reason=reason,
             packet_count=n,
+            lifecycle=dict(
+                first_event_ns=self.packets[0].ns,
+                last_event_ns=self.packets[-1].ns,
+                timeout_witness_ns=witness_ns,
+                bidirectional=0 < self.forward < n,
+                tcp_termination="RST_OBSERVED"
+                if self.rst
+                else "BOTH_FIN_OBSERVED"
+                if self.fin_directions == 3
+                else "ONE_FIN_OBSERVED"
+                if self.fin
+                else "NOT_OBSERVED",
+                capture_window="UNVERIFIED",
+                termination_authority="OBSERVED_EVENT_TIMEOUT"
+                if witness_ns is not None
+                else "COLLECTOR_FINALIZATION_NOT_FLOW_COMPLETION",
+            ),
             eligible=reason in {"IDLE_TIMEOUT", "ACTIVE_TIMEOUT"},
             packets=[p.model_dump(mode="json") for p in self.packets],
             values=list(values),
@@ -138,7 +158,7 @@ class FlowAssembly:
                     else None
                 )
                 if reason:
-                    self.finalized.append(old.finish(reason, self.session))
+                    self.finalized.append(old.finish(reason, self.session, p.ns))
                     del self.active[key]
         key = p.key
         if key in self.active:
@@ -154,7 +174,7 @@ class FlowAssembly:
                 else None
             )
             if reason:
-                self.finalized.append(old.finish(reason, self.session))
+                self.finalized.append(old.finish(reason, self.session, p.ns))
                 del self.active[key]
         if key not in self.active:
             if len(self.active) >= 128:

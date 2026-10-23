@@ -17,7 +17,8 @@ extern char **environ;
 #include <poll.h>
 #include <fcntl.h>
 struct runtime {struct bpf_object *object;struct ring_buffer *ring;
-    int program,config;uint32_t emitted;char kernel_log[65536];};
+    int program,config;uint32_t admitted;
+    uint64_t callbacks,delivered,budget_excluded,invalid,send_failed;char kernel_log[65536];};
 static int validate(struct soc_state *s) {
     if(!soc_native_gate() || (s->plan.version==SOC_TCX_VERSION && !soc_tcx_native_admitted()))return -EPERM;
     return soc_plan_validate(&s->plan) ||
@@ -26,15 +27,22 @@ static int validate(struct soc_state *s) {
 }
 static int emit(void *arg,void *body,size_t size) {
     struct soc_state *s=arg;struct runtime *r=s->context;
-    if(size!=sizeof(struct soc_event))return -EPROTO;
-    if(r->emitted>=s->plan.events) {s->packet_budget_reached=1;return 0;}
-    r->emitted++;
-    if(r->emitted==s->plan.events)s->packet_budget_reached=1;
+    r->callbacks++;
+    if(size!=sizeof(struct soc_event)) {r->invalid++;return -EPROTO;}
     struct soc_event *e=body;
-    if(e->generation!=s->generation || e->ifindex!=s->plan.ifindex || e->hook!=s->plan.hook)
-        return -EPROTO;
-    /* Dedicated bounded nonblocking metadata channel; no stdout/payload persistence. */
-    return soc_data_emit(s,body,size);
+    /* Validate even after the packet cap: excluded metadata is not untrusted
+     * padding and a different generation must never reconcile this epoch. */
+    if(e->generation!=s->generation || e->ifindex!=s->plan.ifindex || e->hook!=s->plan.hook) {
+        r->invalid++;return -EPROTO;
+    }
+    if(r->admitted>=s->plan.events) {
+        r->budget_excluded++;s->packet_budget_reached=1;return 0;
+    }
+    r->admitted++;
+    if(r->admitted==s->plan.events)s->packet_budget_reached=1;
+    int rc=soc_data_emit(s,body,size);
+    if(rc)r->send_failed++;else r->delivered++;
+    return rc;
 }
 static int load_failed(struct soc_state *s,struct runtime *r,unsigned stage,unsigned api,
                        int result,int saved,unsigned source) {
@@ -255,7 +263,12 @@ int soc_final_drain_counters(struct soc_state *s) {
         }
     }
     free(rows);
-    int sent=soc_data_counters(s,status==1?&total:NULL,status,r->emitted);
+    int sent=soc_data_counters(s,status==1?&total:NULL,status,r->delivered);
+    struct soc_delivery_accounting accounting={.version=1,.generation=s->generation,
+        .callbacks=r->callbacks,.delivered=r->delivered,
+        .budget_excluded=r->budget_excluded,.invalid=r->invalid,.send_failed=r->send_failed,
+        .start_config_ns=s->started_ns,.final_drain_started_ns=started,.drain_result=drain};
+    int accounted=soc_data_accounting(s,&accounting);
     int recorded=soc_data_counter_query(s,drain,cpus,fd,lookup,saved,sent,soc_now()-started,(attempted?4:0)|(overflow?8:0));
-    return drain?drain:recorded?recorded:sent?sent:status==1?0:overflow?-EOVERFLOW:lookup<0?lookup:-EIO;
+    return drain?drain:recorded?recorded:accounted?accounted:sent?sent:status==1?0:overflow?-EOVERFLOW:lookup<0?lookup:-EIO;
 }

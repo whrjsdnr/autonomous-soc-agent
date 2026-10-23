@@ -145,3 +145,10 @@ int soc_data_counter_query(struct soc_state *s,int drain,int cpus,int fd,int loo
     _Static_assert(sizeof(detail)==80,"counter query ABI");
     return data_record(s,"DATA_COUNTER_QUERY",&detail);
 }
+
+int soc_data_accounting(struct soc_state *s,const struct soc_delivery_accounting *detail) {
+    /* Journal first: terminal evidence survives a blocked/closed packet channel. */
+    if(data_record(s,"DATA_DELIVERY_ACCOUNTING",detail))return -EIO;
+    struct soc_event bytes;memcpy(&bytes,detail,sizeof(bytes));
+    return row(s,SOC_DATA_ACCOUNTING,&bytes);
+}

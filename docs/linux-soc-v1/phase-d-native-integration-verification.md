@@ -1634,3 +1634,209 @@ and genuine flow-completion evidence,retain necessary vector/model parity receip
 resolve whole-Export failures and perform separately scoped GUI verification.
 Any further privileged/Native execution needs a new budget and explicit exact-SHA
 approval;this report requests no automatic new session.
+
+
+# SOC Native Stabilization — Batch 1
+
+## Overall Status
+
+**INSTRUMENTED / NATIVE_VERIFICATION_REQUIRED**. No Root installation, BPF query,
+attach/detach, capture, Docker capture session, or DNS traffic was executed.
+No historical candidate, Ledger, Audit or Native failure was reclassified.
+This batch establishes explicit accounting and lifecycle receipts;it does not
+establish Native Capture Integrity or grant AI eligibility.
+
+The original workspace remains main9a12fe9 with its prior user/development edits.
+Implementation used the existing clean release worktree
+`../native-soc-phase-d-release-063`,starting6d059d8,branch
+`fix/native-stabilization-batch1`. No user edits were copied into this branch.
+Historical approved binary666f9cf and its installed files remain unchanged.
+
+## P01 Counter Reconciliation
+
+**Root Cause:** CONFIRMED source-level population mismatch and missing exclusion
+instrumentation. Kernel `observed` increments per hook/per CPU before enabled,
+parser and reserve checks. `cpu_sequence` uses that attempt number. `emitted`
+increments after successful Ring submit. Thus disabled/unsupported/malformed,
+reserve failures and per-CPU budget exclusions are distinct attempt outcomes.
+The Kernel4096 attempt budget is per CPU;the Loader4096 delivery cap is aggregate.
+The old Loader silently consumed callbacks after this aggregate cap. Its variable
+named`emitted` counted admitted send attempts before validation/send,not Kernel
+submissions or confirmed sends. These populations cannot be equated.
+
+Historical final totals:observed4114=emitted4108+disabled6;delivered/applied4096.
+This is consistent with12 callbacks excluded at the aggregate cap. **The historical
+12 events are not individually attributable**:there was no exclusion counter or
+retained per-callback trace. No packet loss or exact12-event attribution is invented.
+
+**Fix:** per-runtime/generation callback,successful delivery,budget-excluded,
+invalid-scope/size and send-failed counters. Delivery is incremented only on
+successful atomic192-byte send,not inherited from a previous session's cumulative
+send counter. Source identity is checked even after the cap. A new terminal
+ACCOUNTING kind6 has a fixed80-byte payload;the original80-byte packet ABI and
+192-byte envelope are unchanged. Existing peer/session/program/approval/sequence
+checks apply. Duplicate/cross-generation/invalid equations are rejected.
+
+The same80-byte accounting is committed to the chained Journal **before** its
+channel send,so a blocked/closed Data Channel does not erase the local claim.
+Drain error and Map lookup/query diagnostics remain independent. Old streams
+without ACCOUNTING remain readable withUNKNOWN reconciliation;old consumers
+reject new kind6,so Producer/Consumer must be deployed with the same new SHA.
+Journal decoding alone does not restore Native authority or prove process exit.
+
+**Verification:** actual compiled Loader callback executed without libbpf/Kernel
+calls,including cap exclusion,send EAGAIN,invalid epoch after cap and cumulative
+session counter isolation. Python tests cover malformed/duplicate/epoch mismatch,
+missing fields,Ring loss,receive mismatch andDrain-11. Equations:
+
+```text
+observed = emitted + ring_reservation_failures + unsupported + malformed + disabled + budget
+emitted = callbacks                         (only after a successful final drain)
+callbacks = delivered + budget_excluded + invalid + send_failed
+delivered = authenticated receiver received (same generation)
+```
+
+Accounting balance is separate from quality:classified exclusions/failures never
+become zero-loss capture. A failed send cannot be labeled budget exclusion merely
+because the arithmetic balances. Counter values are never adjusted to force equality.
+
+**Remaining Gap:** historical12 attributionUNKNOWN;new Native accounting has not
+run. P01 isINSTRUMENTED,with the exclusion mechanism reproduced and fixed.
+
+## P02 Capture Integrity
+
+**Evidence/Fix:** terminal Counter/ACCOUNTING/processing projections are joined by
+generation and scope. Source receipt includes application session,Plan digest,
+program SHA,approval digest,namespace/interface/hook. Actual received CPU intervals
+retain first/last attempt and Kernel event timestamp plus received count;these are
+received-event intervals,not proof about silent CPUs or disabled observation.
+Map snapshot,Socket loss,Queue rejection,CPU gaps,late events and final drain are
+separate reasons. Missing evidence staysUNKNOWN. Kernel-wide drops remainnull.
+
+`start_config_ns` is the configured start bound,not a measured first packet or an
+atomic enable barrier. `final_drain_started_ns` is an after-detach userspace marker,
+not a fabricated last-packet timestamp. The Map generation is scope-bound by the
+owned map/runtime;its scalar counters do not themselves embed a generation field.
+
+**Verification:** missing Counter/Epoch,unsuccessful drain,CLOSED absent,processing
+failure,Ring loss andSource Provenance fixtures fail to establish integrity.
+Even fully reconciled fixture accounting leaves capture statusINCOMPLETE.
+**Remaining Gap:** no atomic whole-window attestation/initial per-CPU snapshot,
+no independently verified Native clock calibration,and no Kernel-wide drop proof.
+This code intentionally cannot promote Capture Integrity solely from final totals.
+P02 remainsINSTRUMENTED,notVERIFIED.
+
+## P03 Flow Completeness
+
+**Lifecycle/Fix:** preserve per-flow first/last observed Kernel event timestamps,
+bidirectional observation,FIN direction(s),RST observation and the actual later
+event watermark witnessing an idle/active timeout. These fields follow the same
+Flow identity,Feature digest and Checkpoint receipt. Timeout closure does not extend
+feature duration to the witness;duration remains last-minus-first observed packet.
+No end timestamp is synthesized from Wall Clock,STOP or an idle processing thread.
+
+TCP FIN/RST remain observed evidence,not new completion authority. The current
+metadata ABI lacks TCP sequence/ACK/handshake proof,so even two FIN directions do
+not prove whole-session capture. UDP idle timeout remains30s;active timeout120s.
+STOP,packet limit,overflow,clock failure,normal source exhaustion and leftover
+flow drain preserve their existing incomplete/blocked semantics. Duplicate finish
+is rejected. Counter/clock uncertainty cannot upgrade a timed-out flow for Native AI.
+
+**Verification:** one/both FIN directions,RST,one-way flows,UDP idle timeout,
+TCP active timeout,real timeout witness,last-event bounds,STOP drain,no duplicate
+export,receipt/Checkpoint round-trip and independent14-feature math.
+**Remaining Gap:** past8 candidates remainPACKET_LIMIT/INCOMPLETE;new lifecycle
+metadata has no Native proof yet. P03 remainsINSTRUMENTED.
+
+## Regression Tests
+
+Final unchanged-source results:Workspace targeted273PASS (136.48s),independent
+Export core224PASS (23.05s),ordinary-UID C/socket/data-plane/Drain integration15PASS
+(228.75s). New Batch1 tests27PASS are included in those suites,not additional
+Native attempts. Ruff passes for all10 changed Python files,Format check passes,
+Git Diff check passes. No test/assertion was removed or weakened. The full
+Workspace/Export suite was not rerun;historical2 failures remain unresolved.
+All tests are ordinary UID fixtures;C callback/Unix socket/SQLite integration
+is not a Kernel Native run.
+
+The first invocation without importlib mode hit duplicate test basenames during
+collection;the official isolated invocation uses`--import-mode=importlib`.
+Source-pinning assertions initially rejected changed Producer/Collector hashes.
+A new `native-stabilization-batch1-source-amendment.json` links the unchanged
+historical amendment and current exact hashes;the assertions still validate both.
+An overlapping earlier compile correctly rejected our then-in-progress edit via
+SourceGuard. Its result was superseded by a complete unchanged-source rerun.
+No historical certificate was rewritten or assertion removed.
+
+Export initially lacked the independent ML reference source path (220PASS/1FAIL).
+Re-run explicitly sets`SOC_RESEARCH_VALIDATION_REPOSITORY` to the existing trusted
+repository parent;ML producer source hashes are recorded separately. No model,
+Root or external network call is used. This is dependency setup,not a skipped test.
+
+Synthetic capacity proof:4096 in-memory events/8 flows,8 receipts and4-vector tail,
+15096 UTF-8 bytes,encode/decode equal,allINCOMPLETE. This is not Native evidence.
+A separate dense1us fixture correctly hit the unchanged32-record/10ms reorder
+fail-closed boundary;it was not bypassed. The successful capacity fixture uses
+1ms event spacing. No universal worst-case capacity guarantee is claimed.
+16KiB and maximum receipt guards remain;unique oversized input still fails.
+
+## Source / Artifact Integrity
+
+Frozen build input contains1703 files (source/tests/contracts/dependencies plus
+existing documentation,excluding the Phase D report). The new problem tracker
+and the appended report are post-build reporting only,covered by Git Tree rather
+than falsely counted as compiled input. Workspace/frozen Export/Stage must match
+this exact input set. A SourceGuard observes runtime inputs during each build.
+All26 artifact files from independent buildsA/B match. No old/superseded build is
+the final release. Qualification:`.git/native-stabilization-batch1/release-v2/`.
+
+Release version remains0.6.3,**distinct Batch1 candidate with new SHA**,not the
+historically approved0.6.3 image. Native/Root approval does not carry over.
+
+| Identity | SHA256 |
+|---|---|
+| Frozen input inventory | `1a6911b824269a315010480d214a099f476360c63adb95981cb1464ab5f110b0` |
+| Manifest | `76ed726c48808212ae629601239335ca37b1e24e09022cae081fb0068d964fc0` |
+| Bundle | `7d770e1d383302c7e37883eb73428e5145edaa5570b64f453b0d43e8b9016fbb` |
+| Execution Image | `108e5a26238ee5a0c90a3a522a805ee01cf54062a7cf87150ef36f141f067df0` |
+| Root Manifest | `a1214d2c58bd21ca7a156e4f5c136dbbb63d796b649d26e2400cce89ebe00297` |
+
+## Native Verification Required
+
+Request scope for a future exact-SHA approval:one fixed9-file Root installation
+preserving current2eb95e82... rollback,and one Unified Supervisor diagnostic run,
+net:[4026531833],lo/Ingress,max300s/4096events/Queue32,privilegedAS256MiB/CPU20s.
+DNS retains existing127.0.0.53:53,native-0516.localhost.,A,UDP1/TCP1,
+active10s/capture7s/32packets/snaplen512,ZeekRAM512MiB/CPU1.
+Root files:bootstrap,broker,entry,libnative-tc.so,manifest.bin,pam-policy.conf,
+tc.bpf.o,release.json,release.trust. Verify actual Root Manifest commands,installed
+SHA/ownership/rollback and privileged Inspector snapshots before any attach.
+No foreign detach,no offload/resolver change,no external traffic,no automatic retry.
+
+Expected evidence:new callbacks/exclusions/failures vs Kernel totals and receiver,
+actual epoch/CPU intervals,flow lifecycle receipts,Checkpoint size/recovery,
+DNS/CLOSED,Audit/FD/container/Kernel cleanup. This instrumented run is not expected
+to establish missing atomic capture/clock/model proof or automatically enable AI.
+
+User authorized new Native development budget10 total,max2 perBatch;Batch1 used0/2,
+total0/10. Historical Phase D remains5/5Native and5/5Root. Root budget extension is
+pending clarification;new exact-SHA approval and receipt are absent. The existing
+Phase D executor remains bound to its exhausted5-run campaign. New10-run campaign
+execution registration/enforcement is not implemented or bypassed in this data-path
+batch;it must be explicitly connected and verified before execution. The new budget
+record is not an executable receipt. No reservation or Native/Root use occurred.
+
+## Git Commit / Push
+
+Implementation and report changes only on`fix/native-stabilization-batch1`.
+No original user files,Native raw evidence,model artifacts or Ledger/Audit files
+are staged. Final commit/Tree and the private approval request are bound after
+selective staging. No direct main push or force push.
+
+## Next Batch Readiness
+
+Data-path instrumentation is ready for review and exact-SHA diagnostic approval;
+Native execution remainsBLOCKED by approval/Root-budget/new-campaign registration.
+P01 historical12 remainsUNKNOWN;P02/P03 remainINSTRUMENTED. No historical candidate
+isELIGIBLE. Native AI,DNS9 and production remainBLOCKED. Prior whole-Export
+5909PASS/2FAIL/30SKIP is not requalified by these targeted tests.

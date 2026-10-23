@@ -62,6 +62,7 @@ def recover_native(path: Path, approval: str) -> dict:
     data_counter_status = []
     data_counter_queries = []
     data_socket_samples = []
+    delivery_accounting = []
     data_delivery_failed = False
     last_link_lifecycle = None
     with os.fdopen(fd, "rb") as stream:
@@ -83,6 +84,7 @@ def recover_native(path: Path, approval: str) -> dict:
                     "DATA_COUNTER_STATUS",
                     "DATA_COUNTER_QUERY",
                     "DATA_SOCKET_SAMPLE",
+                    "DATA_DELIVERY_ACCOUNTING",
                     "FIXTURE_COUNTER_STATUS",
                 }
                 else TCX_ROW
@@ -110,6 +112,7 @@ def recover_native(path: Path, approval: str) -> dict:
                     "DATA_COUNTER_STATUS",
                     "DATA_COUNTER_QUERY",
                     "DATA_SOCKET_SAMPLE",
+                    "DATA_DELIVERY_ACCOUNTING",
                     "FIXTURE_COUNTER_STATUS",
                 }
                 or sequence > 2048
@@ -117,13 +120,19 @@ def recover_native(path: Path, approval: str) -> dict:
                 raise ValueError("NATIVE_JOURNAL_INTEGRITY")
             if kind in TCX_KINDS:
                 last_link_lifecycle = kind
+            if kind == "DATA_DELIVERY_ACCOUNTING":
+                from soc_agent.security_ai.ebpf_tc.capture_evidence import decode_accounting
+
+                if len(delivery_accounting) >= 16:
+                    raise ValueError("TCX_ACCOUNTING_BOUND")
+                delivery_accounting.append(decode_accounting(owner))
             if kind == "DATA_SOCKET_SAMPLE":
                 version, message, phase, seq, result, saved, queued, capacity, stamp, waited = (
                     struct.unpack("<10q", owner)
                 )
                 if (
                     version != 1
-                    or message not in {1, 2, 3, 4, 5}
+                    or message not in {1, 2, 3, 4, 5, 6}
                     or phase not in {1, 2, 3}
                     or not 0 <= seq <= 65568
                     or not 0 <= saved <= 4095
@@ -226,7 +235,7 @@ def recover_native(path: Path, approval: str) -> dict:
                 )
                 if (
                     version != 1
-                    or message not in {1, 2, 3, 4, 5}
+                    or message not in {1, 2, 3, 4, 5, 6}
                     or status not in {1, 2, 3, 4}
                     or stopping not in {0, 1}
                     or size != 192
@@ -240,7 +249,9 @@ def recover_native(path: Path, approval: str) -> dict:
                 data_delivery_failed |= status in {2, 4} or status == 3 and result != 0
                 data_send_status.append(
                     dict(
-                        message=("READY", "PACKET", "CLOSED", "RUN_END", "COUNTER")[message - 1],
+                        message=("READY", "PACKET", "CLOSED", "RUN_END", "COUNTER", "ACCOUNTING")[
+                            message - 1
+                        ],
                         status={
                             1: "BACKPRESSURE_OBSERVED",
                             2: "FAILED",
@@ -352,6 +363,7 @@ def recover_native(path: Path, approval: str) -> dict:
         data_send_status=data_send_status,
         data_counter_status=data_counter_status,
         data_counter_queries=data_counter_queries,
+        delivery_accounting=delivery_accounting,
         data_socket_samples=data_socket_samples,
         fd_release_evidence=fd_release_evidence,
         last_link_lifecycle=last_link_lifecycle,
