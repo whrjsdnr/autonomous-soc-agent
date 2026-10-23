@@ -15,7 +15,12 @@ from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.review.persistence.secure_storage import create_private_directory
 from soc_agent.security_ai.collectors.packet_input import Packet
 from soc_agent.security_ai.collectors.packet_producer import FlowAssembly
-from soc_agent.security_ai.ebpf.checkpoint import CheckpointFailure, CheckpointWriter
+from soc_agent.security_ai.ebpf.checkpoint import (
+    CheckpointFailure,
+    CheckpointWriter,
+    decode_checkpoint,
+    encode_checkpoint,
+)
 from soc_agent.security_ai.ebpf.clock import ClockContract, EventOrdering, OrderedEvent
 from soc_agent.security_ai.ebpf.models import Counters, Event, Plan
 from soc_agent.security_ai.ebpf.ring import decode
@@ -447,10 +452,7 @@ class EBPFCollector:
             self.state, self.last_error = "ERROR", "EBPF_SESSION_DISK_LIMIT"
             raise ValueError(self.last_error)
         value = self._summary()
-        text, sha = json.dumps(value), digest(value)
-        if len(text.encode()) > 16384:
-            raise ValueError("EBPF_CHECKPOINT_SIZE")
-        return text, sha
+        return encode_checkpoint(value), digest(value)
 
     def request_checkpoint(self) -> str:
         """Explicit pending request during Native processing, never a durable receipt."""
@@ -496,7 +498,7 @@ class EBPFCollector:
                 json.loads(r[0])
                 for r in db.execute("SELECT payload FROM monitor_audit ORDER BY sequence")
             ]
-        value = json.loads(row[0])
+        value = decode_checkpoint(row[0])
         initial = [a["details"] for a in audits if a["kind"] == "EBPF_PREPARED"]
         checkpoints = [a["details"] for a in audits if a["kind"] == "EBPF_CHECKPOINT"]
         if (

@@ -901,3 +901,270 @@ remain unresolved. Component cleanup success does not make overall E2E VERIFIED.
   failure of the corrected Export or a claim about Native recovery.
 - No source edit occurred after the frozen build;1699 before/after hashes still match.
   The documentation report is excluded from its own Source Snapshot and covered by Git.
+
+
+# NATIVE_SOC_PHASE_D Packet Admission E2E — actual attempt 4
+
+## Overall Status
+
+**FAILED** overall. Actual Packet Admission recovery and4096/4096 Network14 packet
+application succeeded in this run, as did DNS/privileged resource cleanup. Final
+Checkpoint serialization failed; final Audit/processing Drain remains unverified.
+Do not promote this diagnostic to Native AI, DNS9 or production success.
+
+## Release / SHA
+
+Executed Commit `e50ca0b3b69bbff1115e7c41c4233b78c00254c0`,
+Tree `32333f04a51059947b442217275c6884267ca764`,
+branch `fix/native-phase-d-packet-admission`, Release0.6.3 receiver candidate:
+
+- Manifest: `630280263a93f3c5bcb1d56c7e7f3f0faca81c9d497af9b3674b8d77568e48ac`
+- Bundle: `74978c1d513c11f9237d6484bbd9ada69eb18849f2353ecaff7fa1aba7cc572f`
+- Image: `af619a24529423a33a70d73b15bd59c697d4ae926acff0b0c259b738d1a8da47`
+- Root Manifest: `ed5800729801c40f849c59417c2d09e439b26c0b72e56e05b112ae4f502bcb17`
+
+## Approval / Budget
+
+Exact user approval translated to a new owner-only receipt,
+SHA `77d20a5cb275e3988875761255e836e39d560bd2ff2befa085c08d843906213f`.
+The existing single-use CLI/Supervisor and real TTY were used; one fresh sudo
+invocation, no programmatic password collection or terminal transcript. Root
+installation completed and all9 hashes/ownership/permissions passed read-only
+post-verification. Previous0.6.3 Root Manifest162d2f94... was retained in its
+full-digest rollback directory; the older0.6.2 rollback is also unchanged.
+The previous full Export5909PASS/2FAIL/30SKIP assessment remains unresolved and
+was acknowledged only for the direct diagnostic path.
+
+Exactly one reservation and FAILED finish appended. Native4/5 and Root4/5 used,
+one remaining each. No automatic retry, new reservation or extra sudo occurred.
+
+## Packet Admission
+
+| Metric / domain | Native result |
+|---|---:|
+| Packet records received / processed / applied |4096 /4096 /4096|
+| Delayed admission waits / resumed |3 /3|
+| Admission timeouts |0|
+| Immediate admissions, **derived**4096 minus3 successful waits |4093|
+| Receiver shared-budget rejects |0|
+| Error-pending / post-error policy discard |0 /0|
+| Shared budget / ingress queue peak / reorder peak |32 /29 /20|
+| Total / maximum admission wait |8.703483ms /4.244158ms|
+| Maximum queue residence |3.776804ms|
+| Maximum packet processing time |1.842893ms|
+| Maximum recvmsg / validation |3.165393ms /7.177961ms|
+
+Immediate admission is not a separately recorded counter; the arithmetic is valid
+here because every received packet was processed, no rejection occurred and all3
+waits resumed. Queue and reorder peaks are not simultaneous measurements and must
+not be added. Packet budget remains32 across ingress/in-flight/reorder,50ms wait
+bound unchanged; actual observed waits were shorter than50ms. Queue32 sufficed for
+this sample, not proof for arbitrary workloads or sustained rates.
+
+Prior151/53 sample had17 admission rejects; current4096/4096 has0 with3 measured
+recoveries. Traffic conditions and duration differ, so no throughput improvement
+percentage or universal overflow-free claim is made.
+
+## TCX
+
+Kernel load/attach:Program1000,tag`5d24af0965a164b7`,Link2,lo/Ingress,
+net4026531833,ifindex1,attach_type46,no pinning. Actual owned-map final counters:
+observed4126,emitted4124,ring reservation failure0,disabled2,other categories0,
+delivered4096. Counter retrieval/map lookup/transmission succeeded; Ring Drain0.
+**Kernel-wide drops remain UNKNOWN.**
+
+Emitted minus delivered is28. `loader.c::emit` stops forwarding after the approved
+4096 event cap while final ring polling consumes records. This is a source-backed
+budget-exclusion path consistent with the difference, but no independent per-record
+exclusion counter exists. The28 remain explicitly unreconciled capture/delivery
+records, not silently counted as Queue rejection, proven kernel loss or lossless
+capture. `EMITTED_DELIVERY_NOT_RECONCILED` remains in candidate RCA.
+
+Counter generation1099162056965725441, no CPU observation-attempt gap observed.
+CPU distributions:0:1000,1:950,2:1069,3:1077. Four cross-CPU inversions24/81/70/141ns
+were reordered within the unchanged10ms bound, late events0, timestamps unmodified.
+Historical194ms inversion remains UNKNOWN and was not reproduced or fixed.
+Clock calibration/capture completeness are not inferred from successful reordering.
+
+## Network14
+
+12 new candidates, packet counts sum4096; all finite14-float32 contract/digest
+checks passed and all12 are INCOMPLETE. Eight earlier vectors are represented by
+validated retained RCA receipts; four tail vectors remain available. No missing
+raw vector is invented. All closures are PACKET_LIMIT, not complete TCP/timeout
+proof. Historical candidates remain unchanged.
+
+| Candidate | Packets | Feature fingerprint | Decision |
+|---|---:|---|---|
+| `7c951a04f2cd4c761aa410fc355a4a68ea7005e3ccf93627e4432b2fd46a6bb5` | 1033 | `2b10ae7ca5fb6b2919acf309dbf1d864cd915ca6553a3f782b097e5bce671ce0` | INCOMPLETE |
+| `d5421fec5a23af77570299f6a86e572ead0a40745fe31f04898b891443943705` | 1029 | `9a7bc8f6acdf946e85c0911fdc954268e9b99cb65668dd496381eda9fe33889d` | INCOMPLETE |
+| `7d1eb2f1255ef247bc96f980c9358e33810ef0c1e669d972fb6d11201f2853ed` | 996 | `007532ad77ec0b8179203e0b4b7edf95dac7d773d4d529b85d88951e81867b11` | INCOMPLETE |
+| `d633312ed808b7b2d5c23b62cb358502fc3c7b6d24727ada420853b9bd54b29b` | 1002 | `70bb69481ef91e83e06d8454fd0ddd44367cae15f20c34babe5ad9d7c8623fbe` | INCOMPLETE |
+| `b183504924cc736590665882bdb3edc2cd19612ede096bac05178c4274b187ac` | 2 | `e55a87ea6e27eeb3fcaaed4c49aec9d2cb90eb34b51cb1f740d947a65e81231e` | INCOMPLETE |
+| `650a4ccad028ad8c06396e2ff52d43760e4c2d1cc274c66200181d1674b4bb52` | 10 | `fdbc2e41ccf157afec3ce22c54b0c211e2c3b408d6a808ff0a9fd1888e5de665` | INCOMPLETE |
+| `966946bb7611eb29c8f0bc67cfa679c5e9765b9c6125b1500863a77f4504d7dd` | 4 | `4bc5935bcdf4d7841717622e301dc105cee18df789cdb2abb6c3bd5e4772a1d9` | INCOMPLETE |
+| `871e337ecbc1d6468464c9bc2017066dfef0c132ac08683588bb1a40c18ce65f` | 4 | `8d0b29ba1006b570f478cc8b7db16a4ee90aa36fd7055b2a2ef9cced9053fa2a` | INCOMPLETE |
+| `4d88306e3c8563fa2e8edf161624312e8bafb7c3340bdfe767a16d1e4b1cebdc` | 4 | `0532b55d7c3b5a037d63a3b894e81f84a4fa14573873ad04c8a56989915f1163` | INCOMPLETE |
+| `37ade919f0a403534fafc79848a51790a1d655e7c48ed26cfb3d35b8d0d85b08` | 4 | `ad39eaa784b9bdcd88d8ae3398a9d66f7f22ba468ce7d3fe769304b177ec49c7` | INCOMPLETE |
+| `b11e40c6cf920a396f75bc865605cc9a10b6f67e81817284c70c2e0ae4b74bd1` | 4 | `169008a38ff672eb822f05e42c8b9d644cbc8667d9119569072380dfc12c8c66` | INCOMPLETE |
+| `914324f6c5ffc25a8948ef376d908897a7cbe525aa85c1dd6b7cd377f896e844` | 4 | `7f81581183b11f9df5aa84f98b7ad225ca68eb0c980a80276a0be0cf5d798c75` | INCOMPLETE |
+
+Common blockers:CaptureIntegrityUnverified,PACKET_LIMIT flow incompleteness,
+ClockCalibrationUnverified,emitted/delivered mismatch,NativeGolden/Model receipts
+UNKNOWN and policy BLOCKED. Four thousand ninety-six applied packets and zero
+Queue rejection do not constitute AI input eligibility. Feature eligibility0/12.
+
+## DNS
+
+Controlled local UDP1query/1response +TCP1query/1response against127.0.0.53:53,
+native-0516.localhost.,A. Probe transaction IDs49665/49666, question match true,
+RCODE0,one answer each. Zeek accepted2 completed transactions,UDP1/TCP1,
+response_records2. Query/response packet totals are independently demonstrated by
+the probe, not invented from Zeek's completed-log model. Duplicate completed
+transactions0; retransmission/query collision ambiguity remains UNKNOWN.
+
+12 captured CHECKSUM_PARTIAL analysis copies,accepted12/rejected0/socket_drops0;
+original/corrected digest receipt chain preserved. No network packet or offload
+setting changed. Raw-IP UNSUPPORTED remains excluded from Network14.
+Counter/CLOSED observed, sequence gaps/invalid records0; DNS Diagnostics2 records,
+visibilityDNS_VISIBLE_CONTROLLED_LOCAL_TEST. Integrity remains limited analysis-copy
+provenance, not end-to-end payload attestation or DNS9 approval.
+
+Authenticated72653.035805454 →READY72654.281241805 →capture ready72654.282679185
+→capture CLOSED received72661.200303536 →analysis/container cleanup72661.444820667
+→final cleanup72661.477984748 (monotonic seconds).
+Authenticated active elapsed8.447669303s, internal analysis deadline met, final
+Sidecar stateCLOSED,exit0,container absent. This independently preserves DNS success.
+
+## Supervisor / Cleanup
+
+Controller CLI exit1, first failure StageTCX_DATA_PROCESSING,
+API PacketChannel.error, ValueErrorEBPF_CHECKPOINT_SIZE, errnoNone,signalNone.
+No follow-on errors replaced it. Supervisor privileged final stateCLOSED,
+cleanupVERIFIED,first_errorNone,control_errors empty. No signal was injected in
+this Native run; SIGTERM behavior is covered by regression, not falsely claimed
+as an observed Native interrupt.
+
+Counter and Data CLOSED received; reader/processor/checkpoint worker exited,
+queue empty,pending0. Writer13 submitted/13 committed/0 rejected/0 outstanding,
+writer failureNone. **Those13 commits do not include the rejected final summary**:
+last durable row is4095 bytes,stateMETADATA_STREAM_ACTIVE,accepted4096,
+finalized_count0. Final12 candidate receipts exist in the final result but did
+not commit as a final Checkpoint. Processing/Audit Drain remains FAILED and
+aggregate CLEANUP_UNVERIFIED is preserved.
+
+TCX Link cleanupVERIFIED;3 map FDs +1 program FD verified closed after libbpf close
+with F_GETFD/EBADF,all_observed_fds_closed true,result0. Raw individual close return
+values were not recorded. Entry exited0,Inspector authority revoked/channel closed,
+exit0;Supervisor/Inspector PIDs794828/794830 absent. Session authorization revoked.
+Zeek container absent, separate from the unused legacy Zeek cleanup flag.
+
+Before/after inventories identical:11 programs,0 maps,0 links,0 lo ingress/egress
+filters,6 cgroup paths. Owned Program1000 absent afterward. Existing cgroup program
+IDs/tags/attach targets were unchanged; no foreign deletion. Historical unknown
+program ownership is not retroactively resolved. GUI was not opened; projections
+and Diagnostics evidence do not imply visual GUI verification.
+
+## Root Cause Analysis
+
+Confirmed failure path:PacketChannel processing →end_metadata_stream(PACKET_LIMIT)
+→finalize12 flows →request_checkpoint →_checkpoint_text →16384-byte bound.
+Repeated candidate RCA contexts expanded the actual final summary to17209 UTF-8
+bytes. This is a local synthetic storage-size error, not errno/SQLite EAGAIN and
+not Packet Admission overflow. Ring/transport/processing paths already completed.
+
+Minimum remediation in `checkpoint.py`/`collector.py`:a versioned durable encoding
+factors identical RCA fields into shared context and retains every per-candidate
+row. Original full-summary digest and Audit/Plan binding remain the authority;
+Recovery restores the exact original summary before validating those bindings.
+Small historical JSON checkpoints remain byte-format compatible and are not
+rewritten.16KiB persisted snapshot bound,writer capacity2,FULL SQLite atomic commit,
+Queue32 and all Capture/AI gates remain unchanged. Decode validates version,
+row bounds/disjoint fields and bounded expansion (existing1024-flow/8MiB session
+limits). Oversized non-factorable summaries still fail explicitly, never truncate.
+
+Actual Native final summary reproduced **offline only**:17209 →9651 bytes,
+all12 receipts and full semantic digest preserved. This is not a new Native success.
+New tests cover24 receipts through writer/SQLite/Audit/Recovery, legacy JSON,
+tampering shared fields,unsupported encoding,overlap,count/expansion bound and
+oversize rejection. No new dependency/compression library was introduced.
+
+## Evidence Integrity
+
+The11-row append-only Ledger chain and old byte prefix validate.112 protected
+hashes (user8 +historical104),previous Native evidence49 files,current Native49
+files and retained0.6.3/0.6.2 rollback hashes/owner/perms unchanged. Native journal
+18 records hash-chain verifies; recovered stateRECOVERY_REQUIRES_USER_REVIEW,
+last link lifecycleTCX_CLEANUP_VERIFIED. No raw/session/model data is committed.
+Private current evidence: `.git/native-soc-phase-d/live-063-packet-admission/`;
+original approved artifacts/result: `receiver-remediation-063/build-A/`.
+
+## Tests
+
+Final formatted Workspace focused Checkpoint/Collector/Clock/eligibility:44PASS,
+7.06s. Independent frozen Export Checkpoint suite:8PASS,0.50s.
+Data Plane/Supervisor integration outcomes are appended after completion.
+No whole6000-test suite repeated; historical2 Export failures remain unresolved.
+Ruff/format/diff are checked on changed files, no assertion/gate weakening.
+
+## New Artifact Identity — NOT approved
+
+Same0.6.3 version,new Checkpoint remediation candidate:
+
+- Source Snapshot: `b0bc3589c0000e8686c86a6ab23757d026c2f5698ea123baaf67ea4890c4bf12`
+- Manifest: `b39ede93fc07852502965082745813bb6e62b3b443e82c3d60e154bc0546e8ae`
+- Bundle: `c8f0c040b8d4f8f44aa704816624c514544b6ac03f420db0fbe2b9ed7a2fadd3`
+- Image: `50efdf7cbbd5f2a683e8003d7dcabbe3d08b5afb7ee3a66b278eb0d01af99683`
+- Root Manifest: `ce4d5648fe94344311e886d1bdc57afd84b4c00492afd93f5c3379cbbc541edf`
+
+Two builds from frozen independent export:26/26 equal,1699 source hashes unchanged.
+Artifacts under `.git/native-soc-phase-d/checkpoint-remediation-063/`.
+Report excluded from its own Source Snapshot; eventual Git Tree covers this text.
+No new Root/Native execution for these bytes. New explicit exact-SHA approval and
+receipt are required for any further install or Native run.
+
+## Native / Root Budget / Next Required Action
+
+Native4/5 and Root4/5 used,one remaining each. Preserve old campaigns and all
+failed outcomes. Next request can authorize only one installation preserving current
+ed580072... and older rollbacks,one Supervisor run within existing scope; no retry.
+Inspector before/after inspection and existing lo/Ingress/300s/4096/Queue32/
+256MiB/CPU20s limits remain. DNS local UDP1/TCP1 active10s/capture7s/32/snaplen512,
+existing Zeek resources unchanged. Native AI,DNS9,production remain BLOCKED.
+
+Remaining:actual Native final-checkpoint/Recovery verification,flow completion,
+capture-window/counter reconciliation,clock calibration,historical194ms RCA,
+historical cgroup ownership,visual GUI verification,and2 whole-Export failures.
+
+
+### Final verification and superseding candidate
+
+- Data Plane/Supervisor:initial21PASS/1setupERROR (180.07s). SourceGuard rejected
+  a fixture build while this session ran Ruff import cleanup in the same source
+  tree. That build is invalid and is not relabeled passed. After source freeze,
+  the affected cpu_reuse fixture/test passed unchanged (23.79s);all22 unique
+  cases are now covered. No external editor is inferred from that event.
+- Strengthened the large-summary regression to call Collector._checkpoint_text
+  directly, not just its encoder. Final44 focused tests PASS in4.98s.
+- This test-only strengthening caused a fresh source freeze and another independent
+  double build;the intermediate candidate above is superseded,not overwritten.
+- Final frozen Export:Checkpoint8 +approval/budget13 =21PASS in1.01s.
+- Final source1699 files unchanged,26/26 build artifacts equal. Source snapshot
+  `77d1c688e159b11a842dde2213ac158170d356d3cf1d201372837de9cc95f916`.
+
+**Use only this final candidate for a future approval request**:
+
+| Identity | Final SHA-256 |
+|---|---|
+| Manifest | `acfa1cd754691612626b7f7715c61c60cd2aa0ecdf2c3f7bd68d66fb010fac0c` |
+| Bundle | `c8f0c040b8d4f8f44aa704816624c514544b6ac03f420db0fbe2b9ed7a2fadd3` |
+| Execution Image | `50efdf7cbbd5f2a683e8003d7dcabbe3d08b5afb7ee3a66b278eb0d01af99683` |
+| Root Manifest | `ce4d5648fe94344311e886d1bdc57afd84b4c00492afd93f5c3379cbbc541edf` |
+
+Final artifact directory:
+`.git/native-soc-phase-d/checkpoint-remediation-063-final/`.
+No Root/Native run occurred for this candidate;current installed identity remains
+ed5800729801c40f849c59417c2d09e439b26c0b72e56e05b112ae4f502bcb17.
+New exact approval is required. Native/Root remain4/5;one remaining each.
+
+Additional uint64 Journal/SQLite/Recovery regression:12PASS in0.86s.
