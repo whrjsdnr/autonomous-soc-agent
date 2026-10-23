@@ -437,3 +437,104 @@ Ledger-derived Campaign Native2/10 and Root2/10; Batch2 Native1/2 and Root1/2. N
 3. After those decisions, prepare/qualify the bound tooling and ask separately for exact-SHA installation1/Native1 within the remaining Batch2 budget. If changes are rejected, A remains a conditional diagnostic with no eligibility guarantee; do not silently substitute it for B.
 
 Safety admission remains BLOCKED, B remains DESIGNED_NOT_IMPLEMENTED, A remains CONDITIONAL_EXISTING_SCOPE. No new Native evidence exists. P02/P03/P04 remain INCOMPLETE; Native AI/DNS9/production remain BLOCKED. This package makes the actual missing procedure and specific scope delta reviewable instead of repeatedly asking to rerun the same13s capture.
+
+
+# R1/R2 unapproved contract specification and inactive fixtures
+
+## Status / activation boundary
+
+**DRAFT_VALIDATED_NOT_APPROVED; operational admission remains BLOCKED.** This instruction does not approve R1/R2. The only code added is `tests/r1r2_draft_spec.py` and `tests/unit/ebpf_tc/test_r1r2_draft_contract.py`. No src module, policy, campaign controller, registered budget, live Ledger, authentication path or executable collector changed. There is no new CLI, socket helper, Root command or activation flag. Tests cannot install/attach/capture or write a real review.
+
+The simulator requires explicit synthetic approval in each positive fixture; its default is unapproved. Its receipt contract is DRAFT_SPEC_NOT_A_PRODUCTION_RECEIPT_V1; its records are SPEC_ONLY_REASSESSMENT with no safe_for_next_attempt field. Production imports neither test module. These names deliberately cannot satisfy the existing real review gate. All positive tests are conditional specification examples, not human approvals or Native evidence.
+
+## R1 proposed formal contract
+
+### Review subject and immutable history
+
+Keep the original attempt, Session, generation, previous Release and all four artifact hashes, original FAILED result and sequence8 safe_for_next_attempt=false untouched. Reassessment is a separate, single-next-attempt admission decision. It does not authorize Root/Native execution or certify global cleanup. Bind the proposed next application Session/Release/artifacts and execution-scope digest as well as the previous execution; a next kernel generation must be attested when actually minted, never fabricated in advance.
+
+Actual evidence remains: owned FD/map/link/drain/container cleanup VERIFIED, global snapshot UNVERIFIED, external attach target wsl-pro.service/Program1145 attributed but exact removal cause UNKNOWN. Unknown foreign attach ownership is different from unknown removal cause. A human may be asked to accept the latter residual uncertainty for admission only; unknown ownership, unverified owned FDs/remaining resources, missing drain/container proof or added unknown Programs must defer/deny rather than be overridden by a generic confirmation.
+
+### Receipt and trusted approval binding
+
+Proposed required fields: contract/version; bounded receipt ID; authenticated reviewer identity and explicit human approval reference; whole canonical receipt SHA pinned by that trusted approval source; issued/expiry time; previous attempt/Session/generation/Release; next application Session/Release; Manifest/Bundle/Image/Root hashes; evidence-manifest hash; original negative-review hash; expected current Ledger tip; approved procedure/controller/scope digests; one-attempt scope; decision ALLOW_NEXT_ADMISSION_ONLY, DENY or DEFER; explicit acceptance of the documented unknown external removal cause. No field may grant execution, override global cleanup or relabel the failed run.
+
+The trusted whole-receipt SHA is essential: a human reference string/digest alone does not bind changes to decision/risk fields. The production validator must resolve the trusted approval through the approved authority, not accept a caller's self-asserted Context. Canonical SHA detects byte/content mismatch; it is not proof that boolean cleanup claims are true or that a person approved them. Validate original authenticated Journal/Inspector/FD/container evidence, Session/Release/generation bindings and hash-chain integrity independently. Fixture cleanup booleans stand for these prevalidated observations; the test model does not implement a Root forensic verifier.
+
+Use strict field types, fixed scopes, finite integers, uint64 generation range and full lowercase SHA256. The fixture specifically rejects True as numeric Literal[1] and numeric0 as a false authorization flag; strict Pydantic mode alone does not enforce those Literal type distinctions. Reject unknown fields and expiry/future receipts. Review receipt expiry uses a validated approval-clock domain; capture event-time uses kernel monotonic generation, never a wall-clock expiry comparison.
+
+### Recording, replay and fail-closed behavior
+
+After separately approved procedure implementation, a canonical review writer must take the existing trusted file lock, validate current chain/tip and latest review/authority while locked, and append a new evidence-bound, versioned decision. Never rewrite sequence8 or insert a bare private lambda setting true. A possible future record kind is NATIVE_REASSESSMENT_DECISION_V1; it is a proposed schema only, not a record written in this task. Preserve reviewer/receipt/evidence hashes and the predecessor review; subsequent DENY/DEFER/revocation must supersede earlier allow decisions.
+
+Reject duplicate receipt IDs, duplicate receipt body digests, reused human approval references, stale tips and Session/Release/scope mismatches. Consumption for the next reservation must be atomic with that reservation under the approved versioned contract: review alone consumes no Native/Root budget, and the review cannot be used for another Session or a second attempt. Existing real code only checks whether any matching positive review exists; it does not enforce this proposed latest authenticated decision contract. Do not bridge the gap by synthesizing its legacy true event.
+
+Missing grant/receipt/evidence, mismatch, expiry, replay, stale state, storage error or uncertain commit must fail closed before execution. No automatic retry after a write of uncertain outcome. The fixture models immutable in-memory history, tip comparison and latest decision semantics; it does not prove interprocess lock/fsync/crash recovery. Actual writer crash/concurrency tests are required on the approved implementation before activation.
+
+### Governance and compatibility
+
+AGENTS.md §33 requires proposal → policy validation → human review → approved update for approval/authorization rules. No production rule is changed here. A future reviewed execution-contract revision must bind the new controller/validator hashes, preserve the immutable original budget and historical records, and carry forward actual reservations (Campaign2/10, Batch2 1/2 each); no budget reset or silent controller pin rewrite. Old review/schema versions remain readable evidence and cannot silently activate the new procedure. A new exact-SHA Root/Native execution receipt remains separately necessary after valid reassessment.
+
+## R2 proposed diagnostic contract
+
+### Scope
+
+Existing namespace net:[4026531833], lo/Ingress, <=300s/4096 metadata, Queue32, Admission50ms, reorder10ms, checkpoint16384B, privileged-task256MiB/CPU20s; Zeek512MiB/CPU1. No sampling/filtering, offload or DNS/network setting changes.
+
+Initial Sidecar scope stays UDP1/TCP1 to127.0.0.53:53, native-0516.localhost., A, <=10s total/7s capture/32packets/512B. Separate proposed late TCX witness: UDP1 to the same fixed endpoint/name/type, no retry/fallback/external resolution. Scenario total UDP2/TCP1; the late query is outside the closed Sidecar and must be separately approved/bound/audited, not smuggled into the old UDP1 receipt. Current contract does not authorize it.
+
+Operator first saves/disconnects their own VS Code Remote connections and uses an independent OS terminal; no agent process killing or service changes. Passive workload forecasts are planning information, not Capture Integrity evidence. No tests/tool-shell polling during approved Live collection. Background traffic can still exhaust the cap or make Window evidence incomplete; do not discard it to preserve duration.
+
+### Separate lifecycles and clocks
+
+After authenticated initial TCP DNS close, plan one witness request at close+35s and normal scoped TCX STOP near close+45s. Planned capture-stop upper bound60s after attach, below unchanged300s. If startup/witness/stop cannot fit, stop normally with incomplete evidence, not a late resend/deadline extension. The unprivileged helper is proposed as one no-capability child, one socket,64MiB/CPU2s/wall40s after initial probe completion; close_fds, no inherited Broker/Inspector/authority FDs, no arbitrary commands/environment. It is not implemented here.
+
+The Sidecar must complete Counter/CLOSED/container cleanup within its own10s; it is not kept open for the35s wait. The existing Phase D Supervisor can continue TCX after the DNS future completes, within its300s loop, so the lifetimes are compatible in principle. Keep its heartbeat/status handling alive while a bounded child waits; do not block that control loop on sleep/recv. Use existing scoped STOP/sequence/lock/counter/drain paths, not SIGTERM as normal completion or a second authentication/Supervisor.
+
+Scheduling uses host monotonic time as intent only. A received kernel packet timestamp, generation and verified per-CPU Window must prove the actual >=30s gap from the candidate's last event. Store the scheduled time, probe timestamps and actual observed witness separately. FIN or the timer firing is not completion evidence. A lost/missing probe cannot be manufactured into a watermark; a request at35s whose captured event time is still below30s must not make the flow eligible.
+
+### Flow, counters and receipts
+
+Bind candidate identity, source reference, capture-window digest, first/last event, directions, FIN/RST flags, timeout witness and reason, Feature fingerprint/schema and receipt digest. Require initial/final per-CPU snapshots, Clock Domain/epoch binding, reconciled branch populations, no ignored reserve/send/queue failures/excluded prefix and real drain. Fixed4 raw vectors remain bounded; raw missing is UNKNOWN rather than invented. Unknown ownership/window/clock cannot be promoted because the proposed timer ran.
+
+In a quiet synthetic example the first bidirectional TCP FIN flow is finalized IDLE_TIMEOUT only when a later35s packet enters the real FlowAssembly; the later witness flow itself is incomplete at STOP. Waiting without a packet or an event below30s leaves the TCP candidate INCOMPLETE even with FIN and a verified synthetic capture Window. New Native candidates must be evaluated independently; the historical7 candidates remain INCOMPLETE and Native eligible0.
+
+If4096 arrives early, stop with incomplete evidence without sending a late probe. Normal STOP means controlled teardown, not successful eligibility. Preserve first collector/helper failure, then separate stop/drain/checkpoint/cleanup failures; no retries or errno fabrication. Keep Counter/CLOSED, bounded Queue drain,16KiB checkpoint failure handling, audit drain and final global resource guard. Foreign wsl-pro.service churn may still fail global cleanup; the proposal does not exempt it.
+
+## Validation performed / limits
+
+53 new specification cases plus relevant unchanged capture/budget/checkpoint regressions: **142 PASS** in Workspace (2.89s) and **142 PASS** in independent Export (3.29s). These sets overlap and are not added as unique coverage. Cases cover missing/unapproved/tampered receipts; malformed/wrong SHA; previous/next Session and Release; scope; human identity/reference; expiry; duplicate/replay/reused approval; stale tip/latest denial; insufficient cleanup/unknown owner; unknown removal-cause risk acceptance; strict literal types; separate R1/R2 grants;35s/45s schedule and missed/capped/late plans; Sidecar closed requirement; unapproved/expanded namespace/interface/traffic/cap/deadline; real synthetic flow timeout and checkpoint round-trip.
+
+The specification modules perform no filesystem, subprocess, network or production Ledger operation. Their SHA/event labels are intentionally unaccepted by the real controller, and production imports neither. Tests use isolated memory and the existing real pure Flow/Window/Eligibility/checkpoint code; no Kernel program, Docker, PAM, Root or DNS traffic. The ledger and Native evidence are not test fixtures. IO/crash/concurrent reservation, authenticated issuer transport, real-helper timing/process limits and Native performance remain **NOT IMPLEMENTED/NOT VERIFIED** until approved code exists. A standalone ad-hoc test initially used the original checkout's editable import path; it was corrected to the explicit release-worktree PYTHONPATH. The recorded final pytest/Export results use the correct sources.
+
+The frozen Draft source set has1713 files (previous1711 plus2 inert test files); its start/end bytes match between Workspace and independent Export. This is a **Draft/test snapshot**, not a new Native release qualification. Production src bytes and existing26 Native artifacts remain unchanged. Old846e871e… qualification belongs to the previous1711-file Native build source; it is not relabelled as the new whole-Workspace snapshot. No new build or Native SHA was invented for unimplemented R1/R2.
+
+## Necessary implementation changes after approval
+
+| Area | Proposed work, currently inactive |
+|---|---|
+| Review receipt/authority | Trusted whole-body SHA, reviewer/Session/Release/scope/evidence binding, expiry and explicit risk scope |
+| Versioned campaign adapter | Latest validated review, atomic one-use consumption/reservation, canonical append-only writer; preserve budget/history |
+| Supervisor/Phase D | Opt-in approved scenario, initial probe-close reference, bounded helper and timed normal STOP using existing control session |
+| Late witness helper | Pinned ordinary-UID fixed-endpoint single UDP action, no inherited authority FD, bounded response/cleanup/audit |
+| DNS Sidecar | Keep10s deadline, original UDP1/TCP1 and CLOSED contract; do not reclassify late traffic as Sidecar observations |
+| Evidence/receipts | Separate scheduling from captured event-time proof; link window/flow/fingerprint/provenance and actual cleanup |
+
+No implementation is activated by importing this fixture or by a bare CLI/environment toggle. Existing approval gate remains effective. Before production implementation, human approval must cover the final R1 procedure, R2 scope and the execution-contract revision; this document and prior R1/R2 requests are not approvals.
+
+## Approval / implementation / execution sequence
+
+1. Review this proposal with its exact draft file hashes and explicit risks under AGENTS §33. Human approves/rejects R1 procedure and R2 expanded local-traffic contract separately; current status is REQUESTED_ONLY.
+2. After approval, implement the reviewed validator/versioned adapter/helper/scenario with inactive-by-default execution. Validate issuer/evidence/atomic storage, failure injection, old/new version compatibility and helper limits. No original ledger/budget rewrite.
+3. Build/qualify the resulting code. Recompute source/export/stage, helper/controller/contract and release identities; bind all of them to approval. A proposal SHA is not a Native image SHA.
+4. Through the approved review handler, obtain the evidence-bound next-admission decision without changing original FAILED/false/global-UNVERIFIED facts. A positive fixture result is not usable for this step.
+5. Obtain a separate exact new Manifest/Bundle/Image/Root/Session/Scope approval for installation1/Native1 if required. Validate remaining campaign/batch budget, rollback, OS TTY authentication and current Inspector/kernel/hook/FD/cgroup preflight. Only then run once, without automatic retry.
+6. Independently decide P02/P03/P04, Sidecar, checkpoint/audit and owned/global cleanup from new evidence. Do not turn model input eligibility into Native AI inference permission.
+
+## Artifact identities that require new SHA after approved implementation
+
+Approved review contract/schema and authority/controller/adapter; execution-contract amendment binding old baseline and current usage; late helper/scenario launcher; integrated runtime bundle; source/export/stage snapshots; Manifest/Bundle/Execution Image/Root Manifest and trust material; new review and execution receipts. C/BPF/TCX ABI changes are not proposed, but any unchanged binary SHA must still be checked in the actual build. Current installed release/rollback is preserved. Exact new Native identities are **PENDING_IMPLEMENTATION**, not copied from17241f7.
+
+Current runtime identity remains17241f76510b9d1e60562eca9d1803bf6b2d20ba / Manifest3761b57f58a8632f942af6c18abcee47f6b4e5beea6e0f1c882dff8afa9bee05; Bundle119f189c061775b737391eb97e123ae2af7ee98a8a1139477e5e3d9079bb04ec; Imaged5980ab96da947c9d6bd0657da2c9c52e9484d4e6b30a853af308fe7432d61f9; Rootda894f80a427cee4d2d5991f9c736acbbed31e89d689ff141ba8035919a181f6. These do not implement R1/R2.
+
+Campaign Native/Root2/10, Batch2 Native/Root1/2 unchanged. Original Ledger, negative review, audit, Native49 hashes and protected112 files are preserved. No policy activation or new operational approval exists. Final state: **UNAPPROVED_DRAFT_CONTRACT_VALIDATED / NATIVE_BLOCKED**; P02/P03/P04 INCOMPLETE, Native AI/DNS9/production BLOCKED.
