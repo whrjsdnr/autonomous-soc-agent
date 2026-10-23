@@ -14,11 +14,45 @@ MAX_RECEIPTS = 1024  # Existing FlowAssembly finalized-flow bound.
 MAX_EXPANDED_BYTES = 8 * 1024**2  # Existing per-session disk budget.
 
 
+def _json_text(value: object) -> str:
+    try:
+        return json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        )
+    except (TypeError, ValueError, RecursionError) as exc:
+        raise ValueError("EBPF_CHECKPOINT_ENCODING") from exc
+
+
+def _summary_shape(value: object) -> None:
+    if not isinstance(value, dict):
+        raise ValueError("EBPF_CHECKPOINT_ENCODING")
+    if "candidate_eligibility" in value:
+        rows = value["candidate_eligibility"]
+        if not isinstance(rows, list) or not all(isinstance(row, dict) for row in rows):
+            raise ValueError("EBPF_CHECKPOINT_ENCODING")
+        if len(rows) > MAX_RECEIPTS:
+            raise ValueError("EBPF_CHECKPOINT_SIZE")
+
+
+def _unique_object(pairs: list[tuple[str, object]]) -> dict:
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError("EBPF_CHECKPOINT_ENCODING")
+        result[key] = value
+    return result
+
+
+def _invalid_constant(_value: str) -> None:
+    raise ValueError("EBPF_CHECKPOINT_ENCODING")
+
+
 def encode_checkpoint(value: dict) -> str:
     """Losslessly factor repeated RCA context; never omit a candidate receipt."""
-    text = json.dumps(value)
+    _summary_shape(value)
+    text = _json_text(value)
     if len(text.encode()) <= MAX_CHECKPOINT_BYTES:
-        return text  # Preserve the existing small-checkpoint format.
+        return text  # Legacy JSON shape; canonical keys and actual UTF-8 bytes.
     rows = value.get("candidate_eligibility")
     if not isinstance(rows, list) or not 1 <= len(rows) <= MAX_RECEIPTS:
         raise ValueError("EBPF_CHECKPOINT_SIZE")
@@ -27,12 +61,7 @@ def encode_checkpoint(value: dict) -> str:
     shared = {
         key: rows[0][key]
         for key in sorted(rows[0])
-        if all(
-            key in row
-            and json.dumps(row[key], sort_keys=True, allow_nan=False)
-            == json.dumps(rows[0][key], sort_keys=True, allow_nan=False)
-            for row in rows
-        )
+        if all(key in row and _json_text(row[key]) == _json_text(rows[0][key]) for row in rows)
     }
     summary = {key: item for key, item in value.items() if key != "candidate_eligibility"}
     encoded = dict(
@@ -41,7 +70,7 @@ def encode_checkpoint(value: dict) -> str:
         shared=shared,
         rows=[{key: item for key, item in row.items() if key not in shared} for row in rows],
     )
-    text = json.dumps(encoded, separators=(",", ":"), allow_nan=False)
+    text = _json_text(encoded)
     if len(text.encode()) > MAX_CHECKPOINT_BYTES:
         raise ValueError("EBPF_CHECKPOINT_SIZE")
     # The same bounded decoder must accept what we persist.
@@ -52,10 +81,11 @@ def encode_checkpoint(value: dict) -> str:
 def decode_checkpoint(text: str) -> dict:
     if len(text.encode()) > MAX_CHECKPOINT_BYTES:
         raise ValueError("EBPF_CHECKPOINT_SIZE")
-    value = json.loads(text)
+    value = json.loads(text, object_pairs_hook=_unique_object, parse_constant=_invalid_constant)
     if not isinstance(value, dict):
         raise ValueError("EBPF_CHECKPOINT_ENCODING")
     if "checkpoint_encoding" not in value:
+        _summary_shape(value)
         return value  # Historical evidence is read as-is, never rewritten.
     if (
         set(value) != {"checkpoint_encoding", "summary", "shared", "rows"}
@@ -71,7 +101,7 @@ def decode_checkpoint(text: str) -> dict:
     if any(not isinstance(row, dict) or shared.keys() & row.keys() for row in rows):
         raise ValueError("EBPF_CHECKPOINT_ENCODING")
     # Bound expansion before allocating repeated contexts; no compression bomb.
-    if len(json.dumps(shared).encode()) * len(rows) + len(text.encode()) > MAX_EXPANDED_BYTES:
+    if len(_json_text(shared).encode()) * len(rows) + len(text.encode()) > MAX_EXPANDED_BYTES:
         raise ValueError("EBPF_CHECKPOINT_SIZE")
     return value["summary"] | dict(candidate_eligibility=[shared | row for row in rows])
 

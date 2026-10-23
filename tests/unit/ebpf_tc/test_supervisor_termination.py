@@ -73,8 +73,16 @@ def test_signal_handlers_restored_and_cleanup_once():
     assert all(signal.getsignal(s) == h for s, h in previous.items())
 
 
+@pytest.mark.parametrize(
+    "code,close_failure",
+    [
+        ("EBPF_REORDER_LATE_CAPTURE_GAP", False),
+        ("EBPF_CHECKPOINT_SIZE", False),
+        ("EBPF_CHECKPOINT_FLUSH_UNVERIFIED", True),
+    ],
+)
 def test_processing_failure_is_first_failure_and_does_not_require_control_revocation(
-    candidate, tmp_path, monkeypatch
+    candidate, tmp_path, monkeypatch, code, close_failure
 ):
     source, identity = candidate
     directory = tmp_path / "candidate"
@@ -104,23 +112,35 @@ def test_processing_failure_is_first_failure_and_does_not_require_control_revoca
 
     def command(self, value):
         if value.command == "ATTACH":
-            self.data.error = "EBPF_REORDER_LATE_CAPTURE_GAP"
+            self.data.error = code
 
     monkeypatch.setattr(SupervisedSession, "command", command)
+    if close_failure:
+        original_close = SupervisedSession.close
+
+        def failed_close(self):
+            original_close(self)
+            raise OSError(5, "injected cleanup error")
+
+        monkeypatch.setattr(SupervisedSession, "close", failed_close)
 
     def dns_execute(*_args, **_kwargs):
         calls.append("phase_d_dns")
         return {"state": "CLOSED"}
 
     monkeypatch.setattr(offload_session, "execute", dns_execute)
-    with pytest.raises(ValueError, match="EBPF_REORDER_LATE_CAPTURE_GAP"):
+    with pytest.raises(ValueError, match=code):
         phase_d.execute(directory, identity["manifest"], identity["image"])
     result = json.loads((directory / "supervised-result.json").read_text())
-    assert result["first_failure"]["original_code"] == "EBPF_REORDER_LATE_CAPTURE_GAP"
+    assert result["first_failure"]["original_code"] == code
     assert result["first_failure"]["stage"] == "TCX_DATA_PROCESSING"
     assert result["first_failure"]["errno"] is None
     assert not result["tcx"]["control_failures"]
     assert calls == ["phase_d_dns", "shared_adapter_stop"]
+    if close_failure:
+        assert any(
+            row["stage"] == "FINAL_NATIVE_CLOSE" and row["errno"] == 5 for row in result["errors"]
+        )
 
 
 @pytest.fixture(scope="module")

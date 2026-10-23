@@ -1168,3 +1168,229 @@ ed5800729801c40f849c59417c2d09e439b26c0b72e56e05b112ae4f502bcb17.
 New exact approval is required. Native/Root remain4/5;one remaining each.
 
 Additional uint64 Journal/SQLite/Recovery regression:12PASS in0.86s.
+
+
+# NATIVE_SOC_PHASE_D Final Preflight & Diagnostic Approval Request
+
+## Overall Status
+
+**READY_FOR_APPROVAL for limited diagnostic E2E only.** No Root installation,
+authentication, Kernel query, attach/detach, capture or DNS traffic occurred.
+The last actual Native run remains FAILED; final Native Audit Drain/Cleanup is
+not reclassified by these ordinary-UID tests. Native AI/DNS9/production remain BLOCKED.
+
+**Capacity limit:**1024 mutually different candidate receipts are not guaranteed
+representable within16KiB. The tested unique-ID/digest maximum and low-repetition
+case fail explicitly with EBPF_CHECKPOINT_SIZE and leave input/previous durable
+state unchanged. This is a declared diagnostic limitation, not a successful
+maximum-capacity qualification. The next run can still fail for unrepresentable
+summaries. No receipt/digest is deleted, no size/Queue/deadline gate is raised.
+
+## Baseline / Preservation
+
+Started from Commit3a0ba617a2546b72bd22ac005382db96363e347f on the existing Release
+worktree. Original shared main/origin/main9a12fe9 and user8 files remain untouched.
+No new Worktree or competing writer was introduced. Other observed Codex processes
+were in separate Adaptive-Agent-Harness repositories; source snapshots,not process
+names alone, establish stability.1699 tracked source/test/config files excluding
+this self-referential report form the frozen release input inventory.
+
+112 protected hashes (user8 +historical104),both completed Native evidence indexes,
+11-row Ledger chain and byte-for-byte ledger preservation verified. Eight known
+Native SQLite monitor Audit chains verified through mode=ro,immutable=1,
+query_only=ON,with record counts27/6/5/6 and27/6/16/6; all file hashes unchanged.
+No migration or Recovery writes were applied to old Native databases.
+
+Installed Root Manifest remains
+`ed5800729801c40f849c59417c2d09e439b26c0b72e56e05b112ae4f502bcb17`.
+All9 installed files and retained0.6.3(162d2f94...) /0.6.2(56e1b7bc...) rollback
+hashes,root:root ownership and0555 executable/0444 data modes verify read-only.
+Current Kernel state is not queried without authority; fresh Inspector inspection
+is mandatory inside a separately approved session before Capture.
+
+## Confirmed defects and minimum corrections
+
+1. The prior codec accepted non-object summaries,1025 empty receipts and NaN in
+   its small-summary fast path; duplicate JSON keys silently accepted the last
+   value. Replay of reviewed3a0ba61 functions confirms these behaviors. Both
+   persisted formats now enforce object/receipt shape and1024 bound,nonfinite
+   values are rejected,ambiguous duplicate keys fail explicitly. Legacy valid
+   JSON,including unsorted keys and uint64 values,remains readable without rewrite.
+2. Dictionary insertion order could change stored SHA. New writes use canonical
+   sorted object keys and actual UTF-8 encoding. Receipt list order and duplicates
+   are preserved exactly; reversing a list changes its semantic digest as it should.
+   Semantic summary digest and physical storage SHA are distinct for encoded forms.
+3. Same ProgramID/Tag with a changed loaded_at falsely passed resource comparison.
+   A new fixture reproduced58PASS/1FAIL before correction. The fixed comparison
+   includes loaded_at alongside ID/type/tag/map IDs. Attach-target changes also
+   remain explicit failures. No foreign program is adopted,detached or deleted.
+   Identical or absent identity metadata still cannot prove an external creator;
+   historical ownership remains UNKNOWN.
+
+No privilege,capability,ABI,Network14 arithmetic,model or approval gate was relaxed.
+No new background service,Queue,framework or dependency was introduced.
+
+## Checkpoint worst-case results
+
+- Actual failed final Summary:17209 default-JSON bytes,12 receipts. Final canonical
+  JSON is16295 UTF-8 bytes and restores every field/ID/digest/provenance unchanged.
+  Its semantic/storage SHA is
+  `248357f1820b893133d62a59ea4d1b3e5135560dd9394fcc0199468dd10980b8`.
+- Historical9651B factored result remains a result of the prior codec,not falsely
+  reused as the new byte count. An explicitly synthetic200-byte extra context
+  on the actual12-receipt Summary triggers shared-context encoding:9874B,all12
+  receipts/digests restored exactly. No synthetic field is inserted into Native evidence.
+- Empty0:28B,single1:225B,1024 identical duplicate rows:3340B. Duplicate storage
+  preservation is not duplicate Feature eligibility.1024 unique receipts and
+  a32-receipt low-repetition/long-provenance case are explicitly rejected unchanged.
+- Exact16384 UTF-8 bytes succeeds;one byte over fails,for both ASCII and Unicode.
+  Long strings have the existing byte budget,not an invented independent limit.
+- Repeated input and permuted object-key construction yield identical stored text
+  and SHA;candidate order changes remain observable. Nonfinite/non-object/malformed
+  input,unknown encoding,shared-field overlap,excess count and expansion are rejected.
+- Codec keeps16KiB stored bound,existing1024-flow/8MiB expansion bounds,writer Queue2,
+  FULL SQLite commit and original decoded-summary Audit/Plan binding unchanged.
+
+Private proofs:actual-summary-offline-proof.json,capacity-limits.json,
+confirmed-defects.json under `.git/native-soc-phase-d/final-preflight-063/`.
+
+## Audit Drain / Cleanup failure injection
+
+Checkpoint encoding,writer,SQLite FULL commit and Recovery preserve24 complete
+synthetic candidate receipts and original semantic digest. Tampering shared fields
+fails Recovery binding. Injecting EIO during the Audit append after checkpoint
+DELETE/INSERT rolls back the whole transaction:previous Checkpoint row/digest and
+Audit chain stay identical,writer commit count0,flush/close report failure,and
+Recovery exposes the old state rather than claiming final persistence.
+
+Existing slow-Audit tests hold the writer while packet processing proceeds,
+retain ordered bounded pending snapshots,and verify durable Drain only after
+release. Queue-full,Audit error,Counter/CLOSED after packet processing failure,
+CLOSED with pending work,FD closure,first-error and subsequent-cleanup-error
+separation all pass. Startup tests now explicitly inject Checkpoint size/flush
+errors while both Collector stop paths run;injected close errno5 remains a
+separate FINAL_NATIVE_CLOSE error. Ordinary owned children exercise SIGTERM and
+second-signal cleanup protection. STATUS/STOP race and CLI success/error exit
+semantics remain covered. These are fixtures,not a new Native Cleanup verdict.
+
+## Packet Admission / Clock regression
+
+Queue32,one bounded50ms admission wait,three measured successful Native waits from
+the prior run,Counter/CLOSED drain,10ms reorder bound and fail-closed overflow
+semantics remain. The current task makes no new Native performance measurement.
+Prior4096/4096 delivery,zero Queue reject/timeout/policy discard and141ns maximum
+inversion remain historical observed results; they do not become another execution.
+Historical194ms root cause and calibration remain UNKNOWN.
+
+## Candidate-specific Network14 evidence
+
+All12 old candidates keep INCOMPLETE. The private candidate-rca.json records each
+original receipt plus explicit source/counter/clock/flow/missing-evidence fields.
+The complete candidate list is below; no old eligibility is retroactively upgraded.
+
+| Candidate | Packets | Available feature evidence | Decision |
+|---|---:|---|---|
+| `7c951a04f2cd4c761aa410fc355a4a68ea7005e3ccf93627e4432b2fd46a6bb5` | 1033 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `d5421fec5a23af77570299f6a86e572ead0a40745fe31f04898b891443943705` | 1029 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `7d1eb2f1255ef247bc96f980c9358e33810ef0c1e669d972fb6d11201f2853ed` | 996 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `d633312ed808b7b2d5c23b62cb358502fc3c7b6d24727ada420853b9bd54b29b` | 1002 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `b183504924cc736590665882bdb3edc2cd19612ede096bac05178c4274b187ac` | 2 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `650a4ccad028ad8c06396e2ff52d43760e4c2d1cc274c66200181d1674b4bb52` | 10 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `966946bb7611eb29c8f0bc67cfa679c5e9765b9c6125b1500863a77f4504d7dd` | 4 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `871e337ecbc1d6468464c9bc2017066dfef0c132ac08683588bb1a40c18ce65f` | 4 | CHECKPOINT_RECEIPT | INCOMPLETE |
+| `4d88306e3c8563fa2e8edf161624312e8bafb7c3340bdfe767a16d1e4b1cebdc` | 4 | VALUES | INCOMPLETE |
+| `37ade919f0a403534fafc79848a51790a1d655e7c48ed26cfb3d35b8d0d85b08` | 4 | VALUES | INCOMPLETE |
+| `b11e40c6cf920a396f75bc865605cc9a10b6f67e81817284c70c2e0ae4b74bd1` | 4 | VALUES | INCOMPLETE |
+| `914324f6c5ffc25a8948ef376d908897a7cbe525aa85c1dd6b7cd377f896e844` | 4 | VALUES | INCOMPLETE |
+
+Each candidate shares these capture-session limitations:
+- Window terminated at PACKET_LIMIT,not a complete idle/active/normal Flow boundary.
+- Owned counters emitted4124/delivered4096:28 unreconciled records at the cap;
+  zero ring reservation failures is not proof of global zero packet loss.
+- CPU attempt gaps0 observed,not complete Capture proof. Four inversions <=141ns
+  reorder within10ms,late0;Clock calibration remains unverified.
+- Feature14-float32/digest checks were recorded;four retained vectors were rehashed
+  offline. Eight candidates have receipts only,no missing raw vectors fabricated.
+- Source Session/generation,Program1000/Link2,event chain and release provenance
+  remain preserved. Final durable Checkpoint receipt was absent due to the original
+  size failure. Golden/model evidence and Native AI authorization remain absent.
+The receipt-storage defect is fixed offline;flow/capture evidence gaps are genuine
+observational limits and are not repaired by serialization or defaults.
+
+## cgroup readiness
+
+Fixed authenticated Inspector snapshots include programs/maps/links/lo hooks and
+`bpftool -j cgroup tree /sys/fs/cgroup`. Tests verify same Inspector before/after,
+Peer Credentials/Session binding,read-only allowlist,failed query !=absence,revocation,
+changed Tag,loaded_at,AttachTarget and added foreign Program. Changes make Cleanup
+UNVERIFIED without deletion. Native TCX owner identity remains separate from foreign
+Program identity. Last actual before/after11 Programs/6 cgroup paths were unchanged;
+no new privileged query or historical ownership claim is made here.
+
+## Verification
+
+- Workspace focused Checkpoint/Collector/Clock/eligibility/Supervisor/Inspector/
+  approval-budget/uint64:142PASS in7.40s.
+- Ordinary-UID C Data Plane +Supervisor termination/Checkpoint failures:24PASS
+  in183.25s. No Root or capture involved. No SourceGuard rejection in this frozen run.
+- Source mutation detection +CLI exit-code tests:14PASS in0.53s.
+- Independent frozen Export core suite:142PASS in7.74s.
+- Initial added determinism fixture was itself too large to be representable;
+  it was corrected to repeated-context rows while retaining the same order/SHA
+  assertions. The separate non-factorable-size rejection tests remain mandatory.
+- Whole Export historical5909PASS/2FAIL/30SKIP remains unresolved,not reclassified.
+  Operator Timeout/legacy READY100ms failures remain excluded only from the
+  explicitly reviewed direct headless diagnostic path,not production qualification.
+- Ruff/format/diff pass. Final source inventory is unchanged across verification,
+  independent export and two new builds.26/26 artifact names and hashes agree.
+
+## Final Artifact identity
+
+Same version0.6.3,new final-preflight diagnostic candidate. Old approval requests
+are superseded for execution but retained unchanged as history.
+
+| Identity | SHA-256 |
+|---|---|
+| Source Snapshot | `b27f0e46e1fd157c13f1334f47245ddd25ce2c7cc63887372a64c487a89ba6af` |
+| Manifest | `20c717e66b73d74ea414b8a6f17ce94227eb3261c3b320348acf8fcb46a8f5ba` |
+| Bundle | `c98f2429f90674a34e37f5190e52630da58144898cf288faff5ce145b7792723` |
+| Execution Image | `df6723099b498fc6c1fd29b117d9f13abab0dc738a47a06294eb153dc38679c4` |
+| Root Manifest | `2eb95e82226d330e8ff80dcff57d143aae98f2d589d4ab361af21b5fa27c0471` |
+
+Artifacts: `.git/native-soc-phase-d/final-preflight-063/release/`.
+Workspace/Export/Stage are compared using the same1699-file normalized source
+inventory;they are not mislabeled as Git Tree or executable SHA. This report is
+excluded from its own Source Snapshot and covered by the final Commit/Tree.
+Final Git/Stage binding and approval request are recorded after selective commit.
+
+## Final Diagnostic E2E Approval Request
+
+Requested Root operation:UPDATE_RETAIN_PREVIOUS of exactly9 fixed files in
+`/usr/libexec/soc-agent-ebpf`,root:root,0555 executables/0444 data,one attempt.
+Preserve currented580072... in its full-manifest rollback path and both older
+rollback directories. Only the existing SHA-held image launcher is authorized:
+`/usr/bin/sudo -k -u root -- /usr/bin/python3 -I -S -c <existing pinned loader>`.
+No arbitrary shell,path,payload or extra Root command. User enters password on TTY;
+START uses the existing independent authenticated control channel.
+
+Requested Native:one existing Unified Supervisor diagnostic run;net4026531833,
+lo/Ingress,max300s/4096 metadata/Queue32,privileged tasksAS256MiB/CPU20s;
+Inspector read-only before/after;TCX load/attach/drain;Network14 receipts/eligibility;
+DNS same namespace/lo,127.0.0.53:53,native-0516.localhost.,A,UDP1/TCP1,
+active10s/capture7s/32records/snaplen512,existing ZeekRAM512MiB/CPU1 profile.
+Observe Checkpoint/Audit Drain,Counter/CLOSED,Supervisor exit,FD/Link/Map/container
+cleanup and cgroup identities. No foreign detach,offload/DNS/network policy change,
+external traffic,scope expansion or automatic retry. Failures retain first and
+subsequent errors and independent resource cleanup evidence.
+
+Budget unchanged:Native4/5,Root4/5,one remaining each. No reservation or receipt
+approval is created by this report. Exact new SHA approval plus the existing
+Approval Receipt contract is mandatory before install/auth/attach/capture/traffic.
+
+## Remaining limits
+
+Arbitrary maximum unique receipts cannot be guaranteed within16KiB;oversize remains
+fail-closed. The prior actual12 receipts round-trip offline only. Native final
+Audit Drain,overall Cleanup,flow completeness/capture calibration and graphical
+GUI verification remain unverified. Production whole-regression failures remain.
+Native AI,DNS9 and production promotion remain **BLOCKED**.

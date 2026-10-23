@@ -108,7 +108,10 @@ def test_checkpoint_encoding_retains_legacy_and_rejects_oversize_without_truncat
 
     legacy = dict(accepted=3, plan=dict(generation=2**64 - 1), candidate_eligibility=[])
     text = json.dumps(legacy)
-    assert encode_checkpoint(legacy) == text and decode_checkpoint(text) == legacy
+    assert decode_checkpoint(text) == legacy  # Existing unsorted JSON remains readable.
+    assert encode_checkpoint(legacy) == json.dumps(
+        legacy, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
     with pytest.raises(ValueError, match="CHECKPOINT_SIZE"):
         encode_checkpoint(dict(candidate_eligibility=[], extra="x" * 17000))
     with pytest.raises(CheckpointFailure, match="CHECKPOINT_SIZE"):
@@ -140,3 +143,150 @@ def test_checkpoint_encoding_malformed_or_oversized_expansion_fails_closed(mutat
         value["rows"] = [{}] * 1024
     with pytest.raises(ValueError, match="EBPF_CHECKPOINT_(ENCODING|SIZE)"):
         decode_checkpoint(json.dumps(value, separators=(",", ":")))
+
+
+@pytest.mark.parametrize("count", [0, 1, 1024])
+def test_checkpoint_empty_single_max_duplicate_receipts_preserved(count):
+    import copy
+
+    from soc_agent.security_ai.ebpf.checkpoint import decode_checkpoint, encode_checkpoint
+    from soc_agent.security_ai.research.models import digest
+
+    receipt = dict(
+        flow_id="a" * 64,
+        values_digest="b" * 64,
+        eligible=False,
+        provenance="合成証拠 / Synthetic; not Native",
+    )
+    value = dict(candidate_eligibility=[copy.deepcopy(receipt) for _ in range(count)])
+    before = copy.deepcopy(value)
+    text = encode_checkpoint(value)
+    restored = decode_checkpoint(text)
+    assert restored == value == before and digest(restored) == digest(before)
+    assert len(restored["candidate_eligibility"]) == count
+    assert len(text.encode("utf-8")) <= 16384
+
+
+def test_checkpoint_dictionary_order_canonical_but_receipt_order_never_rewritten():
+    from soc_agent.security_ai.ebpf.checkpoint import decode_checkpoint, encode_checkpoint
+    from soc_agent.security_ai.research.models import digest
+
+    a = dict(
+        candidate_eligibility=[
+            dict(flow_id=f"flow-{n}", eligible=False, context="x" * 800) for n in range(24)
+        ],
+        diagnostic="Unicode / 한글",
+    )
+    b = {
+        key: (
+            [dict(reversed(list(row.items()))) for row in value]
+            if key == "candidate_eligibility"
+            else value
+        )
+        for key, value in reversed(list(a.items()))
+    }
+    assert encode_checkpoint(a) == encode_checkpoint(b) == encode_checkpoint(a)
+    assert digest(decode_checkpoint(encode_checkpoint(a))) == digest(a)
+    c = a | dict(candidate_eligibility=list(reversed(a["candidate_eligibility"])))
+    assert encode_checkpoint(c) != encode_checkpoint(a)
+    assert decode_checkpoint(encode_checkpoint(c)) == c
+
+
+@pytest.mark.parametrize("unicode", [False, True])
+def test_checkpoint_actual_utf8_exact_16k_boundary_and_one_byte_overflow(unicode):
+    from soc_agent.security_ai.ebpf.checkpoint import decode_checkpoint, encode_checkpoint
+
+    value = dict(candidate_eligibility=[], diagnostic="")
+    budget = 16384 - len(encode_checkpoint(value).encode("utf-8"))
+    value["diagnostic"] = "한" * (budget // 3) + "x" * (budget % 3) if unicode else "x" * budget
+    text = encode_checkpoint(value)
+    assert len(text.encode("utf-8")) == 16384
+    assert decode_checkpoint(text) == value
+    with pytest.raises(ValueError, match="EBPF_CHECKPOINT_SIZE"):
+        encode_checkpoint(value | dict(diagnostic=value["diagnostic"] + "x"))
+
+
+def test_unique_maximum_and_low_repetition_fail_explicitly_without_deleting_receipts():
+    import copy
+    import hashlib
+
+    from soc_agent.security_ai.ebpf.checkpoint import encode_checkpoint
+
+    for count, context in [(1024, False), (32, True)]:
+        rows = [
+            dict(
+                flow_id=hashlib.sha256(str(n).encode()).hexdigest(),
+                values_digest=hashlib.sha256(f"vector-{n}".encode()).hexdigest(),
+                provenance=(str(n) * 600 if context else "synthetic"),
+            )
+            for n in range(count)
+        ]
+        value = dict(candidate_eligibility=rows)
+        before = copy.deepcopy(value)
+        with pytest.raises(ValueError, match="EBPF_CHECKPOINT_SIZE"):
+            encode_checkpoint(value)
+        assert value == before and len(rows) == count
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        [],
+        None,
+        {"candidate_eligibility": "wrong"},
+        {"candidate_eligibility": [None]},
+        {"candidate_eligibility": [{}] * 1025},
+        {"diagnostic": float("nan")},
+        {"diagnostic": float("inf")},
+    ],
+)
+def test_malformed_or_nonfinite_small_summary_is_rejected_before_persistence(value):
+    from soc_agent.security_ai.ebpf.checkpoint import encode_checkpoint
+
+    with pytest.raises(ValueError, match="EBPF_CHECKPOINT_(ENCODING|SIZE)"):
+        encode_checkpoint(value)
+
+
+@pytest.mark.parametrize("text", ['{"a":1,"a":2}', '{"x":NaN}', '{"candidate_eligibility":[null]}'])
+def test_ambiguous_or_nonfinite_legacy_json_is_rejected(text):
+    from soc_agent.security_ai.ebpf.checkpoint import decode_checkpoint
+
+    with pytest.raises(ValueError, match="EBPF_CHECKPOINT_ENCODING"):
+        decode_checkpoint(text)
+
+
+@pytest.mark.asyncio
+async def test_failed_final_checkpoint_transaction_preserves_prior_row_and_audit(
+    tmp_path, monkeypatch
+):
+    from tests.ebpf_support import plan
+
+    from soc_agent.security_ai.ebpf.collector import EBPFCollector
+
+    collector = EBPFCollector(tmp_path / "session", plan())
+    collector.prepare_metadata()
+    with collector.store.database.transaction(write=False) as db:
+        before = db.execute("SELECT value,digest FROM ebpf_checkpoint").fetchone()
+    before_audit = collector.store.verify_audit()
+    collector.state = "STOPPED"
+
+    def failed_audit(*_args):
+        raise OSError(errno.EIO, "injected final Audit failure")
+
+    monkeypatch.setattr(collector.store, "_audit", failed_audit)
+    writer = CheckpointWriter(collector._persist_checkpoint)
+    try:
+        collector.checkpoint_writer = writer
+        assert collector.request_checkpoint() == "PENDING"
+        with pytest.raises(CheckpointFailure, match="FLUSH_UNVERIFIED"):
+            writer.flush()
+    finally:
+        with pytest.raises(CheckpointFailure, match="FLUSH_UNVERIFIED"):
+            writer.close()
+    assert writer.failure["errno"] == errno.EIO and writer.committed == 0
+    assert not writer.worker.is_alive()
+    with collector.store.database.transaction(write=False) as db:
+        assert db.execute("SELECT value,digest FROM ebpf_checkpoint").fetchone() == before
+    assert collector.store.verify_audit() == before_audit
+    restored = await EBPFCollector(collector.directory, collector.plan).recover()
+    assert restored["restored_evidence"]["state"] == "NATIVE_HOOK_PENDING"

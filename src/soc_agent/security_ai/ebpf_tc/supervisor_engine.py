@@ -256,7 +256,7 @@ class SupervisorCore:
             # Compare foreign identities; unrelated concurrent changes are not
             # silently attributed to us or removed to make this pass.
             for key, fields in {
-                "programs": ("id", "type", "tag", "map_ids"),
+                "programs": ("id", "type", "tag", "map_ids", "loaded_at"),
                 "maps": ("id", "type", "name"),
                 "links": ("id", "type", "prog_id", "ifindex", "netns_ino"),
                 "ingress": ("kind", "protocol", "pref", "chain", "options"),

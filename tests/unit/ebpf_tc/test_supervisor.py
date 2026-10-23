@@ -485,3 +485,36 @@ def test_absence_requires_http404_not_nullable_json(monkeypatch, status, expecte
             api.request("GET", "/containers/" + "a" * 64 + "/json", missing_ok=True)
     else:
         assert api.request("GET", "/containers/" + "a" * 64 + "/json", missing_ok=True) is expected
+
+
+@pytest.mark.parametrize("mutation", ["unchanged", "tag", "loaded_at", "target", "extra"])
+def test_resource_identity_and_attach_target_changes_are_not_owned_or_deleted(mutation):
+    import copy
+
+    before = inventory()
+    before["programs"]["rows"] = [
+        dict(id=42, type="cgroup_device", tag="a" * 16, loaded_at=100, uid=0)
+    ]
+    before["cgroup_tree"] = {
+        "rows": [dict(cgroup="/fixed/foreign", programs=[dict(id=42, attach_type="cgroup_device")])]
+    }
+    after = copy.deepcopy(before)
+    if mutation in {"tag", "loaded_at"}:
+        after["programs"]["rows"][0][mutation] = "b" * 16 if mutation == "tag" else 200
+    elif mutation == "target":
+        after["cgroup_tree"]["rows"][0]["cgroup"] = "/fixed/other"
+    elif mutation == "extra":
+        after["programs"]["rows"].append(dict(id=43, tag="c" * 16))
+
+    class ReadOnlyOperations(Operations):
+        def inspect(self):
+            self.calls.append("inspect")
+            return after
+
+    ops = ReadOnlyOperations()
+    final = engine.SupervisorCore(ops, "b" * 64, before).finish()
+    assert final["after"] == after
+    assert final["cleanup"] == ("VERIFIED" if mutation == "unchanged" else "CLEANUP_UNVERIFIED")
+    assert ops.calls == ["stop", "inspect", "close"]  # No foreign detach/delete operation.
+    if mutation != "unchanged":
+        assert any("RESOURCE_SET_CHANGED" in failure for failure in final["failures"])
