@@ -23,12 +23,19 @@ def terminal_authenticate(*, run=None):
 
 def main(argv=None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] == "analyze-offline":
+        from soc_agent.security_ai.offline_analysis_cli import main as analysis_main
+
+        return analysis_main(arguments[1:])
     if arguments and arguments[0] == "native-recovery":
         from soc_agent.security_ai.ebpf_tc.operational_recovery import main as recovery_main
 
         return recovery_main(arguments[1:])
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser(
+        "analyze-offline", help="Pinned offline AI, read-only response and scripted investigation"
+    )
     sub.add_parser(
         "native-recovery", help="Governed recovery prepare/check/execute; separate grants"
     )
