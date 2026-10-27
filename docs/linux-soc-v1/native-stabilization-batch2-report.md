@@ -1331,3 +1331,179 @@ in the original repository, including qualification/source snapshots, both build
 logs/artifacts, retained-installation.json, actual-readiness.json, final-preservation
 and Git delivery records. Approval preparation in this directory remains unsigned
 and is not a production receipt.
+
+
+# SOC Native Stabilization Batch 2 — Operational Integration (2026-10-27)
+
+## Overall Status
+
+**Operational integration implemented; nonprivileged verification PASS.
+POLICY_APPROVAL_REQUIRED; actual execution BLOCKED.** No real policy activation,
+human reassessment, installation, Capture or R2 traffic occurred. This section
+supersedes the earlier need for additional Supervisor integration code. It does
+not revise any previous Native FAILED/false/INCOMPLETE or UNKNOWN evidence.
+
+## Runtime Recovery Integration
+
+- Actual entry: `soc-agent native-recovery prepare|reassess|check|execute`, routed
+  through existing `soc_agent.cli`. Worktree: `../native-soc-phase-d-release-063`,
+  branch `fix/native-stabilization-batch2`.
+- `prepare` reuses `phase_d.prepare -> prepare_candidate ->
+  prepare_supervisor_image -> prepare_unified_image`. `RecoveryBuild` selects the
+  separate prepare-only path; it never declares the old runtime compatible.
+- Installed preservation uses the actual fixed-path/held-FD nine-file inspector.
+  Old Root Manifest remains
+  `f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3`.
+  The original strict `installed_release` still returns DEPENDENCY_HASH_MISMATCH.
+- New recovery binding pins old/new Root identity, full retained-file observation,
+  new dependency inventory, implementation, TCX/R2 Scope, ABI report and current
+  host/toolchain metadata. ABI/host files are independently SHA-bound. Current
+  zlib remains `ubuntu2.3`, SHA
+  `f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242`.
+  Old zlib SHA remains
+  `86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892`.
+- Actual Supervisor image/sidecar/Phase D contracts now carry the recovery binding.
+  Unlike the earlier unconditional-quarantine SDK image, these are complete
+  **policy-pending Supervisor templates**. Without a policy receipt, Controller
+  and embedded Root continuation both deny execution. They are not promoted to
+  executable approval candidates merely because they build and hash correctly.
+- A separately SHA-pinned `SOC_RETAINED_REPLACEMENT_POLICY_V1` human approval must
+  name an approver/reference, exact binding and validity period. It authorizes the
+  retention-verification rule only, explicitly not Root or Native execution.
+  An operator-supplied receipt SHA is the existing trust anchor, not a signature
+  or automatic reviewer discovery. No ignore-dependencies/force flag was added.
+- Normal install/authentication paths are unchanged. Only an approved recovery
+  image can use Root `_apply(previous, check)` to revalidate exact old files
+  before the existing quiescent archival operation. New dependencies, OS policy,
+  new installation and post-installation checks remain mandatory. Unknown drift
+  fails closed, and incompatible old bytes are never executed for verification.
+
+## R1 Approval Integration
+
+- `reassess` accepts separately pinned procedure/review/evidence files and calls
+  the existing `reassessment.reassess` under its locked append-only writer.
+  It does not synthesize reviewer Identity, risk acceptance or an ALLOW decision.
+- `check` projects existing validators into SOURCE_VERIFIED, RUNTIME_VERIFIED,
+  POLICY_APPROVED, R1_REASSESSMENT_VERIFIED, R2_SCOPE_APPROVED,
+  ROOT_INSTALL_APPROVED and NATIVE_EXECUTION_APPROVED. It is not a new persistent
+  state machine and cannot start work from a state transition.
+- Non-consuming `preview_reservation` checks exact new Artifact/Scope, previous
+  Root identity, loaded-source Git Commit/Tree, current amendment/ledger/review,
+  expiry/replay and both budgets. Mock/draft contracts cannot satisfy the real
+  schemas; successful synthetic tests use temporary ledgers and explicit mocks
+  for OS/artifact observations, never real execution authority.
+- `execute` requires EXECUTION_READY, repeats checks, then uses the existing
+  `ReassessedCampaign.reserve -> phase_d.execute -> Supervisor` path. Reservation
+  is atomic and conservative; post-reservation failures follow the existing
+  finish/failed accounting and never retry. Preflight/check itself consumes none.
+- A recovery image cannot use direct Supervisor execution without an approved
+  R2/Campaign reservation. R2 reservation and review expiry are checked again
+  before its claim/authentication boundary. Existing FAILED/false and Program
+  1145 removal cause UNKNOWN remain, independently of a new human decision.
+
+## R2 Launcher Integration
+
+- Capture Ready: ATTACH acknowledgment must include link evidence before starting
+  the existing launcher. Scheduling timestamps are user monotonic observations,
+  not invented Kernel packet or per-CPU coverage evidence.
+- TCP Close: existing authenticated DNS probe result supplies
+  `socket_closed_monotonic_ns`; missing/changed/reversed observations fail or
+  remain explicitly INCOMPLETE.
+- 35s observation: elapsed time uses monotonic nanoseconds relative to TCP close.
+  Additional UDP requires Sidecar CLOSED and actual send/receive timestamps that
+  satisfy the 35s bound and ordering; a failed attempt is never retried.
+- 45s STOP: existing Supervisor normal STOP/Drain/Cleanup is requested relative
+  to TCP close. Event/capture limit reached early or no witness stays INCOMPLETE.
+- Fixed scenario: net:[4026531833], lo/Ingress, local 127.0.0.53:53,
+  native-0516.localhost. A; total UDP 2/TCP 1, events 4096, Queue32, admission50ms,
+  reorder10ms, Checkpoint16KiB, address space256MiB, CPU20s, execution300s.
+  Initial Sidecar capture7s/32 packets/512-byte snaplen and analysis10s are
+  unchanged. The late UDP is a TCX observation; no second DNS Sidecar is started.
+- Launcher never declares Flow completeness/ELIGIBLE. Actual TCX packet/window/
+  counter/clock/termination evidence still determines Network14 eligibility.
+  Existing failure propagation, SIGTERM handling and independent cleanup remain.
+
+## Integration Verification
+
+- Related Workspace: **454 PASS (145.10s)**.
+- Independent Export: **454 PASS (115.61s)**.
+- Actual CLI/image pipeline concentrated tests plus R1/R2: **64 PASS**.
+- Includes existing 368-test baseline scope plus operational entry tests,
+  Installer/Runtime/Unified handoff and existing terminal-CLI tests. Full unrelated
+  repository pytest was not rerun; prior full-suite failures are not relabeled.
+- Failure injection covers missing policy/receipt, invalid issuer/schema/expiry,
+  bound SHA/Session/Scope/Git mismatch, root/native grant omissions, stale/replay,
+  old file tamper, image tamper, R2 missing close/witness, timestamp invalidity,
+  early capture end and existing DNS/STOP/Cleanup failure contracts. No assertion
+  or limit was weakened. A copied-image tamper fixture was corrected to point
+  its descriptor at the modified copy rather than the untouched original.
+- Added a confirmed CLI exit-code fix: returned first failure, last_error or
+  unverified Cleanup now yields exit1, not a misleading success exit0.
+- SourceGuard: **1725 frozen inputs unchanged** in Workspace/Export.
+- Reproducibility: common unprivileged Stage plus independent A/B builds,
+  **28/28 files identical**, including full Supervisor image, Root files,
+  recovery ABI/host evidence, sidecar and Phase D manifests. Common Stage is an
+  existing supported deployment-path input, never the Root install destination.
+- Actual pending-artifact CLI check returned exit2, SOURCE/RUNTIME VERIFIED,
+  POLICY BLOCKED, no reservation or execution. Ruff/Format/Diff PASS.
+
+## Artifact Identity
+
+These identities are policy-pending templates, not Root/Native grants:
+
+| Item | SHA256 |
+| --- | --- |
+| Source Snapshot | `d855dcf4402b211062d1ebf590dc178f369541d73c48a8d127e24eaef3801fc6` |
+| Manifest | `d28e3b9f349c8b378373c9e241c667ea26c69304c6871357af5a9d6b92e8c2d4` |
+| Bundle | `f51a016e2cef5e509d283f5e7fdeacba170215b2d2c4e20f035f3cc3035c6dd4` |
+| Supervisor Execution Image template | `e8dd87772351b3e02cbe9a2faebf2f36b15eb0f6e36a4177306c42fa255e6822` |
+| Root Manifest | `eee9d6372060fa3114fee449836d8a727a9fdb45c3078bf24ab8a4179ba5d87f` |
+
+The source began at b12d62c plus this explicit change. Final Git Commit/Tree and
+remote match are recorded after commit in `git-delivery.json`; post-commit source
+and artifact hashes are rechecked. Git metadata is not embedded as a circular
+self-hash in generated artifacts. The complete dependency inventory and host/
+compiler/interpreter identities are in the manifests and `recovery-host.json`.
+
+## Git
+
+Only this work's explicit files are staged on the existing fix branch. No main
+or force push; original user working tree and its eight edits are preserved.
+Final commit/push confirmation is included in the response and evidence record.
+
+## Campaign Budget
+
+Native **2/10**, Root **2/10**; Batch 2 Native/Root **1/2 each**, unchanged.
+No actual Root authentication, installation, Native run, Capture, DNS traffic,
+real R1 review issuance or actual ledger append occurred.
+
+## Remaining Approval Requirements
+
+1. Human policy owner reviews the exact retention/runtime binding and issues a
+   valid pinned RecoveryApproval under AGENTS §33. Current policy SHA is null.
+2. Re-run the **same** prepare CLI into a new output directory with
+   `--policy-file` and `--policy-sha`. No further code changes are needed. This
+   creates a new image/manifest SHA containing the human grant; current pending
+   hashes must not be silently promoted or inherit old execution approval.
+3. Human R1 review binds that final Artifact, Session/Scope, evidence and explicit
+   UNKNOWN-risk acceptance; use the existing procedure and the new `reassess`
+   CLI to append the separate decision. Supply the separately approved R1
+   AdmissionAmendment. Original false remains.
+4. Supply R2 TrafficReceipt (including unique claim path) and exact Root/Native
+   execution receipt. `check` is non-consuming; `execute` is explicit and still
+   requires one user-entered OS TTY password. Passwords never pass through code,
+   files, environment variables or captured stdin.
+
+All receipt examples in tests are synthetic. The evidence-directory pending
+policy-review template is not a valid approval receipt and cannot enable work.
+
+## Remaining Blockers
+
+P02/P03 actual Capture/Flow evidence remains INCOMPLETE; P04 actual eligible count
+remains historical 0/7. Native AI, DNS9 and production remain BLOCKED. Historical
+owned cleanup VERIFIED/global cleanup UNVERIFIED and external Program1145 removal
+cause UNKNOWN are preserved. No fresh privileged snapshot was claimed.
+
+Evidence: `.git/native-stabilization-batch2/operational-supervisor-integration-20261027-1/`
+in the original repository: qualification/source maps, both builds/Stage, actual
+CLI readiness, pending policy template, preservation and Git delivery records.

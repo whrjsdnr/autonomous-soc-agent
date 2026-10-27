@@ -200,7 +200,15 @@ def test_r1_concurrent_append(review):
 
 @pytest.fixture
 def launcher(tmp_path, monkeypatch):
-    monkeypatch.setattr(r2, "_udp_witness", lambda: {"synthetic": True})
+    monkeypatch.setattr(
+        r2,
+        "_udp_witness",
+        lambda: {
+            "synthetic": True,
+            "sent_monotonic_ns": 37 * r2.SECOND,
+            "received_monotonic_ns": 37 * r2.SECOND + 1,
+        },
+    )
     receipt = r2.TrafficReceipt(
         decision="APPROVED",
         approver="FIXTURE",
@@ -234,7 +242,11 @@ def test_r2_single_late_witness_and_stop(launcher):
     assert not step(launch, 36)
     assert not launch.attempted
     assert not step(launch, 37)
-    assert launch.witness == {"synthetic": True}
+    assert launch.witness == {
+        "synthetic": True,
+        "sent_monotonic_ns": 37 * r2.SECOND,
+        "received_monotonic_ns": 37 * r2.SECOND + 1,
+    }
     assert not step(launch, 38)
     assert step(launch, 47)
     assert launch.stop_reason == "PLANNED_STOP"

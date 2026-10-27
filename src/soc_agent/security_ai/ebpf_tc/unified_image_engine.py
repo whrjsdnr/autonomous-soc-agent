@@ -114,6 +114,55 @@ def _validate_envelope(envelope: bytes, image: dict, uid: int, gid: int) -> None
             raise ValueError("UNIFIED_SCOPE_BINARY")
 
 
+def _recovery_policy(image: dict, previous: dict, engine: dict) -> None:
+    """Second validation inside the SHA-pinned Root image; no receipt discovery."""
+    binding = engine["RECOVERY_BINDING"]
+    body = engine.get("RECOVERY_POLICY_BODY")
+    if not isinstance(body, bytes):
+        raise ValueError("RECOVERY_POLICY_APPROVAL_REQUIRED")
+    if hashlib.sha256(body).hexdigest() != engine.get("RECOVERY_POLICY_SHA"):
+        raise ValueError("RECOVERY_POLICY_SHA")
+    policy = json.loads(body)
+    fields = {
+        "contract",
+        "decision",
+        "approver",
+        "human_reference_sha",
+        "binding",
+        "issued_at",
+        "expires_at",
+        "activate_retention_replacement",
+        "authorize_root",
+        "authorize_native",
+    }
+    release = json.loads(base64.b64decode(image["files"]["release.json"]["body"], validate=True))
+    dependencies_sha = hashlib.sha256(
+        (json.dumps(release["dependencies"], sort_keys=True, separators=(",", ":")) + "\n").encode()
+    ).hexdigest()
+    if (
+        set(policy) != fields
+        or policy["contract"] != "SOC_RETAINED_REPLACEMENT_POLICY_V1"
+        or policy["decision"] != "APPROVED"
+        or policy["binding"] != binding
+        or policy["activate_retention_replacement"] is not True
+        or policy["authorize_root"] is not False
+        or policy["authorize_native"] is not False
+        or type(policy["issued_at"]) is not int
+        or type(policy["expires_at"]) is not int
+        or not policy["issued_at"] <= time.time() < policy["expires_at"]
+        or not isinstance(policy["approver"], str)
+        or not 1 <= len(policy["approver"]) <= 128
+        or not isinstance(policy["human_reference_sha"], str)
+        or len(policy["human_reference_sha"]) != 64
+        or any(c not in "0123456789abcdef" for c in policy["human_reference_sha"])
+        or previous is None
+        or binding["old_root"] != previous["manifest_sha256"]
+        or binding["new_root"] != image["manifest_sha256"]
+        or binding["dependencies_sha"] != dependencies_sha
+    ):
+        raise ValueError("RECOVERY_ROOT_POLICY_BINDING")
+
+
 def unified_root_main(image: dict, previous: dict | None, args: list[str], engine: dict) -> None:
     if (
         len(args) != 7
@@ -148,10 +197,22 @@ def unified_root_main(image: dict, previous: dict | None, args: list[str], engin
     command_sha, environment = _sudo_parent(), _safe_environment(uid, gid)
     # This policy check is read-only: reject NOPASSWD, missing TTY, account-policy
     # drift before even archiving a previous release. Never prompts a second time.
+    if "RECOVERY_BINDING" in engine:
+        _recovery_policy(image, previous, engine)
     engine["_verify_dependencies"](image)
     _candidate_policy(image, uid, gid, environment)
     if previous:
-        engine["root_main"](previous, "check")
+        if "RECOVERY_BINDING" in engine:
+            # Policy authorizes retention-only inspection, never execution of
+            # the old dependency closure. The fixed common engine checks all
+            # original files/modes/owners/hashes again before exact archival.
+            parent = engine["_open_directory"]("/usr/libexec", 0)
+            try:
+                engine["_apply"](previous, parent, 0, "check")
+            finally:
+                os.close(parent)
+        else:
+            engine["root_main"](previous, "check")
         if previous["manifest_sha256"] != image["manifest_sha256"]:
             rollback = hashlib.sha256(b"SOC_INSTALL_ROLLBACK_V1\0" + old_sha).hexdigest()
             engine["root_main"](previous, "rollback", rollback)

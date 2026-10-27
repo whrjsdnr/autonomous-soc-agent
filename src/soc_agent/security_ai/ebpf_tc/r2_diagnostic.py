@@ -109,6 +109,21 @@ class R2Launcher:
 
     def claim(self) -> None:
         self._check()
+        if self.approval.campaign_directory is not None:
+            from soc_agent.security_ai.ebpf_tc.reassessment_admission import require_r2_reservation
+
+            a = self.approval.artifact
+            require_r2_reservation(
+                self.approval.campaign_directory,
+                session=self.approval.session,
+                receipt_sha=self.approval.receipt_sha,
+                identity=dict(
+                    manifest=a.manifest,
+                    bundle=a.bundle,
+                    image=a.image,
+                    tcx_manifest=a.root_manifest,
+                ),
+            )
         if self.claimed:
             raise ValueError("R2_CLAIM_ALREADY_USED")
         # Reserving before authentication is conservative: crash consumes the claim.
@@ -165,6 +180,11 @@ class R2Launcher:
                 raise ValueError("R2_SIDECAR_NOT_CLOSED")
             self.attempted = True  # A send/response failure must never retry.
             self.witness = _udp_witness()
+            if (
+                self.witness.get("sent_monotonic_ns", -1) < tcp_closed_ns + 35 * SECOND
+                or self.witness.get("received_monotonic_ns", -1) < self.witness["sent_monotonic_ns"]
+            ):
+                raise ValueError("R2_WITNESS_CLOCK")
         return False
 
     def snapshot(self) -> dict:

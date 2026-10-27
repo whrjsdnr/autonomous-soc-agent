@@ -172,7 +172,13 @@ def _execute(
     image.verify()
     if (image.manifest, image.sha256) != (expected_manifest, expected_image):
         raise ValueError("SUPERVISOR_REVIEWED_IMAGE_REQUIRED")
-    verify_package(directory / "release", expected_manifest)
+    release = verify_package(directory / "release", expected_manifest)
+    if image.recovery_binding is not None:
+        from soc_agent.security_ai.ebpf_tc.recovery_policy import validate_image_recovery
+
+        if gui or phase_d is None or r2_approval is None:
+            raise ValueError("RECOVERY_APPROVED_CAMPAIGN_REQUIRED")
+        validate_image_recovery(image, release, require_policy=True)
     if os.readlink("/proc/self/ns/net") != image.scope_namespace:
         raise ValueError("SUPERVISOR_NAMESPACE_CHANGED")
     if phase_d is not None:
@@ -302,6 +308,8 @@ def _execute(
                     )
                 )
             if r2:
+                if not handoff.link_evidence:
+                    raise ValueError("R2_CAPTURE_NOT_READY")
                 r2.start(time.monotonic_ns())
             stage, api = "DNS_TASK", "offload_session.execute"
             future = submit(

@@ -20,6 +20,7 @@ from soc_agent.security_ai.collectors.live_contract import LivePlan, docker_argv
 from soc_agent.security_ai.collectors.live_contract import bundle as zeek_bundle
 from soc_agent.security_ai.ebpf_native.contracts import process_identity
 from soc_agent.security_ai.ebpf_tc.dependencies import read_held
+from soc_agent.security_ai.ebpf_tc.recovery_policy import RecoveryBuild
 from soc_agent.security_ai.ebpf_tc.supervisor_engine import SUP_LIMIT, sup_json
 from soc_agent.security_ai.ebpf_tc.unified import UnifiedSession
 from soc_agent.security_ai.ebpf_tc.unified_image import UnifiedImage, prepare_unified_image
@@ -70,7 +71,12 @@ def inspection_tool_version(path: Path, expected_sha: str) -> dict:
 
 
 def prepare_supervisor_image(
-    package: Path, manifest: str, output: Path, *, dns_sidecar: bool = False
+    package: Path,
+    manifest: str,
+    output: Path,
+    *,
+    dns_sidecar: bool = False,
+    recovery: RecoveryBuild | None = None,
 ) -> SupervisorImage:
     """Build bytes only. No auth, install, inventory syscall, Docker run or capability changes."""
     if os.readlink("/proc/self/ns/net") != "net:[4026531833]":
@@ -80,7 +86,12 @@ def prepare_supervisor_image(
     release = verify_package(package, manifest)
     if release.inspector != InspectorProfile():
         raise ValueError("SUPERVISOR_INSPECTOR_MANIFEST_REQUIRED")
-    base = prepare_unified_image(package, manifest, output.with_suffix(".tcx-only.py"))
+    base = prepare_unified_image(
+        package,
+        manifest,
+        output.with_suffix(".tcx-only.py"),
+        **({"recovery": recovery} if recovery else {}),
+    )
     plan = LivePlan(net_namespace="net:[4026531833]", bundle_digest=digest(zeek_bundle()))
     argv = docker_argv(plan, Path("@POLICY@"))
     for index, arg in enumerate(argv):

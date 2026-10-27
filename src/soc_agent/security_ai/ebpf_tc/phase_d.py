@@ -8,6 +8,7 @@ from pathlib import Path
 from soc_agent.security_ai.collectors import offload_session
 from soc_agent.security_ai.ebpf_tc import supervisor_startup
 from soc_agent.security_ai.ebpf_tc.installation import canonical, verify_package
+from soc_agent.security_ai.ebpf_tc.recovery_policy import RecoveryBuild
 from soc_agent.security_ai.ebpf_tc.source_guard import SourceGuard
 from soc_agent.security_ai.ebpf_tc.supervisor import SupervisorImage, prepare_supervisor_image
 from soc_agent.security_ai.ebpf_tc.unified_image import UnifiedImage
@@ -42,6 +43,7 @@ DNS_SCOPE = dict(
 def runtime_bundle():
     result = offload_session.sources()
     root = Path(__file__).parent.parent
+    result["soc_agent.cli"] = hashlib.sha256((root.parent / "cli.py").read_bytes()).hexdigest()
     result["soc_agent.security_ai.native_campaign"] = hashlib.sha256(
         (root / "native_campaign.py").read_bytes()
     ).hexdigest()
@@ -52,18 +54,39 @@ def runtime_bundle():
     return result
 
 
-def prepare(directory: Path, *, deployment_directory: Path | None = None) -> dict:
+def prepare(
+    directory: Path,
+    *,
+    deployment_directory: Path | None = None,
+    recovery: RecoveryBuild | None = None,
+) -> dict:
     # Keep compilation, package assembly and Python image hashing in one input
     # observation window. A compiler-only guard misses writes between stages.
     with SourceGuard(Path(__file__).parents[2]):
-        return _prepare(directory, deployment_directory=deployment_directory)
+        if recovery is not None:
+            from soc_agent.security_ai.ebpf_tc.runtime_recovery import host_identity
+
+            before = host_identity()
+        result = _prepare(directory, deployment_directory=deployment_directory, recovery=recovery)
+        if recovery is not None and host_identity() != before:
+            raise ValueError("RECOVERY_HOST_CHANGED_DURING_BUILD")
+        return result
 
 
-def _prepare(directory: Path, *, deployment_directory: Path | None = None) -> dict:
+def _prepare(
+    directory: Path,
+    *,
+    deployment_directory: Path | None = None,
+    recovery: RecoveryBuild | None = None,
+) -> dict:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
     _, _, package, manifest = prepare_candidate(directory, version="0.6.3", inspector=True)
     image = prepare_supervisor_image(
-        package, manifest, directory / "supervisor-image.py", dns_sidecar=True
+        package,
+        manifest,
+        directory / "supervisor-image.py",
+        dns_sidecar=True,
+        **({"recovery": recovery} if recovery else {}),
     )
     image.verify()
     if deployment_directory is not None:
@@ -117,6 +140,10 @@ def _prepare(directory: Path, *, deployment_directory: Path | None = None) -> di
         dns9="BLOCKED",
         operational_promotion="BLOCKED",
     )
+    if image.recovery_binding is not None:
+        value["recovery"] = dict(
+            binding=image.recovery_binding.model_dump(), policy_sha=image.recovery_policy_sha
+        )
     offload_session.publish(directory / "phase-d.json", value)
     return dict(
         manifest=hashlib.sha256(canonical(value)).hexdigest(),
@@ -144,6 +171,16 @@ def validate(directory: Path, manifest: str, image_sha: str) -> dict:
     ):
         raise ValueError("PHASE_D_RELEASE_OR_SOURCE_MISMATCH")
     release = verify_package(directory / "release", value["tcx_manifest"])
+    if image.recovery_binding is not None:
+        from soc_agent.security_ai.ebpf_tc.recovery_policy import validate_image_recovery
+
+        if value.get("recovery") != dict(
+            binding=image.recovery_binding.model_dump(), policy_sha=image.recovery_policy_sha
+        ):
+            raise ValueError("PHASE_D_RECOVERY_BINDING")
+        validate_image_recovery(image, release, require_policy=False)
+    elif "recovery" in value:
+        raise ValueError("PHASE_D_RECOVERY_BINDING")
     dns_body = (directory / "dns-sidecar/release.json").read_bytes()
     dns = json.loads(dns_body)
     if (

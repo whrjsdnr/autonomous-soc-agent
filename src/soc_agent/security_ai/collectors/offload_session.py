@@ -202,9 +202,18 @@ def preflight(
     image.verify()
     if image.sha256 != image_sha or candidate["sources"] != sources():
         raise ValueError("DNS_COPY_IMAGE_OR_SOURCE_CHANGED")
-    release = installed_release()
-    if release.identity != (previous_manifest or candidate["base_manifest"]):
-        raise ValueError("DNS_COPY_BASE_RELEASE_CHANGED")
+    if image.recovery_binding is not None and previous_manifest is not None:
+        from soc_agent.security_ai.ebpf_tc.installation import verify_package
+        from soc_agent.security_ai.ebpf_tc.recovery_policy import validate_image_recovery
+
+        release = verify_package(directory.parent / "release", candidate["base_manifest"])
+        validate_image_recovery(image, release, require_policy=True)
+        if previous_manifest != image.previous_manifest:
+            raise ValueError("DNS_COPY_BASE_RELEASE_CHANGED")
+    else:
+        release = installed_release()
+        if release.identity != (previous_manifest or candidate["base_manifest"]):
+            raise ValueError("DNS_COPY_BASE_RELEASE_CHANGED")
     if (
         os.readlink("/proc/self/ns/net") != "net:[4026531833]"
         or not os.isatty(0)

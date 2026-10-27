@@ -248,6 +248,15 @@ def require_r2_reservation(
         finished = {r.get("attempt_id") for r in rows if r["event"] == "NATIVE_ATTEMPT_FINISHED"}
         if len(matching) != 1 or matching[0]["attempt_id"] in finished:
             raise ValueError("R2_APPROVED_RESERVATION_REQUIRED")
+        reviews = [
+            r for r in rows if r.get("record_sha256") == matching[0]["reassessment_record_sha"]
+        ]
+        if (
+            len(reviews) != 1
+            or reviews[0].get("decision") != "ALLOW_NEXT_ADMISSION_ONLY"
+            or time.time() >= reviews[0].get("expires_at", 0)
+        ):
+            raise ValueError("R2_REASSESSMENT_EXPIRED_OR_MISSING")
         raise Checked
 
     try:
@@ -293,13 +302,34 @@ def execute(
         manifest=manifest, bundle=value["bundle"], image=image, tcx_manifest=value["tcx_manifest"]
     )
     dns = json.loads((directory / "dns-sidecar/release.json").read_bytes())["scope"]
+    root_cost = int(value["tcx_manifest"] != binding.previous_artifact.root_manifest)
+    from soc_agent.security_ai.ebpf_tc.operational_recovery import readiness
+
+    if "recovery" in value:
+        checked = readiness(
+            directory,
+            manifest,
+            image,
+            campaign=campaign,
+            amendment_file=amendment_file,
+            amendment_sha=amendment_sha,
+            approval_file=approval_file,
+            approval_sha=approval_sha,
+            traffic_file=traffic_file,
+            traffic_sha=traffic_sha,
+            claim_file=claim_file,
+        )
+        if checked["status"] != "EXECUTION_READY":
+            raise ValueError("RECOVERY_EXECUTION_NOT_READY:" + checked.get("error", "BLOCKED"))
+    if "recovery" not in value:
+        root_cost = int(installed_release().identity != value["tcx_manifest"])
     reserved = ledger.reserve(
         identity,
         value["scope"],
         dns,
         approval_file,
         approval_sha,
-        root_cost=int(installed_release().identity != value["tcx_manifest"]),
+        root_cost=root_cost,
         git_commit=binding.next_artifact.git_commit,
     )
     try:

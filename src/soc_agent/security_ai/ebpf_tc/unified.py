@@ -43,6 +43,11 @@ class UnifiedSession(LiveQualification):
         self.image.verify()
         if self.release.bundle_digest != digest(bundle()):
             raise ValueError("UNIFIED_SOURCE_VERSION_CHANGED")
+        if self.image.recovery_binding is not None:
+            from soc_agent.security_ai.ebpf_tc.recovery_policy import validate_image_recovery
+
+            validate_image_recovery(self.image, self.release, require_policy=True)
+            return
         installed = installed_release()
         if (installed.identity if installed else "0" * 64) != self.image.previous_manifest:
             raise ValueError("UNIFIED_INSTALLED_VERSION_CHANGED")
