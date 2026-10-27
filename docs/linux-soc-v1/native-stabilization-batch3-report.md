@@ -657,3 +657,64 @@ Protected112 / historical Native55 / installed9 / Rollback9 pins match. No Names
 Only current code/test/contract-document changes and this report section are selected for Commit/Push. Existing dirty Batch2/3 report content and all Ledger/Audit/receipts remain uncommitted. Final Commit/Tree/Source/Artifact identities and remote confirmation are recorded after Commit in `git-and-next-request.json` in the same evidence directory.
 
 Remaining conditions: a new exact policy Binding for changed code/Artifact, exact Root setup action approval using the latest Ledger, and separately reviewed privileged DNS lifecycle/Namespace scope. No new budget allocation is needed for one setup plus one installation within the approved B limits; no old approval is reusable. Namespace/Root/Native execution remains outside this task.
+
+
+## Namespace Setup result recovery and DNS child implementation — 2026-10-27
+
+Status: `ROOT_SETUP_SUCCEEDED / DNS_LIFECYCLE_INSTRUMENTED`. This section supersedes the previous statement that Namespace creation was pending; it preserves all historical failures and prior review records. No setup command was repeated during result recovery. No additional authentication, DNS traffic, Native Collector, TCX or inference ran.
+
+### Recovered setup evidence and budget
+
+The original terminal launcher exited. `setup-state.json`, the two command-return records, creation lease and validated campaign chain independently agree: `RESERVED_NOT_STARTED → START_INTENT → STARTED → SUCCEEDED`. User-confirmed reservation occurred at 2026-10-27T16:23:50.823790+09:00; final success at 16:23:57.837244+09:00. Both approved fixed commands returned 0. Their durations include direct OS authentication and are not packet/capture timestamps. There was no automatic retry or Namespace deletion/recreation.
+
+- Policy receipt SHA: `cd25257eb8df5a71caa2f4c229468eee82ede133a22c888f89e0fe8417dc3947`.
+- Separate ROOT_SETUP action/reservation: `06f476a09a80685ba200ba3d5782e7d7915c3a7aef1dcb58bdf89c9810cd2e78`.
+- Setup Session: `c2fd906c-d140-4c0d-a7b5-d5ec87618adb`; Release0.6.3; original approved Git ee3974596ee9ce9095a9cbdbbe664f655f52c895. These are creation provenance, not authorization for newly built DNS code.
+- Host Namespace: `net:[4026531833]`; SOC Namespace: `net:[4026532232]`; nsfs device4, inode4026532232, root-owned mount `/run/netns/soc-native-b3`. Creation lease SHA: `24b1102b173985056043d3727121c40b4c57fe71f7486affcc32e8718d105c9e`.
+- Existing Ledger prefix is unchanged. Validated chain now has25 rows, SHA `d52ff7b6646e73b3db065c680de79acf8412d0ab42b9dafef9931080876e6887`, tip `bbb286db702cc5919c071cbf646e0ab4e8e811cf14ad9bd207daad47b30d5f3d`. The setup approval is consumed and not reusable. Recovery added no Ledger event or reservation.
+- Campaign Native4/10 and Root5/10. Batch3 Native1/2 and Root2/3. One installation slot remains under the valid B allocation; setup allowance1 is consumed. No refund or previous UNKNOWN reclassification occurred.
+
+### Isolation observations and limits
+
+Ordinary `ip netns list` lists `soc-native-b3`; held-FD fstat and boot/creation lease match the actual Namespace. Host and SOC network namespace identities differ. The approved `lo up` command succeeded. A fresh ordinary `ip -n soc-native-b3 link show lo` returned255 / Operation not permitted because Namespace entry needs privilege. It was not retried with sudo.
+
+Fresh dedicated lo flags/ifindex, route inventory, Socket Cookie, VS Code socket absence and residual worker/socket inspection remain NOT_OBSERVED. A different namespace inode is evidence of identity separation; it is not sufficient to claim full isolation, Capture Integrity, or 35–45s event-rate feasibility. The Namespace remains intentionally retained. No cleanup-by-name permission exists. Host VS Code, WSL, user projects and services were left running.
+
+### Production DNS child code
+
+`isolated_dns_launcher.py` verifies the held creation lease against Session/Release/boot/nsfs identity, creates a deterministic Scope and immutable review image, and embeds the existing protocol and `serve_prebound` transport. The Scope explicitly calls its old Binding `setup_binding` so origin evidence is not confused with new execution authorization. Exclusive file creation and held SHA verification prevent overwriting a prior image. There is no sudo or shell runner.
+
+`isolated_dns_engine.py` implements the bounded Root-Supervisor child lifecycle: fork in the parent, close inherited FDs in the child, hold the fixed nsfs mount across setns, check actual interface flags with ioctl (not host-mounted sysfs), reject external interfaces/routes, prebind only127.0.0.53:53, compare socket Namespace Cookies, clear supplementary groups and all capability bounding bits, drop all UID/GID identities, require NoNewPrivs/zero P/E/I/A/B, and verify the parent survived credential changes. Resource bounds are256MiB,20 CPU seconds and65s setup/worker wall lifetime; the reused worker retains its60s transport deadline and35s minimum late witness. DNS Sidecar analysis10s is unchanged.
+
+The parent owns one unreaped child PID, bounded evidence messages, explicit cancellation and normal-exit reaping. Worker errors and credential-drop failures close owned sockets; parent death kills the child; no Namespace deletion occurs. Normal completion is reaped separately from cancellation so a completed worker is not spuriously killed. Application timestamps remain application-only evidence and do not promote Flow completeness.
+
+The generated image unconditionally refuses independent main execution with `ISOLATED_DNS_LIFECYCLE_APPROVAL_REQUIRED`. The existing CLI does not call this Root child service. No new approval issuer or activation flag was added. Future activation must use the existing authenticated Supervisor admission path with exact new image/Scope and accounting approval; the current namespace-preview Supervisor remains guarded. Setup authorization cannot be reused as DNS execution permission.
+
+### Final nonprivileged verification and Artifact
+
+Workspace related regressions566 PASS; independent frozen Export566 PASS. This includes30 new DNS launcher/lifecycle/transport tests, Root accounting/governance, approval/replay, Supervisor, Window/Flow, checkpoint, audit and cleanup regressions. Synthetic tests exercise changed mount identity, Session/Release mismatch, root caller/privilege failures, cookie/bind/route errors, normal exit/cancellation and the actual worker/protocol35s boundary without any real network/syscall activation.
+
+An initial Workspace run was invalidated by our final normal-exit fix during Source Guard observation (541 PASS,24 setup errors `SOURCE_CHANGED_DURING_BUILD`). That run and the old frozen build are retained as preliminary evidence and were not reused. The final rerun used fixed bytes and passed. Unrelated whole-repository/whole-Export historical failures are not declared resolved by this related selection.
+
+Ruff check and format check across the repository, and Git diff check pass. Source inputs1,744, SHA `cc1ef18a4d4db67bfa09d9be515b525be62878e9c81e7ee3c74d25204e17fed3`; Workspace/frozen Export pins match. Batch2/3 report drafts are excluded from this pre-existing selected source map and preserved separately. Final Stage and independent buildsA/B have the same complete28-file set and hashes (existing26 plus DNS review image/descriptor). All are review-only, not executable authorization:
+
+| Identity | SHA256 |
+|---|---|
+| Manifest | `9e4f23ee39536620a699340b341f4c823c1ce39f0f2b1eea19cfb7520095207b` |
+| Bundle | `61ce61b7020ae7527671bfe8a4c74c93574338214c27dff40b0435a1db8e3b4b` |
+| Supervisor Execution Image (guarded) | `724e3158f278d7af44a6a385306e32d3f48d2a06ea5b9dc8dbc540dd46b03265` |
+| Root Manifest | `5fd68e88a086c95f0244b1b4831fa63c84baa18eba18f3d377806559fa1aa6db` |
+| DNS child review image (guarded) | `fd40e63336e34a3613430dfe15e6c3bb1d43a9f1508a14bccfa80337d59f2f60` |
+| DNS child Scope | `3b8a498babe6229223910c218bee315f41d887f8ee015b834e65fa922895b873` |
+
+The dedicated inode is actual, not a synthetic fixture. This does not make either image execution-ready. The new code changes Artifact Identity; no prior approval is transferred. Final selected Git Commit/Tree, push result and the exact next review package are recorded in `git-and-next-request.json` in the evidence directory below.
+
+### Next DNS / Native approval requirements
+
+Before actual DNS validation: review and approve exact new Git/Source/image/Scope bytes, the retained nsfs lease and current Ledger; explicitly authorize the privileged child Namespace entry, local bind, privilege drop, read-only interface/route/socket evidence and owned-worker cleanup. Separately authorize onlyUDP2/TCP1 at the fixed local target, minimum35s post-TCP witness and approximately45s stop; no outside traffic, TCX or Native is implied. The namespace preview and DNS main guards must not be bypassed, removed by an operator flag, or treated as runtime approval. The future reviewed Supervisor integration/activation remains an explicit execution boundary.
+
+The current two-command ROOT_SETUP slot is already consumed. A standalone privileged DNS lifecycle is not an existing ROOT_SETUP or ROOT_INSTALL operation and has no approved budget attribution; it cannot silently use the remaining installation slot. Its accounting/activation must be explicitly reviewed, or the service must be included in a separately approved exact installation/Supervisor execution. No new Root allowance was invented. Native E2E additionally needs new exact-Namespace R1/R2 and Root/Native approvals, fresh nonconsuming check, user Scope confirmation and direct OS authentication.
+
+Protected112, historical Native55, installed9 and Rollback9 pins match. FAILED / originalfalse / Program1145 UNKNOWN / historical reservation EVIDENCE_INCOMPLETE and Root/Native UNKNOWN remain unchanged. P02/P03 stay INCOMPLETE and P04 has no new Native eligible candidate. Native AI, DNS9 and production remain BLOCKED.
+
+Evidence: `.git/native-stabilization-batch3/namespace-result-and-dns-launcher-20261027-1/`; original execution evidence remains in `approved-namespace-setup-20261027-1/`. Only new source/test files and this report section are selected for Commit/Push; prior user report edits and all Ledger/Audit/receipts stay uncommitted.
