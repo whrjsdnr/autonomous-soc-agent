@@ -150,15 +150,27 @@ class DNSChild:
         self.deadline = time.monotonic() + 66
 
     def receive(self):
-        remaining = self.deadline - time.monotonic()
-        if remaining <= 0 or not select.select([self.channel], [], [], remaining)[0]:
+        try:
+            remaining = self.deadline - time.monotonic()
+            if remaining <= 0 or not select.select([self.channel], [], [], remaining)[0]:
+                raise TimeoutError("DNS_CHILD_EVIDENCE_DEADLINE")
+            body, _, flags, _ = self.channel.recvmsg(16384)
+            if not body or flags & socket.MSG_TRUNC:
+                raise ValueError("DNS_CHILD_EVIDENCE_TRUNCATED")
+            value = json.loads(body)
+            if not isinstance(value, dict) or value.get("state") not in {
+                "LOCAL_DNS_READY",
+                "DNS_CHILD_FAILED",
+                "DNS_RESPONDER_COMPLETED",
+            }:
+                raise ValueError("DNS_CHILD_EVIDENCE_SCHEMA")
+            return value
+        except (OSError, ValueError, UnicodeError):
+            # Malformed evidence and transport failures must not leave the
+            # owned child alive until its wall deadline. Preserve the original
+            # exception; closing the unreaped child never signals another PID.
             self.close()
-            raise TimeoutError("DNS_CHILD_EVIDENCE_DEADLINE")
-        body, _, flags, _ = self.channel.recvmsg(16384)
-        if not body or flags & socket.MSG_TRUNC:
-            self.close()
-            raise ValueError("DNS_CHILD_EVIDENCE_TRUNCATED")
-        return json.loads(body)
+            raise
 
     def close(self):
         try:

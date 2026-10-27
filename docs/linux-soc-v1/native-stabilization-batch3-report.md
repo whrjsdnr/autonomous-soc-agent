@@ -786,3 +786,59 @@ Before Native E2E, actual-Namespace Supervisor/R2 policy activation and integrat
 Protected112 / historical Native55 / installed9 / Rollback9 pins match. User report drafts remain preserved. FAILED / originalfalse / Program1145 UNKNOWN / past EVIDENCE_INCOMPLETE and Root/Native UNKNOWN remain unchanged. P02/P03 remain INCOMPLETE; P04 has no new actual Native ELIGIBLE candidate; Native AI/DNS9/production remain BLOCKED.
 
 Evidence: `.git/native-stabilization-batch3/namespace-dns-readiness-20261027-1/`. Final selected Commit/Tree, remote push confirmation and exact next review package are recorded there after Commit. Only this observer fix, its tests and this report section are selected; historical Ledger/Audit, receipts and existing user changes are not committed.
+
+
+## Namespace / DNS integration verification follow-up — 2026-10-27
+
+Status: `INSTRUMENTED / LIVE_DNS_AND_NATIVE_BLOCKED`. Base Commit06fe05eceae1b09d7de91c4d0d6ae9308c78eded verified. Actual SOC nsfs device4/inode4026532232, Host4026531833 and creation lease `24b1102b173985056043d3727121c40b4c57fe71f7486affcc32e8718d105c9e` still match. Namespace, existing installation/Rollback and Host development environment were preserved. No Root entry, authentication, DNS query, Native/TCX or inference was performed.
+
+### Execution authority and actual isolation results
+
+Latest materials were rechecked: the Namespace Root Setup approval is consumed, the existing exact policy is restricted to that original setup Binding, and `namespace-dns-readiness-20261027-1/next-review-package.json` is an unapproved review package. None grants new DNS privilege or traffic. Time-validity alone cannot make a consumed or different-Scope receipt reusable. Therefore no privileged internal inspection was attempted.
+
+Actual identity separation is established by held nsfs FD/boot/lease checks. lo activation has historical command-exit0 evidence only. Fresh internal lo flags, interfaces/routes/socket tables, absence of Host VS Code sockets, DNS Worker Cookie, UDP2/TCP1 responses and live Worker cleanup remain NOT_OBSERVED / NOT_RUN. No value was synthesized to fill them. The existing ioctl/Cookie implementation remains the required future observation path; Host sysfs and Host sockets are not substituted.
+
+### Confirmed DNS lifecycle defect and fix
+
+`DNSChild.receive` previously closed its owned worker on EOF/truncation/timeout, but malformed JSON, invalid UTF-8 and socket errors escaped before owned-child cleanup. It now closes on those errors, rejects non-object or unrecognized state messages, and propagates the original parsing/transport error. Five failure-injection tests cover malformed JSON, invalid UTF-8, non-object/unknown-state payloads and transport-error identity preservation. Tests mock transport and child ownership; they send no packets and launch no Root process. Existing valid READY/COMPLETED/FAILED messages and normal-exit/cancellation behavior remain supported. No approval, SHA, resource or eligibility condition was relaxed.
+
+The current DNS child image is still an internal service with a guarded main, not an admitted executable CLI. The Namespace-preview Supervisor and legacy Host-only R2 Scenario remain gated. Approval receipts alone cannot turn these guarded review images into an activated execution path; this technical activation/integration requirement is explicitly retained rather than reported as live readiness.
+
+### Privilege / accounting classification
+
+| Work | Required authority | Current status |
+|---|---|---|
+| Named nsfs stat/lease/Host identity | Ordinary read-only | Verified, no reservation |
+| Internal lo/route/socket/cookie inspection | Approved child setns; CAP_SYS_ADMIN entry | No valid DNS/inspection execution grant |
+| Prebind127.0.0.53:53 and credential drop | NET_BIND_SERVICE if target threshold requires; SETPCAP/SETGID/SETUID | Service implemented; unexecuted |
+| Worker UDP2/TCP1 and owned FD/socket cleanup | Ordinary UID/GID after zero P/E/I/A/B + NoNewPrivs; exact local traffic grant | Synthetic tested; actual unapproved |
+| Root Release installation | Existing exact ROOT_INSTALL contract and nine-file manifest | Remaining allowance preserved; not invoked |
+
+Ledger chain25 rows and SHA `d52ff7b6646e73b3db065c680de79acf8412d0ab42b9dafef9931080876e6887` are unchanged. Charged Campaign Root5/10, Native4/10; Batch3 Root2/3, Native1/2. Charges include preserved historical UNKNOWN reservations and are not assertions that all charged attempts executed. The last installation slot is not spent on DNS. No refund, extra allocation or new receipt was applied.
+
+A separate DNS-only Root action does not fit the current fixed ROOT_SETUP or ROOT_INSTALL operation Scope. To preserve the installation slot, the concrete proposal is one explicit `ROOT_DNS_VERIFY` allowance with Batch3 Root3→4, unchanged Campaign Root10 / Native budgets, existing setup allowance1 and installation allowance2 preserved. This requires a reviewed minimal existing-contract extension plus an append-only allocation amendment, not replacement of the original grant. After one separately approved DNS attempt: Campaign Root6/10, Batch3 Root3/4; a later separately approved installation/Native attempt would reach Root7/10, Batch3 Root4/4 and Native5/10, Batch3 Native2/2. These are projections only. Alternative integration into one separately reviewed installation/Supervisor session is also unapproved; no accounting option was silently chosen.
+
+### Source, regression and new review Artifact
+
+Final related Workspace575 PASS / independent frozen Export575 PASS; Ruff/Format/Diff PASS. Source1,744 frozen inputs, SHA `e0d323152b73c0198c46a9ee9a4224600ac701d1235fc69f7d28e6337126f38e`. Stage and independent buildsA/B have identical complete28-file sets and hashes. All privileged images remain guarded:
+
+| Identity | SHA256 |
+|---|---|
+| Manifest | `7ba320d32cce3137acfdb1ae1db692a4cb3d559124e377caf3c8f1c51d052ad6` |
+| Bundle | `85a1f1dc30fbd90882a926914d212fbac4386277001ce9c9b83e69b06eee0ea4` |
+| Supervisor Execution Image | `ecd9ed1a973adf78680d71a0962504eca5e0f761471c69f63aa7ce3cf9de6a88` |
+| Root Manifest | `8b8803a917bca1183f82bb51b3ec819efbc7e0451577b6e35a8636cc72362c59` |
+| DNS child review image | `701a6d992db6dc4d32bb9a00e575b706d67d138f82957b1250b477a3bce3819e` |
+| DNS child Scope | `3b8a498babe6229223910c218bee315f41d887f8ee015b834e65fa922895b873` |
+
+The images and lease use the actual dedicated inode. The DNS Scope retains the old setup Session/Release as creation provenance; it is not a new execution grant. Runtime identity remains current zlibubuntu2.3 with its measured dependency closure, libbpf/libelf and toolchain pins in `runtime-identity.json` / Root Manifest. No security update was downgraded or ABI claim broadened.
+
+The existing nonconsuming `native-recovery check` returned exit2, `PHASE_D_RELEASE_OR_SOURCE_MISMATCH`, reserved=false/executed=false. Source/SHA/file-set verification independently passes; this check rejects the Namespace-preview contract against the original Host-only production contract, as recorded in the preceding section. No execute call followed. Actual-Namespace activation/integration, valid fresh R1/R2 and exact Root/Native approvals remain required before Native; this candidate is reviewable, not EXECUTION_READY.
+
+### Necessary human decisions / next verification
+
+One consolidated decision package records the exact image/Scope/lease/Ledger, the separate-DNS accounting proposal and the actual unobserved fields. Requested policy decision: authorize the reviewed DNS-only operation/accounting extension and proposed extra Root allowance, or explicitly select a reviewed combined installation/Supervisor approach. Neither decision is inferred from this task. After the relevant reviewed implementation/activation and final exact SHA are fixed, actual execution additionally requires explicit Namespace-entry/read-only evidence/privilege-drop/cleanup Scope, local UDP2/TCP1 approval, current Session/Release Binding, replay/budget check, user direct Scope confirmation and OS authentication. No blanket or conditional receipt was issued in advance.
+
+Existing FAILED / originalfalse / Program1145 UNKNOWN / past EVIDENCE_INCOMPLETE and Root/Native UNKNOWN remain unchanged. P02/P03 remain INCOMPLETE; P04 has no new actual Native ELIGIBLE candidate. Native AI, DNS9 and production remain BLOCKED. Protected112 / historical Native55 / installed9 / Rollback9 pins match.
+
+Evidence and exact decision package: `.git/native-stabilization-batch3/namespace-dns-integration-20261027-1/`. Only the transport-cleanup fix, its tests and this report section are selected for Commit/Push. Existing report drafts, Namespace, Ledger/Audit, installation/Rollback and prior Native evidence remain preserved. Final Git Commit/Tree and remote confirmation are recorded in `git-and-readiness.json` in that directory.

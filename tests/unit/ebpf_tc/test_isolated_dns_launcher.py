@@ -179,6 +179,34 @@ def test_evidence_truncation_stops_owned_child(monkeypatch):
     assert stopped == [True]
 
 
+@pytest.mark.parametrize("body", [b"{", b"\xff", b"[]", b'{"state":"UNREVIEWED"}'])
+def test_invalid_evidence_closes_owned_child_and_preserves_error(monkeypatch, body):
+    channel = SimpleNamespace(recvmsg=lambda *_: (body, [], 0, None))
+    child = engine.DNSChild(123, channel)
+    stopped = []
+    monkeypatch.setattr(child, "close", lambda: stopped.append(True))
+    monkeypatch.setattr(engine.select, "select", lambda *_: ([channel], [], []))
+    with pytest.raises((ValueError, UnicodeError)):
+        child.receive()
+    assert stopped == [True]
+
+
+def test_evidence_transport_error_closes_child_without_masking_first_error(monkeypatch):
+    failure = OSError("FIXTURE_TRANSPORT_FAILURE")
+
+    def receive(*_):
+        raise failure
+
+    channel = SimpleNamespace(recvmsg=receive)
+    child = engine.DNSChild(123, channel)
+    stopped = []
+    monkeypatch.setattr(child, "close", lambda: stopped.append(True))
+    monkeypatch.setattr(engine.select, "select", lambda *_: ([channel], [], []))
+    with pytest.raises(OSError) as caught:
+        child.receive()
+    assert caught.value is failure and stopped == [True]
+
+
 def test_normal_completion_reaps_without_cancellation_signal(monkeypatch):
     statuses = iter([(0, 0), (123, 0)])
     monkeypatch.setattr(engine.os, "waitpid", lambda *_: next(statuses))
