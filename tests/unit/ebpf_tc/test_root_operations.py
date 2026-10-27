@@ -273,9 +273,13 @@ def test_native_only_preserves_root_and_integrated_counts_both(stable):
     assert (second["native_used"], second["root_installations_used"]) == (2, 1)
 
 
-def test_four_operation_cost_contract_and_no_negative_costs():
+def test_operation_cost_contract_and_no_negative_costs():
     assert COSTS == dict(
-        ROOT_SETUP=(0, 1), ROOT_INSTALL=(0, 1), NATIVE_DIAGNOSTIC=(1, 0), ROOT_AND_NATIVE=(1, 1)
+        ROOT_SETUP=(0, 1),
+        ROOT_INSTALL=(0, 1),
+        ROOT_DNS_DIAGNOSTIC=(0, 1),
+        NATIVE_DIAGNOSTIC=(1, 0),
+        ROOT_AND_NATIVE=(1, 1),
     )
     with pytest.raises(ValueError, match="LEDGER_COST"):
         totals(

@@ -162,6 +162,7 @@ class DNSChild:
                 "LOCAL_DNS_READY",
                 "DNS_CHILD_FAILED",
                 "DNS_RESPONDER_COMPLETED",
+                "DNS_DIAGNOSTIC_COMPLETED",
             }:
                 raise ValueError("DNS_CHILD_EVIDENCE_SCHEMA")
             return value

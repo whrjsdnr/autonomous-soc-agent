@@ -87,7 +87,7 @@ class RootApproval(Contract):
     human_reference_sha: Hash
     policy_sha: Hash
     binding: RootBinding
-    operation: Literal["ROOT_SETUP", "ROOT_INSTALL"]
+    operation: Literal["ROOT_SETUP", "ROOT_INSTALL", "ROOT_DNS_DIAGNOSTIC"]
     scope: dict
     ledger_tip_sha: Hash
     issued_at: int = Field(ge=0)
@@ -99,6 +99,17 @@ class RootApproval(Contract):
 def implementation_sha() -> str:
     root = Path(__file__).parents[1]
     files = [root / "operation_budget.py", root / "native_campaign.py", Path(__file__)]
+    files += [
+        Path(__file__).with_name(n)
+        for n in (
+            "root_governance.py",
+            "dns_diagnostic.py",
+            "dns_diagnostic_engine.py",
+            "isolated_dns_engine.py",
+            "isolated_dns_worker.py",
+            "isolated_dns_launcher.py",
+        )
+    ]
     return digest({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files})
 
 
@@ -112,6 +123,8 @@ class RootOperations(StabilizationCampaign):
         approval_file: Path,
         approval_sha: str,
         root_manifest_file: Path,
+        dns_directory: Path | None = None,
+        dns_lease_file: Path | None = None,
     ) -> dict:
         policy = RootPolicy.model_validate(held_json(policy_file, policy_sha))
         approval = RootApproval.model_validate(held_json(approval_file, approval_sha))
@@ -134,7 +147,7 @@ class RootOperations(StabilizationCampaign):
         release = ReleaseManifest.model_validate(manifest)
         if release.version != binding.artifact.release:
             raise ValueError("ROOT_RELEASE_IDENTITY")
-        if approval.operation == "ROOT_INSTALL":
+        if approval.operation in ("ROOT_INSTALL", "ROOT_DNS_DIAGNOSTIC"):
             from soc_agent.security_ai.ebpf_tc.installation import verify_package
 
             verify_package(root_manifest_file.parent, binding.artifact.root_manifest)
@@ -151,6 +164,19 @@ class RootOperations(StabilizationCampaign):
                 start_native=False,
             )
         )
+        if approval.operation == "ROOT_DNS_DIAGNOSTIC":
+            from soc_agent.security_ai.ebpf_tc.dns_diagnostic import verify
+            from soc_agent.security_ai.ebpf_tc.isolated_dns_launcher import inspect_lease
+
+            if dns_directory is None or dns_lease_file is None:
+                raise ValueError("ROOT_DNS_ARTIFACT_AND_LEASE_REQUIRED")
+            metadata = verify(dns_directory, binding)
+            expected_scope = metadata["config"]["scope"]
+            inspect_lease(
+                dns_lease_file,
+                expected_scope["lease_sha256"],
+                RootBinding.model_validate(expected_scope["setup_binding"]),
+            )
         if approval.scope != expected_scope or digest(approval.scope) != binding.scope_sha:
             raise ValueError("ROOT_OPERATION_SCOPE")
 
@@ -171,6 +197,13 @@ class RootOperations(StabilizationCampaign):
                 raise ValueError("ROOT_SESSION_ALREADY_RESERVED")
             if rows[-1].get("record_sha256", digest(rows[-1])) != approval.ledger_tip_sha:
                 raise ValueError("ROOT_APPROVAL_STALE_LEDGER")
+            if approval.operation == "ROOT_DNS_DIAGNOSTIC" and not any(
+                r.get("event") == "ROOT_POLICY_ACTIVATED_V1"
+                and r.get("policy_sha256") == policy_sha
+                and r.get("binding") == binding.model_dump()
+                for r in rows
+            ):
+                raise ValueError("ROOT_DNS_POLICY_ACTIVATION_REQUIRED")
             # A live legacy reservation also excludes concurrent infrastructure work.
             finished = {
                 r.get("attempt_id")

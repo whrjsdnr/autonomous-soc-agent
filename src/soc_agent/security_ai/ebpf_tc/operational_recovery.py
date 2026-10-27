@@ -171,6 +171,7 @@ def main(argv=None) -> int:
         "request-sha",
         "attempt-id",
         "root-governance-sha",
+        "dns-operation-sha",
     ):
         parser.add_argument("--" + name)
     for name in (
@@ -188,12 +189,23 @@ def main(argv=None) -> int:
         "settlement-file",
         "request-file",
         "root-governance-file",
+        "dns-operation-file",
     ):
         parser.add_argument("--" + name, type=Path)
     args = parser.parse_args(argv)
     local_controller()  # Never a Root CLI or capability-bearing controller.
     directory = args.directory.absolute()
     try:
+        if args.dns_operation_file is not None or args.dns_operation_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.dns_diagnostic import run_packet
+            from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+
+            if not args.dns_operation_file or not args.dns_operation_sha:
+                raise ValueError("DNS_OPERATION_PACKET_PIN_REQUIRED")
+            packet = held_json(args.dns_operation_file, args.dns_operation_sha)
+            result = run_packet(args.mode, directory, packet)
+            print(json.dumps(result, indent=2))
+            return 0 if result.get("status") not in ("BLOCKED", "FAILED", "UNKNOWN") else 2
         if args.request_file is not None or args.request_sha is not None:
             from soc_agent.security_ai.ebpf_tc.execution_request import load_request
 

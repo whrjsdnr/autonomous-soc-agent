@@ -13,7 +13,12 @@ from pydantic import Field
 from soc_agent.security_ai.ebpf_tc.reassessment import Contract, Hash, Identity, digest, held_json
 from soc_agent.security_ai.ebpf_tc.root_operations import RootBinding, RootPolicy
 from soc_agent.security_ai.native_campaign import NativeCampaign, sha
-from soc_agent.security_ai.operation_budget import ALLOCATION_EVENT, totals
+from soc_agent.security_ai.operation_budget import (
+    ALLOCATION_EVENT,
+    DNS_ALLOCATION_EVENT,
+    batch_root_limit,
+    totals,
+)
 
 
 class RootAllocation(Contract):
@@ -39,6 +44,16 @@ class RootAllocation(Contract):
     refund: Literal[False] = False
     authorize_root: Literal[False] = False
     authorize_native: Literal[False] = False
+
+
+class RootDNSAllocation(RootAllocation):
+    contract: Literal["SOC_BATCH3_ROOT_DNS_ALLOCATION_V1"] = "SOC_BATCH3_ROOT_DNS_ALLOCATION_V1"
+    previous_root_max: Literal[3] = 3
+    root_max: Literal[4] = 4
+    dns_allowance: Literal[1] = 1
+    previous_allocation_record_sha: Hash
+    budget_only: Literal[True] = True
+    authorize_dns_execution: Literal[False] = False
 
 
 def _review(path: Path, pin: str) -> dict:
@@ -179,4 +194,77 @@ def apply_packet(campaign, packet: dict) -> dict:
             allocation_file=Path(packet["allocation_file"]),
             allocation_sha=packet["allocation_sha"],
         )
+    if packet.get("kind") == "ROOT_DNS_ALLOCATION":
+        return allocate_dns_root(
+            campaign,
+            review_file=Path(packet["review_file"]),
+            review_sha=packet["review_sha"],
+            allocation_file=Path(packet["allocation_file"]),
+            allocation_sha=packet["allocation_sha"],
+        )
     raise ValueError("ROOT_GOVERNANCE_PACKET_KIND")
+
+
+def allocate_dns_root(
+    campaign, *, review_file: Path, review_sha: str, allocation_file: Path, allocation_sha: str
+) -> dict:
+    """One append-only 3→4 amendment; no historical grant/charge replacement."""
+    review = _review(review_file, review_sha)
+    a = RootDNSAllocation.model_validate(held_json(allocation_file, allocation_sha))
+    if (
+        a.approved_binding != RootBinding.model_validate(review["binding"])
+        or a.review_package_sha != review_sha
+        or a.budget_sha != sha(campaign.budget_body)
+        or a.baseline_sha != sha(campaign.baseline_body)
+        or review["budget"]["DNS"]["proposed_batch3_total_root_cap"] != 4
+        or review["budget"]["DNS"]["human_reference_sha"] != a.human_reference_sha
+        or review["budget"]["DNS"]["approver"] != a.approver
+        or campaign.batch != a.batch
+    ):
+        raise ValueError("ROOT_DNS_ALLOCATION_REVIEW_BINDING")
+
+    def append(rows):
+        _validity(a.issued_at, a.expires_at)
+        if any(r.get("event") == DNS_ALLOCATION_EVENT for r in rows):
+            raise ValueError("ROOT_DNS_ALLOCATION_REPLAY")
+        if _tip(rows) != a.ledger_tip_sha:
+            raise ValueError("ROOT_GOVERNANCE_STALE_LEDGER")
+        bases = [r for r in rows if r.get("event") == ALLOCATION_EVENT]
+        policies = [
+            r
+            for r in rows
+            if r.get("event") == "ROOT_POLICY_ACTIVATED_V1"
+            and r.get("record_sha256") == a.policy_record_sha
+        ]
+        if (
+            len(bases) != 1
+            or len(policies) != 1
+            or bases[0].get("record_sha256") != a.previous_allocation_record_sha
+            or batch_root_limit(rows, campaign.budget, a.batch) != 3
+            or a.expires_at > bases[0]["allocation"]["expires_at"]
+            or bases[0]["allocation"]["approved_binding"] != a.approved_binding.model_dump()
+            or bases[0]["allocation"]["policy_record_sha"] != a.policy_record_sha
+        ):
+            raise ValueError("ROOT_DNS_ALLOCATION_PARENT")
+        p = RootPolicy.model_validate(policies[0]["policy"])
+        _validity(p.issued_at, p.expires_at)
+        if (
+            p.binding != a.approved_binding
+            or p.approver != a.approver
+            or not p.issued_at <= a.issued_at < a.expires_at <= p.expires_at
+        ):
+            raise ValueError("ROOT_DNS_ALLOCATION_POLICY_BINDING")
+        return dict(
+            event=DNS_ALLOCATION_EVENT,
+            allocation=a.model_dump(),
+            allocation_receipt_sha=allocation_sha,
+            allocation_payload_sha=digest(a.model_dump()),
+            old_root_cap=3,
+            new_root_cap=4,
+            campaign_usage=totals(rows),
+            batch_usage=totals(rows, batch=a.batch),
+            authorizes_execution=False,
+            binding_scope="PARENT_BUDGET_PROVENANCE_NOT_NEW_EXECUTION_APPROVAL",
+        )
+
+    return NativeCampaign._locked(campaign, append)

@@ -9,10 +9,13 @@ import json
 import time
 from typing import Literal
 
-Operation = Literal["ROOT_SETUP", "ROOT_INSTALL", "NATIVE_DIAGNOSTIC", "ROOT_AND_NATIVE"]
+Operation = Literal[
+    "ROOT_SETUP", "ROOT_INSTALL", "ROOT_DNS_DIAGNOSTIC", "NATIVE_DIAGNOSTIC", "ROOT_AND_NATIVE"
+]
 COSTS = {
     "ROOT_SETUP": (0, 1),
     "ROOT_INSTALL": (0, 1),
+    "ROOT_DNS_DIAGNOSTIC": (0, 1),
     "NATIVE_DIAGNOSTIC": (1, 0),
     "ROOT_AND_NATIVE": (1, 1),
 }
@@ -21,6 +24,7 @@ ROOT_FINISHED = "ROOT_OPERATION_FINISHED_V1"
 
 
 ALLOCATION_EVENT = "ROOT_BATCH_ALLOCATION_RECORDED_V1"
+DNS_ALLOCATION_EVENT = "ROOT_BATCH_DNS_ALLOCATION_RECORDED_V1"
 
 
 def batch_root_limit(rows: list[dict], budget: dict, batch: str) -> int:
@@ -31,6 +35,8 @@ def batch_root_limit(rows: list[dict], budget: dict, batch: str) -> int:
         if r.get("event") == ALLOCATION_EVENT and r.get("allocation", {}).get("batch") == batch
     ]
     if not grants:
+        if any(r.get("event") == DNS_ALLOCATION_EVENT for r in rows):
+            raise ValueError("ROOT_DNS_ALLOCATION_PARENT")
         return budget["root_per_batch_max"]
     if len(grants) != 1 or batch != "BATCH3":
         raise ValueError("ROOT_ALLOCATION_DUPLICATE_OR_BATCH")
@@ -58,9 +64,34 @@ def batch_root_limit(rows: list[dict], budget: dict, batch: str) -> int:
         or budget["root_per_batch_max"] != 2
     ):
         raise ValueError("ROOT_ALLOCATION_INVALID")
+    amendments = [r for r in rows if r.get("event") == DNS_ALLOCATION_EVENT]
+    limit = 3
+    if amendments:
+        if len(amendments) != 1:
+            raise ValueError("ROOT_DNS_ALLOCATION_DUPLICATE")
+        amendment = amendments[0]
+        a = amendment["allocation"]
+        expected_dns = expected | dict(
+            contract="SOC_BATCH3_ROOT_DNS_ALLOCATION_V1",
+            previous_root_max=3,
+            root_max=4,
+            dns_allowance=1,
+            budget_only=True,
+            authorize_dns_execution=False,
+        )
+        body = (json.dumps(a, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        if (
+            any(type(a.get(k)) is not type(v) or a[k] != v for k, v in expected_dns.items())
+            or hashlib.sha256(body).hexdigest() != amendment.get("allocation_payload_sha")
+            or a.get("previous_allocation_record_sha") != event.get("record_sha256")
+            or not grant["issued_at"] <= a["issued_at"] < a["expires_at"] <= grant["expires_at"]
+        ):
+            raise ValueError("ROOT_DNS_ALLOCATION_INVALID")
+        if a["issued_at"] <= time.time() < a["expires_at"]:
+            limit = 4
     if not grant["issued_at"] <= time.time() < grant["expires_at"]:
         return budget["root_per_batch_max"]  # Never refunds charges or extends validity.
-    return 3
+    return limit
 
 
 def totals(rows: list[dict], *, batch: str | None = None) -> tuple[int, int]:
@@ -75,7 +106,11 @@ def totals(rows: list[dict], *, batch: str | None = None) -> tuple[int, int]:
             native += 1
             root += cost
         elif row.get("event") == ROOT_RESERVED:
-            if row.get("operation") not in ("ROOT_SETUP", "ROOT_INSTALL") or (
+            if row.get("operation") not in (
+                "ROOT_SETUP",
+                "ROOT_INSTALL",
+                "ROOT_DNS_DIAGNOSTIC",
+            ) or (
                 type(row.get("root_cost")) is not int
                 or row["root_cost"] != 1
                 or type(row.get("native_cost")) is not int
@@ -112,7 +147,16 @@ def guard_reservation(rows: list[dict], event: dict, budget: dict, batch: str | 
     if batch is not None:
         bn, br = totals(rows, batch=batch)
         limit = batch_root_limit(rows, budget, batch)
-        if limit == 3:
+        dns = sum(
+            r.get("event") == ROOT_RESERVED
+            and r.get("operation") == "ROOT_DNS_DIAGNOSTIC"
+            and r.get("batch") == batch
+            for r in rows
+        )
+        new_dns = int(event.get("operation") == "ROOT_DNS_DIAGNOSTIC")
+        if new_dns and limit != 4:
+            raise ValueError("ROOT_DNS_ALLOCATION_REQUIRED")
+        if limit in (3, 4):
             setups = sum(
                 r.get("event") == ROOT_RESERVED
                 and r.get("operation") == "ROOT_SETUP"
@@ -122,7 +166,11 @@ def guard_reservation(rows: list[dict], event: dict, budget: dict, batch: str | 
             new_setup = int(
                 event["event"] == ROOT_RESERVED and event.get("operation") == "ROOT_SETUP"
             )
-            if setups + new_setup > 1 or br - setups + dr - new_setup > 2:
+            if (
+                setups + new_setup > 1
+                or dns + new_dns > 1
+                or br - setups - dns + dr - new_setup - new_dns > 2
+            ):
                 raise ValueError("STABILIZATION_ROOT_SUBALLOCATION_EXHAUSTED")
         if bn + dn > budget["native_per_batch_max"] or br + dr > limit:
             raise ValueError("STABILIZATION_BATCH_BUDGET_EXHAUSTED")

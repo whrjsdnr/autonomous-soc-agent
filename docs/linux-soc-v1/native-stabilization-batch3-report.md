@@ -842,3 +842,54 @@ One consolidated decision package records the exact image/Scope/lease/Ledger, th
 Existing FAILED / originalfalse / Program1145 UNKNOWN / past EVIDENCE_INCOMPLETE and Root/Native UNKNOWN remain unchanged. P02/P03 remain INCOMPLETE; P04 has no new actual Native ELIGIBLE candidate. Native AI, DNS9 and production remain BLOCKED. Protected112 / historical Native55 / installed9 / Rollback9 pins match.
 
 Evidence and exact decision package: `.git/native-stabilization-batch3/namespace-dns-integration-20261027-1/`. Only the transport-cleanup fix, its tests and this report section are selected for Commit/Push. Existing report drafts, Namespace, Ledger/Audit, installation/Rollback and prior Native evidence remain preserved. Final Git Commit/Tree and remote confirmation are recorded in `git-and-readiness.json` in that directory.
+
+
+## DNS-only Root diagnostic integration — 2026-10-27
+
+Status: INSTRUMENTED / READY_FOR_EXACT_POLICY_AND_EXECUTION_APPROVAL. This section supersedes the preceding DNS-only budget proposal; it does not replace historical Native results. No sudo authentication, Namespace entry, DNS packets, Native Collector, TCX attach or inference was performed in this task.
+
+### Operational code and execution contract
+
+The existing `native-recovery prepare/check/execute` entry point accepts a pinned DNS-operation packet. `dns_diagnostic.py` reuses the release Builder, official ApplicationPlan Session, Root Manifest, retained-install inspection, RootPolicy/RootApproval and locked Campaign writer. The previous guarded DNS review image remains separate. The new operational image has a fixed DNS-only entry point; it can execute after exact policy activation and a separate Root execution approval without source edits. It does not authorize or start installation or Native.
+
+`ROOT_DNS_DIAGNOSTIC` costs Root1 / Native0. Scope approval and owner foreground-TTY confirmation precede reservation and direct OS authentication. Declining creates no reservation. Root rechecks exact receipts, dependency/image/Scope/Session pins and the hash-chained reservation snapshot. A persistent, Root-owned exclusive `/run/soc-agent-dns-<approval_sha256>.claimed` file prevents Root-side replay; this small replay record is deliberately retained and is part of the requested Scope. The fixed sealed Bootstrap's existing `--unified-policy-check` is reused for password-policy qualification before Namespace entry; no alternate authentication policy is introduced.
+
+The held Namespace FD must match lease, boot ID, device4/inode4026532232 and creation provenance. The child prebinds only 127.0.0.53:53, drops to the authenticated ordinary UID/GID with zero P/E/I/A/bounding capabilities and NoNewPrivs, and verifies socket cookies. Fixed local clients issue UDP2/TCP1 without retries. Actual server TCP-close monotonic time starts the minimum35s observation; the second UDP and normal45s completion preserve timestamps. Worker deadline60s, bounded Root parent75s, 256MiB and CPU20s remain explicit. DNS Sidecar analysis10s is unchanged and no Sidecar analysis is started by this diagnostic. No external interface/route, namespace deletion, Host change or arbitrary Root command is supported.
+
+Worker/socket failures fail closed. Owned child/FD cleanup and residual kernel TIME_WAIT are distinguished. The first Root/worker error is preserved separately from later failures. Cleanup does not refund charged attempts or reactivate receipts. Synthetic timing/response success is not actual DNS or Flow completeness evidence.
+
+### Approved budget amendment, independent from execution policy
+
+The current human instruction by 조건욱, project owner/policy authority, approves only the fiscal Root3→4 amendment in addition to nonprivileged development. Existing parent allocation Binding is retained as fiscal provenance, not reused as authorization for changed code. A fresh human decision reference is linked to that parent grant. No new DNS execution policy or Root execution approval receipt was issued.
+
+- Recorded approval start: `2026-10-27T18:27:02+09:00`; expiry clamped to parent grant/policy: `2026-10-28T15:47:27+09:00`; no extension/backdating.
+- Allocation receipt SHA: `2b55c06558cf6432502b584e69d8271406dccea747859d47da15250c73e283c1`.
+- Append-only event: `ROOT_BATCH_DNS_ALLOCATION_RECORDED_V1`, record `13374a8e4c4e34d6dca5ef54247da31f1b4aae8e60e240f80a3d66f71da1d1ea`.
+- Original25-row prefix and base budget bytes preserved; chain now26 rows, SHA `7f61dbdcd8e589e40f8b11d405a435c4057223ab6738005984abbd5902b59c5f`. Replaying the same packet was rejected without an append.
+- Campaign Root5/10, Native4/10; Batch3 Root2/4, Native1/2. These charged counts retain prior UNKNOWN reservations; no refund and no new execution reservation.
+- One separately approved DNS attempt would use Root6/10 and Batch3 Root3/4, leaving one Batch3 Root installation slot. A later separately approved combined Native/installation attempt would use Root7/10, Native5/10, Batch3 Root4/4 and Native2/2. Projections are not execution permissions.
+
+### Nonprivileged verification and Artifact identity
+
+Workspace601 PASS and independent frozen Export601 PASS, including new focused26 PASS and existing Approval/Ledger, installer/runtime, Supervisor, flow/window/checkpoint and Namespace tests. The new tests use temporary receipts/Ledgers and in-memory DNS transports; no live DNS packets or Root calls. Failure injection covers cap4/campaign10, Native independence, stale/replayed grants, wrong parent/Session/Scope/SHA, missing policy, source/dependency mutation, owner-TTY rejection, cookies/responses and bounded cleanup. No assertion or security gate was weakened.
+
+Ruff / Format / Diff PASS. Frozen Source1,747 inputs: `14a06e0b7f563bc4f136dbc62f6766ebd1f605567a6893aeb354975cd43f4431`. Review Stage and independent buildsA/B match all30 file names and SHA values. DNS metadata19,770B and operational image129,925B are within existing bounded readers. The image includes sealed bootstrap bytes; metadata pins its SHA. Existing trusted OS/stdlib assumptions remain; no broader ABI or operational compatibility claim is inferred.
+
+| DNS diagnostic identity | SHA256 |
+|---|---|
+| Manifest | `a98686bc7a6ac52d3c5ccd48beecb6a0a3cbbd31f536ecca5f20448db1692ca4` |
+| Bundle | `231486a0d0c7076783d54867a2921535cf8e70c089f66bee09097f103f816f30` |
+| Execution Image | `f27e858f111abdd41ccf14e29984c31ff8bbd02c6ac2b07aba59d995a2b815ca` |
+| Root Manifest | `6752b8ccd9dfae3770d6a2f40e3a331890280365a0a00cdb8e291baacb74460c` |
+
+Official diagnostic Session: `32a246d5-ad7c-4b7d-94f1-0f1838a1dcaf`, Release0.6.3, SOC Namespace `net:[4026532232]`, Host `net:[4026531833]`. Runtime uses current zlibubuntu2.3, library SHA `f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242`, with libbpf/libelf, interpreter/sudo and measured dependency pins in the new image metadata/Root Manifest. Existing installation and Rollback are inspected independently and never replaced.
+
+The separate Native preview remains guarded: Manifest `e7a497d6e58bae2cc5a709b87dcf8eccc30653a9f8b37367d22da54004290d61`, image `409a7084013bc2fbcfcee93809bcbf60c0822a318eac278d366ea645d8f4d83a`. It is not the DNS diagnostic and is not EXECUTION_READY. Native Scope activation and fresh R1/R2/Root/Native approvals remain independent.
+
+### Actual evidence and remaining decisions
+
+The existing named Namespace lease/inode/boot identity is unchanged. Internal lo flags, routes, socket cookie, actual DNS response/timing and post-worker cleanup are NOT_OBSERVED pending approved Namespace entry. No real Flow Timeout, Capture Integrity or Network14 eligibility claim is made. Existing FAILED / originalfalse / Program1145 UNKNOWN / historical EVIDENCE_INCOMPLETE / Root-Native UNKNOWN remain preserved. P02/P03 remain INCOMPLETE; P04 has no new actual Native ELIGIBLE candidate. Native AI, DNS9 and production remain BLOCKED.
+
+One exact approval package is at `.git/native-stabilization-batch3/dns-root-operation-20261027-1/dns-execution-approval-package.json` and its Markdown companion. It requests current-code DNS policy activation and one ROOT_DNS_DIAGNOSTIC with local UDP2/TCP1, held Namespace entry, fixed password-policy check, credential drop, bounded parent/worker and replay-claim retention. This is not an approval or an execution receipt. A missing-grant nonconsuming CLI check must remain blocked; no `execute` call is permitted by this task.
+
+Final Git Commit/Tree, approval Binding, source/artifact recheck and remote result are recorded in `git-and-readiness.json` in that evidence directory. Only this task's operating code/tests and this report section are selected; preexisting Batch2/Batch3 report drafts and user changes remain unstaged. Historical Native evidence, installation/Rollback and original Ledger/Audit records remain intact.

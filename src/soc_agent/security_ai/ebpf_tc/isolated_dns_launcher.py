@@ -99,21 +99,10 @@ def prepare_dns_launcher(
     controller = local_controller()
     scope = launcher_scope(binding, lease, lease_sha)
     config = scope | dict(uid=controller.uid, gid=os.getgid())
-    source = (
-        "from __future__ import annotations\n"
-        "import os, socket, select, struct, time\n"
-        "from types import SimpleNamespace as IsolatedScope\n"
-        f"QUESTION = {namespace_isolation.QUESTION!r}\n"
-        + _definitions(namespace_isolation)
-        + "\n"
-        + _definitions(isolated_dns_worker)
-        + "\n"
-        + Path(__file__).with_name("isolated_dns_engine.py").read_text()
-        + "\nDNS_CONFIG = "
-        + repr(config)
-        + "\nif __name__ == '__main__':\n"
-        + "    raise SystemExit('ISOLATED_DNS_LIFECYCLE_APPROVAL_REQUIRED')\n"
-    ).encode()
+    source = service_source(config) + (
+        b"\nif __name__ == '__main__':\n"
+        b"    raise SystemExit('ISOLATED_DNS_LIFECYCLE_APPROVAL_REQUIRED')\n"
+    )
     compile(source, "<reviewed-isolated-dns-child>", "exec")
     # Exclusive output: never replace an approved image or existing installation.
     fd = os.open(output, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o400)
@@ -132,3 +121,21 @@ def prepare_dns_launcher(
         traffic_executed=False,
         native_executed=False,
     )
+
+
+def service_source(config: dict) -> bytes:
+    """Shared immutable service; builders choose a guarded or validated entry."""
+    return (
+        "from __future__ import annotations\n"
+        "import os, socket, select, struct, time\n"
+        "from types import SimpleNamespace as IsolatedScope\n"
+        f"QUESTION = {namespace_isolation.QUESTION!r}\n"
+        + _definitions(namespace_isolation)
+        + "\n"
+        + _definitions(isolated_dns_worker)
+        + "\n"
+        + Path(__file__).with_name("isolated_dns_engine.py").read_text()
+        + "\nDNS_CONFIG = "
+        + repr(config)
+        + "\n"
+    ).encode()

@@ -21,6 +21,7 @@ def serve_prebound(
     tcp: socket.socket,
     *,
     ready: Callable[[dict], None],
+    tcp_closed: Callable[[int], None] | None = None,
 ) -> dict:
     """Own/close supplied sockets, one UDP2/TCP1 exchange, at most60s.
 
@@ -82,6 +83,8 @@ def serve_prebound(
                         stream.sendall(answer)
                         stream.shutdown(socket.SHUT_WR)
                     tcp_closed_ns = time.monotonic_ns()
+                    if tcp_closed is not None:
+                        tcp_closed(tcp_closed_ns)
                     transport = "TCP"
                 events.append(
                     dict(transport=transport, application_monotonic_ns=time.monotonic_ns())
