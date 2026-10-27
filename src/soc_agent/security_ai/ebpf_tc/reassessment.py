@@ -54,7 +54,7 @@ class Artifact(Contract):
 
 class Binding(Contract):
     campaign: Literal["SOC_NATIVE_STABILIZATION"] = "SOC_NATIVE_STABILIZATION"
-    batch: Literal["BATCH2"] = "BATCH2"
+    batch: Literal["BATCH2", "BATCH3"] = "BATCH2"
     previous_attempt: Identity
     previous_session: Identity
     previous_artifact: Artifact
@@ -109,6 +109,8 @@ class ReviewReceipt(Contract):
     accept_unknown_external_removal_cause: bool = False
     issued_at: int = Field(ge=0)
     expires_at: int = Field(gt=0)
+    # Explicit human risk acceptance of exact accounting settlements; never a safe flag.
+    accepted_settlements: dict[Identity, Hash] = Field(default_factory=dict, max_length=10)
     max_next_attempts: Literal[1] = 1
     authorize_native: Literal[False] = False
     authorize_root: Literal[False] = False
@@ -225,6 +227,7 @@ def reassess(
             or finished[0].get("outcome") != "FAILED"
         ):
             raise ValueError("REASSESSMENT_PRIOR_SESSION_OR_RELEASE")
+        validate_settlement_acceptances(rows, receipt.accepted_settlements)
         for row in rows:
             if row.get("event") == "SAFETY_REASSESSMENT_RECORDED_V1" and (
                 row.get("receipt_id") == receipt.receipt_id
@@ -243,6 +246,7 @@ def reassess(
             binding=expected_binding.model_dump(),
             evidence=evidence.model_dump(),
             decision=receipt.decision,
+            accepted_settlements=receipt.accepted_settlements,
             expires_at=receipt.expires_at,
             legacy_admission_unchanged=True,
             authorizes_execution=False,
@@ -250,3 +254,25 @@ def reassess(
 
     # Use existing chain validation/flock/fsync. No synthesized legacy safe=True event.
     return NativeCampaign._locked(campaign, append)
+
+
+def validate_settlement_acceptances(rows: list[dict], accepted: dict[str, str]) -> None:
+    """Pin explicitly reviewed UNKNOWN accounting outcomes, not inferred Cleanup success."""
+    for attempt, pin in accepted.items():
+        matches = [
+            r
+            for r in rows
+            if r.get("attempt_id") == attempt
+            and r.get("event") == "EXECUTION_RESERVATION_SETTLED_V1"
+        ]
+        if (
+            len(matches) != 1
+            or matches[0].get("record_sha256") != pin
+            or matches[0].get("disposition") != "EVIDENCE_INCOMPLETE"
+            or matches[0].get("root") != "UNKNOWN"
+            or matches[0].get("native") != "UNKNOWN"
+            or matches[0].get("budget_action") != "KEEP_RESERVATION_CHARGE"
+            or matches[0].get("approval_reusable") is not False
+            or matches[0].get("authorizes_execution") is not False
+        ):
+            raise ValueError("REASSESSMENT_SETTLEMENT_RISK_BINDING")

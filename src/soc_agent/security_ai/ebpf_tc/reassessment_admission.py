@@ -17,9 +17,28 @@ from soc_agent.security_ai.ebpf_tc.reassessment import (
     Identity,
     digest,
     held_json,
+    validate_settlement_acceptances,
 )
 from soc_agent.security_ai.native_campaign import NativeCampaign
 from soc_agent.security_ai.stabilization_campaign import StabilizationCampaign
+
+
+class BatchAllocation(Contract):
+    """Separate human budget decision embedded and pinned by the admission amendment."""
+
+    contract: Literal["SOC_STABILIZATION_BATCH_ALLOCATION_V1"] = (
+        "SOC_STABILIZATION_BATCH_ALLOCATION_V1"
+    )
+    decision: Literal["APPROVED"]
+    approver: Identity
+    human_reference_sha: Hash
+    batch: Literal["BATCH3"]
+    budget_sha: Hash
+    baseline_sha: Hash
+    native_max: Literal[2] = 2
+    root_max: Literal[2] = 2
+    expires_at: int
+    refund_previous: Literal[False] = False
 
 
 class AdmissionAmendment(Contract):
@@ -38,6 +57,7 @@ class AdmissionAmendment(Contract):
     review_receipt_sha: Hash
     expires_at: int
     # Approval of THIS versioned admission rule is separate from execution approval.
+    batch_allocation: BatchAllocation | None = None
     activate_versioned_admission: Literal[True]
     original_result_unchanged: Literal[True] = True
     root_commands_authorized: Literal[False] = False
@@ -45,8 +65,8 @@ class AdmissionAmendment(Contract):
 
 class ReassessedCampaign(StabilizationCampaign):
     def __init__(self, directory: Path, *, amendment_file: Path, amendment_sha: str):
-        super().__init__(directory, "BATCH2")
         self.amendment = AdmissionAmendment.model_validate(held_json(amendment_file, amendment_sha))
+        super().__init__(directory, self.amendment.binding.batch)
         self.amendment_sha = amendment_sha
         a = self.amendment
         if (
@@ -57,6 +77,16 @@ class ReassessedCampaign(StabilizationCampaign):
             or time.time() >= a.expires_at
         ):
             raise ValueError("REASSESSMENT_AMENDMENT_BINDING")
+        if self.batch == "BATCH3":
+            allocation = a.batch_allocation
+            if (
+                allocation is None
+                or allocation.batch != self.batch
+                or allocation.budget_sha != a.budget_sha
+                or allocation.baseline_sha != a.baseline_sha
+                or time.time() >= allocation.expires_at
+            ):
+                raise ValueError("STABILIZATION_BATCH_ALLOCATION_REQUIRED")
 
     def reserve(
         self, identity, scope, dns_scope, approval_file, approval_sha, *, root_cost, git_commit=None
@@ -93,6 +123,7 @@ class ReassessedCampaign(StabilizationCampaign):
             a = self.amendment
             if (
                 time.time() >= a.expires_at
+                or (a.batch_allocation is not None and time.time() >= a.batch_allocation.expires_at)
                 or event["approval_sha256"] != self.execution_receipt_sha
             ):
                 raise ValueError("REASSESSMENT_ADMISSION_EXPIRED")
@@ -119,8 +150,13 @@ class ReassessedCampaign(StabilizationCampaign):
             finished = {
                 r.get("attempt_id") for r in rows if r["event"] == "NATIVE_ATTEMPT_FINISHED"
             }
+            accepted = review.get("accepted_settlements", {})
+            validate_settlement_acceptances(rows, accepted)
             for old in reservations:
                 if old.get("attempt_id") not in finished:
+                    if old.get("attempt_id") in accepted:
+                        # New human risk decision; charge and UNKNOWN stay intact.
+                        continue
                     raise ValueError("REASSESSMENT_PRIOR_ATTEMPT_UNFINISHED")
                 legacy = [
                     r
@@ -137,7 +173,7 @@ class ReassessedCampaign(StabilizationCampaign):
                     raise ValueError("REASSESSMENT_OTHER_ATTEMPT_BLOCKED")
                 if old.get("reassessment_record_sha") == a.reassessment_record_sha:
                     raise ValueError("REASSESSMENT_ADMISSION_REPLAY")
-            batch = [r for r in reservations if r.get("batch") == "BATCH2"]
+            batch = [r for r in reservations if r.get("batch") == self.batch]
             if len(batch) >= 2 or sum(r["root_cost"] for r in batch) + event["root_cost"] > 2:
                 raise ValueError("STABILIZATION_BATCH_BUDGET_EXHAUSTED")
             prior = a.binding.next_artifact
@@ -149,7 +185,7 @@ class ReassessedCampaign(StabilizationCampaign):
             ):
                 raise ValueError("REASSESSMENT_NEXT_ARTIFACT")
             event.update(
-                batch="BATCH2",
+                batch=self.batch,
                 controller_sha256=self.controller_sha,
                 admission_amendment_sha=self.amendment_sha,
                 reassessment_record_sha=a.reassessment_record_sha,
@@ -229,7 +265,9 @@ def require_r2_reservation(
     directory: Path, *, session: str, receipt_sha: str, identity: dict
 ) -> None:
     """Read/validate the existing chain under its lock, without appending an event."""
-    campaign = StabilizationCampaign(directory, "BATCH2")
+    campaign = StabilizationCampaign(
+        directory, "BATCH2"
+    )  # Read-only chain; matched reservation owns batch.
 
     class Checked(Exception):
         pass
@@ -245,14 +283,20 @@ def require_r2_reservation(
             and r.get("admission_amendment_sha")
             and r.get("reassessment_record_sha")
         ]
-        finished = {r.get("attempt_id") for r in rows if r["event"] == "NATIVE_ATTEMPT_FINISHED"}
+        finished = {
+            r.get("attempt_id")
+            for r in rows
+            if r["event"] in {"NATIVE_ATTEMPT_FINISHED", "EXECUTION_RESERVATION_SETTLED_V1"}
+        }
         if len(matching) != 1 or matching[0]["attempt_id"] in finished:
             raise ValueError("R2_APPROVED_RESERVATION_REQUIRED")
         reviews = [
             r for r in rows if r.get("record_sha256") == matching[0]["reassessment_record_sha"]
         ]
         if (
-            len(reviews) != 1
+            matching[0].get("batch") not in {"BATCH2", "BATCH3"}
+            or len(reviews) != 1
+            or reviews[0].get("binding", {}).get("batch") != matching[0].get("batch")
             or reviews[0].get("decision") != "ALLOW_NEXT_ADMISSION_ONLY"
             or time.time() >= reviews[0].get("expires_at", 0)
         ):

@@ -275,7 +275,7 @@ def main(argv=None) -> int:
                 )
             packet = held_json(args.evidence_file, args.evidence_sha)
             result = reassess(
-                StabilizationCampaign(args.campaign, "BATCH2"),
+                StabilizationCampaign(args.campaign, packet["binding"]["batch"]),
                 procedure_file=args.procedure_file,
                 procedure_sha=args.procedure_sha,
                 receipt_file=args.review_file,
