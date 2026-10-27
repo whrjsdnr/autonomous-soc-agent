@@ -46,6 +46,14 @@ class CopyReceipt(Protocol):
     def receipt(self) -> dict: ...
 
 
+def require_capture_namespace() -> None:
+    # Only the SHA-held image supplies this constant; never argv/environment.
+    # Historical images retain the original scope when the constant is absent.
+    expected_namespace = globals().get("DNS_CAPTURE_NAMESPACE", "net:[4026531833]")
+    if os.readlink("/proc/self/ns/net") != expected_namespace or socket.if_nametoindex("lo") != 1:
+        raise ValueError("DNS_COPY_NAMESPACE_INTERFACE")
+
+
 def capture_deadline(started: float, session_deadline: float, *, start_gate: bool) -> float:
     # The analysis worker must exit by session_deadline - 0.5. The old capture
     # endpoint (-0.75) left only 0.25s for EOF, Zeek finalization and Docker exit.
@@ -73,8 +81,7 @@ def capture_analysis(
     # Existing diagnostic socket setup/filter/drop routines are embedded verbatim.
     if os.geteuid() != 0 or uid <= 0 or gid <= 0:
         raise ValueError("DNS_COPY_ROOT_ENTRY_REQUIRED")
-    if os.readlink("/proc/self/ns/net") != "net:[4026531833]" or socket.if_nametoindex("lo") != 1:
-        raise ValueError("DNS_COPY_NAMESPACE_INTERFACE")
+    require_capture_namespace()
     stage = "SOCKET_OPEN"
     try:
         session_started = time.monotonic() if session_started is None else session_started

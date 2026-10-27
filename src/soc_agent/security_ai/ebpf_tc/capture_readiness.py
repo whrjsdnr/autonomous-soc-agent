@@ -18,7 +18,9 @@ def loopback_snapshot() -> dict:
     )
 
 
-def assess_loopback_budget(samples: list[dict]) -> dict:
+def assess_loopback_budget(
+    samples: list[dict], *, expected_namespace: str = "net:[4026531833]"
+) -> dict:
     """Project ambient packet load against the existing 45s/4096 contract.
 
     No packet filtering, rate control or invented diagnostic-traffic allowance.
@@ -32,7 +34,7 @@ def assess_loopback_budget(samples: list[dict]) -> dict:
         target_seconds=45,
         target_origin="TCP_CLOSE_NOT_CAPTURE_START",
         setup_duration_seconds="UNKNOWN_ADDITIONAL_BUDGET_REQUIRED",
-        expected_namespace="net:[4026531833]",
+        expected_namespace=expected_namespace,
         scenario_packets="NOT_BOUNDED_BY_PASSIVE_MEASUREMENT",
     )
     if len(samples) < 2:

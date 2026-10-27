@@ -78,6 +78,7 @@ def _prepare(
     *,
     deployment_directory: Path | None = None,
     recovery: RecoveryBuild | None = None,
+    namespace_preview: str | None = None,
 ) -> dict:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
     _, _, package, manifest = prepare_candidate(directory, version="0.6.3", inspector=True)
@@ -87,6 +88,7 @@ def _prepare(
         directory / "supervisor-image.py",
         dns_sidecar=True,
         **({"recovery": recovery} if recovery else {}),
+        **({"namespace_preview": namespace_preview} if namespace_preview else {}),
     )
     image.verify()
     if deployment_directory is not None:
@@ -103,6 +105,9 @@ def _prepare(
     base = UnifiedImage.model_validate(
         {k: v for k, v in image.model_dump(mode="json").items() if k in UnifiedImage.model_fields}
     )
+    from soc_agent.security_ai.ebpf_tc.namespace_isolation import dns_scope_digest
+
+    namespace = namespace_preview or SCOPE["namespace"]
     dns = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
         version="0.6.3_INTEGRATED_DNS_0520",
@@ -110,15 +115,15 @@ def _prepare(
         image=base.model_dump(mode="json"),
         sources=offload_session.sources(),
         bundle_digest=hashlib.sha256(canonical(offload_session.sources())).hexdigest(),
-        capture_scope_digest=hashlib.sha256(
-            b"DNS_LOCAL_PARTIAL_COPY_V4:net4026531833:lo:7s:32:512:prewarm:shared10s:tty:seqpacket"
-        ).hexdigest(),
-        scope=DNS_SCOPE,
+        capture_scope_digest=dns_scope_digest(namespace),
+        scope=DNS_SCOPE | dict(namespace=namespace),
     )
     offload_session.publish(sidecar / "release.json", dns)
     release = verify_package(package, manifest)
     value = dict(
-        contract="SOC_PHASE_D_UNIFIED_V1",
+        contract="SOC_PHASE_D_NAMESPACE_PREVIEW_V1"
+        if namespace_preview
+        else "SOC_PHASE_D_UNIFIED_V1",
         version="0.6.3",
         tcx_manifest=manifest,
         tcx_program=release.payloads["tc.bpf.o"].sha256,
@@ -135,7 +140,7 @@ def _prepare(
             dns_post_bind="E_P_I_A_ZERO_BOUNDING_PRE_BIND_MASK_NO_NEW_PRIVS",
             gui="ZERO",
         ),
-        scope=SCOPE,
+        scope=SCOPE | dict(namespace=namespace),
         native_ai="BLOCKED",
         dns9="BLOCKED",
         operational_promotion="BLOCKED",
@@ -151,6 +156,24 @@ def _prepare(
         image=image.sha256,
         tcx_manifest=manifest,
     )
+
+
+def prepare_namespace_preview(
+    directory: Path, namespace: str, *, deployment_directory: Path | None = None
+) -> dict:
+    """Build guarded review bytes only; cannot create/enter a Namespace or execute.
+
+    Until infrastructure creation is approved, a test inode is synthetic and
+    must not be treated as an observed Namespace Identity or Native approval.
+    """
+    from soc_agent.security_ai.ebpf_tc.namespace_isolation import IsolatedScope
+
+    IsolatedScope(namespace=namespace)
+    with SourceGuard(Path(__file__).parents[2]):
+        result = _prepare(
+            directory, namespace_preview=namespace, deployment_directory=deployment_directory
+        )
+    return result | dict(status="ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED", executed=False)
 
 
 def validate(directory: Path, manifest: str, image_sha: str) -> dict:

@@ -394,3 +394,184 @@ R2 Traffic Scope, managed execution Binding, Root1 and Native1. It retains the
 Program1145 UNKNOWN cause, past global Cleanup UNVERIFIED and uncertain settled
 reservation. Do not reactivate old receipts or automatically retry. P02/P03/P04
 require new Native evidence; Native AI, DNS9 and production remain BLOCKED.
+
+
+# Batch 3 — Dedicated Network Namespace Preparation (2026-10-27)
+
+## Overall Status / User Environment
+
+IMPLEMENTED_DISABLED_PREVIEW; actual isolated Native qualification remains BLOCKED.
+The user's latest constraint supersedes earlier Remote-close/quiet-host advice:
+VS Code Remote, other projects, services and WSL must remain running. None was
+stopped, killed, moved, restarted or shut down. No Root command, namespace creation,
+setns/unshare, interface change, Native Capture or real DNS traffic was performed.
+The previous passive terminal did not measure after Remote closure: its recorded
+status was REMOTE_CONNECTIONS_STILL_ACTIVE_NOT_POST_CLOSE_MEASUREMENT. No post-close
+success is claimed and that workflow has been abandoned.
+
+Current host Scope remains net:[4026531833]. Read-only ip netns list was empty;
+/run/netns/soc-native-b3 was absent and the kernel exposes NET namespaces through
+/proc/self/ns/net. iproute2 and the namespace limit are present. This establishes
+availability of interfaces/tools, not successful privileged creation in this WSL.
+The existing time Namespace and user mappings were not changed.
+
+## Isolation Design / Compatibility
+
+Network namespaces isolate network devices, sockets and routing. A new namespace
+with only its own lo and no veth/NAT/default route excludes the existing host's
+VS Code loopback connections without filtering/dropping their packets or changing
+those processes. This is the kernel design; actual separation is NOT yet observed.
+See [Linux network_namespaces(7)](https://man7.org/linux/man-pages/man7/network_namespaces.7.html)
+and [ip-netns(8)](https://man7.org/linux/man-pages/man8/ip-netns.8.html).
+
+| Component | Compatibility and current boundary |
+|---|---|
+| TCX C plan/ownership | Namespace inode already crosses the authenticated ABI; lo ifindex alone is insufficient. No BPF/packet ABI change. |
+| Ordinary controller / Root Supervisor | Both must start as new owned processes inside the dedicated Namespace; approved sudo inherits it. No existing user PID is moved. |
+| Supervisor Image | New explicit Namespace preview binding; active legacy descriptors remain host-only. New scopes require a disabled preview descriptor. |
+| Integrated DNS capture | Exact target Namespace comes from a SHA-held image constant, never environment/argv. Default historical host check remains. |
+| Local DNS service | Host systemd-resolved is unreachable through the new lo. Use a dedicated no-forwarding responder at the same127.0.0.53:53. No host DNS configuration change. |
+| Zeek analysis | Reuse existing stdin-PCAP/analysis-copy path with --network=none and no NET_RAW. It consumes copied bytes, not the host lo. |
+| Legacy Zeek live / standalone checksum probe / R2 V1 | Remain host-bound; they are not approved isolated entry points. R2's old Namespace receipt is explicitly rejected for the new Scope. |
+| cgroup / maps / filesystem | Not isolated by a network namespace; retain existing global/owned Cleanup distinctions and all ownership checks. |
+
+Docker --network=host shares the Docker daemon host's namespace; entering a new
+Namespace in the CLI does not move the daemon or its host-mode containers. Thus
+that mode is not the isolation solution. See [Docker host networking](https://docs.docker.com/engine/network/drivers/host/)
+and [Docker none networking](https://docs.docker.com/engine/network/drivers/none/).
+The integrated Phase D copy feed avoids that problem; legacy live Zeek remains
+unsupported for an isolated preview. No Docker container was launched for these
+tests: the real-Docker offline integration test was intentionally not run because
+it would itself create a namespace. Existing argv/transport fixtures were used.
+
+## Operating Code Implemented, Without Activation
+
+namespace_isolation.py provides a strict isolated Scope (distinct from the host),
+read-only configuration inspection, fixed setup proposal, Namespace-specific DNS
+Scope Digest, exact diagnostic DNS wire responses and single-scenario protocol
+state. Only native-0516.localhost. A, transaction IDs C201/C202/C203 and ordered
+UDP/TCP/UDP are accepted. No recursion, forwarding or arbitrary destination/name.
+Duplicate queries and count/order expansion fail explicitly.
+
+isolated_dns_worker.py supplies an ordinary-UID prebound-socket transport. It
+never binds, connects, resolves, creates namespaces, elevates privilege or launches
+processes. Before IO it checks current Namespace and zero-capability ordinary UID,
+then checks exact listener endpoint/type and SO_NETNS_COOKIE against a fresh,
+unbound socket in that Namespace. Host-created listener FDs cannot silently cross
+this check. Socket cookies are not confused with namespace inodes. It serves only
+three responses, enforces the additional UDP no earlier than35s after server TCP
+close, and closes its own provided sockets on completion/failure. Application
+receive/close timestamps are not Kernel Flow evidence.
+
+A confirmed transport defect found during review was fixed before final build:
+per-read timeout alone could permit a fragmented slow TCP request to exceed the
+worker lifetime. Every exact-read iteration and reply write now recomputes the
+same absolute60s responder deadline. Synthetic tests reproduce slow reads,
+premature witnesses, timeout, foreign namespace cookies and owned-FD closure.
+This responder lifetime is separate from the unchanged DNS Sidecar analysis
+Deadline10s. Root prebinding, ordinary-worker spawning/resource limits and session
+ownership must be covered by the new approved Namespace resource lifecycle.
+There is currently no CLI/Supervisor call that starts this new worker.
+
+phase_d.prepare_namespace_preview reuses the existing compiler, package Builder
+and Supervisor image assembly. It emits a distinct SOC_PHASE_D_NAMESPACE_PREVIEW_V1
+contract. The Supervisor image begins with an unconditional
+ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED exit before imports. Descriptor validation,
+startup and SupervisedSession independently reject activating the new Scope.
+Existing operational manifest validation rejects this preview contract. There is
+no argv/environment flag to activate it or automatically inherit an old receipt.
+The existing R2 Scenario/TrafficReceipt still rejects the new Namespace. Formal
+new Scope/R2/lifecycle activation requires the AGENTS.md33 approved-update process;
+this preparation does not widen those active permission rules.
+
+capture_readiness.assess_loopback_budget now accepts an explicit expected Namespace
+for read-only analysis. The host default is unchanged. Host samples cannot be
+used as isolated-namespace evidence; no result grants execution or eligibility.
+
+## Capture / Flow / Checkpoint Conditions
+
+Keep events4096, Queue32, admission50ms, clock reorder10ms, Checkpoint16KiB,
+Native duration300s, memory256MiB, CPU20s, DNS analysis10s. No timeout, Feature
+formula/schema, provenance or receipt criterion was weakened.
+
+Planned sequence: dedicated responder READY; Capture READY; initial approved
+local UDP1/TCP1; real client TCP close; additional local UDP at+35s; STOP at+45s;
+Queue/Flow finalization, Checkpoint, Audit Drain and owned/global Cleanup. Existing
+R2's time origin is TCP close, so startup is additional. The last UDP flow may
+correctly remain incomplete at STOP; the earlier TCP/UDP flows need actual event
+watermarks beyond30s and complete per-CPU/Clock evidence. TCP FIN alone is not
+Flow completeness. No new time namespace is proposed.
+
+The last Native controlled pair contributed UDP2 packets and TCP10 packets; a
+similar additional UDP pair would give roughly14 diagnostic packets. This is a
+historical-based estimate, not a guaranteed bound for a new responder/kernel run.
+Retransmissions and all actual scope traffic still count toward4096. Actual35/45s
+passive counts, CPU boundaries, counter epochs, clock brackets and timeout
+receipts must be measured after approved Namespace creation. No actual isolated
+Window, low packet rate, Capture Integrity or ELIGIBLE candidate is declared.
+
+All prior Network14 candidates keep their decisions (Native ELIGIBLE0). The new
+configuration and protocol Fixtures are synthetic. Checkpoint evidence is not
+reduced to fit a Namespace scenario; the existing V2 lossless encoding, legacy
+restore and16KiB fail-closed tests passed unchanged. The old unexplained12 events,
+Program1145 cause UNKNOWN, historical FAILED/false and uncertain reservation stay
+unchanged. Namespace isolation does not resolve global cgroup uncertainty.
+
+## Verification / Frozen Inputs
+
+Final focused Namespace tests27 PASS. Related Workspace479 PASS and independent
+Export479 PASS; tests include existing Capture/Clock/Flow/Network14, Namespace
+scope gates, responder synthetic IO, approval, budget, STOP/Drain, Checkpoint and
+Supervisor paths. Ruff/Format/Diff PASS. Earlier attempt478 PASS /26-file build
+was superseded after the absolute-TCP-deadline source correction; its artifacts
+are not reused as final evidence. The previously documented15 broad historical
+regression failures were not rerun or claimed resolved.
+
+Final source1,735 selected files, Snapshot SHA256 `399a063dc23ba4d2da19a1e433c353cab86bda5010d87cbcc305538313513851`. Stage and two
+independent builds have26 identical files. The preview uses net:[4999999999] as an
+explicit SYNTHETIC test value, not an observed or approved Namespace. Preview
+Manifest `a8a9aac57ba10c0b55591efe6179d0142f3779ca43ad858d8b2af32d175a8ea1`, Bundle `028d9025e74184ac5fa5a0a567fcfaba7ba47ee40b13a388004afce1ba12c66a`,
+Image `27b19d9ff5a1c3053fecdd59cc0442edb7c89395c912bb1a33920b3bc6695e96`, Root Manifest `bde2ff5f3d8862f32d36e0e28d48486ac4253311cc987bb1e3f5d548e30dffbc`
+are test/review identities only. None is a valid actual Native execution approval
+request. Actual Namespace inode and real isolated Artifact SHA are PENDING.
+
+Evidence directory: .git/native-stabilization-batch3/namespace-isolation-final-20261027-1/.
+It contains test-selection.json, workspace-tests.log, export-tests.log,
+build-verification.json, source-start/end.json, host-capability-review.json,
+setup-proposal.json, setup-approval-request.json and final-verification.json.
+The old55 Native files,112 protected user/historical files, installed/retained
+files and18-row Ledger are rehashed/preserved. No ledger event or budget charge
+is added by preparation.
+
+## Required Human Decisions / Actual Environment Changes
+
+The consolidated setup request is a request, not an approval receipt. It proposes
+only a new soc-native-b3 Namespace and lo UP, no veth/NAT/firewall/host route or
+system DNS changes. Existing name collision must stop without reuse/deletion;
+any failed step stops. ip netns add may create a root-owned /run/netns mountpoint,
+so it is outside the existing nine-file installation Root Manifest. No setup
+command has run.
+
+Separate approval is required for Namespace setup and its new Scope policy,
+including exact lease/ownership, DNS listener prebinding and ordinary-worker
+lifecycle, R2 Scope binding and resource limits. A name is not ownership. After
+creation record actual Namespace dev/inode, boot/session/creation receipt and held
+FD lease before generating the real new Scope Artifact. Never move/terminate
+existing user processes. Cleanup may release only the verified own sockets,
+processes, TCX objects and exact owned Namespace; unknown resources must not be
+removed by name. Preserve current global Cleanup rules.
+
+Root setup cost is NOT defined as a nine-file installation by the current campaign
+contract. Its budget mapping needs an explicit human decision; no cost/refund or
+extra Batch3 allowance is inferred. Current Campaign Native/Root remain4/10 each,
+Batch3 remains1/2 each. Namespace setup is not permission to install or Capture.
+Once actual Namespace Identity and approved activation bytes exist, issue fresh
+exact-SHA R1/R2/management/Root/Native bindings, then nonconsuming check. Old host
+Namespace grants, consumed receipts and synthetic preview SHA cannot be reused.
+
+## Git
+
+Only this task's operating code/tests and appended report section are selected.
+Older pending Batch2/Batch3 documentation edits remain unstaged and preserved.
+Final Commit/Tree, remote Push result and source-to-Commit checks are recorded in
+final-verification.json. No Force Push or historical evidence rewrite is used.

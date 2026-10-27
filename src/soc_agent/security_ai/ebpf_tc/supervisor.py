@@ -15,6 +15,8 @@ import time
 from pathlib import Path
 from typing import Literal
 
+from pydantic import Field, model_validator
+
 from soc_agent.review.models import Hash
 from soc_agent.security_ai.collectors.live_contract import LivePlan, docker_argv
 from soc_agent.security_ai.collectors.live_contract import bundle as zeek_bundle
@@ -30,8 +32,15 @@ from soc_agent.security_ai.research.models import digest
 class SupervisorImage(UnifiedImage):
     supervisor_contract: Literal["SOC_SINGLE_AUTH_SUPERVISOR_V1"] = "SOC_SINGLE_AUTH_SUPERVISOR_V1"
     zeek_bundle: Hash
-    scope_namespace: Literal["net:[4026531833]"]
+    scope_namespace: str = Field(pattern=r"^net:\[[0-9]+\]$")
     dns_sidecar: bool = False
+    namespace_preview: bool = False
+
+    @model_validator(mode="after")
+    def namespace_policy(self):
+        if (self.scope_namespace != "net:[4026531833]") != self.namespace_preview:
+            raise ValueError("ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED")
+        return self
 
 
 def inspection_tool_version(path: Path, expected_sha: str) -> dict:
@@ -77,9 +86,16 @@ def prepare_supervisor_image(
     *,
     dns_sidecar: bool = False,
     recovery: RecoveryBuild | None = None,
+    namespace_preview: str | None = None,
 ) -> SupervisorImage:
     """Build bytes only. No auth, install, inventory syscall, Docker run or capability changes."""
-    if os.readlink("/proc/self/ns/net") != "net:[4026531833]":
+    if namespace_preview is not None:
+        from soc_agent.security_ai.ebpf_tc.namespace_isolation import IsolatedScope
+
+        IsolatedScope(namespace=namespace_preview)
+        if not dns_sidecar or recovery is not None:
+            raise ValueError("ISOLATED_NAMESPACE_PREVIEW_REQUIRES_PCAP_SIDECAR")
+    elif os.readlink("/proc/self/ns/net") != "net:[4026531833]":
         raise ValueError("SUPERVISOR_REVIEWED_NAMESPACE_CHANGED")
     from soc_agent.security_ai.ebpf_tc.installation import InspectorProfile, verify_package
 
@@ -92,7 +108,9 @@ def prepare_supervisor_image(
         output.with_suffix(".tcx-only.py"),
         **({"recovery": recovery} if recovery else {}),
     )
-    plan = LivePlan(net_namespace="net:[4026531833]", bundle_digest=digest(zeek_bundle()))
+    plan = LivePlan(
+        net_namespace=namespace_preview or "net:[4026531833]", bundle_digest=digest(zeek_bundle())
+    )
     argv = docker_argv(plan, Path("@POLICY@"))
     for index, arg in enumerate(argv):
         argv[index] = (
@@ -159,10 +177,12 @@ def prepare_supervisor_image(
             phase_d_dns_engine,
         ):
             source += b"\n" + Path(module.__file__).read_bytes()
+        from soc_agent.security_ai.ebpf_tc.namespace_isolation import dns_scope_digest
+
         source += (
-            b"\nDNS_SCOPE_DIGEST = hashlib.sha256("
-            b"b'DNS_LOCAL_PARTIAL_COPY_V4:net4026531833:lo:7s:32:512:prewarm:shared10s:tty:seqpacket').hexdigest()\n"
+            b"\nDNS_SCOPE_DIGEST = " + repr(dns_scope_digest(plan.net_namespace)).encode() + b"\n"
         )
+        source += b"\nDNS_CAPTURE_NAMESPACE = " + repr(plan.net_namespace).encode() + b"\n"
         codes = sorted(
             {
                 node.exc.args[0].value
@@ -176,6 +196,8 @@ def prepare_supervisor_image(
         )
         source += b"\nROOT_ERROR_CODES = frozenset(" + repr(codes).encode() + b")\n"
     source += trailer
+    if namespace_preview is not None:
+        source = b"raise SystemExit('ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED')\n" + source
     compile(source, "<supervisor-image>", "exec")
     if len(source) > 1048576:
         raise ValueError("SUPERVISOR_IMAGE_BOUND")
@@ -193,6 +215,7 @@ def prepare_supervisor_image(
                 zeek_bundle=plan.bundle_digest,
                 scope_namespace=plan.net_namespace,
                 dns_sidecar=dns_sidecar,
+                namespace_preview=namespace_preview is not None,
             )
         )
     )
@@ -390,6 +413,8 @@ class SupervisedSession(UnifiedSession):
     def __init__(self, *args, image: SupervisorImage, **kwargs):
         if not isinstance(image, SupervisorImage):
             raise ValueError("SUPERVISOR_IMAGE_REQUIRED")
+        if image.namespace_preview:
+            raise ValueError("ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED")
         self.supervisor_listener = self.supervisor = None
         self.entry_diagnostic_listener = None
         self.entry_diagnostic = None

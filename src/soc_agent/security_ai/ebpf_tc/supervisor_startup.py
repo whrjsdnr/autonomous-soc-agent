@@ -172,6 +172,8 @@ def _execute(
 ):
     local_controller()  # No Root GUI/runtime or inherited capabilities.
     image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
+    if image.namespace_preview:
+        raise ValueError("ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED")
     image.verify()
     if (image.manifest, image.sha256) != (expected_manifest, expected_image):
         raise ValueError("SUPERVISOR_REVIEWED_IMAGE_REQUIRED")
