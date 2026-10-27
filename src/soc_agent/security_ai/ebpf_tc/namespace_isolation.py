@@ -1,15 +1,17 @@
-"""Prepare-only isolated-network support. No setns/unshare, Root, sockets or traffic.
+"""Isolated-network preparation. No setns/unshare, Root, bind/connect or traffic.
 
 A Namespace name is not ownership, and an inode is not an approval. New Scope
 needs separate infrastructure/policy and exact Artifact execution approvals.
 """
 
+import fcntl
 import hashlib
 import json
 import os
 import socket
 import struct
 import subprocess
+import time
 from pathlib import Path
 from typing import Literal
 
@@ -76,7 +78,9 @@ def inspect_current_isolation(scope: IsolatedScope) -> dict:
     actual = os.readlink("/proc/self/ns/net")
     if actual != scope.namespace:
         return assess_isolation(scope, dict(namespace=actual))
+    started_ns = time.monotonic_ns()
     routes = []
+    route_tables = {}
     for family in ("-4", "-6"):
         data = subprocess.check_output(
             ["/usr/sbin/ip", "-j", family, "route", "show", "table", "all"], timeout=5
@@ -84,12 +88,37 @@ def inspect_current_isolation(scope: IsolatedScope) -> dict:
         rows = json.loads(data)
         if not isinstance(rows, list):
             raise ValueError("ISOLATION_ROUTE_SCHEMA")
+        route_tables[family] = rows
         routes.extend(row for row in rows if row.get("dev") != "lo")
+    # A network-only setns does not remount sysfs. /sys/class/net/lo/flags
+    # can therefore describe the host lo. ioctl follows this socket's netns.
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
+        flags = fcntl.ioctl(probe, 0x8913, struct.pack("256s", b"lo"))
+        loopback_up = bool(struct.unpack_from("H", flags, 16)[0] & 1)
+        cookie = probe.getsockopt(socket.SOL_SOCKET, getattr(socket, "SO_NETNS_COOKIE", 71), 8)
+    sockets = {}
+    for table in ("tcp", "tcp6", "udp", "udp6"):
+        with (Path("/proc/net") / table).open("rb") as stream:
+            data = stream.read(65537)
+        if len(data) > 65536:
+            raise ValueError("ISOLATION_SOCKET_SNAPSHOT_BOUND")
+        sockets[table] = data.decode("ascii").splitlines()
+    interfaces = [list(row) for row in socket.if_nameindex()]
+    if os.readlink("/proc/self/ns/net") != actual:
+        raise ValueError("ISOLATION_NAMESPACE_CHANGED_DURING_SNAPSHOT")
     evidence = dict(
         namespace=actual,
-        interfaces=[list(row) for row in socket.if_nameindex()],
-        loopback_up=bool(int(Path("/sys/class/net/lo/flags").read_text(), 16) & 1),
+        interfaces=interfaces,
+        loopback_up=loopback_up,
+        loopback_flags_source="SIOCGIFFLAGS_CURRENT_NAMESPACE_SOCKET",
+        routes=route_tables,
         routes_outside_lo=routes,
+        socket_tables=sockets,
+        socket_cookie=cookie.hex(),
+        cookie_evidence="UNBOUND_PROBE_ONLY_NOT_DNS_WORKER",
+        observation_started_monotonic_ns=started_ns,
+        observation_ended_monotonic_ns=time.monotonic_ns(),
+        evidence_scope="NETWORK_CONFIGURATION_ONLY_NOT_CAPTURE_WINDOW_OR_FLOW",
         # No bind/connect/query: a listener and its lease must be verified later.
         resolver_ready=False,
     )

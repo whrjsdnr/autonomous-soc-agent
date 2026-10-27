@@ -2,6 +2,7 @@
 
 import json
 import struct
+from io import BytesIO
 
 import pytest
 
@@ -48,6 +49,59 @@ def test_current_host_is_not_silently_entered_or_promoted(monkeypatch):
     result = isolation.inspect_current_isolation(isolation.IsolatedScope(namespace=NS))
     assert "NAMESPACE_IDENTITY_MISMATCH" in result["reasons"]
     assert result["execution_ready"] is False
+
+
+@pytest.mark.parametrize(
+    "up,fault", [(False, None), (True, None), (True, "namespace"), (True, "oversize")]
+)
+def test_namespace_snapshot_uses_socket_ioctl_not_host_sysfs(monkeypatch, up, fault):
+    class Probe:
+        closed = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            self.closed = True
+
+        def getsockopt(self, *_):
+            return bytes.fromhex("0102030405060708")
+
+    probe = Probe()
+    namespaces = iter([NS, isolation.HOST_NAMESPACE if fault == "namespace" else NS])
+    monkeypatch.setattr(isolation.os, "readlink", lambda _: next(namespaces))
+    monkeypatch.setattr(isolation.socket, "socket", lambda *_: probe)
+    monkeypatch.setattr(isolation.socket, "if_nameindex", lambda: [(1, "lo")])
+    monkeypatch.setattr(isolation.fcntl, "ioctl", lambda *_: bytes(16) + struct.pack("H", int(up)))
+    monkeypatch.setattr(isolation.subprocess, "check_output", lambda *a, **k: b'[{"dev":"lo"}]')
+
+    def open_table(path, mode):
+        assert str(path) in {"/proc/net/" + n for n in ("tcp", "tcp6", "udp", "udp6")}
+        assert mode == "rb"
+        return BytesIO(b"x" * 65537 if fault == "oversize" else b"header\n")
+
+    monkeypatch.setattr(isolation.Path, "open", open_table)
+    if fault:
+        code = (
+            "NAMESPACE_CHANGED_DURING_SNAPSHOT" if fault == "namespace" else "SOCKET_SNAPSHOT_BOUND"
+        )
+        with pytest.raises(ValueError, match=code):
+            isolation.inspect_current_isolation(isolation.IsolatedScope(namespace=NS))
+        assert probe.closed
+        return
+    result = isolation.inspect_current_isolation(isolation.IsolatedScope(namespace=NS))
+    observation = result["observation"]
+    assert observation["loopback_up"] is up
+    assert ("LOOPBACK_NOT_UP" in result["reasons"]) is (not up)
+    assert observation["socket_tables"] == {n: ["header"] for n in ("tcp", "tcp6", "udp", "udp6")}
+    assert observation["socket_cookie"] == "0102030405060708"
+    assert observation["cookie_evidence"] == "UNBOUND_PROBE_ONLY_NOT_DNS_WORKER"
+    assert (
+        observation["observation_ended_monotonic_ns"]
+        >= observation["observation_started_monotonic_ns"]
+    )
+    assert probe.closed and result["execution_ready"] is False
+    assert "LOCAL_DNS_RESPONDER_NOT_OBSERVED" in result["reasons"]
 
 
 @pytest.mark.parametrize(
