@@ -158,7 +158,71 @@ class ReassessedCampaign(StabilizationCampaign):
             )
             return event
 
+        return self._admission_transaction(guarded)
+
+    def _admission_transaction(self, guarded):
         return NativeCampaign._locked(self, guarded)
+
+
+class _PreviewComplete(Exception):
+    def __init__(self, event):
+        self.event = event
+
+
+class _PreviewCampaign(ReassessedCampaign):
+    """Reuse every reservation validator, abort before the chain writer appends."""
+
+    def _admission_transaction(self, guarded):
+        def inspect(rows):
+            raise _PreviewComplete(guarded(rows))
+
+        return NativeCampaign._locked(self, inspect)
+
+
+def preview_reservation(
+    directory: Path,
+    *,
+    amendment_file: Path,
+    amendment_sha: str,
+    identity: dict,
+    scope: dict,
+    dns_scope: dict,
+    approval_file: Path,
+    approval_sha: str,
+    root_cost: int,
+    git_commit: str,
+) -> dict:
+    """Read-only exact-approval/R1/budget validation, not a reservation or grant.
+
+    Calls the same amendment, receipt, Scope, SHA, latest-chain, replay, previous
+    failure and budget checks as reserve(). No authentication or callback runs.
+    The real reserve must repeat them atomically immediately before execution.
+    """
+    campaign = _PreviewCampaign(
+        directory, amendment_file=amendment_file, amendment_sha=amendment_sha
+    )
+    try:
+        campaign.reserve(
+            identity,
+            scope,
+            dns_scope,
+            approval_file,
+            approval_sha,
+            root_cost=root_cost,
+            git_commit=git_commit,
+        )
+    except _PreviewComplete as preview:
+        event = preview.event
+        return dict(
+            status="PREVIEW_ONLY_NOT_RESERVED",
+            native_admission=False,
+            release=event["release"],
+            next_session=event["next_session"],
+            reassessment_record_sha=event["reassessment_record_sha"],
+            native_used_if_reserved=event["native_used"],
+            root_used_if_reserved=event["root_installations_used"],
+        )
+    raise ValueError("REASSESSMENT_PREVIEW_UNEXPECTED_RETURN")
 
 
 def require_r2_reservation(

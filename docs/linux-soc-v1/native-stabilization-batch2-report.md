@@ -699,3 +699,635 @@ DNS9 and production remain BLOCKED.
 
 The exact pending Artifact identities and operation request are in the private
 approval request. No approval can be inherited from the ca5b7cb or older images.
+
+
+## 2026-10-27 — R1/R2 conditional execution preflight
+
+### Overall status: BLOCKED — no Root or Native attempt started
+
+The user authorized the R1 activation workflow and the exact R2 scope, and made
+Root installation and Native execution conditional on a positive HUMAN safety
+reassessment and valid receipts. The same instruction explicitly did **not** grant
+that positive reassessment. A model evidence assessment cannot replace it. No
+reviewer identity, positive human decision or valid reassessment receipt was found.
+No procedure/admission activation, positive review event or execution reservation
+was synthesized. Original FAILED and `safe_for_next_attempt=false` remain intact.
+
+The approved Release worktree is
+`/home/geonug/kdt-linux/native-soc-phase-d-release-063`, branch
+`fix/native-stabilization-batch2`, HEAD
+`bed73a983e93efba6079920619ad32e446a20e77`, tree
+`824687ed158b3a6a068797cd722d247ce5d8739e`. The separate original worktree remains
+on main with existing user/development changes; those were not overwritten.
+Only this report is updated without committing, retaining the approved HEAD.
+This report was already excluded from runtime build inputs; all 1,718 approved
+source input hashes still match.
+
+### Artifact checks and first preflight failure
+
+All 26 files in each approved build still match their recorded hashes. The exact
+submitted identities match the request and file contents:
+
+| Identity | SHA256 |
+| --- | --- |
+| Manifest | `b82681b295ce458a6bf08be1b48b4e05c992c0c552af3a0ddef70b6b3a36fb33` |
+| Bundle | `fd4693384b6eb0d94e370b4cd3b2c14439e7d91d5207cb940ddd0b43bbffc576` |
+| Execution Image | `5d555ba00c9ff9f59d09fcfaab9358b58035b49d53c2d992b28d9433996c9cda` |
+| Root Manifest | `9983f2c3b90c82382466c3d83f84ab082b0ac2381851cab74525456e4ba46e76` |
+
+However, file-identity matching is insufficient for execution. The actual current
+release validator rejects a host dependency before authentication:
+
+- Stage: RELEASE_PREFLIGHT.
+- API: `phase_d.validate -> verify_package -> verify_dependencies`.
+- Original exception: `ValueError("DEPENDENCY_HASH_MISMATCH")`.
+- errno / signal: not applicable; this is a deterministic validation failure.
+- Library: `/usr/lib/x86_64-linux-gnu/libz.so.1.3` (both versions 113,000 bytes).
+- Expected SHA: `86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892`.
+- Observed SHA: `f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242`.
+
+`/var/log/dpkg.log` records the zlib1g:amd64 upgrade on 2026-10-24 06:07:39,
+from `1:1.3.dfsg-3.1ubuntu2.2` to `1:1.3.dfsg-3.1ubuntu2.3`; dpkg-query reports
+the latter as installed. The recorded old library hash is no longer present at
+the pinned path. No code defect or errno-based system error was inferred from
+this correct fail-closed behavior. The exact Actor responsible for the package
+upgrade was not independently established.
+
+### Nonprivileged reproduction and bounded preparation
+
+Without changing source, dependency checks, the OS library or Root installation:
+
+1. Reproduced the installed-release validation failure through
+   `installed_release -> validate_root_release -> verify_dependencies`.
+2. Compiled a nine-file package candidate from the unchanged source. Its current
+   dependency validation passed. Partial Root Manifest:
+   `864555640003971f0ffb8251945b9aee671827dbb3e001224e323706eedd2fe7`.
+3. Attempted normal Supervisor-image preparation; it failed at
+   `prepare_supervisor_image -> prepare_unified_image -> installed_release`
+   with the same original error, because the previous installed runtime pins
+   the old library. No full new Manifest/Bundle/Execution Image was finalized.
+4. SourceGuard passed and all 1,718 source hashes, installed manifest and actual
+   execution Ledger remained unchanged. No candidate was installed or executed.
+
+The partial package is NOT a qualified Release or an approved replacement. A
+new full image cannot be claimed from only its Root Manifest. The old SHA grant
+is not transferred. No library downgrade, in-place manifest edit, hash-check
+removal or installer-policy exception was performed. A proposal for a narrowly
+bound forward-update recovery contract was written for human review; any such
+policy change needs separate approval under AGENTS.md section 33.
+
+### Human safety review evidence and remaining uncertainty
+
+Historical evidence still supports Session-owned TCX FD/Map/Link and container
+cleanup. Historical resource snapshots show no added programs and zero remaining
+Map/Link/lo filters. The global change was removal of Program 1145, `sd_devices`,
+tag `4b13b8318fb7df93`, attached as cgroup_device at
+`/sys/fs/cgroup/system.slice/wsl-pro.service`. Ownership attribution is supported
+by the recorded attach target; the removal cause remains UNKNOWN. The previous
+global Cleanup remains UNVERIFIED. These are historical observations, not a fresh
+privileged system snapshot. No new Root snapshot was collected before the human
+approval gate. No positive safety conclusion was manufactured from these facts.
+
+The original evidence digest is
+`1a64123416cfbc63133f52cc4896394470f3bff43eb9b9d0533cf8591f776e42`.
+A named reviewer must explicitly decide whether to accept the UNKNOWN removal
+cause and authorize at most one next admission. Actual receipt issuance must bind
+the final compatible next Artifact/session/scope and latest ledger tip; a new
+Artifact needs separate exact-SHA approval.
+
+### Execution, decisions and budget
+
+- Root authentication / installation / Native reservation / Native execution:
+  **NOT_STARTED**; no traffic generated, no automatic retry.
+- R2 authorized scenario: initial UDP1/TCP1, then the same local UDP at TCP local
+  socket close +35s; normal STOP at +45s, capture plan at most 60s after ATTACH,
+  overall cap 300s. Sidecar 10s remains separate. UDP2/TCP1, Queue32, admission50ms,
+  reorder10ms, checkpoint16KiB, events4096, AS256MiB/CPU20s are unchanged.
+- Actual R2 timestamps / TCX / DNS / Supervisor Exit / current Checkpoint /
+  Audit Drain / owned/global Cleanup: **NOT_RUN / NOT_OBSERVED this turn**.
+- P02 and P03: historical INCOMPLETE; P04: historical 0/7 eligible. No candidate
+  was reclassified. No real Native success or failure occurred this turn.
+- Old execution Ledger: 9 rows, hash-chain verified read-only. SHA remains
+  `f6a18f079ab88b4fa3f55daea7d3ccad004d47dd3d82567f59a3d125b3b6761a`.
+- Campaign Native/Root **2/10 each**, Batch 2 Native/Root **1/2 each**. No new
+  reservation, cancellation, consumption or reassessment event was appended.
+- Preservation checks: protected files **112/112**, Native evidence **49/49**,
+  existing installation and rollback inventory **234 files** matched. Installed
+  Root Manifest remains
+  `f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3`.
+  Its file integrity is preserved; its runtime dependency validation is blocked.
+- The previous 411/411 tests and double-build result are historical qualifications,
+  not newly rerun or represented as current-environment qualification. No code
+  changed, so no broad regression loop or new functionality was introduced.
+- Native AI / DNS9 / production remain BLOCKED. Next Batch readiness: BLOCKED.
+
+Evidence and concrete pending review requests:
+
+- `.git/native-stabilization-batch2/r1r2-human-review-20261027-1/preflight.json`
+- `.git/native-stabilization-batch2/r1r2-human-review-20261027-1/human-review-request.json`
+- `.git/native-stabilization-batch2/r1r2-human-review-20261027-1/recovery-contract-proposal.json`
+- `.git/native-stabilization-batch2/dependency-requalification-20261027-1/result.json`
+
+Before any installation or capture, resolve both independent blockers: an explicit
+human safety decision/valid receipt, and a reviewed compatible deployment path
+with a complete requalified Artifact and fresh exact-SHA approval. The conditional
+execution approval was not interpreted as permission to bypass either gate.
+
+
+## 2026-10-27 — zlib recovery and R1 human-review readiness
+
+Status: **BLOCKED for Root/Native; nonprivileged recovery study completed**.
+This section adds evidence; it does not revise the previous FAILED result,
+`safe_for_next_attempt=false`, or any historical candidate eligibility.
+No production code, approval policy, dependency pin, installation or execution
+ledger was changed. The original user working tree was preserved; this report is
+in the existing release worktree `../native-soc-phase-d-release-063`.
+
+### Confirmed dependency change
+
+Git remains `bed73a983e93efba6079920619ad32e446a20e77`, tree
+`824687ed158b3a6a068797cd722d247ce5d8739e`.
+The approved image pins `/usr/lib/x86_64-linux-gnu/libz.so.1.3`:
+
+| Identity | Approved dependency | Current host dependency |
+| --- | --- | --- |
+| Debian package | `1:1.3.dfsg-3.1ubuntu2.2` | `1:1.3.dfsg-3.1ubuntu2.3` |
+| SHA256 | `86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892` | `f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242` |
+| Bytes | 113,000 | 113,000 |
+| SONAME / runtime version | `libz.so.1` / `1.3` | `libz.so.1` / `1.3` |
+
+`/var/log/dpkg.log` records the runtime/development package upgrade at
+`2026-10-24 06:07:39` (log timezone not encoded). The upgrading actor is UNKNOWN.
+Package file modification time is not evidence of the installation actor or time.
+The approved execution image
+`5d555ba00c9ff9f59d09fcfaab9358b58035b49d53c2d992b28d9433996c9cda`
+binds Root manifest
+`9983f2c3b90c82382466c3d83f84ab082b0ac2381851cab74525456e4ba46e76`,
+which pins the old zlib bytes. The installed Root manifest
+`f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3`
+also requires its original dependencies. Runtime hash rejection is therefore
+correct even though the library path and SONAME stayed the same.
+
+### ABI and bounded compatibility evidence
+
+Cached old `.deb` files were extracted only into a private evidence directory;
+no system package was installed or downgraded. Recovered old library bytes match
+the approved SHA. Static `readelf` comparisons found identical SONAME, 102 public
+symbol contracts and byte-identical public headers. All observed zlib imports
+and symbol versions required by current libbpf/libelf are satisfied.
+
+The same newly built, compression-only test executable passed eight API groups
+against each library: roundtrip compression, invalid-input rejection, CRC32,
+Adler32, CRC combination, gzip file roundtrip, deflate initialization and inflate
+initialization. Actual mapped-library paths were recorded. The harness ran as an
+ordinary UID with 64MiB address-space, two CPU seconds and five wall seconds;
+it performs no PAM, BPF, capture or network operations.
+
+Conclusion: no ABI break found in the observed consumer contracts and selected
+smoke tests. This is not proof of all zlib behavior or Native E2E compatibility,
+and it does not replace cryptographic dependency admission.
+
+### Recovery alternatives
+
+| Approach | Evidence / reproducibility | Root and security updates | Identity / rollback / risk |
+| --- | --- | --- | --- |
+| A: isolated old environment | Exact old bytes recovered; full old runtime closure not proven | Private extraction needs no Root; global downgrade prohibited | Old hash alone cannot qualify a different namespace/path/PAM closure. Full isolated Native setup needs separate review. |
+| B: current-zlib artifact | Exact new dependency pin; partial package double-build reproducible | Nonprivileged build; eventual fixed-file replacement needs separate Root approval. Keeps current update. | Preferred. New Root/trust identity and complete integrated image approval required; old runtime rollback remains blocked by stale dependencies. |
+| C: separate compatibility study | Completed static/selected API evidence while preserving installation | No Root or package changes | Supports B; cannot clear runtime mismatch or replace a new artifact/R1 approval. |
+
+Recommendation: **B plus C**, without system-wide downgrade or hash exceptions.
+
+### Why a complete replacement artifact is not yet finalized
+
+Normal preparation creates a valid current-dependency Root package, then calls
+`installed_release` and correctly rejects the old installed dependency pin.
+Actual replacement engines also check the previous installation/rollback via the
+same runtime validation. Changing only image preparation would not solve this.
+No alternate first-install, force flag, temporary library swap or skipped check
+was used.
+
+Two independent nonprivileged package builds produced **21/21 identical outputs**,
+including the nine fixed Root files. Current-dependency package verification
+passes. Its Root manifest SHA is
+`864555640003971f0ffb8251945b9aee671827dbb3e001224e323706eedd2fe7`.
+Relative to the approved proposed Root package, only `release.json` and
+`release.trust` changed; the seven other fixed files are byte-identical.
+This is a **partial package identity, not an approved complete release**.
+New integrated Manifest and Execution Image SHA remain unset. The unchanged
+runtime-source bundle remains
+`fd4693384b6eb0d94e370b4cd3b2c14439e7d91d5207cb940ddd0b43bbffc576`;
+future implementation changes require recalculation rather than approval transfer.
+The historical 26-output full build is not counted as a new full build here.
+
+### Recovery contract proposal — not activated
+
+Keep normal runtime dependency validation unchanged. Propose a separately typed,
+reviewed inspection for retaining/replacing an old installation: verify every
+old fixed file, digest, trust record, canonical path, owner, mode and link count;
+record its runtime dependency mismatch explicitly. Such a retained-file result
+must never authorize executing the old release. Require the replacement runtime
+to satisfy all current dependency, configuration and approval checks.
+
+Any implementation/activation affecting installation admission requires Policy
+Validation and explicit Human Review under `AGENTS.md §33`. The proposal contains
+no active bypass and grants no Root authority. Bind a future replacement to the
+exact old/new Root manifests, current dependency hashes, complete new image,
+session, latest ledger and reviewed fixed-file commands. Reject additional drift,
+stale/replayed grants, ambiguous ownership and invalid rollback runtime. Preserve
+old files even when their execution is no longer admissible. No arbitrary Root
+command or external-service program removal is proposed.
+
+Requested next approval is limited to review of that recovery contract and its
+nonprivileged implementation/tests. Installation/Native approval must wait for
+complete future artifact hashes and a valid positive human R1 decision.
+
+### R1 readiness and remaining human decisions
+
+Original attempt `0648d6b41f204377854e58fb76c3aa36` remains FAILED/false.
+Historical Session is `75e98238-99ab-40d8-862c-5f1b93cb03f7`.
+Owned TCX FD/Map/Link and container cleanup remains VERIFIED; global cleanup remains
+UNVERIFIED. Snapshot evidence records disappearance of Program 1145,
+`sd_devices`, tag `4b13b8318fb7df93`, at
+`/sys/fs/cgroup/system.slice/wsl-pro.service`, with no newly added program in that
+historical comparison. Its disappearance cause remains UNKNOWN. That earlier
+snapshot is not a fresh current resource observation. The later zlib upgrade is
+not evidence of the cause of the program disappearance.
+
+The review packet preserves these facts and the changed environment. Reviewer
+Identity, human decision, risk acceptance and approval reference remain null.
+No positive safety decision, production receipt, reassessment event or reservation
+was generated. The future receipt must bind an explicit human Identity/risk
+acceptance, exact Session/Release/Scope and complete new SHA set, evidence digests,
+latest ledger tip, expiry and replay protection. The original negative event
+must remain immutable. A fresh authorized resource preflight will still be needed.
+
+### Current nonprivileged verification
+
+- Workspace core regression: **206 PASS**; fresh independent Export: **206 PASS**.
+  Approval/replay/stale-ledger, dependency/Root package and ordinary-UID adversarial
+  C/Python execution-schema tests included. These are not privileged Native tests.
+- SourceGuard: Workspace and Export PASS; **1,718 source inputs unchanged**.
+- Two package builds: **21/21 outputs identical**, nine fixed Root files included.
+- ABI harness: old/current library both PASS within the stated coverage.
+- Ruff check PASS; format check PASS (1,375 files); final diff check recorded with
+  final preservation evidence. Full historical 411-test/26-output qualification
+  was not rerun or relabeled as current-host Native qualification.
+- No Root authentication/install, Native execution, capture, DNS query, policy
+  activation or positive human reassessment occurred.
+
+Campaign Native **2/10**, Root **2/10**; Batch 2 Native **1/2**, Root **1/2**.
+No budget consumed. P02/P03 historical INCOMPLETE and P04 historical 0/7 remain
+unchanged; new Native qualification, Native AI, DNS9 and production remain BLOCKED.
+
+Evidence is retained under
+`.git/native-stabilization-batch2/zlib-recovery-study-20261027-1/` in the original
+repository: `dependency-rca.json`, `abi-assessment.json`, `qualification.json`,
+`package-file-delta.json`, `recovery-contract-proposal.json`,
+`r1-human-review-readiness.json` and `final-preservation.json`.
+The proposal and readiness packet are not approval receipts.
+
+
+## 2026-10-27 — Conditional recovery contract review and fresh package rebuild
+
+Status: **BLOCKED at integrated image preparation; permitted nonprivileged
+verification completed**. This request permits review/build preparation but
+explicitly does not substitute for the separate human approval required by
+AGENTS §33. No admission-policy implementation was activated or modified.
+
+### Exact contract boundary
+
+`prepare_unified_image()` first verifies the new package, then requires
+`installed_release() -> validate_root_release() -> verify_dependencies()` for
+the previous installation. Current old-installation SHA validation fails with
+`DEPENDENCY_HASH_MISMATCH`, not an errno-based system failure.
+The actual unified replacement engine similarly calls
+`root_main(previous, "check")` before archival and installation.
+
+Correction/clarification to earlier broad references to check/rollback:
+`install_engine.root_main()` already skips dependency validation for exact
+`rollback`/unpublish, while retaining its approval/quiescence/file checks. The
+preceding `check` in unified replacement is the relevant runtime dependency gate.
+No rollback or check behavior was changed in this work.
+
+The proposed change therefore needs explicit approval to distinguish **retained
+file inspection** from **executable runtime qualification** in preparation and
+replacement admission. It cannot be activated by declaring the ABI compatible or
+using a first-install image for an occupied installation. The existing dependency
+pins and original installed manifests remain unchanged.
+
+Requested human policy decision, not a generated decision: approve a narrowly
+scoped replacement contract that cryptographically inspects/retains all nine old
+files even when the old runtime is no longer qualified, independently qualifies
+all current dependencies of the new runtime, and requires exact SHA/Session/Scope
+approval for the eventual replacement. No generic ignore-dependency flag, global
+library change, arbitrary Root path/command, automatic incompatible rollback or
+R1-positive decision is part of this request. Unknown additional drift must fail
+closed. Reviewer Identity/decision/approval reference remain unset.
+
+AGENTS §33 requires `Improvement Proposal -> Policy Validation -> Human Review ->
+Approved Update` for authorization/security-boundary changes. A recovery approval
+must explicitly cover the above distinction and implementation/admission scope;
+ordinary build permission is insufficient. Approval for Root installation and
+Native execution remains separate and requires complete future image hashes.
+
+### Fresh verification from unchanged source
+
+- Workspace selected regression: **206 PASS (13.33s)**.
+- Independent Export same selected regression: **206 PASS (11.42s)**.
+- Tests include R1/R2 missing/invalid approval, replay and stale ledger cases,
+  campaign contracts, dependency/Root package verification and ordinary-UID
+  execution-schema fixtures. No privileged E2E or fresh ownership snapshot.
+- SourceGuard PASS in Workspace/Export, **1,718 inputs unchanged**. No new
+  production functions or test bypasses. Existing dirty user/report files retained.
+- Independent builds A/B: **21/21 outputs byte-identical**, nine Root files.
+  Build times 11.401s and 11.455s; not a throughput benchmark or full 26-file release.
+- Current package `verify_package` PASS, dependency inventory includes new zlib
+  SHA `f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242`.
+- Old approved dependency remains
+  `86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892`.
+- Bounded compression-only harness rerun: eight API groups PASS for each exact
+  old/current library; mapped paths checked. Earlier static symbol/header evidence
+  remains limited to its stated ABI coverage. No all-runtime compatibility claim.
+- `installed_release()` and `prepare_supervisor_image(..., dns_sidecar=True)`
+  both still reject with `DEPENDENCY_HASH_MISMATCH`; no execution image file is
+  emitted. This is expected retained protection, not a successful integrated build.
+- Ruff check PASS; format PASS (1,375 files); Diff PASS.
+
+### Identity and remaining approvals
+
+| Item | Current verified value |
+| --- | --- |
+| Git Commit | `bed73a983e93efba6079920619ad32e446a20e77` |
+| Git Tree | `824687ed158b3a6a068797cd722d247ce5d8739e` |
+| Source snapshot | `22dd59c8feb04dc50fa4ddc662259109da667a4ef5690367545dfce31692133a` |
+| Partial new Root Manifest | `864555640003971f0ffb8251945b9aee671827dbb3e001224e323706eedd2fe7` |
+| Runtime source Bundle, unchanged | `fd4693384b6eb0d94e370b4cd3b2c14439e7d91d5207cb940ddd0b43bbffc576` |
+| New integrated Manifest | NOT GENERATED — existing-installation dependency gate |
+| New Execution Image | NOT GENERATED — same gate |
+
+Candidate version label remains 0.6.3; neither label nor unchanged bundle grants
+approval. New trust/Root identity requires a distinct complete artifact identity;
+future implementation changes require new Git/Bundle/image hashes and fresh
+approval, regardless of any later semantic version selection. No commit/push was
+requested or performed; approved code Commit/Tree remain unchanged.
+
+R1 is independent: the original FAILED/false and global Cleanup UNVERIFIED remain
+unchanged; historical owned cleanup remains VERIFIED and Program 1145 removal
+cause remains UNKNOWN. A new review packet must bind the complete future artifact
+rather than reusing old R1 binding. Human Identity, risk acceptance and positive
+decision were not inferred or issued. P02/P03 remain INCOMPLETE and P04 remains
+historically 0/7 ELIGIBLE; Native AI/DNS9/production remain BLOCKED.
+
+No Root authentication, installation, Native run, Capture, DNS traffic, policy
+activation, reservation or real reassessment event occurred. Campaign Native/Root
+remain **2/10 each**, Batch 2 Native/Root **1/2 each**.
+
+New evidence directory in the original repository:
+`.git/native-stabilization-batch2/zlib-recovery-contract-review-20261027-1/`.
+See `qualification.json`, `admission-check.json`, `abi-recheck.json`,
+`policy-review-request.json`, and `final-preservation.json`. The review request is
+unsigned/pending and cannot authorize Root/Native execution. Required next action:
+explicit human review of the narrowly described recovery-admission contract,
+followed by reviewed implementation, new complete artifact qualification, an
+independent R1 human decision, and separate exact-SHA execution approval.
+
+
+## 2026-10-27 — Inactive retention/runtime contract separation specification
+
+Overall status: **BLOCKED for production policy activation and integrated image;
+permitted inactive implementation/fixture verification completed**.
+
+### Before / proposed contract / active behavior
+
+| Concern | Existing active contract | Inactive proposal |
+| --- | --- | --- |
+| Previous installation | Exact old file/trust/metadata validation plus old runtime dependency validation | Separately typed retained-file result verifying every old pin/path/owner/mode/link/file/trust fact; old runtime mismatch still recorded |
+| New runtime | Own package, dependency inventory, dynamic trust, configuration and hash validation | Keep every active check; new runtime has its own pins and cannot consume retained-file success as runtime authority |
+| Replacement preparation | Reject if old installation runtime dependency no longer matches | After explicit policy approval only, permit reviewed retained-file evidence for archival/replacement admission; never for executing old runtime |
+| Rollback | Exact unpublish already has distinct checks; unified replacement first calls old `check` | Preserve old files; retained bytes alone never authorize execution or automatic runtime rollback |
+| Approval | Existing exact-artifact/session/scope, R1, replay/latest-ledger and budget gates | Unchanged requirements; no valid review was issued by the fixture |
+
+No change in the rightmost column is active. `installed_release`,
+`validate_root_release`, dependency checks, unified preparation and Root engines
+are unchanged. The recovery proposal still needs the separate human policy
+approval required by AGENTS §33; this implementation instruction explicitly does
+not supply that approval.
+
+### Files actually added
+
+- `tests/dependency_recovery_spec.py`: pure, strict/frozen fixture evidence models
+  and separate comparison functions for retained inventories and new Runtime pins.
+  Inventory comparison covers the complete fixed nine-file set, exact file hashes,
+  expected directory, directory trust, UID/GID, modes, regular-file/single-link and
+  trust-binding observations. Runtime comparison separately checks the new
+  Root/Bundle/dependency pins (including package version), package/dynamic-closure
+  observations and limited ABI outcome. Neither result authorizes a runtime.
+- `tests/unit/ebpf_tc/test_dependency_recovery_spec.py`: 37 synthetic cases covering
+  old file SHA/metadata/set/path/trust failures, rollback pin/path/completeness,
+  new dependency/version/Root/Bundle mismatch, ABI incompatible/unknown,
+  duplicate dependency paths, missing/expired/replayed/stale/misbound draft receipt,
+  independent stage failures and the always-blocked policy gate.
+
+The model consumes supplied synthetic observations. It does **not** read the
+filesystem, authenticate receipts, implement a privileged inspector, or claim
+that a caller-provided `trust_binding_verified=True` is real evidence. All
+successful outcomes are named `VERIFIED_FIXTURE_ONLY`, with
+`authorizes_runtime=False`. Admission always includes
+`UNAPPROVED_DRAFT_NOT_ACTIVE`, including a fully matching synthetic receipt.
+No production source imports this fixture module. No installer switch or runtime
+bypass was introduced. Existing original FAILED/false/Ledger records were not
+changed. P02/P03/P04 eligibility was not revised.
+
+### Fresh verification and identities
+
+- New concentrated draft tests: **37 PASS**.
+- Workspace related regression including draft: **243 PASS**.
+- Fresh independent Export with identical tests: **243 PASS**.
+- SourceGuard Workspace/Export PASS, **1,720 input files unchanged** across
+  testing/builds. Includes the two new fixture files; historical 1,718-source
+  snapshot remains preserved and is not relabeled as this new snapshot.
+- Two current-dependency package builds: **21/21 outputs identical**, including
+  nine fixed Root package files; no complete integrated image is claimed.
+- Current package verification PASS. Rechecked normal `installed_release()` and
+  `prepare_supervisor_image()` both still reject `DEPENDENCY_HASH_MISMATCH` and
+  emit no image. Failure has no system errno.
+- Ruff/Format/Diff: PASS; no previous tests deleted/assertions weakened.
+
+| Identity | Value |
+| --- | --- |
+| Git Commit (unchanged) | `bed73a983e93efba6079920619ad32e446a20e77` |
+| Git Tree (unchanged committed tree) | `824687ed158b3a6a068797cd722d247ce5d8739e` |
+| Uncommitted draft source snapshot | `50614dcd272d7cf74d7fc75d3f5bfe81859b890f0a95099985ec89904008b3a1` |
+| Individual Root package Manifest | `864555640003971f0ffb8251945b9aee671827dbb3e001224e323706eedd2fe7` |
+| Runtime Bundle (production sources unchanged) | `fd4693384b6eb0d94e370b4cd3b2c14439e7d91d5207cb940ddd0b43bbffc576` |
+| New integrated Manifest / Image | NOT GENERATED / BLOCKED pending policy approval |
+
+The committed tree does not include the two new fixture files; their exact
+content hashes and source snapshot are recorded separately. No commit/push was
+performed; active approved production source remains unchanged. The test-only
+source snapshot is not an execution approval identity.
+
+The unchanged old zlib pin is
+`86200da370f20476a2507e9097a789b5ef97269b4ca8d5e164ad82dab9d99892`
+(`ubuntu2.2`); the independently verified new package pin is
+`f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242`
+(`ubuntu2.3`). Earlier 102-symbol/header/consumer and bounded API evidence remains
+limited ABI evidence, not proof of production compatibility or a hash exception.
+
+### Required human decisions / current limits
+
+A human policy owner must explicitly review the proposed separation and its
+replacement-admission scope, with Identity and approval reference. The unsigned
+request remains pending; no such Identity/approval is inferred from the OS user,
+Git author or this fixture. Production implementation/activation and a complete
+new artifact require that approval, then review/testing and fresh artifact hashes.
+R1 human risk acceptance is independent and remains absent. Its future receipt
+must bind the complete future Session/Release/SHA/Scope and latest ledger.
+
+Original FAILED/false and global Cleanup UNVERIFIED remain. Historical owned
+cleanup VERIFIED and Program 1145 disappearance cause UNKNOWN remain. No new
+resource observation, Root authentication/install, Native run, Capture, DNS
+traffic, reservation, reassessment event or approval receipt occurred.
+Campaign Native/Root **2/10 each**, Batch 2 Native/Root **1/2 each** unchanged.
+P02/P03 remain historical INCOMPLETE; P04 remains 0/7. New Native qualification,
+Native AI, DNS9 and production remain BLOCKED.
+
+Evidence directory:
+`.git/native-stabilization-batch2/dependency-contract-separation-draft-20261027-1/`.
+See `approval-request.json` (pending, not a receipt), `qualification.json`,
+`production-gate-recheck.json`, `source-start.json`, `source-end.json` and
+`final-preservation.json`. Original installed/rollback files and historical audit,
+Ledger and user changes remain preserved.
+
+
+## 2026-10-27 — Production dependency recovery preparation and R1 integration
+
+Status: **nonprivileged operational implementation and integration VERIFIED;
+policy activation / positive human R1 / Root / Native remain BLOCKED**.
+This supersedes the earlier fixture-only implementation status, not any Native
+FAILED/false history, ownership uncertainty or candidate eligibility.
+
+### Operational code and call graph
+
+`runtime_recovery.inspect_retained(exact_manifest)` traverses only the fixed
+Root-owned installation path (or its exact manifest-named rollback path), with
+O_NOFOLLOW directory traversal and held-FD file checks. It validates all nine
+files, exact manifest/trust/payload SHA, UID/GID/mode/single-link metadata, complete
+file set and path-vs-held inode. The result is `RetainedInstallation`, explicitly
+not runtime-qualified and not usable as ReleaseManifest/UnifiedImage authority.
+It preserves original dependency records and never substitutes current zlib SHA.
+This is a point-in-time read-only observation; actual replacement must repeat
+ownership/quiescence checks under its separately approved execution contract.
+
+`runtime_recovery.prepare_runtime(source, output, abi_file, abi_sha)` reuses
+`prepare_candidate -> compile_program/compile_loader/compile_native ->
+create_package -> installation_payload -> verify_package`. It does not consult
+old executable qualification. A SourceGuard binds the actually loaded source
+and detects input mutations; outputs must be outside that source. It records
+current dependency SHA/ELF identities, zlib/libbpf/libelf package versions, limited
+ABI evidence, toolchain SHA and source snapshot. ABI report SHA is independently
+pinned; current libraries and consumer hashes must match the new release. ABI
+incompatible/unknown/malformed evidence fails explicitly.
+
+Build metadata distinguishes fixed Root system Python from the actual ordinary
+build interpreter. Compiler/system-interpreter identities remain root-trusted;
+the user-owned build interpreter is recorded as build provenance, not Root runtime
+trust. No global library downgrade, system package change or dynamic library load
+was used for recovery preparation.
+
+`validate_runtime` verifies the recovery manifest, exact image SHA/mode and
+unconditional quarantine prefix, package/trust/current dependencies, host identity
+and current Runtime Bundle. The image aborts *before every installer import* with
+`RECOVERY_POLICY_NOT_ACTIVATED`; no argument, environment flag or receipt can
+turn these bytes into an activated image. It is a separate quarantined Runtime
+contract, **not a deployable Phase-D Supervisor execution release**. Activation
+requires an approved connection to the existing install/Supervisor path and a new
+image SHA; no previous execution approval is transferred.
+
+`execution_readiness` composes independent installed preservation and new Runtime
+checks and can invoke `reassessment_admission.preview_reservation`. The preview
+reuses actual `ReassessedCampaign.reserve` / `NativeCampaign.reserve` validators:
+policy amendment binding, real receipt schema, exact Artifact/Session/Scope,
+latest ledger chain, replay, original negative review and budget checks. It
+aborts before the locked writer appends, so it issues no reservation or grant.
+The actual reservation path still repeats validation atomically before execution.
+No parallel approval implementation was introduced. Existing ProcedureApproval,
+ReviewReceipt and AdmissionAmendment schemas are reused; draft/mock contracts
+cannot satisfy them. Their expected implementation hashes change with this code,
+so previous amendment approvals cannot silently carry forward.
+
+### Verification and fixes during this work
+
+- Final related Workspace: **368 PASS (70.06s)**.
+- Final independent Export: **368 PASS (69.90s)**.
+- Includes the new real-file/real-validator/temporary-ledger tests, earlier draft
+  tests, R1 cleanup/risk/replay/stale checks, source-mutation guards, Batch 2 Window,
+  Supervisor failure/termination, approval budgets and C/Python schema fixtures.
+- Two isolated real Runtime builds: **23/23 identical outputs**;
+  includes nine Root files, quarantined image and Runtime manifest. Both validate
+  against current dependencies. The earlier 21-output partial build is not reused
+  as this result; neither is the historical 26-output Native-capable image build.
+- SourceGuard Workspace/Export PASS; **1722 input files unchanged**.
+- Real installed-file inspection: nine files VERIFIED_READ_ONLY, runtime_qualified
+  remains false. New current-host Runtime verification passes independently.
+- Actual readiness: both read-only checks pass; policy NOT_ACTIVATED and human
+  grants missing. Original `installed_release()` still rejects old dependency SHA.
+- Ordinary-UID actual quarantined-image rejection test: exit 1 with the exact
+  guard diagnostic, before installer code. No Root/Native/traffic.
+- Ruff/Format/Diff PASS. Full unrelated Workspace/Export suites were not rerun;
+  prior full-suite Operator/Zeek failures are not declared resolved.
+
+Initial failures were retained in evidence directories -1 through -3 and focused
+logs. Two implementation/setup issues were corrected: strict Contract JSON-array
+normalization for dependency tuples (roundtrip regression added), and separating
+fixed Root Python identity from the user-owned build interpreter. Existing
+termination tests also depended on the real host installed version. Their
+first-install fixture now uses an absent temporary installation path, and their
+explicit post-preflight fault injections mock environment preflight. All existing
+failure/cleanup/signal assertions remain. The real host mismatch is independently
+rechecked and still blocked; production preflight/Root gates are unchanged.
+
+### Exact new identities (quarantined preparation only)
+
+| Item | SHA256 |
+| --- | --- |
+| Source Snapshot | `eccf7ad1ef6d890c165550cde1b74e0be87b78d7724a761b1c7e08c44b289ab5` |
+| Recovery Runtime Manifest | `a96f84ac2644e9446ac53669e5e8e53f6c503e4ec38c9df6b8970815ad10ca40` |
+| Runtime Bundle | `a76bfe6b152ceab18490135aaedea87c5bb64ea182b42838065c5ec9faa9c7fe` |
+| Quarantined Image | `00a6e346136d0ed8d303be5a78261791bc70bb51fec7a30200691e5de8f7afbd` |
+| New Root Manifest | `73230abe317ecdb9fe359bb0dfe7c1fbf74b14d2011ea11c783845c97c1c9f4d` |
+
+The label remains 0.6.3 but the identity is the distinct
+`SOC_QUARANTINED_RUNTIME_CANDIDATE_V1`; it cannot be passed off as an approved
+`SOC_PHASE_D_UNIFIED_V1` execution artifact. The source build began from bed73a9
+plus the explicit reviewed diff. Final Commit/Tree/remote confirmation is recorded
+in `git-delivery.json` after the commit; artifacts contain no self-referential Git
+commit field. Source inputs and artifact hashes are rechecked after commit.
+
+### Remaining approvals, evidence and budget
+
+No policy activation or positive R1 decision was created. Human policy approval
+must cover using independently verified retained-file evidence for replacement
+admission while keeping all new runtime/authentication checks. A future activated
+Supervisor image must receive a new exact-SHA approval. R1 independently requires
+named reviewer Identity, explicit risk acceptance, exact new Session/Release/SHA/
+Scope, evidence pins, latest-ledger/expiry/replay validation. The original FAILED
+and false remain; owned historical cleanup VERIFIED, global cleanup UNVERIFIED,
+Program 1145 removal cause UNKNOWN. No unknown program was removed.
+
+Campaign Native/Root **2/10 each**, Batch 2 Native/Root **1/2 each**, unchanged.
+No real Root authentication/install, Native run, capture, DNS traffic, real R1
+receipt issuance or ledger append occurred. P02/P03 remain INCOMPLETE; P04 remains
+historically 0/7 ELIGIBLE. Native AI/DNS9/production remain BLOCKED.
+
+Changed operational files: `runtime_recovery.py`, `reassessment_admission.py`.
+Tests: new runtime recovery tests, retained draft specification/tests, isolated
+Supervisor termination fixture. Existing user edits and installed/rollback files
+are excluded from staging. Only this work's explicit seven-file change is committed
+on `fix/native-stabilization-batch2`; no main/force push.
+
+Evidence: `.git/native-stabilization-batch2/runtime-recovery-integration-20261027-4/`
+in the original repository, including qualification/source snapshots, both build
+logs/artifacts, retained-installation.json, actual-readiness.json, final-preservation
+and Git delivery records. Approval preparation in this directory remains unsigned
+and is not a production receipt.

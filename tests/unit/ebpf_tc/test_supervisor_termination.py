@@ -88,6 +88,9 @@ def test_processing_failure_is_first_failure_and_does_not_require_control_revoca
     directory = tmp_path / "candidate"
     shutil.copytree(source, directory)
     monkeypatch.setattr(offload_session.os, "isatty", lambda fd: True)
+    # Unit-level failure injection begins after environment preflight. The real
+    # dependency/hash gate is tested separately and must not be bypassed in use.
+    monkeypatch.setattr(offload_session, "preflight", lambda *a, **kw: None)
     # Phase D must never enter the failed legacy reader or Operator API path.
     # Authentication and DNS capture are explicitly mocked; no Root or traffic.
     from soc_agent.linux_runtime.operator import OperatorServer
@@ -145,8 +148,15 @@ def test_processing_failure_is_first_failure_and_does_not_require_control_revoca
 
 @pytest.fixture(scope="module")
 def candidate(tmp_path_factory):
+    from soc_agent.security_ai.ebpf_tc import unified_image
+
     p = tmp_path_factory.mktemp("supervisor-termination") / "candidate"
-    return p, phase_d.prepare(p)
+    # This is a first-install, pre-authentication failure fixture. It must not
+    # depend on an operator's actual installed version or OS dependency upgrades.
+    # Production qualification is untouched; no old runtime is declared valid.
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(unified_image, "INSTALL", p.parent / "absent-fixture-installation")
+        return p, phase_d.prepare(p)
 
 
 @pytest.mark.parametrize("failure", ["sigterm", "errno", "cleanup"])
@@ -157,6 +167,7 @@ def test_real_startup_retains_first_failure_before_cleanup(
     directory = tmp_path / "candidate"
     shutil.copytree(source, directory)
     monkeypatch.setattr(offload_session.os, "isatty", lambda fd: True)
+    monkeypatch.setattr(offload_session, "preflight", lambda *a, **kw: None)
     monkeypatch.setattr(SupervisedSession, "authenticate_native", lambda *_: pytest.fail("sudo"))
     if failure == "cleanup":
         original_close = SupervisedSession.close
