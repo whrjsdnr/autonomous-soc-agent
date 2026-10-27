@@ -170,6 +170,7 @@ def main(argv=None) -> int:
         "settlement-sha",
         "request-sha",
         "attempt-id",
+        "root-governance-sha",
     ):
         parser.add_argument("--" + name)
     for name in (
@@ -186,6 +187,7 @@ def main(argv=None) -> int:
         "management-file",
         "settlement-file",
         "request-file",
+        "root-governance-file",
     ):
         parser.add_argument("--" + name, type=Path)
     args = parser.parse_args(argv)
@@ -206,6 +208,22 @@ def main(argv=None) -> int:
                 raise ValueError("EXECUTION_REQUEST_ARGUMENT_OVERRIDE")
             for key, value in fields.items():
                 setattr(args, key, value)
+        if args.root_governance_file is not None or args.root_governance_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+            from soc_agent.security_ai.ebpf_tc.root_governance import apply_packet
+            from soc_agent.security_ai.stabilization_campaign import StabilizationCampaign
+
+            if args.mode != "reassess" or not all(
+                (args.campaign, args.root_governance_file, args.root_governance_sha)
+            ):
+                raise ValueError("ROOT_GOVERNANCE_MODE_OR_PIN")
+            packet = held_json(args.root_governance_file, args.root_governance_sha)
+            print(
+                json.dumps(
+                    apply_packet(StabilizationCampaign(args.campaign, "BATCH3"), packet), indent=2
+                )
+            )
+            return 0
         if args.attempt_id:
             from soc_agent.security_ai.ebpf_tc.execution_management import inspect_reservation
             from soc_agent.security_ai.stabilization_campaign import StabilizationCampaign

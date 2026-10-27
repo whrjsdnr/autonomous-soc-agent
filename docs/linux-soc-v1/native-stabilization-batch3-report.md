@@ -614,3 +614,46 @@ Protected original inputs 112, historical Native files 55, installed files 9 and
 Only this task's source, tests, new contract document and this report section are selected for Commit/Push. Existing dirty Batch 2/3 report content is left unstaged. Exact Git Commit/Tree/remote confirmation is recorded in `git-and-request-identity.json` and the final response. No Ledger/Audit or approval receipt is committed.
 
 A future approved Root-only setup would charge Root5/10 and Batch3 Root2/2, leaving no Batch3 Root installation allowance; Native stays unchanged. Policy activation, the new exact Session/Release/request Binding, any executable privileged DNS lifecycle, and later actual-Namespace Root/Native/R1/R2 approvals remain separate. P02/P03 remain INCOMPLETE, no new Native eligible candidate exists, and Native AI/DNS9/production remain BLOCKED.
+
+
+## Approved B allocation and exact-Binding Root policy record — 2026-10-27T15:51:06.815180+09:00
+
+Status: `BUDGET_B_APPLIED_NO_EXECUTION`. 조건욱, project owner and policy approval authority, explicitly approved policy activation and Batch3 Root2→3. The original reviewed package SHA `bf8ee1d398cbd3ba69dd8825b7c138220a02a5491d69e4b474f10febc359c590`, Commit43173dd / Treeb761cfe3, Sessionc2fd906c-d140-4c0d-a7b5-d5ec87618adb, Release0.6.3, Source/Artifact/Scope and pre-change Ledger were verified before any source modification. The approved original package and normalized current human decision are retained in `.git/native-stabilization-batch3/approved-root-budget-b-20261027-1/`.
+
+### Independent receipts and existing CLI
+
+- Policy receipt: `root-policy-approval.json`, SHA256 `33abdc21b3af0059308527fdde767b717a998ee59bdf250991bcb12097caa63d`; activation record `b3ccad650049124927acf060d2527eba10dfb980ef7ff30822d55cb78d280191`.
+- B allocation receipt: `root-budget-allocation-approval.json`, SHA256 `5c7ba33d855d7576c54fa978a1f5bc77d995374a3309324edaff26c417abebda`; allocation record `98aaa0cef925a012d269ec0f7fc77fb878171366cfe36628671d1e8aea0a3ce0`.
+- Formal receipt start `2026-10-27T15:47:27+09:00`; expiry `2026-10-28T15:47:27+09:00`. No backdating, extension or old receipt reactivation. The received human decision and formal issuance timestamp are distinct records.
+- Both decisions were separately verified and appended through existing `soc-agent native-recovery reassess`, using exact `--root-governance-file` / `--root-governance-sha` packets. These administrative flags cannot invoke Root authentication, installation, DNS, Namespace or Native execution. Real replay attempts were rejected without appending more events.
+- Policy activation is explicitly limited to the ORIGINAL approved Binding. It records that human decision; it is not a grant for this changed source or rebuilt Artifact. The original policy implementation pin differs from the new implementation and remains rejected for a new execution Binding. No receipt was edited or transferred. The next exact Artifact/policy Binding and Root action need separate approval.
+
+### B contract implementation and current usage
+
+`RootAllocation` uses the existing immutable budget anchor and locked campaign chain. `ROOT_BATCH_ALLOCATION_RECORDED_V1` changes the effective Batch3 Root cap only; no original budget file or prior row was rewritten. `operation_budget.batch_root_limit` applies the one valid grant within its validity period. Campaign Root cap10 and Native per-batch cap2 are unchanged. Setup allowance1 and installation allowance2 prevent repurposing the extra setup slot. Expiry blocks new admission under cap3; existing charges are never refunded or renewed automatically.
+
+- Campaign Native4/10 and Root4/10 unchanged.
+- Batch3 Native1/2 unchanged; Root1/3 effective allocation.
+- Pure assessment against the real validated chain: a future approved ROOT_SETUP would produce Campaign Root5/10, Batch3 Root2/3, with one installation slot left and Native unchanged. A later separately approved integrated installation/Native attempt would fit Root3/3 and Native2/2. Neither hypothetical reservation was appended or executed.
+- Ledger: previous18 rows preserved byte-for-byte as prefix, plus exactly two approval records =20 rows. Current Ledger SHA256 `e613287700a1942c3ae56a4a1a1d6bd181d21db58afadbe5b087c60084d4f097`. Original budget SHA remains `dd56bb6b7dddfca029e136728b6b21ca4e828f57cd7f75c9c862043b7fdbfd13`.
+
+### Nonprivileged validation and rebuilt review Artifact
+
+Fresh Workspace536 PASS / independent Export536 PASS. Tests cover Root-only reservation, Native independence, third Root slot, Campaign10 cap, setup/install sublimits, duplicate allocation, stale Ledger, replay, missing receipt, wrong Session/Release/Source/Manifest binding, actual administrative CLI, expiry, old-prefix preservation and existing R1/R2/Supervisor/Checkpoint/Flow regressions. Ruff/Format/Diff pass.
+
+Selected source1,741 frozen inputs; SHA256 `d2230e97eaa0ed6a78712a6d2248fed95b0ca50f227c90d412d283890420297a`. Independent Stage/build-A/build-B file sets and all26 hashes match. Current preview remains explicitly synthetic `net:[4999999999]`, guarded and not production-admissible:
+
+- Manifest `94bd626e285b13b911bf9807a2f8a7fee2ac02b2ae0a82794d5e417a66b53abd`
+- Bundle `e87a7ee7cec6ba6356095c916c8dcb6dff72c314b479eba97132e1e3dde1b784`
+- Execution Image `2a3a2b412a2633f7ada10e40fdde66cc4d9c5ed0430ec7e1da8d6c89414b3645`
+- Root Manifest `7175aef48a8417b3f5c3f4ab9339e91085ac839a5c6713d2a3d623abb049c4c3`
+
+These are NEW build identities, not approvals. Actual dedicated Namespace inode and actual-Namespace Native SHA remain pending. Native safety limits Queue32, admission50ms, reorder10ms, checkpoint16KiB, events4096, duration300s and DNS analysis10s are unchanged.
+
+### Preservation, Git and remaining conditions
+
+Protected112 / historical Native55 / installed9 / Rollback9 pins match. No Namespace, lo change, sudo authentication, DNS worker, UDP/TCP query, Native Collector, TCX or inference was run. Existing FAILED / false / Program1145 UNKNOWN / historical UNKNOWN reservation charges remain intact. P02/P03/P04 and Native AI/DNS9/production are not promoted.
+
+Only current code/test/contract-document changes and this report section are selected for Commit/Push. Existing dirty Batch2/3 report content and all Ledger/Audit/receipts remain uncommitted. Final Commit/Tree/Source/Artifact identities and remote confirmation are recorded after Commit in `git-and-next-request.json` in the same evidence directory.
+
+Remaining conditions: a new exact policy Binding for changed code/Artifact, exact Root setup action approval using the latest Ledger, and separately reviewed privileged DNS lifecycle/Namespace scope. No new budget allocation is needed for one setup plus one installation within the approved B limits; no old approval is reusable. Namespace/Root/Native execution remains outside this task.

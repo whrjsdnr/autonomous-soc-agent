@@ -84,7 +84,27 @@ binding; deletion requires a separate held-identity/ownership-bound Scope and
 proof of no owned live processes/TCX resources. No Root launcher or actual
 cleanup command was introduced by this accounting implementation.
 
-If one Root-only setup is later reserved, campaign Root becomes 5/10 and Batch 3
-Root becomes 2/2; Native stays 4/10 and 1/2. This leaves no Batch 3 Root install
-allowance. A subsequent installation needs a separate budget decision; no refund
-or Native-budget substitution is implied.
+Without the separately approved B allocation, one setup changes campaign Root
+from4/10 to5/10 and Batch3 Root1/2 to2/2, with no installation allowance left.
+
+The versioned B allocation is recorded by `native-recovery reassess` using an
+exact `--root-governance-file` and SHA. Separate policy and budget receipts are
+verified independently, using the existing locked campaign writer. The original
+budget/anchor remains root_per_batch_max2. A single valid
+ROOT_BATCH_ALLOCATION_RECORDED_V1 event raises only Batch3's effective total Root
+cap to3, within Campaign Root10; Native cap2 remains unchanged. Setup sub-allowance1
+and installation sub-allowance2 prevent repurposing the extra slot. All reservation
+paths and nonconsuming checks use the same effective-limit guard.
+
+Duplicate/replayed grants, wrong Binding or stale Ledger are rejected. An expired
+grant permits no new admission under cap3 and never refunds a charge. No automated
+renewal or overwrite exists. The two approval records do not consume execution
+budget or approve any Root command. On the current charged baseline, applying B
+alone gives Batch3 Root1/3; a subsequent approved setup would produce2/3 and retain
+one installation slot. Campaign stays4/10 until actual reservation.
+
+A policy activation record applies only to the exact reviewed Binding. Recording
+approval of an original source version does not transfer that approval to changed
+source, Artifact hashes, or a new Root action. Rebuilt candidates need their own
+exact policy/action pins. No live DNS lifecycle or Namespace is created by this
+administrative CLI path.

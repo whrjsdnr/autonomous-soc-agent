@@ -4,6 +4,9 @@ No refunds: cancellation and failure close a reservation but retain its charge.
 This module never grants permission or invokes an executor.
 """
 
+import hashlib
+import json
+import time
 from typing import Literal
 
 Operation = Literal["ROOT_SETUP", "ROOT_INSTALL", "NATIVE_DIAGNOSTIC", "ROOT_AND_NATIVE"]
@@ -15,6 +18,49 @@ COSTS = {
 }
 ROOT_RESERVED = "ROOT_OPERATION_RESERVED_V1"
 ROOT_FINISHED = "ROOT_OPERATION_FINISHED_V1"
+
+
+ALLOCATION_EVENT = "ROOT_BATCH_ALLOCATION_RECORDED_V1"
+
+
+def batch_root_limit(rows: list[dict], budget: dict, batch: str) -> int:
+    """Only the one reviewed Batch 3 allocation can enlarge the immutable base cap."""
+    grants = [
+        r
+        for r in rows
+        if r.get("event") == ALLOCATION_EVENT and r.get("allocation", {}).get("batch") == batch
+    ]
+    if not grants:
+        return budget["root_per_batch_max"]
+    if len(grants) != 1 or batch != "BATCH3":
+        raise ValueError("ROOT_ALLOCATION_DUPLICATE_OR_BATCH")
+    event = grants[0]
+    grant = event["allocation"]
+    payload = (json.dumps(grant, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    expected = dict(
+        contract="SOC_BATCH3_ROOT_ALLOCATION_V1",
+        decision="APPROVED",
+        batch="BATCH3",
+        previous_root_max=2,
+        root_max=3,
+        native_max=2,
+        campaign_root_max=10,
+        setup_allowance=1,
+        installation_allowance=2,
+        refund=False,
+        authorize_root=False,
+        authorize_native=False,
+    )
+    if (
+        hashlib.sha256(payload).hexdigest() != event.get("allocation_payload_sha")
+        or any(type(grant.get(k)) is not type(v) or grant[k] != v for k, v in expected.items())
+        or budget["root_installations_max"] != 10
+        or budget["root_per_batch_max"] != 2
+    ):
+        raise ValueError("ROOT_ALLOCATION_INVALID")
+    if not grant["issued_at"] <= time.time() < grant["expires_at"]:
+        return budget["root_per_batch_max"]  # Never refunds charges or extends validity.
+    return 3
 
 
 def totals(rows: list[dict], *, batch: str | None = None) -> tuple[int, int]:
@@ -65,7 +111,20 @@ def guard_reservation(rows: list[dict], event: dict, budget: dict, batch: str | 
         raise ValueError("NATIVE_CAMPAIGN_BUDGET_EXHAUSTED")
     if batch is not None:
         bn, br = totals(rows, batch=batch)
-        if bn + dn > budget["native_per_batch_max"] or br + dr > budget["root_per_batch_max"]:
+        limit = batch_root_limit(rows, budget, batch)
+        if limit == 3:
+            setups = sum(
+                r.get("event") == ROOT_RESERVED
+                and r.get("operation") == "ROOT_SETUP"
+                and r.get("batch") == batch
+                for r in rows
+            )
+            new_setup = int(
+                event["event"] == ROOT_RESERVED and event.get("operation") == "ROOT_SETUP"
+            )
+            if setups + new_setup > 1 or br - setups + dr - new_setup > 2:
+                raise ValueError("STABILIZATION_ROOT_SUBALLOCATION_EXHAUSTED")
+        if bn + dn > budget["native_per_batch_max"] or br + dr > limit:
             raise ValueError("STABILIZATION_BATCH_BUDGET_EXHAUSTED")
     event.update(
         native_used=budget["native_used"] + native + dn,
