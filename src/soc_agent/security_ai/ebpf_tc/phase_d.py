@@ -47,6 +47,9 @@ def runtime_bundle():
     result["soc_agent.security_ai.native_campaign"] = hashlib.sha256(
         (root / "native_campaign.py").read_bytes()
     ).hexdigest()
+    result["soc_agent.security_ai.operation_budget"] = hashlib.sha256(
+        (root / "operation_budget.py").read_bytes()
+    ).hexdigest()
     for package in ("ebpf", "ebpf_tc", "ebpf_broker"):
         for path in sorted((root / package).glob("*.py")):
             name = "soc_agent.security_ai." + package + "." + path.stem

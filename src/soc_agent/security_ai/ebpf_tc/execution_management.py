@@ -27,6 +27,7 @@ from soc_agent.security_ai.ebpf_tc.reassessment import (
     held_json,
 )
 from soc_agent.security_ai.native_campaign import NativeCampaign
+from soc_agent.security_ai.operation_budget import totals
 
 Phase = Literal[
     "APPROVED",
@@ -456,8 +457,6 @@ def inspect_reservation(campaign, attempt_id: str) -> dict:
         ledger_tip_sha=rows[-1]["record_sha256"],
         approval_reusable=False,
         budget_action="KEEP_RESERVATION_CHARGE",
-        reserved_native=sum(r["event"] == "NATIVE_ATTEMPT_RESERVED" for r in rows),
-        reserved_root=sum(
-            r.get("root_cost", 0) for r in rows if r["event"] == "NATIVE_ATTEMPT_RESERVED"
-        ),
+        reserved_native=totals(rows)[0],
+        reserved_root=totals(rows)[1],
     )

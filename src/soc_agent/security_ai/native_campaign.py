@@ -16,6 +16,7 @@ from uuid import uuid4
 
 from soc_agent.security_ai.ebpf_tc.dependencies import read_held
 from soc_agent.security_ai.ebpf_tc.installation import canonical
+from soc_agent.security_ai.operation_budget import guard_reservation, totals
 
 
 def sha(body: bytes) -> str:
@@ -89,6 +90,7 @@ class NativeCampaign:
                 ):
                     raise ValueError("NATIVE_CAMPAIGN_LEDGER_CHAIN")
             event = operation(rows)
+            guard_reservation(rows, event, self.budget, getattr(self, "batch", None))
             event.update(
                 sequence=len(rows),
                 campaign=self.budget["campaign"],
@@ -170,10 +172,9 @@ class NativeCampaign:
             reservations = [r for r in rows if r["event"] == "NATIVE_ATTEMPT_RESERVED"]
             if any(r["approval_sha256"] == approval_sha for r in reservations):
                 raise ValueError("NATIVE_CAMPAIGN_APPROVAL_ALREADY_CONSUMED")
-            native = self.budget["native_used"] + len(reservations)
-            root = self.budget["root_installations_used"] + sum(
-                r["root_cost"] for r in reservations
-            )
+            native_cost, root_cost_used = totals(rows)
+            native = self.budget["native_used"] + native_cost
+            root = self.budget["root_installations_used"] + root_cost_used
             if (
                 native + 1 > self.budget["native_max"]
                 or root + root_cost > self.budget["root_installations_max"]
@@ -185,6 +186,7 @@ class NativeCampaign:
                 native_used=native + 1,
                 root_installations_used=root + root_cost,
                 root_cost=root_cost,
+                operation="ROOT_AND_NATIVE" if root_cost else "NATIVE_DIAGNOSTIC",
                 release=identity,
                 scope=scope,
                 dns_scope=dns_scope,

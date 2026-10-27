@@ -210,7 +210,11 @@ class _PreviewCampaign(ReassessedCampaign):
 
     def _admission_transaction(self, guarded):
         def inspect(rows):
-            raise _PreviewComplete(guarded(rows))
+            from soc_agent.security_ai.operation_budget import guard_reservation
+
+            event = guarded(rows)
+            guard_reservation(rows, event, self.budget, self.batch)
+            raise _PreviewComplete(event)
 
         return NativeCampaign._locked(self, inspect)
 

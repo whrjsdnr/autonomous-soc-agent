@@ -575,3 +575,42 @@ Only this task's operating code/tests and appended report section are selected.
 Older pending Batch2/Batch3 documentation edits remain unstaged and preserved.
 Final Commit/Tree, remote Push result and source-to-Commit checks are recorded in
 final-verification.json. No Force Push or historical evidence rewrite is used.
+
+
+## Root-only budget and Namespace Binding development — 2026-10-27T15:20:32.591409+09:00
+
+Status: `IMPLEMENTED_NOT_ACTIVATED`; nonprivileged development and validation complete. No new Root policy receipt, Root reservation, authentication, Namespace, DNS traffic or Native execution was created. Existing FAILED / false / UNKNOWN and consumed receipts remain unchanged.
+
+### Operational accounting
+
+- `security_ai/operation_budget.py` defines the four operation costs: ROOT_SETUP / ROOT_INSTALL = Native0, Root1; NATIVE_DIAGNOSTIC = Native1, Root0; ROOT_AND_NATIVE = Native1, Root1.
+- `NativeCampaign._locked` applies shared campaign/batch accounting under the existing hash-chain lock. Existing Native and integrated admission retain their exact SHA / Scope / R1 / R2 gates and now count Root-only charges. Legacy controller and budget anchors were not rewritten.
+- `RootOperations.check_root` is nonconsuming. `reserve_root` requires separate exact RootPolicy and RootApproval pins; policy is inactive without them. It verifies Session/Release/Artifact/Source/Scope/installed/Rollback binding, current implementation/budget/baseline, validity interval, latest Ledger, replay, pending reservations and limits before appending a Root-only reservation.
+- ROOT_INSTALL additionally uses the existing candidate-package validator; ROOT_SETUP permits only the fixed setup Scope. Neither invokes an installer, sudo, arbitrary commands or Native code.
+- Record states distinguish RESERVED_NOT_STARTED, START_INTENT, STARTED and terminal results. Cancellation after START_INTENT is rejected. Interrupted/ambiguous starts remain UNKNOWN. Cancellation/failure never refunds charges. Duplicate Session/operation, simultaneous replay and duplicate settlement are rejected.
+- Read-only reservation summaries and reassessment preflight use the same combined accounting. Unsettled/failed/UNKNOWN Root operations block later admission. No automatic positive safety reassessment or refund was introduced.
+
+### Session / Release / launcher Scope
+
+The official `ApplicationPlan` constructor created planning Session `c2fd906c-d140-4c0d-a7b5-d5ec87618adb` in PHASE_A_NATIVE_BLOCKED mode, with the current ordinary-user controller and held build-file identities. This does not start an application or grant execution authority. Release `0.6.3` is taken from the actual compiled package; no new release number or Namespace inode was fabricated.
+
+The corrected request is `.git/native-stabilization-batch3/root-only-accounting-development-20261027-1/setup-approval-request.json`. Its final Commit/Tree, full Binding and request SHA are written after Commit in `git-and-request-identity.json` in the same directory. It supersedes the incomplete previous request for future approval; prior approvals are not transferred. The new approval request is not a valid policy/action receipt.
+
+Detailed Root launcher proposal and capabilities are in `docs/linux-soc-v1/root-only-namespace-execution-contract.md` and `launcher-scope-proposal.json`. Fixed setup commands remain `/usr/sbin/ip netns add soc-native-b3` and `/usr/sbin/ip -n soc-native-b3 link set dev lo up`. Child-only Namespace entry, prebound DNS sockets and privilege drop are a separately reviewed lifecycle design, not an implemented or activated privileged runner. No arbitrary argv API exists. Low-port privilege depends on the target Namespace threshold; no sysctl change is proposed. Worker stays ordinary UID/zero capabilities, 60s transport bound / 256MiB / 20 CPU seconds; DNS Sidecar analysis remains 10s. Namespace deletion by name is not authorized.
+
+### Verification and Artifact integrity
+
+- Related Workspace: 511 PASS; independent Export: 511 PASS. The final additional permission-ordering assertion was then included in focused Workspace/Export runs: 33 PASS each. These counts overlap and are not additive. The only subsequent input change was this test assertion; production code was unchanged.
+- Failure injection covers independent charges, limits, replay, duplicate/competing reservations, duplicate settlement, wrong Session/Release/Manifest binding, stale Ledger, missing/invalid policy, retained-installation/Rollback failure, start interruption, old Native admission exclusion, read-only preflight and DNS permission rejection before socket use.
+- Ruff check and format check pass; diff check passes. Selected frozen source inputs: 1,739; SHA256 `e607e69aad131f3e4a29c789244c05352ac97ac54a839d0830c13bd3c7af7bdd`. Source/Export pins are checked again after Commit.
+- Final source Export builds verification-A and verification-B match the common guarded preview Stage: 26/26 files, including exact file sets. Full build receipts: `build-verification.json`.
+- Synthetic disabled preview only: Manifest `39d5a518942db0803eb84181050e948b5eb80931348eb00b08f3f5a20f6013c9`; Bundle `02d0693a8086c28678ab0398228de3ff1e5f6c62ee629b452691a5ff96fe303c`; Execution Image `0e50b60a2e72f1d86bd5b6d259ce2561965dbffc0f3761bcf66ed8051d44061d`; Root Manifest `c8f8ea12c28c0ebd863bb97f813f0682bc77432d5a839869cb18e9eab0207b8d`. Test Scope is explicitly `net:[4999999999]`; it is not a real Namespace or approvable Native Scope. The full preview image aborts at ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED and production validation rejects it.
+- Actual isolated Namespace inode and actual-Namespace Native Artifact hashes remain PENDING. The above hashes identify review/build inputs for Root setup, not authorization for Native execution. `operation_budget.py` is included in the Runtime source fingerprint.
+
+### Preservation, Git and budget
+
+Protected original inputs 112, historical Native files 55, installed files 9 and Rollback files 9 retain their pinned identities. Ledger remains 18 rows with SHA256 `4de62079171e03e94076d25e2184f1472f24ea3d2492eb2ffbb789df6fe9ec0a`. Current charges remain Campaign Native4/10, Root4/10; Batch3 Native1/2, Root1/2.
+
+Only this task's source, tests, new contract document and this report section are selected for Commit/Push. Existing dirty Batch 2/3 report content is left unstaged. Exact Git Commit/Tree/remote confirmation is recorded in `git-and-request-identity.json` and the final response. No Ledger/Audit or approval receipt is committed.
+
+A future approved Root-only setup would charge Root5/10 and Batch3 Root2/2, leaving no Batch3 Root installation allowance; Native stays unchanged. Policy activation, the new exact Session/Release/request Binding, any executable privileged DNS lifecycle, and later actual-Namespace Root/Native/R1/R2 approvals remain separate. P02/P03 remain INCOMPLETE, no new Native eligible candidate exists, and Native AI/DNS9/production remain BLOCKED.
