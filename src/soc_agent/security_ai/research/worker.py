@@ -165,7 +165,7 @@ def run_live(request, paths):
     from soc_agent.security_ai.operational.network_capture.live_session import unprivileged
     from soc_agent.security_ai.research.environment import verify
     from soc_agent.security_ai.research.live_input import parity_check, produce
-    from soc_agent.security_ai.research.models import SPECS, LiveReceipt, digest
+    from soc_agent.security_ai.research.models import LiveReceipt, digest
 
     unprivileged()
     verify(paths, offline=False)
@@ -179,39 +179,7 @@ def run_live(request, paths):
         vector = produce_zeek(request)
     else:
         vector = produce(request)
-    import ml.verified_producers.network_v1_1 as producer
-    import numpy as np
-    import sklearn
-    from ml.network_research.artifacts import load_research
-    from ml.network_research.evaluation import probabilities
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.pipeline import Pipeline
-    from sklearn.preprocessing import StandardScaler
-
-    if (
-        Path(producer.__file__).resolve()
-        != (paths.producer_source or paths.ml) / "src/ml/verified_producers/network_v1_1.py"
-        or sys.version_info[:3] != (3, 12, 14)
-        or sklearn.__version__ != "1.9.1"
-    ):
-        raise ValueError("LIVE_PRODUCER_OR_BACKEND_MISMATCH")
-    spec = SPECS[request.profile]
-    model, manifest = load_research(
-        paths.ml / "models/network-research-v1-final" / spec["directory"],
-        trusted_manifest_digest=spec["manifest"],
-    )
-    valid = (
-        type(model) is RandomForestClassifier
-        if request.profile == "quality"
-        else type(model) is Pipeline
-        and [type(v) for _, v in model.steps] == [StandardScaler, LogisticRegression]
-    )
-    if not valid or model.n_features_in_ != 14 or manifest["threshold"] != spec["threshold"]:
-        raise ValueError("LIVE_MODEL_TYPE_MISMATCH")
-    started = time.perf_counter()
-    score = float(probabilities(model, np.asarray([vector.values], dtype=np.float32))[0])
-    elapsed = (time.perf_counter() - started) * 1000
+    spec, score, elapsed = predict_network(request.profile, vector.values, paths)
     usage = resource.getrusage(resource.RUSAGE_SELF)
     from soc_agent.security_ai.research.models import ZeekReceipt
 
@@ -257,6 +225,89 @@ def run_live(request, paths):
     )
 
 
+def predict_network(profile, values, paths):
+    """Shared exact-artifact/type/schema inference for live metadata and TCX vectors."""
+    import ml.verified_producers.network_v1_1 as producer
+    import numpy as np
+    import sklearn
+    from ml.network_research.artifacts import load_research
+    from ml.network_research.evaluation import probabilities
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.pipeline import Pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    from soc_agent.security_ai.research.models import SPECS
+
+    if (
+        Path(producer.__file__).resolve()
+        != (paths.producer_source or paths.ml) / "src/ml/verified_producers/network_v1_1.py"
+        or sys.version_info[:3] != (3, 12, 14)
+        or sklearn.__version__ != "1.9.1"
+    ):
+        raise ValueError("LIVE_PRODUCER_OR_BACKEND_MISMATCH")
+    spec = SPECS[profile]
+    model, manifest = load_research(
+        paths.ml / "models/network-research-v1-final" / spec["directory"],
+        trusted_manifest_digest=spec["manifest"],
+    )
+    valid = (
+        type(model) is RandomForestClassifier
+        if profile == "quality"
+        else type(model) is Pipeline
+        and [type(v) for _, v in model.steps] == [StandardScaler, LogisticRegression]
+    )
+    if not valid or model.n_features_in_ != 14 or manifest["threshold"] != spec["threshold"]:
+        raise ValueError("LIVE_MODEL_TYPE_MISMATCH")
+    started = time.perf_counter()
+    score = float(probabilities(model, np.asarray([values], dtype=np.float32))[0])
+    elapsed = (time.perf_counter() - started) * 1000
+    return spec, score, elapsed
+
+
+def run_vector(request, paths):
+    from soc_agent.security_ai.research.environment import verify
+    from soc_agent.security_ai.research.live_input import parity_check
+    from soc_agent.security_ai.research.models import digest
+    from soc_agent.security_ai.tcx_input import VectorReceipt, vector
+
+    if os.geteuid() == 0:
+        raise ValueError("TCX_MODEL_ORDINARY_UID_REQUIRED")
+    verify(paths, offline=False)
+    parity_check()
+    row, _ = vector(request.job, request.flow_id, request.input_receipt_digest)
+    spec, score, elapsed = predict_network(request.profile, row["values"], paths)
+    return VectorReceipt(
+        origin=request.job.origin,
+        profile=request.profile,
+        invocation_id=request.invocation_id,
+        request_digest=digest(request.model_dump(mode="json")),
+        source_digest=digest(request.job.model_dump(mode="json")),
+        session=request.job.session,
+        namespace=request.job.namespace,
+        release_manifest=request.job.release_manifest,
+        flow_id=request.flow_id,
+        input_receipt_digest=request.input_receipt_digest,
+        feature_fingerprint=row["values_digest"],
+        feature_names=row["feature_names"],
+        feature_values=row["values"],
+        model_id=spec["model_id"],
+        artifact_digest=spec["sha256"],
+        model_manifest_digest=spec["manifest"],
+        score=score,
+        threshold=spec["threshold"],
+        prediction="CLASS_1" if score >= spec["threshold"] else "CLASS_0",
+        inferred_at=datetime.now(UTC),
+        inference_latency_ms=elapsed,
+        worker_limits=dict(
+            address_space_bytes=resource.getrlimit(resource.RLIMIT_AS)[0],
+            cpu_seconds=resource.getrlimit(resource.RLIMIT_CPU)[0],
+            result_file_bytes=resource.getrlimit(resource.RLIMIT_FSIZE)[0],
+            network="DENIED",
+        ),
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--parent-pid", type=int, required=True)
@@ -264,6 +315,7 @@ def main():
     parser.add_argument("--result", type=Path, required=True)
     parser.add_argument("--ml", type=Path, required=True)
     parser.add_argument("--producer-source", type=Path, required=True)
+    parser.add_argument("--tcx-vector", action="store_true")
     parser.add_argument("--live-metadata", action="store_true")
     parser.add_argument("--zeek-metadata", action="store_true")
     args = parser.parse_args()
@@ -272,7 +324,13 @@ def main():
     from soc_agent.security_ai.research.environment import Paths, read_local
     from soc_agent.security_ai.research.models import Request
 
-    if args.zeek_metadata:
+    if sum((args.tcx_vector, args.live_metadata, args.zeek_metadata)) > 1:
+        raise ValueError("RESEARCH_WORKER_MODE_CONFLICT")
+    if args.tcx_vector:
+        from soc_agent.security_ai.tcx_input import VectorRequest
+
+        request = VectorRequest.model_validate_json(read_local(args.request, 1024 * 1024))
+    elif args.zeek_metadata:
         from soc_agent.security_ai.research.zeek_input import ZeekRequest
 
         request = ZeekRequest.model_validate_json(read_local(args.request, 256 * 1024))
@@ -286,7 +344,9 @@ def main():
         args.ml, Path(sys.executable), Path(__file__).resolve().parents[3], args.producer_source
     )
     result = (
-        run_live(request, paths)
+        run_vector(request, paths)
+        if args.tcx_vector
+        else run_live(request, paths)
         if args.live_metadata or args.zeek_metadata
         else run(request, paths)
     )

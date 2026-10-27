@@ -36,6 +36,7 @@ class ResearchAdapter:
         self.live_metadata = live_metadata
         self.authorize_live = None
         self.authorize_zeek = None
+        self.authorize_tcx = None
         self.transient_inputs = transient_inputs
 
     def status(self, profile="quality") -> dict:
@@ -67,7 +68,13 @@ class ResearchAdapter:
     async def infer(self, request: Request) -> dict:
         from soc_agent.security_ai.research.live_input import LiveRequest, validate_result
         from soc_agent.security_ai.research.zeek_input import ZeekRequest
+        from soc_agent.security_ai.tcx_input import (
+            VectorReceipt,
+            VectorRequest,
+            validate_vector_result,
+        )
 
+        tcx = isinstance(request, VectorRequest)
         zeek = isinstance(request, ZeekRequest)
         live = isinstance(request, LiveRequest) or zeek
         if live:
@@ -76,15 +83,19 @@ class ResearchAdapter:
             unprivileged()
         if live != self.live_metadata:
             raise ValueError("EXPLICIT_LIVE_RESEARCH_MODE_REQUIRED")
-        request = (ZeekRequest if zeek else LiveRequest if live else Request).model_validate_json(
-            request.model_dump_json()
-        )
+        request = (
+            VectorRequest if tcx else ZeekRequest if zeek else LiveRequest if live else Request
+        ).model_validate_json(request.model_dump_json())
         if self.busy:
             raise ValueError("RESEARCH_WORKER_ALREADY_RUNNING")
         self.busy = True
         self.cancelled = False
         work = source = result = None
         try:
+            if tcx and request.job.origin == "REAL_NATIVE":
+                if self.authorize_tcx is None:
+                    return {"status": "UNKNOWN", "error": "TCX_MODEL_ACTION_APPROVAL_REQUIRED"}
+                await asyncio.to_thread(self.authorize_tcx, request)
             if zeek:
                 if self.authorize_zeek is None:
                     return {"status": "UNKNOWN", "error": "ZEEK_SOURCE_NOT_VERIFIED"}
@@ -98,7 +109,7 @@ class ResearchAdapter:
                 from soc_agent.security_ai.research.dns import verify as check
             else:
                 check = verify
-            if live:
+            if live or tcx:
                 await asyncio.to_thread(verify, paths, offline=False)
             else:
                 await asyncio.to_thread(check, paths)
@@ -124,7 +135,15 @@ class ResearchAdapter:
                 str(paths.ml),
                 "--producer-source",
                 str(paths.producer_source or paths.ml),
-                *(["--zeek-metadata"] if zeek else ["--live-metadata"] if live else []),
+                *(
+                    ["--tcx-vector"]
+                    if tcx
+                    else ["--zeek-metadata"]
+                    if zeek
+                    else ["--live-metadata"]
+                    if live
+                    else []
+                ),
                 stdout=asyncio.subprocess.DEVNULL,
                 stderr=asyncio.subprocess.DEVNULL,
                 env={
@@ -151,7 +170,12 @@ class ResearchAdapter:
                 return {"status": "UNKNOWN", "error": "WORKER_TIMEOUT_NO_RETRY"}
             if self.process.returncode != 0:
                 return {"status": "UNKNOWN", "error": "WORKER_FAILURE_OR_BUDGET_NO_RETRY"}
-            receipt = parse_receipt(json.loads(read_local(result, 32 * 1024)))
+            raw = json.loads(read_local(result, 32 * 1024))
+            if tcx:
+                receipt = VectorReceipt.model_validate(raw)
+                validate_vector_result(request, receipt)
+                return {"status": "SUCCESS", "receipt": receipt.model_dump(mode="json")}
+            receipt = parse_receipt(raw)
             if live:
                 if zeek:
                     from soc_agent.security_ai.research.zeek_input import (

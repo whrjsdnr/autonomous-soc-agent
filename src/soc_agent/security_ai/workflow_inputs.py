@@ -237,3 +237,50 @@ async def replay(
                 receipt=r.model_dump(mode="json"),
             )
         )
+
+
+def research_comparison(records: list[InferenceRecord]) -> dict:
+    """Adapter projection for RF/LR binary results, not legacy five-feature Fusion v1.
+
+    Reuse existing interpretation states; compare only identical source/feature groups.
+    No averaged score, calibrated confidence, domain identity or action authority.
+    """
+    from soc_agent.security_ai.fusion.enums import AgreementState, ConfidenceState, CoverageState
+
+    groups = {}
+    for r in records:
+        key = digest((r.event_identity, r.feature_fingerprint, r.evidence_references))
+        values = groups.setdefault(key, {})
+        if r.model_id in values:
+            raise QualityFailure("DUPLICATE_RESEARCH_MODEL_RESULT")
+        values[r.model_id] = r.prediction
+    states = [
+        AgreementState.INSUFFICIENT
+        if len(v) < 2
+        else AgreementState.CONSISTENT
+        if len(set(v.values())) == 1
+        else AgreementState.CONFLICTING
+        for v in groups.values()
+    ]
+    agreement = (
+        AgreementState.CONFLICTING
+        if AgreementState.CONFLICTING in states
+        else AgreementState.CONSISTENT
+        if states and all(s == AgreementState.CONSISTENT for s in states)
+        else AgreementState.INSUFFICIENT
+    )
+    body = dict(
+        contract="soc-research-model-comparison:v1",
+        agreement_state=agreement.value,
+        confidence_state=ConfidenceState.UNKNOWN.value,
+        coverage_state=CoverageState.COMPLETE.value
+        if states and all(len(v) == 2 for v in groups.values())
+        else CoverageState.PARTIAL.value,
+        missing_models=[],
+        summary=dict(groups=groups, calibrated_confidence=None, cross_domain_state="unverified"),
+        limitations=[
+            "Research binary comparison only; not legacy Fusion v1",
+            "Scores not averaged; no action authority",
+        ],
+    )
+    return dict(body, fusion_id=digest(body))

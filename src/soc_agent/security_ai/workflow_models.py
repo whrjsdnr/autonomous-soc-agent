@@ -79,6 +79,24 @@ class NativeCheckpointJob(Frozen):
     transport: dict[str, JsonValue]
 
 
+class TCXAnalysisJob(Frozen):
+    kind: Literal["tcx_analysis"]
+    origin: Literal["REAL_NATIVE", "FIXTURE"]
+    session: UUID
+    namespace: str = Field(pattern=r"^net:\[[1-9][0-9]*\]$")
+    release_manifest: Hash
+    result: dict[str, JsonValue]
+    profiles: tuple[Literal["quality", "edge"], ...] = Field(
+        default=("quality", "edge"), min_length=1, max_length=2
+    )
+
+    @model_validator(mode="after")
+    def unique_profiles(self):
+        if len(set(self.profiles)) != len(self.profiles):
+            raise ValueError("TCX_DUPLICATE_MODEL_PROFILE")
+        return self
+
+
 class CollectorFailureJob(Frozen):
     kind: Literal["collector_error"]
     code: str = Field(min_length=1, max_length=128)
@@ -93,10 +111,24 @@ Job = Annotated[
     | RawDNSJob
     | RecordsJob
     | NativeCheckpointJob
+    | TCXAnalysisJob
     | CollectorFailureJob,
     Field(discriminator="kind"),
 ]
 JOB = TypeAdapter(Job)
+
+
+def submitted_job(submitted: dict) -> Job:
+    """Normalize pinned Supervisor bytes only with explicit retained expected Scope."""
+    if submitted.get("tcx_scope") is not None:
+        import json
+
+        from soc_agent.security_ai.tcx_input import from_supervisor
+
+        return from_supervisor(json.loads(submitted["utf8"]), **submitted["tcx_scope"])
+    return JOB.validate_json(submitted["utf8"])
+
+
 Classification = Literal[
     "NORMAL",
     "KNOWN_THREAT",

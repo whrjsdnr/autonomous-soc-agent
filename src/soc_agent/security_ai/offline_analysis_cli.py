@@ -6,10 +6,11 @@ import hashlib
 import json
 from pathlib import Path
 
+from soc_agent.approval import ApprovalRequest
 from soc_agent.security_ai.api_investigation import APIRunAuthorization, settings_from_env_file
 from soc_agent.security_ai.offline_workflow import OfflineWorkflow, verify_result
 from soc_agent.security_ai.research.environment import Paths, defaults, read_local
-from soc_agent.security_ai.workflow_models import JOB
+from soc_agent.security_ai.workflow_models import submitted_job
 
 
 def main(argv=None) -> int:
@@ -21,9 +22,24 @@ def main(argv=None) -> int:
     parser.add_argument("--research-ml-root", type=Path)
     parser.add_argument("--api-authorization", type=Path)
     parser.add_argument("--api-env-file", type=Path)
+    parser.add_argument("--tcx-namespace")
+    parser.add_argument("--tcx-session")
+    parser.add_argument("--tcx-release-manifest")
+    parser.add_argument("--tcx-approval", type=Path)
+    parser.add_argument("--tcx-approval-sha256")
     args = parser.parse_args(argv)
     try:
         if args.verify:
+            if any(
+                (
+                    args.tcx_namespace,
+                    args.tcx_session,
+                    args.tcx_release_manifest,
+                    args.tcx_approval,
+                    args.tcx_approval_sha256,
+                )
+            ):
+                raise ValueError("VERIFY_HAS_NO_NEW_TCX_AUTHORITY")
             if args.input or args.input_sha256 or args.api_authorization or args.api_env_file:
                 raise ValueError("VERIFY_HAS_NO_NEW_INPUT")
             outcome = verify_result(args.output)
@@ -33,7 +49,25 @@ def main(argv=None) -> int:
             body = read_local(args.input, 1024 * 1024)
             if hashlib.sha256(body).hexdigest() != args.input_sha256:
                 raise ValueError("OFFLINE_INPUT_SHA_MISMATCH")
-            job = JOB.validate_json(body)
+            submitted = dict(sha256=args.input_sha256, utf8=body.decode())
+            scope = (args.tcx_namespace, args.tcx_session, args.tcx_release_manifest)
+            if any(scope):
+                if not all(scope):
+                    raise ValueError("TCX_EXPECTED_SCOPE_REQUIRED")
+                submitted["tcx_scope"] = dict(
+                    namespace=args.tcx_namespace,
+                    session=args.tcx_session,
+                    release_manifest=args.tcx_release_manifest,
+                )
+            job = submitted_job(submitted)
+            tcx_approval = None
+            if bool(args.tcx_approval) != bool(args.tcx_approval_sha256):
+                raise ValueError("TCX_APPROVAL_EXPLICIT_SHA_REQUIRED")
+            if args.tcx_approval:
+                approval_bytes = read_local(args.tcx_approval, 32768)
+                if hashlib.sha256(approval_bytes).hexdigest() != args.tcx_approval_sha256:
+                    raise ValueError("TCX_APPROVAL_SHA_MISMATCH")
+                tcx_approval = ApprovalRequest.model_validate_json(approval_bytes)
             authorization = settings = None
             if bool(args.api_authorization) != bool(args.api_env_file):
                 raise ValueError("API_AUTHORIZATION_AND_ENV_FILE_REQUIRED")
@@ -48,7 +82,7 @@ def main(argv=None) -> int:
                 read_local(args.api_env_file, 16384)
                 settings = settings_from_env_file(args.api_env_file, authorization)
             paths = None
-            if job.kind in ("network14_replay", "dns_fixture"):
+            if job.kind in ("network14_replay", "dns_fixture", "tcx_analysis"):
                 if args.research_ml_root:
                     ml = args.research_ml_root.absolute()
                     base = Paths(
@@ -61,9 +95,12 @@ def main(argv=None) -> int:
                 # Retain existing pinned project-local backend; bind current SOC source.
                 paths = Paths(base.ml, base.python, Path(__file__).resolve().parents[2])
             workflow = OfflineWorkflow(
-                args.output, paths=paths, api_authorization=authorization, api_settings=settings
+                args.output,
+                paths=paths,
+                api_authorization=authorization,
+                api_settings=settings,
+                tcx_approval=tcx_approval,
             )
-            submitted = dict(sha256=args.input_sha256, utf8=body.decode())
             workflow.write("submitted-input.json", submitted)
             workflow.event("OFFLINE_SUBMITTED_INPUT_RETAINED", submitted)
             outcome = asyncio.run(workflow.run(job))

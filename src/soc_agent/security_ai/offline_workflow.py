@@ -12,7 +12,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel
 
-from soc_agent.approval import ApprovalManager
+from soc_agent.approval import ApprovalManager, ApprovalRequest
 from soc_agent.assessment import ThreatAssessor
 from soc_agent.assessment.errors import AssessmentError
 from soc_agent.desktop import OfflineDesktopClient, ReadReportInput
@@ -47,6 +47,7 @@ from soc_agent.security_ai.workflow_inputs import (
     record_envelopes,
     replay,
     replay_envelope,
+    research_comparison,
 )
 from soc_agent.security_ai.workflow_models import (
     JOB,
@@ -61,6 +62,8 @@ from soc_agent.security_ai.workflow_models import (
     RecordsJob,
     ReplayJob,
     StoredDNSJob,
+    TCXAnalysisJob,
+    submitted_job,
 )
 from soc_agent.state import Evidence, IncidentState
 from soc_agent.state.evidence import utc_now
@@ -129,6 +132,7 @@ class OfflineWorkflow:
         llm_client: LLMClient | None = None,
         api_authorization: APIRunAuthorization | None = None,
         api_settings: OpenAICompatibleSettings | None = None,
+        tcx_approval: ApprovalRequest | None = None,
     ):
         if bool(api_authorization) != bool(api_settings) or api_authorization and llm_client:
             raise ValueError("API_EXPLICIT_EXCLUSIVE_CONFIGURATION_REQUIRED")
@@ -142,6 +146,7 @@ class OfflineWorkflow:
         self.store = RuntimeGovernanceStore.create_isolated(self.directory / "soc")
         self.paths, self.llm_client, self.claimed = paths, llm_client, False
         self.api_authorization, self.api_settings = api_authorization, api_settings
+        self.tcx_approval = tcx_approval
 
     def event(self, code: str, payload: object):
         with self.store.database.transaction() as c:
@@ -178,7 +183,7 @@ class OfflineWorkflow:
             if (
                 hashlib.sha256(submitted["utf8"].encode()).hexdigest()
                 != self.api_authorization.input_sha256
-                or JOB.validate_json(submitted["utf8"]).model_dump(mode="json") != raw
+                or submitted_job(submitted).model_dump(mode="json") != raw
             ):
                 raise ValueError("API_INPUT_AUTHORIZATION_MISMATCH")
             api = APIInvestigationClient(
@@ -194,6 +199,10 @@ class OfflineWorkflow:
         if len(incident_ids) > 1:
             raise QualityFailure("CROSS_INCIDENT_SOURCE_REJECTED")
         incident_id = next(iter(incident_ids), uuid4())
+        if isinstance(job, TCXAnalysisJob):
+            from soc_agent.security_ai.tcx_analysis import incident_id as tcx_incident_id
+
+            incident_id = tcx_incident_id(job)
         state = IncidentState(incident_id=incident_id)
         records = []
         envelopes = ()
@@ -209,7 +218,67 @@ class OfflineWorkflow:
             records.append(r)
 
         try:
-            if isinstance(job, RecordsJob):
+            if isinstance(job, TCXAnalysisJob):
+                from soc_agent.security_ai.tcx_analysis import analyze
+                from soc_agent.security_ai.tcx_input import candidates, dns_admission
+
+                try:
+                    _, transport, receipts = candidates(job)
+                except (ValueError, TypeError, KeyError, AttributeError) as exc:
+                    raise QualityFailure("TCX_SOURCE_REASSESSMENT_FAILED") from exc
+                self.write("tcx-input-receipts.json", receipts)
+                self.event("TCX_INPUT_RECEIPTS_RECOMPUTED", receipts)
+                dns = dns_admission(job)
+                self.write("tcx-dns-admission.json", dns)
+                self.event("TCX_DNS_ADMISSION_RECORDED", dns)
+                envelopes = (
+                    EvidenceEnvelope(
+                        event_identity=str(job.session),
+                        domain="NETWORK",
+                        origin=job.origin,
+                        source_digest=digest(job.model_dump(mode="json")),
+                        collector_identity="TCX_SUPERVISOR_RETAINED_RESULT",
+                        observed_at=None,
+                        schema_version="Network14/1.1.0",
+                        session=str(job.session),
+                        release=job.release_manifest,
+                        namespace=job.namespace,
+                        interface="lo",
+                        integrity="FIXTURE" if job.origin == "FIXTURE" else "DECLARED_UNATTESTED",
+                        provenance=(
+                            digest(transport),
+                            "Recomputed evidence; source pin is not independent OS attestation",
+                        ),
+                    ),
+                )
+                accepted = [r for r in receipts if r["input_state"] == "ELIGIBLE"]
+                reasons = [x for r in receipts for x in r["reasons"]]
+                eligible = (
+                    "ELIGIBLE"
+                    if accepted
+                    else "INVALID"
+                    if any(r["input_state"] == "INVALID" for r in receipts)
+                    else "INCOMPLETE"
+                )
+                if accepted:
+                    adapter = ResearchAdapter(self.directory / "workers", paths=self.paths)
+                    allowed = await analyze(
+                        job,
+                        receipts,
+                        adapter,
+                        record,
+                        self.directory,
+                        self.write,
+                        self.event,
+                        self.tcx_approval,
+                    )
+                    if not allowed:
+                        reasons.append("TCX_MODEL_ACTION_APPROVAL_REQUIRED")
+                    if records:
+                        fusion = research_comparison(records)
+                elif not receipts:
+                    reasons.append("NO_TCX_FEATURE_CANDIDATES")
+            elif isinstance(job, RecordsJob):
                 envelopes = record_envelopes(job)
                 fusion = await packaged(job, state, record)
                 eligible = "ELIGIBLE"
@@ -217,6 +286,8 @@ class OfflineWorkflow:
                 envelopes = (replay_envelope(job),)
                 adapter = ResearchAdapter(self.directory / "workers", paths=self.paths)
                 await replay(job, adapter, record)
+                if isinstance(job, ReplayJob):
+                    fusion = research_comparison(records)
                 if isinstance(job, ReplayJob):
                     envelopes = (
                         EvidenceEnvelope.model_validate(
@@ -284,11 +355,13 @@ class OfflineWorkflow:
                 reasons = [job.code, "CALLER_REPORTED_ERROR_NOT_NATIVE_ATTESTATION"]
             if not isinstance(job, CollectorFailureJob):
                 kind = classification(records)
+                if isinstance(job, TCXAnalysisJob) and eligible == "ELIGIBLE" and not records:
+                    kind = "MODEL_ERROR"  # Input quality and model execution permission differ.
         except QualityFailure as exc:
             kind = "DATA_QUALITY_FAILURE"
             eligible = "INVALID"
             reasons = [str(exc)]
-        except (ValueError, OSError, ImportError, SecurityAIError) as exc:
+        except (ValueError, OSError, ImportError, SecurityAIError, ExecutionError) as exc:
             kind = "MODEL_ERROR"
             reasons = ["MODEL_OR_ARTIFACT_VALIDATION_FAILED", type(exc).__name__]
         if not envelopes:
@@ -445,7 +518,7 @@ class OfflineWorkflow:
                 error_type=type(exc).__name__,
             )
             self.event("OFFLINE_RESPONSE_FAILED", response)
-        if (
+        if (not isinstance(job, TCXAnalysisJob) or records) and (
             kind in ("UNKNOWN_ANOMALY", "MODEL_ERROR")
             or isinstance(job, CollectorFailureJob)
             and not known
@@ -561,7 +634,7 @@ def verify_result(directory: Path) -> AnalysisOutcome:
             or hashlib.sha256(submitted["utf8"].encode()).hexdigest() != submitted["sha256"]
         ):
             raise ValueError("OFFLINE_SUBMITTED_INPUT_CHANGED")
-        if JOB.validate_json(submitted["utf8"]).model_dump(mode="json") != source:
+        if submitted_job(submitted).model_dump(mode="json") != source:
             raise ValueError("OFFLINE_NORMALIZED_INPUT_MISMATCH")
     pins = [e["binding_digest"] for e in events if e["code"] == "OFFLINE_INFERENCE_COMPLETED"]
     if pins != [digest(r.model_dump(mode="json")) for r in result.inference]:
@@ -579,6 +652,55 @@ def verify_result(directory: Path) -> AnalysisOutcome:
         from soc_agent.security_ai.api_investigation import verify_api_receipts
 
         verify_api_receipts(directory, events, result.external_provider_calls)
+    if source.get("kind") == "tcx_analysis":
+        from soc_agent.security_ai.tcx_input import (
+            VectorReceipt,
+            VectorRequest,
+            candidates,
+            dns_admission,
+            validate_vector_result,
+        )
+
+        job = TCXAnalysisJob.model_validate(source)
+        pins = [e["binding_digest"] for e in events if e["code"] == "TCX_INPUT_RECEIPTS_RECOMPUTED"]
+        if pins:
+            receipts = json.loads(read_local(directory / "tcx-input-receipts.json", 1024 * 1024))
+            if candidates(job)[2] != receipts or pins != [digest(receipts)]:
+                raise ValueError("TCX_RECOMPUTED_RECEIPT_AUDIT_MISMATCH")
+            dns = json.loads(read_local(directory / "tcx-dns-admission.json", 1024 * 1024))
+            if dns != dns_admission(job) or [
+                e["binding_digest"] for e in events if e["code"] == "TCX_DNS_ADMISSION_RECORDED"
+            ] != [digest(dns)]:
+                raise ValueError("TCX_DNS_ADMISSION_AUDIT_MISMATCH")
+            for r in result.inference:
+                receipt = VectorReceipt.model_validate(r.receipt)
+                request = VectorRequest(
+                    job=job,
+                    profile=receipt.profile,
+                    flow_id=receipt.flow_id,
+                    invocation_id=receipt.invocation_id,
+                    input_receipt_digest=receipt.input_receipt_digest,
+                )
+                validate_vector_result(request, receipt)
+            for code, name in (
+                ("TCX_MODEL_ACTION_BOUND", "tcx-model-action.json"),
+                ("TCX_MODEL_APPROVAL_REQUIRED", "tcx-model-approval-pending.json"),
+                ("TCX_MODEL_APPROVAL_VALIDATED", "tcx-model-approval.json"),
+            ):
+                expected = [e["binding_digest"] for e in events if e["code"] == code]
+                if expected and expected != [
+                    digest(json.loads(read_local(directory / name, 32768)))
+                ]:
+                    raise ValueError("TCX_MODEL_AUTHORITY_AUDIT_MISMATCH")
+            if (
+                job.origin == "REAL_NATIVE"
+                and result.inference
+                and not any(
+                    e["code"] in {"TCX_MODEL_EXECUTION_COMPLETED", "TCX_MODEL_EXECUTION_FAILED"}
+                    for e in events
+                )
+            ):
+                raise ValueError("TCX_NATIVE_MODEL_COMPLETION_AUDIT_MISSING")
     dns_pins = [
         e["binding_digest"] for e in events if e["code"] == "OFFLINE_DNS_TRANSACTIONS_COMPLETED"
     ]
