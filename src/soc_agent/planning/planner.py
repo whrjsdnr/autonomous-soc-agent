@@ -32,6 +32,7 @@ class InvestigationPlanner:
         registry: ToolRegistry,
         strategy_provider: InvestigationStrategyProvider | None = None,
         max_steps: int = 8,
+        draft_model: type[LLMInvestigationPlanDraft] = LLMInvestigationPlanDraft,
     ) -> None:
         if type(max_steps) is not int or not 1 <= max_steps <= 8:
             raise ValueError("Planner step limit must be in [1, 8]")
@@ -39,12 +40,15 @@ class InvestigationPlanner:
         self._registry = registry
         self._strategy_provider = strategy_provider
         self._max_steps = max_steps
+        if not issubclass(draft_model, LLMInvestigationPlanDraft):
+            raise ValueError("Planner draft must retain the existing plan contract")
+        self.last_draft: LLMInvestigationPlanDraft | None = None
         self._response_model = (
-            LLMInvestigationPlanDraft
+            draft_model
             if max_steps == 8
             else create_model(
                 "LLMInvestigationPlanDraft",
-                __base__=LLMInvestigationPlanDraft,
+                __base__=draft_model,
                 steps=(
                     tuple[LLMInvestigationStepDraft, ...],
                     Field(min_length=1, max_length=max_steps),
@@ -53,6 +57,7 @@ class InvestigationPlanner:
         )
 
     async def create_plan(self, incident_state: IncidentState) -> InvestigationPlan:
+        self.last_draft = None
         tools = {
             metadata.name: self._registry.get(metadata.name)
             for metadata in self._registry.list()
@@ -76,5 +81,9 @@ class InvestigationPlanner:
         )
         # Revalidate independently of a custom client implementation.
         draft = self._response_model.model_validate(draft.model_dump())
-        plan = normalize_plan(draft, incident_id=context.incident_id, tools=tools)
-        return validate_strategy(plan, strategy, tools=tools) if strategy is not None else plan
+        # Extended advisory fields never enter the executable plan contract.
+        executable = LLMInvestigationPlanDraft(goal=draft.goal, steps=draft.steps)
+        plan = normalize_plan(executable, incident_id=context.incident_id, tools=tools)
+        result = validate_strategy(plan, strategy, tools=tools) if strategy is not None else plan
+        self.last_draft = draft
+        return result

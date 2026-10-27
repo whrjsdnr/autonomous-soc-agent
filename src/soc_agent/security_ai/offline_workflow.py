@@ -20,10 +20,16 @@ from soc_agent.execution import ActionProposal, GovernedExecutor
 from soc_agent.execution.errors import ExecutionError
 from soc_agent.investigation import InvestigationOrchestrator
 from soc_agent.llm import LLMClient, LLMError, LLMRequest, LLMResponseValidationError
+from soc_agent.llm.openai_compatible import OpenAICompatibleSettings
 from soc_agent.planning import InvestigationPlanner
 from soc_agent.planning.errors import PlanningError
 from soc_agent.policy import PolicyEngine
 from soc_agent.review.persistence.secure_storage import create_private_directory
+from soc_agent.security_ai.api_investigation import (
+    APIInvestigationClient,
+    APIInvestigationDraft,
+    APIRunAuthorization,
+)
 from soc_agent.security_ai.ebpf.input_eligibility import input_receipts
 from soc_agent.security_ai.errors import SecurityAIError
 from soc_agent.security_ai.external.runtime_store import (
@@ -51,6 +57,7 @@ from soc_agent.security_ai.workflow_models import (
     InferenceRecord,
     Job,
     NativeCheckpointJob,
+    RawDNSJob,
     RecordsJob,
     ReplayJob,
     StoredDNSJob,
@@ -115,8 +122,18 @@ def classification(records: list[InferenceRecord]) -> str:
 
 class OfflineWorkflow:
     def __init__(
-        self, directory: Path, *, paths: Paths | None = None, llm_client: LLMClient | None = None
+        self,
+        directory: Path,
+        *,
+        paths: Paths | None = None,
+        llm_client: LLMClient | None = None,
+        api_authorization: APIRunAuthorization | None = None,
+        api_settings: OpenAICompatibleSettings | None = None,
     ):
+        if bool(api_authorization) != bool(api_settings) or api_authorization and llm_client:
+            raise ValueError("API_EXPLICIT_EXCLUSIVE_CONFIGURATION_REQUIRED")
+        if api_authorization and Path(api_authorization.output_directory) != directory.absolute():
+            raise ValueError("API_ATTEMPT_DIRECTORY_MISMATCH")
         if os.geteuid() == 0:
             raise ValueError("OFFLINE_ORDINARY_UID_REQUIRED")
         # Never adopt/reset an existing attempt, including one interrupted before output.
@@ -124,6 +141,7 @@ class OfflineWorkflow:
         create_private_directory(self.directory, exist_ok=False)
         self.store = RuntimeGovernanceStore.create_isolated(self.directory / "soc")
         self.paths, self.llm_client, self.claimed = paths, llm_client, False
+        self.api_authorization, self.api_settings = api_authorization, api_settings
 
     def event(self, code: str, payload: object):
         with self.store.database.transaction() as c:
@@ -150,6 +168,22 @@ class OfflineWorkflow:
         raw = job.model_dump(mode="json")
         self.write("input.json", raw)
         self.event("OFFLINE_ANALYSIS_STARTED", raw)
+        api = None
+        if self.api_authorization:
+            import hashlib
+
+            submitted = json.loads(
+                read_local(self.directory / "submitted-input.json", 2 * 1024 * 1024)
+            )
+            if (
+                hashlib.sha256(submitted["utf8"].encode()).hexdigest()
+                != self.api_authorization.input_sha256
+                or JOB.validate_json(submitted["utf8"]).model_dump(mode="json") != raw
+            ):
+                raise ValueError("API_INPUT_AUTHORIZATION_MISMATCH")
+            api = APIInvestigationClient(
+                self.api_authorization, self.api_settings, self.write, self.event
+            )
         incident_ids = (
             {r.incident_id for r in job.records if r.incident_id is not None}
             if isinstance(job, RecordsJob)
@@ -208,6 +242,31 @@ class OfflineWorkflow:
                 )
                 eligible = "INCOMPLETE"
                 reasons = ["DNS9_PRODUCER_PARITY_UNVERIFIED", "NO_GUESSED_DNS_FEATURES"]
+            elif isinstance(job, RawDNSJob):
+                from soc_agent.security_ai.dns_transactions import transactions
+
+                try:
+                    receipt = transactions(job)
+                except ValueError as exc:
+                    raise QualityFailure("RAW_DNS_TRANSACTION_OR_CLOCK_INVALID") from exc
+                self.write("dns-transactions.json", receipt)
+                self.event("OFFLINE_DNS_TRANSACTIONS_COMPLETED", receipt)
+                eligible, reasons = receipt["eligibility"], receipt["reasons"]
+                envelopes = (
+                    EvidenceEnvelope(
+                        event_identity=digest(raw),
+                        domain="DNS",
+                        origin=job.origin,
+                        source_digest=job.source_sha256,
+                        collector_identity="stored_dns_wire_transcript",
+                        observed_at=None,
+                        schema_version=receipt["contract"],
+                        integrity="DECLARED_UNATTESTED",
+                        provenance=(
+                            "Pinned transcript; PCAP linkage declared, not Native attestation",
+                        ),
+                    ),
+                )
             elif isinstance(job, NativeCheckpointJob):
                 try:
                     receipts = input_receipts(job.summary, job.transport)
@@ -391,15 +450,19 @@ class OfflineWorkflow:
             or isinstance(job, CollectorFailureJob)
             and not known
         ):
-            client = AdvisoryClient(self.llm_client or OfflineDesktopClient(), context)
+            client = AdvisoryClient(api or self.llm_client or OfflineDesktopClient(), context)
             try:
-                planner = InvestigationPlanner(llm_client=client, registry=registry, max_steps=2)
-                plan = await asyncio.wait_for(planner.create_plan(state), 30)
+                planner_options = {"draft_model": APIInvestigationDraft} if api else {}
+                planner = InvestigationPlanner(
+                    llm_client=client, registry=registry, max_steps=2, **planner_options
+                )
+                deadline = self.api_authorization.timeout_seconds + 1 if api else 30
+                plan = await asyncio.wait_for(planner.create_plan(state), deadline)
                 result = await InvestigationOrchestrator(executor=executor).execute_plan(
                     incident_state=state, plan=plan, require_read_only=True
                 )
                 assessment = await asyncio.wait_for(
-                    ThreatAssessor(llm_client=client).assess(result.incident_state), 30
+                    ThreatAssessor(llm_client=client).assess(result.incident_state), deadline
                 )
                 investigation = dict(
                     plan=plan.model_dump(mode="json"),
@@ -427,6 +490,10 @@ class OfflineWorkflow:
                         for h in assessment.incident_state.hypotheses
                     ],
                 )
+                if api:
+                    investigation["generated_draft"] = planner.last_draft.model_dump(mode="json")
+                    investigation["api_receipt_digests"] = [digest(r) for r in api.receipts]
+                    investigation["evaluation_kind"] = "API_ADVISORY_NOT_INDEPENDENT_GROUND_TRUTH"
                 self.event("OFFLINE_INVESTIGATION_COMPLETED", investigation)
             except (
                 ValueError,
@@ -453,8 +520,8 @@ class OfflineWorkflow:
             fusion=fusion,
             response=response,
             investigation=investigation,
-            llm_mode="INJECTED_CLIENT" if self.llm_client else "SCRIPTED",
-            external_provider_calls=None if self.llm_client else 0,
+            llm_mode="REAL_API" if api else "INJECTED_CLIENT" if self.llm_client else "SCRIPTED",
+            external_provider_calls=api.calls if api else None if self.llm_client else 0,
         )
         self.write("result.json", outcome.model_dump(mode="json"))
         self.event("OFFLINE_ANALYSIS_COMPLETED", outcome.model_dump(mode="json"))
@@ -508,4 +575,15 @@ def verify_result(directory: Path) -> AnalysisOutcome:
             mode="json"
         ):
             raise ValueError("OFFLINE_ORIGINAL_RECEIPT_CHANGED")
+    if result.llm_mode == "REAL_API":
+        from soc_agent.security_ai.api_investigation import verify_api_receipts
+
+        verify_api_receipts(directory, events, result.external_provider_calls)
+    dns_pins = [
+        e["binding_digest"] for e in events if e["code"] == "OFFLINE_DNS_TRANSACTIONS_COMPLETED"
+    ]
+    if dns_pins or source.get("kind") == "raw_dns" and result.eligibility != "INVALID":
+        receipt = json.loads(read_local(directory / "dns-transactions.json", 4 * 1024 * 1024))
+        if dns_pins != [digest(receipt)]:
+            raise ValueError("OFFLINE_DNS_RECEIPT_AUDIT_MISMATCH")
     return result
