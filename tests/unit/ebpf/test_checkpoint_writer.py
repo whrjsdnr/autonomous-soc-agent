@@ -94,7 +94,10 @@ async def test_large_candidate_receipts_preserve_digest_sqlite_audit_and_recover
     # Tamper within the factored context must still fail the original full-summary
     # digest/Audit binding, even if the encoding itself is structurally valid.
     encoded = json.loads(text)
-    encoded["shared"]["eligible"] = True
+    context = (
+        encoded["candidates"] if encoded["checkpoint_encoding"] == "SHARED_CONTEXT_V2" else encoded
+    )
+    context["shared"]["eligible"] = True
     with collector.store.database.transaction() as db:
         db.execute("UPDATE ebpf_checkpoint SET value=?", (json.dumps(encoded),))
     with pytest.raises(ValueError, match="BINDING_FAILED"):

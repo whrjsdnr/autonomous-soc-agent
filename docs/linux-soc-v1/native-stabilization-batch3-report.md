@@ -200,3 +200,197 @@ Artifact. The single dossier can carry successive linked identities; a pending
 image hash cannot preauthorize a different future image. No additional approval
 system or speculative positive receipt was created to conceal this dependency.
 No execute invocation is authorized by this preparation.
+
+
+# Batch 3 — Environment, Capture and Checkpoint Stabilization (2026-10-27)
+
+## Overall Status
+
+INSTRUMENTED; Native execution remains BLOCKED by the measured ambient load and
+pending new exact-Artifact approvals. This task performed no Root operation,
+authentication, Native Capture, attach, DNS query or other diagnostic traffic.
+The last actual Native result remains PARTIALLY_VERIFIED, P02/P03 INCOMPLETE,
+P04 ELIGIBLE0/9. Existing candidates were not reclassified. Native AI, DNS9 and
+production remain BLOCKED. No new approval system or execution policy was added.
+
+## Loopback Source — Current Evidence Versus Historical Attribution
+
+Passive35.003173992s sampling of /sys/class/net/lo/statistics/rx_packets observed
+12,063 packets, mean344.625890 packets/s (five-second intervals309.58–380.38/s),
+with no increment in the interface RX dropped counter. ss -tinape snapshots
+before/after correlate four established TCP connection pairs with actual /proc
+FD socket inodes, PID/PPID, namespace and cgroup. All are net:[4026531833] and
+cgroup0::/init.scope. Port34339 belongs to VS Code Remote server/extension hosts:
+
+| Client port | Client PID | Server endpoint owner | Purpose verified by executable/arguments |
+|---|---:|---:|---|
+| 41702 | 82065 | 560 | VS Code node -e net.createConnection / server-main.js |
+| 41714 | 82078 | 82115 | VS Code node tunnel / extensionHost |
+| 53190 | 836 | 560 | VS Code node tunnel / server-main.js |
+| 53192 | 854 | 925 | VS Code node tunnel / extensionHost |
+
+Counting each pair once using server endpoint segs_in+segs_out deltas gives
+2,935+2,825+3,126+3,163=12,049 TCP segments. Both endpoint counters agree.
+Comparison with12,063 interface packets is approximate: snapshots are not atomic,
+TCP segments and interface counters have different observation boundaries.
+This is evidence that these VS Code Remote connections dominate *current*
+loopback load, not attribution by process name alone. Some other listeners have
+no readable owner and remain UNKNOWN. No process/service was stopped. Other
+Codex processes were observed but not killed; no source mutation was detected
+in the guarded export/build verification.
+
+Historical Native evidence preserves flow hashes, counts, first/last event
+watermarks and direction counts but not the necessary socket tuple/PID mapping
+or every packet timestamp. Thus historical ownership/ports and a per-second
+packet histogram cannot be reconstructed. The four historical dominant flows
+are not retroactively assigned to the current sockets. Historical Native counts:
+TCP4,082, UDP14, total4,096; top four TCP flows4,072 (99.414%); event-span rate
+339.048119 events/s. Emitted4,132=delivered4,096+post-limit exclusions36 remains
+reconciled in epoch5785906024313912557. Ring reserve failures0 and processing
+rejects0 are scoped observations; kernel-wide drops remain UNKNOWN.
+
+## Capture Window / R2 / Flow Timeout RCA
+
+The existing4,096-event cap stops Capture immediately; subsequent STOP wall-clock
+waiting cannot advance the FlowAssembly event watermark. Idle Timeout is30s
+since the Flow's last observed packet in the same monotonic event domain;
+active timeout remains120s. FIN/RST observations alone do not attest Capture
+Window completeness. Per-CPU pre-attach/post-detach snapshots and same-epoch
+clock evidence remain necessary and do not repair a truncated delivered prefix.
+
+R2 already starts after Capture Ready, preserves TCP Close time, sends its single
+additional approved UDP at TCP Close+35s and requests STOP at TCP Close+45s.
+Startup time is additional to that45s interval; the300s total bound and10s DNS
+Sidecar analysis deadline are unchanged. A later UDP event can supply an event
+watermark only if Capture is still active and real evidence validates it. The
+Sidecar may have already exited; its earlier DNS Deadline success is separate
+from TCX's later timeout observation. No timer or eligibility condition changed.
+
+Current ambient mean projects15,508 packets over45s (peak interval projects
+17,117), before setup or controlled queries. At the measured mean4,096 packets
+would take11.885s. These are passive interface-load projections, not synthetic
+TCX event counts or guarantees. Current environment feasibility is NOT MET.
+Even4,096/45=91.02 packets/s would leave no startup/scenario headroom. Actual
+full-duration bounds must be assessed after environment preparation; low passive
+rate still cannot prove a future Capture Window or candidate completeness.
+
+Operational code capture_readiness.py exposes read-only loopback_snapshot and
+assess_loopback_budget. It flags observed high ambient rate, resets, namespace/
+clock/schema errors and short quiet observations. It never authorizes execution,
+filters packets, changes counters or marks a Flow ELIGIBLE. There is no new
+automatic admission gate or safety-policy activation.
+
+Preparation for a separately approved attempt: save work; close unnecessary
+VS Code Remote windows/extensions through the user's own UI, then use a standalone
+Windows Terminal/WSL shell rather than an active Remote session to repeat passive
+sampling for35s or longer. This can disconnect the current development session;
+no agent-triggered termination is authorized or performed. Retain the actual
+netns/lo scope and evidence of the newly quiet sockets. A separate network
+namespace would change Scope and requires separate approval, so it was not
+created. Full-scope filtering, event-cap increases, timeout reduction and packet
+shedding are not alternatives used here. If ambient load remains high, do not
+spend the last Batch3 attempt under the same conditions.
+
+## Checkpoint Size Analysis and Lossless Change
+
+Original persisted UTF-8 Summary15,766B /16,384B left618B. In its V1 envelope,
+summary payload9,834B includes feature_tail4,641B and ordering2,069B; candidate
+rows5,254B and shared context610B dominate the remaining payload. These component
+sizes exclude enclosing JSON key punctuation and should not be added as a full
+byte-accounting equality. Repeated feature-name arrays and nested lifecycle
+Window/termination authority fields were confirmed across rows.
+
+checkpoint.py now supports SHARED_CONTEXT_V2: deterministic shared top-level
+fields and nested lifecycle fields are factored independently in candidates and
+feature_tail. Row order, distinct timestamps/counters/identities, values, Digest,
+Provenance and every receipt are retained. V2 is selected only when smaller than
+the existing V1 fallback for an oversized plain summary. Plain JSON and V1
+remain readable; no historical database or Summary is rewritten. Decoder schema,
+shared/row overlap, duplicate JSON keys, UTF-8 bytes and bounded expansion remain
+validated. The16KiB limit is unchanged and oversize remains an explicit failure.
+
+A derived re-encoding of the exact previous Native Summary is12,525B, saving
+3,241B and leaving3,859B. All nine candidate metadata receipts and four originally
+retained raw vectors restore identically; semantic Digest remains
+95fff67c57e55a5ba3692f170e7af2d31208d2f5e36c45ef9015e24c5c72c496.
+The five missing historical raw vectors are not fabricated. This capacity change
+does not change their UNKNOWN decisions. Original database SHA remains
+5f287e8a94bad8b8928c65e133d559d6abf58946f5567bc212777ff30c1c4bf1.
+
+The existing1,024-candidate bound, Unicode/long distinct contexts, differing
+observations, deterministic encoding,16KiB boundary, malformed contexts, digest
+binding, SQLite persistence/recovery and failed-save preservation were tested.
+1,024 identical contexts fit, but1,024 distinct long identities/contexts do not
+universally fit16KiB. That case still raises EBPF_CHECKPOINT_SIZE without deleting
+or truncating evidence. No promise of arbitrary maximum-input compression is made.
+
+## Verification and Failure Classification
+
+New and related core regression: Workspace372 PASS and independent frozen Export
+372 PASS, including actual persistence/recovery and synthetic STOP/Drain, R2,
+clock, Flow, Network14, policy/approval and budget tests. Synthetic/fixture tests
+are not a new Native success. Ruff, Format and Diff pass.
+
+The wider ebpf/ebpf_tc/release integration selection was also run:781 PASS,
+15 FAIL. All15 failed nodes reproduce in the unchanged pre-task frozen ddc1750
+Export (15 FAIL). They comprise one historical Zeek Bundle pin for the earlier
+CLI source, ten C fault-fixture cases producing inconsistent CPU Window/Counter
+records, and four source-stabilization test doubles lacking the existing recovery
+argument. They were not hidden or weakened. Those broader pre-existing regressions
+remain unresolved; no full Workspace or production qualification is claimed.
+Exact node lists, baseline reproduction and core selection are saved as evidence.
+
+## Source / Artifact Integrity
+
+Frozen selected source:1,732 files, including the three new module/test files.
+The pending Batch2/Batch3 report edits remain outside the existing selected build
+input set. Both source/export bytes and SourceGuard change detection were checked.
+No source mutation was accepted during build. Existing installation and Rollback,
+Native55-file evidence index, protected112 files and campaign Ledger are unchanged.
+
+The current approved a715... installation now matches the current zlib dependency
+SHA. The *existing normal* Builder independently validated that installed Runtime;
+no old mismatching dependency was ignored and no Recovery policy was modified or
+reused. It produced a review-only Stage and two independent builds with26/26
+files identical (the earlier recovery-specific28-file set included two recovery
+companion reports). Prepared bytes do not grant execution authority.
+
+Review candidate Artifact Identity:
+
+- Manifest SHA256: `fd9d2e61b53104f3b3d6b48e5ace8c3e394705a713be834207c62a909b1c4240`
+- Bundle SHA256: `4cbe8ce11056cdaac4d11139b11e583fb9831564e61f81f560b52562b7975c77`
+- Supervisor Execution Image SHA256: `2a93c1557196c2bc88530b547f16cf877f632b7c19c78af6d37c18ff7962abec`
+- Root Manifest SHA256: `c56d1126e2d0dadb265375027243b9edaae8b721535c6c534689c72561656c5f`
+- Previous installed Root Manifest: `a715e1aab17d25ce89d87ce320a8b16997cb3072d83956734126baa470a501a6`
+
+In addition, the existing quarantined Runtime Builder produced23/23 identical
+files with executable_admission=false and a fail-before-import image. Its separate
+Manifest is `c31fd604a719296a848f66e769e3c8e0121e93063c37faf15ea92d46f79ca889` and image is `cf1188f49c47a57093d8800c749f290d81509d75bc67e4dee6d45f850b77dc1b`.
+It is not the Supervisor image above. Both builds retain current zlib SHA
+f61677c7bdb7c2aa2a243ea781bfd16afcb361cede7b4ef76127a9d8eb9a5242.
+
+Existing native-recovery check against the new review candidate returned BLOCKED /
+R1_AMENDMENT_REQUIRED, reserved=false, executed=false. SOURCE_VERIFIED and
+RUNTIME_VERIFIED passed. POLICY_APPROVED is NOT_APPLICABLE for the unchanged
+normal-dependency path, not a fabricated positive Recovery approval. All actual
+R1, R2, Root and Native approval stages remain blocked. No execute command ran.
+Final Git Commit/Tree, selected-source SHA and post-Push checks are recorded in
+this task's final-verification.json and the consolidated pending approval package.
+
+## Git / Evidence / Budget / Next Conditions
+
+Only this task's five source/test changes and this appended report section are
+selected for Commit/Push. Older pending documentation changes, including the
+Batch2 report, are preserved outside this Commit. Original user workspace,
+installed/retained files, Ledger/Audit and past FAILED/false/UNKNOWN evidence are
+not staged or rewritten. No force push, consumed-receipt reuse or refund occurs.
+
+Campaign Native4/10 and Root4/10; Batch3 Native1/2 and Root1/2 remain unchanged.
+The one remaining allocation per operation is not permission to execute. The
+next review dossier is environment-checkpoint-stabilization-20261027-1/
+next-approval-package.json under .git/native-stabilization-batch3. Its decisions
+are PENDING: quiet-environment evidence, fresh exact-Artifact/Session R1 admission,
+R2 Traffic Scope, managed execution Binding, Root1 and Native1. It retains the
+Program1145 UNKNOWN cause, past global Cleanup UNVERIFIED and uncertain settled
+reservation. Do not reactivate old receipts or automatically retry. P02/P03/P04
+require new Native evidence; Native AI, DNS9 and production remain BLOCKED.

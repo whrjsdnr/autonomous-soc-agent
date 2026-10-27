@@ -47,6 +47,68 @@ def _invalid_constant(_value: str) -> None:
     raise ValueError("EBPF_CHECKPOINT_ENCODING")
 
 
+def _shared_fields(rows: list[dict]) -> dict:
+    return (
+        {
+            key: rows[0][key]
+            for key in sorted(rows[0])
+            if all(key in row and _json_text(row[key]) == _json_text(rows[0][key]) for row in rows)
+        }
+        if rows
+        else {}
+    )
+
+
+def _factor_rows(rows: list[dict]) -> dict:
+    shared = _shared_fields(rows)
+    remaining = [{key: item for key, item in row.items() if key not in shared} for row in rows]
+    # Lifecycle counters/timestamps differ, but their authority and Window
+    # context often repeat. Never merge distinct observations or reorder rows.
+    nested = [row.get("lifecycle") for row in remaining]
+    lifecycle = (
+        _shared_fields(nested) if nested and all(isinstance(x, dict) for x in nested) else {}
+    )
+    if lifecycle:
+        remaining = [
+            row | {"lifecycle": {k: v for k, v in row["lifecycle"].items() if k not in lifecycle}}
+            for row in remaining
+        ]
+    return dict(shared=shared, lifecycle_shared=lifecycle, rows=remaining)
+
+
+def _restore_rows(group: object) -> list[dict]:
+    if (
+        not isinstance(group, dict)
+        or set(group) != {"shared", "lifecycle_shared", "rows"}
+        or not isinstance(group["shared"], dict)
+        or not isinstance(group["lifecycle_shared"], dict)
+        or not isinstance(group["rows"], list)
+        or len(group["rows"]) > MAX_RECEIPTS
+    ):
+        raise ValueError("EBPF_CHECKPOINT_ENCODING")
+    shared, lifecycle, rows = group["shared"], group["lifecycle_shared"], group["rows"]
+    if lifecycle and "lifecycle" in shared:
+        raise ValueError("EBPF_CHECKPOINT_ENCODING")
+    # Bound the worst-case expansion before constructing repeated objects.
+    if (len(_json_text(shared).encode()) + len(_json_text(lifecycle).encode())) * len(rows) + len(
+        _json_text(rows).encode()
+    ) > MAX_EXPANDED_BYTES:
+        raise ValueError("EBPF_CHECKPOINT_SIZE")
+    restored = []
+    for row in rows:
+        if not isinstance(row, dict) or shared.keys() & row.keys():
+            raise ValueError("EBPF_CHECKPOINT_ENCODING")
+        if lifecycle:
+            if (
+                not isinstance(row.get("lifecycle"), dict)
+                or lifecycle.keys() & row["lifecycle"].keys()
+            ):
+                raise ValueError("EBPF_CHECKPOINT_ENCODING")
+            row = row | dict(lifecycle=lifecycle | row["lifecycle"])
+        restored.append(shared | row)
+    return restored
+
+
 def encode_checkpoint(value: dict) -> str:
     """Losslessly factor repeated RCA context; never omit a candidate receipt."""
     _summary_shape(value)
@@ -58,11 +120,7 @@ def encode_checkpoint(value: dict) -> str:
         raise ValueError("EBPF_CHECKPOINT_SIZE")
     if not all(isinstance(row, dict) for row in rows):
         raise ValueError("EBPF_CHECKPOINT_ENCODING")
-    shared = {
-        key: rows[0][key]
-        for key in sorted(rows[0])
-        if all(key in row and _json_text(row[key]) == _json_text(rows[0][key]) for row in rows)
-    }
+    shared = _shared_fields(rows)
     summary = {key: item for key, item in value.items() if key != "candidate_eligibility"}
     encoded = dict(
         checkpoint_encoding="SHARED_RCA_V1",
@@ -71,6 +129,22 @@ def encode_checkpoint(value: dict) -> str:
         rows=[{key: item for key, item in row.items() if key not in shared} for row in rows],
     )
     text = _json_text(encoded)
+    tail = value.get("feature_tail")
+    if (
+        isinstance(tail, list)
+        and len(tail) <= MAX_RECEIPTS
+        and all(isinstance(x, dict) for x in tail)
+    ):
+        compact = _json_text(
+            dict(
+                checkpoint_encoding="SHARED_CONTEXT_V2",
+                summary={k: v for k, v in summary.items() if k != "feature_tail"},
+                candidates=_factor_rows(rows),
+                feature_tail=_factor_rows(tail),
+            )
+        )
+        if len(compact.encode()) < len(text.encode()):
+            text = compact
     if len(text.encode()) > MAX_CHECKPOINT_BYTES:
         raise ValueError("EBPF_CHECKPOINT_SIZE")
     # The same bounded decoder must accept what we persist.
@@ -87,6 +161,21 @@ def decode_checkpoint(text: str) -> dict:
     if "checkpoint_encoding" not in value:
         _summary_shape(value)
         return value  # Historical evidence is read as-is, never rewritten.
+    if value["checkpoint_encoding"] == "SHARED_CONTEXT_V2":
+        if (
+            set(value) != {"checkpoint_encoding", "summary", "candidates", "feature_tail"}
+            or not isinstance(value["summary"], dict)
+            or {"candidate_eligibility", "feature_tail"} & value["summary"].keys()
+        ):
+            raise ValueError("EBPF_CHECKPOINT_ENCODING")
+        restored = value["summary"] | dict(
+            candidate_eligibility=_restore_rows(value["candidates"]),
+            feature_tail=_restore_rows(value["feature_tail"]),
+        )
+        _summary_shape(restored)
+        if len(_json_text(restored).encode()) > MAX_EXPANDED_BYTES:
+            raise ValueError("EBPF_CHECKPOINT_SIZE")
+        return restored
     if (
         set(value) != {"checkpoint_encoding", "summary", "shared", "rows"}
         or value["checkpoint_encoding"] != "SHARED_RCA_V1"
