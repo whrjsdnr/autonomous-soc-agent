@@ -146,6 +146,7 @@ def execute(
     gui=False,
     phase_d=None,
     r2_approval=None,
+    execution_control=None,
 ):
     with termination_boundary():
         return _execute(
@@ -155,6 +156,7 @@ def execute(
             gui=gui,
             phase_d=phase_d,
             r2_approval=r2_approval,
+            execution_control=execution_control,
         )
 
 
@@ -166,6 +168,7 @@ def _execute(
     gui=False,
     phase_d=None,
     r2_approval=None,
+    execution_control=None,
 ):
     local_controller()  # No Root GUI/runtime or inherited capabilities.
     image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
@@ -215,17 +218,18 @@ def _execute(
 
         if r2_approval.campaign_directory is None:
             raise ValueError("R2_CAMPAIGN_RESERVATION_REQUIRED")
-        require_r2_reservation(
-            r2_approval.campaign_directory,
-            session=r2_approval.session,
-            receipt_sha=r2_approval.receipt_sha,
-            identity=dict(
-                manifest=approved.manifest,
-                bundle=approved.bundle,
-                image=approved.image,
-                tcx_manifest=approved.root_manifest,
-            ),
-        )
+        if execution_control is None:
+            require_r2_reservation(
+                r2_approval.campaign_directory,
+                session=r2_approval.session,
+                receipt_sha=r2_approval.receipt_sha,
+                identity=dict(
+                    manifest=approved.manifest,
+                    bundle=approved.bundle,
+                    image=approved.image,
+                    tcx_manifest=approved.root_manifest,
+                ),
+            )
         r2 = R2Launcher(r2_approval)
     legacy = directory / "preparation"
     scope = Scope(
@@ -287,17 +291,28 @@ def _execute(
             raise ValueError("SUPERVISOR_ZEEK_SOURCE_CHANGED")
         run = prepare_run(handoff, image, zeek.plan)
         stage, api = "APPROVAL_CONFIRMATION", "confirm_scope"
+        if execution_control:
+            execution_control.waiting()
+            print("AWAITING_USER_CONFIRMATION — no budget reservation; cancel with Ctrl-C.")
         if not confirm_scope(handoff):
             raise ValueError("SUPERVISOR_APPROVAL_DENIED")
+        if execution_control:
+            execution_control.confirmed()
         stage, api = "OS_AUTHENTICATION", "SupervisedSession.authenticate_native"
         if r2:
             r2.claim()  # Extra traffic approval is consumed before OS authentication.
+        if execution_control:
+            execution_control.step("AUTHENTICATING")  # Durable intent BEFORE the OS call.
         handoff.authenticate_native()  # Exactly one fresh OS call; no downstream sudo.
+        if execution_control:
+            execution_control.step("ROOT_INSTALLATION_VERIFIED")
         control_future = submit(watch_control(handoff))
         if phase_d is not None:
             from soc_agent.security_ai.collectors.offload_session import execute as dns_execute
 
             stage, api = "TCX_ATTACH", "SupervisedSession.command"
+            if execution_control:
+                execution_control.step("NATIVE_START_INTENT")
             with handoff.control_lock:
                 handoff.command(
                     Command(
@@ -307,6 +322,8 @@ def _execute(
                         run=run,
                     )
                 )
+            if execution_control:
+                execution_control.step("NATIVE_CAPTURE_STARTED")
             if r2:
                 if not handoff.link_evidence:
                     raise ValueError("R2_CAPTURE_NOT_READY")

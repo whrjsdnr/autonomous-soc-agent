@@ -44,6 +44,8 @@ def readiness(
     traffic_file: Path | None = None,
     traffic_sha: str | None = None,
     claim_file: Path | None = None,
+    management_file: Path | None = None,
+    management_sha: str | None = None,
 ) -> dict:
     """Non-consuming current readiness, never permission for later unchecked use."""
     states = {
@@ -74,6 +76,12 @@ def readiness(
             campaign, amendment_file=amendment_file, amendment_sha=amendment_sha
         )
         binding = ledger.amendment.binding
+        if management_file is not None or management_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.execution_management import verify_policy
+
+            if management_file is None or management_sha is None:
+                raise ValueError("EXECUTION_MANAGEMENT_POLICY_REQUIRED")
+            verify_policy(management_file, management_sha, ledger, binding)
         if binding.previous_artifact.root_manifest != descriptor.previous_manifest:
             raise ValueError("OPERATIONAL_PREVIOUS_ARTIFACT_BINDING")
         a = binding.next_artifact
@@ -158,6 +166,10 @@ def main(argv=None) -> int:
         "procedure-sha",
         "review-sha",
         "evidence-sha",
+        "management-sha",
+        "settlement-sha",
+        "request-sha",
+        "attempt-id",
     ):
         parser.add_argument("--" + name)
     for name in (
@@ -171,12 +183,73 @@ def main(argv=None) -> int:
         "procedure-file",
         "review-file",
         "evidence-file",
+        "management-file",
+        "settlement-file",
+        "request-file",
     ):
         parser.add_argument("--" + name, type=Path)
     args = parser.parse_args(argv)
     local_controller()  # Never a Root CLI or capability-bearing controller.
     directory = args.directory.absolute()
     try:
+        if args.request_file is not None or args.request_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.execution_request import load_request
+
+            if (
+                args.mode not in {"check", "execute"}
+                or not args.request_file
+                or not args.request_sha
+            ):
+                raise ValueError("EXECUTION_REQUEST_MODE_OR_PIN")
+            fields = load_request(args.request_file, args.request_sha, directory)
+            if any(getattr(args, k) is not None for k in fields):
+                raise ValueError("EXECUTION_REQUEST_ARGUMENT_OVERRIDE")
+            for key, value in fields.items():
+                setattr(args, key, value)
+        if args.attempt_id:
+            from soc_agent.security_ai.ebpf_tc.execution_management import inspect_reservation
+            from soc_agent.security_ai.stabilization_campaign import StabilizationCampaign
+
+            if args.mode != "check" or not args.campaign:
+                raise ValueError("EXECUTION_INSPECTION_MODE")
+            print(
+                json.dumps(
+                    inspect_reservation(
+                        StabilizationCampaign(args.campaign, "BATCH2"), args.attempt_id
+                    ),
+                    indent=2,
+                )
+            )
+            return 0
+        if args.settlement_file is not None or args.settlement_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.execution_management import settle
+            from soc_agent.security_ai.stabilization_campaign import StabilizationCampaign
+
+            if args.mode != "reassess" or not all(
+                (
+                    args.campaign,
+                    args.settlement_file,
+                    args.settlement_sha,
+                    args.evidence_file,
+                    args.evidence_sha,
+                )
+            ):
+                raise ValueError("EXECUTION_SETTLEMENT_APPROVAL_REQUIRED")
+            print(
+                json.dumps(
+                    settle(
+                        StabilizationCampaign(args.campaign, "BATCH2"),
+                        receipt_file=args.settlement_file,
+                        receipt_sha=args.settlement_sha,
+                        evidence_file=args.evidence_file,
+                        evidence_sha=args.evidence_sha,
+                        policy_file=args.management_file,
+                        policy_sha=args.management_sha,
+                    ),
+                    indent=2,
+                )
+            )
+            return 0
         if args.mode == "reassess":
             from soc_agent.security_ai.ebpf_tc.reassessment import (
                 Binding,
@@ -238,6 +311,8 @@ def main(argv=None) -> int:
                 "traffic_file",
                 "traffic_sha",
                 "claim_file",
+                "management_file",
+                "management_sha",
             )
             grants = {k: getattr(args, k) for k in keys}
             result = readiness(directory, args.manifest, args.image_sha, **grants)

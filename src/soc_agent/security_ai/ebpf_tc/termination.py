@@ -26,7 +26,9 @@ def termination_boundary():
             requested = True
             raise SupervisorTermination(signum)
 
-    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT)}
+    previous = {
+        sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)
+    }
     try:
         for sig in previous:
             signal.signal(sig, stop)

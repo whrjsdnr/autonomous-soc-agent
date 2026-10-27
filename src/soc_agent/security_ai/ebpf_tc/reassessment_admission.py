@@ -278,6 +278,8 @@ def execute(
     traffic_file: Path,
     traffic_sha: str,
     claim_file: Path,
+    management_file: Path | None = None,
+    management_sha: str | None = None,
 ) -> dict:
     """Existing Supervisor/TTY path, once, after independent amendment + execution + R2 grants."""
     import json
@@ -323,6 +325,30 @@ def execute(
             raise ValueError("RECOVERY_EXECUTION_NOT_READY:" + checked.get("error", "BLOCKED"))
     if "recovery" not in value:
         root_cost = int(installed_release().identity != value["tcx_manifest"])
+    if management_file is not None or management_sha is not None:
+        if management_file is None or management_sha is None:
+            raise ValueError("EXECUTION_MANAGEMENT_POLICY_REQUIRED")
+        from soc_agent.security_ai.ebpf_tc.execution_management import verify_policy
+
+        verify_policy(management_file, management_sha, ledger, binding)
+        return _managed_execution(
+            directory,
+            manifest,
+            image,
+            ledger=ledger,
+            launch=launch,
+            reserve=lambda: ledger.reserve(
+                identity,
+                value["scope"],
+                dns,
+                approval_file,
+                approval_sha,
+                root_cost=root_cost,
+                git_commit=binding.next_artifact.git_commit,
+            ),
+            management_file=management_file,
+            management_sha=management_sha,
+        )
     reserved = ledger.reserve(
         identity,
         value["scope"],
@@ -362,3 +388,75 @@ def execute(
         ),
     )
     return result
+
+
+def _managed_execution(
+    directory, manifest, image, *, ledger, launch, reserve, management_file, management_sha
+):
+    from soc_agent.security_ai.ebpf_tc import phase_d
+    from soc_agent.security_ai.ebpf_tc.execution_management import (
+        ExecutionControl,
+        LifecycleJournal,
+    )
+    from soc_agent.security_ai.ebpf_tc.termination import termination_boundary
+
+    # Existing directory is a permanent one-shot marker, including after reboot.
+    journal = LifecycleJournal.create(
+        directory / "execution-management",
+        digest(ledger.amendment.binding.model_dump()),
+        ledger.amendment.binding.next_session,
+    )
+    control = ExecutionControl(
+        journal,
+        reserve,
+        policy_file=management_file,
+        policy_sha=management_sha,
+        campaign=ledger,
+        binding=ledger.amendment.binding,
+    )
+    with control, termination_boundary():
+        try:
+            result = phase_d.execute(
+                directory, manifest, image, gui=False, r2_approval=launch, execution_control=control
+            )
+        except BaseException as exc:
+            observed = journal.end(failed=True)
+            if control.reservation is not None:
+                if observed["disposition"] == "CANCELLED_BEFORE_EXECUTION":
+                    # Diagnostic closure only: no refund, replay unlock or legacy safe=True.
+                    NativeCampaign._locked(
+                        ledger,
+                        lambda rows: dict(
+                            event="EXECUTION_PREAUTH_CANCELLED_V1",
+                            attempt_id=control.reservation["attempt_id"],
+                            observation=observed,
+                            approval_reusable=False,
+                            budget_action="KEEP_RESERVATION_CHARGE",
+                        ),
+                    )
+                else:
+                    ledger.finish(
+                        control.reservation["attempt_id"],
+                        outcome="FAILED",
+                        evidence=dict(exception_class=type(exc).__name__, **observed),
+                    )
+            raise
+        failed = bool(result.get("last_error") or result.get("first_failure")) or (
+            result.get("cleanup_status") != "PROCESS_AND_AUDIT_VERIFIED"
+        )
+        observed = journal.end(failed=failed)
+        if control.reservation is None:
+            raise ValueError("EXECUTION_RESERVATION_NOT_REACHED")
+        ledger.finish(
+            control.reservation["attempt_id"],
+            outcome="FAILED" if failed else "RETURNED_PENDING_EVIDENCE_REVIEW",
+            evidence=dict(
+                result_sha256=hashlib.sha256(
+                    (directory / "supervised-result.json").read_bytes()
+                ).hexdigest(),
+                application_session=result.get("broker_session"),
+                native_verified=False,
+                **observed,
+            ),
+        )
+        return dict(result, execution_management=observed)

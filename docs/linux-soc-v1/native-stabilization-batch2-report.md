@@ -1507,3 +1507,145 @@ cause UNKNOWN are preserved. No fresh privileged snapshot was claimed.
 Evidence: `.git/native-stabilization-batch2/operational-supervisor-integration-20261027-1/`
 in the original repository: qualification/source maps, both builds/Stage, actual
 CLI readiness, pending policy template, preservation and Git delivery records.
+
+
+# SOC Native Execution Management — Pre-execution Cancellation & Reservation Recovery
+
+## Overall Status
+
+IMPLEMENTED_AND_NONPRIVILEGED_VERIFIED; policy activation and actual historical
+reservation disposition remain pending. No Root, Native, Capture, traffic,
+refund, consumed-approval reuse or historical settlement occurred.
+
+## Root Cause / Existing Path
+
+Legacy execute consumes approval and counts a reservation before Supervisor
+preparation, exact-Scope human confirmation and OS authentication. Terminal
+SIGHUP previously had its default action, bypassing Python cleanup and the
+reservation finish path. The past attempt's actual termination cause remains
+UNKNOWN; the missing SIGHUP boundary is an independently reproduced structural
+failure path, not a claim about the historical signal.
+
+The unfinished attempt is 0c74eddb14764d399d5a9d1d57ab5cdd, Session
+710c9d9a-7d87-466d-9566-ea55253d834d. New actual read-only CLI inspection reports
+EVIDENCE_INCOMPLETE with Root/Native UNKNOWN. Missing Session files and unchanged
+installation do not manufacture a cancellation receipt. The original consumed
+approval, false and FAILED records remain immutable.
+
+## Operational Code
+
+- `execution_management.py`: existing private GovernanceDatabase transactions
+  persist a bounded hash-chained lifecycle, process start-ticks/boot identity and
+  one-shot launcher lock. Restart inspection distinguishes a live owner from a
+  dead/reused PID or changed boot. Corrupt/missing/truncated evidence fails closed.
+- Existing `reassessment_admission.execute` and `phase_d.execute` thread an
+  opt-in control object through the **same** Supervisor. A valid pinned
+  ManagementApproval is mandatory; absent approval retains the old strict path.
+- With that policy active, existing exact-Scope confirmation happens before
+  reservation. Atomic reservation reuses all current SHA/Scope/R1/R2/Ledger/
+  budget/replay validators. User absence or refusal before confirmation makes
+  no reservation and invokes no authentication or traffic.
+- Write-ahead AUTHENTICATING is committed before the OS call. Root files verified,
+  Native start intent and actual Attach acknowledgement are separate markers.
+  Auth cancellation or crash during an external-operation gap remains UNKNOWN,
+  rather than being relabeled no-use. Only confirmed observations say STARTED.
+- SIGHUP joins SIGINT/SIGTERM in the existing cleanup boundary. SIGKILL/WSL crash
+  cannot run handlers; durable observations support later review without replay.
+- `settle` requires **both** valid policy activation and separate human
+  SettlementApproval, exact implementation/attempt/evidence/ledger-tip pins,
+  and no prior closure. CANCELLED_BEFORE_EXECUTION needs a matching validated
+  write-ahead journal with no auth; absence of evidence cannot satisfy it.
+  Human-approved settlement appends EXECUTION_RESERVATION_SETTLED_V1 only.
+  Reservation charges and consumed receipts remain held. UNKNOWN settlement
+  does not bypass existing Native safety gates or prove Cleanup.
+- `execution_request.py` is a strict pinned packet of existing CLI arguments,
+  not another executor or approval authority. Unknown fields, changed directory,
+  relative paths, argument overrides and missing policy pins are rejected.
+
+## States / UX
+
+APPROVED → AWAITING_USER_CONFIRMATION → USER_CONFIRMED → RESERVED →
+AUTHENTICATING → ROOT_INSTALLATION_VERIFIED → NATIVE_START_INTENT →
+NATIVE_CAPTURE_STARTED → COMPLETED/FAILED. Pre-auth termination is separately
+CANCELLED_BEFORE_EXECUTION; external-operation uncertainty remains UNKNOWN.
+The lifecycle is ordinary-user evidence, not a privileged atomicity claim.
+
+Existing CLI modes remain prepare/reassess/check/execute. A launch packet lets
+the operator invoke existing execute with `--request-file` and its generated
+pin instead of manually copying every grant/SHA. All validators still run.
+The user retains the existing one exact-Scope yes/cancel interaction and direct
+OS-TTY password; no extra Enter wrapper is required by the new path.
+`check --campaign ... --attempt-id ...` is read-only restart inspection.
+`reassess --settlement-file ... --settlement-sha ...` additionally requires pinned
+management policy and evidence; check never performs settlement.
+
+## Verification
+
+- Final related Workspace: **489 PASS**.
+- Final independent frozen Export: **489 PASS**.
+- New focused lifecycle/settlement/CLI tests: **29 PASS**.
+- Stage / independent Build A / Build B: **28/28 identical**, full file sets match.
+- SourceGuard and start/end maps: **1,728 inputs unchanged**.
+- Ruff / Format / Diff: PASS (1,385 Python files format-checked).
+- Failure injection covers pre-confirmation close/refusal, auth uncertainty,
+  Root-before-Attach failure, Native failure, duplicate launcher, expiry while
+  waiting, actual SIGHUP in an ordinary process, simulated changed boot/dead
+  owner, evidence corruption/missing data, replay, unavailable policy, separate
+  Root/Native classification and interrupted settlement append.
+- A partial append to a temporary campaign ledger is left untouched and rejected
+  by the existing framing guard; it is not silently repaired or refunded.
+- Mock/Synthetic dispatch and bounded builds are not Native Capture evidence.
+  Existing Native/Flow/Counter/Checkpoint/Approval/Supervisor suites are preserved;
+  no assertions were weakened. Unrelated full-suite historical issues are not
+  claimed resolved.
+- Earlier 488-test/build qualification is preserved but superseded by final
+  execution-management-20261027-2 after the settlement activation gate tightened.
+
+## Source / Artifact Identity
+
+| Item | SHA256 |
+| --- | --- |
+| Source Snapshot | `57ce65a9c0809a60c30755c1e9f90f345b998d46e2ebebc886a3f0f11e9af1cf` |
+| Manifest | `e7ff3f037d6959611ea1f752288b68bad8994f7690745ce1d69faeca87e12742` |
+| Bundle | `3923c8dd5e6d9bb9a6378828575a5285545195c5d36ede7a0202642bd2cd80e7` |
+| Execution Image | `cee5c34f0b30774749a32221bc7ef73b9781eab4e6c263584a24bbe98d3180da` |
+| Root Manifest | `a75c302b8938529f16c978311d86662c04b79d0b2c6b51a0dd9ad0c32cdb293e` |
+| Management implementation | `995b7862a00a1ef0c88894f2d60b6d57ca6531c539084d08e864ea5dd6dceea0` |
+
+These are **policy-pending** nonprivileged artifacts. Actual check returns
+RECOVERY_POLICY_APPROVAL_REQUIRED; they inherit no prior policy/R1/Root/Native
+approval. Current zlib security update is retained; installed files and rollback
+identities are unchanged. Final Git commit/tree and push are recorded after
+commit in git-delivery.json; Git metadata is not a circular artifact self-hash.
+
+## Preservation / Budget / Remaining Approval
+
+Actual execution Ledger remains 11 rows, SHA256 `b1d0f7d6d2d4c2d9d5521cc44dbb1d7505f8340d50888a2120e20583a5ba01ac`.
+Protected user/historical112, Native evidence49, current installation9 and
+historical installation/Rollback234 files match. The campaign reservations
+remain Native/Root3/10 each and Batch2 Native/Root2/2 each, including one
+unfinished reservation. Previous completed usage remains two each; no new
+execution or settlement is asserted.
+
+Required decisions are explicit policy activation for the new path and a
+separate evidence-based disposition of the old reservation. Refund/reallocation
+is not implemented as an automatic consequence of cancellation and requires its
+own authorized campaign change. Current Batch2 budget remains fully reserved;
+UNKNOWN/EVIDENCE_INCOMPLETE cannot be passed as a safe-to-run decision.
+Fresh artifact-bound Recovery/R1/R2/Root/Native approvals remain required before
+actual P02/P03/P04 verification. New source hashes invalidate old grants.
+P02/P03 remain INCOMPLETE, P04 historical Native eligible0/7, NativeAI/DNS9/
+production BLOCKED. No further collector/feature redesign is needed for this
+management change; actual Native qualification awaits those human decisions.
+
+## Git / Evidence
+
+Only this task's eight code/test files and this report section are selected for
+commit on the existing fix branch. All pre-existing uncommitted report text is
+preserved in the working tree and captured as a patch; it is not silently added
+to this commit. Original user worktree's eight edits remain untouched. No main
+or force push.
+Evidence: `.git/native-stabilization-batch2/execution-management-20261027-2/`:
+qualification, source maps, Workspace/Export logs, Stage/A/B, actual read-only
+historical inspection, pending-runtime check, policy/settlement proposal,
+preservation proof and post-commit delivery identity.

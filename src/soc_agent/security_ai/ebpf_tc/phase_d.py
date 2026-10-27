@@ -197,10 +197,24 @@ def validate(directory: Path, manifest: str, image_sha: str) -> dict:
     return value
 
 
-def execute(directory: Path, manifest: str, image_sha: str, *, gui=False, r2_approval=None):
+def execute(
+    directory: Path,
+    manifest: str,
+    image_sha: str,
+    *,
+    gui=False,
+    r2_approval=None,
+    execution_control=None,
+):
     value = validate(directory, manifest, image_sha)  # No auth before the complete contract.
     return supervisor_startup.execute(
-        directory, value["tcx_manifest"], image_sha, gui=gui, phase_d=value, r2_approval=r2_approval
+        directory,
+        value["tcx_manifest"],
+        image_sha,
+        gui=gui,
+        phase_d=value,
+        r2_approval=r2_approval,
+        execution_control=execution_control,
     )
 
 
