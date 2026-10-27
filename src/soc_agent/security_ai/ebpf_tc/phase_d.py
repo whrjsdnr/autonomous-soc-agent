@@ -180,10 +180,32 @@ def prepare_namespace_preview(
 
 
 def validate(directory: Path, manifest: str, image_sha: str) -> dict:
+    return _validate(directory, manifest, image_sha, preview=False)
+
+
+def validate_preparation(directory: Path, manifest: str, image_sha: str) -> dict:
+    """Check reviewed bytes without granting execution or entering a Namespace.
+
+    Preview is a distinct build contract, never an alternate execution admission.
+    Operational callers must still use validate, which rejects preview images.
+    """
+    descriptor = SupervisorImage.model_validate_json(
+        (directory / "supervisor-image.json").read_bytes()
+    )
+    return _validate(directory, manifest, image_sha, preview=descriptor.namespace_preview)
+
+
+def _validate(directory: Path, manifest: str, image_sha: str, *, preview: bool) -> dict:
     body = (directory / "phase-d.json").read_bytes()
     value = json.loads(body)
     image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
     image.verify()
+    namespace = image.scope_namespace if preview else SCOPE["namespace"]
+    if preview:
+        from soc_agent.security_ai.ebpf_tc.namespace_isolation import IsolatedScope
+
+        IsolatedScope(namespace=namespace)
+    contract = "SOC_PHASE_D_NAMESPACE_PREVIEW_V1" if preview else "SOC_PHASE_D_UNIFIED_V1"
     if (
         hashlib.sha256(body).hexdigest() != manifest
         or value["image"] != image_sha
@@ -191,8 +213,10 @@ def validate(directory: Path, manifest: str, image_sha: str) -> dict:
         or not image.dns_sidecar
         or value["sources"] != runtime_bundle()
         or value["bundle"] != hashlib.sha256(canonical(runtime_bundle())).hexdigest()
-        or value["contract"] != "SOC_PHASE_D_UNIFIED_V1"
-        or value["scope"] != SCOPE
+        or image.namespace_preview != preview
+        or image.scope_namespace != namespace
+        or value["contract"] != contract
+        or value["scope"] != SCOPE | dict(namespace=namespace)
         or any(value[k] != "BLOCKED" for k in ("native_ai", "dns9", "operational_promotion"))
     ):
         raise ValueError("PHASE_D_RELEASE_OR_SOURCE_MISMATCH")
@@ -214,12 +238,16 @@ def validate(directory: Path, manifest: str, image_sha: str) -> dict:
         or dns["base_manifest"] != release.identity
         or dns["image"]["sha256"] != image_sha
         or dns["sources"] != offload_session.sources()
-        or dns["scope"] != DNS_SCOPE
+        or dns["scope"] != DNS_SCOPE | dict(namespace=namespace)
         or value["dns_baseline_image"] != DNS_BASELINE_IMAGE
         or release.payloads["tc.bpf.o"].sha256 != value["tcx_program"]
-        or os.readlink("/proc/self/ns/net") != value["scope"]["namespace"]
+        or (not preview and os.readlink("/proc/self/ns/net") != namespace)
     ):
         raise ValueError("PHASE_D_COLLECTOR_SCOPE_MISMATCH")
+    from soc_agent.security_ai.ebpf_tc.namespace_isolation import dns_scope_digest
+
+    if dns["capture_scope_digest"] != dns_scope_digest(namespace):
+        raise ValueError("PHASE_D_DNS_NAMESPACE_BINDING")
     return value
 
 

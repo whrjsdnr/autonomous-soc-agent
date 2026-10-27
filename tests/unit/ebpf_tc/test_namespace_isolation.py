@@ -1,5 +1,6 @@
 """Synthetic namespace/packet fixtures only; no setns, bind, traffic or Root."""
 
+import hashlib
 import json
 import struct
 from io import BytesIO
@@ -420,3 +421,48 @@ def test_fragmented_tcp_request_cannot_extend_absolute_responder_deadline(monkey
     with pytest.raises(TimeoutError, match="RESPONDER_DEADLINE"):
         worker._exact(stream, 3, 60)
     assert stream.reads == 2
+
+
+def test_preview_integrity_is_not_execution_admission(preview):
+    from soc_agent.security_ai.ebpf_tc import operational_recovery, phase_d
+
+    directory, identity = preview
+    value = phase_d.validate_preparation(directory, identity["manifest"], identity["image"])
+    assert value["scope"]["namespace"] == NS
+    result = operational_recovery.readiness(directory, identity["manifest"], identity["image"])
+    assert result["status"] == "BLOCKED"
+    assert result["error"] == "ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED"
+    assert result["stages"]["SOURCE_VERIFIED"] == "VERIFIED"
+    assert result["stages"]["RUNTIME_VERIFIED"] == "BUILD_INTEGRITY_VERIFIED_ONLY"
+    assert result["stages"]["POLICY_APPROVED"] == "BLOCKED"
+    assert result["reserved"] is result["executed"] is False
+
+
+@pytest.mark.parametrize("field", ["namespace", "events", "queue"])
+def test_preview_review_rejects_scope_mutation(preview, tmp_path, field):
+    import shutil
+
+    from soc_agent.security_ai.ebpf_tc import phase_d
+    from soc_agent.security_ai.ebpf_tc.installation import canonical
+
+    directory, identity = preview
+    copy = tmp_path / "copy"
+    shutil.copytree(directory, copy)
+    value = json.loads((copy / "phase-d.json").read_bytes())
+    value["scope"][field] = "net:[999]" if field == "namespace" else 1
+    body = canonical(value)
+    (copy / "phase-d.json").write_bytes(body)
+    with pytest.raises(ValueError, match="PHASE_D_RELEASE_OR_SOURCE_MISMATCH"):
+        phase_d.validate_preparation(copy, hashlib.sha256(body).hexdigest(), identity["image"])
+
+
+@pytest.mark.parametrize("mode", ["check", "execute", "reassess"])
+def test_preview_cli_never_accepts_execution_mode(tmp_path, capsys, mode):
+    from soc_agent.security_ai.ebpf_tc import operational_recovery
+
+    directory = tmp_path / "no-output"
+    assert operational_recovery.main([mode, str(directory), "--namespace-preview", NS]) == 2
+    result = json.loads(capsys.readouterr().out)
+    assert result["error"] == "NAMESPACE_PREVIEW_PREPARE_ONLY_NO_GRANTS"
+    assert result["executed"] is False
+    assert not directory.exists()

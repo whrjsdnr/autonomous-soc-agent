@@ -61,6 +61,14 @@ def readiness(
         )
     }
     try:
+        descriptor = SupervisorImage.model_validate_json(
+            (directory / "supervisor-image.json").read_bytes()
+        )
+        if descriptor.namespace_preview:
+            phase_d.validate_preparation(directory, manifest, image)
+            states["SOURCE_VERIFIED"] = "VERIFIED"
+            states["RUNTIME_VERIFIED"] = "BUILD_INTEGRITY_VERIFIED_ONLY"
+            raise ValueError("ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED")
         value = phase_d.validate(directory, manifest, image)
         states["SOURCE_VERIFIED"] = states["RUNTIME_VERIFIED"] = "VERIFIED"
         descriptor = SupervisorImage.model_validate_json(
@@ -154,6 +162,10 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("prepare", "reassess", "check", "execute"))
     parser.add_argument("directory", type=Path)
+    parser.add_argument(
+        "--namespace-preview",
+        help="Prepare guarded isolated Namespace review bytes only; never execution permission",
+    )
     for name in (
         "installed-manifest",
         "abi-sha",
@@ -196,6 +208,17 @@ def main(argv=None) -> int:
     local_controller()  # Never a Root CLI or capability-bearing controller.
     directory = args.directory.absolute()
     try:
+        if args.namespace_preview is not None:
+            # Do not let review mode swallow authority-bearing argument bundles.
+            if args.mode != "prepare" or any(
+                v is not None
+                for k, v in vars(args).items()
+                if k not in {"mode", "directory", "namespace_preview"}
+            ):
+                raise ValueError("NAMESPACE_PREVIEW_PREPARE_ONLY_NO_GRANTS")
+            result = phase_d.prepare_namespace_preview(directory, args.namespace_preview)
+            print(json.dumps(result, indent=2))
+            return 0
         if args.dns_operation_file is not None or args.dns_operation_sha is not None:
             from soc_agent.security_ai.ebpf_tc.dns_diagnostic import run_packet
             from soc_agent.security_ai.ebpf_tc.reassessment import held_json
