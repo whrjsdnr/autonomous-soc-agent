@@ -23,6 +23,14 @@ def main(argv=None, *, prepared=None) -> int:
         default=Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
         / "autonomous-soc-agent/gui",
     )
+    parser.add_argument(
+        "--analysis-result",
+        type=Path,
+        help="Verify and display an existing audited analysis report",
+    )
+    parser.add_argument(
+        "--analysis-ml-root", type=Path, help="Existing pinned ML workspace for offline replay"
+    )
     parser.add_argument("--runtime", type=Path)
     parser.add_argument("--artifacts", type=Path)
     parser.add_argument("--native-python", type=Path)
@@ -63,6 +71,8 @@ def main(argv=None, *, prepared=None) -> int:
             from soc_agent.gui.production import Desktop
 
         config = GUIConfig(
+            analysis_result=args.analysis_result,
+            analysis_ml_root=args.analysis_ml_root,
             collector_type=args.collector,
             zeek_pcap=args.zeek_pcap,
             zeek_pcap_sha256=args.zeek_pcap_sha256,

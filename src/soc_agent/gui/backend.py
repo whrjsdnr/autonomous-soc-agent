@@ -45,6 +45,8 @@ class GUIConfig(Snapshot):
     runtime_directory: Path | None = None
     artifacts: Path | None = None
     native_python: Path | None = None
+    analysis_result: Path | None = None
+    analysis_ml_root: Path | None = None
     refresh_seconds: int = Field(default=15, ge=10, le=300)
     source_label: Literal["UNVERIFIED", "LIVE_WSL", "FIXTURE"] = "UNVERIFIED"
 
@@ -75,6 +77,7 @@ class Backend:
         self.startup_outcome = None
         self.busy_scenario = False
         self.scenario_results = []
+        self.analysis_service = None
 
     def _owner(self, name):
         if name not in self._owners:
@@ -249,6 +252,8 @@ class Backend:
         }
 
     async def close(self, reason="GUI_CLOSE"):
+        if self.analysis_service is not None:
+            await self.analysis_service.close()
         # GUI lifetime is not Runtime lifetime. A file-backed log and new session
         # keep this explicitly started Runtime independent; no transport destructor kills it.
         alive = self.child is not None and self.child.returncode is None
@@ -329,7 +334,32 @@ class Backend:
                 value["authentication"] = await asyncio.to_thread(status, self.runtime)
             except (OSError, ValueError, sqlite3.Error):
                 value["authentication"] = {"state": "UNKNOWN", "last_error": "STATUS_INVALID"}
+        if self.analysis_service is not None:
+            value["analysis"] = self.analysis_service.snapshot()
         return value
+
+    def _analysis(self):
+        if self.closed:
+            raise ValueError("GUI_BACKEND_CLOSED")
+        if self.analysis_service is None:
+            from soc_agent.gui.analysis_service import AnalysisService
+
+            self.analysis_service = AnalysisService(
+                self.directory / "analysis", self.config.analysis_ml_root
+            )
+        return self.analysis_service
+
+    async def analysis_start(self, input_file: str):
+        return await self._analysis().start(Path(input_file))
+
+    async def analysis_stop(self):
+        return await self._analysis().stop()
+
+    async def analysis_attach(self, directory: str):
+        return await self._analysis().attach(Path(directory))
+
+    async def analysis_status(self):
+        return self._analysis().snapshot()
 
     async def archive_sessions(self):
         if self.collector_selection.startswith("zeek-"):

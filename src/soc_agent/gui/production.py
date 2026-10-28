@@ -10,14 +10,14 @@ import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from soc_agent.gui import operator_view
+from soc_agent.gui import analysis_view, operator_view
 from soc_agent.gui.charts import MetricHistory
 from soc_agent.gui.components import Button, Label
 from soc_agent.gui.redaction import display_data
 from soc_agent.gui.visual_metrics import VisualHistory
 from soc_agent.gui.worker import Worker
 
-SCREENS = ("Dashboard", "Security Events", "Investigation", "System")
+SCREENS = ("Dashboard", "Security Events", "Investigation", "AI Analysis", "System")
 BG, PANEL, TEXT, ACCENT = "#0B1220", "#17243A", "#F1F5F9", "#38BDF8"
 
 
@@ -188,7 +188,12 @@ class Desktop:
     def _started(self, value):
         self.startup_complete = True
         self.render(value)
-        if self.config.collector_type.startswith("zeek-"):
+        if self.config.analysis_result:
+            self.navigate("AI Analysis", refresh=False)
+            self.call(
+                "analysis_attach", str(self.config.analysis_result), callback=self.analysis_updated
+            )
+        elif self.config.collector_type.startswith("zeek-"):
             self.navigate("System", refresh=False)
         elif self.config.total_approved_sha:
             self.navigate("System", refresh=False)
@@ -212,11 +217,19 @@ class Desktop:
             operator_view.dashboard(self)
         elif page in ("Security Events", "Investigation"):
             operator_view.records(self)
+        elif page == "AI Analysis":
+            analysis_view.build(self)
         else:
             operator_view.system(self)
         self._render_current()
         if refresh:
             self.refresh()
+
+    def analysis_updated(self, value):
+        self.status.set(str(value.get("state", "UNKNOWN")) + " · OFFLINE analysis")
+        self.snapshot["analysis"] = value
+        self.last_render = None
+        self._render_current()
 
     def _controller_unavailable(self):
         self.command = ""
@@ -389,6 +402,8 @@ class Desktop:
                 "Investigations are READ-only.\n\n"
                 "Research scores are not confirmed attacks.",
             )
+        elif self.page == "AI Analysis":
+            analysis_view.render(self, value.get("analysis", {}))
         else:
             operator_view.render_system(self, value)
 
