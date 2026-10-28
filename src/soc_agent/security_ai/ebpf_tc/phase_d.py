@@ -43,6 +43,13 @@ DNS_SCOPE = dict(
 def runtime_bundle():
     result = offload_session.sources()
     root = Path(__file__).parent.parent
+    for name, path in (
+        ("soc_agent.security_ai.__init__", root / "__init__.py"),
+        ("soc_agent.review.__init__", root.parent / "review/__init__.py"),
+        ("soc_agent.review.persistence.__init__", root.parent / "review/persistence/__init__.py"),
+        ("soc_agent.local_events", root.parent / "local_events.py"),
+    ):
+        result[name] = hashlib.sha256(path.read_bytes()).hexdigest()
     result["soc_agent.cli"] = hashlib.sha256((root.parent / "cli.py").read_bytes()).hexdigest()
     result["soc_agent.security_ai.native_campaign"] = hashlib.sha256(
         (root / "native_campaign.py").read_bytes()

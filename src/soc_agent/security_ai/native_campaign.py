@@ -133,7 +133,14 @@ class NativeCampaign:
             address_space_mib="privileged_address_space_mib",
             cpu_seconds="privileged_cpu_seconds",
         )
-        if any(scope.get(k) != scoped[v] for k, v in names.items()):
+        namespace = (
+            scope.get("namespace")
+            if approval.get("development_session_sha")
+            else scoped["namespace"]
+        )
+        if any(
+            scope.get(k) != (namespace if k == "namespace" else scoped[v]) for k, v in names.items()
+        ):
             raise ValueError("NATIVE_CAMPAIGN_APPROVED_SCOPE_CHANGED")
         dns_names = dict(
             capture_seconds="max_capture_seconds",
@@ -148,7 +155,7 @@ class NativeCampaign:
         )
         if (
             any(dns_scope.get(k) != scoped["dns"][v] for k, v in dns_names.items())
-            or dns_scope.get("namespace") != scoped["namespace"]
+            or dns_scope.get("namespace") != namespace
             or dns_scope.get("interface") != scoped["interface"]
         ):
             raise ValueError("NATIVE_CAMPAIGN_APPROVED_SCOPE_CHANGED")
@@ -175,10 +182,21 @@ class NativeCampaign:
             native_cost, root_cost_used = totals(rows)
             native = self.budget["native_used"] + native_cost
             root = self.budget["root_installations_used"] + root_cost_used
+            proposal = dict(
+                event="NATIVE_ATTEMPT_RESERVED",
+                scope=scope,
+                dns_scope=dns_scope,
+                release=identity,
+                git_commit=git_commit,
+                development_session_sha=approval.get("development_session_sha"),
+            )
+            from soc_agent.security_ai.ebpf_tc.development_session import metered
+
+            development = metered(rows, proposal, self.budget, getattr(self, "batch", None))
             if (
                 native + 1 > self.budget["native_max"]
                 or root + root_cost > self.budget["root_installations_max"]
-            ):
+            ) and not development:
                 raise ValueError("NATIVE_CAMPAIGN_BUDGET_EXHAUSTED")
             return dict(
                 event="NATIVE_ATTEMPT_RESERVED",
@@ -193,6 +211,11 @@ class NativeCampaign:
                 approval_sha256=approval_sha,
                 git_commit=git_commit,
                 automatic_retry=False,
+                **(
+                    {"development_session_sha": approval["development_session_sha"]}
+                    if development
+                    else {}
+                ),
             )
 
         return self._locked(event)

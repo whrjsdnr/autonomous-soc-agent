@@ -1,14 +1,18 @@
 """Read-only, bounded UTF-8 JSONL replay. No OS log access or follow/rotation semantics."""
 
+from __future__ import annotations
+
 import os
 import stat
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import TypeAdapter, ValidationError
 
-from soc_agent.ingestion.models import Event
+if TYPE_CHECKING:
+    from soc_agent.ingestion.models import Event
 
 MAX_EVENT_BYTES = 128 * 1024
 MAX_FILE_BYTES = 16 * 1024 * 1024
@@ -48,6 +52,8 @@ class LocalJSONLSource:
         self.path = explicit_path(path)
 
     def events(self) -> Iterator[Event | InputIssue]:
+        from soc_agent.ingestion.models import Event
+
         try:
             before = self.path.stat()
             if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_FILE_BYTES:

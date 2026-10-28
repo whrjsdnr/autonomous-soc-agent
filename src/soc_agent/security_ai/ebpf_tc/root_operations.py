@@ -94,6 +94,8 @@ class RootApproval(Contract):
     expires_at: int = Field(gt=0)
     native_cost: Literal[0] = 0
     root_cost: Literal[1] = 1
+    development_session_sha: Hash | None = None
+    development_namespace: str | None = None
 
 
 def implementation_sha() -> str:
@@ -112,6 +114,8 @@ def implementation_sha() -> str:
             "namespace_controller_engine.py",
             "namespace_runtime.py",
             "namespace_runtime_engine.py",
+            "development_session.py",
+            "controller_python.py",
         )
     ]
     return digest({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files})
@@ -244,6 +248,14 @@ class RootOperations(StabilizationCampaign):
                 root_cost=1,
                 state="RESERVED_NOT_STARTED",
                 scope=approval.scope,
+                **(
+                    dict(
+                        development_session_sha=approval.development_session_sha,
+                        development_namespace=approval.development_namespace,
+                    )
+                    if approval.development_session_sha is not None
+                    else {}
+                ),
             )
 
         return self._locked(reserve)

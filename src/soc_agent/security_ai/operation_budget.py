@@ -139,6 +139,15 @@ def guard_reservation(rows: list[dict], event: dict, budget: dict, batch: str | 
             raise ValueError("ROOT_OPERATION_UNRESOLVED")
     native, root = totals(rows)
     dn, dr = (1, event["root_cost"]) if event["event"] == "NATIVE_ATTEMPT_RESERVED" else (0, 1)
+    from soc_agent.security_ai.ebpf_tc.development_session import metered
+
+    if metered(rows, event, budget, batch):
+        event.update(
+            native_used=budget["native_used"] + native + dn,
+            root_installations_used=budget["root_installations_used"] + root + dr,
+            count_policy="ISOLATED_DEVELOPMENT_OBSERVE_ONLY_V1",
+        )
+        return
     if (
         budget["native_used"] + native + dn > budget["native_max"]
         or budget["root_installations_used"] + root + dr > budget["root_installations_max"]

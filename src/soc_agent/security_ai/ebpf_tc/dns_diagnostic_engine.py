@@ -296,6 +296,10 @@ def dns_root_admit(config):
     envelope = json.loads(sys.argv[1])
     dns_validate_grant(config, envelope)
     print(json.dumps(dict(state="DNS_ROOT_AUTHENTICATED", session=config["session"])), flush=True)
+    if "controller" in config:
+        # Defined by the fixed embedded Controller engine. Validate only after
+        # exact Root admission and resource limits, before a claim or DNS worker.
+        verify_python_runtime(config["controller"], config["uid"])  # noqa: F821
     # Fixed root-owned per-receipt fuse survives controller crashes. It is
     # explicitly part of the reviewed DNS Scope, never removed automatically.
     approval = envelope["approval_sha"]

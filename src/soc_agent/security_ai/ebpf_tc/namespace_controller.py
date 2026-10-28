@@ -38,7 +38,7 @@ def validate_controller(config: dict) -> dict:
         "request_file",
         "docker_group",
     }
-    if set(config) != fields:
+    if set(config) not in (fields, fields | {"python_runtime"}):
         raise ValueError("NAMESPACE_CONTROLLER_CONFIG_FIELDS")
     group = config["docker_group"]
     if group is not None and (type(group) is not int or group <= 0):
@@ -133,6 +133,30 @@ def verify_sources(config: dict):
         or hashlib.sha256(interpreter.read_bytes()).hexdigest() != config["interpreter_sha"]
     ):
         raise ValueError("NAMESPACE_CONTROLLER_INTERPRETER_CHANGED")
+    if "python_runtime" in config:
+        from soc_agent.security_ai.ebpf_tc.namespace_controller_engine import verify_python_runtime
+
+        verify_python_runtime(config, os.getuid())
+
+
+def verify_python_entry(config: dict):
+    from soc_agent.security_ai.ebpf_tc.controller_python import entry_probe
+    from soc_agent.security_ai.ebpf_tc.namespace_controller_engine import verify_python_runtime
+
+    verify_python_runtime(config, os.getuid())
+    source = entry_probe(Path(config["project"]))
+    try:
+        result = subprocess.run(
+            [config["interpreter"], "-I", "-B", "-c", source],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C"},
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise ValueError("NAMESPACE_CONTROLLER_PYTHON_PREFLIGHT") from exc
+    if result.returncode or result.stdout.strip() != "CONTROLLER_IMPORT_READY":
+        raise ValueError("NAMESPACE_CONTROLLER_PYTHON_DEPENDENCIES")
 
 
 def child_main(config: dict):
@@ -236,6 +260,7 @@ def run_packet(mode: str, directory: Path, packet: dict) -> dict:
     ):
         raise ValueError("NAMESPACE_CONTROLLER_SCOPE")
     verify_sources(config["controller"])
+    verify_python_entry(config["controller"])
     campaign = RootOperations(Path(packet["campaign"]), binding.batch)
     fields = dict(
         policy_file=Path(packet["policy_file"]),
@@ -285,6 +310,7 @@ def _execute(directory, packet, binding, config, campaign, fields):
         if source_git_identity() != (binding.artifact.git_commit, binding.artifact.git_tree):
             raise ValueError("NAMESPACE_CONTROLLER_GIT_CHANGED_AFTER_CONFIRMATION")
         verify_sources(config["controller"])
+        verify_python_entry(config["controller"])
         event = campaign.reserve_root(binding, **fields)
         attempt = event["attempt_id"]
 

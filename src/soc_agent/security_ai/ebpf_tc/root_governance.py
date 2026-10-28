@@ -177,6 +177,10 @@ def allocate_root(
 
 def apply_packet(campaign, packet: dict) -> dict:
     """Existing native-recovery reassess dispatch, never a privileged command runner."""
+    if packet.get("kind") == "DEVELOPMENT_METERING_POLICY_ACTIVATION":
+        from soc_agent.security_ai.ebpf_tc.development_session import activate
+
+        return activate(campaign, packet)
     if packet.get("kind") == "ROOT_POLICY_ACTIVATION":
         return activate_policy(
             campaign,

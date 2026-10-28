@@ -15,6 +15,60 @@ import sys
 from pathlib import Path
 
 
+def verify_python_runtime(config, uid):
+    reference = config.get("python_runtime")
+    if not isinstance(reference, dict) or set(reference) != {"file", "sha"}:
+        raise ValueError("NAMESPACE_CONTROLLER_PYTHON_RUNTIME_REQUIRED")
+
+    def read(path, limit):
+        path = Path(path)
+        if not path.is_absolute() or path.resolve(strict=True) != path:
+            raise ValueError("CONTROLLER_PYTHON_CANONICAL_PATH")
+        fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
+        try:
+            info = os.fstat(fd)
+            if (
+                not stat.S_ISREG(info.st_mode)
+                or info.st_uid != uid
+                or info.st_mode & 0o022
+                or info.st_size > limit
+            ):
+                raise ValueError("CONTROLLER_PYTHON_FILE_TRUST")
+            return os.pread(fd, limit + 1, 0)
+        finally:
+            os.close(fd)
+
+    body = read(reference["file"], 1024**2)
+    if hashlib.sha256(body).hexdigest() != reference["sha"]:
+        raise ValueError("CONTROLLER_PYTHON_MANIFEST_SHA")
+    value = json.loads(body)
+    if (
+        set(value) != {"contract", "executable", "files"}
+        or value["contract"] != "SOC_CONTROLLER_PYTHON_RUNTIME_V1"
+        or value["executable"] != config["interpreter"]
+    ):
+        raise ValueError("CONTROLLER_PYTHON_BINDING")
+    pins = value["files"]
+    root = Path(reference["file"]).parent
+    if (
+        not isinstance(pins, dict)
+        or not 2 <= len(pins) <= 2048
+        or pins.get(config["interpreter"]) != config["interpreter_sha"]
+        or str(root / "pyvenv.cfg") not in pins
+    ):
+        raise ValueError("CONTROLLER_PYTHON_PIN_BOUND")
+    for name, pin in pins.items():
+        if (
+            not Path(name).is_relative_to(root)
+            or hashlib.sha256(read(name, 64 * 1024**2)).hexdigest() != pin
+        ):
+            raise ValueError("CONTROLLER_PYTHON_DEPENDENCY_CHANGED")
+    site = root / "lib/python3.12/site-packages"
+    observed = {str(p) for p in site.rglob("*") if p.is_file() or p.is_symlink()}
+    if observed != {n for n in pins if Path(n).is_relative_to(site)}:
+        raise ValueError("CONTROLLER_PYTHON_UNPINNED_DEPENDENCY")
+
+
 def controller_root_main(config):
     dns_root_main(config)  # noqa: F821 -- existing DNS-only admission and complete diagnostic
     envelope = json.loads(sys.argv[1])
@@ -111,5 +165,5 @@ def controller_root_main(config):
     # dropped. The fixed child accepts only the existing recovery request schema.
     os.chdir(child["project"])
     os.execve(
-        interpreter, [interpreter, "-I", "-c", source], {"PATH": "/usr/bin:/bin", "LANG": "C"}
+        interpreter, [interpreter, "-I", "-B", "-c", source], {"PATH": "/usr/bin:/bin", "LANG": "C"}
     )

@@ -61,6 +61,7 @@ class AdmissionAmendment(Contract):
     activate_versioned_admission: Literal[True]
     original_result_unchanged: Literal[True] = True
     root_commands_authorized: Literal[False] = False
+    development_session_sha: Hash | None = None
 
 
 class ReassessedCampaign(StabilizationCampaign):
@@ -77,7 +78,7 @@ class ReassessedCampaign(StabilizationCampaign):
             or time.time() >= a.expires_at
         ):
             raise ValueError("REASSESSMENT_AMENDMENT_BINDING")
-        if self.batch == "BATCH3":
+        if self.batch == "BATCH3" and a.development_session_sha is None:
             allocation = a.batch_allocation
             if (
                 allocation is None
@@ -100,6 +101,7 @@ class ReassessedCampaign(StabilizationCampaign):
             or receipt.get("r2_receipt_sha") is None
             or digest(scope) != a.binding.scope_sha
             or git_commit not in (None, a.binding.next_artifact.git_commit)
+            or receipt.get("development_session_sha") != a.development_session_sha
         ):
             raise ValueError("REASSESSMENT_EXECUTION_APPROVAL_BINDING")
         # One controller instance is bound to a single immutable execution receipt.
@@ -123,7 +125,11 @@ class ReassessedCampaign(StabilizationCampaign):
             a = self.amendment
             if (
                 time.time() >= a.expires_at
-                or (a.batch_allocation is not None and time.time() >= a.batch_allocation.expires_at)
+                or (
+                    a.development_session_sha is None
+                    and a.batch_allocation is not None
+                    and time.time() >= a.batch_allocation.expires_at
+                )
                 or event["approval_sha256"] != self.execution_receipt_sha
             ):
                 raise ValueError("REASSESSMENT_ADMISSION_EXPIRED")
@@ -174,7 +180,12 @@ class ReassessedCampaign(StabilizationCampaign):
                 if old.get("reassessment_record_sha") == a.reassessment_record_sha:
                     raise ValueError("REASSESSMENT_ADMISSION_REPLAY")
             batch = [r for r in reservations if r.get("batch") == self.batch]
-            if len(batch) >= 2 or sum(r["root_cost"] for r in batch) + event["root_cost"] > 2:
+            from soc_agent.security_ai.ebpf_tc.development_session import metered
+
+            development = metered(rows, event, self.budget, self.batch)
+            if (
+                len(batch) >= 2 or sum(r["root_cost"] for r in batch) + event["root_cost"] > 2
+            ) and not development:
                 raise ValueError("STABILIZATION_BATCH_BUDGET_EXHAUSTED")
             prior = a.binding.next_artifact
             if event["release"] != dict(

@@ -239,3 +239,60 @@ Campaign Root **6/10**, Native **4/10**. Batch3 Root **3/4**, Native **1/2**. Ro
 소비된 Root 승인에 대한 비소비 check는 ROOT_APPROVAL_REPLAY, 같은 정책 활성화 반복은 ROOT_POLICY_ACTIVATION_REPLAY로 거부됐다. Ledger SHA `e7779f7315f9d3d71c9f91d0846bc4254dfc60217c84ae2be0534501763d567d`/32행, 이전 prefix·체인·보호112개·과거 Native55개·설치/rollback 각9개·기존 사용자 변경 무결성 확인. 새 Native 예약·설치·TCX·Capture·모델·LLM API·보안 대응은0. 소유 자원 검증을 전역 cgroup Cleanup 검증으로 확대하지 않았다. 기존 FAILED·false·Program1145 UNKNOWN·과거 UNKNOWN 예약은 그대로다.
 
 후속 Native에는 Controller 환경 결함의 정식 구성 반영과 새 Binding, 최신 Ledger/새 Session의 인간 R1 위험 수용, 정확한 R2·Root 설치·Native 승인이 필요하다. P02/P03 INCOMPLETE, P04 Native ELIGIBLE0, Native AI·DNS9·운영 승격 BLOCKED 유지. 상세 영수증·실제 증거·RCA와 후보 검증은 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-root-dns-controller-20261028T012244Z`에 보존했다.
+
+## 2026-10-28 개발 예산 단순화 및 Controller Python 복구
+
+
+현재 상태: 코드·비권한 검증 완료 / **정책 비활성**. 본 문서는 승인 영수증이 아니다.
+
+## 변경된 계약
+
+기존 Campaign/Batch 예산 파일·한도·사용량·Ledger를 그대로 유지한다. 명시적인 `development_session_sha`가 없는 요청은 기존 경로이며, Source/운영 승인 규칙과 고정 한도를 계속 적용한다.
+
+`SOC_ISOLATED_DEVELOPMENT_METERING_V1`은 별도 인간 승인 후 기존 `native-recovery reassess --root-governance-file ... --root-governance-sha ...` 경로로만 활성화할 수 있다. 승인자·인간 결정 SHA·새 Session UUID·Namespace creation lease/origin·기존 Budget/Baseline Identity·보안 구현 fingerprint·검토된 정확한 Artifact 목록·최대24시간 유효기간을 요구한다. 활성화는 기존 체인에 이벤트1건을 추가할 뿐 실행 권한을 부여하지 않는다.
+
+활성화된 정책을 실행별 승인 영수증이 정확히 참조할 때에만 개발 Namespace의 Campaign/Batch/Root 하위계수 한도를 OBSERVE_ONLY로 처리한다. 기존 사용량은 그대로 더해 기록하며 환급/초기화하지 않는다. 동시 실행·미종결 예약·Replay·오래된 Ledger·기존 FAILED/false/UNKNOWN·인간 R1·R2·Root/Native 승인·Scope yes·OS 인증은 유지한다.
+
+범위는 기존 전용 Namespace `net:[4026532232]`와 고정 lo/Ingress, 300초/4096events/Queue32/256MiB/CPU20초 및 기존 Admission50ms/Clock10ms/Checkpoint16KiB/DNS10초 계약이다. 새 Namespace 생성/삭제는 개발 계측 예외 대상이 아니다. Root Install/DNS 및 Native/R1 실행 경로에 연결했다. Native 실행은 기존 R1 adapter를 사용하며 legacy admission을 우회하지 않는다.
+
+승인된 세션에서도 승인되지 않은 새 Artifact를 자동 등록·실행하지 않는다. 검토된 목록(최대16개)과 실행별 exact SHA 영수증을 요구한다. 보안/권한 코드 fingerprint, Namespace lease, 자원·Scope가 바뀌면 거부하며 새 인간 검토를 요구한다. 이번 구현은 예산 재배정 반복을 제거하는 정책이고, 실행 권한을 자동 발급하거나 Root 승인 자체를 생략하는 정책이 아니다.
+
+## Controller 수정
+
+실제 Python `/home/geonug/kdt-linux/autonomous-soc-agent/.git/development-session-controller-20261028T020154Z/controller-python/bin/python`
+
+실제 prefix `/home/geonug/kdt-linux/autonomous-soc-agent/.git/development-session-controller-20261028T020154Z/controller-python`
+
+pydantic 2.13.5, origin `/home/geonug/kdt-linux/autonomous-soc-agent/.git/development-session-controller-20261028T020154Z/controller-python/lib/python3.12/site-packages/pydantic/__init__.py`.
+
+기존 .venv의 import closure를 격리된 venv로 복사하고 canonical executable·pyvenv.cfg·의존성124개 파일을 고정했다. Runtime manifest SHA `c87a778581e6096f4a9f06b800ea61ae72d7181716f595d59ecdac6fbc689c0c`. 외부 .pth link 후보 환경을 실행에 재사용하지 않았다. 시스템 Python 설치·pip·다운로드 없음.
+
+공개 API를 유지한 lazy export 및 local_events의 event-model 지연 import로 Controller 시작 시 추론 라이브러리를 불필요하게 로드하지 않는다. Controller/기존 CLI Entry Point를 -I/-B, 256MiB/CPU20초에서 실제 import 검증한다. Host check/execute와 Scope 확인 직후 예약 전에 검증하며 Root Launcher도 기존 자원 제한·exact grant 확인 뒤, claim/DNS worker 이전에 고정된 runtime 파일을 검증한다. missing runtime/변조/미승인 .pth injection은 차단한다. 실제 setns/권한 전환 재실행은 수행하지 않았다.
+
+## Artifact / 활성화 순서
+
+현재 산출물은 GUARDED_REVIEW_ONLY_NOT_EXECUTION_AUTHORIZED다. Source 변경 때문에 기존 Namespace/build/Root/Native 영수증을 재사용하지 않았다.
+
+- Source 94d19bd3e62da7f2433b9c5cee2b3593b11b5e203472f1a0d0f47d604314c4fe
+- Manifest b515d8922f430e4004eac67aad8db53bf9d6000d89f180dabd2ff551bc218c42
+- Bundle 3fc2e1f4e9343868e5a7cffa9e8b854bb7f50db3f530f3c2757c2d2931e2c76c
+- Supervisor image aca9c1daa51b21b6268f6e3ef1cefaf56d1bddc388faf7fcb0f89dde474d5bbf
+- Root manifest 55081beed93ca263dc95069eb4a53a771405fdf7132eefc1b89e55f623b7b4a1
+- Controller manifest 82d67465cc2d8bd5eee07ff99c6775bb192185e38081159f39e624495a33af8e
+- Controller image a32d1c469903e52f81fc4ee980f8542573a02b06e6102b50f98a0a50a30a58f1
+- Wheel b3a8561650eb6c1e42c3bf099fc3aeb8701390b2cefe196136a4f2af63d627e0
+- 보안 구현 fingerprint 0d89cf882eb63718ff7eb4faec2f332ec68d35aae91d6c65bfbab83f5e7479ef
+
+새 Namespace 빌드 정책의 정확한 Source/Root/Runtime Binding을 검토하고 정책 포함 운영 Artifact를 확정한 뒤 개발 계측 정책의 정확한 Artifact 목록을 승인해야 한다. 미리 알 수 없는 미래 SHA를 승인된 값으로 채우지 않는다. 기계 검토 자료는 approval-preparation.json 및 development-policy-schema.json이다. 이후 최신 Ledger의 R1/R2·Root/Native 실행 승인을 별도로 확인한다. 정책 활성화와 실제 실행은 이번 작업에 포함되지 않았다.
+
+## 검증 및 보존
+
+새 집중 사례24개를 포함해 최종 Source에서 Workspace **1973 PASS/23 SKIP(485.44초)**, 독립 Export **1973 PASS/23 SKIP(473.01초)**. 추가 모델 사례의 초기 실패는 사라진 예전 /tmp 경로였고, 테스트가 지원하는 환경변수로 기존 공식 Artifact/추론 Python을 명시했다. Root 파일 검증 순서의 최종 수정 후 전체 선택 회귀를 양쪽 모두 다시 통과했다. Assertion/skip/기존 테스트를 약화하지 않았으며 최초 실패 로그를 보존했다. Windows/NTFS 등23건은 SKIP다. 모델 사례는 precomputed Fixture Feature + 실제 공식 predictor이며 Native Packet 검증이 아니다.
+
+Supervisor Stage/A/B26/26, Controller canonical JSON 입력 Stage/독립2빌드2/2, Wheel684 entries 동일. Ruff/Format/Diff PASS. 초기 private in-memory Controller dict의 key 순서가 실제 canonical CLI 입력과 달랐던 비교 실패는 보존했으며, 동일 승인 입력 파일을 재로드해 비교했다. Source를 바꾸거나 실패한 산출물을 승인된 것으로 대체하지 않았다.
+
+Ledger32행 SHA e7779f7315f9d3d71c9f91d0846bc4254dfc60217c84ae2be0534501763d567d bytes 불변. Campaign Native4/10·Root6/10, Batch3 Native1/2·Root3/4. 기존 Root 추가배정 만료2026-10-28T15:47:27+09:00 불변. 보호112개·과거 Native55개·설치/롤백 각9개·사용자 변경·Namespace inode4026532232 보존. 새로운 정책 활성화/예약/Root/DNS/Native/LLM API 모두0. 과거 FAILED/false/Program1145 UNKNOWN 및 UNKNOWN 예약은 유지한다.
+
+## 남은 실제 검증
+
+새 정책의 인간 활성화, 정책 포함 새 Artifact 승인, 최신 R1/R2/Root/Native 권한 및 사용자 Scope/sudo가 필요하다. Controller 실환경 권한 전환은 재검증 대기이며, P02/P03 INCOMPLETE·Native ELIGIBLE0·Native AI/DNS9/운영 승격 BLOCKED는 유지한다. 현재 상태를 실제 Native E2E VERIFIED/READY로 선언하지 않는다.
