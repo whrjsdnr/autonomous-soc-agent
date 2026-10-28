@@ -534,3 +534,67 @@ Ledger47→48은 정책 활성화 이벤트1개뿐이다. 기존47행 prefix와 
 남은 항목은 **최종 정확한 SHA 목록에 대한 개발 계측 opt-in, 새 Root DNS/Controller 진입, R1 인간 조건부 위험 수용 및 admission amendment, Native R2 트래픽, Root Release 설치·Native 최대1회, 실제 ELIGIBLE 입력에 대한 RF/LR action approval**이다. 각 영수증은 독립 검증한다. 새 Root 진입이 실제 성공·정산된 후 마지막 실제 Ledger에 새 인간 R1 결정을 기록하며 미래 tip을 예측하거나 과거 영수증을 재사용하지 않는다. Source 변경 없이 실행 승인만 진행할 수 있도록 최종 출력과 Session/Release/Scope/자원/원본 위험/조건을 같은 private 검토 자료에 고정한다. Namespace 내부 check가 실패하면 실행하지 않으며 자동 재실행하지 않는다.
 
 Private evidence: `.git/approved-deadline-namespace-build-20261028T044518Z/`. 최종 실행 승인 자료는 `next-approval-request.json`과 `next-approval-package.md`이며, 보고서만 반영한 후속 Git Commit/Tree를 별도로 고정한다. 정책 승인 입력 Git b810d4d와 이후 문서-only HEAD를 혼동하지 않는다. Source Snapshot은 동일하다. 실제 Native E2E/P02/P03/P04는 여전히 미검증이고 DNS9는 학습 추출 계약 미확보로 차단한다. Offline 실제 PCAP·RF/LR 결과와 역사적 실제 LLM 조사 결과 및 시연 스크립트 두 개를 보존했다.
+
+
+## Final six-decision review — 2026-10-28 (read-only)
+
+최종 판정: **BLOCKED — 현재 실행 불가**. 정책·Artifact 준비 검증과 실제 실행 승인 검증을 분리했다. 검토 HEAD `3bb7da5c9b6d441f3e193c3dd79a1e3b690a3ffd`, Tree `125968423a6df10c1bacd8bac6ab6cbe50267067`, 요청서 SHA `2ce11f0f9e294ed9d63aec379f08b1640e2f67ec59e2118f68cc1588dde9176e`가 모두 실제 값과 일치했다. 이 사용자 지시는 승인 검토 요청이며 여섯 결정의 인간 실행 승인으로 해석하지 않았다.
+
+| 독립 승인 | 검증 상태 | 남은 조건 |
+|---|---|---|
+| 개발 계측 | 새 두 Artifact의 유효한 opt-in 없음 | 기존 OBSERVE_ONLY 원칙·과거 집계는 보존하되 최종 SHA 두 개에 별도 승인/영수증 필요 |
+| R1 잔여 위험 수용 | 새 Native Session/Artifact/최신 Ledger를 충족하는 영수증 없음 | 새 인간 위험 수용과 exact admission amendment; 별도 승인된 Root 진입 성공·정산 후 실제 최신 Ledger에 기록 |
+| R2 DNS 트래픽 | 새 Artifact/Session/Namespace policy Binding 영수증 없음 | Native UDP2/TCP1, TCP 종료 후35초/약45초 STOP의 새 exact 승인 |
+| Root DNS/Controller | 새 ControllerBinding의 정책·실행 승인 없음 | 기존 Namespace 진입1회와 DNS UDP2/TCP1·Cleanup, Scope yes 및 fresh OS 인증 |
+| Root Release 설치 | 최종 Root Manifest fdfff9f7…에 대한 승인 없음 | 고정 파일 설치/기존 설치·롤백 보존, Root 설치 최대1회 승인 |
+| Native AI E2E | 새 Session8fee2197…의 exact 실행 승인 없음 | 새 R1/R2/계측·SHA 검증, 내부 check PASS, Scope yes·fresh OS 인증, Native 최대1회 |
+
+기존 영수증14개와 Ledger에 기록된 정책·재판정·예약을 대조했다. 유효기간이 남아 있다는 이유만으로 다른 Git/Artifact/Session/Scope의 영수증을 인정하지 않았다. 이전 Root 영수증은 소비됐거나 Binding이 다르며, 새 Controller Session3a7a4abd… 및 새 Native Session8fee2197…에는 예약이 없다. 기존 R1은 이전 Session/Artifact에 묶였고 그 record도 현재 Ledger tip이 아니다. 승인자 이름/역할을 새로운 인간 결정의 대용으로 사용하지 않았다. 이번 작업은 영수증을 생성·활성화·소비하지 않았다.
+
+Namespace **빌드 정책** 영수증 `c79c96e0eeaa9c771254350f9156166befb3c1588a060b686ce22754d9177c3c`는 검증 시점에 유효하며 만료는 `2026-10-29T13:45:18+09:00`이다. Root/Native/traffic 권한 플래그는 모두false이며 실행 승인이 아니다. Source1,772개·최종 Supervisor/Controller 파일·Root package·현재 설치본9개·롤백9개·Controller -I/-B Python import·Runtime dependency·RF/LR 모델 및 manifest 핀을 재확인했다. Docker network=none은 고정 빌드 계약으로 검증했으며 Docker daemon/컨테이너 실행은 하지 않았다. 새 LLM API 실행 승인은 없으며 API 호출은0이다.
+
+비소비 Host CLI check는 `PHASE_D_COLLECTOR_SCOPE_MISMATCH`, reserved=false/executed=false다. Host4026531833과 SOC4026532232 차이를 우회하지 않았다. 실제 Namespace 내부 lo/routes/cookie/Controller/Collector Scope·Runtime 검증은 권한 진입 승인이 없어 이번 작업에서 수행하지 않았다. 정식 Root 진입 승인과 사용자 확인·OS 인증 후 내부 check가 PASS하기 전에는 Native를 시작할 수 없다. 호스트에서 다른 승인 검증도 통과했다고 주장하지 않는다.
+
+Ledger **48행**, SHA `43708020d4ae8c24fd4a909b3282ea9681f41d9b9dd22ca08ddff1bb72f5a0dd`, tip `e75fd3003fe52447297f4ba73dfa8e8343a6e8c3b4ac7078d3315e3e9d36a515` 불변. Campaign Root8/Native4, Batch3 Root5/Native1 불변. 추가 예약·Root·Native·DNS·예산 소비·API는0이다. 보호112개·과거 Native55개와 기존 FAILED/false/UNKNOWN·설치/롤백·사용자 환경을 보존했다. 새 실제 Native 적격 후보·Prediction·Incident는 생성되지 않았다. 본 검토는 재빌드나 전체 테스트 반복 없이 기존 고정 증거와 현재 실제 파일·계약을 확인한 범위다.
+
+Private 검토 증거: `.git/native-final-approval-review-20261028T045439Z/final-review.json`, `six-approval-results.json`, `receipt-inventory.json`, `host-check.json`. 승인 요청서 원본과 Artifact는 변경하지 않았다. **기존 Git/요청서 Binding을 유지하기 위해 이번 보고서 추가분은 문서 작업 변경으로만 남기고 Commit/Push하지 않았다.** Source Snapshot은 이 보고서를 제외하는 기존1,772개 입력 그대로이며 실행 코드 변경은0이다. 정식 승인이 오기 전 Root 진입·실행 예약·Native를 시작하지 않는다.
+
+
+## Authorized final attempt — 2026-10-28 (Native blocked before reservation)
+
+사용자는 최종 JSON 요청서 `2ce11f0f9e294ed9d63aec379f08b1640e2f67ec59e2118f68cc1588dde9176e`의 독립 조건부 결정을 명시적으로 승인했다(`승인한다고`). 실행 기준 Git `3bb7da5c9b6d441f3e193c3dd79a1e3b690a3ffd`, Tree `125968423a6df10c1bacd8bac6ab6cbe50267067`, Source Snapshot `ce7aaaf2750ceb5fe1db523f1db310f086de3ce7fa4da85cb2c275bd9e02e674`와 실제 최종 Artifact를 검증했다. 앞선 문서-only 미커밋 변경은 exact hash로 보존했고 실행 코드·Git HEAD·승인 패키지는 바꾸지 않았다. 새로운 승인·예산·Namespace 시스템이나 기능 코드는 작성하지 않았다.
+
+### 독립 승인 및 실제 수행
+
+- 새 exact-artifact 개발 계측 영수증: `1be188282782a9b9353483ab4ffd8e85b49cc74c0ad3e4cadc9ce455898880a8`
+- 새 Root 정책 영수증: `46fc3c2ba39a57f645802d89d5d8a6f348e6be9a7e76aa50e48ee3ff98cac7a8`
+- 새 Root DNS/Controller 실행 승인: `47c7c1fbeacaec310983d6af0510131e88ca80ea6030e16d1654f0128a242729`
+- 사용자 Scope yes와 실제 터미널 sudo 후, 승인된 기존 Namespace 진입·로컬 DNS 작업1회 수행: **SUCCEEDED**
+- 실제 진입 성공·정산 확인 후 새 R1 영수증: `c7d1b3281beb8105635a8cacdac6ec1868c250ecb5d0cf0da5253e6c27664c13`
+- 새 R1 record: `527c0c591761a5c80d9d23ad809b7773b2cd6cd4a20b9d3d02530454b7c52eba`. 실제 최신 Ledger로 기록했고 과거 영수증은 재사용하지 않았다.
+- 그 record에 연결된 기존 admission amendment·R2 트래픽·Root설치/Native·지연예약 계약의 새 영수증을 별도로 생성·검증했다. Host 예약 preview는 소비 없이 통과했다.
+- Native 요청 SHA `e7fe17a65cc1f31147bebb878878cce4b8004c24abbf93dd0aeb41d4dba02c36`를 사용자에게 제공했지만 Controller 후속 요청 처리에서 외부 CLI **Exit2**로 종료됐다. 실제 최종 터미널 오류 문장은 요청 중이며, 당시 비밀번호 보호를 위해 TTY transcript를 수집하지 않았다.
+
+**최종 Native AI E2E는 BLOCKED**다. 새로운 Native 예약·Root Release 설치·Native Capture·Native Packet·ELIGIBLE Feature·RF/LR Prediction·Native Incident는 각각0이다. `supervised-result.json`, Native lifecycle journal, R2 claim은 생성되지 않았다. 따라서 내부 Native check PASS, Capture Integrity, Flow Completeness 또는 Native AI VERIFIED를 주장하지 않는다. Root DNS 진입 성공과 Native E2E 성공을 분리한다.
+
+### 실제 DNS 및 Cleanup
+
+실제 UDP2/TCP1 응답, 기존 Namespace inode4026532232, lo UP/외부 interface·default route 부재, Socket Cookie `9722000000000000`, ordinary Controller UID/GID1000을 Root 진입 증거로 확인했다. TCP close 이후 추가 UDP는 **35.000263116초**, 응용 관측 구간은 **45.001574239초**다. Worker listener FD가 닫혔고 Controller 프로세스는 종료됐다. 잔여 kernel TCP TIME_WAIT(inode0)는 listener FD 누수로 취급하지 않는다. Replay 방지 Root claim과 기존 Namespace는 유지했다. 이 증거는 응용 DNS 프로토콜 관측이며 TCX/kernel Flow/Capture 적격성 증거가 아니다. DNS Sidecar 분석과 DNS9 추론은 실행하지 않았다. DNS9 학습 추출 계약 미완성은 그대로다.
+
+### 최초 오류 및 RCA 범위
+
+확정된 사실은 Controller 후속 단계의 Exit2와 Native 예약 미발생이다. 정확한 내측 오류 코드·문장은 아직 확보하지 못했으므로 원인을 UNKNOWN으로 유지한다. 이전 설치본 혼동 결함이 재발했다고 단정하거나 새 결함을 추정해 코드를 바꾸지 않았다. 같은 고정 Controller Python(-I/-B,256MiB/CPU20s)에서 다음 **Host 개별 비소비 검증**은 실제 통과했다: 현재 설치본 파일·의존성 검증, Git/Tree, 준비 산출물 검증, R1 admission amendment, 지연예약 정책, R2 영수증, 예약 preview. 이 개별 진단은 Namespace 검증을 대체하지 않고 실제 실행 승인 경로를 우회하지 않는다. 운영 Validator를 monkeypatch하거나 setns/Root 재진입하지 않았다.
+
+최소 다음 조사 입력은 사용자 터미널의 마지막 `BLOCKED.error` 또는 마지막 오류 문장이다. 비밀번호나 인증 입력은 수집하지 않는다. 원인이 확인되기 전 새 기능·승인 시스템·임의 수정·자동 Root 재진입/Native 재실행을 하지 않는다. Root 진입 영수증은 이미 소비됐으며 재사용하지 않는다.
+
+### Ledger·Audit·예산·보존
+
+기존48행을 보존한 채 개발 정책1/Root 정책1/Root 예약·진행·정산4/새 인간 R1기록1을 추가해 **55행**이다. SHA `5efdeeb3eb0802b4123e4eeb61a14b9027a63f992f1351fdc52783f2fcf2fe88`, tip `527c0c591761a5c80d9d23ad809b7773b2cd6cd4a20b9d3d02530454b7c52eba`. Campaign Root9/Native4, Batch3 Root6/Native1이며 OBSERVE_ONLY 집계는 계속 기록한다. 실제 이번 Root 진입 비용은1, Root설치·Native 비용은0이다. 예산 환급/초기화·기존 승인 재활성화 없음. 기존 FAILED/false·Program1145 UNKNOWN·과거 전역Cleanup UNVERIFIED·과거 예약 EVIDENCE_INCOMPLETE/RootUNKNOWN/NativeUNKNOWN을 보존했다. 설치9개/롤백9개, 보호112개/기존Native55개, 사용자 프로세스·서비스·VS Code 환경과 Source1772개는 그대로다.
+
+### Deadline 시연과 운영 자동화 전환
+
+기존 실제 PCAP 정상 결과(실제 RF/LR2개, NORMAL, Incident/Audit)와 역사적 실제 LLM API 조사 결과(실제RF/LR2개, UNKNOWN_ANOMALY, 실제 계획·읽기 전용 도구·평가·Incident/Audit)를 기존 CLI `--verify`로 각각 재검증했다. 새 모델·API 호출은0이다. `deadline-native-e2e-20261028T033152Z/demo-run-normal.sh` 및 `demo-verify.sh`를 보존했다. 시연의 REAL_OFFLINE/REAL_MODEL/역사적REAL_API와 Native 미실행을 구분한다.
+
+목표 A인 실제 Native AI E2E가 완료되지 않았으므로 목표 B의 운영 서비스·자동 시작·권한/보안 정책 변경 설계·대규모 구현은 **보류**했다. 반복 sudo를 없애는 운영 권한을 현재 개발 승인에서 임의 도출하지 않았다. 현 Source와 Artifact가 바뀌지 않았으므로 기존 Workspace/Export95 PASS 및 재현 빌드 증거를 보존하며 불필요한 전체 회귀를 반복하지 않았다. 이번 작업의 실제 검증은 승인·Ledger·고정 Runtime 개별 진단·Root/DNS 실환경·보존/Offline 재열기 범위다.
+
+Private evidence: `.git/native-final-authorized-execution-20261028T045951Z/`: `attempt-summary.json`, 실제 Root entry evidence 참조, 각 독립 영수증/CLI 결과, `pinned-controller-host-*-subcheck*.json`, `pinned-controller-host-grant-subchecks.json`, `offline-preservation.json`. 코드 변경은0이며 보고서만 결과 Commit/Push 대상으로 한다. 실행 기준 Git과 이후 문서-only 결과 Commit을 혼동하지 않는다.
