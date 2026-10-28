@@ -30,7 +30,11 @@ def inspect_lease(path: Path, pin: str, binding: RootBinding) -> dict:
         or lease.get("deletion_authorized") is not False
         or lease.get("owner_uid") != 0
         or lease.get("lo_up_command_succeeded") is not True
-        or lease.get("host_namespace") != os.readlink("/proc/self/ns/net")
+        or lease.get("host_namespace") != namespace_isolation.HOST_NAMESPACE
+        # Creation provenance is immutable. A caller can inspect the same held
+        # lease before entry on its creator Host or after entry on its Target.
+        # This read-only check never authorizes setns; admission checks Scope.
+        or os.readlink("/proc/self/ns/net") not in (lease.get("host_namespace"), scope.namespace)
         or lease.get("boot_id") != Path("/proc/sys/kernel/random/boot_id").read_text().strip()
     ):
         raise ValueError("DNS_LAUNCHER_LEASE_BINDING")

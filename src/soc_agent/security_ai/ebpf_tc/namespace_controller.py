@@ -40,8 +40,13 @@ def validate_controller(config: dict) -> dict:
         "request_file",
         "docker_group",
     }
-    if set(config) not in (fields, fields | {"python_runtime"}):
+    optional = {"python_runtime", "automatic_request_policy_sha"}
+    if not fields <= set(config) or set(config) - fields - optional:
         raise ValueError("NAMESPACE_CONTROLLER_CONFIG_FIELDS")
+    if "automatic_request_policy_sha" in config and not re.fullmatch(
+        r"[a-f0-9]{64}", config["automatic_request_policy_sha"]
+    ):
+        raise ValueError("NAMESPACE_CONTROLLER_AUTOMATION_POLICY_PIN")
     group = config["docker_group"]
     if group is not None and (type(group) is not int or group <= 0):
         raise ValueError("NAMESPACE_CONTROLLER_DOCKER_GROUP")
@@ -113,6 +118,10 @@ def verify_sources(config: dict):
     pins = json.loads(body)
     if not isinstance(pins, dict) or not 1 <= len(pins) <= 4096:
         raise ValueError("NAMESPACE_CONTROLLER_SOURCE_BOUND")
+    if "automatic_request_policy_sha" in config:
+        from soc_agent.security_ai.ebpf_tc.development_integrity import approved_source_pins
+
+        pins = approved_source_pins(config, pins)
     root = Path(config["project"]).resolve(strict=True)
     for name, pin in pins.items():
         path = root / name
@@ -361,9 +370,25 @@ def _child_main(config: dict, state: dict, observe):
     previous = signal.signal(signal.SIGALRM, expired)
     signal.alarm(300)
     try:
-        pin = input("Enter the newly approved execution-request SHA256, or cancel: ").strip()
-        if len(pin) != 64 or bytes.fromhex(pin).hex() != pin:
-            return
+        if "automatic_request_policy_sha" in config:
+            print(
+                "Native diagnostic: approved isolated lo/Ingress, local DNS only; "
+                "Root fixed-file install requires fresh Scope and OS authentication. "
+                "4096 events / 300s / 256MiB / CPU20s. Historical UNKNOWN risks remain. "
+                "Artifact hashes and provenance are checked automatically."
+            )
+            if (
+                input("Continue to automatic integrity and admission check? Type yes: ").strip()
+                != "yes"
+            ):
+                return
+            from soc_agent.security_ai.ebpf_tc.development_integrity import automatic_request_pin
+
+            pin = automatic_request_pin(config)
+        else:
+            pin = input("Enter the newly approved execution-request SHA256, or cancel: ").strip()
+            if len(pin) != 64 or bytes.fromhex(pin).hex() != pin:
+                return
     finally:
         signal.alarm(0)
         signal.signal(signal.SIGALRM, previous)
@@ -387,7 +412,16 @@ def check_request(config: dict, pin: str, state: dict, observe) -> list[str]:
     state["request_sha256"] = pin
     state["ledger_at_request"] = _ledger_observation(config)
     request = held_json(Path(config["request_file"]), pin)
-    if any(request.get(k) != v for k, v in config["target"].items()):
+    target = config["target"]
+    if "automatic_request_policy_sha" in config:
+        from soc_agent.security_ai.ebpf_tc.development_integrity import automatic_request_pin
+
+        if automatic_request_pin(config) != pin:
+            raise ValueError("NAMESPACE_CONTROLLER_AUTOMATIC_REQUEST_CHANGED")
+        # Only content identities may change under the reviewed build boundary.
+        # Campaign/directory remain fixed, and normal exact receipts still run.
+        target = {k: v for k, v in target.items() if k not in {"manifest", "image_sha"}}
+    if any(request.get(k) != v for k, v in target.items()):
         raise ValueError("NAMESPACE_CONTROLLER_EXECUTION_TARGET_CHANGED")
     verify_sources(config)
     from soc_agent.security_ai.ebpf_tc.operational_recovery import main
@@ -470,18 +504,34 @@ def _execute(directory, packet, binding, config, campaign, fields):
     attempt = None
     messages = []
     try:
-        print(
-            json.dumps(
-                dict(
-                    purpose="DNS UDP2/TCP1; THEN ORDINARY NAMESPACE CONTROLLER; NO NATIVE GRANT",
-                    scope=config["scope"],
-                    fresh_later_native_approval_required=True,
-                ),
-                indent=2,
-            )
+        review = dict(
+            purpose="DNS UDP2/TCP1; THEN ORDINARY NAMESPACE CONTROLLER; NO NATIVE GRANT",
+            scope=config["scope"],
+            fresh_later_native_approval_required=True,
         )
+        automatic = "automatic_request_policy_sha" in config.get("controller", {})
+        if automatic:
+            print(
+                json.dumps(
+                    dict(
+                        purpose=review["purpose"],
+                        namespace=config["scope"]["namespace"],
+                        root="Existing Namespace entry and local DNS; then ordinary UID",
+                        network="Local UDP2/TCP1; no external interfaces/routes or Host changes",
+                        limits="DNS observation45s; Native300s/events4096/256MiB/CPU20s",
+                        risks="FAILED/false; Program1145 UNKNOWN; global Cleanup UNVERIFIED",
+                        details="Type details to inspect exact Scope and Artifact identities",
+                    ),
+                    indent=2,
+                )
+            )
+        else:
+            print(json.dumps(review, indent=2))
         try:
             answer = input("Approve exactly this Scope? Type yes; otherwise cancel: ")
+            if automatic and answer.strip().lower() == "details":
+                print(json.dumps(review, indent=2))
+                answer = input("Approve exactly this Scope? Type yes; otherwise cancel: ")
         except (EOFError, KeyboardInterrupt):
             answer = "no"
         if answer.strip().lower() != "yes":

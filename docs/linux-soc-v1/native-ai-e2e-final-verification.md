@@ -739,3 +739,53 @@ Controller Session **`6a3fced6-dd7f-480e-9cb5-2f16b6b5a0ed`**, 공식 Applicatio
 승인 후 정상 순서는 새 계측/Root policy 결정을 기록 → 사용자의 Scope/OS 인증으로 승인된 진입 수행 → Root 정산 및 ordinary Controller의 **`*.controller-ready.json`(ACK 검증 완료)** 확인 → 실제 최신 Ledger에 새 인간 R1을 기록 → exact admission/R2/management/Root·Native receipt와 pinned request 작성 → 내부 check PASS → 사용자의 Scope/OS 인증 후 Native 최대1회다. 미래 Ledger SHA를 미리 만들거나 이전 ACK를 갱신하지 않는다. 새 UNKNOWN·Cleanup 실패·관련 없는 Ledger 변화·Scope/SHA/Namespace 불일치에는 중단하며 자동 재실행은 없다.
 
 자원 제한은 기존 lo/Ingress, 최대4096 events, Queue32, Admission50ms, 재정렬10ms, Checkpoint16KiB, 256MiB, CPU20초, wall300초, DNS분석10초, TCP 종료 후35초/약45초 STOP 그대로다. 새 실제 Native Packet·ELIGIBLE·Prediction·Incident는 아직0이며 P02/P03/P04·DNS9·운영 승격을 승격하지 않는다. 실제 실행 실패 시 최초 오류·단계·자식 종료 코드·소유/전역 Cleanup을 기존 진단 경로에 보존한다.
+
+
+## 2026-10-28 — Namespace Lease 수정 및 개발용 자동 무결성 검증 (미활성)
+
+현재 판정은 **IMPLEMENTED / VERIFIED_OFFLINE / POLICY_ACTIVATION_REQUIRED**다. 실제 Native AI E2E는 여전히 BLOCKED이며 이번 개발 작업에서는 Root·Namespace 진입·DNS·Native·Docker·LLM 실행, 실행 예약, 정책 영수증 발급 또는 운영 Ledger append를 하지 않았다.
+
+### 직전 실행의 확인된 최초 오류
+
+`native-controller-final-approved-20261028T061425Z`에서 Root DNS/Controller는 SUCCEEDED였다. UDP2/TCP1, 35초 이후 추가 UDP, 약45초 관측, listener FD 닫힘, 일반 UID/GID1000, Cookie9722000000000000, strict ACK 확인이 실제 증거로 남았다. 그 다음 Native check는 `DNS_LAUNCHER_LEASE_BINDING`, 단계 NATIVE_CHECK, 자식 Exit2로 차단됐다. Native 예약·Root 설치·Capture·모델 호출은0이다. `.controller-first-error.json`과 `.controller-result.json`에 최초 origin/단계/실제 자식 종료 코드가 보존됐다. 과거 Exit2의 UNKNOWN은 소급 변경하지 않는다.
+
+원인은 `development_session._validate → isolated_dns_launcher.inspect_lease`의 Host 전용 비교였다. 생성 Host net:[4026531833]와 정상 진입한 실행 Target net:[4026532232]를 동일해야 한다고 비교했다. 수정은 Lease 생성 Host를 고정·보존하고 현재 호출자가 그 Host 또는 SHA로 고정된 Lease Target에 있을 때만 읽기 검증을 허용한다. 제3 Namespace, 변조 Host/Session/Release/Boot/Lease SHA, 교체된 nsfs FD는 차단한다. 생성 기록을 갱신하거나 setns 권한을 부여하지 않는다.
+
+### 운영 코드와 승인 인터페이스
+
+- `isolated_dns_launcher.py`: Creator Host / approved Target / current Namespace 구분. 기존 Root 소유 nsfs의 dev/inode와 생성 Provenance 검증 유지.
+- `development_integrity.py`: 기존 개발 정책에 연결되는 자동 SHA·Source·두 빌드·권한 경계 검증. 두 후보의 일치만 신뢰하지 않고 기존 `prepare_supervisor_image`로 이미지를 재생성해 실행 바이트를 대조한다. 후보 이미지는 실행하지 않는다.
+- `development_session.py`: `artifact_automation=None` 기본값. **새로운 정식 인간 정책 승인**에 명시된 경우에만 허용된 파일 변경과 검증된 파생 Artifact를 개발 계측 대상으로 인정한다. 기존 운영 정책 및 Root 작업의 exact Artifact 제한은 그대로다.
+- `namespace_controller.py`: 승인된 정책 SHA가 고정된 자동 모드에서는 긴 SHA 입력 대신 목적·Namespace·Root·로컬 트래픽·자원·미확인 위험 및 yes/cancel을 표시한다. 상세 Scope는 `details`로 확인한다. 고정 요청서 SHA는 내부 계산한다. 기존 CLI check/실행 영수증/Scope 확인/fresh sudo는 생략하지 않는다. 자동 설정이 없는 기존 경로도 보존한다.
+
+자동화는 **새 실행 영수증의 자동 발급이나 기존 영수증 재사용이 아니다**. 동일한 Namespace·Root Manifest·Capability·Collector·DNS·정책 경계와 재현 빌드가 필요하다. 변경 가능 파일은 정책의 유한한 정확한 경로 목록으로 제한하고, 그 밖의 파일 추가/변경, Root Manifest·Release·보안 구현·Scope 변경은 인간 검토 대상으로 차단한다. R1의 최신 Ledger, R2, Root·Native의 정확한 실행 승인, Replay·동시 실행·자원 제한은 기존 경로에서 독립 검증한다. 운영 정책의 예산 한도는 변경하지 않는다.
+
+현재의 Lease 버그 수정과 자동 검증기는 보안 구현과 Root Manifest를 바꾸므로 이전 영수증으로 실행하지 않는다. 최초 새 정책 승인은 AGENTS.md §33의 Human Review → Approved Update로 필요하다. 이후 승인된 파일/권한 경계 안에서는 긴 SHA를 사용자에게 복사·입력시키지 않는 경로를 사용할 수 있다. Runtime/보안/권한 경계 변경까지 자동 허용하는 무제한 개발 세션은 구현하지 않았다.
+
+### 검증과 산출물
+
+Workspace **210 PASS**, 독립 Export **210 PASS**. Host/Target/제3 Namespace, 위조 Lease, SHA, Source allowlist, 이중 빌드 불일치, Root/Capability/DNS 경계, 신규 정책 누락·Replay, 실제 Controller → 기존 CLI admission, 거부 시 예약 미생성 및 기존 R1/R2/Root 계약을 검사했다. 활성 정책 테스트는 모두 임시 테스트 Ledger다. Namespace 관측/Root 소유권 등의 권한 경계만 Synthetic/Mock이며 실제 Target 진입이나 Native 성공으로 보고하지 않는다. 초기 개발 중 SourceGuard 감지와 취소 UI 호환성 오류를 수정한 후 소스를 고정하여 최종 두 회귀를 통과했다.
+
+Ruff 전체 PASS, Format 전체 PASS, Diff PASS. Stage/Workspace/독립 Export Supervisor **26/26**, Controller **2/2** 동일. Wheel 이중 빌드 동일: `d8cf3303848563d58a550d5f21695ed59525c4776a76979427f480ce13e36e57`. 자동 verifier의 빌더 재생성도 실제 빌드 바이트를 대상으로 검증했다.
+
+증거 디렉터리: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/lease-integrity-development-20261028T063707Z`
+
+| Identity | SHA256 |
+|---|---|
+| Source (보고서 제외 1779개 입력) | `a04646a073ad56dde7c339d165471bd3b3d056f30740506340a89952c1fdc14a` |
+| Guarded Manifest | `a4f76918c116718d19c386eb776560e0996a4589a750ce7b206348f13ab2f68e` |
+| Bundle | `c5f79f61586c4059f26a2c484038c6a34a6fab5e79216b7921faa9b0065dc76c` |
+| Guarded Execution Image | `723ad44989e56686876cd59bc9631cacfda8261fea657e658a970c71a5dc04e4` |
+| Root Manifest | `e4859852aee7f03ea4d9a78c80f8892de651b59321efdfd985073fcc36feba71` |
+| Controller Manifest | `2dac6734ca453b6e7770da1198fdd7757f7c1ed769b47596863b9e57bd7295df` |
+| Controller Image | `355067b28c3396262e73f7937215ffc86b08688d0ffc18694de0c3fcb9fccba1` |
+| Runtime Dependency | `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4` |
+| 보안 구현 | `65d08e41d666162f6b6820ceb685968e2a34cd5a088ce9ff511b5901036a8dac` |
+
+산출물은 **GUARDED_NOT_AUTHORIZED**다. Namespace 빌드 정책 영수증을 포함한 최종 Manifest/Image는 아직 생성·승인되지 않았다. 현재 Controller 산출물은 비권한 재현성 검증용이며, 소모된 과거 Controller Session/영수증을 새 실행에 재사용하지 않는다. 실행 준비에서는 공식 ApplicationPlan으로 새 세션을 만들고 승인된 자동 정책 핀을 config에 연결하여 기존 prepare 경로로 재생성한다. 이는 코드 수정이 아니라 승인된 설정·빌드 절차다.
+
+### 보존 및 재개 조건
+
+Ledger **63행**, SHA `c2b30587fa02abcfe69b7b50c56883f3006a18cdad9211f1b51251f668877922`, tip `390f5e8dfc355819b891b20c4919449f92dc69eaf6d5c1aa7efe73299bd0e2e8`가 개발 시작 시점과 byte-identical하다. Campaign Root **10** / Native **4**, Batch3 Root **7** / Native **1**을 유지했다. 기존 OBSERVE_ONLY 이력·FAILED·false·Program1145 UNKNOWN·과거 전역 Cleanup UNVERIFIED·UNKNOWN 예약을 보존한다. 설치/rollback 및 기존 Namespace/Host/VS Code/사용자 프로세스를 변경하지 않았다. Host에서 실제 Lease 조회는 통과했으며 Target 내부 수정본 실행은 미수행이다.
+
+재개에는 새 Namespace 빌드 정책 및 유한한 Artifact 자동 검증 개발 정책에 대한 **한 번의 통합 정책 검토**가 필요하다. 검토 범위는 새 Source/Root Manifest/보안 구현, 고정 Namespace/권한/트래픽/자원, 허용 파일 목록, 재현 빌드와 자동 SHA 계산이며 실제 Root·Native 실행 권한을 포함하지 않는다. 승인된 정책을 포함한 최종 빌드 이후 기존 계약으로 새 R1/R2·Root/Native 영수증을 발급하고, 내부 check PASS 및 사용자 Scope/OS 인증 후에만 별도 승인된 진단을 수행한다. 실제 RF/LR은 ELIGIBLE와 action-specific 승인을 요구한다. LLM API/DNS9/운영 승격은 이번 작업으로 허용되지 않는다.

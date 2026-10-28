@@ -425,3 +425,44 @@ def test_drop_all_privileges_before_worker_and_check_parent_race(monkeypatch):
     ]
     with pytest.raises(ValueError, match="SUPERVISOR_DISAPPEARED"):
         engine._drop_credentials(1000, 1000, 456)
+
+
+@pytest.mark.parametrize("current", ["net:[4026531833]", "net:[4999999999]", "net:[777]"])
+def test_creation_host_and_current_target_are_distinct(setup, monkeypatch, current):
+    original = lease(setup.binding)
+    monkeypatch.setattr(launcher, "held_json", lambda *_: dict(original))
+    monkeypatch.setattr(launcher.os, "readlink", lambda *_: current)
+    opened, closed = [], []
+    monkeypatch.setattr(launcher.os, "open", lambda *_: opened.append(123) or 123)
+    monkeypatch.setattr(
+        launcher.os, "fstat", lambda *_: SimpleNamespace(st_dev=4, st_ino=4999999999, st_uid=0)
+    )
+    monkeypatch.setattr(launcher.os, "close", closed.append)
+    if current == "net:[777]":
+        with pytest.raises(ValueError, match="LEASE_BINDING"):
+            launcher.inspect_lease(Path("fixture"), "c" * 64, setup.binding)
+        assert opened == closed == []
+    else:
+        actual = launcher.inspect_lease(Path("fixture"), "c" * 64, setup.binding)
+        assert actual == original and actual["host_namespace"] == "net:[4026531833]"
+        assert opened == closed == [123]
+
+
+def test_target_cannot_hide_a_forged_creation_host(setup, monkeypatch):
+    monkeypatch.setattr(
+        launcher, "held_json", lambda *_: lease(setup.binding) | dict(host_namespace="net:[777]")
+    )
+    monkeypatch.setattr(launcher.os, "readlink", lambda *_: "net:[4999999999]")
+    monkeypatch.setattr(launcher.os, "open", lambda *_: pytest.fail("No namespace open"))
+    with pytest.raises(ValueError, match="LEASE_BINDING"):
+        launcher.inspect_lease(Path("fixture"), "c" * 64, setup.binding)
+
+
+def test_tampered_lease_sha_rejected_before_namespace_observation(setup, monkeypatch, tmp_path):
+    from soc_agent.security_ai.ebpf_tc.installation import canonical
+
+    path = tmp_path / "lease.json"
+    path.write_bytes(canonical(lease(setup.binding)))
+    monkeypatch.setattr(launcher.os, "open", launcher.os.open)
+    with pytest.raises(ValueError):
+        launcher.inspect_lease(path, "0" * 64, setup.binding)

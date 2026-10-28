@@ -13,6 +13,7 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
+from soc_agent.security_ai.ebpf_tc.development_integrity import ArtifactAutomation
 from soc_agent.security_ai.ebpf_tc.reassessment import (
     Artifact,
     Contract,
@@ -101,6 +102,8 @@ class DevelopmentPolicy(Contract):
     authorize_execution: Literal[False] = False
     refund: Literal[False] = False
     allow_unapproved_artifact: Literal[False] = False
+    # Dormant unless a NEW exact human policy includes this reviewed boundary.
+    artifact_automation: ArtifactAutomation | None = None
 
     @model_validator(mode="after")
     def bounded(self):
@@ -192,13 +195,20 @@ def metered(rows: list[dict], event: dict, budget: dict, batch: str | None) -> b
         )
         if scope != expected or event.get("dns_scope", {}).get("namespace") != policy.namespace:
             raise ValueError("DEVELOPMENT_RESOURCE_OR_DNS_SCOPE")
+        artifacts = list(policy.artifacts)
+        if policy.artifact_automation is not None:
+            from soc_agent.security_ai.ebpf_tc.development_integrity import verified_artifact
+
+            candidate = verified_artifact(policy, rows)
+            if candidate not in artifacts:
+                artifacts.append(candidate)
         if not any(
             event["release"]
             == dict(
                 manifest=a.manifest, image=a.image, bundle=a.bundle, tcx_manifest=a.root_manifest
             )
             and event.get("git_commit") == a.git_commit
-            for a in policy.artifacts
+            for a in artifacts
         ):
             raise ValueError("DEVELOPMENT_ARTIFACT_NOT_REVIEWED")
     else:
