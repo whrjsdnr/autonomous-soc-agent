@@ -493,3 +493,44 @@ Source1,772개·독립 Export·기존 guarded Stage/A/B와 Wheel·Namespace leas
 Ledger47행과 SHA `0ba4e1a153752890bb8eb5827d47fa683d0674c79f518a84183719bba9b77453`는 불변이다. Campaign Native4/Root8, Batch3 Native1/Root5, OBSERVE_ONLY와 과거 집계 유지. 이번 작업의 Root·Native·DNS·예약·새 영수증·예산 소비·API 호출은 모두0이다. 기존 실패·false·UNKNOWN·설치/롤백·보호112개·Native55개·기존 사용자 변경을 보존했다. 새 Native 후보·모델 호출·Incident는 생성하지 않았다. P02/P03/P04 및 Native E2E는 BLOCKED/미검증을 유지한다.
 
 Offline 시연 스크립트 두 개는 원본 SHA 그대로 보존했다. 저장된 실제 PCAP 정상 결과는 실제 RF/LR2개 추론/NORMAL/Incident·Audit의 재열기 검증을 통과했고, 기존 실제 API 조사 결과는 계획·읽기 전용 조사·평가·Incident·Audit의 별도 재열기 검증을 통과했다. 이번 검증의 모델 재호출·새 API 호출은0이다. 정상 결과의 SCRIPTED 설정과 역사적 REAL_API 결과를 구분하며 DNS9 학습 추출 계약 미확보 상태를 유지한다.
+
+
+## Final approved Namespace build — 2026-10-28
+
+정책 활성화와 영수증 포함 비권한 재빌드를 완료했다. 승인자 조건욱(프로젝트 소유자 및 정책 승인권자)의 명시적 `APPROVED_WITH_CONDITIONS`와 요청서 SHA `a41e944a90fa1dbb62bcda26e6dc56dd68e47c59182e8e12062cf2397553a45f`를 대조했다. 승인 시점 HEAD `b810d4d854f95363180b5258067c400dd58cfafe` / Tree `8e4d6e0b0580fcf52e4aee6d2829805e36ea041d`, Source `ce7aaaf2750ceb5fe1db523f1db310f086de3ce7fa4da85cb2c275bd9e02e674`, Root Manifest와 실제 lease/inode/Scope/정책 input Binding이 정확히 일치했다. 정책 영수증은 기존 NamespacePolicy validator와 기존 Campaign append-only writer로 검증·기록했으며 새 승인 시스템이나 운영 코드를 추가하지 않았다.
+
+- 정책 영수증 SHA256: `c79c96e0eeaa9c771254350f9156166befb3c1588a060b686ce22754d9177c3c`
+- 유효기간: `2026-10-28T13:45:18+09:00` → `2026-10-29T13:45:18+09:00`
+- 정책 input binding SHA: `546c05d2bca466dc4490241587d455d51a39f131f9da397874cb4d8506edef33`
+- Source 입력: 1,772개, Workspace/독립 Export 일치
+- Namespace: net:[4026532232], Host: net:[4026531833]; 생성·삭제·재진입 없음
+- Controller Session: `3a7a4abd-8e9a-49b4-9b80-97cbffbc9057`
+- 다음 Native Session: `8fee2197-403f-4502-be63-f19d4b90df48` (기존 공식 ApplicationPlan에서 생성된 Identity만 준비, Application/실행 미시작)
+
+### 최종 산출물 Identity
+
+| 항목 | SHA256 |
+|---|---|
+| Supervisor Manifest | `5cc945c86feaf88a504c4501f1d99111bea9bfb2e33e160a60a80fe8ca9aa692` |
+| Bundle | `b0183470f1fd5c8edb99451fb49cd87e0742d1342dd0939666d505e202968023` |
+| Supervisor Execution Image | `db2cf46ab638bc2d532fa984787c853a66928752108a5111a45512d3e003516d` |
+| Root Manifest | `fdfff9f7ddd1668f0f8d390b09f00c25a9429ea5cfb9639b1323c02ef5511808` |
+| Controller Manifest | `2ebf685611886662e72af00742d491b938555fac86a1ea116a74539ba24a986b` |
+| Controller Execution Image | `db5091a42322f341ba25724b877f3fc35d2093455a6b918b19d0094b0f075a08` |
+| Runtime Dependency Identity | `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4` |
+
+실제 CLI `native-recovery prepare`가 `RUNTIME_APPROVED / executed=false`를 반환했다. Supervisor Preview=false 및 literal embedded Namespace 정책 영수증을 검증했다. 영수증 포함 전과 비교해 Manifest/Image는 변경됐고 Bundle/Root Manifest는 실제 동일함을 확인했다. 이 build permission은 실행 권한이 아니다. 변경된 출력에 과거 실행 영수증을 재사용하지 않았다.
+
+Supervisor Stage/A/B **26/26개**, Controller의 실제 운영 CLI canonical JSON 입력 기준 Stage/A/B **2/2개**가 동일하다. 초기 Controller in-memory dict 입력 순서가 canonical JSON 순서와 달라 비교 실패한 산출물은 별도 보존했다. 기존 운영 CLI의 held canonical packet으로 Stage를 다시 준비해 독립 A/B와 전부 비교했고 소스나 정책·영수증은 변경하지 않았다. Workspace 및 독립 Export 핵심 회귀 각각 **95 PASS**(108.49s/110.13s), Ruff 전체 PASS, Format1,431개 PASS, Diff PASS다. 이전 같은 Source의 동일 Wheel `d753f42cd988187392176ff92e3de0d1dd2d687c54ff72e67eb0fd32e9f6926c` 두 개도 보존하며 이번 신규 빌드 비교는 Supervisor/Controller 범위다.
+
+### 비소비 check와 승인 경계
+
+Host 비소비 CLI 결과는 `PHASE_D_COLLECTOR_SCOPE_MISMATCH / BLOCKED / reserved=false / executed=false`다. `ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED` guard는 해소됐지만 Host4026531833과 SOC4026532232의 실제 Scope 차이를 우회하지 않았다. 별도의 비권한 준비 검증으로 정책·Source·Runtime·설치/롤백·Artifact 무결성을 확인했고, 실제 Namespace 내부 check는 Root 진입 권한이 없으므로 수행하지 않았다. Host check가 R1·R2·Root·Native 승인을 통과했다고 주장하지 않는다.
+
+현재 설치본9개, Rollback9개, 보호112개, 과거 Native55개, 기존 사용자 변경과 lease를 보존했다. 고정 Controller Python runtime의124개 파일과 `-I/-B`·256MiB/CPU20s import 경로를 확인했다. 실제 UID 전환/Controller 재진입은 수행하지 않았다. 실제 RF/LR 모델 Artifact 핀도 유지하며, 신규 모델 추론과 API 호출은0이다.
+
+Ledger47→48은 정책 활성화 이벤트1개뿐이다. 기존47행 prefix와 전체 해시체인이 보존됐고 같은 정책 요청의 replay가 차단됐다. Ledger SHA `43708020d4ae8c24fd4a909b3282ea9681f41d9b9dd22ca08ddff1bb72f5a0dd`, tip `e75fd3003fe52447297f4ba73dfa8e8343a6e8c3b4ac7078d3315e3e9d36a515`. Campaign Root8/Native4, Batch3 Root5/Native1 불변. OBSERVE_ONLY의 기존 집계는 초기화·환급하지 않았다. 실행 예약·Root·DNS·Native·sudo·컨테이너·LLM API 호출은 모두0이다. 과거 FAILED/false/Program1145 UNKNOWN/전역Cleanup UNVERIFIED/예약UNKNOWN 판정은 그대로다.
+
+남은 항목은 **최종 정확한 SHA 목록에 대한 개발 계측 opt-in, 새 Root DNS/Controller 진입, R1 인간 조건부 위험 수용 및 admission amendment, Native R2 트래픽, Root Release 설치·Native 최대1회, 실제 ELIGIBLE 입력에 대한 RF/LR action approval**이다. 각 영수증은 독립 검증한다. 새 Root 진입이 실제 성공·정산된 후 마지막 실제 Ledger에 새 인간 R1 결정을 기록하며 미래 tip을 예측하거나 과거 영수증을 재사용하지 않는다. Source 변경 없이 실행 승인만 진행할 수 있도록 최종 출력과 Session/Release/Scope/자원/원본 위험/조건을 같은 private 검토 자료에 고정한다. Namespace 내부 check가 실패하면 실행하지 않으며 자동 재실행하지 않는다.
+
+Private evidence: `.git/approved-deadline-namespace-build-20261028T044518Z/`. 최종 실행 승인 자료는 `next-approval-request.json`과 `next-approval-package.md`이며, 보고서만 반영한 후속 Git Commit/Tree를 별도로 고정한다. 정책 승인 입력 Git b810d4d와 이후 문서-only HEAD를 혼동하지 않는다. Source Snapshot은 동일하다. 실제 Native E2E/P02/P03/P04는 여전히 미검증이고 DNS9는 학습 추출 계약 미확보로 차단한다. Offline 실제 PCAP·RF/LR 결과와 역사적 실제 LLM 조사 결과 및 시연 스크립트 두 개를 보존했다.
