@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from soc_agent.security_ai.ebpf_native.contracts import local_controller
 from soc_agent.security_ai.ebpf_tc.reassessment import Artifact, Contract, Hash, Identity, held_json
@@ -46,6 +46,24 @@ class Scenario(Contract):
     capture_plan_seconds: Literal[60] = 60
 
 
+class IsolatedScenario(Scenario):
+    namespace: str = Field(pattern=r"^net:\[[1-9][0-9]*\]$")
+    namespace_contract: Literal["SOC_NAMESPACE_R2_V1"] = "SOC_NAMESPACE_R2_V1"
+    namespace_policy_sha: Hash
+
+    @model_validator(mode="after")
+    def isolated(self):
+        if self.namespace == Scenario().namespace:
+            raise ValueError("R2_ISOLATED_SCOPE_REQUIRED")
+        return self
+
+
+def scenario_for_namespace(namespace, policy_sha=None):
+    if namespace == Scenario().namespace:
+        return Scenario()
+    return IsolatedScenario(namespace=namespace, namespace_policy_sha=policy_sha or "0" * 64)
+
+
 class TrafficReceipt(Contract):
     contract: Literal["SOC_R2_TRAFFIC_APPROVAL_V1"] = "SOC_R2_TRAFFIC_APPROVAL_V1"
     decision: Literal["APPROVED"]
@@ -54,7 +72,7 @@ class TrafficReceipt(Contract):
     session: Identity
     claim_path: Annotated[str, Field(min_length=1, max_length=4096)]
     artifact: Artifact
-    scenario: Scenario
+    scenario: Scenario | IsolatedScenario
     implementation_sha: Hash
     issued_at: int = Field(ge=0)
     expires_at: int = Field(gt=0)
@@ -179,7 +197,10 @@ class R2Launcher:
             if not sidecar_closed:
                 raise ValueError("R2_SIDECAR_NOT_CLOSED")
             self.attempted = True  # A send/response failure must never retry.
-            self.witness = _udp_witness()
+            namespace = self.receipt.scenario.namespace
+            self.witness = (
+                _udp_witness() if namespace == Scenario().namespace else _udp_witness(namespace)
+            )
             if (
                 self.witness.get("sent_monotonic_ns", -1) < tcp_closed_ns + 35 * SECOND
                 or self.witness.get("received_monotonic_ns", -1) < self.witness["sent_monotonic_ns"]
@@ -202,9 +223,9 @@ class R2Launcher:
         )
 
 
-def _udp_witness() -> dict:
+def _udp_witness(namespace: str = "net:[4026531833]") -> dict:
     local_controller()  # Ordinary UID, no effective/permitted/ambient capabilities.
-    if os.readlink("/proc/self/ns/net") != Scenario().namespace:
+    if os.readlink("/proc/self/ns/net") != namespace:
         raise ValueError("R2_NAMESPACE")
     transaction = 0xC203
     message = struct.pack("!6H", transaction, 0x0100, 1, 0, 0, 0) + QUESTION

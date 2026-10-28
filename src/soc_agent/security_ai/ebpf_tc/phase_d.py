@@ -62,6 +62,7 @@ def prepare(
     *,
     deployment_directory: Path | None = None,
     recovery: RecoveryBuild | None = None,
+    namespace_build=None,
 ) -> dict:
     # Keep compilation, package assembly and Python image hashing in one input
     # observation window. A compiler-only guard misses writes between stages.
@@ -70,7 +71,12 @@ def prepare(
             from soc_agent.security_ai.ebpf_tc.runtime_recovery import host_identity
 
             before = host_identity()
-        result = _prepare(directory, deployment_directory=deployment_directory, recovery=recovery)
+        result = _prepare(
+            directory,
+            deployment_directory=deployment_directory,
+            recovery=recovery,
+            namespace_build=namespace_build,
+        )
         if recovery is not None and host_identity() != before:
             raise ValueError("RECOVERY_HOST_CHANGED_DURING_BUILD")
         return result
@@ -82,6 +88,7 @@ def _prepare(
     deployment_directory: Path | None = None,
     recovery: RecoveryBuild | None = None,
     namespace_preview: str | None = None,
+    namespace_build=None,
 ) -> dict:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
     _, _, package, manifest = prepare_candidate(directory, version="0.6.3", inspector=True)
@@ -92,6 +99,7 @@ def _prepare(
         dns_sidecar=True,
         **({"recovery": recovery} if recovery else {}),
         **({"namespace_preview": namespace_preview} if namespace_preview else {}),
+        **({"namespace_build": namespace_build} if namespace_build else {}),
     )
     image.verify()
     if deployment_directory is not None:
@@ -110,7 +118,7 @@ def _prepare(
     )
     from soc_agent.security_ai.ebpf_tc.namespace_isolation import dns_scope_digest
 
-    namespace = namespace_preview or SCOPE["namespace"]
+    namespace = image.scope_namespace
     dns = dict(
         contract="soc-dns-analysis-sidecar-release:v1",
         version="0.6.3_INTEGRATED_DNS_0520",
@@ -125,7 +133,9 @@ def _prepare(
     release = verify_package(package, manifest)
     value = dict(
         contract="SOC_PHASE_D_NAMESPACE_PREVIEW_V1"
-        if namespace_preview
+        if image.namespace_preview
+        else "SOC_PHASE_D_NAMESPACE_V1"
+        if image.namespace_runtime
         else "SOC_PHASE_D_UNIFIED_V1",
         version="0.6.3",
         tcx_manifest=manifest,
@@ -192,20 +202,36 @@ def validate_preparation(directory: Path, manifest: str, image_sha: str) -> dict
     descriptor = SupervisorImage.model_validate_json(
         (directory / "supervisor-image.json").read_bytes()
     )
-    return _validate(directory, manifest, image_sha, preview=descriptor.namespace_preview)
+    return _validate(
+        directory,
+        manifest,
+        image_sha,
+        preview=descriptor.namespace_preview,
+        check_environment=False,
+    )
 
 
-def _validate(directory: Path, manifest: str, image_sha: str, *, preview: bool) -> dict:
+def _validate(
+    directory: Path, manifest: str, image_sha: str, *, preview: bool, check_environment: bool = True
+) -> dict:
     body = (directory / "phase-d.json").read_bytes()
     value = json.loads(body)
     image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
     image.verify()
-    namespace = image.scope_namespace if preview else SCOPE["namespace"]
+    namespace = (
+        image.scope_namespace if (preview or image.namespace_runtime) else SCOPE["namespace"]
+    )
     if preview:
         from soc_agent.security_ai.ebpf_tc.namespace_isolation import IsolatedScope
 
         IsolatedScope(namespace=namespace)
-    contract = "SOC_PHASE_D_NAMESPACE_PREVIEW_V1" if preview else "SOC_PHASE_D_UNIFIED_V1"
+    contract = (
+        "SOC_PHASE_D_NAMESPACE_PREVIEW_V1"
+        if preview
+        else "SOC_PHASE_D_NAMESPACE_V1"
+        if image.namespace_runtime
+        else "SOC_PHASE_D_UNIFIED_V1"
+    )
     if (
         hashlib.sha256(body).hexdigest() != manifest
         or value["image"] != image_sha
@@ -221,6 +247,21 @@ def _validate(directory: Path, manifest: str, image_sha: str, *, preview: bool) 
     ):
         raise ValueError("PHASE_D_RELEASE_OR_SOURCE_MISMATCH")
     release = verify_package(directory / "release", value["tcx_manifest"])
+    if image.namespace_runtime is not None:
+        from soc_agent.security_ai.ebpf_tc.namespace_runtime import verify_descriptor
+
+        verify_descriptor(image)
+        expected = image.namespace_runtime["binding"]
+        if (
+            expected["root_manifest"] != release.identity
+            or expected["sources_sha"] != value["bundle"]
+            or expected["dependencies_sha"]
+            != hashlib.sha256(
+                canonical([d.model_dump(mode="json") for d in release.dependencies])
+            ).hexdigest()
+            or (expected["uid"], expected["gid"]) != (os.getuid(), os.getgid())
+        ):
+            raise ValueError("NAMESPACE_RUNTIME_RELEASE_BINDING")
     if image.recovery_binding is not None:
         from soc_agent.security_ai.ebpf_tc.recovery_policy import validate_image_recovery
 
@@ -241,7 +282,7 @@ def _validate(directory: Path, manifest: str, image_sha: str, *, preview: bool) 
         or dns["scope"] != DNS_SCOPE | dict(namespace=namespace)
         or value["dns_baseline_image"] != DNS_BASELINE_IMAGE
         or release.payloads["tc.bpf.o"].sha256 != value["tcx_program"]
-        or (not preview and os.readlink("/proc/self/ns/net") != namespace)
+        or (check_environment and not preview and os.readlink("/proc/self/ns/net") != namespace)
     ):
         raise ValueError("PHASE_D_COLLECTOR_SCOPE_MISMATCH")
     from soc_agent.security_ai.ebpf_tc.namespace_isolation import dns_scope_digest

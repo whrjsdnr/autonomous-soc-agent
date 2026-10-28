@@ -580,12 +580,16 @@ def sup_container(plan, config, policy, identity):
 
 
 class RootOperations:
-    def __init__(self, config, namespace, session, inspector, dns=None):
+    def __init__(self, config, namespace, session, inspector, dns=None, responder=None):
         self.inspector = inspector
         self.dns = dns
+        self.responder = responder
+        self.responder_ready = None
         self.collector_cleanup_errors = []
         self.config, self.namespace = config, namespace
-        self.api = DockerAPI(config.get("daemon_peer"))
+        # Phase D never starts a privileged live-Zeek container. Its ordinary
+        # analysis process owns a network-none offline container instead.
+        self.api = None if dns is not None else DockerAPI(config.get("daemon_peer"))
         self.capture = None
         self.plan = self.name = self.identity = None
         self.policy = None
@@ -616,6 +620,8 @@ class RootOperations:
         return row
 
     def start(self, plan):
+        if self.dns is not None:
+            raise ValueError("SUPERVISOR_PHASE_D_LIVE_CONTAINER_FORBIDDEN")
         identity = sup_validate_plan(plan, self.config, self.namespace)
         from uuid import UUID
 
@@ -666,6 +672,7 @@ class RootOperations:
             raise ValueError(self.capture.error)
         return dict(
             dns_worker=self.dns.status() if self.dns else None,
+            dns_responder=self.responder_ready,
             collector_cleanup_errors=self.collector_cleanup_errors,
             zeek_exit=self.exit_code,
             zeek_started=self.started,
@@ -684,6 +691,11 @@ class RootOperations:
                 self.dns.close()
             except (OSError, ValueError, TimeoutError) as exc:
                 failures.append(("DNS_CLOSE", exc))
+        if self.responder:
+            try:
+                self.responder.close()
+            except (OSError, ValueError, TimeoutError) as exc:
+                failures.append(("DNS_RESPONDER_CLOSE", exc))
         try:
             self._stop_zeek()
         except (OSError, ValueError, TimeoutError) as exc:
@@ -942,6 +954,14 @@ def _supervisor_prepare(image, envelope, approval, environment):
     SUPERVISOR_REDUCED = False
     config = globals()["SUPERVISOR_CONFIG"]
     globals()["SUP_ENTRY_STAGE"] = "DOCKER_PREFLIGHT"
+    if "start_dns_worker" not in globals():
+        sup_docker_preflight(config)
+
+    return _supervisor_fork(image, envelope, approval, environment, config)
+
+
+def sup_docker_preflight(config):
+    """Legacy live capture only; never used by Phase D offline analysis."""
     api = DockerAPI()
     version = api.request("GET", "/version")
     if not isinstance(version, dict):
@@ -961,6 +981,29 @@ def _supervisor_prepare(image, envelope, approval, environment):
     if os.readlink(f"/proc/{api.peer[0]}/ns/net") != os.readlink("/proc/self/ns/net"):
         raise ValueError("SUPERVISOR_DOCKER_NAMESPACE")
     config["daemon_peer"] = list(api.peer)
+
+
+def sup_start_responder(config, namespace):
+    """Bound READY separately from the 60s responder lifetime; owned PID only."""
+    child = globals()["spawn_dns_child"](config, globals()["serve_prebound"])
+    deadline = child.deadline
+    child.deadline = min(deadline, time.monotonic() + 2)
+    try:
+        ready = child.receive()
+        if ready.get("state") != "LOCAL_DNS_READY" or ready.get("namespace") != namespace:
+            raise ValueError("SUPERVISOR_DNS_RESPONDER_NOT_READY")
+        if not isinstance(ready.get("cookie"), str) or len(bytes.fromhex(ready["cookie"])) != 8:
+            raise ValueError("SUPERVISOR_DNS_RESPONDER_COOKIE")
+        return child, ready
+    except BaseException:
+        child.close()
+        raise
+    finally:
+        child.deadline = deadline
+
+
+def _supervisor_fork(image, envelope, approval, environment, config):
+    global SUPERVISOR_REDUCED
     pid = os.getpid()
     broker_ticks = globals()["_ticks"](pid)
     uid, gid, controller = struct.unpack_from("<III", envelope, 4)
@@ -984,7 +1027,13 @@ def _supervisor_prepare(image, envelope, approval, environment):
         final = None
         inspector = None
         dns = None
+        responder = None
+        responder_ready = None
         try:
+            if "NAMESPACE_RUNTIME" in globals():
+                responder, ready = sup_start_responder(globals()["DNS_CONFIG"], namespace)
+                globals()["DNS_CAPTURE_COOKIE"] = ready["cookie"]
+                responder_ready = ready
             if "start_dns_worker" in globals():
                 dns = globals()["start_dns_worker"](image, envelope, approval)
             # Fork before reduction: no capability restoration or second sudo call.
@@ -1015,12 +1064,15 @@ def _supervisor_prepare(image, envelope, approval, environment):
                 state="RESOURCE_VERIFIED",
                 capabilities="E0_P_BPF_NETADMIN_I0_A0",
                 inspector=inspector.hello,
+                dns_responder=responder_ready,
             )
             sup_send(channel, hello)
             os.write(3, b"1")
             os.close(3)
             core = SupervisorCore(
-                RootOperations(config, namespace, session, inspector, dns), binding, before
+                RootOperations(config, namespace, session, inspector, dns, responder),
+                binding,
+                before,
             )
             deadline, window, count = inspector.started + 300, time.monotonic(), 0
             stopping = []
@@ -1069,6 +1121,13 @@ def _supervisor_prepare(image, envelope, approval, environment):
                     dns.close()
                 except (OSError, ValueError) as exc:
                     final = dict(final or {}, dns_cleanup=str(exc), cleanup="CLEANUP_UNVERIFIED")
+            if responder:
+                try:
+                    responder.close()
+                except (OSError, ValueError) as exc:
+                    final = dict(
+                        final or {}, responder_cleanup=str(exc), cleanup="CLEANUP_UNVERIFIED"
+                    )
             if channel:
                 try:
                     sup_send(channel, dict(final=final, binding=binding))

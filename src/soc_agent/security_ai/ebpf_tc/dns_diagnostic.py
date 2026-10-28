@@ -38,6 +38,7 @@ def prepare(
     lease_sha: str,
     source_snapshot: str,
     plan: ApplicationPlan,
+    controller_config: dict | None = None,
 ) -> dict:
     """Build the service and its metadata in one source/dependency observation window."""
     with SourceGuard(Path(__file__).parents[2]):
@@ -51,6 +52,7 @@ def prepare(
             lease_sha=lease_sha,
             source_snapshot=source_snapshot,
             plan=plan,
+            controller_config=controller_config,
         )
         if host_identity() != before:
             raise ValueError("DNS_DEPENDENCIES_CHANGED_DURING_BUILD")
@@ -67,6 +69,7 @@ def _prepare(
     lease_sha: str,
     source_snapshot: str,
     plan: ApplicationPlan,
+    controller_config: dict | None = None,
 ) -> dict:
     controller = local_controller()
     lease = inspect_lease(lease_file, lease_sha, origin)
@@ -88,6 +91,10 @@ def _prepare(
         install=False,
         password_policy="EXISTING_SEALED_BOOTSTRAP_UNIFIED_POLICY_CHECK_ONLY",
     )
+    if controller_config is not None:
+        from soc_agent.security_ai.ebpf_tc.namespace_controller import controller_scope
+
+        scope = controller_scope(scope, controller_config)
     dependencies = [dict(path=d.path, sha256=d.sha256) for d in release.dependencies]
     for name in ("/usr/bin/python3", "/usr/bin/sudo"):
         path = Path(name).resolve(strict=True)
@@ -103,6 +110,9 @@ def _prepare(
         release=release.version,
         password_policy_bootstrap_sha=release.payloads["bootstrap"].sha256,
     )
+    if controller_config is not None:
+        config["controller"] = controller_config
+        config["admitted_operation"] = "ROOT_DNS_DIAGNOSTIC"
     # Reuse the fixed worker and sudo-parent validator, without Root project imports.
     from soc_agent.security_ai.ebpf_tc import unified_image_engine
 
@@ -146,6 +156,18 @@ def _prepare(
             + "        raise SystemExit(1)\n"
         ).encode()
     )
+    if controller_config is not None:
+        # Same Root-only grant validator and claim, different fixed entry. Never
+        # import the editable Controller or its dependencies while privileged.
+        source = source[: source.index(b"\nif __name__ == '__main__':")]
+        source += b"\n" + Path(__file__).with_name("namespace_controller_engine.py").read_bytes()
+        source += (
+            b"\nif __name__ == '__main__':\n    try:\n        controller_root_main(DNS_CONFIG)\n"
+            b"    except Exception as exc:\n"
+            b"        value = dict(state='NAMESPACE_CONTROLLER_FAILED', "
+            b"error_class=type(exc).__name__, error=str(exc))\n"
+            b"        print(json.dumps(value), flush=True)\n        raise SystemExit(1)\n"
+        )
     compile(source, "<sha-approved-dns-diagnostic>", "exec")
     output.mkdir(mode=0o700, parents=True, exist_ok=False)
     fd = os.open(output / "dns-diagnostic.py", os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o400)

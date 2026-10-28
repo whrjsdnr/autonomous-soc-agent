@@ -88,7 +88,7 @@ def image_constants(path: Path) -> dict:
 
 def validate_image_recovery(image, release, *, require_policy: bool) -> dict:
     from soc_agent.security_ai.ebpf_tc.phase_d import SCOPE
-    from soc_agent.security_ai.ebpf_tc.r2_diagnostic import Scenario
+    from soc_agent.security_ai.ebpf_tc.r2_diagnostic import scenario_for_namespace
     from soc_agent.security_ai.ebpf_tc.reassessment import held_json
     from soc_agent.security_ai.ebpf_tc.runtime_recovery import (
         host_identity,
@@ -105,6 +105,7 @@ def validate_image_recovery(image, release, *, require_policy: bool) -> dict:
     verify_abi(image.path.parent / "recovery-abi.json", binding.abi_sha, release)
     if held_json(image.path.parent / "recovery-host.json", binding.host_sha) != host_identity():
         raise ValueError("RECOVERY_HOST_IDENTITY_CHANGED")
+    namespace = getattr(image, "scope_namespace", SCOPE["namespace"])
     if (
         constants["RECOVERY_BINDING"] != binding.model_dump()
         or constants["RECOVERY_POLICY_SHA"] != image.recovery_policy_sha
@@ -114,7 +115,15 @@ def validate_image_recovery(image, release, *, require_policy: bool) -> dict:
         or binding.dependencies_sha
         != digest([d.model_dump(mode="json") for d in release.dependencies])
         or binding.implementation_sha != implementation_sha()
-        or binding.scope_sha != digest(dict(tcx=SCOPE, r2=Scenario().model_dump()))
+        or binding.scope_sha
+        != digest(
+            dict(
+                tcx=SCOPE | dict(namespace=namespace),
+                r2=scenario_for_namespace(
+                    namespace, (getattr(image, "namespace_runtime", None) or {}).get("policy_sha")
+                ).model_dump(),
+            )
+        )
     ):
         raise ValueError("RECOVERY_IMAGE_OR_PRESERVATION_BINDING")
     body = constants["RECOVERY_POLICY_BODY"]

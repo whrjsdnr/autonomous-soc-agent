@@ -108,6 +108,10 @@ def implementation_sha() -> str:
             "isolated_dns_engine.py",
             "isolated_dns_worker.py",
             "isolated_dns_launcher.py",
+            "namespace_controller.py",
+            "namespace_controller_engine.py",
+            "namespace_runtime.py",
+            "namespace_runtime_engine.py",
         )
     ]
     return digest({p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files})
@@ -133,6 +137,7 @@ class RootOperations(StabilizationCampaign):
             policy.binding != binding
             or approval.binding != binding
             or approval.policy_sha != policy_sha
+            or approval.approver != policy.approver
             or self.batch != binding.batch
             or policy.implementation_sha != implementation_sha()
             or policy.budget_sha != hashlib.sha256(self.budget_body).hexdigest()
@@ -164,6 +169,7 @@ class RootOperations(StabilizationCampaign):
                 start_native=False,
             )
         )
+        controller_entry = False
         if approval.operation == "ROOT_DNS_DIAGNOSTIC":
             from soc_agent.security_ai.ebpf_tc.dns_diagnostic import verify
             from soc_agent.security_ai.ebpf_tc.isolated_dns_launcher import inspect_lease
@@ -172,6 +178,16 @@ class RootOperations(StabilizationCampaign):
                 raise ValueError("ROOT_DNS_ARTIFACT_AND_LEASE_REQUIRED")
             metadata = verify(dns_directory, binding)
             expected_scope = metadata["config"]["scope"]
+            controller_entry = "controller" in metadata["config"]
+            if controller_entry:
+                from soc_agent.security_ai.ebpf_tc.namespace_controller import controller_scope
+
+                if (
+                    metadata["config"].get("admitted_operation") != "ROOT_DNS_DIAGNOSTIC"
+                    or controller_scope(expected_scope, metadata["config"]["controller"])
+                    != expected_scope
+                ):
+                    raise ValueError("ROOT_NAMESPACE_CONTROLLER_SCOPE")
             inspect_lease(
                 dns_lease_file,
                 expected_scope["lease_sha256"],
@@ -197,7 +213,7 @@ class RootOperations(StabilizationCampaign):
                 raise ValueError("ROOT_SESSION_ALREADY_RESERVED")
             if rows[-1].get("record_sha256", digest(rows[-1])) != approval.ledger_tip_sha:
                 raise ValueError("ROOT_APPROVAL_STALE_LEDGER")
-            if approval.operation == "ROOT_DNS_DIAGNOSTIC" and not any(
+            if (approval.operation == "ROOT_DNS_DIAGNOSTIC" or controller_entry) and not any(
                 r.get("event") == "ROOT_POLICY_ACTIVATED_V1"
                 and r.get("policy_sha256") == policy_sha
                 and r.get("binding") == binding.model_dump()

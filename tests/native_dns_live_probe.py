@@ -83,9 +83,13 @@ def receive_exact(channel, length: int, deadline: float) -> bytes:
     return bytes(output)
 
 
-def execute(approval: str) -> list[dict]:
+def execute(approval: str, namespace: str = NAMESPACE) -> list[dict]:
     # Check everything before constructing any socket; no DNS resolution calls.
-    if approval != APPROVAL or os.readlink("/proc/self/ns/net") != NAMESPACE or os.geteuid() == 0:
+    plan = PLAN | dict(namespace=namespace)
+    expected = hashlib.sha256(
+        json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    if approval != expected or os.readlink("/proc/self/ns/net") != namespace or os.geteuid() == 0:
         raise ValueError("DNS_PROBE_EXACT_APPROVAL_UNPRIVILEGED_NAMESPACE_REQUIRED")
     records = []
     for kind, transaction in ((socket.SOCK_DGRAM, 0xC201), (socket.SOCK_STREAM, 0xC202)):
@@ -132,10 +136,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--approve")
+    parser.add_argument("--namespace", default=NAMESPACE)
     parser.add_argument("--receipt", type=Path)
     args = parser.parse_args()
+    plan = PLAN | dict(namespace=args.namespace)
+    approval = hashlib.sha256(
+        json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
     if not args.execute:
-        print(json.dumps(dict(plan=PLAN, approval=APPROVAL), indent=2))
+        print(json.dumps(dict(plan=plan, approval=approval), indent=2))
         return
     if args.receipt is None:
         parser.error("--receipt required; exclusive new private file only")
@@ -143,12 +152,12 @@ def main():
     descriptor = os.open(args.receipt, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
     with os.fdopen(descriptor, "w") as stream:
         try:
-            records = execute(args.approve)
+            records = execute(args.approve, args.namespace)
         except (OSError, ValueError, EOFError) as exc:
             json.dump(
                 dict(
-                    plan=PLAN,
-                    approval=APPROVAL,
+                    plan=plan,
+                    approval=approval,
                     state="FAILED_NO_RETRY",
                     error=type(exc).__name__,
                     errno=getattr(exc, "errno", None),
@@ -161,7 +170,7 @@ def main():
             os.fsync(stream.fileno())
             raise
         json.dump(
-            dict(plan=PLAN, approval=APPROVAL, state="COMPLETED", records=records), stream, indent=2
+            dict(plan=plan, approval=approval, state="COMPLETED", records=records), stream, indent=2
         )
         stream.flush()
         os.fsync(stream.fileno())

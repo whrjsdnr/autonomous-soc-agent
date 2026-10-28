@@ -58,10 +58,9 @@ def _drop_credentials(uid, gid, parent):
     local_controller()
 
 
-def _enter_and_bind(config):
+def enter_namespace(config):
     """Only called in the Root child. Hold nsfs FD across setns and check again."""
     fd = os.open("/run/netns/soc-native-b3", os.O_RDONLY | os.O_NOFOLLOW | os.O_CLOEXEC)
-    udp = tcp = None
     try:
         st = os.fstat(fd)
         if (st.st_dev, st.st_ino, st.st_uid) != (
@@ -91,10 +90,24 @@ def _enter_and_bind(config):
         for row in Path("/proc/net/ipv6_route").read_text().splitlines():
             if row.split()[-1] != "lo":
                 raise ValueError("DNS_EXTERNAL_ROUTE")
+        return cookie
+    finally:
+        os.close(fd)
+
+
+def _enter_and_bind(config):
+    cookie = enter_namespace(config)
+    udp = tcp = None
+    try:
         udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         for channel in (udp, tcp):
             channel.set_inheritable(False)
+            if channel is tcp:
+                # Both successive owned listeners opt in. This only permits
+                # rebinding our prior TIME_WAIT tuples, never a second listener
+                # or adoption of an unknown service (SO_REUSEPORT is not set).
+                channel.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             channel.bind(("127.0.0.53", 53))
             if channel.getsockopt(socket.SOL_SOCKET, 71, 8) != cookie:
                 raise ValueError("DNS_SOCKET_NAMESPACE_COOKIE")
@@ -105,8 +118,6 @@ def _enter_and_bind(config):
             if channel is not None:
                 channel.close()
         raise
-    finally:
-        os.close(fd)
 
 
 def dns_child(config, ready, worker):
@@ -208,7 +219,7 @@ def spawn_dns_child(config, worker):
     if os.getuid() != 0 or os.geteuid() != 0:
         raise ValueError("DNS_CHILD_REQUIRES_AUTHENTICATED_ROOT_SUPERVISOR")
     host = os.readlink("/proc/self/ns/net")
-    if host == config["namespace"]:
+    if host == config["namespace"] and config.get("supervisor_namespace") != host:
         raise ValueError("DNS_SUPERVISOR_MUST_REMAIN_OUTSIDE_NAMESPACE")
     parent, child = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
     try:

@@ -316,6 +316,7 @@ def test_fixed_namespace_entry_and_bind_failure_cleanup(monkeypatch, failure):
 
     channels = []
     calls = []
+    reuse = []
 
     class Channel:
         closed = False
@@ -335,6 +336,15 @@ def test_fixed_namespace_entry_and_bind_failure_cleanup(monkeypatch, failure):
 
         def getsockopt(self, *_):
             return b"different" if failure == "cookie" and self.index else b"cookie00"
+
+        def setsockopt(self, level, option, value):
+            assert self.index == 2  # Only the newly created TCP listener.
+            assert (level, option, value) == (
+                engine.socket.SOL_SOCKET,
+                engine.socket.SO_REUSEADDR,
+                1,
+            )
+            reuse.append(value)
 
         def bind(self, endpoint):
             assert endpoint == ("127.0.0.53", 53)
@@ -386,6 +396,7 @@ def test_fixed_namespace_entry_and_bind_failure_cleanup(monkeypatch, failure):
         assert channels[0].closed and not udp.closed and not tcp.closed
         udp.close()
         tcp.close()
+    assert reuse == ([] if failure else [1])
     assert calls[-1] == ("close", 123)
     assert any(call[0] == "setns" for call in calls) == (failure != "mount")
 

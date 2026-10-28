@@ -120,6 +120,12 @@ def capture_analysis(
             channel.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 16384)
             stage = "SOCKET_BIND"
             channel.bind(("lo", 0x0800))
+            if (
+                "DNS_CAPTURE_COOKIE" in globals()
+                and channel.getsockopt(socket.SOL_SOCKET, 71, 8).hex()
+                != globals()["DNS_CAPTURE_COOKIE"]
+            ):
+                raise ValueError("DNS_CAPTURE_SOCKET_NAMESPACE_COOKIE")
             stage = "PRIVILEGE_DROP"
             os.setgroups([])
             os.setresgid(gid, gid, gid)
@@ -136,9 +142,12 @@ def capture_analysis(
             # Reserve socket-close scheduling time inside the seven-second cap.
             deadline = capture_deadline(capture_started, session_deadline, start_gate=start_gate)
             os.set_blocking(1, False)
-            emit_json(
-                dict(state="DNS_COPY_READY", capabilities=caps, scope_digest=scope_digest), deadline
-            )
+            ready = dict(state="DNS_COPY_READY", capabilities=caps, scope_digest=scope_digest)
+            if "DNS_CAPTURE_COOKIE" in globals():
+                ready["socket_namespace_cookie"] = channel.getsockopt(
+                    socket.SOL_SOCKET, 71, 8
+                ).hex()
+            emit_json(ready, deadline)
             received = accepted = rejected = 0
             sequence_digest = "0" * 64
             while received < 32 and (remaining := deadline - time.monotonic()) > 0:

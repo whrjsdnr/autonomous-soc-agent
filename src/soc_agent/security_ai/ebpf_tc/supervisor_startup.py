@@ -233,6 +233,10 @@ def _execute(
                 ),
             )
         r2 = R2Launcher(r2_approval)
+        if r2.receipt.scenario.namespace != image.scope_namespace or getattr(
+            r2.receipt.scenario, "namespace_policy_sha", None
+        ) != (image.namespace_runtime or {}).get("policy_sha"):
+            raise ValueError("R2_NAMESPACE_SCOPE_MISMATCH")
     legacy = directory / "preparation"
     scope = Scope(
         hook="INGRESS",

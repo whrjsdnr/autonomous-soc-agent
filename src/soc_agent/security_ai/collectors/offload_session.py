@@ -43,8 +43,55 @@ from soc_agent.security_ai.ebpf_tc.unified_image import (
 )
 from soc_agent.security_ai.ebpf_tc.unified_image_engine import LABEL
 
-PROBE_SHA = "f180463489bd051c6a6f6b22758c1a70c27c02e468bf3893062eb9363bfe7d2a"
+PROBE_SHA = "0418f6bf4d3bcc121ddb778c0bf2914f6989a9563233ffa4213235278182ad4c"
 PROBE_APPROVAL = "0b6c59f501489f67da18e5a7f671b80853542376a8df7a2b0495cd9fbdeb5757"
+
+
+def probe_approval(body: bytes, namespace: str) -> str:
+    """Derive the pinned stdlib probe plan, never execute its source to inspect it."""
+    import ast
+
+    if hashlib.sha256(body).hexdigest() != PROBE_SHA:
+        raise ValueError("DNS_COPY_PROBE_SHA")
+    constants = {}
+    plan = None
+    for node in ast.parse(body).body:
+        if (
+            not isinstance(node, ast.Assign)
+            or len(node.targets) != 1
+            or not isinstance(node.targets[0], ast.Name)
+        ):
+            continue
+        name = node.targets[0].id
+        if name in {"TARGET", "NAMESPACE", "NAME"}:
+            constants[name] = ast.literal_eval(node.value)
+        elif name == "PLAN":
+
+            class Constants(ast.NodeTransformer):
+                def visit_Call(self, node):
+                    if (
+                        isinstance(node.func, ast.Name)
+                        and node.func.id == "list"
+                        and len(node.args) == 1
+                        and not node.keywords
+                        and isinstance(node.args[0], ast.Name)
+                        and node.args[0].id in constants
+                    ):
+                        return ast.parse(repr(list(constants[node.args[0].id])), mode="eval").body
+                    raise ValueError("DNS_COPY_PROBE_PLAN")
+
+                def visit_Name(self, node):
+                    if node.id not in constants:
+                        raise ValueError("DNS_COPY_PROBE_PLAN")
+                    return ast.parse(repr(constants[node.id]), mode="eval").body
+
+            plan = ast.literal_eval(Constants().visit(node.value))
+    if plan is None:
+        raise ValueError("DNS_COPY_PROBE_PLAN")
+    plan["namespace"] = namespace
+    return hashlib.sha256(
+        json.dumps(plan, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
 
 
 def sources() -> dict[str, str]:
@@ -214,11 +261,22 @@ def preflight(
         release = installed_release()
         if release.identity != (previous_manifest or candidate["base_manifest"]):
             raise ValueError("DNS_COPY_BASE_RELEASE_CHANGED")
-    if (
-        os.readlink("/proc/self/ns/net") != "net:[4026531833]"
-        or not os.isatty(0)
-        or not os.isatty(2)
-    ):
+    namespace = candidate["scope"]["namespace"]
+    if namespace != "net:[4026531833]":
+        from soc_agent.security_ai.ebpf_tc.namespace_runtime import verify_descriptor
+        from soc_agent.security_ai.ebpf_tc.supervisor import SupervisorImage
+
+        descriptor = SupervisorImage.model_validate_json(
+            (directory.parent / "supervisor-image.json").read_bytes()
+        )
+        if (
+            descriptor.namespace_preview
+            or descriptor.namespace_runtime is None
+            or descriptor.scope_namespace != namespace
+        ):
+            raise ValueError("DNS_NAMESPACE_POLICY_REQUIRED")
+        verify_descriptor(descriptor)
+    if os.readlink("/proc/self/ns/net") != namespace or not os.isatty(0) or not os.isatty(2):
         raise ValueError("DNS_COPY_NAMESPACE_OR_TERMINAL")
     probe_body = read_held(probe.absolute(), owner=os.getuid(), limit=16384)
     if hashlib.sha256(probe_body).hexdigest() != PROBE_SHA:
@@ -231,7 +289,11 @@ def preflight(
         check=True,
         timeout=2,
     )
-    if not all(text in listeners.stdout for text in ("127.0.0.53", "tcp", "udp")):
+    # Isolated responder binds only after the shared OS authentication. Host
+    # mode still requires its pre-existing resolved service, as before.
+    if namespace == "net:[4026531833]" and not all(
+        text in listeners.stdout for text in ("127.0.0.53", "tcp", "udp")
+    ):
         raise ValueError("DNS_COPY_EXISTING_LOCAL_SERVICE_REQUIRED")
     return candidate, image, release, probe_body
 
@@ -390,6 +452,18 @@ def execute(
                         or row["scope_digest"] != candidate["capture_scope_digest"]
                     ):
                         raise ValueError("DNS_COPY_DUPLICATE_READY_OR_CAPABILITIES")
+                    if candidate["scope"]["namespace"] != "net:[4026531833]":
+                        responder = (
+                            (supervised.supervisor_hello or {}).get("dns_responder")
+                            if supervised is not None
+                            else None
+                        )
+                        expected_cookie = (responder or {}).get("cookie")
+                        if (
+                            not expected_cookie
+                            or row.get("socket_namespace_cookie") != expected_cookie
+                        ):
+                            raise ValueError("DNS_COPY_NAMESPACE_COOKIE_REQUIRED")
                     ready = row
                     if supervised is not None:
                         supervised.zeek_snapshot = dict(
@@ -412,7 +486,9 @@ def execute(
                             probe_body.decode(),
                             "--execute",
                             "--approve",
-                            PROBE_APPROVAL,
+                            probe_approval(probe_body, candidate["scope"]["namespace"]),
+                            "--namespace",
+                            candidate["scope"]["namespace"],
                             "--receipt",
                             str(out / "probe.json"),
                         ],

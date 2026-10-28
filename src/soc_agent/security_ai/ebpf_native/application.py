@@ -109,7 +109,10 @@ class Application:
             self._error("EBPF_NON_ROOT_CONTROLLER_REQUIRED")
         try:
             namespace = os.readlink("/proc/self/ns/net")
-            index = int(Path("/sys/class/net/lo/ifindex").read_text())
+            # sysfs belongs to the mount namespace after network-only setns.
+            import socket
+
+            index = socket.if_nametoindex("lo")
             program_sha = file_sha(self.program)
             loader_sha = file_sha(self.loader)
         except (OSError, ValueError):

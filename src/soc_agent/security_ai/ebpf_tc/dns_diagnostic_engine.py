@@ -286,7 +286,7 @@ def dns_held_json_ledger(path, pin, uid):
         os.close(fd)
 
 
-def dns_root_main(config):
+def dns_root_admit(config):
     if os.getuid() != 0 or os.geteuid() != 0 or len(sys.argv) != 2:
         raise ValueError("DNS_OS_AUTHENTICATION_REQUIRED")
     resource.setrlimit(resource.RLIMIT_AS, (256 * 1024**2,) * 2)
@@ -335,6 +335,11 @@ def dns_root_main(config):
         _safe_environment(config["uid"], config["gid"]),
     )
     signal.alarm(75)
+    return envelope
+
+
+def dns_root_main(config):
+    dns_root_admit(config)
     child = spawn_dns_child(config, diagnostic_worker)
     try:
         while True:

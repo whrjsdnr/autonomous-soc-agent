@@ -110,7 +110,11 @@ def readiness(
         launch = LaunchApproval(
             traffic_file, traffic_sha, binding.next_session, a, claim_file, campaign
         )
-        R2Launcher(launch)  # Read-only: never claims or generates traffic.
+        launcher = R2Launcher(launch)  # Read-only: never claims or generates traffic.
+        if launcher.receipt.scenario.namespace != value["scope"]["namespace"] or getattr(
+            launcher.receipt.scenario, "namespace_policy_sha", None
+        ) != (descriptor.namespace_runtime or {}).get("policy_sha"):
+            raise ValueError("R2_NAMESPACE_SCOPE_MISMATCH")
         if claim_file.exists() or claim_file.is_symlink():
             raise ValueError("R2_CLAIM_ALREADY_EXISTS")
         states["R2_SCOPE_APPROVED"] = "VERIFIED"
@@ -166,6 +170,10 @@ def main(argv=None) -> int:
         "--namespace-preview",
         help="Prepare guarded isolated Namespace review bytes only; never execution permission",
     )
+    parser.add_argument("--namespace-config", type=Path)
+    parser.add_argument("--namespace-config-sha")
+    parser.add_argument("--namespace-controller-file", type=Path)
+    parser.add_argument("--namespace-controller-sha")
     for name in (
         "installed-manifest",
         "abi-sha",
@@ -208,6 +216,33 @@ def main(argv=None) -> int:
     local_controller()  # Never a Root CLI or capability-bearing controller.
     directory = args.directory.absolute()
     try:
+        if args.namespace_controller_file is not None or args.namespace_controller_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.namespace_controller import run_packet
+            from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+
+            allowed = {"mode", "directory", "namespace_controller_file", "namespace_controller_sha"}
+            if (
+                not args.namespace_controller_file
+                or not args.namespace_controller_sha
+                or any(v is not None for k, v in vars(args).items() if k not in allowed)
+            ):
+                raise ValueError("NAMESPACE_CONTROLLER_PIN_OR_ARGUMENT_OVERRIDE")
+            result = run_packet(
+                args.mode,
+                directory,
+                held_json(args.namespace_controller_file, args.namespace_controller_sha),
+            )
+            print(json.dumps(result, indent=2))
+            return (
+                0
+                if result.get("status") not in {"BLOCKED", "FAILED", "UNKNOWN"}
+                and result.get("returncode", 0) == 0
+                else 2
+            )
+        if (
+            args.namespace_config is not None or args.namespace_config_sha is not None
+        ) and args.mode != "prepare":
+            raise ValueError("NAMESPACE_CONFIG_PREPARE_ONLY")
         if args.namespace_preview is not None:
             # Do not let review mode swallow authority-bearing argument bundles.
             if args.mode != "prepare" or any(
@@ -338,18 +373,42 @@ def main(argv=None) -> int:
                 expected_binding=Binding.model_validate(packet["binding"]),
             )
         elif args.mode == "prepare":
-            if not all((args.installed_manifest, args.abi_file, args.abi_sha)):
-                parser.error("prepare requires --installed-manifest --abi-file --abi-sha")
-            recovery = RecoveryBuild(
-                installed_manifest=args.installed_manifest,
-                abi_file=args.abi_file,
-                abi_sha=args.abi_sha,
-                policy_file=args.policy_file,
-                policy_sha=args.policy_sha,
+            namespace_build = None
+            if args.namespace_config is not None or args.namespace_config_sha is not None:
+                from soc_agent.security_ai.ebpf_tc.namespace_runtime import NamespaceBuild
+                from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+
+                if not args.namespace_config or not args.namespace_config_sha:
+                    raise ValueError("NAMESPACE_CONFIG_PIN_REQUIRED")
+                namespace_build = NamespaceBuild.model_validate_json(
+                    json.dumps(held_json(args.namespace_config, args.namespace_config_sha))
+                )
+            recovery = None
+            recovery_values = (
+                args.installed_manifest,
+                args.abi_file,
+                args.abi_sha,
+                args.policy_file,
+                args.policy_sha,
             )
-            result = phase_d.prepare(directory, recovery=recovery)
+            if namespace_build is None or any(v is not None for v in recovery_values):
+                if not all((args.installed_manifest, args.abi_file, args.abi_sha)):
+                    parser.error("prepare requires --installed-manifest --abi-file --abi-sha")
+                recovery = RecoveryBuild(
+                    installed_manifest=args.installed_manifest,
+                    abi_file=args.abi_file,
+                    abi_sha=args.abi_sha,
+                    policy_file=args.policy_file,
+                    policy_sha=args.policy_sha,
+                )
+            result = phase_d.prepare(directory, recovery=recovery, namespace_build=namespace_build)
+            descriptor = SupervisorImage.model_validate_json(
+                (directory / "supervisor-image.json").read_bytes()
+            )
             result["status"] = (
-                "RUNTIME_APPROVED" if args.policy_file else "POLICY_APPROVAL_REQUIRED"
+                "POLICY_APPROVAL_REQUIRED"
+                if descriptor.namespace_preview or (recovery is not None and not args.policy_file)
+                else "RUNTIME_APPROVED"
             )
             result["executed"] = False
         else:

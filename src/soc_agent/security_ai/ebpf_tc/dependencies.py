@@ -28,7 +28,9 @@ class Dependency(Frozen):
     source: Literal["STATIC_READELF_NOT_LOADED"] = "STATIC_READELF_NOT_LOADED"
 
 
-def read_held(path: Path, *, owner: int, limit: int = 16 * 1024**2) -> bytes:
+def read_held(
+    path: Path, *, owner: int, limit: int = 16 * 1024**2, allow_empty: bool = False
+) -> bytes:
     """Walk directories by FD; return a stable bounded snapshot, not path execution authority."""
     if not path.is_absolute() or any(p in {".", ".."} for p in str(path).split("/")):
         raise ValueError("TRUST_PATH_INVALID")
@@ -61,7 +63,7 @@ def read_held(path: Path, *, owner: int, limit: int = 16 * 1024**2) -> bytes:
                 and before.st_gid != 0
                 or before.st_nlink != 1
                 or before.st_mode & 0o022
-                or not 0 < before.st_size <= limit
+                or not (0 if allow_empty else 1) <= before.st_size <= limit
             ):
                 raise ValueError("TRUST_FILE_INVALID")
             body = os.pread(fd, before.st_size + 1, 0)

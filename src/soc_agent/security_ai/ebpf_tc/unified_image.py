@@ -50,7 +50,13 @@ def installed_release() -> ReleaseManifest | None:
 
 
 def prepare_unified_image(
-    package: Path, manifest: str, output: Path, *, recovery: RecoveryBuild | None = None
+    package: Path,
+    manifest: str,
+    output: Path,
+    *,
+    recovery: RecoveryBuild | None = None,
+    scope_namespace: str | None = None,
+    namespace_policy_sha: str | None = None,
 ) -> UnifiedImage:
     release, image = installation_payload(package, manifest)
     binding = policy_body = policy_sha = None
@@ -58,7 +64,7 @@ def prepare_unified_image(
         installed = installed_release()  # Normal runtime qualification is unchanged.
     else:
         from soc_agent.security_ai.ebpf_tc.phase_d import SCOPE
-        from soc_agent.security_ai.ebpf_tc.r2_diagnostic import Scenario
+        from soc_agent.security_ai.ebpf_tc.r2_diagnostic import scenario_for_namespace
         from soc_agent.security_ai.ebpf_tc.reassessment import digest
         from soc_agent.security_ai.ebpf_tc.recovery_policy import check_policy, implementation_sha
         from soc_agent.security_ai.ebpf_tc.runtime_recovery import (
@@ -85,7 +91,14 @@ def prepare_unified_image(
             retained_sha=digest(retained.model_dump(mode="json")),
             dependencies_sha=digest([d.model_dump(mode="json") for d in release.dependencies]),
             implementation_sha=implementation_sha(),
-            scope_sha=digest(dict(tcx=SCOPE, r2=Scenario().model_dump())),
+            scope_sha=digest(
+                dict(
+                    tcx=SCOPE | dict(namespace=scope_namespace or SCOPE["namespace"]),
+                    r2=scenario_for_namespace(
+                        scope_namespace or SCOPE["namespace"], namespace_policy_sha
+                    ).model_dump(),
+                )
+            ),
             abi_sha=abi.report_sha,
             host_sha=digest(host),
         )
