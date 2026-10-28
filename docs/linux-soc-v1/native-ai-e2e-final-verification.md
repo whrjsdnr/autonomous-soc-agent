@@ -181,3 +181,17 @@ Host `net:[4026531833]`에서 기존 CLI `native-recovery check` 실행 결과�
 실제 Root·sudo·Namespace 진입·DNS·Native·TCX·컨테이너·LLM·예약·예산 소비는 모두0. 기존 FAILED·false·Program1145 UNKNOWN·과거 예약 EVIDENCE_INCOMPLETE/Root UNKNOWN/Native UNKNOWN은 변경하지 않았다. P02/P03 INCOMPLETE, P04 Native ELIGIBLE0, Native AI·DNS9·운영 승격 BLOCKED 유지. 정책 포함 빌드는 완료했으나 **실환경 실행 승인은 대기 중이며 READY_FOR_NATIVE_E2E를 선언하지 않는다**.
 
 상세 영수증·Ledger 전후·Stage/이중빌드 핀·회귀 로그·새 Artifact/Git Identity는 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-namespace-supervisor-20261028T011206Z`에 보존했다.
+
+## 2026-10-28 Namespace Scope 최종 RCA 및 실행 승인 준비
+
+관측 시각 `2026-10-28T01:18:45.575135+00:00`. 검토 HEAD `688431402bc2ad5b0ca2680142dcf3523363c52b`, Tree `367fffdf7cf246b4c3726c65101ae70864db5698`와 Artifact 핀 일치. CLI→`readiness`→`phase_d.validate`→`_validate`의 Collector Scope 조건8개를 개별 대조했다. **현재 프로세스의 Namespace 불일치만 true**이며 DNS Manifest/base/Image/Source/Scope/baseline image 및 TCX program 불일치는 모두 false다. 현재 Host4026531833에서 Controller 진입 전에 검사해 발생한 오류이며 Session·Release Binding 불일치로 판정된 것이 아니다. R1 승인 검증 이전에 중단하므로 R1을 통과한 것으로 보고하지 않는다.
+
+Source1767개·Manifest/Bundle/Image/Root Manifest·정책 영수증·Runtime·Controller 소스와 인터프리터 핀·Namespace lease/nsfs device4/inode4026532232·boot Identity·설치/롤백 각9개를 재검증했다. 기존 `validate_preparation`은 비권한 준비 검증으로만 사용했으며 실행 경로의 Namespace 검사를 변경하지 않았다. 비소비 CLI check는 `PHASE_D_COLLECTOR_SCOPE_MISMATCH`, reserved=false/executed=false를 재확인했다.
+
+**Namespace 내부 검증은 승인된 Root 진입 전까지 PENDING**이다. 내부 lo/Route/Socket Cookie를 관측하지 않았고 Host sysfs나 Synthetic으로 대체하지 않았다. 기존 `isolated_dns_engine.enter_namespace`가 held nsfs FD·inode/device·setns 후 Identity·lo ioctl·내부 Route·Socket Cookie를 검증한다. 기존 Launcher는 실제 DNS 진단을 포함한 `ROOT_DNS_DIAGNOSTIC` 뒤 일반 UID Controller를 시작하므로, 별도의 정확한 Root 정책·Root 실행·UDP2/TCP1 트래픽 승인이 필요하다. 이를 읽기 전용 조회 권한으로 간주하지 않았다.
+
+단일 검토 패키지: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-ai-scope-review-20261028T011845Z/approval-package.md`, 정확한 Binding JSON: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-ai-scope-review-20261028T011845Z/approval-package.json`. 현재 승인 가능한 DNS/Controller Session은 `c6ab7675-4e0b-48dc-9bd0-b2dbbfece784`, Release `0.6.3`, Scope SHA `a8938d22ace0b31ecdcb44fc106e286eae9acea72b9026369b5f0b5de48dd21a`다. 이 작업은 Root1·Native0이며, 후속 설치 최대1회는 별도 Root 작업이다. Root DNS 정산 후 최신 Ledger와 새 Native Session을 사용해 R1 위험 수용·R2·Root 설치·Native 최대1회 승인을 검증해야 한다. 아직 미정인 Native Session에 임의 값을 부여하거나 최종 실행 승인을 요청하지 않는다.
+
+Campaign Native4/10·Root5/10, Batch3 Native1/2·Root2/4 유지. Ledger27행 SHA `b4ada4ea2f79d424b33d451ee3581e599b75523e7cf109b28027c54104e3e619` 불변. Root 추가 배정 만료2026-10-28T15:47:27+09:00, 빌드 정책 만료2026-10-29T10:12:06+09:00이며 서로 연장되지 않는다. Root·sudo·setns·DNS·Native·TCX·컨테이너·LLM API·예약·예산 소비·영수증 소비 모두0. 기존 Namespace·VS Code·사용자 변경·설치·Rollback·FAILED/false/UNKNOWN 보존.
+
+구현 변경이 없으므로 기존 Workspace/Export90 PASS·재현 빌드 증거를 유지하고 이번 작업에서는 오류 조건·핀·비소비 CLI를 재검증했다. 실제 Namespace 내부 검사·R1/R2·Root/Native 승인이 남아 있으므로 **실제 Native E2E는 BLOCKED**이며 READY나 VERIFIED를 선언하지 않는다.
