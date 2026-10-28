@@ -90,10 +90,21 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "command",
-        choices=["init", "start", "run", "status", "stop", "reset-worker", "service-unit"],
+        choices=[
+            "init",
+            "start",
+            "run",
+            "status",
+            "stop",
+            "reset-worker",
+            "service-unit",
+            "archive",
+            "restore",
+        ],
     )
     parser.add_argument("directory", type=Path)
     parser.add_argument("--config", type=Path)
+    parser.add_argument("--from-archive", type=Path)
     args = parser.parse_args(argv)
     directory = args.directory.absolute()
     try:
@@ -107,6 +118,16 @@ def main(argv=None):
             (directory / "code-identity").write_text(code_identity())
             (directory / "code-identity").chmod(0o600)
             result = dict(status="INITIALIZED_NOT_STARTED", mode="CONTINUOUS", source=config.source)
+        elif args.command == "restore":
+            from soc_agent.continuous.retention import restore
+
+            if not args.from_archive:
+                raise ValueError("CONTINUOUS_ARCHIVE_REQUIRED")
+            result = restore(args.from_archive.absolute(), directory)
+        elif args.command == "archive":
+            from soc_agent.continuous.retention import archive
+
+            result = archive(directory)
         elif args.command == "status":
             result = status(directory)
         elif args.command == "start":

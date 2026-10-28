@@ -38,8 +38,30 @@ def build(app):
     ).pack(anchor="w", pady=8)
     app.continuous_summary = ttk.Label(app.content, wraplength=950)
     app.continuous_summary.pack(anchor="w", pady=8)
+    app.continuous_incidents = ttk.Treeview(
+        app.content,
+        columns=("domain", "classification", "eligibility", "audit"),
+        show="headings",
+        height=6,
+    )
+    for name in ("domain", "classification", "eligibility", "audit"):
+        app.continuous_incidents.heading(name, text=name.title())
+    app.continuous_incidents.pack(fill="x", pady=6)
+    app.continuous_outputs = {}
+
+    def inspect_incident(*_):
+        selected = app.continuous_incidents.selection()
+        if selected and selected[0] in app.continuous_outputs:
+            output = app.continuous_outputs[selected[0]]
+            app.navigate("AI Analysis", refresh=False)
+            app.call("analysis_attach", output, callback=app.analysis_updated)
+
+    app.continuous_incidents.bind("<Double-1>", inspect_incident)
+    ttk.Button(app.content, text="Inspect Selected Incident", command=inspect_incident).pack(
+        anchor="w"
+    )
     app.continuous_detail = tk.Text(
-        app.content, height=28, wrap="word", bg="#17243A", fg="#F1F5F9", state="disabled"
+        app.content, height=18, wrap="word", bg="#17243A", fg="#F1F5F9", state="disabled"
     )
     app.continuous_detail.pack(fill="both", expand=True)
 
@@ -54,4 +76,23 @@ def render(app, value):
             f"Cleanup: {value.get('cleanup', 'UNKNOWN')}"
         )
     )
+    selected = app.continuous_incidents.selection()
+    app.continuous_incidents.delete(*app.continuous_incidents.get_children())
+    app.continuous_outputs = {}
+    for result in value.get("recent_results", []):
+        identity = result["incident_id"]
+        app.continuous_incidents.insert(
+            "",
+            "end",
+            iid=identity,
+            values=(
+                ", ".join(result.get("domains", [])),
+                result["classification"],
+                result["eligibility"],
+                result["audit"],
+            ),
+        )
+        app.continuous_outputs[identity] = result["output"]
+    if selected and app.continuous_incidents.exists(selected[0]):
+        app.continuous_incidents.selection_set(selected)
     app._text(app.continuous_detail, json.dumps(display_data(value), indent=2, ensure_ascii=False))

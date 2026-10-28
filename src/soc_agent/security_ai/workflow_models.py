@@ -88,6 +88,22 @@ class RecordsJob(Frozen):
     packages: tuple[PackageInput, ...] = Field(min_length=1, max_length=3)
 
 
+class AuthenticationWindowJob(RecordsJob):
+    kind: Literal["authentication_window"]
+    witness: UTCTimestamp
+    quality: Literal["ELIGIBLE", "INCOMPLETE", "INVALID", "UNKNOWN"]
+    source_sha256: Hash
+
+
+class ContinuousNativeWindowJob(Frozen):
+    kind: Literal["continuous_native_window"]
+    namespace: str = Field(pattern=r"^net:\[[1-9][0-9]*\]$")
+    session: str
+    summary: dict[str, JsonValue]
+    quality: Literal["UNKNOWN", "INCOMPLETE"]
+    reasons: tuple[str, ...]
+
+
 class NativeCheckpointJob(Frozen):
     kind: Literal["native_checkpoint"]
     summary: dict[str, JsonValue]
@@ -126,6 +142,8 @@ Job = Annotated[
     | StoredDNSJob
     | RawDNSJob
     | RecordsJob
+    | AuthenticationWindowJob
+    | ContinuousNativeWindowJob
     | NativeCheckpointJob
     | TCXAnalysisJob
     | CollectorFailureJob,

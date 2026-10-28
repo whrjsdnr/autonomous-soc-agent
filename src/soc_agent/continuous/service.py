@@ -10,7 +10,7 @@ import os
 import resource
 import time
 from pathlib import Path
-from uuid import UUID, uuid4
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from soc_agent.continuous.models import require_source_authority
 from soc_agent.continuous.source import ReplaySource
@@ -27,14 +27,44 @@ from soc_agent.security_ai.workflow_models import JOB, PacketWindowJob
 
 
 class ContinuousRuntime:
-    def __init__(self, directory: Path, *, source=None, analysis=None):
+    def __init__(self, directory: Path, *, source=None, analysis=None, journal_transport=None):
         self.directory = directory
         self.store = Store(directory)
+        self.store.require_streaming_schema()
         self.config = self.store.config
-        self.source = source or ReplaySource(self.config)
+        from soc_agent.continuous.authentication import AuthenticationWindows
+        from soc_agent.continuous.tcx_producer import TCXProducer
+
+        self.source = source or (
+            TCXProducer(self.config)
+            if self.config.source == "NATIVE_SERVICE"
+            else ReplaySource(self.config)
+        )
+        self.auth = AuthenticationWindows(self.config.authentication_packages)
+        self.journal = journal_transport
+        if self.config.journal_replay_file:
+            from soc_agent.continuous.journal_transport import JournalTransport, StoredJournalReader
+
+            self.journal = JournalTransport(
+                directory / "authentication",
+                StoredJournalReader(
+                    self.config.journal_replay_file, self.config.journal_replay_sha256
+                ),
+            )
+        self.journal_state = "NOT_ATTACHED"
+        self.auth_source_sha = (
+            digest(self.journal.reader.identity) if self.journal else self.config.input_sha256
+        )
+        from soc_agent.continuous.native_windows import NativeWindows
+
+        self.native_windows = NativeWindows(
+            self.config.namespace, str(self.store.database.store_id)
+        )
         self.analysis = analysis or AnalysisService(directory / "analysis", self.config.ml_root)
         self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
-        self.epoch = uuid4()
+        self.epoch = uuid5(
+            NAMESPACE_URL, str(self.store.database.store_id) + self.config.input_sha256
+        )
         self.last_sequence = 0
         self.last_event_ns = None
         self.done = asyncio.Event()
@@ -50,6 +80,9 @@ class ContinuousRuntime:
             for k in [
                 "received",
                 "packets",
+                "native_events",
+                "auth_windows",
+                "recovered_events",
                 "dns_inputs",
                 "authentication_inputs",
                 "duplicates",
@@ -89,10 +122,29 @@ class ContinuousRuntime:
             if self.circuit or self.collector_state == "CIRCUIT_OPEN"
             else "RUNNING",
             service_pid=os.getpid(),
-            collector=self.collector_state,
+            collector=(
+                self.source.state
+                if self.config.source == "NATIVE_SERVICE"
+                else self.collector_state
+            ),
             worker=self.worker_state,
-            collection_live=False,
-            source_assurance="REPLAY_ONLY_NO_NATIVE_CAPTURE",
+            collection_live=(
+                self.config.source == "NATIVE_SERVICE"
+                and self.metrics["native_events"] > 0
+                and self.source.state in ("RUNNING", "DEGRADED")
+            ),
+            source_assurance=(
+                "ROOT_INSTALLED_PASSIVE_TCX"
+                if self.config.source == "NATIVE_SERVICE"
+                else "REPLAY_ONLY_NO_NATIVE_CAPTURE"
+            ),
+            native_model="BLOCKED_CONTINUOUS_CAPTURE_ATTESTATION_AND_ACTION_GRANT_REQUIRED",
+            producer=getattr(self.source, "snapshot", {}),
+            auth_pending=len(self.auth.records),
+            authentication_transport=dict(
+                state=self.journal_state,
+                source=self.journal.reader.identity if self.journal else None,
+            ),
             heartbeat_unix=time.time(),
             uptime_seconds=time.monotonic() - self.started,
             clock_epoch=str(self.epoch),
@@ -156,7 +208,7 @@ class ContinuousRuntime:
             )
             await self.handoff(job)
 
-    async def observe(self, raw):
+    async def observe(self, raw, *, recovering=False):
         if (
             not isinstance(raw, dict)
             or type(raw.get("sequence")) is not int
@@ -166,11 +218,20 @@ class ContinuousRuntime:
             await self.complete(self.aggregator.close("RESTART_GAP"), self.last_event_ns or 0)
             self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
             raise ValueError("CONTINUOUS_SOURCE_SEQUENCE_GAP")
+        if not recovering:
+            self.store.retain(raw)
         self.last_sequence = raw["sequence"]
         self.metrics["received"] += 1
         identity = str(UUID(raw["id"]))
         kind = raw.get("kind")
-        if kind not in ("packet", "job", "excluded"):
+        if kind not in (
+            "packet",
+            "job",
+            "excluded",
+            "authentication",
+            "auth_watermark",
+            "native_tcx",
+        ):
             raise ValueError("CONTINUOUS_SOURCE_RECORD_KIND")
         if kind == "packet":
             checked = PacketObservation.model_validate(raw["packet"])
@@ -183,15 +244,93 @@ class ContinuousRuntime:
             "collector_error",
         ):
             raise ValueError("CONTINUOUS_SOURCE_JOB_DOMAIN_NOT_ALLOWED")
-        if self.store.seen(
-            identity, {key: value for key, value in raw.items() if key != "sequence"}
-        ):
+        already_seen = False
+        if kind != "native_tcx":
+            already_seen = self.store.seen(
+                identity, {key: value for key, value in raw.items() if key != "sequence"}
+            )
+        if already_seen and not recovering:
             self.metrics["duplicates"] += 1
+            return
+        if kind == "native_tcx":
+            if self.config.source != "NATIVE_SERVICE":
+                raise ValueError("CONTINUOUS_REPLAY_CANNOT_ATTEST_NATIVE")
+            from soc_agent.continuous.tcx_producer import decode
+
+            event = decode(
+                bytes.fromhex(raw["wire_hex"]),
+                namespace=self.config.namespace,
+                session=UUID(raw["session"]),
+                program=raw["program"],
+                sequence=raw["sequence"],
+            )
+            if event.generation != self.source.epoch or event.ifindex != 1:
+                raise ValueError("CONTINUOUS_NATIVE_EVENT_SCOPE")
+            if self.store.native_event(raw, event):
+                for job in self.native_windows.add(event):
+                    await self.handoff(job)
+            self.metrics["native_events"] += 1
+            # Root capture authority does not confer an AI action or turn a
+            # monotonic Kernel timestamp into UTC fixture packet provenance.
+            self.store.applied(raw["sequence"])
+            return
+        if kind in ("authentication", "auth_watermark"):
+            from soc_agent.continuous.authentication import normalized
+
+            if self.journal is not None:
+                raise ValueError("CONTINUOUS_AUTH_SOURCE_MULTIPLEX_CONFLICT")
+            if not self.config.authentication_packages:
+                raise ValueError("CONTINUOUS_AUTH_MODEL_PACKAGE_REQUIRED")
+            if kind == "authentication":
+                cursor, record = normalized(raw["authentication"], self.config.input_sha256)
+                jobs = self.auth.observe(record, source_digest=self.config.input_sha256)
+                self.metrics["authentication_inputs"] += 1
+                self.store.event(
+                    "CONTINUOUS_AUTH_CURSOR_RETAINED",
+                    dict(cursor_digest=digest(cursor), event=str(record.record_id)),
+                )
+            else:
+                from datetime import datetime
+
+                watermark = datetime.fromisoformat(raw["watermark"])
+                if watermark.tzinfo is None:
+                    raise ValueError("CONTINUOUS_AUTH_WATERMARK_TIMEZONE")
+                jobs = self.auth.advance(watermark, source_digest=self.config.input_sha256)
+            for job in jobs:
+                self.metrics["auth_windows"] += 1
+                await self.handoff(job)
+            self.store.applied(raw["sequence"])
             return
         if kind == "packet":
             packet = PacketObservation.model_validate(raw["packet"])
             if packet.timestamp_origin != "FIXTURE":
                 raise ValueError("CONTINUOUS_REPLAY_CANNOT_ATTEST_NATIVE")
+            if "tcx_wire_hex" in raw:
+                from soc_agent.continuous.tcx_producer import decode, replay_packet
+
+                event = decode(
+                    bytes.fromhex(raw["tcx_wire_hex"]),
+                    namespace=self.config.namespace,
+                    session=self.epoch,
+                    program=self.config.input_sha256,
+                    sequence=raw["sequence"],
+                    clock="FIXTURE_PCAP_EVENT_NS",
+                )
+                projected = replay_packet(event, packet.interface_id)
+                if any(
+                    getattr(projected, k) != getattr(packet, k)
+                    for k in (
+                        "source_address",
+                        "destination_address",
+                        "source_port",
+                        "destination_port",
+                        "ip_length",
+                        "frame_length",
+                        "tcp_flags",
+                        "timestamp",
+                    )
+                ):
+                    raise ValueError("CONTINUOUS_TCX_REPLAY_PARITY")
             self.metrics["packets"] += 1
             if packet.dns:
                 self.metrics["dns_inputs"] += 1
@@ -237,13 +376,60 @@ class ContinuousRuntime:
                 self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
         else:
             raise ValueError("CONTINUOUS_SOURCE_RECORD_KIND")
+        self.store.applied(raw["sequence"])
+
+    async def project_journal(self, message):
+        from soc_agent.continuous.authentication import normalized
+
+        source = digest(self.journal.reader.identity)
+        _, record = normalized(message, source)
+        for job in self.auth.observe(record, source_digest=source):
+            self.metrics["auth_windows"] += 1
+            await self.handoff(job)
+        self.metrics["authentication_inputs"] += 1
+
+    async def collect_journal(self):
+        self.journal_state = "RUNNING_STORED_OR_EXPLICIT_READER"
+        try:
+            while not self.stop.is_set():
+                try:
+                    polling = asyncio.create_task(asyncio.to_thread(self.journal.poll))
+                    try:
+                        await asyncio.shield(polling)
+                    except asyncio.CancelledError:
+                        # Join the bounded poll before publishing STOPPED or
+                        # allowing a quiescent multi-database backup.
+                        await asyncio.wait_for(
+                            asyncio.shield(polling), self.config.shutdown_seconds
+                        )
+                        raise
+                except QueueFull:
+                    self.store.event("CONTINUOUS_JOURNAL_BACKPRESSURE", {})
+                while not self.stop.is_set():
+                    held = self.journal.claim()
+                    if held is None:
+                        break
+                    claim, message = held
+                    try:
+                        fresh = self.store.retain_auxiliary(str(claim.event.event_id), message)
+                        if fresh:
+                            await self.project_journal(message)
+                        self.journal.acknowledge_retained(claim)
+                    except BaseException:
+                        self.journal.queue.fail(claim, "WORKER_FAILURE")
+                        raise
+                await asyncio.sleep(self.config.heartbeat_seconds)
+        finally:
+            self.journal_state = "STOPPED"
 
     async def collect(self):
         try:
             for attempt in range(self.config.collector_restarts + 1):
                 self.last_sequence = 0
                 self.last_event_ns = None
-                self.collector_state = "RUNNING_REPLAY"
+                self.collector_state = (
+                    "RUNNING" if self.config.source == "NATIVE_SERVICE" else "RUNNING_REPLAY"
+                )
                 try:
                     async for raw in self.source.events():
                         if self.stop.is_set():
@@ -272,6 +458,9 @@ class ContinuousRuntime:
                     self.metrics["collector_restarts"] += 1
                     await asyncio.sleep(0.1)
             await self.complete(self.aggregator.close("SHUTDOWN"), self.last_event_ns or 0)
+            if self.journal is None:
+                for job in self.auth.close(self.auth_source_sha):
+                    await self.handoff(job)
         finally:
             await self.source.close()
             self.done.set()
@@ -309,6 +498,8 @@ class ContinuousRuntime:
                     + [
                         dict(
                             incident_id=outcome["incident_id"],
+                            domains=outcome.get("evidence_domains", []),
+                            investigation=outcome.get("investigation_status", "UNKNOWN"),
                             classification=outcome["classification"],
                             eligibility=outcome["eligibility"],
                             llm_mode=outcome["llm_mode"],
@@ -361,18 +552,34 @@ class ContinuousRuntime:
             raise ValueError("CONTINUOUS_AI_SERVICE_REQUIRES_ORDINARY_UID")
         require_source_authority(self.config)
         with exclusive_runtime_lock(self.directory / "service.lock"):
-            self.store.control()
-            self.store.queue.recover()
-            self.store.event(
-                "CONTINUOUS_SERVICE_STARTED",
-                dict(pid=os.getpid(), epoch=str(self.epoch), source=self.config.source),
-            )
-            collector = asyncio.create_task(self.collect())
-            consumer = asyncio.create_task(self.consume())
+            collector = consumer = journal = None
+            primary = None
             try:
+                self.store.control()
+                self.store.queue.recover()
+                self.store.event(
+                    "CONTINUOUS_SERVICE_STARTED",
+                    dict(pid=os.getpid(), epoch=str(self.epoch), source=self.config.source),
+                )
+                if self.config.source != "NATIVE_SERVICE":
+                    for retained in self.store.retained():
+                        await self.observe(retained, recovering=True)
+                        self.metrics["recovered_events"] += 1
+                    self.store.event(
+                        "CONTINUOUS_INGRESS_REBUILT", dict(count=self.metrics["recovered_events"])
+                    )
+                if self.journal:
+                    self.journal.recover()
+                    for retained in self.store.auxiliary():
+                        await self.project_journal(retained)
+                    journal = asyncio.create_task(self.collect_journal())
+                collector = asyncio.create_task(self.collect())
+                consumer = asyncio.create_task(self.consume())
                 while not self.stop.is_set():
                     current = self.store.state()
                     if current["stop_requested"]:
+                        if self.config.source == "NATIVE_SERVICE":
+                            await self.source.request_stop()
                         self.stop.set()
                         break
                     if current["reset_worker"]:
@@ -385,54 +592,91 @@ class ContinuousRuntime:
                         raise ValueError("CONTINUOUS_WORKER_TASK_EXITED")
                     if collector.done():
                         collector.result()
+                    if journal and journal.done():
+                        journal.result()
+                        raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
                     size = sum(p.stat().st_size for p in self.directory.rglob("*") if p.is_file())
                     if size >= self.config.max_storage_bytes:
                         raise ValueError("CONTINUOUS_STORAGE_LIMIT_REQUIRES_ARCHIVAL")
                     await self.publish()
                     await asyncio.sleep(self.config.heartbeat_seconds)
+            except BaseException as error:
+                primary = error
+                self.last_error = self.last_error or type(error).__name__
+                raise
             finally:
+                # A storage/consumer failure must never bypass owned process cleanup.
+                # Collect cleanup failures separately and preserve the first exception.
                 self.stop.set()
-                collector.cancel()
-                await asyncio.gather(collector, return_exceptions=True)
-                try:
-                    await asyncio.wait_for(asyncio.shield(consumer), self.config.shutdown_seconds)
-                except TimeoutError:
-                    self.store.event("CONTINUOUS_DRAIN_DEADLINE", {})
-                    consumer.cancel()
-                    await asyncio.gather(consumer, return_exceptions=True)
-                await self.source.close()
+                failures = []
+                if collector:
+                    collector.cancel()
+                    await asyncio.gather(collector, return_exceptions=True)
+                if journal:
+                    journal.cancel()
+                    journal_exit = await asyncio.gather(journal, return_exceptions=True)
+                    failures.extend(
+                        e
+                        for e in journal_exit
+                        if isinstance(e, BaseException)
+                        and not isinstance(e, asyncio.CancelledError)
+                    )
+                if consumer:
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.shield(consumer), self.config.shutdown_seconds
+                        )
+                    except BaseException as error:
+                        if isinstance(error, TimeoutError):
+                            consumer.cancel()
+                            await asyncio.gather(consumer, return_exceptions=True)
+                        elif error is not primary:
+                            failures.append(error)
+                for close in (self.source.close, self.analysis.close):
+                    try:
+                        await close()
+                    except BaseException as error:
+                        failures.append(error)
                 flush_error = None
                 try:
                     for event in self.dns.finish(aborted=True):
                         self.store.event("CONTINUOUS_DNS_TRANSACTION", event)
                     await self.complete(self.aggregator.close("SHUTDOWN"), self.last_event_ns or 0)
-                except (ValueError, OSError, RuntimeError) as error:
-                    # Evidence/storage failure must never skip owned process cleanup.
+                    for job in self.native_windows.close():
+                        await self.handoff(job)
+                    for job in self.auth.close(self.auth_source_sha):
+                        await self.handoff(job)
+                except BaseException as error:
                     flush_error = type(error).__name__
-                    self.last_error = self.last_error or "CONTINUOUS_FINAL_FLUSH_FAILED"
+                    if primary is None:
+                        failures.append(error)
                 try:
-                    await self.analysis.close()
-                except ValueError:
-                    self.store.event("CONTINUOUS_CLEANUP_FAILED", {})
-                    self.store.update(
-                        self.snapshot() | dict(state="DEGRADED", cleanup="UNVERIFIED")
+                    cleanup = "UNVERIFIED" if failures else "VERIFIED"
+                    self.store.event(
+                        "CONTINUOUS_SERVICE_STOPPED",
+                        dict(
+                            epoch=str(self.epoch),
+                            metrics=dict(self.metrics),
+                            first_error=self.last_error,
+                            final_flush_error=flush_error,
+                            cleanup=cleanup,
+                            secondary_errors=[type(e).__name__ for e in failures],
+                        ),
                     )
-                    raise
-                self.store.event(
-                    "CONTINUOUS_SERVICE_STOPPED",
-                    dict(
-                        epoch=str(self.epoch),
-                        metrics=dict(self.metrics),
-                        first_error=self.last_error,
-                        final_flush_error=flush_error,
-                    ),
-                )
-                final = self.snapshot() | dict(
-                    state="STOPPED",
-                    collector="STOPPED",
-                    worker="STOPPED",
-                    cleanup="VERIFIED",
-                    final_flush="FAILED" if flush_error else "VERIFIED",
-                    collection_live=False,
-                )
-                self.store.update(final)
+                    self.store.update(
+                        self.snapshot()
+                        | dict(
+                            state="STOPPED" if cleanup == "VERIFIED" else "DEGRADED",
+                            collector="STOPPED",
+                            worker="STOPPED",
+                            cleanup=cleanup,
+                            final_flush="FAILED" if flush_error else "VERIFIED",
+                            collection_live=False,
+                        )
+                    )
+                except BaseException as error:
+                    # Evidence cannot claim verified cleanup if its write failed;
+                    # the last heartbeat remains stale/unknown for status readers.
+                    failures.append(error)
+                if primary is None and failures:
+                    raise failures[0]

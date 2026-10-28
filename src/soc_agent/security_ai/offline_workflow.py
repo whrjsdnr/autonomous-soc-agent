@@ -52,7 +52,9 @@ from soc_agent.security_ai.workflow_inputs import (
 from soc_agent.security_ai.workflow_models import (
     JOB,
     AnalysisOutcome,
+    AuthenticationWindowJob,
     CollectorFailureJob,
+    ContinuousNativeWindowJob,
     DNSFixtureJob,
     EvidenceEnvelope,
     InferenceRecord,
@@ -279,6 +281,26 @@ class OfflineWorkflow:
                         fusion = research_comparison(records)
                 elif not receipts:
                     reasons.append("NO_TCX_FEATURE_CANDIDATES")
+            elif isinstance(job, ContinuousNativeWindowJob):
+                from soc_agent.continuous.native_windows import validate_candidate
+
+                eligible = validate_candidate(job)
+                reasons.extend(job.reasons)
+                envelopes = (
+                    EvidenceEnvelope(
+                        event_identity=digest(job.model_dump(mode="json")),
+                        domain="NETWORK",
+                        origin="DECLARED_TCX_METADATA",
+                        observed_at=None,
+                        source_digest=digest(job.summary),
+                        collector_identity="continuous-tcx-candidate:v1",
+                        schema_version="Network14/1.1.0",
+                        namespace=job.namespace,
+                        session=job.session,
+                        integrity="UNVERIFIED",
+                        provenance=("KERNEL_MONOTONIC_NS_NOT_UTC", "NO_NATIVE_MODEL_AUTHORIZATION"),
+                    ),
+                )
             elif isinstance(job, PacketWindowJob):
                 from soc_agent.security_ai.packet_window import analyze_window
 
@@ -287,6 +309,15 @@ class OfflineWorkflow:
                 )
                 if records:
                     fusion = research_comparison(records)
+            elif isinstance(job, AuthenticationWindowJob):
+                from soc_agent.continuous.authentication import validate_window
+
+                eligible = validate_window(job)
+                envelopes = record_envelopes(job)
+                if eligible == "ELIGIBLE":
+                    fusion = await packaged(job, state, record)
+                else:
+                    reasons.append("AUTHENTICATION_WINDOW_" + eligible)
             elif isinstance(job, RecordsJob):
                 envelopes = record_envelopes(job)
                 fusion = await packaged(job, state, record)
@@ -661,6 +692,12 @@ def verify_result(directory: Path) -> AnalysisOutcome:
         from soc_agent.security_ai.api_investigation import verify_api_receipts
 
         verify_api_receipts(directory, events, result.external_provider_calls)
+    if source.get("kind") == "authentication_window":
+        from soc_agent.continuous.authentication import validate_window
+
+        checked = AuthenticationWindowJob.model_validate(source)
+        if result.inference and validate_window(checked) != "ELIGIBLE":
+            raise ValueError("AUTH_WINDOW_INFERENCE_WITHOUT_ELIGIBILITY")
     if source.get("kind") == "packet_window":
         from soc_agent.security_ai.packet_window import request, validate_window
         from soc_agent.security_ai.research.live_input import validate_result

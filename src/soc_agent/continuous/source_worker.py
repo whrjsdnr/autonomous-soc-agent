@@ -12,10 +12,14 @@ from soc_agent.security_ai.research.environment import Paths, read_local, verify
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--parent-pid", type=int, required=True)
     parser.add_argument("--ml", type=Path, required=True)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--sha", required=True)
     args = parser.parse_args()
+    from soc_agent.security_ai.research.worker import bind_parent
+
+    bind_parent(args.parent_pid)
     import os
     import resource
 
@@ -72,9 +76,12 @@ def main():
                 flush=True,
             )
             continue
+        from soc_agent.continuous.tcx_producer import replay_wire
+
         print(
             json.dumps(
                 dict(
+                    tcx_wire_hex=replay_wire(packet, r.timestamp_ns, r.index).hex(),
                     sequence=r.index,
                     kind="packet",
                     id=identity,

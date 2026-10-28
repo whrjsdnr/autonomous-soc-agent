@@ -28,6 +28,7 @@ def project_result(result: AnalysisOutcome) -> dict:
         eligibility=result.eligibility,
         eligibility_scope=result.eligibility_scope,
         input_origins=origins,
+        evidence_domains=sorted({e.domain for e in result.evidence}),
         inference_count=len(result.inference),
         models=[r.model_id for r in result.inference],
         predictions=[
@@ -110,6 +111,8 @@ class AnalysisService:
                 "-m",
                 "soc_agent.cli",
                 "analyze-offline",
+                "--parent-pid",
+                str(os.getpid()),
                 "--input",
                 str(submitted),
                 "--input-sha256",

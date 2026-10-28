@@ -41,6 +41,8 @@ class ReplaySource:
             str(python),
             "-m",
             "soc_agent.continuous.source_worker",
+            "--parent-pid",
+            str(os.getpid()),
             "--ml",
             str(self.config.ml_root),
             "--input",

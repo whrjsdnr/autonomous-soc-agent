@@ -15,6 +15,7 @@ from soc_agent.security_ai.workflow_models import submitted_job
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--parent-pid", type=int)
     parser.add_argument("--input", type=Path)
     parser.add_argument("--input-sha256")
     parser.add_argument("--output", type=Path, required=True)
@@ -29,6 +30,10 @@ def main(argv=None) -> int:
     parser.add_argument("--tcx-approval-sha256")
     args = parser.parse_args(argv)
     try:
+        if args.parent_pid is not None:
+            from soc_agent.security_ai.research.worker import bind_parent
+
+            bind_parent(args.parent_pid)
         if args.verify:
             if any(
                 (

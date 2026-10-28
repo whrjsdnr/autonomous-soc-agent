@@ -74,3 +74,84 @@ async def test_gui_detach_reconnect_and_owned_service_stop(tmp_path):
                 break
             await asyncio.sleep(0.1)
     assert status(directory)["cleanup"] == "VERIFIED"
+
+
+@pytest.mark.asyncio
+async def test_verified_three_domain_incidents_and_investigation_in_gui(tmp_path):
+    """SYNTHETIC/FIXTURE inputs, REAL_MODEL, SCRIPTED; imported results are never LIVE."""
+    from datetime import UTC, datetime
+    from pathlib import Path
+
+    from soc_agent.continuous.authentication import AuthenticationWindows, normalized
+    from soc_agent.gui.analysis_service import project_result
+    from soc_agent.security_ai.offline_workflow import OfflineWorkflow, verify_result
+    from soc_agent.security_ai.research.environment import Paths
+    from tests.integration.test_raw_dns_workflow import job, message
+    from tests.unit.continuous.test_runtime import make, window
+    from tests.unit.continuous.test_stream_integration import auth, packages
+
+    ml = Path("/home/geonug/kdt-linux/ML")
+    paths = Paths(
+        ml,
+        ml.parent / "autonomous-soc-agent/.security-ai-demo/inference/bin/python",
+        Path(__file__).resolve().parents[1] / "src",
+    )
+    auths = AuthenticationWindows(packages(), origin="FIXTURE")
+    for i in range(42):
+        auths.observe(normalized(auth(i), "a" * 64)[1], source_digest="a" * 64)
+    auth_job = auths.advance(datetime(2026, 1, 1, 0, 5, tzinfo=UTC), source_digest="a" * 64)[0]
+    jobs = [window(), auth_job, job(message(), message(True, at=120))]
+    recent = []
+    for i, item in enumerate(jobs):
+        output = tmp_path / f"outcome-{i}"
+        await OfflineWorkflow(output, paths=paths).run(item)
+        result = project_result(verify_result(output))
+        recent.append(
+            dict(
+                incident_id=result["incident_id"],
+                domains=result["evidence_domains"],
+                classification=result["classification"],
+                eligibility=result["eligibility"],
+                audit=result["audit"],
+                output=str(output),
+            )
+        )
+    directory, store = make(tmp_path)
+    store.update(
+        dict(
+            state="STOPPED",
+            collector="STOPPED",
+            worker="STOPPED",
+            cleanup="VERIFIED",
+            collection_live=False,
+            source="JSONL_REPLAY",
+            recent_results=recent,
+        )
+    )
+    root = tk.Tk()
+    app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui", continuous_directory=directory))
+    try:
+        await idle(root, app)
+        app.navigate("Continuous")
+        await idle(root, app)
+        values = [
+            app.continuous_incidents.item(i, "values")
+            for i in app.continuous_incidents.get_children()
+        ]
+        assert {value[0] for value in values} == {"NETWORK", "DNS", "AUTHENTICATION"}
+        assert "Native live: False" in app.continuous_summary.cget("text")
+        app.continuous_incidents.selection_set(recent[1]["incident_id"])
+        for widget in app.content.winfo_children():
+            try:
+                if widget.cget("text") == "Inspect Selected Incident":
+                    widget.invoke()
+                    break
+            except tk.TclError:
+                continue
+        await idle(root, app)
+        shown = app.worker.backend.analysis_service.snapshot()["result"]
+        assert shown["investigation_status"] == "COMPLETED_READ_ONLY"
+        assert shown["llm_mode"] == "SCRIPTED" and shown["external_provider_calls"] == 0
+        assert shown["evidence_domains"] == ["AUTHENTICATION"]
+    finally:
+        await close(root, app)

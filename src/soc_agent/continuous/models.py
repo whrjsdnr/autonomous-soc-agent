@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from soc_agent.security_ai.research.models import Frozen
+from soc_agent.security_ai.workflow_models import PackageInput
 
 
 class RuntimeMode(StrEnum):
@@ -23,6 +24,9 @@ class ContinuousConfig(Frozen):
     input_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     ml_root: Path | None = None
     authentication_runtime: Path | None = None
+    journal_replay_file: Path | None = None
+    journal_replay_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
+    authentication_packages: tuple[PackageInput, ...] = Field(default=(), max_length=1)
     metadata_window_seconds: int = Field(default=60, ge=30, le=3600, strict=True)
     namespace: str = Field(default="net:[4026532232]", pattern=r"^net:\[[0-9]+\]$")
     interface: Literal["lo"] = "lo"
@@ -44,6 +48,12 @@ class ContinuousConfig(Frozen):
             raise ValueError("CONTINUOUS_ABSOLUTE_PATHS_REQUIRED")
         if self.authentication_runtime and not self.authentication_runtime.is_absolute():
             raise ValueError("CONTINUOUS_ABSOLUTE_AUTH_RUNTIME_REQUIRED")
+        if bool(self.journal_replay_file) != bool(self.journal_replay_sha256):
+            raise ValueError("CONTINUOUS_JOURNAL_FILE_AND_PIN_REQUIRED")
+        if self.journal_replay_file and (
+            not self.journal_replay_file.is_absolute() or not self.authentication_packages
+        ):
+            raise ValueError("CONTINUOUS_JOURNAL_PATH_AND_MODEL_REQUIRED")
         if not self.profiles or len(set(self.profiles)) != len(self.profiles):
             raise ValueError("CONTINUOUS_PROFILE_SET")
         return self
@@ -51,6 +61,20 @@ class ContinuousConfig(Frozen):
 
 def require_source_authority(config: ContinuousConfig) -> None:
     if config.source == "NATIVE_SERVICE":
-        # Policy proposal only. No existing diagnostic/development receipt can
-        # enable a new privileged service, even if the namespace is identical.
-        raise ValueError("CONTINUOUS_NATIVE_SERVICE_INSTALLATION_AND_POLICY_NOT_ACTIVATED")
+        import hashlib
+        import os
+
+        from soc_agent.continuous.native.policy import POLICY, installed, root_file
+
+        try:
+            policy = installed()
+        except (ValueError, OSError) as error:
+            raise ValueError(
+                "CONTINUOUS_NATIVE_SERVICE_INSTALLATION_AND_POLICY_NOT_ACTIVATED"
+            ) from error
+        if (
+            policy["uid"] != os.getuid()
+            or policy["namespace"] != config.namespace
+            or hashlib.sha256(root_file(POLICY)).hexdigest() != config.input_sha256
+        ):
+            raise ValueError("CONTINUOUS_NATIVE_SERVICE_POLICY_SCOPE")
