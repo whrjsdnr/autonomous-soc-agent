@@ -621,3 +621,35 @@ Private evidence: `.git/native-final-authorized-execution-20261028T045951Z/`: `a
 Private RCA inventory: `.git/controller-exit2-rca-20261028T051702Z/read-only-baseline.json`. 기존 실행 증거/ACK/영수증의 SHA를 고정했으며 원본을 수정하지 않았다. 검증 결과는 아래에 별도 기록한다.
 
 이번 조사 검증 결과: Workspace **74 PASS**, 독립 Export **74 PASS** (Namespace runtime / Controller Python / operational recovery). 고정 Python `-I -B`·256MiB/CPU20초 import 검사는 returncode0, pydantic2.13.5, stderr 없음. Ruff·Format·Diff PASS. 구현 src626개 SHA inventory는 `a7bece50a22c8f96b3da19364a3e37f156caced1a895e21df6da9bc7ca356041`이며 Export와 일치한다(기존 Manifest/Execution Image SHA와 구분). 기존36개 증거 파일 및 Ledger55행 SHA 불변. 새 승인된 실행 Artifact는 생성하지 않았다. 초기 검사 중 편집을 감지한 SourceGuard 차단과 테스트 stub 보완 이후 소스를 고정해 위 두 회귀를 모두 통과했다. 실환경 최초 원인은 계속 UNKNOWN이며 진단 보강을 Native E2E 성공으로 처리하지 않는다.
+
+
+## Controller ACK / request recovery — 2026-10-28 (non-privileged)
+
+**판정: 진단·빌드 검증 완료 / 실행은 GUARDED·BLOCKED. 과거 최초 오류는 UNKNOWN 유지.** 구현 Git `66c71323409548f7a1d58dcd5d319c5da1f666d8`, Tree `f9b35a5f49afe6ade3c54b2b2a16deaca0ea0313`로 고정했다. 이번 작업은 기존 성공 Root/DNS/Controller를 재실행하지 않았고 sudo·Namespace 진입·Native Capture·DNS·API·예약·영수증 소비·Ledger append를 모두 수행하지 않았다.
+
+ACK는 실제 Root 작업 `47c7c1f…a242729`의 SUCCEEDED 정산 직후 첫54행 전체 SHA `f4b2d3961dff65516cd820be1ce5e79758cc1ed21a513ea4561f43bae220db57`에 결합돼 있다. ACK 파일 자체 SHA는 `456c0954754d727548f1e334d5de6861ef31e42583ecc0e54dc5e653c2ee4a23`. 현재 R1 추가 후 Ledger55행 SHA는 `5efdeeb3eb0802b4123e4eeb61a14b9027a63f992f1351fdc52783f2fcf2fe88`, tip `527c0c591761a5c80d9d23ad809b7773b2cd6cd4a20b9d3d02530454b7c52eba`다. ACK/기존 Ledger를 덮어쓰거나 재발급하지 않았다.
+
+검증 순서는 `child_main → source/Namespace/cookie → ACK → dns_held_json_ledger(전체 현재 SHA·chain) → 정산 attempt/SUCCEEDED → 사용자 request SHA → held_json/target → 실제 CLI check → readiness → preview_reservation`이다. ACK는 사용자 입력 **전에 한 번** 검증된다. 그 전에 append되면 `DNS_LEDGER_SHA`로 차단된다. ACK 통과 후 사용자 입력 대기 중 append된 경우에는 이후 R1 admission이 별도로 최신 tip을 확인해 `REASSESSMENT_ADMISSION_STALE_LEDGER`로 차단한다. 성공 ACK는 Native 승인이나 예산 예약이 아니다. 동일 ACK의 재조회도 기존 Native receipt·Replay·중복 예약 검증을 대신하지 못한다. Snapshot을 최신 승인으로 간주하거나 prefix만 맞으면 허용하는 수정은 하지 않았다. 실환경 child가 ACK를 읽은 시점/최초 stderr가 없어 과거 Exit2의 원인은 확정할 수 없다.
+
+최소 운영 수정: `namespace_controller.py`는 ACK의 단일 필드/중복 키를 엄격히 확인하고 ACK 시점·request 시점·종료 시점의 Ledger 관측값을 진단용으로 보존한다. 관측값은 SHA·행 수·Head이며 **승인 판단에 사용하지 않는다**. `namespace_controller_engine.py`는 이미 고정된 Controller Session/Release/Root/Source Identity를 일반 사용자 child에 전달한다. `operational_recovery.py`는 검증된 admission Session/Release/Artifact 및 원래 내부 예외 함수/행번호를 기존 구조화 결과로 전달한다. Controller 결과에는 최초 오류·단계·진짜 종료 코드·entry/admission context·Cleanup 상태가 남는다. Cookie socket 종료와 미실행 Native를 구분하고, Native execute 진입 후 결과가 없으면 Cleanup UNKNOWN을 유지한다. 임의 예외 원문·비밀번호·TTY 입력·API 키는 수집하지 않으며 최초 오류/기존 결과 파일은 덮어쓰지 않는다.
+
+재현은 실제 `child_main`, held-file SHA, 실제 임시 JSONL hash-chain, request Schema 및 실제 CLI dispatcher를 사용했다. 새 Controller 재현에서 Mock은 OS Namespace/socket/인증 경계에만 사용했고 실제 권한 작업은 없다. 유효 ACK/request는 실제 CLI까지 도달한 뒤 없는 Synthetic Artifact를 BLOCKED로 처리하며 내부 예외 origin을 보존했다. 추가로 기존 Synthetic artifact adapter가 쓰이는 admission 회귀에서 Session/Release·R1/R2·Replay·최신 Ledger preview를 검증했다. 정상 취소, stale ACK, 잘못된 SHA/chain/attempt, 미정산, 중복 ACK key, request digest/target/schema, Namespace·interpreter pin 불일치, 요청 후 append 및 기존 Replay 회귀를 포함한다. 정상 취소는 returncode0, Native 미시작으로 기록한다. **REAL_NATIVE 또는 Native 준비 PASS 증거가 아니다.**
+
+Workspace **127 PASS**, 독립 Export **127 PASS**. Ruff·Format·Diff PASS. Stage/Workspace/Export의 Supervisor **26/26**, Controller **2/2** 산출물 SHA 동일. Source Snapshot **1,773개** SHA `3346475acda07f48d54324d05bdb5f1bb70cf2ea3f14d2d81289a6f20491209c`; snapshot 파일 SHA `b211164d81eafd83096ddab705e70825aca1ba830e8048c323c2b9a1ae97a4c8`. 고정 Controller Runtime manifest SHA `c87a778581e6096f4a9f06b800ea61ae72d7181716f595d59ecdac6fbc689c0c`, 실제 Python `-I -B` import 검증 성공; pydantic2.13.5·기존124개 의존성 핀을 유지한다. Runtime Dependency Identity `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4`. 기존 Namespace inode4026532232 및 Host4026531833 유지, 내부 Namespace 진입 검증은 미수행이다.
+
+| Guarded Artifact | SHA256 |
+|---|---|
+| Manifest | `1a80a294711d83f9e5e0c4446c2a318d6d38960a33130d8156a359caf80a9ca4` |
+| Bundle | `0954a2021dd2c0cd74a6f36453b23dafcc2ae02df3da05efbd23d8109d848769` |
+| Execution Image | `623d5ebc9073871562e842eed9c2a19c53d4cd789a4e83af67a1926d3d275542` |
+| Root Manifest | `4156f221880073cf2a178052b6ab656cdfac90f3d6f9fb28f944bcb70d61f180` |
+| Controller Manifest | `7e520c13da9d2b31110d168656640ad1e10c4b61fb13749cf56daa7f36190ebb` |
+| Controller Image | `585ee8300bf7b0b1ef380fc0d3c618d47f3ad7dea6163ad5fbfa8e68c477570d` |
+
+Controller preparation Session `d7694f9d-c74d-4bc6-8961-43689931cef8`, Release `0.6.3`. 이 Session은 공식 ApplicationPlan 생성 경로로 새로 생성한 **준비용 Identity**이며 실행 승인/예약이 아니다. Native admission Session은 정책 포함 최종 Artifact 이후 기존 생성 경로에서 확정해야 하므로 임의 값을 만들지 않았다.
+
+비소비 CLI check는 Source VERIFIED·Runtime BUILD_INTEGRITY_VERIFIED_ONLY 후 `ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED`, reserved=false/executed=false다. 이전 빌드 정책 영수증을 변경된 Source/Root Manifest에 재사용하지 않았다. 정확한 정책 입력 SHA `c3ee88f2a358e130370ce8729cf2b42a7bca30bb29a298266425bd835464f82f`와 빌드 결과를 `namespace-build-policy-request.json` / `approval-readiness-review.json`에 기록했다. 정책 승인은 빌드 권한이며 Root/Native/DNS 실행 승인이 아니다. 정책 영수증 포함 후 Manifest/Image는 다시 확정해야 하며 현재 Guarded SHA를 이후 실행 SHA로 재사용하지 않는다. 다음 단계는 기존 정책 승인 → 정책 포함 빌드 → 최종 Native Session/최신 Ledger에 대한 R1/R2·계측·필요한 Root/Native 승인 → 사용자 Scope·OS 인증 및 내부 check PASS다. 이번 작업에서는 승인 요청 화면이나 사용자 입력 대기 터미널을 시작하지 않았다.
+
+Ledger55행과 기존 증거36개 SHA 불변. Campaign Root9/Native4, Batch3 Root6/Native1의 기존 집계·OBSERVE_ONLY 기록 유지. 기존 설치·Rollback·실패/false/UNKNOWN 기록에 대한 수정 명령은 수행하지 않았다. Native 실패킷·적격 후보·AI 호출·Incident 증거는 새로 생성하지 않았다. 과거 Offline/실제 LLM 결과와 Native 미검증을 계속 분리한다.
+
+Private evidence: `.git/controller-request-recovery-20261028T052728Z/`: `artifact-identity.json`, `approval-readiness-review.json`, `synthetic-reproduction-results.json`(Synthetic 명시), `verification.json`, Source Snapshot/Export, Stage/A/B 파일별 SHA. 새 승인·예산 프레임워크 또는 자동 재실행 기능은 추가하지 않았다.
