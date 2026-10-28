@@ -195,3 +195,47 @@ Source1767개·Manifest/Bundle/Image/Root Manifest·정책 영수증·Runtime·C
 Campaign Native4/10·Root5/10, Batch3 Native1/2·Root2/4 유지. Ledger27행 SHA `b4ada4ea2f79d424b33d451ee3581e599b75523e7cf109b28027c54104e3e619` 불변. Root 추가 배정 만료2026-10-28T15:47:27+09:00, 빌드 정책 만료2026-10-29T10:12:06+09:00이며 서로 연장되지 않는다. Root·sudo·setns·DNS·Native·TCX·컨테이너·LLM API·예약·예산 소비·영수증 소비 모두0. 기존 Namespace·VS Code·사용자 변경·설치·Rollback·FAILED/false/UNKNOWN 보존.
 
 구현 변경이 없으므로 기존 Workspace/Export90 PASS·재현 빌드 증거를 유지하고 이번 작업에서는 오류 조건·핀·비소비 CLI를 재검증했다. 실제 Namespace 내부 검사·R1/R2·Root/Native 승인이 남아 있으므로 **실제 Native E2E는 BLOCKED**이며 READY나 VERIFIED를 선언하지 않는다.
+
+## 2026-10-28 승인된 Root DNS/Controller 실제 실행 결과
+
+**Namespace/DNS Root 작업은 SUCCEEDED, 이후 일반 사용자 Controller 단계는 실패하여 전체 작업은 PARTIALLY_VERIFIED**로 분리한다. Native E2E 성공을 의미하지 않는다. 승인자 조건욱의 명시적 결정과 요청서 SHA `cd52896572acbfee0f85da94df0eaf85c408951f8fc6539a05579e1be3ad6231` 및 실행 Git `a6157e8bfe4acb6e3aa4c8accf27f64991eba8f3`/Tree `50f6b7f89d4b4ab1e40f90e4952606c7c4c44625`, Session `c6ab7675-4e0b-48dc-9bd0-b2dbbfece784`, Release0.6.3, Scope SHA `a8938d22ace0b31ecdcb44fc106e286eae9acea72b9026369b5f0b5de48dd21a`를 검증했다. 정책과 실행 결정은 독립 영수증이며 기존 Root Governance/CLI와 Campaign writer를 재사용했다.
+
+- 정책 영수증 SHA: `3f4b0d9be1a6c0614658334709a2ff99af741cef5c4896a224b1205700475d24`
+- 실행 영수증 SHA/Attempt ID: `fa4cf30b728b9352bc8467afc0013223510b1f97c3fd2ed6c6047f23d964fda9`
+- 유효기간: `2026-10-28T10:22:44+09:00` ~ `2026-10-28T15:47:27+09:00`. 기존 예산 만료에 맞춰 24시간보다 짧게 제한했다.
+- 비소비 Controller check: CHECKED_NOT_RESERVED. 사용자 전용 Windows Terminal에 Scope를 표시한 뒤 기존 CLI에서 직접 yes와 sudo 인증을 받았다. Codex가 확인 입력이나 비밀번호를 대신 제공하지 않았고 인증 입력은 기록하지 않았다.
+- Ledger: Root 정책 활성화 후28행, Scope 확인 후29행 예약, START_INTENT30행, STARTED31행, SUCCEEDED32행. 기존27행 bytes 불변. 승인된 정책 추가 이벤트와 Root 상태 이벤트 외에 예약/실행을 추가하지 않았다.
+
+### 실제 Namespace·DNS 증거
+
+Root 인증01:23:52.905 UTC, Root 정산01:24:37.963 UTC. 기존 SOC net:[4026532232] 및 Host net:[4026531833] 유지. 내부 인터페이스는 ifindex1 lo만 있고 ioctl lo_up=true다. IPv4 Route는0건이며 IPv6는 lo 행만 존재한다. Worker baseline Socket은 승인된53번 UDP/TCP listener 각1개이며 tcp6/udp6는 없다. Host VS Code Socket과 외부 인터페이스/경로는 내부 Snapshot에 없었다. Host 서비스나 Namespace를 변경하지 않았다.
+
+Socket Namespace Cookie는 READY·Worker baseline/after·Controller READY에서 **`9722000000000000`**로 일치한다(원본8바이트 hex). Root Controller는 UID/GID1000으로 자격을 내리고 READY를 출력했다. 실제 Python Controller main의 정상 기동과는 분리한다.
+
+127.0.0.53:53에서 **UDP2회·TCP1회 Query/Response exact wire 검증**을 통과했다. 실제 Application monotonic timestamp(ns):
+
+| 교환 | 송신 | 응답 |
+|---|---:|---:|
+| UDP1 | 492208859381366 | 492208862052640 |
+| TCP | 492208862127607 | 492208864520135 |
+| UDP2 | 492243864824441 | 492243865146114 |
+
+TCP application close492208864536326ns, 추가 UDP까지 **35.000288115초**. Worker baseline→after **45.001890812초**. 이는 Application DNS 시나리오 시간이며 Kernel Capture Window·Flow Timeout·P02/P03 증명이 아니다.
+
+Worker 완료·종료 및 listener FD 닫힘이 확인됐다. UDP 소켓 잔류0, TCP는 state06/inode0의 커널 TIME_WAIT1건으로 살아 있는 소유 FD 누수와 구분한다. 이후 최소 권한 Controller entry가 같은 Namespace/Cookie를 재검증했다. Root one-use claim은 Replay 방지를 위해 보존한다. 기존 Namespace 삭제/재생성 없음. DNS Sidecar 분석은 NOT_STARTED이므로 실제 분석 Deadline10초를 검증했다고 주장하지 않는다. Capture·DNS9 추론도 수행하지 않았다.
+
+### 후속 Controller 오류 및 비권한 RCA
+
+Root DNS/entry 정산은 SUCCEEDED이나 최종 CLI는 exit2였다. 정확한 stderr는 사용자 터미널에 표시되고 비밀번호 보호를 위해 TTY transcript를 수집하지 않았다. 승인된 동일 `interpreter -I`와 고정 import를 Host 일반 UID에서 실행해 **ModuleNotFoundError: pydantic**을 재현했다. 기본 Python의 canonical 경로를 사용하면서 기존 venv의 site-packages가 사라지는 구성 결함이다. import 실패는 Source/Scope 승인 검사보다 먼저 발생한다. 실환경 traceback 원문 확인 전에는 후속 오류의 다른 가능성을 완전히 배제하지 않는다.
+
+비권한 최소 수정 검증으로 별도의 `ordinary-controller-runtime-candidate`를 표준 venv(symlinks=False, with_pip=False)로 만들고 기존 프로젝트 의존성 경로를 연결했다. 같은 -I/fixed import가 exit0, CONTROLLER_IMPORT_READY를 반환했다. 다운로드·설치·Root·Namespace 진입 없이 검증했으며 canonical executable 검사나 승인 조건을 완화하지 않았다.
+
+**후보 환경은 미승인·미승격 상태**다. 새 Interpreter/context/dependency Identity와 Controller Image·Scope를 확정하고 별도 승인받기 전에는 사용하지 않는다. 기존 실행 이미지/영수증/Native Source1767개는 변경하지 않았다. Root·DNS를 재실행하지 않았으며 실패 결과를 수정하지 않았다. 현재 Native 실행 준비는 여전히 BLOCKED다.
+
+### 예산·Replay·보존 및 후속 조건
+
+Campaign Root **6/10**, Native **4/10**. Batch3 Root **3/4**, Native **1/2**. Root DNS 하위배정 **1/1 소진**, Root 설치 하위배정은1회 남는다. 남은 설치용 Root를 Controller DNS 재실행에 자동 사용하지 않는다. 추가 Controller entry가 필요하면 새 정확한 Artifact와 별도 예산/실행 범위 승인부터 검토해야 한다. 예산 만료2026-10-28T15:47:27+09:00는 유지한다.
+
+소비된 Root 승인에 대한 비소비 check는 ROOT_APPROVAL_REPLAY, 같은 정책 활성화 반복은 ROOT_POLICY_ACTIVATION_REPLAY로 거부됐다. Ledger SHA `e7779f7315f9d3d71c9f91d0846bc4254dfc60217c84ae2be0534501763d567d`/32행, 이전 prefix·체인·보호112개·과거 Native55개·설치/rollback 각9개·기존 사용자 변경 무결성 확인. 새 Native 예약·설치·TCX·Capture·모델·LLM API·보안 대응은0. 소유 자원 검증을 전역 cgroup Cleanup 검증으로 확대하지 않았다. 기존 FAILED·false·Program1145 UNKNOWN·과거 UNKNOWN 예약은 그대로다.
+
+후속 Native에는 Controller 환경 결함의 정식 구성 반영과 새 Binding, 최신 Ledger/새 Session의 인간 R1 위험 수용, 정확한 R2·Root 설치·Native 승인이 필요하다. P02/P03 INCOMPLETE, P04 Native ELIGIBLE0, Native AI·DNS9·운영 승격 BLOCKED 유지. 상세 영수증·실제 증거·RCA와 후보 검증은 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-root-dns-controller-20261028T012244Z`에 보존했다.
