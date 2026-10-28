@@ -479,3 +479,17 @@ These are **guarded, unapproved replacement outputs**, not the previously author
 No Namespace build policy receipt is embedded in these replacement outputs. Activation and policy-embedded output identities require a new exact human decision; the consumed Controller approval and prior exact Native/Source/R1 bindings cannot authorize the modified source. The actual Native attempt remains unstarted and is not automatically retried.
 
 For the deadline, run the private `demo-run-normal.sh` for a fresh actual PCAP/model/Incident/Audit demonstration with no API; run `demo-verify.sh` to reopen both the fresh normal result and historical real API investigation. Live model replay and retained historical LLM verification are explicitly different scopes. Git source changes are limited to the operational installation-identity correction, its four regression cases, and this report.
+
+## Deadline final preparation — 2026-10-28, corrected implementation 37f54a0
+
+이번 작업은 코드 추가·정책 활성화·실제 실행 없이 수정된 준비 경로를 검증했다. `test_failed_release_is_independent_of_current_installation`의 네 경우가 모두 통과했다. Matching current installation은 과거 실패 Artifact와 달라도 준비 검증을 통과하고, 현재 설치본 변경·누락·손상은 차단한다. 이는 Mock 운영 composition 회귀이며 실제 Namespace 내부 check PASS를 의미하지 않는다. 현재 설치본은 기존 `installed_release()`로 실제 Root 소유 파일·의존성을 검증했고, 설치본 `a715e1…`과 과거 실패본 `f5b54f…`을 혼동하지 않았다.
+
+Source1,772개·독립 Export·기존 guarded Stage/A/B와 Wheel·Namespace lease/inode·Controller Python entry·Runtime dependency·RF/LR 모델 핀을 다시 확인했다. Source Snapshot `ce7aaaf2750ceb5fe1db523f1db310f086de3ce7fa4da85cb2c275bd9e02e674` 및 위 guarded Artifact SHA는 변하지 않았다. 현재 Namespace inode4026532232/Host4026531833 유지. 내부 lo/routes/socket-cookie는 이번 작업에서 새 Root 진입으로 관측하지 않았다.
+
+기존 비소비 CLI의 현재 결과는 `ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED / BLOCKED`, reserved=false/executed=false다. GUARDED 경로는 의도대로 실행 전 차단된다. 설치본 혼동 결함 수정 검증과 전체 Native 실행 준비 통과는 별도로 판정한다. Namespace 빌드 정책은 확정된 input binding `546c05d2bca466dc4490241587d455d51a39f131f9da397874cb4d8506edef33`에 대한 정식 승인을 먼저 요구한다. 그 영수증을 빌드에 포함하면 Manifest/Image가 바뀌므로, 아직 없는 policy-embedded execution SHA를 현재 guarded SHA로 대체하거나 승인 대상으로 제시하지 않는다.
+
+모든 남은 결정은 common Git evidence `deadline-final-preparation-20261028T035111Z/approval-package.md`와 JSON 한 묶음에 정리한다. 현재 확정 가능한 Git/Tree/Source/Root Manifest/Namespace/build-policy input과, 정책 영수증 후 실제 출력으로 확정해야 할 개발 계측·Controller·R1·R2·Root 설치·Native 실행 Binding을 구분한다. 현재 필요한 승인 요청은 Namespace 빌드 정책이며 실제 Root/Native/DNS 실행 승인을 포함하지 않는다. 나머지 영수증은 실제 최종 Artifact 및 실행 전 최신 Ledger가 확보된 뒤 기존 계약에 따라 각각 검증한다. 원래 영수증을 변경·재사용하지 않는다.
+
+Ledger47행과 SHA `0ba4e1a153752890bb8eb5827d47fa683d0674c79f518a84183719bba9b77453`는 불변이다. Campaign Native4/Root8, Batch3 Native1/Root5, OBSERVE_ONLY와 과거 집계 유지. 이번 작업의 Root·Native·DNS·예약·새 영수증·예산 소비·API 호출은 모두0이다. 기존 실패·false·UNKNOWN·설치/롤백·보호112개·Native55개·기존 사용자 변경을 보존했다. 새 Native 후보·모델 호출·Incident는 생성하지 않았다. P02/P03/P04 및 Native E2E는 BLOCKED/미검증을 유지한다.
+
+Offline 시연 스크립트 두 개는 원본 SHA 그대로 보존했다. 저장된 실제 PCAP 정상 결과는 실제 RF/LR2개 추론/NORMAL/Incident·Audit의 재열기 검증을 통과했고, 기존 실제 API 조사 결과는 계획·읽기 전용 조사·평가·Incident·Audit의 별도 재열기 검증을 통과했다. 이번 검증의 모델 재호출·새 API 호출은0이다. 정상 결과의 SCRIPTED 설정과 역사적 REAL_API 결과를 구분하며 DNS9 학습 추출 계약 미확보 상태를 유지한다.
