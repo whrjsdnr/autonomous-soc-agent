@@ -296,3 +296,42 @@ Ledger32행 SHA e7779f7315f9d3d71c9f91d0846bc4254dfc60217c84ae2be0534501763d567d
 ## 남은 실제 검증
 
 새 정책의 인간 활성화, 정책 포함 새 Artifact 승인, 최신 R1/R2/Root/Native 권한 및 사용자 Scope/sudo가 필요하다. Controller 실환경 권한 전환은 재검증 대기이며, P02/P03 INCOMPLETE·Native ELIGIBLE0·Native AI/DNS9/운영 승격 BLOCKED는 유지한다. 현재 상태를 실제 Native E2E VERIFIED/READY로 선언하지 않는다.
+
+## 2026-10-28 개발 세션 정책 승인 적용 검증
+
+
+승인자 조건욱(프로젝트 소유자 및 정책 승인권자)의 APPROVED_WITH_CONDITIONS 결정을 기록했다. 접수 기록 2026-10-28T11:17:25.631004+09:00, 24시간 종료 2026-10-29T11:17:25.631004+09:00. 이는 인간 결정 접수 기록이며 활성화 영수증이 아니다.
+
+현재 적용 상태: BLOCKED_INCOMPLETE_ARTIFACT_BINDING. 개발 계측 영수증 미발급, 활성화 이벤트 미기록. 검토된 Git b05b20cc740057c742a90675d0f3250217f9bb51 / Tree d04f3722c285ca8963183cc540aa7d14911ddc51 및 원 승인 자료를 변경하지 않았다.
+
+## 정확한 미충족 항목
+
+원 approval-preparation.json의 development_metering.artifacts는 배열이 아니라 `HUMAN_REVIEWED_FINAL_OPERATIONAL_ARTIFACT_IDENTITIES_REQUIRED; CURRENT_BUILD_IS_GUARDED`다. 기존 DevelopmentPolicy는 최소1개 최대16개의 정확한 Artifact 배열을 요구한다. 원 review-package.md는 새 Namespace 빌드 정책 승인 → 정책 포함 운영 Artifact 확정 → 개발 계측의 최종 목록 승인을 명시한다. 현재 승인은 개발 횟수 계측 정책에 한정되어 별도 Namespace 빌드 정책을 활성화하지 않았다. 현재 guarded 목록으로 바꾸거나 미래 SHA를 임의 승인하지 않았다. 이는 코드 결함으로 인한 차단이 아니므로 운영 코드를 수정하지 않았다.
+
+필요한 추가 결정: 원 승인 자료의 namespace_build_policy.binding과 정확히 일치하는 `SOC_NAMESPACE_SUPERVISOR_BUILD_POLICY_V1` 활성화 승인. 이후 정책 포함 재빌드 결과의 명시적 Artifact 목록을 개발 계측 정책에 결합해야 한다. 현재 개발 계측 인간 결정 자체를 취소하거나 미래 SHA에 확대 적용하지 않는다.
+
+검토 요청 파일: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/development-session-approval-validation-20261028T111725+0900/missing-binding-request.json`
+
+요청 SHA256: `55e9db242eb02759ea74d282cb81efe8c309140406825327a88dd2f056e4c979`
+
+위 파일은 승인 요청이며 영수증이 아니다. Root/Native/DNS/LLM 실행 권한을 포함하지 않는다. Namespace Scope net:[4026532232], Session 3096eab3-609f-4ee3-890c-a99cb6ee5b0d, Release0.6.3; 현재 source/root/runtime/lease/ledger Binding을 JSON에 보존했다.
+
+## 재검증
+
+Source1772개와 독립 Export SHA 일치. 보호112개·과거 Native55개·설치9개·Rollback9개·사용자 변경 유지. Namespace lease/inode4026532232 검증, 진입하지 않았다. 고정 Controller Python -I/-B, 256MiB/CPU20초에서 CONTROLLER_IMPORT_READY, runtime manifest c87a778581e6096f4a9f06b800ea61ae72d7181716f595d59ecdac6fbc689c0c 검증. Root 사용자 전환의 실제 재검증은 PENDING.
+
+비소비 기존 CLI check: ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED / BLOCKED, Source VERIFIED·Runtime BUILD_INTEGRITY_VERIFIED_ONLY. reserved=false, executed=false. Ledger32행 SHA e7779f7315f9d3d71c9f91d0846bc4254dfc60217c84ae2be0534501763d567d 불변. Campaign Native4/10·Root6/10, Batch3 Native1/2·Root3/4. 과거 보고의 Root5/10·2/4보다 실제 Ledger를 우선했다. 기존 Root 배정 만료2026-10-28T15:47:27+09:00은 연장하지 않았다.
+
+정책 포함 신규 운영 Artifact는 생성하지 않았다. 현재 guarded Stage/A/B의 Supervisor26개·Controller2개·Wheel 바이트 일치를 다시 확인했다. 이는 기존 이중 빌드 재검증이며 이번 작업의 신규 이중 빌드 수행으로 보고하지 않는다.
+
+- Source 94d19bd3e62da7f2433b9c5cee2b3593b11b5e203472f1a0d0f47d604314c4fe
+- Manifest b515d8922f430e4004eac67aad8db53bf9d6000d89f180dabd2ff551bc218c42
+- Bundle 3fc2e1f4e9343868e5a7cffa9e8b854bb7f50db3f530f3c2757c2d2931e2c76c
+- Supervisor image aca9c1daa51b21b6268f6e3ef1cefaf56d1bddc388faf7fcb0f89dde474d5bbf
+- Root manifest 55081beed93ca263dc95069eb4a53a771405fdf7132eefc1b89e55f623b7b4a1
+- Controller image a32d1c469903e52f81fc4ee980f8542573a02b06e6102b50f98a0a50a30a58f1
+- Runtime dependency e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4
+
+새 예약·예산 소비·Root·Native·DNS·API 호출0. 기존 FAILED/false/UNKNOWN 및 DNS9 INCOMPLETE를 유지한다. READY_FOR_NATIVE_E2E를 선언하지 않는다. 빌드 정책/최종 Artifact 목록 확인 후 최신 R1 위험 수용, R2 트래픽, Root/Native exact 승인 및 사용자 Scope/sudo가 여전히 필요하다.
+
+이번 승인 적용 검증의 집중 회귀: Workspace **54 PASS(77.85초)** / 독립 Export **54 PASS(77.72초)**. 개발 계측·R1 admission·Controller Python·Namespace 빌드 정책 테스트를 수행했다. Ruff PASS, Format1431개 PASS, Diff PASS. 운영 코드와 Source Snapshot은 변경하지 않았다. 이전 전체1973 PASS/23 SKIP 결과는 과거 기준선이며 이번 전체 재실행으로 집계하지 않는다.
