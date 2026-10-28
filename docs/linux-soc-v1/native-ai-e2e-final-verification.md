@@ -113,3 +113,13 @@ Private evidence: `.git/native-ai-execution-path-20261028-1/` (공통 원본 저
 **코드·비권한 준비 검증은 완료했다.** Controller·Docker 경로의 확인된 구현 결함은 수정됐고, 실행 전 추가 개발을 전제로 남긴 경로는 없다. 다만 현재 Artifact는 정책 미승인 guard 상태이며 `native-recovery check`는 승인 미확보로 BLOCKED를 반환한다. 따라서 **실제 실행 가능한 Artifact라는 의미의 READY_FOR_NATIVE_E2E는 아직 선언하지 않는다.** 정책·새 SHA·R1/R2·Root/Native 승인을 확인한 뒤 실제 실행 준비 상태를 재판정한다. Controller·Docker의 실환경 동작은 PENDING이며 P02·P03·P04와 별개다.
 
 Git Push는 보고서 Commit 후 remote HEAD 일치로 확인하며, 실제 실행을 시작하는 터미널이나 사용자 인증 요청은 생성하지 않는다.
+
+## 2026-10-28 10:09 KST 최종 승인 사전 검증
+
+최종 검토 코드 HEAD `773fbed2dd8dd41c8b13e21174f98b8c4b06dcc0`, Tree `7db4bf948f4c46f6cadc7da1880848d6304a085c`의 Source1767개와 설치·Rollback 각9개를 재검증했다. 보호 증거112개·과거 Native55개와 Ledger26행도 불변이다. Namespace lease/inode4026532232와 Host4026531833을 확인했으며 내부 진입은 하지 않았다. Runtime dependency Identity는 기존 핀과 일치한다.
+
+기존 CLI `native-recovery check`의 현재 결과는 `BLOCKED / ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED`이며 reserved=false, executed=false다. 이번 요청은 실행 승인을 대신하지 않으므로 정책 영수증을 발급하지 않았다. Root·Native·DNS·API·예약·승인 소비는 모두0이다. Campaign Native4/10·Root5/10, Batch3 Native1/2·Root2/4를 유지한다.
+
+단일 승인 검토 자료: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-ai-final-approval-20261028T010926Z/approval-package.md`. 기계 검증 요청서 `approval-package.json` SHA256 `b600018fd45498b48d9598fb941e33c1876b797d71d87170c72a6631a1a26a70`. 현재 필요한 결정은 정확한 Namespace 빌드 정책 Binding의 활성화뿐이다. 정책 영수증 포함 후 이미지 SHA가 변경되므로 현재 Guarded SHA의 실행 승인은 요청하지 않는다. 비권한 재빌드 후 새로운 SHA·Session·Scope로 Root DNS/Controller 승인을 요청하고, 그 정산 이후 최신 Ledger에 맞춘 R1/R2·Root 설치·Native 승인을 독립 검증한다.
+
+현재 검토 Session `a9ac5504-15f8-402d-bf5e-a3416c0ee77b`, Release0.6.3. 정확한 모델 분석 입력은 Capture 이후에만 확정 가능하며 기존 MEDIUM 분석 승인을 생략하지 않는다. 실제 이상에 대한 API 계획·평가의 최대2회 호출 제한을 유지한다. Native E2E·Controller·Docker 실환경은 PENDING이며 READY를 선언하지 않는다. 코드 변경은 없어 기존 Workspace/Export1707 PASS·재현 빌드 증거를 재사용했다.
