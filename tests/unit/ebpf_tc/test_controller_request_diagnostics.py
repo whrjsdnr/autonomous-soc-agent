@@ -176,7 +176,7 @@ def test_real_controller_dispatches_real_cli_and_preserves_inner_origin(context)
     previous = Path(data["ack"]).with_suffix(".controller-result.json").read_bytes()
     # Re-reading an ACK grants nothing; existing receipt/admission validation
     # still runs, and an exclusive diagnostic cannot overwrite first evidence.
-    with pytest.raises(SystemExit):
+    with pytest.raises(ValueError, match="READY_DIAGNOSTIC_UNAVAILABLE"):
         controller.child_main(data)
     assert Path(data["ack"]).with_suffix(".controller-result.json").read_bytes() == previous
     assert ledger.read_bytes() == before and json.loads(ack.read_bytes())["ledger_sha"] == sha(
@@ -193,3 +193,81 @@ def test_cancel_records_normal_exit_without_admission(context, monkeypatch):
     assert result["status"] == "CANCELLED_BEFORE_NATIVE_ADMISSION" and result["returncode"] == 0
     assert "first_failure" not in result and result["frames"] == []
     assert ledger.read_bytes() == before
+
+
+def test_ack_verified_marker_precedes_new_request_and_append(context, monkeypatch):
+    data, ledger, _, _ = context
+    before = ledger.read_bytes()
+
+    def operator(_prompt):
+        ready = json.loads(Path(data["ack"]).with_suffix(".controller-ready.json").read_bytes())
+        assert ready["stage"] == "REQUEST_INPUT"
+        assert ready["ledger_at_ack"]["sha256"] == sha(before)
+        assert ready["root_entry"]["state"] == "SUCCEEDED"
+        append(ledger, event="SYNTHETIC_LATER_R1")
+        return sha(Path(data["request_file"]).read_bytes())
+
+    monkeypatch.setattr("builtins.input", operator)
+    with pytest.raises(SystemExit):
+        controller.child_main(data)
+    result = outcome(data)
+    assert result["ack_ledger_sha"] == sha(before)
+    assert result["ledger_at_request"]["rows"] == 3
+    assert result["ledger_at_ack"]["rows"] == 2
+    # This case only proves the ACK/request handoff; absent synthetic metadata
+    # still blocks the real CLI. Actual stale admission has a separate test.
+    assert result["stage"] == "NATIVE_CHECK"
+
+
+def test_first_error_is_durable_before_controller_unwinds(tmp_path, monkeypatch):
+    data = dict(attempt="synthetic-attempt", ack=str(tmp_path / "ack.json"))
+
+    def child(_config, state, observe):
+        state["stage"] = "NATIVE_CHECK"
+        observe(dict(status="BLOCKED", error="FIRST_ERROR"))
+        first = tmp_path / "ack.controller-first-error.json"
+        snapshot = json.loads(first.read_bytes())
+        assert snapshot["first_failure"]["error"] == "FIRST_ERROR"
+        assert snapshot["status"] == "FIRST_ERROR_OBSERVED_EXIT_PENDING"
+        assert snapshot["returncode"] is None
+        observe(dict(status="BLOCKED", error="SECOND_ERROR"))
+        assert json.loads(first.read_bytes())["first_failure"]["error"] == "FIRST_ERROR"
+        raise SystemExit(2)
+
+    monkeypatch.setattr(controller, "_child_main", child)
+    with pytest.raises(SystemExit):
+        controller.child_main(data)
+
+
+def test_native_primary_error_survives_cleanup_and_outer_exit(tmp_path, monkeypatch):
+    data = dict(attempt="synthetic-attempt", ack=str(tmp_path / "ack.json"))
+
+    def child(_config, state, observe):
+        state["stage"] = "NATIVE_EXECUTE"
+        observe(
+            dict(
+                first_failure=dict(
+                    original_code="TCX_START_FAILED:-1",
+                    stage="TCX_START",
+                    errno=13,
+                    return_value=-1,
+                    private_text="not persisted",
+                ),
+                cleanup_status="CLEANUP_UNVERIFIED",
+            )
+        )
+        first = json.loads((tmp_path / "ack.controller-first-error.json").read_bytes())
+        assert first["first_failure"]["error"] == "TCX_START_FAILED:-1"
+        assert first["first_failure"]["stage"] == "TCX_START"
+        assert first["returncode"] is None
+        observe(dict(status="BLOCKED", error="LATER_CLEANUP_ERROR"))
+        raise SystemExit(1)
+
+    monkeypatch.setattr(controller, "_child_main", child)
+    with pytest.raises(SystemExit):
+        controller.child_main(data)
+    result = outcome(data)
+    assert result["returncode"] == 1 and result["first_failure"]["errno"] == 13
+    assert result["first_failure"]["return_value"] == -1
+    assert result["native_cleanup"] == "CLEANUP_UNVERIFIED"
+    assert "not persisted" not in json.dumps(result)

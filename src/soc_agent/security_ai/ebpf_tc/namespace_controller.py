@@ -206,6 +206,27 @@ def _read_ack(path: Path) -> dict:
     return value
 
 
+def _write_diagnostic(config: dict, suffix: str, state: dict) -> None:
+    # Diagnostic only: never an approval, reservation or replacement ACK.
+    path = Path(config["ack"]).with_suffix(suffix)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600)
+    with os.fdopen(fd, "wb") as stream:
+        stream.write(canonical(state))
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def _preserve_first_error(config: dict, state: dict) -> None:
+    try:
+        snapshot = dict(state)
+        if snapshot["status"] == "RUNNING":
+            snapshot.update(status="FIRST_ERROR_OBSERVED_EXIT_PENDING", returncode=None)
+        _write_diagnostic(config, ".controller-first-error.json", snapshot)
+    except OSError as exc:
+        # The original failure and first evidence must survive secondary errors.
+        print("NAMESPACE_CONTROLLER_DIAGNOSTIC_WRITE_FAILED:" + type(exc).__name__)
+
+
 def child_main(config: dict):
     """Preserve the first structured failure without recording authentication I/O."""
     state = dict(
@@ -234,6 +255,26 @@ def child_main(config: dict):
             )
             if "failure_origin" in result:
                 state["first_failure"]["origin"] = result["failure_origin"]
+            _preserve_first_error(config, state)
+        elif "first_failure" not in state and isinstance(result.get("first_failure"), dict):
+            first = result["first_failure"]
+            code = first.get("original_code")
+            symbolic = isinstance(code, str) and re.fullmatch(
+                r"(?:ZEEK|HANDOFF|SUPERVISOR|TCX|EBPF)_[A-Z0-9_]{1,100}(?::-[0-9]{1,5})?", code
+            )
+            state["first_failure"] = dict(
+                status="NATIVE_FAILURE",
+                error=code if symbolic else None,
+                stage=_safe_code(first.get("stage")),
+                errno=first.get("errno") if type(first.get("errno")) is int else None,
+                return_value=first.get("return_value")
+                if type(first.get("return_value")) is int
+                else None,
+            )
+            _preserve_first_error(config, state)
+        elif "first_failure" not in state and _safe_code(result.get("last_error")):
+            state["first_failure"] = dict(status="NATIVE_FAILURE", error=result["last_error"])
+            _preserve_first_error(config, state)
 
     try:
         result = _child_main(config, state, observe)
@@ -251,19 +292,13 @@ def child_main(config: dict):
         )
         if state["returncode"] != 0 and "first_failure" not in state:
             state["first_failure"] = dict(error=_safe_code(str(exc)))
+            _preserve_first_error(config, state)
         raise
     finally:
         state["ledger_at_exit"] = _ledger_observation(config)
         # One private, exclusive outcome per attempt. Never replace earlier evidence.
-        path = Path(config["ack"]).with_suffix(".controller-result.json")
         try:
-            fd = os.open(
-                path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600
-            )
-            with os.fdopen(fd, "wb") as stream:
-                stream.write(canonical(state))
-                stream.flush()
-                os.fsync(stream.fileno())
+            _write_diagnostic(config, ".controller-result.json", state)
         except OSError as exc:
             # Keep the original exception/exit; diagnostic failure is secondary.
             print("NAMESPACE_CONTROLLER_DIAGNOSTIC_WRITE_FAILED:" + type(exc).__name__)
@@ -316,6 +351,13 @@ def _child_main(config: dict, state: dict, observe):
         raise TimeoutError("NAMESPACE_CONTROLLER_OPERATOR_TIMEOUT")
 
     state["stage"] = "REQUEST_INPUT"
+    # Persist proof that the strict ACK snapshot has been checked BEFORE a new
+    # R1/request is prepared. Operators can observe this; it grants no authority.
+    # One fixed Controller permits one request (existing request_attempts=1).
+    try:
+        _write_diagnostic(config, ".controller-ready.json", state)
+    except OSError as exc:
+        raise ValueError("NAMESPACE_CONTROLLER_READY_DIAGNOSTIC_UNAVAILABLE") from exc
     previous = signal.signal(signal.SIGALRM, expired)
     signal.alarm(300)
     try:
@@ -325,6 +367,22 @@ def _child_main(config: dict, state: dict, observe):
     finally:
         signal.alarm(0)
         signal.signal(signal.SIGALRM, previous)
+    args = check_request(config, pin, state, observe)
+    from soc_agent.security_ai.ebpf_tc.operational_recovery import main
+
+    # Existing execute performs its own non-consuming check, foreground Scope
+    # confirmation before reservation and fresh sudo. No reused Root entry grant.
+    state["stage"] = "NATIVE_EXECUTE"
+    state["native_cleanup"] = "UNKNOWN_UNTIL_EXECUTION_RESULT"
+    raise SystemExit(main(["execute", *args], result_observer=observe))
+
+
+def check_request(config: dict, pin: str, state: dict, observe) -> list[str]:
+    """The ordinary Controller's exact non-consuming request/check path.
+
+    Shared by the child and non-privileged integration qualification. Returning
+    arguments is not admission: execute must repeat all checks and OS approval.
+    """
     state["stage"] = "REQUEST_BINDING"
     state["request_sha256"] = pin
     state["ledger_at_request"] = _ledger_observation(config)
@@ -344,11 +402,7 @@ def _child_main(config: dict, state: dict, observe):
     state["stage"] = "NATIVE_CHECK"
     if main(["check", *args], result_observer=observe) != 0:
         raise SystemExit(2)
-    # Existing execute performs its own non-consuming check, foreground Scope
-    # confirmation before reservation and fresh sudo. No reused Root entry grant.
-    state["stage"] = "NATIVE_EXECUTE"
-    state["native_cleanup"] = "UNKNOWN_UNTIL_EXECUTION_RESULT"
-    raise SystemExit(main(["execute", *args], result_observer=observe))
+    return args
 
 
 def run_packet(mode: str, directory: Path, packet: dict) -> dict:
