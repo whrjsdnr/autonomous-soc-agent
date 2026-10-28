@@ -653,3 +653,51 @@ Controller preparation Session `d7694f9d-c74d-4bc6-8961-43689931cef8`, Release `
 Ledger55행과 기존 증거36개 SHA 불변. Campaign Root9/Native4, Batch3 Root6/Native1의 기존 집계·OBSERVE_ONLY 기록 유지. 기존 설치·Rollback·실패/false/UNKNOWN 기록에 대한 수정 명령은 수행하지 않았다. Native 실패킷·적격 후보·AI 호출·Incident 증거는 새로 생성하지 않았다. 과거 Offline/실제 LLM 결과와 Native 미검증을 계속 분리한다.
 
 Private evidence: `.git/controller-request-recovery-20261028T052728Z/`: `artifact-identity.json`, `approval-readiness-review.json`, `synthetic-reproduction-results.json`(Synthetic 명시), `verification.json`, Source Snapshot/Export, Stage/A/B 파일별 SHA. 새 승인·예산 프레임워크 또는 자동 재실행 기능은 추가하지 않았다.
+
+
+## Final Controller execution-path stabilization — 2026-10-28 (no privileged execution)
+
+**판정: 실제 운영 요청/CLI의 비권한 정상 경로 검증 완료, 실제 Native는 GUARDED/BLOCKED. 과거 Exit2 최초 원인은 UNKNOWN 유지.** 운영 수정 Git `c5ec092aebb4d457edb0a482273338f46ca02cdb`, 검증 fixture 수정까지 포함한 고정 Git `3efb669fa0bbd058c78523bf08339774ad0af8f7`, Tree `ea8e88c1defd684396b494c491ec9a87dd72499c`다. 실제 Root 설치·Namespace 진입·Native·DNS·sudo·예약·영수증 소비·LLM API 호출은 모두0이다. 기존 성공 Root/DNS/Controller 실행은 재실행하지 않았다.
+
+### ACK / Ledger의 정상 순서
+
+| 시점 | 검사 및 Head 계약 |
+|---|---|
+| DNS Root 작업 정산 | `ROOT_OPERATION_FINISHED_V1/SUCCEEDED`까지 포함한 Head54에서 부모가 ACK 생성 |
+| 일반 사용자 Controller | ACK의 전체 SHA와 현재 Ledger/chain을 엄격히 확인한 뒤 요청 준비 가능 상태 기록 |
+| 인간 R1 및 요청 생성 | ACK 확인 후 새 R1을 append하여 Head55에 결합된 정확한 요청 생성 |
+| Native preview | 기존 R1/amendment·receipt·Scope·Replay·예산 검증이 현재 Head55를 요구 |
+| 실제 실행 | check 재검증 및 사용자 Scope 확인 이후에만 기존 원자적 예약 경로 사용; 이번 작업은 미수행 |
+
+Root engine의 기존 `NAMESPACE_CONTROLLER_READY` 출력은 credentials/Namespace 진입 증거이며 **child의 ACK 검증 완료 증거가 아니었다**. Root SUCCEEDED 행만 보고 R1 append를 시작하면 ACK 읽기와 경합할 수 있다. 이 가능성은 실제 과거 최초 오류로 확정하지 않는다. ACK 검증 이전의 append는 정상 정산이든 다른 이벤트든 `DNS_LEDGER_SHA`로 차단된다. Root 정산 자체는 ACK에 이미 포함되어야 한다. ACK 검증 후 새 인간 R1 기록과 요청 작성은 정상 순서이고, R1 이후 다른 append는 `REASSESSMENT_ADMISSION_STALE_LEDGER`를 요구하는 기존 계약에 따라 차단된다. 이벤트 allowlist, prefix 허용, SHA 갱신·ACK 재발급·영수증 재사용은 추가하지 않았다. read-only preview 반복은 허용되지만 실행 권한이나 소비 상태를 변경하지 않는다.
+
+### 확인된 결함과 최소 수정
+
+기존 구조화 오류는 메모리에서 잡힌 뒤 Controller가 종료될 때에만 파일로 저장되어, 종료 전에 후속 오류가 생기면 최초 증거 보존이 늦었다. 이제 `namespace_controller.py`가 최초 오류 관측 즉시 `*.controller-first-error.json`을 0600·exclusive/no-follow·fsync로 기록한다. 아직 실제 종료를 보지 않은 시점에는 returncode를 **null/EXIT_PENDING**으로 남기고 정상 종료코드0을 만들어내지 않는다. 최종 `*.controller-result.json` 및 부모 content-addressed 증거가 실제 종료를 별도로 보존한다. Supervisor의 `first_failure`/`last_error`도 고정 symbolic code·원래 stage·errno·return value만 전달하여 후속 Cleanup이나 바깥 Exit1/2로 대체하지 않는다. 임의 예외 원문·TTY 입력·비밀번호·API 키는 저장하지 않는다.
+
+ACK 검증 직후 `*.controller-ready.json`에 REQUEST_INPUT·검증한 Ledger SHA·Root 정산 증거를 기록하여, **새 R1/요청 준비 전에 ACK 확인 완료를 관측할 수 있게 했다**. 이는 진단 파일이지 승인·예약·새 ACK가 아니다. 기존 request_attempts=1 계약에 따라 같은 Controller/ACK의 중복 요청 진입은 실패하며 기존 오류 파일은 덮어쓰지 않는다. 파일 저장 실패로 원래 최초 오류를 교체하지 않는다. SIGKILL·저장장치 오류처럼 관측/기록할 수 없는 종료는 성공으로 추정하지 않고 UNKNOWN으로 남겨야 한다.
+
+Controller의 held request·target·source·실제 CLI check 경로를 `check_request`로 추출하여 **child가 사용하는 동일 함수**로 직접 검증했다. 새 테스트는 임시 compile-only 실제 Namespace 이미지와 실제 dependency/manifest/image 검사, 실제 Git·R1/R2·management receipt·임시 chain·`preview_reservation`을 사용한다. Domain validator 결과나 CLI를 Mock하지 않았다. Namespace/lease 관측과 Root 소유권 파일 경계만 테스트로 대체했다. 임시 Synthetic 승인/과거 실패 기록은 production 승인이 아니며 실제 Ledger에 기록하지 않는다.
+
+정상 요청과 반복 비소비 요청은 `EXECUTION_READY`, 예약/claim/설치/Capture는0이다. stale Ledger=`REASSESSMENT_ADMISSION_STALE_LEDGER`, 잘못된 승인 SHA=`RECEIPT_SHA_MISMATCH`, Session/Release 불일치=`R2_APPROVAL_BINDING_OR_EXPIRY`, 소비된 R2 claim=`R2_CLAIM_ALREADY_EXISTS`, Host/SOC Scope 차이=`PHASE_D_COLLECTOR_SCOPE_MISMATCH`를 실제 CLI에서 확인했다. 별도 실제 child 재현은 ACK 확인→ready 파일→새 append→request 순서, malformed/duplicate ACK, 원래 실패의 즉시 저장 및 후속 Cleanup 오류와 종료 코드 분리를 검증한다. **이 결과는 실환경 Native 또는 privileged Namespace check의 성공 증거가 아니다.**
+
+### 검증과 최종 Guarded Artifact
+
+Workspace/독립 Export 핵심 회귀 **각163 PASS**. Namespace Mock이 파일 경로 조회까지 대체하던 테스트 fixture를 `/proc/self/ns/net`만 대체하도록 보완한 후 해당 실제 요청/CLI8개 사례를 **Workspace/Export 각각8 PASS**로 재확인했다. Ruff·Format·Diff PASS. Supervisor Stage/Workspace/Export **26/26** 동일, Controller **2/2** 동일. 운영 코드는 고정했으며 fixture 수정 이후 Supervisor bytes는 그대로 검증하고 Source inventory/Controller metadata만 갱신했다. 이전 당일 생성 결과는 `superseded-before-namespace-test-fix/`에 보존했다. 새 승인 영수증은 발급하지 않았다.
+
+Native AI adapter 회귀는 불완전/미승인 Native 입력의 추론 차단을 유지한다. Synthetic TCX Feature의 별도 fixture에서는 실제 RF/LR 각1회(각 회귀2 Prediction)·Incident·Audit와 SCRIPTED 조사를 확인했고 실제 API0, 실제 Native 추론0이다. 역사적 실제 PCAP/LLM 결과와 구분한다. P02/P03은 미검증, 실제 Native Network14 ELIGIBLE0, DNS9는 기존 학습 추출 계약 미완성으로 차단 유지다. 모델 Artifact SHA는 RF `53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603`, LR `661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882`로 보존했다.
+
+Source Snapshot1,774개 SHA `d78d5f26fe3a38dcb80c56707582cd53d4c0abbe1528d9d649fd3f5a738d244d`(파일 SHA `43aa19adea89ba5d1415fd59b5290e815c784737f12bf2f1e23699d1c669002d`), 실제 Namespace `net:[4026532232]`/Host `net:[4026531833]`, Lease SHA `24b1102b173985056043d3727121c40b4c57fe71f7486affcc32e8718d105c9e` 유지. Runtime Dependency `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4`, 고정 Controller Python runtime `c87a778581e6096f4a9f06b800ea61ae72d7181716f595d59ecdac6fbc689c0c`(pydantic2.13.5/124개 핀/-I -B) 검증. Controller 준비 Session `6a3fced6-dd7f-480e-9cb5-2f16b6b5a0ed`, Release0.6.3. Native Session은 정책 포함 최종 Artifact 후 공식 준비 경로에서 확정하며 임의 값을 만들지 않았다.
+
+| Guarded 산출물 | SHA256 |
+|---|---|
+| Manifest | `7003b5df91ef86d79188620399a43d7e8111dfdd00161e9e0e6d04e723564891` |
+| Bundle | `e4ebc6402d9873b660e5316df415d8a830ed3f4fb2f3a69725d5766221867d52` |
+| Execution Image | `764a9e55e11b8d5e16697df3ee2f77b7c94102976c9de091b61cbfb4df0a3a14` |
+| Root Manifest | `9180deb3d9e0dba72100578157a9215208b2ff19cdd4ab0f6904d5f1baf29a1b` |
+| Controller Manifest | `578fb0fb700f0a4a04216ed1281adb4858da640b1fcf08701af7001166196fb5` |
+| Controller Image | `d9de2795177f1db427b19a730ae05ef898ffa385b79b2baac8ffe01e07857df6` |
+
+비소비 check는 SOURCE_VERIFIED/BUILD_INTEGRITY_VERIFIED_ONLY 이후 `ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED`, reserved=false/executed=false다. Namespace 빌드 정책 입력 SHA `d6bf8b1dc911ccf68f57add110e17dd32d756b2b691a9e3da932f5628d199405`를 기존 요청 형식으로 고정했다. **정책 포함 최종 실행 SHA는 인간 빌드 승인 전에는 확정할 수 없으며, 위 Guarded SHA를 실행 승인에 재사용하지 않는다.** 필요한 순서는 기존 Namespace 빌드 정책의 별도 인간 승인 → 정책 포함 재빌드/최종 SHA → 새 Binding의 계측·R1/R2·필요한 Root/Native 승인 → Namespace 내부 비소비 check·Scope·OS 인증이다. 새 정책·예산 프레임워크나 자동 실행은 추가하지 않았다.
+
+Ledger55행 SHA `5efdeeb3eb0802b4123e4eeb61a14b9027a63f992f1351fdc52783f2fcf2fe88`, 기존36개 실행 증거 SHA 불변. Campaign Root9/Native4, Batch3 Root6/Native1의 기존 기록·OBSERVE_ONLY·설치·Rollback·FAILED/false/UNKNOWN을 보존했다. Private 증거 `.git/controller-path-stabilization-20261028T054329Z/`: `real-cli-synthetic-admission-results.json`, `verification.json`, `artifact-identity.json`, `model-artifact-identity.json`, `approval-readiness-review.json`, Source Snapshot/Export 및 빌드 파일별 SHA. 최종 Git/Tree 검토 Binding은 문서-only 결과 Commit 이후 별도로 명시한다.
