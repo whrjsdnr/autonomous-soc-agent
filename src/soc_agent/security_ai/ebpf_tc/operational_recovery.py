@@ -3,6 +3,7 @@
 import argparse
 import json
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 from soc_agent.security_ai.ebpf_tc import phase_d
@@ -170,7 +171,12 @@ def readiness(
     )
 
 
-def main(argv=None) -> int:
+def main(argv=None, *, result_observer: Callable[[dict], None] | None = None) -> int:
+    def emit(result: dict) -> None:
+        if result_observer is not None:
+            result_observer(result)
+        print(json.dumps(result, indent=2))
+
     from soc_agent.security_ai.ebpf_native.contracts import local_controller
     from soc_agent.security_ai.ebpf_tc.recovery_policy import RecoveryBuild
 
@@ -245,7 +251,7 @@ def main(argv=None) -> int:
                 directory,
                 held_json(args.namespace_controller_file, args.namespace_controller_sha),
             )
-            print(json.dumps(result, indent=2))
+            emit(result)
             return (
                 0
                 if result.get("status") not in {"BLOCKED", "FAILED", "UNKNOWN"}
@@ -265,7 +271,7 @@ def main(argv=None) -> int:
             ):
                 raise ValueError("NAMESPACE_PREVIEW_PREPARE_ONLY_NO_GRANTS")
             result = phase_d.prepare_namespace_preview(directory, args.namespace_preview)
-            print(json.dumps(result, indent=2))
+            emit(result)
             return 0
         if args.dns_operation_file is not None or args.dns_operation_sha is not None:
             from soc_agent.security_ai.ebpf_tc.dns_diagnostic import run_packet
@@ -275,7 +281,7 @@ def main(argv=None) -> int:
                 raise ValueError("DNS_OPERATION_PACKET_PIN_REQUIRED")
             packet = held_json(args.dns_operation_file, args.dns_operation_sha)
             result = run_packet(args.mode, directory, packet)
-            print(json.dumps(result, indent=2))
+            emit(result)
             return 0 if result.get("status") not in ("BLOCKED", "FAILED", "UNKNOWN") else 2
         if args.request_file is not None or args.request_sha is not None:
             from soc_agent.security_ai.ebpf_tc.execution_request import load_request
@@ -462,24 +468,19 @@ def main(argv=None) -> int:
                 failed = bool(result.get("last_error") or result.get("first_failure")) or (
                     result.get("cleanup_status") != "PROCESS_AND_AUDIT_VERIFIED"
                 )
-                print(json.dumps(result, indent=2))
+                emit(result)
                 return 1 if failed else 0
             elif args.mode == "execute":
-                print(json.dumps(result, indent=2))
+                emit(result)
                 return 2
     except (ValueError, OSError) as exc:
-        print(
-            json.dumps(
-                dict(
-                    status="BLOCKED",
-                    error=str(exc),
-                    errno=getattr(exc, "errno", None),
-                    executed=False,
-                )
+        emit(
+            dict(
+                status="BLOCKED", error=str(exc), errno=getattr(exc, "errno", None), executed=False
             )
         )
         return 2
-    print(json.dumps(result, indent=2))
+    emit(result)
     return 0 if result.get("status") != "BLOCKED" else 2
 
 

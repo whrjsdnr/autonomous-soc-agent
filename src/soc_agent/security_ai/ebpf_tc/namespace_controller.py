@@ -8,11 +8,13 @@ must obtain its own exact approvals and fresh OS authentication.
 import hashlib
 import json
 import os
+import re
 import select
 import signal
 import socket
 import subprocess
 import time
+import traceback
 from pathlib import Path
 
 from soc_agent.security_ai.ebpf_native.contracts import (
@@ -159,7 +161,56 @@ def verify_python_entry(config: dict):
         raise ValueError("NAMESPACE_CONTROLLER_PYTHON_DEPENDENCIES")
 
 
+def _safe_code(value: object) -> str | None:
+    # Never persist terminal input, arbitrary exception text, paths or secrets.
+    return (
+        value if isinstance(value, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{0,127}", value) else None
+    )
+
+
 def child_main(config: dict):
+    """Preserve the first structured failure without recording authentication I/O."""
+    state = dict(stage="CONTROLLER_PREFLIGHT", attempt=config["attempt"])
+
+    def observe(result: dict) -> None:
+        if result.get("status") == "BLOCKED" and "first_failure" not in state:
+            state["first_failure"] = dict(
+                status="BLOCKED",
+                error=_safe_code(result.get("error")),
+                errno=result.get("errno") if type(result.get("errno")) is int else None,
+            )
+
+    try:
+        return _child_main(config, state, observe)
+    except BaseException as exc:
+        state["exception_class"] = type(exc).__name__
+        state["frames"] = [
+            dict(file=Path(frame.filename).name, function=frame.name, line=frame.lineno)
+            for frame in traceback.extract_tb(exc.__traceback__)[-12:]
+        ]
+        state["returncode"] = (
+            exc.code if isinstance(exc, SystemExit) and isinstance(exc.code, int) else 1
+        )
+        if state["returncode"] != 0 and "first_failure" not in state:
+            state["first_failure"] = dict(error=_safe_code(str(exc)))
+        raise
+    finally:
+        # One private, exclusive outcome per attempt. Never replace earlier evidence.
+        path = Path(config["ack"]).with_suffix(".controller-result.json")
+        try:
+            fd = os.open(
+                path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW | os.O_CLOEXEC, 0o600
+            )
+            with os.fdopen(fd, "wb") as stream:
+                stream.write(canonical(state))
+                stream.flush()
+                os.fsync(stream.fileno())
+        except OSError as exc:
+            # Keep the original exception/exit; diagnostic failure is secondary.
+            print("NAMESPACE_CONTROLLER_DIAGNOSTIC_WRITE_FAILED:" + type(exc).__name__)
+
+
+def _child_main(config: dict, state: dict, observe):
     """Ordinary Namespace Controller; no Root authority FD or privileged import."""
     local_controller()
     verify_sources(config)
@@ -177,6 +228,7 @@ def child_main(config: dict):
     value = json.loads(read_held(ack, owner=os.getuid(), limit=65536))
     from soc_agent.security_ai.ebpf_tc.dns_diagnostic_engine import dns_held_json_ledger
 
+    state["stage"] = "SETTLEMENT_LEDGER"
     rows = dns_held_json_ledger(config["ledger"], value["ledger_sha"], os.getuid())
     events = [r for r in rows if r.get("attempt_id") == config["attempt"]]
     if (
@@ -195,6 +247,7 @@ def child_main(config: dict):
     def expired(*_):
         raise TimeoutError("NAMESPACE_CONTROLLER_OPERATOR_TIMEOUT")
 
+    state["stage"] = "REQUEST_INPUT"
     previous = signal.signal(signal.SIGALRM, expired)
     signal.alarm(300)
     try:
@@ -204,6 +257,7 @@ def child_main(config: dict):
     finally:
         signal.alarm(0)
         signal.signal(signal.SIGALRM, previous)
+    state["stage"] = "REQUEST_BINDING"
     request = held_json(Path(config["request_file"]), pin)
     if any(request.get(k) != v for k, v in config["target"].items()):
         raise ValueError("NAMESPACE_CONTROLLER_EXECUTION_TARGET_CHANGED")
@@ -217,11 +271,13 @@ def child_main(config: dict):
         "--request-sha",
         pin,
     ]
-    if main(["check", *args]) != 0:
+    state["stage"] = "NATIVE_CHECK"
+    if main(["check", *args], result_observer=observe) != 0:
         raise SystemExit(2)
     # Existing execute performs its own non-consuming check, foreground Scope
     # confirmation before reservation and fresh sudo. No reused Root entry grant.
-    raise SystemExit(main(["execute", *args]))
+    state["stage"] = "NATIVE_EXECUTE"
+    raise SystemExit(main(["execute", *args], result_observer=observe))
 
 
 def run_packet(mode: str, directory: Path, packet: dict) -> dict:
@@ -401,6 +457,7 @@ def _execute(directory, packet, binding, config, campaign, fields):
         # The Root entry is finished. Only an ordinary Controller remains; its
         # eventual Native reservation/settlement uses the independent old path.
         code = process.wait(timeout=750)
+        evidence(dict(state="CONTROLLER_EXITED", returncode=code, attempt=attempt))
         return dict(
             status="CONTROLLER_EXITED",
             returncode=code,

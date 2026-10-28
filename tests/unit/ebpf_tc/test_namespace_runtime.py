@@ -432,8 +432,9 @@ def test_controller_capsule_uses_existing_root_dns_validator_and_cannot_run_unpr
 
 
 @pytest.mark.parametrize("settled", [False, True])
+@pytest.mark.parametrize("check_code", [0, 2])
 def test_ordinary_controller_requires_settlement_and_fresh_request_before_existing_cli(
-    tmp_path, monkeypatch, settled
+    tmp_path, monkeypatch, settled, check_code
 ):
     from soc_agent.security_ai.ebpf_tc import dns_diagnostic_engine, operational_recovery
 
@@ -476,7 +477,15 @@ def test_ordinary_controller_requires_settlement_and_fresh_request_before_existi
         ],
     )
     calls = []
-    monkeypatch.setattr(operational_recovery, "main", lambda args: calls.append(args[0]) or 0)
+
+    def cli(args, **kwargs):
+        calls.append(args[0])
+        if args[0] == "check" and check_code:
+            kwargs["result_observer"](dict(status="BLOCKED", error="SYNTHETIC_SCOPE_FAILURE"))
+            return check_code
+        return 0
+
+    monkeypatch.setattr(operational_recovery, "main", cli)
     monkeypatch.setattr(
         "builtins.input", lambda *_: pin if settled else pytest.fail("No prompt before settlement")
     )
@@ -487,7 +496,12 @@ def test_ordinary_controller_requires_settlement_and_fresh_request_before_existi
     else:
         with pytest.raises(SystemExit) as done:
             controller.child_main(data)
-        assert done.value.code == 0 and calls == ["check", "execute"]
+        assert done.value.code == check_code
+        assert calls == (["check"] if check_code else ["check", "execute"])
+        outcome = json.loads((tmp_path / "ack.controller-result.json").read_bytes())
+        if check_code:
+            assert outcome["first_failure"]["error"] == "SYNTHETIC_SCOPE_FAILURE"
+            assert outcome["stage"] == "NATIVE_CHECK"
         # These calls are mocked existing CLI dispatch only, not Native execution.
 
 
@@ -589,3 +603,82 @@ def test_git_drift_during_scope_confirmation_never_reserves(monkeypatch, tmp_pat
     )
     with pytest.raises(ValueError, match="GIT_CHANGED_AFTER_CONFIRMATION"):
         controller._execute(tmp_path, {}, bound, dict(scope={}, controller=data), ledger, {})
+
+
+@pytest.mark.parametrize("code", [0, 2])
+def test_controller_retains_first_structured_failure_and_true_exit(tmp_path, monkeypatch, code):
+    data = dict(attempt="synthetic-attempt", ack=str(tmp_path / "ack.json"))
+
+    def child(_config, state, observe):
+        state["stage"] = "NATIVE_CHECK"
+        if code:
+            observe(dict(status="BLOCKED", error="FIRST_FAILURE", errno=13))
+            observe(dict(status="BLOCKED", error="LATER_FAILURE", errno=2))
+        raise SystemExit(code)
+
+    monkeypatch.setattr(controller, "_child_main", child)
+    with pytest.raises(SystemExit) as stopped:
+        controller.child_main(data)
+    assert stopped.value.code == code
+    path = tmp_path / "ack.controller-result.json"
+    result = json.loads(path.read_bytes())
+    assert result["stage"] == "NATIVE_CHECK" and result["returncode"] == code
+    assert path.stat().st_mode & 0o777 == 0o600
+    if code:
+        assert result["first_failure"] == dict(status="BLOCKED", error="FIRST_FAILURE", errno=13)
+    else:
+        assert "first_failure" not in result
+    previous = path.read_bytes()
+    with pytest.raises(SystemExit):
+        controller.child_main(data)
+    assert path.read_bytes() == previous
+
+
+def test_controller_diagnostics_redact_arbitrary_error_and_preserve_original(tmp_path, monkeypatch):
+    data = dict(attempt="synthetic-attempt", ack=str(tmp_path / "ack.json"))
+
+    def child(_config, state, observe):
+        state["stage"] = "REQUEST_BINDING"
+        observe(dict(status="BLOCKED", error="sensitive text /path account", errno=None))
+        raise ValueError("sensitive exception text")
+
+    monkeypatch.setattr(controller, "_child_main", child)
+    with pytest.raises(ValueError, match="sensitive exception text"):
+        controller.child_main(data)
+    body = (tmp_path / "ack.controller-result.json").read_text()
+    assert "sensitive" not in body and "account" not in body
+    assert json.loads(body)["exception_class"] == "ValueError"
+    # Failed persistence cannot replace the original exception.
+    monkeypatch.setattr(controller.os, "open", lambda *_: (_ for _ in ()).throw(PermissionError()))
+    with pytest.raises(ValueError, match="sensitive exception text"):
+        controller.child_main(data)
+
+
+def test_cli_observer_retains_blocked_code_without_executing(tmp_path):
+    results = []
+    code = operational_recovery.main(
+        [
+            "check",
+            str(tmp_path),
+            "--request-file",
+            str(tmp_path / "absent"),
+            "--request-sha",
+            "a" * 64,
+        ],
+        result_observer=results.append,
+    )
+    assert code == 2 and len(results) == 1
+    assert results[0]["status"] == "BLOCKED" and results[0]["executed"] is False
+
+
+def test_settlement_ack_rejects_append_until_new_binding(tmp_path):
+    from soc_agent.security_ai.ebpf_tc.dns_diagnostic_engine import dns_held_json_ledger
+
+    path = tmp_path / "ledger.jsonl"
+    path.write_bytes(b'{"event":"synthetic-baseline"}\n')
+    pin = hashlib.sha256(path.read_bytes()).hexdigest()
+    assert len(dns_held_json_ledger(path, pin, os.getuid())) == 1
+    with path.open("ab") as stream:
+        stream.write(b'{"event":"synthetic-later-record"}\n')
+    with pytest.raises(ValueError, match="DNS_LEDGER_SHA"):
+        dns_held_json_ledger(path, pin, os.getuid())

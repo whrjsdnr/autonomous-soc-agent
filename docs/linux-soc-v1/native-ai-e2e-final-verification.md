@@ -598,3 +598,26 @@ Private 검토 증거: `.git/native-final-approval-review-20261028T045439Z/final
 목표 A인 실제 Native AI E2E가 완료되지 않았으므로 목표 B의 운영 서비스·자동 시작·권한/보안 정책 변경 설계·대규모 구현은 **보류**했다. 반복 sudo를 없애는 운영 권한을 현재 개발 승인에서 임의 도출하지 않았다. 현 Source와 Artifact가 바뀌지 않았으므로 기존 Workspace/Export95 PASS 및 재현 빌드 증거를 보존하며 불필요한 전체 회귀를 반복하지 않았다. 이번 작업의 실제 검증은 승인·Ledger·고정 Runtime 개별 진단·Root/DNS 실환경·보존/Offline 재열기 범위다.
 
 Private evidence: `.git/native-final-authorized-execution-20261028T045951Z/`: `attempt-summary.json`, 실제 Root entry evidence 참조, 각 독립 영수증/CLI 결과, `pinned-controller-host-*-subcheck*.json`, `pinned-controller-host-grant-subchecks.json`, `offline-preservation.json`. 코드 변경은0이며 보고서만 결과 Commit/Push 대상으로 한다. 실행 기준 Git과 이후 문서-only 결과 Commit을 혼동하지 않는다.
+
+
+## Controller Exit 2 RCA — 2026-10-28 (evidence-only investigation)
+
+판정: **최초 실환경 오류 UNKNOWN / Native 실행 전 BLOCKED**. 조사 기준 HEAD는 `24b7935a4d6c1ec8623930735f47f436513a7624`이며 실행 당시 Git `3bb7da5`와 구분한다. Controller Session은 `3a7a4abd-8e9a-49b4-9b80-97cbffbc9057`, 미실행 Native Session은 `8fee2197-403f-4502-be63-f19d4b90df48`이다. 기존 Root DNS/Controller 성공 증거를 재사용해 조사했으며 Root 진입, DNS, Native, sudo, 예약, 승인 소비는 수행하지 않았다.
+
+기존 `terminal-state.json`은 바깥 CLI의 `CLI_RETURNED`, returncode=2만 보존한다. Root entry JSON 증거에는 ordinary UID/GID1000·Namespace·DNS UDP2/TCP1·35.000263116초 추가 관측·45.001574239초 전체 관측·Worker Cleanup 성공이 남아 있다. 그러나 인증 TTY로 전환한 뒤의 Controller stdout/stderr, `BLOCKED.error`, 자식 종료 코드 또는 traceback은 파일로 저장되지 않았다. 당시 terminal transcript/terminal-exit 별도 파일도 없다. 따라서 Exit 2를 pydantic 누락, Runtime 오류 또는 특정 내부 check 실패로 단정하지 않는다.
+
+호출 경로는 `operational_recovery.main(namespace execute)` → `namespace_controller.run_packet` → `_execute` → `namespace_controller_engine.controller_root_main` → 고정 Python `-I -B` → `child_main` → `held_json(request)`/target/source 검증 → `operational_recovery.main(check)` → PASS인 경우에만 `main(execute)`이다. 부모는 child 종료 코드가 0이 아니면 바깥 returncode=2로 축약했다. `main(check)`의 ValueError/OSError는 JSON `BLOCKED.error`를 TTY에 출력하고 2를 반환했으나 영속 증거는 없었다. 요청 이전 예외도 traceback이 TTY에만 남았다.
+
+고정 Python Preview·import·installed identity·grant preview·preparation 개별 검사는 기존 증거에서 PASS였다. 실제 Controller는 이와 별도로 실제 Namespace/Cookie, 정산 ACK, 사용자 신규 request SHA, 현재 Ledger와 요청 Binding 및 내부 Scope check를 수행한다. 개별 Host subcheck 통과를 내부 check PASS로 대체하지 않는다.
+
+추가 발견: 실제 ACK의 Ledger SHA `f4b2d3961dff65516cd820be1ce5e79758cc1ed21a513ea4561f43bae220db57`는 정확히 현재 Ledger의 첫 **54행** SHA다. 현재는 R1 기록을 추가한 **55행**이다. `child_main` → `dns_diagnostic_engine.dns_held_json_ledger`는 ACK SHA와 전체 Ledger SHA의 정확한 일치를 요구하므로, ACK를 읽기 전에 append가 발생하면 `DNS_LEDGER_SHA`가 발생한다. 임시 Synthetic Ledger로 이 경로를 재현했다. 다만 자식이 ACK를 읽은 시점이 남아 있지 않아 **실제 최초 오류라는 증거는 없다**. SHA/chain 검증 및 stale-Ledger 차단은 그대로 유지하며 이 가능성을 해결했다거나 과거 오류가 확정됐다고 보고하지 않는다.
+
+확인된 진단 결함만 최소 수정했다. `operational_recovery.main`에 내부 구조화 결과 observer를 추가해 기존 출력/권한 검증을 유지한다. `namespace_controller.child_main`은 실패 단계, 최초 정제된 BLOCKED 코드·errno, 예외 클래스와 함수/파일명/행번호, 실제 자식 exit를 ACK 옆 `*.controller-result.json`에 ordinary 사용자 권한 0600·exclusive/no-follow로 기록한다. 후속 실패가 최초 오류를 덮지 않으며 기록 실패도 원래 예외/종료 코드를 대체하지 않는다. 비밀번호, 사용자 입력, 임의 예외 원문, 환경변수, TTY transcript는 수집하지 않는다. 부모는 실제 자식 종료 코드도 별도 content-addressed evidence로 보존한다. 정책·예산·Namespace 권한이나 실행 Scope 변경은 없다.
+
+현재 Ledger는 **55행**, SHA `5efdeeb3eb0802b4123e4eeb61a14b9027a63f992f1351fdc52783f2fcf2fe88`, tip `527c0c591761a5c80d9d23ad809b7773b2cd6cd4a20b9d3d02530454b7c52eba`다. 기존 전체 chain을 읽기 전용으로 검증했다. Campaign Root9/Native4, Batch3 Root6/Native1 유지. Root 성공과 Native 예약/설치/Capture 미시작을 분리한다. 기존 FAILED/false/Program1145 UNKNOWN 및 과거 UNKNOWN 정산은 유지한다.
+
+다음 최소 조건: 진단 수정본의 새 Source/Artifact SHA를 빌드·검증하고 해당 Binding에 필요한 승인만 새로 검증해야 한다. 기존 성공 Root/DNS 작업이나 소비된 영수증을 자동 재실행/재사용하지 않는다. 실제 Controller에서 최초 오류 증거를 확보하고 최신 Ledger·R1/R2·실행 Binding 검증 및 Namespace 내부 비소비 check가 PASS하기 전 Native 실행은 차단한다. 이번 조사로 Native 실행 준비 완료 또는 오류 해결을 선언하지 않는다.
+
+Private RCA inventory: `.git/controller-exit2-rca-20261028T051702Z/read-only-baseline.json`. 기존 실행 증거/ACK/영수증의 SHA를 고정했으며 원본을 수정하지 않았다. 검증 결과는 아래에 별도 기록한다.
+
+이번 조사 검증 결과: Workspace **74 PASS**, 독립 Export **74 PASS** (Namespace runtime / Controller Python / operational recovery). 고정 Python `-I -B`·256MiB/CPU20초 import 검사는 returncode0, pydantic2.13.5, stderr 없음. Ruff·Format·Diff PASS. 구현 src626개 SHA inventory는 `a7bece50a22c8f96b3da19364a3e37f156caced1a895e21df6da9bc7ca356041`이며 Export와 일치한다(기존 Manifest/Execution Image SHA와 구분). 기존36개 증거 파일 및 Ledger55행 SHA 불변. 새 승인된 실행 Artifact는 생성하지 않았다. 초기 검사 중 편집을 감지한 SourceGuard 차단과 테스트 stub 보완 이후 소스를 고정해 위 두 회귀를 모두 통과했다. 실환경 최초 원인은 계속 UNKNOWN이며 진단 보강을 Native E2E 성공으로 처리하지 않는다.
