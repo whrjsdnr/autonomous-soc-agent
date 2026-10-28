@@ -123,3 +123,61 @@ Git Push는 보고서 Commit 후 remote HEAD 일치로 확인하며, 실제 실�
 단일 승인 검토 자료: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-ai-final-approval-20261028T010926Z/approval-package.md`. 기계 검증 요청서 `approval-package.json` SHA256 `b600018fd45498b48d9598fb941e33c1876b797d71d87170c72a6631a1a26a70`. 현재 필요한 결정은 정확한 Namespace 빌드 정책 Binding의 활성화뿐이다. 정책 영수증 포함 후 이미지 SHA가 변경되므로 현재 Guarded SHA의 실행 승인은 요청하지 않는다. 비권한 재빌드 후 새로운 SHA·Session·Scope로 Root DNS/Controller 승인을 요청하고, 그 정산 이후 최신 Ledger에 맞춘 R1/R2·Root 설치·Native 승인을 독립 검증한다.
 
 현재 검토 Session `a9ac5504-15f8-402d-bf5e-a3416c0ee77b`, Release0.6.3. 정확한 모델 분석 입력은 Capture 이후에만 확정 가능하며 기존 MEDIUM 분석 승인을 생략하지 않는다. 실제 이상에 대한 API 계획·평가의 최대2회 호출 제한을 유지한다. Native E2E·Controller·Docker 실환경은 PENDING이며 READY를 선언하지 않는다. 코드 변경은 없어 기존 Workspace/Export1707 PASS·재현 빌드 증거를 재사용했다.
+
+## 2026-10-28 Isolated Namespace Supervisor 정책 승인 적용
+
+승인자 조건욱(프로젝트 소유자 및 정책 승인권자)의 이번 명시적 `APPROVED_WITH_CONDITIONS` 결정을 기존 `SOC_NAMESPACE_SUPERVISOR_BUILD_POLICY_V1`의 제한된 `APPROVED` 영수증으로 기록했다. Root·Native·트래픽 권한은 모두 false다. 새 승인 체계나 정책 우회 코드는 추가하지 않았다. 정확한 원 요청서 SHA `b600018fd45498b48d9598fb941e33c1876b797d71d87170c72a6631a1a26a70`와 Source·Runtime·Lease·Root Manifest Binding을 대조했다.
+
+- 승인 시작: `2026-10-28T10:12:06+09:00`
+- 승인 만료: `2026-10-29T10:12:06+09:00`
+- 정책 영수증 SHA256: `1124b26ef851fdcebaac26739a6411b8c119e17029bebf9a5a8a42b86f021c98`
+- 영수증 파일: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-namespace-supervisor-20261028T011206Z/namespace-policy-receipt.json`
+- 인간 결정 근거: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-namespace-supervisor-20261028T011206Z/human-approval-reference.json`
+- 정책 활성화: **승인 Binding의 비권한 빌드에 적용 완료**. 실행 권한 부여 없음.
+
+요청서 검토 Artifact의 Git은 `773fbed2dd8dd41c8b13e21174f98b8c4b06dcc0`이며 기록 당시 HEAD `ae1003f6d6c86aa29cdf862e64b159561f3b715d`와의 차이는 본 보고서뿐임을 검증했다. Source Snapshot 1767개는 모두 동일하다. 새 Artifact 실행 Binding은 보고서 Commit 후 최종 HEAD·Tree로 별도 고정하며 과거 실행 영수증은 재사용하지 않는다.
+
+### Ledger 및 예산
+
+기존 Campaign writer의 잠금·체인·fsync 경로를 사용해 `NAMESPACE_SUPERVISOR_BUILD_POLICY_ACTIVATED_V1` 이벤트를 Append-only로 1건 기록했다. 기존 26행 bytes는 변경되지 않았으며 현재 27행이다. 이벤트에는 원 요청서 SHA·정책 SHA·인간 결정 근거 SHA·정확한 Binding 및 실행 권한 없음이 연결돼 있다. 동일 요청/정책 Binding Replay와 오래된 tip은 쓰기 전에 거부되며, 검증 과정에서 추가 이벤트나 예약은 생성하지 않았다.
+
+Campaign Native4/10·Root5/10, Batch3 Native1/2·Root2/4 유지. 예산 환급·확대·이전 영수증 재활성화 없음. **기존 Root 추가 배정 영수증 만료는 2026-10-28T15:47:27+09:00**이며 이번 정책의 새 만료 시각으로 연장되지 않는다. 만료 이후에는 기존 한도 재평가와 필요한 인간 예산 승인이 별도로 필요하다.
+
+### 신규 Artifact Identity
+
+| 항목 | SHA256 |
+|---|---|
+| Source Snapshot | `f898540a9a9ce4e9afc6381393ce842e949b415830cc89303e688ddb573d893c` |
+| Capture Manifest | `ee628c615265f9ac4efa7f665adbd9e7a6956999ccbbcc65356b0c332311f8dc` |
+| Runtime Source Bundle | `419c1fb5d6c45195e0c7ca37503e9e3ed213fbe76470731fc601b1dcfc091499` |
+| Supervisor Execution Image | `cf9c0a765ba3a4fdd86c0bb39ea53446103d10d48191a5d708a0395a6ce246e9` |
+| Root Manifest | `b345fe558b34fcf547b37e807533b5ff474e834fb74246fee84ae11e2ff22866` |
+| Runtime Dependency Identity | `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4` |
+| DNS/Controller Manifest | `d9c2af66828cf35e9a09ce6a65e0084b1d4cb6bbdeff09acbae414f44c3b4181` |
+| DNS/Controller Image | `8eddb1b052b4eba310640e186a3c78ecf736f73c2d3c41259b4fb8e45233659e` |
+| RF model | `53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603` |
+| LR model | `661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882` |
+
+승인 영수증이 Supervisor image에 포함됐고 preview=false 및 계약 `SOC_PHASE_D_NAMESPACE_V1`을 검증했다. CLI prepare 상태는 `RUNTIME_APPROVED`, executed=false다. 정책 영수증 때문에 Manifest/Image가 변경됐다. Source Bundle·Root Manifest는 동일 입력이므로 동일 SHA이며 이 사실이 실행 승인 승계를 뜻하지 않는다. Runtime과 RF/LR 모델 bytes·기존 seal 계약도 재검증했다. 실제 모델 추론이나 API 호출은 수행하지 않았다.
+
+### Source·Export·Stage 및 재현성
+
+- Workspace 관련 회귀: **90 PASS, 105.15초**.
+- 독립 Export 관련 회귀: **90 PASS, 103.77초**.
+- 대상: Namespace runtime/controller, operational recovery, Root operations. 전체1707 PASS는 이전 변경본의 기존 결과이며 이번 전체 회귀로 다시 수행한 수치가 아니다.
+- 승인된 Supervisor Stage/A/B: **26/26 동일**.
+- DNS/Controller Stage/A/B: **2/2 동일**.
+- 독립 Export의 Source1767개와 Workspace·원 핀 일치. Stage 검증은 기존 `validate_preparation`을 사용했고 실제 Namespace 진입을 대신하지 않는다.
+- 정책 만료·다른 Namespace Binding·MOCK 승인자·Root/Native/트래픽 권한 확대를 거부했다.
+- Ruff check PASS, Format1426개 PASS, Git Diff Check PASS.
+- 기존 사용자 변경, 보호 증거112개·과거 Native55개·설치/롤백 각9개·Namespace lease/inode4026532232 보존.
+
+### 비소비 check와 남은 승인
+
+Host `net:[4026531833]`에서 기존 CLI `native-recovery check` 실행 결과는 **BLOCKED / PHASE_D_COLLECTOR_SCOPE_MISMATCH**다. reserved=false, executed=false. 이전 `ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED` guard는 해소됐으나, 현재 프로세스가 승인 대상 Namespace 내부가 아니므로 실제 실행 검증은 차단되는 것이 맞다. CLI가 환경 검사에서 먼저 멈추므로 R1/R2 검증을 통과했다고 주장하지 않는다. 별도의 비권한 준비 검증으로 정책·Source·Runtime·Artifact 무결성을 확인했다.
+
+다음 요청서는 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-namespace-supervisor-20261028T011206Z/next-approval-request.json`에 준비했다. DNS/Controller Root 정책·정확한 실행 승인(UDP2/TCP1, Root1·Native0)이 먼저 필요하며, 그 작업의 정산 후 최신 Ledger에 맞춘 새로운 R1 위험 수용 및 R2·Root 설치·Native 최대1회 승인이 필요하다. 실제 적격 데이터가 나온 뒤 모델 분석에 필요한 기존 exact-input 승인도 유지한다. 실제 이상에 대한 API 사용은 최대2회 및 별도 실행 범위 확인을 유지한다.
+
+실제 Root·sudo·Namespace 진입·DNS·Native·TCX·컨테이너·LLM·예약·예산 소비는 모두0. 기존 FAILED·false·Program1145 UNKNOWN·과거 예약 EVIDENCE_INCOMPLETE/Root UNKNOWN/Native UNKNOWN은 변경하지 않았다. P02/P03 INCOMPLETE, P04 Native ELIGIBLE0, Native AI·DNS9·운영 승격 BLOCKED 유지. 정책 포함 빌드는 완료했으나 **실환경 실행 승인은 대기 중이며 READY_FOR_NATIVE_E2E를 선언하지 않는다**.
+
+상세 영수증·Ledger 전후·Stage/이중빌드 핀·회귀 로그·새 Artifact/Git Identity는 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/approved-namespace-supervisor-20261028T011206Z`에 보존했다.
