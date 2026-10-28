@@ -335,3 +335,45 @@ Source1772개와 독립 Export SHA 일치. 보호112개·과거 Native55개·설
 새 예약·예산 소비·Root·Native·DNS·API 호출0. 기존 FAILED/false/UNKNOWN 및 DNS9 INCOMPLETE를 유지한다. READY_FOR_NATIVE_E2E를 선언하지 않는다. 빌드 정책/최종 Artifact 목록 확인 후 최신 R1 위험 수용, R2 트래픽, Root/Native exact 승인 및 사용자 Scope/sudo가 여전히 필요하다.
 
 이번 승인 적용 검증의 집중 회귀: Workspace **54 PASS(77.85초)** / 독립 Export **54 PASS(77.72초)**. 개발 계측·R1 admission·Controller Python·Namespace 빌드 정책 테스트를 수행했다. Ruff PASS, Format1431개 PASS, Diff PASS. 운영 코드와 Source Snapshot은 변경하지 않았다. 이전 전체1973 PASS/23 SKIP 결과는 과거 기준선이며 이번 전체 재실행으로 집계하지 않는다.
+
+## 2026-10-28 정책·Artifact Binding 순서 RCA 및 복구
+
+상태: PREPARATION_IMPLEMENTED / GUARDED / 실제 Native E2E BLOCKED. 기존 승인 자료와 영수증을 수정하지 않았고 새 영수증·활성화·실행 예약은 발급하지 않았다.
+
+최초 불일치: 기존 Namespace 영수증1124b26ef851fdcebaac26739a6411b8c119e17029bebf9a5a8a42b86f021c98은 2026-10-29T10:12:06+09:00까지 시간상 유효하다. 하지만 Root Manifest b345fe558b34fcf547b37e807533b5ff474e834fb74246fee84ae11e2ff22866 및 Source Bundle419c1fb5d6c45195e0c7ca37503e9e3ed213fbe76470731fc601b1dcfc091499에 결합돼 있다. 작업 시작 시 기존 Guarded55081be…/3fc2e1…부터 이미 불일치했다. 이번 수정본은 아래의42a17b…/37b7a2…이다. 현재 Namespace 설정 파일에는 policy_file/sha가 없으므로 prepare_binding은 policy=None으로 Guarded 이미지를 생성하고 check는 ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED를 반환한다. 기존 영수증을 직접 대조해도 NAMESPACE_POLICY_BINDING_OR_EXPIRY로 정상 거부한다. Namespace/Lease/Boot/Runtime 의존성/UID/GID/컨테이너 Scope는 동일하며, 만료·Ledger 변경이 최초 원인이 아니다.
+
+기존 정책 계약은 SOC_NAMESPACE_SUPERVISOR_BUILD_POLICY_V1이다. 승인 검토 Git773fbed2dd8dd41c8b13e21174f98b8c4b06dcc0 / Tree7db4bf948f4c46f6cadc7da1880848d6304a085c, Sourcef898540a…였다. 정책 영수증 자체는 Git/Session/Release/Ledger tip/최종 Manifest·Image를 직접 포함하지 않는다. 이들은 별도 승인 요청서·Artifact·실행 영수증 문맥이며, 영수증 Binding의 실제 필드를 과장하지 않았다. 원 요청서의 빌드 전 Artifact와 정책 포함 빌드 후 Artifact도 서로 다른 단계다. 전체 원본과 단계별 값은 private binding-rca.json에 보존했다.
+
+암호학적 순환 의존성은 없다. 개발 계측 영수증은 기존 Ledger의 별도 정책 이벤트이며 빌드에 포함되지 않으므로, 최종 SHA 검토 후 계측을 활성화해도 이미지 SHA는 다시 바뀌지 않는다. Namespace 빌드 정책 입력은 Source/Root/Dependencies/Lease/Namespace이고, 정책 영수증을 이미지에 포함하면 Image와 Phase D Manifest SHA가 바뀐다. 동일 Source·영수증만 다른 테스트에서 정책 입력·Bundle·Root Manifest는 그대로 유지됐다. 문제는 준비 코드가 이 두 단계를 구분하지 않아 개발 계측 artifacts에 최종 출력 자리표시자를 남긴 것이다. 승인 영수증을 Artifact 밖으로 제거하거나 SHA 검증을 완화하지 않았다.
+
+결정적 순서: Source Freeze → 정확한 빌드 정책 입력 검토/인간 승인 → 고정 영수증 포함 빌드 → 최종 Artifact 목록 확정 → 개발 계측 및 R1/R2/Root/Native의 독립 결정 → 비소비 check → 사용자 Scope/sudo. 빌드 전 정책 요청과 빌드 후 Artifact 검토는 서로 다른 파일로 보존하며 원 요청을 덮어쓰지 않는다. 보고서 Commit 때문에 Git Binding이 다시 바뀌지 않도록 이번 단일 Commit 후 외부 artifact-identity.json에서 최종 Git/Tree를 고정한다.
+
+실제 운영 코드 수정:
+
+- namespace_runtime.build_review: 승인 전 확정 가능한 policy_input/input_sha와 이미 생성된 출력 SHA, Guarded/정책 포함 단계, 다음 작업을 분리한다.
+- phase_d.prepare: 기존 Builder 결과에 위 검토 정보를 포함한다. 기존 이미지·Scope·승인 Validator와 실행 경계는 유지한다.
+- development_session.prepare_artifact_review: 기존 validate_preparation으로 실제 출력 검증 후 정식 Artifact 배열을 만든다. Guarded 배열과 final_operational_artifacts=[]를 구분하고 활성화·실행은 허용하지 않는다.
+- 기존 native-recovery prepare의 --review-git-commit/--review-git-tree로 실제 Artifact 목록을 출력한다. Git 문맥은 운영자 제공 값이며 실행 승인의 Git 검증을 대체하지 않는다. 이번 산출물은 Commit 후 실제 HEAD/Tree 및 Source pins와 대조한다.
+
+현재 검증된 Guarded Identity (정책 포함 운영 이미지와 구분):
+
+| 항목 | SHA256 |
+|---|---|
+| Source Snapshot (1772 inputs) | b1c473bd0dd2ab63635a8ecad01dca3dde2b9f88a43c59529ad6443c2f55e707 |
+| Manifest | 0928e77f5800caddbcc2bfa799605f128d9cfebfd6256e319a0fee1af03805fd |
+| Bundle | 37b7a2ce9bce6a7cea6c1ee40be7e9ca8a171ad4f59b73b2a04ece2306d50892 |
+| Execution Image | 5e28b294594a373a7465f588a4b6fc23308ee18f3fa7e629e0dcb8df138f83be |
+| Root Manifest | 42a17b24440b1267af3cec618c38955f57bd4dc75f7c34e1f9c4c2c3aaa5e2cc |
+| Controller Manifest | 476610620b1784bd02bfec5c051531644ff72ff3b0154393ad61d9da0c375113 |
+| Controller Image | fb1a39f1427b158bd5a3ce3512edfab493b3fd5793a86aa6d9fe7a6bc3607a24 |
+| Controller Python Runtime | c87a778581e6096f4a9f06b800ea61ae72d7181716f595d59ecdac6fbc689c0c |
+| Runtime Dependency | e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4 |
+| Wheel | a4cf591ef517af7726973d53eda1c578f2cd863bf2ea6a5c4f0acd4eacbe085b |
+
+정확한 Git Commit/Tree 및 실제 Artifact 두 개(Capture/Controller)의 개발 계측 배열은 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-ai-binding-recovery-20261028T022430Z/artifact-identity.json` 및 built-artifact-review.json에 기록한다. Source/Controller Runtime/실제 RF·LR 모델과 Feature Contract는 별도 provenance에 연결한다. 원래 승인 요청서의 자리표시자 문자열은 그대로 역사 자료로 보존하고 새 자료에서 실제 배열로 대체했다. 아직 존재하지 않는 정책 포함 Manifest/Image는 만들어 넣지 않았으며 final_operational_artifacts는 빈 배열이다. 이후 동일 helper를 재빌드 결과에 적용하면 확정된 배열이 생성된다. 이 도구가 자동으로 정책을 활성화하지 않는다.
+
+검증: 집중75 PASS. Workspace **1974 PASS / 23 SKIP (472.51초)**, 독립 Export **1974 PASS / 23 SKIP (470.88초)**. 기존 Assertion/검증 기준 유지. 정책 포함 테스트 영수증은 임시 디렉터리의 UNIT TEST 전용이며 실제 승인에 사용하지 않았다. Replay·중복 승인·Ledger·미승인 차단 회귀 포함. Supervisor Stage/A/B26개·Controller2개 및 Workspace/Export Wheel684 entries 이중 빌드 동일. Ruff/Format1431개/Diff PASS.
+
+비소비 기존 CLI check: Source VERIFIED / Runtime BUILD_INTEGRITY_VERIFIED_ONLY / ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED / reserved=false / executed=false. 실제 Namespace4026532232와 Lease, 보호112개·과거 Native55개·설치/롤백 각9개·사용자 변경 보존. Ledger32행 SHA e7779f7315f9d3d71c9f91d0846bc4254dfc60217c84ae2be0534501763d567d 불변. Campaign Native4/10·Root6/10, Batch3 Native1/2·Root3/4 유지. 기존 FAILED/false/Program1145 UNKNOWN/전역Cleanup UNVERIFIED/UNKNOWN 예약은 유지한다. Root/DNS/Native/실제 API 호출0.
+
+남은 최소 인간 결정: (1) 새 Source/Root에 정확히 결합된 Namespace 빌드 정책 승인, (2) 해당 영수증으로 재빌드한 뒤 최종 SHA 목록을 결합하는 개발 계측 및 R1/R2·Root/Native 독립 승인. 실제 LLM은 별도 허용 범위 내 실제 이상이 있을 때만 호출한다. Docker/Controller 실환경 동작·P02/P03·Native ELIGIBLE 및 DNS9는 새로운 실제 증거 전까지 BLOCKED/INCOMPLETE를 유지한다. 이번 결과를 READY_FOR_NATIVE_E2E 또는 실제 Native VERIFIED로 선언하지 않는다.

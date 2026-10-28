@@ -172,6 +172,8 @@ def main(argv=None) -> int:
     )
     parser.add_argument("--namespace-config", type=Path)
     parser.add_argument("--namespace-config-sha")
+    parser.add_argument("--review-git-commit")
+    parser.add_argument("--review-git-tree")
     parser.add_argument("--namespace-controller-file", type=Path)
     parser.add_argument("--namespace-controller-sha")
     for name in (
@@ -411,6 +413,20 @@ def main(argv=None) -> int:
                 else "RUNTIME_APPROVED"
             )
             result["executed"] = False
+            if args.review_git_commit is not None or args.review_git_tree is not None:
+                from soc_agent.security_ai.ebpf_tc.development_session import (
+                    prepare_artifact_review,
+                )
+
+                if not args.review_git_commit or not args.review_git_tree:
+                    raise ValueError("ARTIFACT_REVIEW_GIT_PAIR_REQUIRED")
+                result["development_metering"] = prepare_artifact_review(
+                    directory,
+                    result["manifest"],
+                    result["image"],
+                    git_commit=args.review_git_commit,
+                    git_tree=args.review_git_tree,
+                )
         else:
             if not args.manifest or not args.image_sha:
                 parser.error("check/execute requires --manifest --image-sha")

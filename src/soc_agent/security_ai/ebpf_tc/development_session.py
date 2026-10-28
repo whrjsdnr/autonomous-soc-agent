@@ -25,6 +25,42 @@ from soc_agent.security_ai.ebpf_tc.reassessment import (
 ACTIVATED = "DEVELOPMENT_METERING_ACTIVATED_V1"
 
 
+def prepare_artifact_review(
+    directory: Path, manifest: str, image_sha: str, *, git_commit: str, git_tree: str
+) -> dict:
+    """Read-only exact output list, not a policy, activation or execution receipt.
+
+    Git provenance is supplied by the operator; it is not execution authority.
+    Existing admission still validates the release and its exact Git binding.
+    A guarded artifact is explicitly identified and never treated as final.
+    """
+    from soc_agent.security_ai.ebpf_tc.phase_d import validate_preparation
+    from soc_agent.security_ai.ebpf_tc.supervisor import SupervisorImage
+
+    value = validate_preparation(directory, manifest, image_sha)
+    image = SupervisorImage.model_validate_json((directory / "supervisor-image.json").read_bytes())
+    if image.namespace_runtime is None:
+        raise ValueError("DEVELOPMENT_NAMESPACE_REVIEW_REQUIRED")
+    artifact = Artifact(
+        git_commit=git_commit,
+        git_tree=git_tree,
+        release=value["version"],
+        manifest=manifest,
+        bundle=value["bundle"],
+        image=image_sha,
+        root_manifest=value["tcx_manifest"],
+    )
+    return dict(
+        artifacts=[artifact.model_dump(mode="json")],
+        artifact_stage="GUARDED" if image.namespace_preview else "POLICY_EMBEDDED",
+        final_operational_artifacts=[]
+        if image.namespace_preview
+        else [artifact.model_dump(mode="json")],
+        requires_human_activation=True,
+        authorizes_execution=False,
+    )
+
+
 def implementation_sha() -> str:
     root = Path(__file__).parents[1]
     names = [root / "operation_budget.py", root / "native_campaign.py", root / "__init__.py"]

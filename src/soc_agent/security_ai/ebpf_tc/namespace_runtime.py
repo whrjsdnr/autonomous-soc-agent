@@ -100,6 +100,38 @@ def prepare_binding(build: NamespaceBuild, release) -> dict:
     )
 
 
+def build_review(image, identity: dict) -> dict:
+    """Separate policy inputs from receipt-dependent outputs; grant nothing.
+
+    The build-policy binding is known before approval. The receipt changes image
+    and Phase D manifest bytes, not that binding. Execution/metering approvals
+    must use the subsequent exact outputs, never the preview's image hash.
+    """
+    packet = image.namespace_runtime
+    if packet is None:
+        raise ValueError("NAMESPACE_REVIEW_REQUIRED")
+    verify_descriptor(image)
+    if (
+        identity["image"] != image.sha256
+        or identity["tcx_manifest"] != packet["binding"]["root_manifest"]
+    ):
+        raise ValueError("NAMESPACE_REVIEW_OUTPUT_BINDING")
+    return dict(
+        policy_input=packet["binding"],
+        policy_input_sha=digest(packet["binding"]),
+        policy_receipt_sha=packet["policy_sha"],
+        built_outputs={k: identity[k] for k in ("manifest", "bundle", "image", "tcx_manifest")},
+        artifact_stage="GUARDED" if image.namespace_preview else "POLICY_EMBEDDED",
+        next_step="NAMESPACE_BUILD_POLICY_APPROVAL"
+        if image.namespace_preview
+        else "EXACT_ARTIFACT_METERING_AND_EXECUTION_REVIEW",
+        outputs_requiring_rebuild_after_policy=["manifest", "image"]
+        if image.namespace_preview
+        else [],
+        authorizes_execution=False,
+    )
+
+
 def verify_descriptor(image) -> None:
     """Literal descriptor consistency; never enables an unapproved preview."""
     # Inspect literals, never evaluate a generated image to validate it.

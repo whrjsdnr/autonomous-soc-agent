@@ -165,6 +165,16 @@ def test_real_build_with_missing_namespace_policy_is_guarded_and_nonconsuming(
     result = operational_recovery.readiness(directory, identity["manifest"], identity["image"])
     assert result["status"] == "BLOCKED" and not result["reserved"] and not result["executed"]
     assert result["error"] == "ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED"
+    from soc_agent.security_ai.ebpf_tc.development_session import prepare_artifact_review
+
+    review = prepare_artifact_review(
+        directory, identity["manifest"], identity["image"], git_commit="1" * 40, git_tree="2" * 40
+    )
+    assert len(review["artifacts"]) == 1
+    assert review["artifacts"][0]["manifest"] == identity["manifest"]
+    assert review["final_operational_artifacts"] == []
+    assert review["artifact_stage"] == "GUARDED" and not review["authorizes_execution"]
+    assert identity["build_review"]["next_step"] == "NAMESPACE_BUILD_POLICY_APPROVAL"
 
 
 def test_reviewed_namespace_image_compiles_but_cannot_execute_from_host(namespace_build, tmp_path):
@@ -182,11 +192,33 @@ def test_reviewed_namespace_image_compiles_but_cannot_execute_from_host(namespac
     )
     path = tmp_path / "test-only-policy.json"
     path.write_bytes(canonical(policy.model_dump()))
+    receipt_before = path.read_bytes()
+    guarded_identity = identity
     build = namespace_build.model_copy(
         update={"policy_file": path, "policy_sha": hashlib.sha256(path.read_bytes()).hexdigest()}
     )
     directory = tmp_path / "test-approved"
     identity = phase_d.prepare(directory, namespace_build=build)
+    assert path.read_bytes() == receipt_before
+    assert (
+        identity["build_review"]["policy_input"] == guarded_identity["build_review"]["policy_input"]
+    )
+    assert identity["bundle"] == guarded_identity["bundle"]
+    assert identity["tcx_manifest"] == guarded_identity["tcx_manifest"]
+    assert identity["image"] != guarded_identity["image"]
+    assert identity["manifest"] != guarded_identity["manifest"]
+    assert identity["build_review"]["artifact_stage"] == "POLICY_EMBEDDED"
+    from soc_agent.security_ai.ebpf_tc.development_session import prepare_artifact_review
+
+    review = prepare_artifact_review(
+        directory, identity["manifest"], identity["image"], git_commit="1" * 40, git_tree="2" * 40
+    )
+    assert review["final_operational_artifacts"] == review["artifacts"]
+    assert review["requires_human_activation"] and not review["authorizes_execution"]
+    with pytest.raises(ValueError):
+        prepare_artifact_review(
+            directory, "0" * 64, identity["image"], git_commit="1" * 40, git_tree="2" * 40
+        )
     descriptor = SupervisorImage.model_validate_json(
         (directory / "supervisor-image.json").read_bytes()
     )
@@ -201,6 +233,35 @@ def test_reviewed_namespace_image_compiles_but_cannot_execute_from_host(namespac
     )
     with pytest.raises(ValueError, match="COLLECTOR_SCOPE_MISMATCH"):
         phase_d.validate(directory, identity["manifest"], identity["image"])
+
+
+def test_prepare_cli_emits_exact_guarded_artifact_list(namespace_build, tmp_path, capsys):
+    path = tmp_path / "namespace-config.json"
+    path.write_text(namespace_build.model_dump_json())
+    directory = tmp_path / "cli-build"
+    assert (
+        operational_recovery.main(
+            [
+                "prepare",
+                str(directory),
+                "--namespace-config",
+                str(path),
+                "--namespace-config-sha",
+                hashlib.sha256(path.read_bytes()).hexdigest(),
+                "--review-git-commit",
+                "1" * 40,
+                "--review-git-tree",
+                "2" * 40,
+            ]
+        )
+        == 0
+    )
+    result = json.loads(capsys.readouterr().out)
+    artifact = result["development_metering"]["artifacts"][0]
+    assert artifact["image"] == result["image"]
+    assert artifact["root_manifest"] == result["tcx_manifest"]
+    assert result["status"] == "POLICY_APPROVAL_REQUIRED" and not result["executed"]
+    assert result["development_metering"]["final_operational_artifacts"] == []
 
 
 def config(tmp_path):

@@ -170,12 +170,17 @@ def _prepare(
             binding=image.recovery_binding.model_dump(), policy_sha=image.recovery_policy_sha
         )
     offload_session.publish(directory / "phase-d.json", value)
-    return dict(
+    result = dict(
         manifest=hashlib.sha256(canonical(value)).hexdigest(),
         bundle=value["bundle"],
         image=image.sha256,
         tcx_manifest=manifest,
     )
+    if image.namespace_runtime is not None:
+        from soc_agent.security_ai.ebpf_tc.namespace_runtime import build_review
+
+        result["build_review"] = build_review(image, result)
+    return result
 
 
 def prepare_namespace_preview(
