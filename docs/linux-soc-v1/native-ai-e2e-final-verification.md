@@ -883,3 +883,44 @@ repair. Latest actual Ledger is 72 rows, Campaign Root11/Native4, Batch3 Root8/N
 The real Ledger/Audit, installed/rollback releases, Namespace, historical
 FAILED/false/UNKNOWN and consumed receipts are preserved. Root, sudo, DNS, Native,
 reservation, receipt consumption and LLM calls are all zero in this repair task.
+
+## Final policy applicability review after handoff repair (2026-10-28)
+
+Implementation remains `0d97932853f68c2674b69646d412adc948b528ba`;
+this update changes documentation only. Review evidence is under
+`.git/native-handoff-policy-review-20261028T080613Z/`.
+The fixed Source Snapshot (1781 files, excluding this final report) is
+`b6040fe2465aa729f201d33eb3589b446c2c5f413766c1d33b3e2ddf950bb1e0`.
+Workspace/Export source pins, Guarded image bytes, actual Namespace Lease,
+Runtime Dependency, Controller Python and retained installation/rollback were
+rechecked without privilege. Prior 237/237 regression and 26/2 reproduction
+results apply to these unchanged implementation bytes; the full suite was not
+repeated in this review.
+
+The old Namespace policy is still within its validity interval, but cannot apply:
+its Root Manifest is `ad9331e8…` versus current `e40ebd24…`, and Source Bundle is
+`54ed0fcb…` versus current `25a7814e…`. The existing policy validator rejects it.
+The old development automatic-integrity policy also pins a different security
+implementation; its allowlist does not authorize these security-code changes.
+No receipt is extended, modified, reissued or reused. This is a Binding issue,
+not proof that the new Controller path has failed in a real Native run.
+
+The next human decision is the exact Namespace Supervisor *build-input* policy
+request in the review directory. It approves build activation and nonprivileged
+rebuild/verification only. Its policy inputs are current Source Bundle, Root
+Manifest, dependencies, Lease/Namespace, ordinary UID Controller and Docker
+network=none. Guarded output Manifest/Image are review evidence, not policy
+inputs: including the future receipt will change those output hashes. After the
+approved rebuild, the actual final Native and Controller identities must be used
+for one integrated independent-policy/execution review (development metering and
+automatic integrity, R1, R2, Root DNS/Controller, installation, Native and eligible
+RF/LR). No execution receipt or speculative final output hash is generated now.
+
+Current status: POLICY_APPROVAL_REQUIRED / GUARDED. Real Namespace internal
+check, Root installation and Native Capture remain NOT_EXECUTED. New eligible
+Native features, RF/LR calls, Predictions, Incidents and Native Audit results are
+all zero. Previous Offline AI/LLM demonstrations and historical Native negative
+results are unchanged. Actual Ledger72 is byte-identical, Campaign Root11/Native4,
+Batch3 Root8/Native1; no reservations, consumption, refund or counter reset.
+The Source/Git freeze used by the next request includes this report update;
+implementation provenance remains the original code commit above.
