@@ -45,6 +45,7 @@ class GUIConfig(Snapshot):
     runtime_directory: Path | None = None
     artifacts: Path | None = None
     native_python: Path | None = None
+    continuous_directory: Path | None = None
     analysis_result: Path | None = None
     analysis_ml_root: Path | None = None
     refresh_seconds: int = Field(default=15, ge=10, le=300)
@@ -78,6 +79,7 @@ class Backend:
         self.busy_scenario = False
         self.scenario_results = []
         self.analysis_service = None
+        self.continuous_directory = config.continuous_directory
 
     def _owner(self, name):
         if name not in self._owners:
@@ -334,9 +336,56 @@ class Backend:
                 value["authentication"] = await asyncio.to_thread(status, self.runtime)
             except (OSError, ValueError, sqlite3.Error):
                 value["authentication"] = {"state": "UNKNOWN", "last_error": "STATUS_INVALID"}
+        if self.continuous_directory is not None:
+            try:
+                value["continuous"] = await self.continuous_status()
+            except (ValueError, OSError):
+                value["continuous"] = {
+                    "state": "UNKNOWN",
+                    "last_error": "CONTINUOUS_STATUS_UNVERIFIED",
+                }
         if self.analysis_service is not None:
             value["analysis"] = self.analysis_service.snapshot()
         return value
+
+    async def continuous_attach(self, directory: str):
+        from soc_agent.continuous.cli import status
+
+        path = Path(directory).absolute()
+        value = await asyncio.to_thread(status, path)
+        self.continuous_directory = path
+        return value
+
+    async def continuous_status(self):
+        from soc_agent.continuous.cli import status
+
+        if self.continuous_directory is None:
+            raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
+        return await asyncio.to_thread(status, self.continuous_directory)
+
+    async def continuous_start(self):
+        from soc_agent.continuous.cli import start
+
+        if self.continuous_directory is None:
+            raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
+        await asyncio.to_thread(start, self.continuous_directory)
+        return await self.continuous_status()
+
+    async def continuous_stop(self):
+        from soc_agent.continuous.store import Store
+
+        if self.continuous_directory is None:
+            raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
+        await asyncio.to_thread(Store(self.continuous_directory).control, stop=True)
+        return await self.continuous_status()
+
+    async def continuous_reset(self):
+        from soc_agent.continuous.store import Store
+
+        if self.continuous_directory is None:
+            raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
+        await asyncio.to_thread(Store(self.continuous_directory).control, reset=True)
+        return await self.continuous_status()
 
     def _analysis(self):
         if self.closed:

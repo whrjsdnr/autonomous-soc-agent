@@ -198,7 +198,7 @@ class LiveReceipt(Frozen):
         "soc-live-network-research-receipt:v1"
     )
     profile: Literal["quality", "edge"]
-    origin: Literal["NATIVE_AF_PACKET", "FIXTURE"]
+    origin: Literal["NATIVE_AF_PACKET", "FIXTURE", "OFFLINE_PCAP"]
     status: Literal["RESEARCH_ONLY"] = "RESEARCH_ONLY"
     validation_level: Literal["METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL"] = (
         "METADATA_PARITY_RESEARCH_ONLY_NOT_OPERATIONAL"

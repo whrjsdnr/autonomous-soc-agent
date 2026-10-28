@@ -28,7 +28,7 @@ def lifecycle_eligible(close_reason: str) -> bool:
 class LiveRequest(Frozen):
     contract: Literal["soc-live-network-input:v1"] = "soc-live-network-input:v1"
     research_mode: Literal[True]
-    origin: Literal["NATIVE_AF_PACKET", "FIXTURE"]
+    origin: Literal["NATIVE_AF_PACKET", "FIXTURE", "OFFLINE_PCAP"]
     profile: Literal["quality", "edge"]
     invocation_id: UUID
     capture_session: UUID

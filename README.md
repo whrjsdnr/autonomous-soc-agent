@@ -34,3 +34,12 @@ terminal path; this page does not request sudo or start Native capture. DNS9
 remains blocked until its training extraction contract is available. Native E2E
 and release status are documented in
 [the final integration report](docs/linux-soc-v1/final-soc-agent-integration-report.md).
+
+### Independent Continuous Runtime (Replay)
+
+`python -m soc_agent.cli continuous` provides a persistent ordinary-user replay
+service with bounded queues, isolated RF/LR analysis, incidents, audit and GUI
+attachment. See [run, stop and recovery instructions](docs/linux-soc-v1/continuous-replay-runtime.md).
+Closing the GUI leaves this service running. Native Continuous collection remains
+unimplemented and blocked pending a separate collector/service contract; existing
+Native diagnostics and Offline demonstrations are preserved.

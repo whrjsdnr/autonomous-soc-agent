@@ -58,6 +58,7 @@ from soc_agent.security_ai.workflow_models import (
     InferenceRecord,
     Job,
     NativeCheckpointJob,
+    PacketWindowJob,
     RawDNSJob,
     RecordsJob,
     ReplayJob,
@@ -278,6 +279,14 @@ class OfflineWorkflow:
                         fusion = research_comparison(records)
                 elif not receipts:
                     reasons.append("NO_TCX_FEATURE_CANDIDATES")
+            elif isinstance(job, PacketWindowJob):
+                from soc_agent.security_ai.packet_window import analyze_window
+
+                eligible, envelopes, reasons = await analyze_window(
+                    job, self.directory, self.paths, record
+                )
+                if records:
+                    fusion = research_comparison(records)
             elif isinstance(job, RecordsJob):
                 envelopes = record_envelopes(job)
                 fusion = await packaged(job, state, record)
@@ -652,6 +661,20 @@ def verify_result(directory: Path) -> AnalysisOutcome:
         from soc_agent.security_ai.api_investigation import verify_api_receipts
 
         verify_api_receipts(directory, events, result.external_provider_calls)
+    if source.get("kind") == "packet_window":
+        from soc_agent.security_ai.packet_window import request, validate_window
+        from soc_agent.security_ai.research.live_input import validate_result
+        from soc_agent.security_ai.research.models import LiveReceipt
+
+        window = PacketWindowJob.model_validate(source)
+        if result.inference and validate_window(window) != "ELIGIBLE":
+            raise ValueError("PACKET_WINDOW_INFERENCE_WITHOUT_ELIGIBILITY")
+        for item in result.inference:
+            receipt = LiveReceipt.model_validate(item.receipt)
+            rebuilt = request(window, receipt.profile).model_copy(
+                update={"invocation_id": receipt.invocation_id}
+            )
+            validate_result(rebuilt, receipt)
     if source.get("kind") == "tcx_analysis":
         from soc_agent.security_ai.tcx_input import (
             VectorReceipt,

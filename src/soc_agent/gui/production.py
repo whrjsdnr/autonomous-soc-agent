@@ -10,14 +10,14 @@ import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from soc_agent.gui import analysis_view, operator_view
+from soc_agent.gui import analysis_view, continuous_view, operator_view
 from soc_agent.gui.charts import MetricHistory
 from soc_agent.gui.components import Button, Label
 from soc_agent.gui.redaction import display_data
 from soc_agent.gui.visual_metrics import VisualHistory
 from soc_agent.gui.worker import Worker
 
-SCREENS = ("Dashboard", "Security Events", "Investigation", "AI Analysis", "System")
+SCREENS = ("Dashboard", "Security Events", "Investigation", "AI Analysis", "Continuous", "System")
 BG, PANEL, TEXT, ACCENT = "#0B1220", "#17243A", "#F1F5F9", "#38BDF8"
 
 
@@ -193,6 +193,8 @@ class Desktop:
             self.call(
                 "analysis_attach", str(self.config.analysis_result), callback=self.analysis_updated
             )
+        elif self.config.continuous_directory:
+            self.navigate("Continuous", refresh=False)
         elif self.config.collector_type.startswith("zeek-"):
             self.navigate("System", refresh=False)
         elif self.config.total_approved_sha:
@@ -217,6 +219,8 @@ class Desktop:
             operator_view.dashboard(self)
         elif page in ("Security Events", "Investigation"):
             operator_view.records(self)
+        elif page == "Continuous":
+            continuous_view.build(self)
         elif page == "AI Analysis":
             analysis_view.build(self)
         else:
@@ -224,6 +228,12 @@ class Desktop:
         self._render_current()
         if refresh:
             self.refresh()
+
+    def continuous_updated(self, value):
+        self.status.set(str(value.get("state", "UNKNOWN")) + " · Continuous service")
+        self.snapshot["continuous"] = value
+        self.last_render = None
+        self._render_current()
 
     def analysis_updated(self, value):
         self.status.set(str(value.get("state", "UNKNOWN")) + " · OFFLINE analysis")
@@ -402,6 +412,8 @@ class Desktop:
                 "Investigations are READ-only.\n\n"
                 "Research scores are not confirmed attacks.",
             )
+        elif self.page == "Continuous":
+            continuous_view.render(self, value.get("continuous", {}))
         elif self.page == "AI Analysis":
             analysis_view.render(self, value.get("analysis", {}))
         else:

@@ -23,6 +23,10 @@ def terminal_authenticate(*, run=None):
 
 def main(argv=None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] == "continuous":
+        from soc_agent.continuous.cli import main as continuous_main
+
+        return continuous_main(arguments[1:])
     if arguments and arguments[0] == "analyze-offline":
         from soc_agent.security_ai.offline_analysis_cli import main as analysis_main
 

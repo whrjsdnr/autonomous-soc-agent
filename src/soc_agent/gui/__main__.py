@@ -23,6 +23,7 @@ def main(argv=None, *, prepared=None) -> int:
         default=Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
         / "autonomous-soc-agent/gui",
     )
+    parser.add_argument("--continuous-runtime", type=Path)
     parser.add_argument(
         "--analysis-result",
         type=Path,
@@ -71,6 +72,7 @@ def main(argv=None, *, prepared=None) -> int:
             from soc_agent.gui.production import Desktop
 
         config = GUIConfig(
+            continuous_directory=args.continuous_runtime,
             analysis_result=args.analysis_result,
             analysis_ml_root=args.analysis_ml_root,
             collector_type=args.collector,

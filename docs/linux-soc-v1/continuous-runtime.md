@@ -300,3 +300,10 @@ Commit/Stage/Push, 상위 agent 위임/IPC/외부 API, Windows 신규 개발, AW
 - 실제 Firewall/계정/프로세스 대응 Executor 또는 rollback은 이번 단계에 구현·활성화하지 않았다.
 
 운영 배포 준비를 완료로 선언하지 않는다. 현재 완료 증거는 WSL2의 독립 READ-only 연속 감시 범위다.
+
+
+## Packet replay service extension
+
+The independent packet/AI replay service and GUI attachment are documented in
+[Continuous Replay Runtime](continuous-replay-runtime.md). Existing Linux authentication
+monitoring contracts above are preserved. Native TCX Continuous authority is separate.

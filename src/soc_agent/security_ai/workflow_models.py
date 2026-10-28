@@ -7,6 +7,7 @@ from pydantic import Field, IPvAnyAddress, JsonValue, TypeAdapter, model_validat
 
 from soc_agent.review.models import Hash
 from soc_agent.security_ai.features import SecurityRecord
+from soc_agent.security_ai.operational.network_capture.models import PacketObservation
 from soc_agent.security_ai.operational.source_records import DNSQuerySource
 from soc_agent.security_ai.research.models import Frozen
 from soc_agent.state.evidence import UTCTimestamp
@@ -15,6 +16,20 @@ from soc_agent.state.evidence import UTCTimestamp
 class ReplayJob(Frozen):
     kind: Literal["network14_replay"]
     flow_index: int = Field(ge=0, le=3, strict=True)
+    profiles: tuple[Literal["quality", "edge"], ...] = ("quality", "edge")
+
+
+class PacketWindowJob(Frozen):
+    kind: Literal["packet_window"]
+    origin: Literal["OFFLINE_PCAP", "FIXTURE"]
+    session: UUID
+    source_sha256: Hash
+    clock_epoch: str = Field(min_length=1, max_length=128)
+    quality: Literal["ELIGIBLE", "INCOMPLETE", "INVALID", "UNKNOWN"]
+    close_reason: str = Field(min_length=1, max_length=64)
+    packets: tuple[PacketObservation, ...] = Field(min_length=1, max_length=128)
+    identities: tuple[UUID, ...] = Field(min_length=1, max_length=128)
+    witness_ns: int = Field(ge=0)
     profiles: tuple[Literal["quality", "edge"], ...] = ("quality", "edge")
 
 
@@ -106,6 +121,7 @@ class CollectorFailureJob(Frozen):
 
 Job = Annotated[
     ReplayJob
+    | PacketWindowJob
     | DNSFixtureJob
     | StoredDNSJob
     | RawDNSJob

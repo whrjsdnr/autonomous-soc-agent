@@ -82,7 +82,7 @@ def main(argv=None) -> int:
                 read_local(args.api_env_file, 16384)
                 settings = settings_from_env_file(args.api_env_file, authorization)
             paths = None
-            if job.kind in ("network14_replay", "dns_fixture", "tcx_analysis"):
+            if job.kind in ("network14_replay", "packet_window", "dns_fixture", "tcx_analysis"):
                 if args.research_ml_root:
                     ml = args.research_ml_root.absolute()
                     base = Paths(
