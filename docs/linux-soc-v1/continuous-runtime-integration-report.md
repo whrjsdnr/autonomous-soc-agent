@@ -1,3 +1,115 @@
+# Continuous Runtime 장시간 자율 통합 결과 — 2026-10-28
+
+**판정: Offline/저장 증거 기반 통합 검증 완료. Native Continuous AI는 NOT_READY.**
+TCX 서비스 운영 코드와 빌드 경로를 구현했으나 활성화하지 않았다. 실제 Kernel 수집 검증과
+Continuous capture attestation → 모델 action 승인 연결은 아직 구현·검증이 필요하다.
+따라서 다음 출근 시 승인만 받으면 전체 Native AI가 동작하는 상태라고 선언하지 않는다.
+
+운영 코드: `0b3bbd9`, `1dd5121520f542dfd1954309b76970b5768cc903`.
+후자 Tree: `3f57c83b8434d66f4f210ffd764eea4615a50c7a`.
+실행·중지·복구 절차: [Continuous 운영 안내](continuous-runtime-operations.md).
+아래 이전 보고는 당시 검증 이력으로 보존한다.
+
+## 실제 구현한 경로
+
+- 독립 TCX BPF/provider/Root service와 일반 사용자 socket producer를 구현했다.
+  승인된 기존 Namespace·lo만 허용하고, Root 소유 설치 attestation·파일/Runtime SHA·peer UID·
+  capability·cgroup 자원 제한을 검증한다. 범용 명령이나 setns 실행 기능은 없다.
+  Root 서비스는 GUI 연결 종료와 독립적이며 소유자 STOP_CAPTURE와 제한된 Cleanup ACK를 제공한다.
+  서비스는 설치·활성화되지 않았다. 기존 Phase D의 4,096 이벤트/300초 계약은 변경하지 않았다.
+- Kernel monotonic 이벤트를 기존 ordering/window 추출기에 연결했다. Capture 증명이 없는
+  Native window는 UNKNOWN/INCOMPLETE이며 모델 호출을 차단한다. UTC로 임의 변환하지 않는다.
+- 저장 journal transport/cursor와 기존 Authentication parser·5분 feature extractor·실제
+  IsolationForest를 연결했다. 종료 watermark가 없는 입력은 추론하지 않는다.
+  Host journal 수집기는 자동 생성하지 않는다. 새 모델이나 feature 정의는 만들지 않았다.
+- 원본 입력+cursor 원자적 저장, 재시작 replay/dedup, auxiliary 인증 queue, Native segment
+  무결성, quota 실패, quiescent archive/새 디렉터리 restore를 구현했다.
+  기존 v1 디렉터리는 보존하고 새 Runtime은 fresh v2 디렉터리를 요구한다.
+- 기존 AI subprocess·fusion·Incident·SCRIPTED 조사/읽기 전용 도구·평가·Audit을 재사용했다.
+  GUI는 domain·eligibility·Prediction·Incident 상세를 실제 Backend 결과에서 조회한다.
+  GUI 종료는 독립 Collector 서비스를 종료하지 않는다.
+
+## 비권한 E2E 증거
+
+| 경로 | 입력/모델/조사 | 결과 |
+|---|---|---|
+| Packet | 실제 저장 IoT23 PCAP / 실제 RF·LR / Offline | 498 records, 233 packets, 116 windows, Prediction 10, Incident·Audit 5 |
+| Authentication | 저장 Synthetic 인증 42건+watermark / 실제 IF / SCRIPTED | Prediction 1, Incident·조사·Audit 1 |
+| Crash recovery | 일반 사용자 서비스 SIGKILL 후 재시작 | committed raw 11건 복구, 중복 11건 식별, 인증 unique 42건 유지 |
+| Worker failure | 분석 자식 Exit 17 | Collector 유지, queue 보존, circuit/명시적 복구 후 처리 재개 |
+| DNS | 저장 Transaction/Fixture | provenance·queue·Audit 계약 검증; DNS9 추론 차단 유지 |
+| GUI | 실제 Tk와 실제 Offline 모델 결과 | 상세 조회, domain 표시, 종료·재연결 검증 |
+
+Packet queue 포화에서 drop 107, DONE 5, PENDING 4를 기록했다:
+`107 + 5 + 4 = 116 windows`. 손실 없는 처리나 장기 운영 처리량을 입증한 결과가 아니다.
+위 Packet 실행과 인증 실행은 후속 Root 전용 제한/보관/GUI 보완 이전의 비권한 기능 실행이며,
+최종 Source는 아래 회귀·독립 Export와 재현 빌드로 검증했다.
+실제 API 호출은 0회이며 새 LLM 조사는 SCRIPTED다. 기존 실제 API 증거와 구분한다.
+
+증거(공통 Git 디렉터리):
+
+- `.git/continuous-stream-tcx-compatible-20261028T105254Z/`: PCAP/실제 모델 결과.
+- `.git/continuous-runtime-autonomous-20261028T104506Z/`: 인증/강제 종료/복구 결과.
+- `.git/continuous-autonomous-release-20261028T114636Z/`: 최종 SHA, 빌드, 검증 로그.
+
+## RCA와 검증 범위
+
+- retain-before-seen 중단 시 unique 계측이 증가하던 문제를 durable replay 식별로 수정했다.
+- Native 후보의 필수 관측 시각 누락은 `None`으로 명시했으며 Kernel 시계를 UTC로 위조하지 않았다.
+- 저장 실패가 소유 분석 자식/socket Cleanup을 건너뛰던 경로를 정리하고 최초/후속 오류를 분리했다.
+- 인증 producer poll 취소 완료 전에 STOPPED/backup이 가능하던 경로는 poll 완료를 기다리도록 했다.
+- 부분 기록·SHA/namespace 불일치·disk quota·checkpoint 손상·중복·worker 실패·owner STOP ACK 실패를
+  비권한 테스트로 검증했다. Root peer/cgroup/설치 경계는 Mock이며 실제 권한 실행 성공이 아니다.
+
+동결 Source 기준 Workspace **332 PASS**, 독립 Export **332 PASS**.
+후속 제한/보관/GUI 변경은 집중 회귀(29 PASS, 보관 수정 후 단일 재검증 PASS, GUI 2 PASS)와
+최종 독립 Export **31 PASS**로 검증했다. 서로 겹치는 테스트를 합산하지 않는다.
+전체 332개를 마지막 소규모 변경 후 다시 실행한 결과로 표기하지 않는다.
+Ruff check·format(1,467 files)·git diff --check 통과.
+장시간 검증은 5,000 이벤트/모의 event-time이며 실제 수일 wall-clock 운영 soak가 아니다.
+
+## 최종 Source·Artifact Identity
+
+| 항목 | SHA256 |
+|---|---|
+| Source snapshot (651 src files) | `f1216e52262a47e3304536541041ed23044febd0f47ce26603abf71b09c240b3` |
+| Wheel Workspace/Export 동일 | `eaba18afb8334402f242171ae37cc3a87df01ebf76a517c3e454b3dce7fdd070` |
+| continuous.bpf.o | `a5e249726ac00966679b2b0c9360825e69ec9da64e44cf360d0a1ea608fa7548` |
+| provider.so | `390324119ebbaed8f40d1f2678411e38398c32bbe1315b37d396a93f2d883edd` |
+| Root service.py | `1b05588a74b32c6ea16582d999a373cdde5a9e1ab3e599e8facdb93896e69090` |
+| Installation validator | `cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53` |
+| Runtime identity | `431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb` |
+| Service unit | `df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033` |
+| RF | `53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603` |
+| LR | `661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882` |
+| Authentication package manifest | `aabeb76277534d9300f70699dfddb84214720add607ef1d17b4c0e34e084b5f6` |
+
+Workspace/독립 Export Native 산출물 **6/6 동일**, Wheel도 byte-identical이다.
+이는 비권한 빌드 증거이며 설치된 실행 권한이나 신규 Root Manifest/실행 영수증이 아니다.
+
+## 보존·남은 작업
+
+Ledger **81행**, SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae` 보존.
+Campaign Root 12/Native 4, Batch 3 Root 9/Native 1 이력 보존.
+기존 개발 OBSERVE_ONLY와 운영 Root 한도는 변경하지 않았다.
+Host `net:[4026531833]`, 기존 SOC inode `4026532232`는 비권한 조회로 확인했다.
+실제 Root/Native/DNS/Host 인증 로그/API 호출, 예약·영수증 소비·Ledger 변경 모두 0회다.
+
+Native Continuous를 위해 남은 최소 작업은 다음과 같다.
+
+1. 독립 서비스 설치/권한/Namespace/자원 정책의 인간 Approved Update와 고정 Runtime 설치.
+2. 실제 Kernel attach·counter·clock·flow 종료·drain·소유 자원 Cleanup 검증.
+3. Continuous capture attestation과 모델 action 승인 연결 구현·회귀. 현재 Native 모델 허용은 false다.
+4. 실제 DNS Sidecar Continuous 연결과 Host 인증 transport의 별도 읽기 권한 검증.
+5. 별도 승인된 Live 환경의 부하·저장 기간·장애 soak 검증.
+
+현재 Offline 시연과 저장 인증 AI·조사·GUI 통합은 가능하다. Native Continuous 실환경 운영 및
+Native AI E2E VERIFIED/RELEASE_READY는 선언하지 않는다.
+
+---
+
+## 이전 검증 이력 (이하 원문 보존)
+
 # Continuous Runtime 통합 검증
 
 검증일: 2026-10-28, WSL Ubuntu, 일반 사용자. 브랜치 `feat/continuous-runtime`.

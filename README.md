@@ -40,6 +40,7 @@ and release status are documented in
 `python -m soc_agent.cli continuous` provides a persistent ordinary-user replay
 service with bounded queues, isolated RF/LR analysis, incidents, audit and GUI
 attachment. See [run, stop and recovery instructions](docs/linux-soc-v1/continuous-replay-runtime.md).
-Closing the GUI leaves this service running. Native Continuous collection remains
-unimplemented and blocked pending a separate collector/service contract; existing
+Closing the GUI leaves this service running. The separate TCX producer/backend is implemented and build-verified, with activation
+blocked pending an administrator-reviewed installation contract and Live validation.
+Native capture attestation and model-action admission remain blocked. Existing
 Native diagnostics and Offline demonstrations are preserved.

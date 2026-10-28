@@ -1,5 +1,9 @@
 # Continuous Runtime
 
+Updated extension: [TCX producer, authentication and recovery](continuous-runtime-operations.md).
+The original replay verification below is retained; the new Native backend is now implemented
+but unactivated. Native capture attestation/model admission remain blocked.
+
 The `continuous` CLI runs an ordinary-user service independently of the GUI. The
 existing Phase D diagnostic CLI, admission receipts and limits remain unchanged;
 `analyze-offline` remains the single-run offline entry point.
@@ -101,10 +105,9 @@ is not implemented by this attachment.
 ## Native service authority: not activated and not deployment-ready
 
 `NATIVE_SERVICE` fails closed with
-`CONTINUOUS_NATIVE_SERVICE_INSTALLATION_AND_POLICY_NOT_ACTIVATED`. The privileged
-continuous TCX producer/transport is **not implemented** in this release. This is a
-remaining code integration task as well as a future authorization requirement;
-approving the current replay artifact cannot make Native Continuous work.
+`CONTINUOUS_NATIVE_SERVICE_INSTALLATION_AND_POLICY_NOT_ACTIVATED`. The original replay release did not implement the privileged TCX backend. The later
+autonomous integration adds the separately gated producer and transport described in
+the extension guide. It does not grant Native model inference or production promotion.
 
 A future installed minimal collector must own attachment and deliver bounded,
 authenticated TCX/DNS records with sequence, loss counters, clock epoch, namespace,
