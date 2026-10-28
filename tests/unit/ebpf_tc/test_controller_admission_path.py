@@ -258,7 +258,14 @@ def test_actual_controller_check_uses_built_image_and_real_admission(admission, 
     elif fault == "replay":
         claim.write_text("SYNTHETIC_CONSUMED_TRAFFIC_CLAIM")
     elif fault == "namespace":
-        monkeypatch.setattr(os, "readlink", lambda *_: "net:[4026531833]")
+        observed = os.readlink
+        monkeypatch.setattr(
+            os,
+            "readlink",
+            lambda path, *a, **kw: (
+                "net:[4026531833]" if str(path) == "/proc/self/ns/net" else observed(path, *a, **kw)
+            ),
+        )
     Path(data["request_file"]).write_bytes(canonical(request.model_dump()))
     before = path.read_bytes()
     state, results = {}, []
@@ -282,6 +289,8 @@ def test_actual_controller_check_uses_built_image_and_real_admission(admission, 
             )
         assert stopped.value.code == 2 and results[-1]["status"] == "BLOCKED"
         assert results[-1]["failure_origin"]
+        if fault == "namespace":
+            assert results[-1]["error"] == "PHASE_D_COLLECTOR_SCOPE_MISMATCH"
     (Path(data["source_pins"]).parent / "admission-preview-result.json").write_bytes(
         canonical(
             dict(
