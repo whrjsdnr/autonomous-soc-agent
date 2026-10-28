@@ -291,6 +291,15 @@ def test_complete_mock_approval_readiness_is_nonconsuming(
         kwargs[missing] = None
     result = operational.readiness(**kwargs)
     assert result["status"] == ("BLOCKED" if missing else "EXECUTION_READY")
+    if missing != "amendment_file":
+        assert result["admission_context"]["session"] == ledger.amendment.binding.next_session
+        assert (
+            result["admission_context"]["release"] == ledger.amendment.binding.next_artifact.release
+        )
+        assert (
+            result["admission_context"]["artifact"]
+            == ledger.amendment.binding.next_artifact.model_dump()
+        )
     assert not result["executed"] and not result["reserved"]
     assert not kwargs["claim_file"].exists()
     assert (ledger.directory / "execution-ledger.jsonl").read_bytes() == before
@@ -473,3 +482,19 @@ def test_actual_reassess_cli_requires_pinned_human_grants_and_keeps_false(review
     assert cli.main(argv) == 2  # stale tip/replay must not append again
     capsys.readouterr()
     assert path.read_bytes() == after
+
+
+def test_preview_rejects_ledger_append_after_request_without_reserving(
+    review, stable, tmp_path, monkeypatch
+):
+    from soc_agent.security_ai.native_campaign import NativeCampaign
+
+    ledger, kwargs = mock_entry_context(review, stable, tmp_path, monkeypatch)
+    NativeCampaign._locked(ledger, lambda _rows: dict(event="SYNTHETIC_POST_REQUEST_APPEND"))
+    before = (ledger.directory / "execution-ledger.jsonl").read_bytes()
+    result = operational.readiness(**kwargs)
+    assert result["status"] == "BLOCKED"
+    assert result["error"] == "REASSESSMENT_ADMISSION_STALE_LEDGER"
+    assert result["failure_origin"] and result["admission_context"]["session"]
+    assert not result["reserved"] and not result["executed"]
+    assert (ledger.directory / "execution-ledger.jsonl").read_bytes() == before

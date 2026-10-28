@@ -168,21 +168,79 @@ def _safe_code(value: object) -> str | None:
     )
 
 
+def _ledger_observation(config: dict) -> dict:
+    """Diagnostic snapshot only; never an admission decision or a Ledger update."""
+    if "ledger" not in config:
+        return dict(status="NOT_PROVIDED")
+    try:
+        body = read_held(Path(config["ledger"]), owner=os.getuid(), limit=1048576)
+        lines = body.splitlines()
+        tail = json.loads(lines[-1]) if lines else {}
+        tip = tail.get("record_sha256") if isinstance(tail, dict) else None
+        return dict(
+            sha256=hashlib.sha256(body).hexdigest(),
+            rows=len(lines),
+            head=tip if isinstance(tip, str) and re.fullmatch(r"[a-f0-9]{64}", tip) else None,
+        )
+    except (OSError, ValueError) as exc:
+        return dict(status="UNAVAILABLE", error_class=type(exc).__name__)
+
+
+def _read_ack(path: Path) -> dict:
+    def unique(pairs):
+        value = {}
+        for key, item in pairs:
+            if key in value:
+                raise ValueError("NAMESPACE_CONTROLLER_ACK_DUPLICATE_FIELD")
+            value[key] = item
+        return value
+
+    value = json.loads(read_held(path, owner=os.getuid(), limit=65536), object_pairs_hook=unique)
+    if (
+        not isinstance(value, dict)
+        or set(value) != {"ledger_sha"}
+        or not isinstance(value["ledger_sha"], str)
+        or not re.fullmatch(r"[a-f0-9]{64}", value["ledger_sha"])
+    ):
+        raise ValueError("NAMESPACE_CONTROLLER_ACK_BINDING")
+    return value
+
+
 def child_main(config: dict):
     """Preserve the first structured failure without recording authentication I/O."""
-    state = dict(stage="CONTROLLER_PREFLIGHT", attempt=config["attempt"])
+    state = dict(
+        stage="CONTROLLER_PREFLIGHT",
+        attempt=config["attempt"],
+        returncode=0,
+        status="RUNNING",
+        frames=[],
+        entry=config.get("entry"),
+        namespace=config.get("namespace"),
+        artifact=config.get("target"),
+        native_cleanup="NOT_STARTED",
+        controller_cleanup="NOT_ASSESSED",
+    )
 
     def observe(result: dict) -> None:
+        if "admission_context" in result:
+            state["admission_context"] = result["admission_context"]
+        if "cleanup_status" in result:
+            state["native_cleanup"] = _safe_code(result["cleanup_status"])
         if result.get("status") == "BLOCKED" and "first_failure" not in state:
             state["first_failure"] = dict(
                 status="BLOCKED",
                 error=_safe_code(result.get("error")),
                 errno=result.get("errno") if type(result.get("errno")) is int else None,
             )
+            if "failure_origin" in result:
+                state["first_failure"]["origin"] = result["failure_origin"]
 
     try:
-        return _child_main(config, state, observe)
+        result = _child_main(config, state, observe)
+        state["status"] = "CANCELLED_BEFORE_NATIVE_ADMISSION"
+        return result
     except BaseException as exc:
+        state["status"] = "COMPLETED" if isinstance(exc, SystemExit) and exc.code == 0 else "FAILED"
         state["exception_class"] = type(exc).__name__
         state["frames"] = [
             dict(file=Path(frame.filename).name, function=frame.name, line=frame.lineno)
@@ -195,6 +253,7 @@ def child_main(config: dict):
             state["first_failure"] = dict(error=_safe_code(str(exc)))
         raise
     finally:
+        state["ledger_at_exit"] = _ledger_observation(config)
         # One private, exclusive outcome per attempt. Never replace earlier evidence.
         path = Path(config["ack"]).with_suffix(".controller-result.json")
         try:
@@ -219,13 +278,17 @@ def _child_main(config: dict, state: dict, observe):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as channel:
         if channel.getsockopt(socket.SOL_SOCKET, 71, 8).hex() != config["cookie"]:
             raise ValueError("NAMESPACE_CONTROLLER_COOKIE_CHANGED")
+    state["controller_cleanup"] = "COOKIE_SOCKET_CLOSED"
+    state["stage"] = "SETTLEMENT_ACK"
     deadline = time.monotonic() + 10
     ack = Path(config["ack"])
     while not ack.exists():
         if time.monotonic() > deadline:
             raise TimeoutError("NAMESPACE_CONTROLLER_SETTLEMENT_NOT_OBSERVED")
         time.sleep(0.05)
-    value = json.loads(read_held(ack, owner=os.getuid(), limit=65536))
+    value = _read_ack(ack)
+    state["ack_ledger_sha"] = value["ledger_sha"]
+    state["ledger_at_ack"] = _ledger_observation(config)
     from soc_agent.security_ai.ebpf_tc.dns_diagnostic_engine import dns_held_json_ledger
 
     state["stage"] = "SETTLEMENT_LEDGER"
@@ -237,6 +300,11 @@ def _child_main(config: dict, state: dict, observe):
         or events[-1].get("state") != "SUCCEEDED"
     ):
         raise ValueError("NAMESPACE_CONTROLLER_ENTRY_NOT_SETTLED")
+    state["root_entry"] = dict(
+        state="SUCCEEDED",
+        record_sha256=events[-1].get("record_sha256"),
+        cleanup="SEE_SETTLED_ROOT_EVIDENCE",
+    )
     print(
         "Namespace Controller ready with ordinary credentials. Entry is settled.\n"
         "A NEW exact Native approval request must bind the current Ledger; "
@@ -258,6 +326,8 @@ def _child_main(config: dict, state: dict, observe):
         signal.alarm(0)
         signal.signal(signal.SIGALRM, previous)
     state["stage"] = "REQUEST_BINDING"
+    state["request_sha256"] = pin
+    state["ledger_at_request"] = _ledger_observation(config)
     request = held_json(Path(config["request_file"]), pin)
     if any(request.get(k) != v for k, v in config["target"].items()):
         raise ValueError("NAMESPACE_CONTROLLER_EXECUTION_TARGET_CHANGED")
@@ -277,6 +347,7 @@ def _child_main(config: dict, state: dict, observe):
     # Existing execute performs its own non-consuming check, foreground Scope
     # confirmation before reservation and fresh sudo. No reused Root entry grant.
     state["stage"] = "NATIVE_EXECUTE"
+    state["native_cleanup"] = "UNKNOWN_UNTIL_EXECUTION_RESULT"
     raise SystemExit(main(["execute", *args], result_observer=observe))
 
 

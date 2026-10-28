@@ -3,6 +3,7 @@
 import argparse
 import json
 import subprocess
+import traceback
 from collections.abc import Callable
 from pathlib import Path
 
@@ -15,6 +16,13 @@ from soc_agent.security_ai.ebpf_tc.reassessment_admission import (
 )
 from soc_agent.security_ai.ebpf_tc.recovery_policy import validate_image_recovery
 from soc_agent.security_ai.ebpf_tc.supervisor import SupervisorImage
+
+
+def _failure_origin(exc: BaseException) -> list[dict]:
+    return [
+        dict(file=Path(frame.filename).name, function=frame.name, line=frame.lineno)
+        for frame in traceback.extract_tb(exc.__traceback__)[-12:]
+    ]
 
 
 def source_git_identity() -> tuple[str, str]:
@@ -61,6 +69,7 @@ def readiness(
             "NATIVE_EXECUTION_APPROVED",
         )
     }
+    context = {}
     try:
         descriptor = SupervisorImage.model_validate_json(
             (directory / "supervisor-image.json").read_bytes()
@@ -85,6 +94,11 @@ def readiness(
             campaign, amendment_file=amendment_file, amendment_sha=amendment_sha
         )
         binding = ledger.amendment.binding
+        context = dict(
+            session=binding.next_session,
+            release=binding.next_artifact.release,
+            artifact=binding.next_artifact.model_dump(mode="json"),
+        )
         if management_file is not None or management_sha is not None:
             from soc_agent.security_ai.ebpf_tc.execution_management import verify_policy
 
@@ -159,11 +173,14 @@ def readiness(
             stages=states,
             error=str(exc),
             errno=getattr(exc, "errno", None),
+            failure_origin=_failure_origin(exc),
+            admission_context=context,
             reserved=False,
             executed=False,
         )
     return dict(
         status="EXECUTION_READY",
+        admission_context=context,
         stages=states,
         reserved=False,
         executed=False,
@@ -476,7 +493,11 @@ def main(argv=None, *, result_observer: Callable[[dict], None] | None = None) ->
     except (ValueError, OSError) as exc:
         emit(
             dict(
-                status="BLOCKED", error=str(exc), errno=getattr(exc, "errno", None), executed=False
+                status="BLOCKED",
+                error=str(exc),
+                errno=getattr(exc, "errno", None),
+                failure_origin=_failure_origin(exc),
+                executed=False,
             )
         )
         return 2

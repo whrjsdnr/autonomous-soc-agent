@@ -119,6 +119,12 @@ def controller_root_main(config):
         raise OSError(ctypes.get_errno(), "NAMESPACE_CONTROLLER_DUMPABLE")
     child = config["controller"] | dict(
         namespace=config["namespace"],
+        entry=dict(
+            session=config["session"],
+            release=config["release"],
+            root_manifest=config["root_manifest"],
+            source_snapshot=config["source_snapshot"],
+        ),
         cookie=cookie.hex(),
         attempt=envelope["approval_sha"],
         ledger=envelope["ledger_file"],
