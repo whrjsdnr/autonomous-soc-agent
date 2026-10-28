@@ -476,6 +476,12 @@ def test_ordinary_controller_requires_settlement_and_fresh_request_before_existi
             )
         ],
     )
+    from soc_agent.security_ai.ebpf_tc import request_handoff
+
+    # This unit test isolates CLI dispatch. Real READY qualification and timeout
+    # behavior are covered with actual receipts/image in test_request_handoff.
+    monkeypatch.setattr(request_handoff, "wait_for_request", lambda *_: dict(request_sha=pin))
+    monkeypatch.setattr(request_handoff, "verify_ready", lambda *_: dict(request_sha=pin))
     calls = []
 
     def cli(args, **kwargs):

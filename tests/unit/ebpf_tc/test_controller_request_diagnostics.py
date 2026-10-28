@@ -9,6 +9,7 @@ from tests.unit.ebpf_tc.test_namespace_runtime import NS, config
 
 from soc_agent.security_ai.ebpf_tc import namespace_controller as controller
 from soc_agent.security_ai.ebpf_tc.installation import canonical
+from soc_agent.security_ai.ebpf_tc.request_handoff import wait_for_request as actual_wait
 
 
 def sha(body):
@@ -78,6 +79,16 @@ def context(tmp_path, monkeypatch):
     from soc_agent.security_ai.ebpf_tc import auth_session
 
     monkeypatch.setattr(auth_session, "open_authentication_tty", lambda *_: pytest.fail("No auth"))
+    # These diagnostic unit tests isolate the handoff qualifier. Its real image,
+    # receipts and Ledger path is exercised in test_request_handoff.
+    from soc_agent.security_ai.ebpf_tc import request_handoff
+
+    monkeypatch.setattr(request_handoff, "wait_for_request", lambda *_: {})
+    monkeypatch.setattr(
+        request_handoff,
+        "verify_ready",
+        lambda *_: dict(request_sha=sha(Path(data["request_file"]).read_bytes())),
+    )
     return data, ledger, ack, request
 
 
@@ -271,3 +282,23 @@ def test_native_primary_error_survives_cleanup_and_outer_exit(tmp_path, monkeypa
     assert result["first_failure"]["return_value"] == -1
     assert result["native_cleanup"] == "CLEANUP_UNVERIFIED"
     assert "not persisted" not in json.dumps(result)
+
+
+def test_missing_ready_preserves_first_error_before_input(context, monkeypatch):
+    from soc_agent.security_ai.ebpf_tc import request_handoff
+
+    data, ledger, _, _ = context
+    before = ledger.read_bytes()
+    monkeypatch.setattr(
+        request_handoff, "wait_for_request", lambda path: actual_wait(path, timeout=0)
+    )
+    monkeypatch.setattr("builtins.input", lambda *_: pytest.fail("Input before READY"))
+    with pytest.raises(TimeoutError, match="EXECUTION_REQUEST_READY_TIMEOUT"):
+        controller.child_main(data)
+    result = outcome(data)
+    assert result["first_failure"]["error"] == "EXECUTION_REQUEST_READY_TIMEOUT"
+    assert result["stage"] == "REQUEST_READY_WAIT"
+    assert result["returncode"] == 1 and result["frames"][-1]["function"] == "wait_for_request"
+    assert result["controller_cleanup"] == "COOKIE_SOCKET_CLOSED"
+    assert result["native_cleanup"] == "NOT_STARTED"
+    assert ledger.read_bytes() == before

@@ -55,6 +55,7 @@ def readiness(
     claim_file: Path | None = None,
     management_file: Path | None = None,
     management_sha: str | None = None,
+    preparation_only: bool = False,
 ) -> dict:
     """Non-consuming current readiness, never permission for later unchecked use."""
     states = {
@@ -79,7 +80,9 @@ def readiness(
             states["SOURCE_VERIFIED"] = "VERIFIED"
             states["RUNTIME_VERIFIED"] = "BUILD_INTEGRITY_VERIFIED_ONLY"
             raise ValueError("ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED")
-        value = phase_d.validate(directory, manifest, image)
+        value = (phase_d.validate_preparation if preparation_only else phase_d.validate)(
+            directory, manifest, image
+        )
         states["SOURCE_VERIFIED"] = states["RUNTIME_VERIFIED"] = "VERIFIED"
         descriptor = SupervisorImage.model_validate_json(
             (directory / "supervisor-image.json").read_bytes()
@@ -179,7 +182,7 @@ def readiness(
             executed=False,
         )
     return dict(
-        status="EXECUTION_READY",
+        status="REQUEST_PREPARATION_VERIFIED" if preparation_only else "EXECUTION_READY",
         admission_context=context,
         stages=states,
         reserved=False,
@@ -248,10 +251,40 @@ def main(argv=None, *, result_observer: Callable[[dict], None] | None = None) ->
         "dns-operation-file",
     ):
         parser.add_argument("--" + name, type=Path)
+    parser.add_argument("--request-preparation-file", type=Path)
+    parser.add_argument("--request-preparation-sha")
     args = parser.parse_args(argv)
     local_controller()  # Never a Root CLI or capability-bearing controller.
     directory = args.directory.absolute()
     try:
+        if args.request_preparation_file is not None or args.request_preparation_sha is not None:
+            from soc_agent.security_ai.ebpf_tc.execution_request import ExecutionRequest
+            from soc_agent.security_ai.ebpf_tc.installation import canonical
+            from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+            from soc_agent.security_ai.ebpf_tc.request_handoff import (
+                atomic_publish,
+                prepare_r1,
+                publish_request,
+            )
+
+            if (
+                args.mode != "prepare"
+                or not args.request_preparation_file
+                or not args.request_preparation_sha
+            ):
+                raise ValueError("REQUEST_PREPARATION_REQUIRES_PINNED_PREPARE_PACKET")
+            packet = held_json(args.request_preparation_file, args.request_preparation_sha)
+            if packet["kind"] == "R1_REVIEW_PREPARATION":
+                result = prepare_r1(directory, packet)
+                atomic_publish(Path(packet["output_file"]), canonical(result))
+            elif packet["kind"] == "EXECUTION_REQUEST_PUBLICATION":
+                request = ExecutionRequest.model_validate(packet["request"])
+                request.arguments(directory)
+                result = publish_request(Path(packet["request_file"]), request)
+            else:
+                raise ValueError("REQUEST_PREPARATION_KIND")
+            print(json.dumps(result, indent=2))
+            return 0
         if args.namespace_controller_file is not None or args.namespace_controller_sha is not None:
             from soc_agent.security_ai.ebpf_tc.namespace_controller import run_packet
             from soc_agent.security_ai.ebpf_tc.reassessment import held_json
@@ -398,6 +431,11 @@ def main(argv=None, *, result_observer: Callable[[dict], None] | None = None) ->
                     "reassess requires pinned procedure/review/evidence files and --campaign"
                 )
             packet = held_json(args.evidence_file, args.evidence_sha)
+            if "preparation_ledger" in packet:
+                from soc_agent.security_ai.ebpf_tc.request_handoff import ledger_snapshot
+
+                if packet["preparation_ledger"] != ledger_snapshot(args.campaign):
+                    raise ValueError("R1_PREPARATION_STALE_LEDGER")
             result = reassess(
                 StabilizationCampaign(args.campaign, packet["binding"]["batch"]),
                 procedure_file=args.procedure_file,

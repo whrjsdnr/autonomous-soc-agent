@@ -129,6 +129,11 @@ def test_controller_auto_pin_still_runs_real_cli_and_exact_receipts(admission, m
     monkeypatch.setattr(integrity, "approved_source_pins", lambda _, original: original)
     config["automatic_request_policy_sha"] = "a" * 64
     before = ledger.read_bytes()
+    from soc_agent.security_ai.ebpf_tc.request_handoff import publish_request
+
+    request_path = Path(config["request_file"])
+    request_path.unlink()  # Synthetic fixture setup; qualify the real READY handoff.
+    publish_request(request_path, request)
     results = []
     controller.check_request(config, pin, {}, results.append)
     assert results[-1]["status"] == "EXECUTION_READY"

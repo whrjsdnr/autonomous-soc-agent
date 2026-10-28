@@ -240,6 +240,7 @@ def child_main(config: dict):
     """Preserve the first structured failure without recording authentication I/O."""
     state = dict(
         stage="CONTROLLER_PREFLIGHT",
+        controller_started_ns=time.time_ns(),
         attempt=config["attempt"],
         returncode=0,
         status="RUNNING",
@@ -367,8 +368,21 @@ def _child_main(config: dict, state: dict, observe):
         _write_diagnostic(config, ".controller-ready.json", state)
     except OSError as exc:
         raise ValueError("NAMESPACE_CONTROLLER_READY_DIAGNOSTIC_UNAVAILABLE") from exc
+    from soc_agent.security_ai.ebpf_tc.request_handoff import wait_for_request
+
+    state["controller_request_wait_started_ns"] = time.time_ns()
+    state["stage"] = "REQUEST_READY_WAIT"
+    state["request_wait_started_ns"] = time.time_ns()
+    print("Waiting for validated request READY (maximum 300s). No input is needed yet.")
+    handoff_deadline = time.monotonic() + 300
+    handoff = wait_for_request(Path(config["request_file"]))
+    state["request_ready_verified_ns"] = time.time_ns()
+    state["request_ready"] = handoff
     previous = signal.signal(signal.SIGALRM, expired)
-    signal.alarm(300)
+    remaining = int(handoff_deadline - time.monotonic())
+    if remaining <= 0:
+        raise TimeoutError("EXECUTION_REQUEST_READY_TIMEOUT")
+    signal.alarm(remaining)
     try:
         if "automatic_request_policy_sha" in config:
             print(
@@ -411,6 +425,12 @@ def check_request(config: dict, pin: str, state: dict, observe) -> list[str]:
     state["stage"] = "REQUEST_BINDING"
     state["request_sha256"] = pin
     state["ledger_at_request"] = _ledger_observation(config)
+    if "automatic_request_policy_sha" in config or "request_ready" in state:
+        from soc_agent.security_ai.ebpf_tc.request_handoff import verify_ready
+
+        ready = verify_ready(Path(config["request_file"]))
+        if ready["request_sha"] != pin:
+            raise ValueError("EXECUTION_REQUEST_READY_SHA")
     request = held_json(Path(config["request_file"]), pin)
     target = config["target"]
     if "automatic_request_policy_sha" in config:

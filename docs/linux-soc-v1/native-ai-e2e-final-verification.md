@@ -806,3 +806,80 @@ Ledger **63행**, SHA `c2b30587fa02abcfe69b7b50c56883f3006a18cdad9211f1b51251f66
 운영 Ledger는63행/`c2b30587fa02abcfe69b7b50c56883f3006a18cdad9211f1b51251f668877922`로 개발 전과 byte-identical하게 보존한다. Campaign Root10/Native4, Batch3 Root7/Native1 유지. Namespace net:[4026532232], Host net:[4026531833], 기존 설치/rollback, FAILED/false/UNKNOWN과 소비된 영수증을 보존한다. 권한 진입·예약·예산 환급·새 정책 활성화는 수행하지 않았다.
 
 증거: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/artifact-integrity-capacity-recovery-20261028T065527Z`. 수정된 Source/Root Manifest의 정확한 Binding을 담은 `policy-review-package.md`에서 Namespace 빌드 및 개발 SHA 자동 무결성 정책을 한 번에 재검토한다. 이는 새 실행 승인이나 SHA 수동 입력 요청이 아니다. AGENTS.md §33과 사용자의 'Binding 불일치 시 중단' 조건 때문에 수정본에 대해 새 인간 정책 결정을 받기 전에는 영수증을 발급하지 않는다. 정책 승인 뒤 최종 빌드/검증을 수행하되, 실제 R1/R2·Root·Native/DNS·LLM 권한은 별도 계약으로 계속 차단한다.
+
+## Request publication / R1 preparation recovery (2026-10-28)
+
+This change repairs two preparation failures from the Root DNS/Controller attempt
+recorded in `.git/native-auto-integrity-execution-20261028T072417Z/`.
+The Root entry, UDP2/TCP1 and 45-second application observation succeeded. Native
+reservation, installation and capture did not start. The ordinary Controller read
+`future-exact-native-request.json` before it existed, producing FileNotFoundError
+(child Exit1 / outer CLI Exit2). Separately, the host preparation recipe paired a
+new R1 procedure/review with the historical evidence packet's old `binding`; the
+existing validator correctly rejected REASSESSMENT_BINDING without recording R1.
+Neither failure establishes the cause of older UNKNOWN failures.
+
+`request_handoff.py` now qualifies and publishes a complete request using a
+same-directory fsynced temporary file and Linux `renameat2(RENAME_NOREPLACE)`.
+Publication never overwrites an existing request or READY. It verifies the actual
+built image, current Git identity, R1 amendment, R2, management policy, exact
+Root/Native receipts and current Ledger through the existing read-only validators.
+Only then does it publish `<request>.ready.json`, binding the request SHA, Native
+Session, Release, Artifact, Namespace, R1 Binding/record and Ledger snapshot.
+READY conveys no execution authority. Failed complete request bytes are retained
+without READY. Invalid data is not retried or promoted to ready.
+
+After strict settlement ACK verification, the Controller publishes its existing
+ACK-verified marker and waits for the separate request READY. It does not read the
+request or prompt for continuation before READY. Preparation wait plus subsequent
+operator wait share the existing 300-second bound. Request SHA and current
+receipts/Ledger are rechecked after READY and again through ordinary Namespace
+`check`; execute still requires foreground Scope confirmation and fresh sudo.
+Missing READY, missing request after READY, partial/modified bytes, stale Ledger,
+foreign Session/Release and replay fail closed. Diagnostics retain Controller
+start/wait/READY timing, request hash, R1 Binding, Ledger head, first error frames,
+actual child exit and Cleanup; no terminal input, passwords or API keys are stored.
+
+The existing CLI `native-recovery prepare DIRECTORY` accepts a pinned
+`--request-preparation-file` / `--request-preparation-sha` packet. These pins are
+machine-calculated; the user does not copy SHA strings. The two preparation kinds
+are:
+
+- `R1_REVIEW_PREPARATION`: `campaign`, `manifest`, `image_sha`, the pinned official
+  `plan_file`/`plan_sha`, pinned verified `controller_ready_file`/`controller_ready_sha`,
+  pinned `historical_evidence_file`/`historical_evidence_sha`, and `output_file`.
+  Historical *failure evidence* is retained, while next Session comes from the
+  official ApplicationPlan, next Artifact/Release from actual built bytes/current
+  Git and Scope from the validated image. The result is PENDING human risk review,
+  not an approval. It binds the actual settled Ledger, and `reassess` rejects a
+  changed preparation snapshot before attempting to record a human receipt.
+- `EXECUTION_REQUEST_PUBLICATION`: `request_file` and a validated existing
+  `ExecutionRequest` body. Supply independently reviewed/issued R1/R2/Root/Native
+  receipts first. This operation validates and publishes request/READY only; it
+  neither reserves nor consumes approvals. It is forbidden in CLI execute mode.
+
+The required order is: real Root entry and strict ACK/settlement → prepare pending
+R1 from current identities → independent human risk receipt through existing
+reassess → publish exact approved request → validate/publish request READY →
+Controller checks READY → ordinary inside-Namespace check → user Scope/fresh sudo.
+Controller ACK-ready and request READY are different evidence with different
+purposes. Operator timing no longer supplies the synchronization guarantee.
+
+Regression uses actual built images, real private test Ledgers, existing CLI and
+admission preview. Synthetic Namespace/Root installation observations substitute
+only the unavailable privilege boundary in this integration path. Diagnostic unit
+tests isolate the handoff qualifier; separate integration tests exercise its real
+image/receipt/Ledger validators. Delayed/partial/missing request, SHA mismatch,
+Session/Release mismatch, stale Ledger, invalid R1, replay, timeout and first-error
+preservation are covered. These results are not real Native evidence.
+
+Frozen source/export, test logs, guarded Supervisor/Controller build identities,
+reproducibility and preservation results are recorded under
+`.git/request-handoff-recovery-20261028T074202Z/`. The final `artifact-identity.json`
+and `verification-report.md` there contain exact hashes and completed check counts.
+Changes to the Controller/security implementation invalidate old exact build and
+execution approvals. New outputs remain GUARDED; no policy is activated by this
+repair. Latest actual Ledger is 72 rows, Campaign Root11/Native4, Batch3 Root8/Native1.
+The real Ledger/Audit, installed/rollback releases, Namespace, historical
+FAILED/false/UNKNOWN and consumed receipts are preserved. Root, sudo, DNS, Native,
+reservation, receipt consumption and LLM calls are all zero in this repair task.
