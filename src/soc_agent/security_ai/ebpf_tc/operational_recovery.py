@@ -90,7 +90,18 @@ def readiness(
             if management_file is None or management_sha is None:
                 raise ValueError("EXECUTION_MANAGEMENT_POLICY_REQUIRED")
             verify_policy(management_file, management_sha, ledger, binding)
-        if binding.previous_artifact.root_manifest != descriptor.previous_manifest:
+        # The failed run and the currently installed release have independent
+        # identities. R1 validates the former; installation verifies the latter.
+        from soc_agent.security_ai.ebpf_tc.unified_image import installed_release
+
+        if descriptor.recovery_binding is not None:
+            from soc_agent.security_ai.ebpf_tc.runtime_recovery import inspect_retained
+
+            installed_identity = inspect_retained(descriptor.previous_manifest).manifest
+        else:
+            installed = installed_release()
+            installed_identity = installed.identity if installed is not None else None
+        if installed_identity != descriptor.previous_manifest:
             raise ValueError("OPERATIONAL_PREVIOUS_ARTIFACT_BINDING")
         a = binding.next_artifact
         if source_git_identity() != (a.git_commit, a.git_tree):

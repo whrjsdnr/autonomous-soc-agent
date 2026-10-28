@@ -5,6 +5,7 @@ import os
 import shutil
 import time
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
@@ -254,6 +255,11 @@ def mock_entry_context(review, stable, tmp_path, monkeypatch):
     value = dict(bundle=a.bundle, tcx_manifest=a.root_manifest, scope=scope)
     monkeypatch.setattr(phase_d, "validate", lambda *args: value)
     monkeypatch.setattr(operational, "source_git_identity", lambda: (a.git_commit, a.git_tree))
+    monkeypatch.setattr(
+        unified_image,
+        "installed_release",
+        lambda: SimpleNamespace(identity=image.previous_manifest),
+    )
     return ledger, dict(
         directory=tmp_path,
         manifest=a.manifest,
@@ -286,6 +292,37 @@ def test_complete_mock_approval_readiness_is_nonconsuming(
     result = operational.readiness(**kwargs)
     assert result["status"] == ("BLOCKED" if missing else "EXECUTION_READY")
     assert not result["executed"] and not result["reserved"]
+    assert not kwargs["claim_file"].exists()
+    assert (ledger.directory / "execution-ledger.jsonl").read_bytes() == before
+
+
+@pytest.mark.parametrize("installed_state", ["matching", "changed", "missing", "damaged"])
+def test_failed_release_is_independent_of_current_installation(
+    review, stable, tmp_path, monkeypatch, installed_state
+):
+    ledger, kwargs = mock_entry_context(review, stable, tmp_path, monkeypatch)
+    path = tmp_path / "supervisor-image.json"
+    descriptor = SupervisorImage.model_validate_json(path.read_bytes())
+    current_manifest = "c" * 64
+    assert current_manifest != ledger.amendment.binding.previous_artifact.root_manifest
+    path.write_text(
+        descriptor.model_copy(update=dict(previous_manifest=current_manifest)).model_dump_json()
+    )
+
+    def installed():
+        if installed_state == "damaged":
+            raise ValueError("ROOT_RELEASE_MANIFEST_MISMATCH")
+        if installed_state == "missing":
+            return None
+        return SimpleNamespace(
+            identity=current_manifest if installed_state == "matching" else "d" * 64
+        )
+
+    monkeypatch.setattr(unified_image, "installed_release", installed)
+    before = (ledger.directory / "execution-ledger.jsonl").read_bytes()
+    result = operational.readiness(**kwargs)
+    assert result["status"] == ("EXECUTION_READY" if installed_state == "matching" else "BLOCKED")
+    assert not result["reserved"] and not result["executed"]
     assert not kwargs["claim_file"].exists()
     assert (ledger.directory / "execution-ledger.jsonl").read_bytes() == before
 

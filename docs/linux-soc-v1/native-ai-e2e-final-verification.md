@@ -427,3 +427,55 @@ NamespacePolicy 결정 필드는 기존 계약의 APPROVED이고, 조건부 인�
 검증: Workspace 핵심 회귀 **202 PASS (212.68초)** / 독립 Export 핵심 회귀 **202 PASS (212.43초)**. Namespace/Source·정책·Replay·Ledger·Root Governance·Controller·Supervisor·Native→AI Adapter 회귀 포함, RUN_LIVE_LLM_TESTS=0. 이전 전체1974 PASS/23 SKIP는 과거 동일 Source 검증 결과이며 이번 전체 재실행으로 집계하지 않는다. Ruff PASS / Format1431개 PASS / Diff PASS. 테스트의 Fixture·Mock 검증을 실제 Native 실행으로 판정하지 않는다.
 
 Ledger32→33행: Namespace 빌드 정책 활성화 이벤트1개만 append했고 기존32행 prefix를 보존했다. Ledger SHA 9ac01e558373418f52bad9bf365d232ed269c80410f7ea2eddb37a86a096babf. Campaign Native4/10·Root6/10, Batch3 Native1/2·Root3/4 불변. 실제 Namespace/Lease·Host·VS Code·보호112개·과거 Native55개·설치/롤백 각9개·사용자 변경 보존. 기존 FAILED/false/Program1145 UNKNOWN/전역Cleanup UNVERIFIED/과거 UNKNOWN 예약 보존. 예약·Root·Native·DNS·Docker·API 실행0. DNS9 학습 추출 계약 INCOMPLETE 및 실제 P02/P03/Native ELIGIBLE0은 새로운 Native 증거 전까지 그대로다.
+
+## Deadline Native E2E attempt — 2026-10-28
+
+**Native AI E2E: BLOCKED before Native reservation. Offline demonstration: VERIFIED within its offline scope.** No Native packet, ELIGIBLE Native feature, Native RF/LR prediction or Native Incident was generated in this attempt.
+
+The owner approved the consolidated review JSON `e5f720dfc980de78e2cfd691be23a7a022d98e049ea062f6f7bffbb22a5688c4`. Existing CLI contracts were reused without adding policy, budget, Namespace or approval systems. An official ApplicationPlan generated fresh Controller Session `86c3d2be-ad06-4046-8dd9-71c9ab4775e4`; the previously consumed Session was not reused. Its two prepared files reproduced identically. Native Session remains `20fc3a6f-c645-4d7b-a59e-cbbde10649ea`, Release0.6.3, Namespace `net:[4026532232]`.
+
+The separately approved development exact-artifact opt-in and Root-only policy were recorded, then the user confirmed Scope and authenticated in a private terminal. Root DNS/Controller entry succeeded once. Application DNS UDP2/TCP1 and ordinary UID/GID1000 Controller readiness were verified; listeners closed, only lo was present, and the Namespace was retained. These application observations do not establish TCX Capture Integrity or kernel Flow Completeness. No Root Release installation, Native Capture, TCX attach, Docker analysis or new LLM API call occurred.
+
+The conditional human R1 decision was recorded only after actual Root success and settlement, against the actual resulting Ledger. New R1 receipt SHA `1fc0f79a53f17d680e46a3c1f97f4db56b099401cd25b6e65870fe49ceb4d462`; record `2515ea673db50384e4f901331d83a243e94962b9d2bcc698d6b0cf86384ab898`. The old R1 receipt remained immutable. Admission reservation preview passed without reserving. The ordinary Namespace Controller subsequently returned exit2; Ledger stopped at47 rows with no Native reservation. The terminal's exact final error text was requested and was not retained by collecting a password-bearing terminal transcript. No automatic retry or privileged re-entry occurred.
+
+### Confirmed preparation defect and minimal correction
+
+`operational_recovery.readiness` compared the failed historical run's Root Manifest `f5b54fbbac173e05ab6bfc246612d409d1dc966a9fcab5635daadea8c1117ab3` with the image's installed predecessor `a715e1aab17d25ce89d87ce320a8b16997cb3072d83956734126baa470a501a6`. These represent different releases and legitimately differ after the intervening installation. The guard deterministically returns `OPERATIONAL_PREVIOUS_ARTIFACT_BINDING` once this stage is reached. This is a confirmed code defect; attribution of the live exit2 to that exact printed error remains pending the terminal error text.
+
+The correction independently verifies the current installation using existing `installed_release` file/dependency validation, or the existing `inspect_retained` contract for a recovery image, and compares that verified identity with the image's predecessor. R1 continues validating its original failed run, negative review and historical evidence. Changed, missing or damaged current installations remain blocked; no Namespace, SHA, Scope, R1/R2, resource, replay or human confirmation guard was removed. Four regression cases cover a distinct historical release and matching/changed/missing/damaged current installation, without reserving or invoking Root.
+
+The source change invalidates the previous exact Source/Artifact approvals. No old receipt was used to activate or execute the corrected image. Any replacement build remains guarded until a fresh exact policy/build/execution review; no successful live Controller check or Native E2E is inferred from unit tests.
+
+### Offline deadline demonstration
+
+The existing saved real API E2E was reopened successfully: real stored PCAP → two actual RF/LR predictions → UNKNOWN_ANOMALY → historical real API plan/evaluation → governed read-only investigation → Incident/Audit. Result SHA remains `7b44630fbf54480dc911944b07260c9cfa6c629cdb1e6c88aaae5a7ad981b838`. This verification makes zero API calls and does not replay an old API authorization.
+
+A new actual PCAP Flow0 replay produced two actual RF/LR predictions, `NORMAL`, `ELIGIBLE`, and `SOURCE_CONTINUITY_VERIFIED` with Incident/Audit persistence. Investigation mode is SCRIPTED and no investigation was necessary for NORMAL. Initial execution from the integration Worktree lacked the project-local inference Python; explicitly selecting the existing ML root fixed the invocation without installing packages or changing the pipeline. Both the initial failure and successful result were retained.
+
+Demonstration script: common Git evidence directory `deadline-native-e2e-20261028T033152Z/demo-verify.sh`. It verifies the current normal replay result and historical real API result without Root, traffic, Capture or API calls. Evidence paths distinguish REAL_OFFLINE/REAL_MODEL and historical REAL_API from Native and Scripted scope. DNS9 remains INCOMPLETE pending its training extraction contract.
+
+### Accounting and preservation
+
+Ledger40 →47: two policy events, one Root-only reservation/progress/settlement sequence, and one new human R1 record. Campaign Native4/Root8; Batch3 Native1/Root5. Development counts are OBSERVE_ONLY, not refunded/reset. Native budget consumption and Native reservations in this attempt are zero. Original FAILED/false, Program1145 UNKNOWN, historical global Cleanup UNVERIFIED and the old EVIDENCE_INCOMPLETE/RootUNKNOWN/NativeUNKNOWN settlement remain unchanged. The existing Namespace, Host services, VS Code connections, installed release and Rollback were preserved.
+
+Private evidence: `.git/deadline-native-e2e-20261028T033152Z/` in the common original repository. The approved pre-fix package and receipts remain separate from corrected source/build evidence under `recovery-fix/`. Native P02/P03/P04 and operational promotion remain unverified; automatic Native rerun is prohibited.
+
+### Correction validation and guarded artifact
+
+Related Workspace regression: 123 passed initially; one actual-model case failed because the integration Worktree lacked its default inference environment. That same case passed when `SOC_RESEARCH_VALIDATION_REPOSITORY` selected the existing original project's pinned environment. Independent Source Export, with that environment explicitly configured: **124 passed**, 121.41s. No test assertion or model was weakened. Ruff, formatting and diff checks passed. Temporary pytest cleanup emitted directory-not-empty warnings; they did not affect the regression results.
+
+Final Source Snapshot (1,772 inputs): `ce7aaaf2750ceb5fe1db523f1db310f086de3ce7fa4da85cb2c275bd9e02e674`. Stage and two independent builds share a fixed real deployment path and match **26/26 files**. Initial builds at different deployment paths had different metadata paths; both are retained, and they are not counted as matching builds. Two wheels are byte-identical: `d753f42cd988187392176ff92e3de0d1dd2d687c54ff72e67eb0fd32e9f6926c`.
+
+These are **guarded, unapproved replacement outputs**, not the previously authorized execution image:
+
+| Identity | SHA256 |
+|---|---|
+| Manifest | `f572d299e2993f858f93681bf0c994553f561d4a5b380bb90c8a64401fc30617` |
+| Bundle | `b0183470f1fd5c8edb99451fb49cd87e0742d1342dd0939666d505e202968023` |
+| Execution Image | `2652e837078e907114411cae1362a11db6cb22f51fd166febbfb2a4ed77e72ea` |
+| Root Manifest | `fdfff9f7ddd1668f0f8d390b09f00c25a9429ea5cfb9639b1323c02ef5511808` |
+| Build policy input | `546c05d2bca466dc4490241587d455d51a39f131f9da397874cb4d8506edef33` |
+
+No Namespace build policy receipt is embedded in these replacement outputs. Activation and policy-embedded output identities require a new exact human decision; the consumed Controller approval and prior exact Native/Source/R1 bindings cannot authorize the modified source. The actual Native attempt remains unstarted and is not automatically retried.
+
+For the deadline, run the private `demo-run-normal.sh` for a fresh actual PCAP/model/Incident/Audit demonstration with no API; run `demo-verify.sh` to reopen both the fresh normal result and historical real API investigation. Live model replay and retained historical LLM verification are explicitly different scopes. Git source changes are limited to the operational installation-identity correction, its four regression cases, and this report.
