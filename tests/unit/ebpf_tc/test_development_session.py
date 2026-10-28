@@ -2,6 +2,7 @@
 
 import json
 import time
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -257,4 +258,70 @@ def test_actual_root_reservation_keeps_receipt_checks_past_caps(policy_case, set
     before = (c.directory / "execution-ledger.jsonl").read_bytes()
     with pytest.raises(ValueError, match="REPLAY"):
         c.reserve_root(setup.binding, **args)
+    assert (c.directory / "execution-ledger.jsonl").read_bytes() == before
+
+
+def large_automation_policy(policy, root):
+    from soc_agent.security_ai.ebpf_tc.development_integrity import ArtifactAutomation
+
+    automation = ArtifactAutomation(
+        request_file=root / "future-request.json",
+        project=root / "project",
+        source_export=root / "source-export",
+        first_build=root / "build-A",
+        second_build=root / "build-B",
+        source_pins={f"src/fixture_module_{i:05d}.py": "c" * 64 for i in range(2500)},
+        allowed_source_changes=[],
+        reference_artifact=policy.artifacts[0],
+        boundary_sha="d" * 64,
+    )
+    return policy.model_copy(update=dict(artifact_automation=automation))
+
+
+def test_large_source_policy_uses_bounded_specific_reader_and_replay_guard(policy_case):
+    from soc_agent.security_ai.ebpf_tc.reassessment import held_json
+
+    c, policy, packet = policy_case
+    policy = large_automation_policy(policy, c.directory)
+    path = Path(packet["policy_file"])
+    body = canonical(policy.model_dump(mode="json"))
+    assert 200_000 < len(body) < dev.MAX_POLICY_BYTES
+    path.write_bytes(body)
+    packet["policy_sha"] = sha(body)
+    before = (c.directory / "execution-ledger.jsonl").read_bytes()
+    # Other receipt readers retain the original 64KiB boundary.
+    with pytest.raises(ValueError, match="TRUST_FILE_INVALID"):
+        held_json(path, packet["policy_sha"])
+    event = dev.activate(c, packet)
+    assert event["authorizes_execution"] is False
+    after = (c.directory / "execution-ledger.jsonl").read_bytes()
+    assert after.startswith(before) and len(after) < 1048576
+    with pytest.raises(ValueError, match="REPLAY"):
+        dev.activate(c, packet)
+    assert (c.directory / "execution-ledger.jsonl").read_bytes() == after
+
+
+@pytest.mark.parametrize("fault", ["sha", "oversize", "ledger_capacity"])
+def test_large_source_policy_failure_never_appends(policy_case, fault):
+    from soc_agent.security_ai.native_campaign import NativeCampaign
+
+    c, policy, packet = policy_case
+    body = canonical(large_automation_policy(policy, c.directory).model_dump(mode="json"))
+    if fault == "oversize":
+        body += b" " * dev.MAX_POLICY_BYTES
+    if fault == "ledger_capacity":
+        event = NativeCampaign._locked(
+            c, lambda _: dict(event="TEST_PADDING", padding="x" * 850_000)
+        )
+        packet["expected_tip"] = event["record_sha256"]
+    Path(packet["policy_file"]).write_bytes(body)
+    packet["policy_sha"] = "0" * 64 if fault == "sha" else sha(body)
+    before = (c.directory / "execution-ledger.jsonl").read_bytes()
+    error = {
+        "sha": "RECEIPT_SHA_MISMATCH",
+        "oversize": "TRUST_FILE_INVALID",
+        "ledger_capacity": "LEDGER_CAPACITY",
+    }[fault]
+    with pytest.raises(ValueError, match=error):
+        dev.activate(c, packet)
     assert (c.directory / "execution-ledger.jsonl").read_bytes() == before

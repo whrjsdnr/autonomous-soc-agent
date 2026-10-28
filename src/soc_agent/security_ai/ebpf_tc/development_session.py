@@ -6,6 +6,7 @@ needs the existing exact-artifact/Root/R1/R2 receipts and foreground confirmatio
 
 import hashlib
 import json
+import os
 import time
 from pathlib import Path
 from typing import Literal
@@ -13,17 +14,19 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
+from soc_agent.security_ai.ebpf_tc.dependencies import read_held
 from soc_agent.security_ai.ebpf_tc.development_integrity import ArtifactAutomation
+from soc_agent.security_ai.ebpf_tc.installation import canonical
 from soc_agent.security_ai.ebpf_tc.reassessment import (
     Artifact,
     Contract,
     Hash,
     Identity,
     digest,
-    held_json,
 )
 
 ACTIVATED = "DEVELOPMENT_METERING_ACTIVATED_V1"
+MAX_POLICY_BYTES = 512 * 1024
 
 
 def prepare_artifact_review(
@@ -137,7 +140,12 @@ def activate(campaign, packet: dict) -> dict:
     """Existing reassess dispatch; a development instruction never invokes this."""
     from soc_agent.security_ai.native_campaign import NativeCampaign
 
-    body = held_json(Path(packet["policy_file"]), packet["policy_sha"])
+    # Source allowlists are larger than ordinary 64KiB execution receipts.
+    # Keep that default intact; this specific typed policy has its own bound.
+    encoded = read_held(Path(packet["policy_file"]), owner=os.getuid(), limit=MAX_POLICY_BYTES)
+    if hashlib.sha256(encoded).hexdigest() != packet["policy_sha"]:
+        raise ValueError("RECEIPT_SHA_MISMATCH")
+    body = json.loads(encoded)
     policy = DevelopmentPolicy.model_validate_json(json.dumps(body))
     _validate(policy, campaign.budget, hashlib.sha256(campaign.baseline_body).hexdigest())
     if policy.batch != campaign.batch or any(
@@ -154,12 +162,19 @@ def activate(campaign, packet: dict) -> dict:
         if rows[-1].get("record_sha256", digest(rows[-1])) != packet["expected_tip"]:
             raise ValueError("DEVELOPMENT_POLICY_STALE_LEDGER")
         _validate(policy, campaign.budget)
-        return dict(
+        event = dict(
             event=ACTIVATED,
             policy=body,
             policy_sha=packet["policy_sha"],
             authorizes_execution=False,
         )
+        # The existing chain reader is bounded to 1MiB. Do not append a policy
+        # that would make the next read fail. Reserve metadata headroom while
+        # holding the same campaign lock; do not change the shared ledger limit.
+        ledger = campaign.directory / "execution-ledger.jsonl"
+        if ledger.stat().st_size + len(canonical(event)) + 4096 > 1048576:
+            raise ValueError("DEVELOPMENT_POLICY_LEDGER_CAPACITY")
+        return event
 
     return NativeCampaign._locked(campaign, append)
 

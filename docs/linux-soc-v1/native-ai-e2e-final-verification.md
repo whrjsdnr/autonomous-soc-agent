@@ -789,3 +789,20 @@ Ruff 전체 PASS, Format 전체 PASS, Diff PASS. Stage/Workspace/독립 Export S
 Ledger **63행**, SHA `c2b30587fa02abcfe69b7b50c56883f3006a18cdad9211f1b51251f668877922`, tip `390f5e8dfc355819b891b20c4919449f92dc69eaf6d5c1aa7efe73299bd0e2e8`가 개발 시작 시점과 byte-identical하다. Campaign Root **10** / Native **4**, Batch3 Root **7** / Native **1**을 유지했다. 기존 OBSERVE_ONLY 이력·FAILED·false·Program1145 UNKNOWN·과거 전역 Cleanup UNVERIFIED·UNKNOWN 예약을 보존한다. 설치/rollback 및 기존 Namespace/Host/VS Code/사용자 프로세스를 변경하지 않았다. Host에서 실제 Lease 조회는 통과했으며 Target 내부 수정본 실행은 미수행이다.
 
 재개에는 새 Namespace 빌드 정책 및 유한한 Artifact 자동 검증 개발 정책에 대한 **한 번의 통합 정책 검토**가 필요하다. 검토 범위는 새 Source/Root Manifest/보안 구현, 고정 Namespace/권한/트래픽/자원, 허용 파일 목록, 재현 빌드와 자동 SHA 계산이며 실제 Root·Native 실행 권한을 포함하지 않는다. 승인된 정책을 포함한 최종 빌드 이후 기존 계약으로 새 R1/R2·Root/Native 영수증을 발급하고, 내부 check PASS 및 사용자 Scope/OS 인증 후에만 별도 승인된 진단을 수행한다. 실제 RF/LR은 ELIGIBLE와 action-specific 승인을 요구한다. LLM API/DNS9/운영 승격은 이번 작업으로 허용되지 않는다.
+
+
+## 2026-10-28 — SHA 자동 정책 활성화 사전 검증의 실제 크기 결함
+
+결과는 **ACTIVATION_BLOCKED / UPDATED_BINDING_REVIEW_REQUIRED**다. 사용자가 승인한 d2a4d1f 및 검토 요청서75535e899…의 Git/Source/Namespace/Ledger는 일치했으나, 실제 Source 목록 **208,726B**가 일반 `held_json`의 **65,536B** 한도를 넘었다. 작은 Source 목록의 기존 fixture가 이 문제를 놓쳤다. 승인 영수증이나 운영 Ledger를 기록하기 전에 중단했다. 현재 승인으로 수정된 Source/Root Manifest를 임의 활성화하지 않는다.
+
+최소 수정은 `development_session.activate`의 정책 파일 읽기에만 **512KiB** 한도와 동일 SHA/owner/no-symlink 검사를 적용하는 것이다. 일반 R1/R2/실행 영수증의 기존64KiB 한도와 Ledger1MiB 한도는 유지한다. 같은 campaign lock 안에서 새 정책 이벤트와 metadata 여유를 합쳐1MiB를 넘으면 append 전에 `DEVELOPMENT_POLICY_LEDGER_CAPACITY`로 차단한다. 권한/Scope/승인자/만료/Replay/동시 실행/Root·Native 승인은 변경하지 않았다.
+
+실제 운영 CLI를 사용하는 임시 Ledger 회귀에2500개 Source pin(200KiB 초과)을 추가했다. 큰 정책의 정상 발급과 Replay, 잘못된 SHA,512KiB 초과, Ledger 용량 부족의 무기록 실패 및 일반64KiB reader 불변을 검증했다. 집중22 PASS, Workspace **214 PASS**, 독립 Export **214 PASS**. Ruff·Format·Diff PASS. 기존 Namespace Lease·Controller·Native admission·R1/R2 회귀를 함께 통과했다. Stage/Workspace/독립 Export Supervisor26개 및 Controller2개 일치, Wheel 이중 빌드 SHA `20faef31963d9c94a9ac201448dc51df80631ab674f871a3bab2393893eada82` 동일이다. 실제 Root/Native/DNS/API 실행은0이다.
+
+새 산출물은 **GUARDED_NOT_AUTHORIZED**다. Source 1779개(본 보고서 제외) SHA `acb5c5f7fc11c46daa7d836253023b45334f8f8344b76d1301e50f6599a7b693`, Manifest `94604575a86bdcd77c684268cc22b79d91217dd4d5edef9d59893a808fcc3181`, Bundle `54ed0fcb0799eec516e5b37d77341056374df5897d0ec7f7ab56391edb36a083`, Execution Image `2f0556eb6a4810516c9134a56f0a552be8bebc994fb2c691b1a2a485d9139abb`, Root Manifest `ad9331e878ba0295c056fe61be5e08647c14ba808d578d9c712ac1ec38b1b037`, Controller Manifest `1a078159ff30cbfba3cd697241691118ba45c49169f181d8d9fdfe486213dc81`, Controller Image `2e4590d5c7cea50029fb086ac4f058037bfc9991bdcf6e06e8269180424e8e32`. Runtime Dependency는 `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4`로 유지됐다. Controller 및 Native 준비 Session은 공식 ApplicationPlan 경로로 새로 생성했으며 소모된 Session을 재사용하지 않는다. 세션 생성은 예약·승인이 아니다.
+
+기존 CLI 비소비 check는 **ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED**, reserved=false/executed=false였다. Source는 VERIFIED, Runtime은 BUILD_INTEGRITY_VERIFIED_ONLY다. 실행 가능한 정책 포함 최종 이미지 또는 R1/R2·Root·Native 승인 통과로 보고하지 않는다. 이번 턴의 정책 승인 영수증 SHA는 **없음**이며 SHA 자동 실행 요청 경로의 실환경 활성화는 미완료다. 큰 정책의 성공 검증은 임시 테스트 Ledger 결과다.
+
+운영 Ledger는63행/`c2b30587fa02abcfe69b7b50c56883f3006a18cdad9211f1b51251f668877922`로 개발 전과 byte-identical하게 보존한다. Campaign Root10/Native4, Batch3 Root7/Native1 유지. Namespace net:[4026532232], Host net:[4026531833], 기존 설치/rollback, FAILED/false/UNKNOWN과 소비된 영수증을 보존한다. 권한 진입·예약·예산 환급·새 정책 활성화는 수행하지 않았다.
+
+증거: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/artifact-integrity-capacity-recovery-20261028T065527Z`. 수정된 Source/Root Manifest의 정확한 Binding을 담은 `policy-review-package.md`에서 Namespace 빌드 및 개발 SHA 자동 무결성 정책을 한 번에 재검토한다. 이는 새 실행 승인이나 SHA 수동 입력 요청이 아니다. AGENTS.md §33과 사용자의 'Binding 불일치 시 중단' 조건 때문에 수정본에 대해 새 인간 정책 결정을 받기 전에는 영수증을 발급하지 않는다. 정책 승인 뒤 최종 빌드/검증을 수행하되, 실제 R1/R2·Root·Native/DNS·LLM 권한은 별도 계약으로 계속 차단한다.
