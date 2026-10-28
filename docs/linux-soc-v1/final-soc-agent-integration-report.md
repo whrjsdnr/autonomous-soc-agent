@@ -171,3 +171,10 @@ The selective integration commit is published on
 on its original branch; no merge into the approved Native source was performed.
 The integration commit/tree are recorded in private
 `final-soc-integration-20261028/release-artifact-identity.json` after publication.
+
+## Continuous Replay service extension — 2026-10-28
+
+별도 `feat/continuous-runtime`에서 GUI와 생명주기가 분리된 Replay 서비스, bounded streaming
+Network14/실제 RF·LR/Incident·Audit를 추가했다. 기존 Native 진단·인증 감시·Offline 시연은 유지한다.
+상시 Native TCX backend는 미구현이며 기존 진단 승인으로 실행하지 않는다.
+검증과 제한은 [Continuous Runtime 통합 보고서](continuous-runtime-integration-report.md)를 참조한다.
