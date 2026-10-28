@@ -701,3 +701,41 @@ Source Snapshot1,774개 SHA `d78d5f26fe3a38dcb80c56707582cd53d4c0abbe1528d9d649f
 비소비 check는 SOURCE_VERIFIED/BUILD_INTEGRITY_VERIFIED_ONLY 이후 `ISOLATED_NAMESPACE_POLICY_NOT_ACTIVATED`, reserved=false/executed=false다. Namespace 빌드 정책 입력 SHA `d6bf8b1dc911ccf68f57add110e17dd32d756b2b691a9e3da932f5628d199405`를 기존 요청 형식으로 고정했다. **정책 포함 최종 실행 SHA는 인간 빌드 승인 전에는 확정할 수 없으며, 위 Guarded SHA를 실행 승인에 재사용하지 않는다.** 필요한 순서는 기존 Namespace 빌드 정책의 별도 인간 승인 → 정책 포함 재빌드/최종 SHA → 새 Binding의 계측·R1/R2·필요한 Root/Native 승인 → Namespace 내부 비소비 check·Scope·OS 인증이다. 새 정책·예산 프레임워크나 자동 실행은 추가하지 않았다.
 
 Ledger55행 SHA `5efdeeb3eb0802b4123e4eeb61a14b9027a63f992f1351fdc52783f2fcf2fe88`, 기존36개 실행 증거 SHA 불변. Campaign Root9/Native4, Batch3 Root6/Native1의 기존 기록·OBSERVE_ONLY·설치·Rollback·FAILED/false/UNKNOWN을 보존했다. Private 증거 `.git/controller-path-stabilization-20261028T054329Z/`: `real-cli-synthetic-admission-results.json`, `verification.json`, `artifact-identity.json`, `model-artifact-identity.json`, `approval-readiness-review.json`, Source Snapshot/Export 및 빌드 파일별 SHA. 최종 Git/Tree 검토 Binding은 문서-only 결과 Commit 이후 별도로 명시한다.
+
+
+## Approved Namespace build policy / final Artifact — 2026-10-28
+
+**상태: BUILD_POLICY_ACTIVE / POLICY_EMBEDDED / 실제 실행 승인 대기.** 조건욱(프로젝트 소유자 및 정책 승인권자)의 정식 `APPROVED_WITH_CONDITIONS` 결정을 실제 요청서 SHA `70d448f6684ec6a7e27cad4dd28ae8097fb1f77e42056c204331ed958aa40ba0`, Git `daab6dcf5789ebc394e0c44dc7c032cbc8a603df` / Tree `7d1ad3d3a88f75f84945c4e81e8ee822118c260f`, 기존 Source/Lease/Runtime/Model/Ledger55행과 대조했다. 운영 코드 수정은0이다. 이 정책만으로 Root/Native/DNS/API 권한을 부여하지 않았다.
+
+기존 `NamespacePolicy` 계약의 정책 영수증 SHA **`58ecb219e717fdeb04e551eef5ec7146a1c15196182f01c1d98bfe01b2a1d6d8`**를 발급·검증했다. 승인 기록/시작 **`2026-10-28T14:57:39+09:00`**, 만료 **`2026-10-29T14:57:39+09:00`**, Asia/Seoul의 정확히24시간이다. 프로토콜의 decision=APPROVED와 실제 인간 조건부 결정/제한은 Human reference에 함께 보존했다. Namespace 정책 발급·활성화 전용 CLI는 없어 기존 validator와 기존 locked chain writer로 기존 이벤트 계약을 재사용했으며, prepare/check는 기존 운영 CLI를 사용했다. 새로운 승인 체계/CLI/예산 코드는 추가하지 않았다.
+
+Ledger에 `NAMESPACE_SUPERVISOR_BUILD_POLICY_ACTIVATED_V1` 한 행만 append했다. 기존55행 바이트 prefix 불변, 현재 **56행**, SHA **`3b53d8a2f552dde5649359f1e0d066a59c3b6a43bc52071d918170be0470c795`**, tip **`c349934e2031178c7df43ce05e404503446e9dfd3a6e8dde531e309e668cf814`**다. 동일 요청/Binding을 다시 append하면 `NAMESPACE_POLICY_REPLAY`가 발생하고 추가 기록은 없다. Policy receipt·Human reference·이전55행 snapshot·이벤트 원문은 `.git/approved-controller-namespace-build-20261028T055739Z/`에 보존했다. Campaign Native4/Root9, Batch3 Native1/Root6 집계 불변이다. 환급·초기화·새 실행 예약·실제 Root·Native·DNS·API는0이다.
+
+### 정책 포함 최종 SHA
+
+| 항목 | Supervisor | Controller |
+|---|---|---|
+| Manifest | `e89c680f08f30fe73094d4f119aa5a45b1f14f40eb6b3e2f44b57db0f56e2445` | `fc9919fed6d380abf979e9067ddea45b95c44a171346b5f03530aecf82eb0a98` |
+| Execution Image | `51a1bf318fd10f11bd08523897734e700c526960b9bb1eb5349e42c814df0384` | `945aa4916f52fa38e2804772642a3b38d63cc262ec3a5b947e247a66106a5a80` |
+| Bundle | `e4ebc6402d9873b660e5316df415d8a830ed3f4fb2f3a69725d5766221867d52` | 동일 |
+| Root Manifest | `9180deb3d9e0dba72100578157a9215208b2ff19cdd4ab0f6904d5f1baf29a1b` | 동일 |
+
+Guarded Manifest7003b5…/Image764a9e…에서 새 정책 영수증을 포함한 Manifest/Image로 변경됐다. Bundle/Root Manifest는 기존 검토 입력 그대로이며 승인된 빌드 입력 SHA `d6bf8b1dc911ccf68f57add110e17dd32d756b2b691a9e3da932f5628d199405`와 일치한다. Guarded SHA 또는 과거 실행 영수증을 새 실행 권한으로 재사용하지 않는다. `namespace_preview=false`, Source·Root·Runtime·모델 핀 검증 완료다.
+
+Stage/Workspace/독립 Export Supervisor **26/26**, Controller **2/2** 동일. Source **1,774개** SHA `d78d5f26fe3a38dcb80c56707582cd53d4c0abbe1528d9d649fd3f5a738d244d` 및 snapshot 파일 SHA `43aa19adea89ba5d1415fd59b5290e815c784737f12bf2f1e23699d1c669002d`가 모두 일치한다. 정책 승인 Git은 위 daab6dc이며 운영 소스는 c5ec092 그대로다. 현재 Source freeze의 3efb669는 검증 fixture 후속 수정 커밋이며 운영 변경이 아니다. 이 보고서 후속 Commit은 문서-only로 따로 검토 Binding에 명시한다. Runtime Dependency `e387709bafde9db7df6978b4f0d5a18a3f7a807ead408530b3a95325bfdb5cf4`, Controller Python `c87a778581e6096f4a9f06b800ea61ae72d7181716f595d59ecdac6fbc689c0c`(고정 pydantic2.13.5/124개 파일/-I -B) 재검증 완료. 실제 모델 파일 RF53c1029…/LR6613221… 및 Artifact metadata SHA 보존.
+
+핵심 Workspace/독립 Export 회귀 **각61 PASS**, Ruff·Format·Diff PASS. 이전163개 통합/AI 회귀와 Fixture 기반 실제RF/LR 증거는 변경 없는 운영 소스의 기존 증거로 보존하며 이번 빌드 작업의 새 모델/API 호출로 보고하지 않는다. 기존 설치9개/롤백9개, 과거 증거36개 및 FAILED/false/Program1145 UNKNOWN·전역 Cleanup UNVERIFIED 보존. Namespace Lease·inode4026532232와 Host4026531833을 읽기 전용으로 확인했고 진입/삭제/재생성은 하지 않았다.
+
+기존 CLI 비소비 Host check는 **`PHASE_D_COLLECTOR_SCOPE_MISMATCH`**, reserved=false/executed=false다. 이는 현재 Host와 승인된 SOC Namespace가 다르기 때문이며 우회하지 않았다. Source·정책·Build/Runtime qualification을 별도 검증했지만 Namespace 내부 admission check PASS, Root/Native 실행 또는 P02/P03/P04 성공으로 해석하지 않는다. 내부 check는 별도 Root 진입 승인이 필요하다.
+
+### 하나의 후속 실행 검토 패키지
+
+Controller Session **`6a3fced6-dd7f-480e-9cb5-2f16b6b5a0ed`**, 공식 ApplicationPlan으로 생성한 새 Native 준비 Session **`67971b5c-37cc-4069-8ab6-0fe4ef7870d1`**, Release0.6.3, Namespace net:[4026532232]에 최종 두 Artifact를 결합한다. Session 생성은 준비 metadata이며 예약/승인이 아니다. 기존 R1 영수증은 다른 Artifact·이전 Ledger에 묶여 있으므로 새 R1 인간 결정이 필요하다.
+
+단일 `next-approval-request.json`/`next-approval-package.md`에서 다음 결정을 함께 검토하되 기존 계약별 영수증은 독립 검증한다: 새 두 Artifact의 개발 OBSERVE_ONLY opt-in, Root DNS/Controller의 exact policy+진입/DNS 실행, R1 새 조건부 위험 수용 및 기존 admission/management 계약, Native R2 UDP2/TCP1, 고정 Root Release 설치 최대1회, Native 진단 최대1회. 실제 ELIGIBLE 증거의 RF/LR 분석은 기존 action-specific 승인 검증을 별도로 통과해야 한다. 실제 LLM API는 이번 승인/새 빌드로 허용하지 않는다.
+
+향후 진입을 승인한다면 Controller DNS UDP2/TCP1과 Native R2 UDP2/TCP1은 별도 시나리오이므로 전체 **UDP4/TCP2**다. 이미 성공한 과거 Root/DNS를 자동 재실행하지 않는다. 새 Artifact/Session의 미래 진입은 별도 명시적 승인·Scope·OS 인증이 필요하다. Root 진입1+설치1을 실제 집행하면 예상 Campaign Native5/Root11, Batch3 Native2/Root8이다. 새 exact-artifact OBSERVE_ONLY 정책 승인 없이는 기존 한도를 우회하거나 이 집행을 진행하지 않는다. 기존 카운터/운영 한도/과거 UNKNOWN 정산을 유지한다.
+
+승인 후 정상 순서는 새 계측/Root policy 결정을 기록 → 사용자의 Scope/OS 인증으로 승인된 진입 수행 → Root 정산 및 ordinary Controller의 **`*.controller-ready.json`(ACK 검증 완료)** 확인 → 실제 최신 Ledger에 새 인간 R1을 기록 → exact admission/R2/management/Root·Native receipt와 pinned request 작성 → 내부 check PASS → 사용자의 Scope/OS 인증 후 Native 최대1회다. 미래 Ledger SHA를 미리 만들거나 이전 ACK를 갱신하지 않는다. 새 UNKNOWN·Cleanup 실패·관련 없는 Ledger 변화·Scope/SHA/Namespace 불일치에는 중단하며 자동 재실행은 없다.
+
+자원 제한은 기존 lo/Ingress, 최대4096 events, Queue32, Admission50ms, 재정렬10ms, Checkpoint16KiB, 256MiB, CPU20초, wall300초, DNS분석10초, TCP 종료 후35초/약45초 STOP 그대로다. 새 실제 Native Packet·ELIGIBLE·Prediction·Incident는 아직0이며 P02/P03/P04·DNS9·운영 승격을 승격하지 않는다. 실제 실행 실패 시 최초 오류·단계·자식 종료 코드·소유/전역 Cleanup을 기존 진단 경로에 보존한다.
