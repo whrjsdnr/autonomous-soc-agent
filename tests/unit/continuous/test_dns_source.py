@@ -189,6 +189,7 @@ async def test_dns_unix_to_durable_transaction_audit_gui_and_recovery(tmp_path, 
         await asyncio.wait_for(task, 3)
         assert source.cleanup == "VERIFIED" and source.capture.reader_thread.is_alive() is False
         assert runtime.metrics["dns_inputs"] == 2 and runtime.metrics["predictions"] == 0
+        assert runtime.metrics["dns_metadata_bytes"] > 0 and runtime.metrics["dns_rejected"] == 0
         shown = project(dict(continuous=runtime.snapshot()))
         assert shown["collectors"]["dns"] == "STOPPED"
         assert shown["dns"]["counts"]["MATCHED_RESPONSE"] == 1
@@ -201,6 +202,7 @@ async def test_dns_unix_to_durable_transaction_audit_gui_and_recovery(tmp_path, 
         for raw in rebuilt.store.auxiliary():
             await rebuilt.project_dns(raw, recovering=True)
         assert rebuilt.dns.snapshot()["counts"] == runtime.dns.snapshot()["counts"]
+        assert rebuilt.metrics["dns_metadata_bytes"] == runtime.metrics["dns_metadata_bytes"]
         assert len(rebuilt.store.auxiliary()) == before == 2
         rebuilt.store.state()  # Validates the complete audit and detail chain.
         with pytest.raises(ValueError, match="SEQUENCE_BINDING"):
@@ -223,6 +225,35 @@ async def test_stop_before_helper_ready_joins_listener_handshake(tmp_path, monke
     with pytest.raises((ValueError, OSError)):
         await asyncio.wait_for(task, 1)
     assert source.capture.closed.is_set() and source.cleanup != "VERIFIED"
+
+
+@pytest.mark.asyncio
+async def test_dns_metadata_quota_rejects_before_persistence_or_models(tmp_path):
+    _, session, _ = prepared(tmp_path)
+    cfg = config(tmp_path).model_copy(update=dict(source="NATIVE_SERVICE"))
+    directory = tmp_path / "runtime"
+    Store.create(directory, cfg)
+    source = SimpleNamespace(session=session)
+    runtime = ContinuousRuntime(directory, dns_source=source)
+    packet = dns_packet(source, 1)
+    packet = packet.model_copy(
+        update=dict(
+            timestamp_origin="KERNEL_SO_TIMESTAMPNS", capture_timestamp_ns=timestamp_ns(packet)
+        )
+    )
+    raw = dict(
+        kind="native_dns",
+        session=str(session.session_id),
+        namespace=NS,
+        sequence=1,
+        packet=packet.model_dump(mode="json"),
+    )
+    runtime.metrics["dns_metadata_bytes"] = session.policy.metadata_bytes
+    with pytest.raises(ValueError, match="CONTINUOUS_DNS_METADATA_LIMIT"):
+        await runtime.project_dns(raw)
+    assert runtime.metrics["dns_rejected"] == 1
+    assert runtime.store.auxiliary() == [] and runtime.metrics["dns_inputs"] == 0
+    assert runtime.metrics["predictions"] == 0
 
 
 def test_fixed_unit_and_exact_scope_are_required(tmp_path):

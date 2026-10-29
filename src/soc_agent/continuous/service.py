@@ -110,6 +110,8 @@ class ContinuousRuntime:
                 "auth_windows",
                 "recovered_events",
                 "dns_inputs",
+                "dns_metadata_bytes",
+                "dns_rejected",
                 "authentication_inputs",
                 "duplicates",
                 "excluded",
@@ -512,10 +514,18 @@ class ContinuousRuntime:
         ):
             raise ValueError("CONTINUOUS_DNS_PACKET_BINDING")
         key = "dns:" + raw["session"] + ":" + str(raw["sequence"])
+        retained_bytes = len(json.dumps(raw).encode())
+        if (
+            self.metrics["dns_metadata_bytes"] + retained_bytes
+            > self.dns_source.session.policy.metadata_bytes
+        ):
+            self.metrics["dns_rejected"] += 1
+            raise ValueError("CONTINUOUS_DNS_METADATA_LIMIT")
         if not recovering:
             fresh = await self.storage(self.store.retain_auxiliary, key, raw)
             if not fresh:
                 raise ValueError("CONTINUOUS_DNS_DUPLICATE_SEQUENCE")
+        self.metrics["dns_metadata_bytes"] += retained_bytes
         events = self.dns.observe(packet, raw["sequence"])
         self.dns_sequence = raw["sequence"]
         self.metrics["dns_inputs"] += 1
