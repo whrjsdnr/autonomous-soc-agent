@@ -1,7 +1,7 @@
 """Independent collector task, durable bounded handoff and isolated analysis process.
 
 This ordinary-user service never starts a privileged helper. Native installation
-and sustained TCX authority are distinct, currently unactivated service contracts.
+and sustained TCX authority are distinct administrator-governed service contracts.
 """
 
 import asyncio
@@ -79,6 +79,7 @@ class ContinuousRuntime:
         self.last_error = None
         self.circuit = False
         self.worker_failures = 0
+        self.approval_wait_cancelled = False
         self.collector_failures = 0
         self.metrics = {
             k: 0
@@ -151,6 +152,11 @@ class ContinuousRuntime:
                 abandoned_partial=self.capture_windows.abandoned,
             ),
             producer=getattr(self.source, "snapshot", {}),
+            collector_cleanup=(
+                getattr(self.source, "remote_cleanup", "UNKNOWN")
+                if self.config.source == "NATIVE_SERVICE"
+                else "NOT_APPLICABLE_REPLAY"
+            ),
             auth_pending=len(self.auth.records),
             authentication_transport=dict(
                 state=self.journal_state,
@@ -569,9 +575,26 @@ class ContinuousRuntime:
                 )
                 self.worker_failures = 0
             except asyncio.CancelledError:
-                self.store.queue.fail(claim, "WORKER_FAILURE")
+                self.approval_wait_cancelled = (
+                    self.stop.is_set()
+                    and self.worker_state == "WAITING_EXACT_MODEL_ACTION_APPROVAL"
+                    and (
+                        self.analysis.process is None
+                        or (
+                            self.analysis.process.returncode is not None
+                            and self.analysis.cleanup == "VERIFIED"
+                        )
+                    )
+                )
+                self.store.queue.fail(
+                    claim,
+                    "INFERENCE_UNAVAILABLE" if self.approval_wait_cancelled else "WORKER_FAILURE",
+                )
                 self.store.event(
-                    "CONTINUOUS_WORKER_CANCELLED_UNKNOWN", dict(event=str(claim.event.event_id))
+                    "CONTINUOUS_MODEL_APPROVAL_WAIT_STOPPED"
+                    if self.approval_wait_cancelled
+                    else "CONTINUOUS_WORKER_CANCELLED_UNKNOWN",
+                    dict(event=str(claim.event.event_id)),
                 )
                 raise
             except (ValueError, OSError, RuntimeError):
@@ -677,7 +700,11 @@ class ContinuousRuntime:
                         if isinstance(error, TimeoutError):
                             consumer.cancel()
                             await asyncio.gather(consumer, return_exceptions=True)
-                        elif error is not primary:
+                        elif error is not primary and not (
+                            isinstance(error, asyncio.CancelledError)
+                            and self.approval_wait_cancelled
+                            and primary is None
+                        ):
                             failures.append(error)
                 for close in (self.source.close, self.analysis.close):
                     try:

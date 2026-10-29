@@ -151,7 +151,7 @@ class Provider:
 
             if C.get_errno() == errno.EUCLEAN:
                 raise ValueError("CONTINUOUS_TCX_ATTACH_CLEANUP_UNVERIFIED")
-            raise ValueError("CONTINUOUS_TCX_ATTACH_FAILED_NO_RETRY")
+            raise OSError(C.get_errno() or errno.EIO, "CONTINUOUS_TCX_ATTACH_FAILED_NO_RETRY")
         try:
             self.initial = self.boundary("continuous_initial", "PRE_ATTACH")
         except BaseException as first:
@@ -546,4 +546,8 @@ def run():
 
 
 if __name__ == "__main__":
+    import sys
+
+    # Preserve the first traceback; distribution crash reporters cannot write this sandbox.
+    sys.excepthook = sys.__excepthook__
     run()

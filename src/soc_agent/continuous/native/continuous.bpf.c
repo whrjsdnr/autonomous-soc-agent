@@ -7,6 +7,11 @@
 struct { __uint(type,BPF_MAP_TYPE_RINGBUF); __uint(max_entries,262144); } events SEC(".maps");
 struct { __uint(type,BPF_MAP_TYPE_ARRAY); __uint(max_entries,1);
  __type(key,__u32); __type(value,struct soc_config); } config SEC(".maps");
+/* Map-backed temporary header avoids variable offsets into the BPF stack.
+ * Erase immediately after parsing (including a failed copy); never retain packet bytes. */
+struct capture_header { unsigned char bytes[128]; };
+struct { __uint(type,BPF_MAP_TYPE_PERCPU_ARRAY); __uint(max_entries,1);
+ __type(key,__u32); __type(value,struct capture_header); } scratch SEC(".maps");
 struct period_counter { struct soc_counters total; __u64 period, admitted; };
 struct { __uint(type,BPF_MAP_TYPE_PERCPU_ARRAY); __uint(max_entries,1);
  __type(key,__u32); __type(value,struct period_counter); } counters SEC(".maps");
@@ -26,9 +31,13 @@ SEC("tcx/ingress") int ingress(struct __sk_buff *skb) {
  /* Independent per-CPU/minute admission quota, not a cumulative diagnostic budget. */
  if(s->admitted>=4096) {c->budget++; return TCX_NEXT;}
  if(skb->vlan_present || skb->gso_segs>1) {c->unsupported++; return TCX_NEXT;}
- unsigned char header[128]={0}; __u32 n=skb->len<128?skb->len:128;
- if(bpf_skb_load_bytes(skb,0,header,n)) {c->malformed++; return TCX_NEXT;}
- struct soc_event event={0}; int parsed=soc_parse(header,n,skb->len,&event);
+ struct capture_header *header=bpf_map_lookup_elem(&scratch,&key);
+ if(!header) {c->malformed++; return TCX_NEXT;}
+ __u32 n=skb->len<128?skb->len:128;
+ struct soc_event event={0};
+ int parsed=bpf_skb_load_bytes(skb,0,header->bytes,n) ? SOC_MALFORMED :
+            soc_parse(header->bytes,n,skb->len,&event);
+ __builtin_memset(header->bytes,0,sizeof(header->bytes));
  if(parsed==SOC_UNSUPPORTED) {c->unsupported++; return TCX_NEXT;}
  if(parsed!=SOC_OK) {c->malformed++; return TCX_NEXT;}
  struct soc_event *out=bpf_ringbuf_reserve(&events,sizeof(event),0);

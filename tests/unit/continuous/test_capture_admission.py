@@ -412,6 +412,7 @@ async def test_actual_unix_seal_transport_and_epoch_rotation(tmp_path, monkeypat
             jobs, _ = restored.accept(record)
         assert candidates(jobs[0])[2][0]["eligible"]
         assert source.remote_cleanup == "VERIFIED" and source.socket is None
+        await source.request_stop()  # already-bound ACK remains valid after receiver closes FD
     finally:
         await task
         server.close()

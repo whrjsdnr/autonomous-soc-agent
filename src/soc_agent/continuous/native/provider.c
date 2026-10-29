@@ -64,7 +64,8 @@ struct runtime *continuous_open(const char *path, unsigned int index, uint64_t n
  if(libbpf_get_error(r->link)) {r->link=NULL;goto bad;}
  r->ring=ring_buffer__new(events,callback,NULL,NULL); if(!r->ring)goto bad;
  return r;
- bad: {int cleanup=continuous_close(r); errno=cleanup?EUCLEAN:EPERM;return NULL;}
+ bad: {int first_errno=errno?errno:EIO; int cleanup=continuous_close(r);
+ errno=cleanup?EUCLEAN:first_errno;return NULL;}
 }
 int continuous_renew(struct runtime *r, uint64_t generation, uint64_t now, unsigned int index) {
  uint32_t key=0; struct soc_config cfg={generation,now,now+5000000000ULL,index,1};

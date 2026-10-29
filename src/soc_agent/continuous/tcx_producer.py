@@ -147,6 +147,8 @@ class TCXProducer:
         if policy["uid"] != os.getuid() or policy["namespace"] != self.config.namespace:
             raise ValueError("CONTINUOUS_PRODUCER_POLICY_SCOPE")
         self.state = "STARTING"
+        self.stop_ack.clear()
+        self.remote_cleanup = "UNKNOWN"
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
         self.socket.setblocking(False)
         loop = asyncio.get_running_loop()
@@ -282,6 +284,11 @@ class TCXProducer:
             await self.close()
 
     async def request_stop(self):
+        # A bound STOP ACK remains proof after events() closes the owned socket.
+        if self.stop_ack.is_set():
+            if self.remote_cleanup != "VERIFIED":
+                raise ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED")
+            return
         if self.socket is None:
             raise ValueError("CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER")
         # Rotation seals the old epoch before advertising the next. Never send

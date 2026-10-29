@@ -491,3 +491,72 @@ Ruff 全仓检查、Format（1,469 files）、Diff 均通过。新的 BTF 构建
 소유 자원 및 전역 Kernel 전·후 비교다. 각 단계 최초 오류와 실제 exit를 보존하고 자동 재실행하지
 않는다. 모델·DNS·외부 API 권한은 포함하지 않는다. 판정은 **READY_FOR_REVIEW / KERNEL_PENDING**이며,
 기존 실패 시작 1회 승인을 재사용할 수 없다. 적격 Native job이 생긴 뒤 별도 모델 Action을 검토한다.
+
+## 자율 복구 세션 — Kernel verifier 재시험 및 확인된 문제 전면 수정
+
+승인 요청 `60b6f02f…731847`의 Git/Source/파일/Ledger Binding을 다시 대조하고 사용자
+`승인함`을 기록했다. 사용자 터미널 Scope yes·sudo 인증 후 기존 BPF와 설치 정책을
+Root 전용 백업에 보존하고 승인된 BTF Object만 설치해 **시작 1회**를 시도했다.
+증거: 공통 Git 디렉터리 `continuous-btf-retest-approved-20261029T004325Z/`.
+
+### 이번에 확인한 문제와 수정 결과
+
+| ID | 문제 / RCA | 실제 수정과 검증 | 상태 |
+|---|---|---|---|
+| P01 | `-g0`로 BTF 누락 | 앞선 `36c2ecc` 수정 유지; BTF section·libbpf parse·재현 빌드. 이번 Kernel 로그에서 BTF 누락은 재발하지 않음 | 코드 수정 및 재시험에서 기존 오류 해소 확인 |
+| P02 | Kernel verifier `R2 variable stack access prohibited for !root` | 공유 parser가 가변 IPv4 IHL/VLAN transport offset으로 128-byte **스택** header를 참조. Continuous만 고정 per-CPU 임시 buffer map(1개 key, CPU당128 bytes)으로 교체, 파싱/복사 실패 직후 모두 지움. metadata ABI와 parser는 유지; Capability·CPU·메모리 한도 확대 없음 | Host의 실제 ingress C 동작 검증; 새 Object Kernel verifier는 PENDING |
+| P03 | Native C 실패 원인이 무조건 EPERM으로 덮임; Python은 errno 없는 ValueError | Cleanup 직전 최초 errno 보존, Cleanup 실패 EUCLEAN 우선은 유지. Python OSError에 errno 전달. 실제 C 실패/정리 경로를 Host harness로 실행해 EACCES 보존, Python의 EACCES/ENOMEM/EIO/EUCLEAN 검증 | 비권한 검증 PASS |
+| P04 | 인증된 STOP ACK 이후 socket이 닫히면 일반 Runtime Stop이 실패 | 수신 경로에서 binding 검증된 stop_ack만 사용하여 idempotent Stop. ACK 없는 단순 VERIFIED 문자열, UNKNOWN/UNVERIFIED는 거부. 재접속 시 과거 ACK 초기화 | 실제 Unix framing + 경계 Mock 검증 PASS |
+| P05 | 모델 Action 대기 중 정상 Stop을 미확인 Worker 장애/Cleanup 실패로 오분류 | 사용자 Stop·승인 대기 상태·모델 자식 미시작 조건을 모두 만족한 취소만 정상 대기 종료로 분류. 예기치 않은 취소는 UNKNOWN 유지. 입력은 보존하고 Queue POISON으로 자동 추론 재실행 차단 | 운영 Runtime.run 경로 검증 PASS, 모델 호출0 |
+| P06 | GUI의 단일 Cleanup 표시가 ordinary Runtime과 Root Collector 상태를 혼동시킴 | snapshot과 실제 Tk 화면에 Runtime cleanup / Collector cleanup 분리. Replay는 NOT_APPLICABLE_REPLAY, Root 증거 없으면 UNKNOWN, Root UNVERIFIED를 승격하지 않음 | 실제 Tk 종료/재연결·결과 표시 검증 PASS |
+| P07 | Apport가 읽기 전용 `/var/crash`에 쓰려다 최초 오류 뒤에 추가 예외 발생 | 고정 서비스 프로세스의 excepthook만 Python 표준 handler로 지정. 원래 traceback 보존. 시스템 패키지·read-only sandbox 변경 없음 | 일반 사용자 실제 entry subprocess 거부/진단 검증 PASS |
+| P08 | `/usr/sbin/bpftool` wrapper로 전역 전후 조회 불가 | 기존 설치된 고정 executable의 SHA를 검증해 읽기 전용 조회. 새 도구 설치·권한 추가 없음 | 이번 실제 Root 전후 link/prog/map 조회 모두 성공·동일 |
+
+P04/P05는 수정 전 Git Export에서도 새 회귀로 재현해 **2 FAIL**을 고정했고, 수정본은 통과했다.
+C ingress harness는 실제 `continuous.bpf.c`를 Host로 컴파일하여 helper 경계만 Mock한다.
+IPv4 기본/최대 IHL+2 VLAN, IPv6, TCP/UDP metadata, copy 실패와 ring reserve 실패의
+Counter 보존 및 header bytes 삭제를 검증했다. 이 Host 실행을 Kernel verifier 성공으로 간주하지 않는다.
+임시 buffer는 packet bytes를 파일/이벤트로 보관하지 않고 파싱 직후 지운다. 추가 map은
+기존 소유 object Cleanup에 포함하며 자원 상한은 그대로다.
+
+### 실제 재시험 결과 — BLOCKED
+
+- Namespace 내부 check PASS: target4026532232 / lo UP / 외부 interface·route 없음.
+- 09:46:00 KST Collector 시작 → BPF program load에서 verifier 거부 → 09:46:01 종료 **exit 1**.
+  로그에 첫 verifier 원인과 Python/바깥 launcher의 후속 오류가 별도 보존됐다.
+  Root UID라도 승인된 제한 Capability 환경에서는 위 가변 스택 접근을 허용하지 않았으며,
+  이를 해결하기 위해 권한을 추가하지 않았다.
+- TCX attach/Collector READY 없음. TCP Helper 시작0, 연결0, packet0, Window0,
+  Attestation 입력 없음, Network14 ELIGIBLE0, 실제 Native RF/LR/Prediction/Incident0.
+  Native GUI 결과 없음. DNS·외부 API 호출 없음.
+- Root Audit hash chain 검증 및 소유 Cleanup VERIFIED. 새 고정 bpftool로 조회한
+  **이번 시험의** Kernel link/prog/map 전후 JSON은 모두 동일하다.
+  과거 Program1145 UNKNOWN·전역 Cleanup UNVERIFIED·FAILED/false는 변경하지 않는다.
+- Legacy Ledger **81행**, SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`
+  불변. 기존 Campaign Root12/Native4 및 Batch3 Root9/Native1 기록은 초기화·환급하지 않았다.
+  별도 Continuous 서비스 시작 시도는 첫 BTF 실패와 이번 verifier 실패로 각1회이며 각 실행 증거/Root Audit에 보존했다.
+
+### 수정본 비권한 검증·릴리스 판단
+
+Workspace / 독립 Git Export **각87 PASS**, 실제 Tk GUI **각2 PASS**.
+기존 5,000-event/multi-hour 압력 테스트2개는 재실행하지 않았으며 전체 테스트 suite 통과로
+표현하지 않는다. 실제 RF/LR·Auth IF·Incident/Audit 및 SCRIPTED 조사 경로는 기존 회귀에서
+검증했다. 신규 Native 모델 Action이나 실제 LLM API 호출은 없다.
+Native 산출물6개 및 Wheel의 Workspace/Export SHA 동일, Ruff·Format·Diff 통과.
+
+- Source `02d58ab28dffd138c933271c841e7f9f6d927d6c0ab8aff62b8dbf7f9234d71f`
+- 새 BPF `800a502f88a3f9a2c8a0d4feda8e60f9b2f0217c4b58cd82629c2da48487fa68`
+- Provider `62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff`
+- Root Service `f43dc5eb7538566e3951e1ce91a291a0d0b98ef90e8681c9d5905cef4c1bb715`
+- Wheel `3b3b8e290d0304c0752f83b03307203b86ea9ae52535cf846033082dae964336`
+
+이 수정본은 **미설치·미실행**이다. 현재 설치본/새 백업/원래 Rollback/모든 실행 증거는 유지했다.
+기존 시험 승인은 사용 완료이며 자동 재실행하지 않는다. 변경된 Root 파일3개와 새 Source에
+대한 정확한 다음 시험 Binding을 별도 준비한다. 같은 Namespace·TCP2회·최대240초·기존 자원
+범위를 유지하며 실제 모델 Action은 별도다. 문제의 코드 수정·비권한 검증은 완료했지만, 새
+Kernel load/attach/Window/Eligibility 검증은 아직 남아 있다. Offline/Fixture 시연과 GUI 회귀는
+보존되어 **DEMO_READY**, Native Continuous는 **BLOCKED / KERNEL_RETEST_PENDING**이다.
+
+모델 대기 Stop 회귀에는 이전 분석 자식이 이미 정상 종료/정리된 경우도 포함했다. 완료된
+process 객체가 남아 있어도 현재 job의 새 모델 실행으로 오인하지 않으며, 실행 중 자식이나
+Cleanup UNVERIFIED 및 요청하지 않은 취소는 정상 종료로 승격하지 않는다.

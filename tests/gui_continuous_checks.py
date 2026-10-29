@@ -54,6 +54,8 @@ async def test_gui_detach_reconnect_and_owned_service_stop(tmp_path):
         app.navigate("Continuous")
         await idle(root, app)
         assert "JSONL_REPLAY" in app.continuous_summary.cget("text")
+        assert "Runtime cleanup:" in app.continuous_summary.cget("text")
+        assert "Collector cleanup: NOT_APPLICABLE_REPLAY" in app.continuous_summary.cget("text")
         with pytest.raises(BlockingIOError):
             await asyncio.to_thread(start, directory)
         await close(root, app)
