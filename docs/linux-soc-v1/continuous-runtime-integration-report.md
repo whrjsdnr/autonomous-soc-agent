@@ -446,3 +446,48 @@ Attestation、模型 Action 拦截、Fixture 实际 RF/LR、Queue/Worker、Trans
 并将该测试的缺失策略路径显式隔离，原拒绝断言不变。最终双环境上述 66 项全部通过。
 Ruff 全仓检查、Format（1,469 files）、Diff 均通过。新的 BTF 构建与测试均没有 Kernel load、
 权限提升、TCP/DNS 发送或 Native 模型 Action。Fixture 模型测试不计入 Native 成功。
+
+## BTF 수정본 재시험 준비 — 2026-10-29
+
+운영 코드 `36c2eccc6b2e3fb4539720328f9383b1e906a29b`를 기준으로 비권한 검증을 수행했다.
+새 Root/TCX/TCP/모델 실행, 예약, 영수증 소비 및 기존 Ledger 수정은 없다.
+검토 패키지: 공통 Git 디렉터리
+`continuous-btf-retest-review-20261029T003500Z/approval-package.md` 및 `approval-request.json`.
+
+- 실제 빌더는 BPF에 `-g`, 고정 file-prefix/debug-compilation 경로를 사용한다. Provider C의
+  `-g0`는 변경하지 않았다. 새 Object에 `.BTF`·`.BTF.ext`가 있고, libbpf userspace open 및
+  고정 bpftool의 **Object 파일** BTF dump에서 events/config/counters 타입을 검증했다.
+  Kernel load/attach는 수행하지 않았다.
+- 새 디렉터리의 Native 빌드 6개 SHA가 직전 Workspace/독립 Export 수정본과 전부 일치한다.
+  BPF SHA `408744c24580f4d643a4235cb581409b3ee669092e1a902d99bbf938b3221ac8`,
+  Source SHA `ca4a3f1ad9c45ede054148fb1b6bb38dcc8f2318b57db7fd21ec27ec4d559bfa`.
+- 설치된 실패 Object는 여전히 `a5e249…7548`이며, 서비스·정책·Runtime·Helper·Unit과
+  설치 정책의 모든 기존 SHA도 일치한다. 수정본을 설치하거나 이전 파일을 덮어쓰지 않았다.
+- 과거 Diagnostic Supervisor `88dfad10…20a`, Controller `d1f1e0e4…bbc`, Root Manifest
+  `e40ebd24…11f`와 Root 파일 9개·Controller Python 124개 파일을 실제 SHA로 대조했다.
+  이들은 과거 자료의 무결성 확인이며 Continuous 실행 권한·실행 이미지로 재사용하지 않는다.
+  실제 Continuous 경로는 고정 systemd Collector와 일반 사용자 Runtime이다.
+- Continuous release identity는 설치 파일 SHA map의 canonical digest이며 `soc-continuous-seal:v1`
+  계약을 사용한다. 새 Capture Session은 승인된 서비스에서 실제 generation 생성 후
+  `UUID5(NAMESPACE_URL,str(generation))`로 결정된다. 아직 존재하지 않는 Session을 임의로 만들거나
+  과거 Diagnostic Session/Release 0.6.3을 대신 사용하지 않았다.
+- Target dev4/inode4026532232·Host4026531833·boot·lease SHA·Ledger 81행 SHA가 일치한다.
+  이번 Namespace 내부 check는 권한 승인을 기다리며 과거 PASS와 구분한다.
+- `/usr/sbin/bpftool` wrapper 대신 실제 파일
+  `/usr/lib/linux-tools/6.8.0-147-generic/bpftool`을 찾아 버전/파일 BTF dump와 SHA를 검증했다.
+  새 승인 범위에는 이 고정 도구를 이용한 읽기 전용 Kernel link/prog/map 전·후 조회를 포함한다.
+  현재 전역 Kernel Cleanup UNVERIFIED 이력은 변경하지 않는다. 사전 조회 실패/기존 lo hook 충돌은
+  Capture 시작 전 차단하며 기존 프로그램을 제거하지 않는다.
+
+재시험 요청은 **새 BPF와 승인 후 재결합할 설치 정책만** 백업 후 고정 경로에서 교체하고,
+나머지 승인 파일은 SHA 검증 후 유지하는 범위다. 기존 설치본·정책·Root Audit를 백업/보존한다.
+기존 240초, Root 128MiB/CPU25%/Tasks4, per-CPU/minute quota·Window 제한 및 고정 TCP
+18080 ← 18081/18082, 연결 2회·35초 간격·고정 payload·일반 사용자 Capability 0을 유지한다.
+만료 시각은 승인 기록 후 최대24시간 및 검토한 상위 유효기간 이내에서만 확정한다.
+최종 설치 정책의 인간 결정 hash·만료·정책 SHA는 새 인간 승인 전에는 발급하지 않는다.
+
+다음 승인 후 검증할 것은 Kernel load → 소유 TCX link → Collector/Producer READY → TCP 2회
+→ 실제 Counter/Clock/Window 봉인 → Attestation → Network14 Eligibility → 정상 Stop/Drain/
+소유 자원 및 전역 Kernel 전·후 비교다. 각 단계 최초 오류와 실제 exit를 보존하고 자동 재실행하지
+않는다. 모델·DNS·외부 API 권한은 포함하지 않는다. 판정은 **READY_FOR_REVIEW / KERNEL_PENDING**이며,
+기존 실패 시작 1회 승인을 재사용할 수 없다. 적격 Native job이 생긴 뒤 별도 모델 Action을 검토한다.
