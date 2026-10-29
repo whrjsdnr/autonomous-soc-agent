@@ -230,14 +230,23 @@ class Desktop:
             self.refresh()
 
     def continuous_updated(self, value):
+        from soc_agent.gui.continuous_projection import project
+
         self.status.set(str(value.get("state", "UNKNOWN")) + " · Continuous service")
-        self.snapshot["continuous"] = value
+        self.snapshot = project(self.snapshot | dict(continuous=value))
         self.last_render = None
         self._render_current()
 
     def analysis_updated(self, value):
-        self.status.set(str(value.get("state", "UNKNOWN")) + " · OFFLINE analysis")
-        self.snapshot["analysis"] = value
+        from soc_agent.gui.continuous_projection import project
+
+        origin = (
+            "RETAINED_NATIVE"
+            if "REAL_NATIVE" in (value.get("result") or {}).get("input_origins", [])
+            else "OFFLINE"
+        )
+        self.status.set(str(value.get("state", "UNKNOWN")) + " · " + origin + " analysis")
+        self.snapshot = project(self.snapshot | dict(analysis=value))
         self.last_render = None
         self._render_current()
 
@@ -422,7 +431,14 @@ class Desktop:
     def select(self, _event=None):
         selected = self.tree.selection()
         if selected:
-            record = display_data(self.records[int(selected[0])][1])
+            original = self.records[int(selected[0])][1]
+            if original.get("analysis_output"):
+                self.navigate("AI Analysis", refresh=False)
+                self.call(
+                    "analysis_attach", original["analysis_output"], callback=self.analysis_updated
+                )
+                return
+            record = display_data(original)
             if "collector_event" in record:
                 self.detail_title.configure(text="Zeek diagnostic · AI BLOCKED")
                 self._text(
@@ -516,6 +532,9 @@ class Desktop:
         )
 
     def start(self):
+        if self.config.continuous_directory or self.snapshot.get("continuous"):
+            self.call("continuous_start", callback=self.continuous_updated)
+            return
         if getattr(self, "terminal_managed", False):
             self.status.set("New Capture requires a fresh terminal command and approval")
             return

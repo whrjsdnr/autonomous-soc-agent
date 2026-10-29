@@ -171,9 +171,12 @@ async def test_stale_native_and_cleanup_failure_health_display(tmp_path):
     """SYNTHETIC status snapshots, actual backend/Tk. Never a live Native claim."""
     import time
 
-    from tests.unit.continuous.test_runtime import make
+    from tests.unit.continuous.test_runtime import config, make
 
-    directory, store = make(tmp_path)
+    directory = tmp_path / "native-status-fixture"
+    store = Store.create(
+        directory, config(tmp_path).model_copy(update={"source": "NATIVE_SERVICE"})
+    )
     store.update(
         dict(
             state="RUNNING",
@@ -192,6 +195,9 @@ async def test_stale_native_and_cleanup_failure_health_display(tmp_path):
         await idle(root, app)
         text = app.continuous_summary.cget("text")
         assert "UNKNOWN_STALE_HEARTBEAT" in text and "Native live: False" in text
+        replay = tmp_path / "replay-status-fixture"
+        replay.mkdir()
+        directory, store = make(replay)
         store.update(
             dict(
                 state="DEGRADED",
@@ -209,7 +215,7 @@ async def test_stale_native_and_cleanup_failure_health_display(tmp_path):
                 queue={"POISON": 1, "PENDING": 1},
             )
         )
-        app.call("continuous_status", callback=app.continuous_updated)
+        app.call("continuous_attach", str(directory), callback=app.continuous_updated)
         await idle(root, app)
         text = app.continuous_summary.cget("text")
         assert "Runtime cleanup: UNVERIFIED" in text and "CIRCUIT_OPEN" in text

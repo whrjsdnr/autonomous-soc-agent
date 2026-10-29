@@ -1,6 +1,8 @@
 """Service state and deduplication over existing private storage, audit and EventQueue."""
 
 import json
+import os
+import tempfile
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
 
@@ -113,6 +115,42 @@ class Store:
             c.execute(
                 "UPDATE continuous_state SET payload=?,digest=?", (json.dumps(value), digest(value))
             )
+        # A committed display/health snapshot prevents GUI and external observers
+        # from contending with ingestion writes. It is never admission authority.
+        snapshot = dict(value)
+        analysis = snapshot.get("analysis")
+        if isinstance(analysis, dict) and isinstance(analysis.get("result"), dict):
+            result = {k: v for k, v in analysis["result"].items() if k != "detail"}
+            result["detail_reference"] = "OPEN_VERIFIED_ANALYSIS_OUTPUT_FOR_FULL_EVIDENCE"
+            snapshot["analysis"] = analysis | dict(result=result)
+        observation = dict(
+            contract="soc-continuous-observation:v1",
+            store_id=str(self.database.store_id),
+            configuration=self.config.model_dump(mode="json"),
+            snapshot=snapshot,
+        )
+        body = json.dumps(observation | dict(digest=digest(observation))).encode()
+        if len(body) > 262144:
+            raise ValueError("CONTINUOUS_OBSERVATION_BOUND")
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=self.directory, prefix=".observation-", delete=False
+            ) as stream:
+                temporary = Path(stream.name)
+                stream.write(body)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, self.directory / "observation.json")
+            temporary = None
+            descriptor = os.open(self.directory, os.O_DIRECTORY)
+            try:
+                os.fsync(descriptor)
+            finally:
+                os.close(descriptor)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
 
     def state(self):
         with self.database.transaction(write=False) as c:

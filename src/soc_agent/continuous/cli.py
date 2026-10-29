@@ -32,8 +32,38 @@ def status(directory):
     store = Store(directory)
     value = store.state()
     value["queue"] = store.queue.counts()
+    return _freshness(value, store.config.heartbeat_seconds)
+
+
+def observed_status(directory):
+    """Atomic health/display view only. Never used for start/admission or approvals."""
+    from uuid import UUID
+
+    from soc_agent.review.persistence.secure_storage import validate_directory
+
+    validate_directory(directory)
+    path = directory / "observation.json"
+    if not path.exists():
+        return status(directory)  # Read-only compatibility with prior Runtime versions.
+    record = json.loads(read_local(path, 262144))
+    if (
+        not isinstance(record, dict)
+        or set(record) != {"contract", "store_id", "configuration", "snapshot", "digest"}
+        or record["contract"] != "soc-continuous-observation:v1"
+        or record["digest"] != digest({k: v for k, v in record.items() if k != "digest"})
+    ):
+        raise ValueError("CONTINUOUS_OBSERVATION_INTEGRITY")
+    UUID(record["store_id"])
+    config = ContinuousConfig.model_validate(record["configuration"])
+    value = record["snapshot"]
+    if not isinstance(value, dict) or value.get("source", config.source) != config.source:
+        raise ValueError("CONTINUOUS_OBSERVATION_SOURCE")
+    return _freshness(value, config.heartbeat_seconds)
+
+
+def _freshness(value, heartbeat_seconds):
     value["heartbeat_stale"] = time.time() - value.get("heartbeat_unix", 0) > max(
-        10, store.config.heartbeat_seconds * 3
+        10, heartbeat_seconds * 3
     )
     if value.get("state") in ("RUNNING", "DEGRADED") and value["heartbeat_stale"]:
         value["state"] = "UNKNOWN_STALE_HEARTBEAT"
@@ -102,6 +132,7 @@ def main(argv=None):
             "start",
             "run",
             "status",
+            "observe",
             "stop",
             "reset-worker",
             "service-unit",
@@ -137,6 +168,8 @@ def main(argv=None):
             result = archive(directory)
         elif args.command == "status":
             result = status(directory)
+        elif args.command == "observe":
+            result = observed_status(directory)
         elif args.command == "start":
             result = start(directory)
         elif args.command == "run":

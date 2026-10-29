@@ -243,6 +243,10 @@ def render_dashboard(app, value, rows):
         if collector
         else "frames or packets / second · monotonic interval"
     )
+    continuous = value.get("continuous")
+    if continuous:
+        chart.title = "CONTINUOUS METADATA · RAW PACKET COUNT UNKNOWN"
+        chart.units = "metadata records / second · GUI monotonic observations"
     if hasattr(app, "collector_summary"):
         app.collector_summary.configure(
             text=(
@@ -264,6 +268,14 @@ def render_dashboard(app, value, rows):
             if collector
             else "Existing capture · separate Raw / Normalized / Delivered counters"
         )
+        if continuous:
+            app.collector_summary.configure(
+                text="Attached Continuous "
+                + continuous.get("source", "UNKNOWN")
+                + " · "
+                + continuous.get("collector", "UNKNOWN")
+                + " · Supported metadata only; raw capture coverage UNKNOWN"
+            )
     models = value.get("research", {}).get("model_metrics", {})
     origin = value.get("input_origin", "NO_DATA")
     app.status_cards["Network"].update_value(
@@ -321,6 +333,17 @@ def render_dashboard(app, value, rows):
         f"{len(rows)} retained research advisories · "
         "Uncalibrated / not operational findings"
     )
+    if continuous:
+        counts = continuous.get("metrics", {})
+        delivered = counts.get("native_events", counts.get("received", "UNKNOWN"))
+        app.capture_summary.configure(
+            text=f"SUPPORTED METADATA {delivered}"
+            f" · Decoded packets {counts.get('packets', 'UNKNOWN')}"
+            f" · Queue drops {counts.get('queue_dropped', 'UNKNOWN')}"
+            f" · Eligible {counts.get('eligible', 'UNKNOWN')}"
+            f" / Incomplete {counts.get('incomplete', 'UNKNOWN')}"
+            " · Raw packet count and system-wide loss UNKNOWN"
+        )
     visual_charts.render(app.dashboard_charts, app, value)
     recent = [row for row, _ in rows[-4:]]
     marker = str(recent)

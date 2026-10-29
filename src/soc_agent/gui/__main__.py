@@ -24,6 +24,7 @@ def main(argv=None, *, prepared=None) -> int:
         / "autonomous-soc-agent/gui",
     )
     parser.add_argument("--continuous-runtime", type=Path)
+    parser.add_argument("--continuous-execution-evidence", type=Path)
     parser.add_argument(
         "--analysis-result",
         type=Path,
@@ -73,6 +74,7 @@ def main(argv=None, *, prepared=None) -> int:
 
         config = GUIConfig(
             continuous_directory=args.continuous_runtime,
+            continuous_execution_evidence=args.continuous_execution_evidence,
             analysis_result=args.analysis_result,
             analysis_ml_root=args.analysis_ml_root,
             collector_type=args.collector,

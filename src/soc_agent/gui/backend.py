@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 from pydantic import Field
 
 from soc_agent.gui.runtime_process import PersistentRuntimeProcess
+from soc_agent.review.persistence.models import StorageError
 from soc_agent.review.persistence.secure_storage import create_private_directory, validate_directory
 from soc_agent.security_ai.external.models import Snapshot
 
@@ -46,6 +47,7 @@ class GUIConfig(Snapshot):
     artifacts: Path | None = None
     native_python: Path | None = None
     continuous_directory: Path | None = None
+    continuous_execution_evidence: Path | None = None
     analysis_result: Path | None = None
     analysis_ml_root: Path | None = None
     refresh_seconds: int = Field(default=15, ge=10, le=300)
@@ -339,14 +341,35 @@ class Backend:
         if self.continuous_directory is not None:
             try:
                 value["continuous"] = await self.continuous_status()
-            except (ValueError, OSError):
+            except (ValueError, OSError, StorageError):
                 value["continuous"] = {
                     "state": "UNKNOWN",
+                    "collection_live": False,
                     "last_error": "CONTINUOUS_STATUS_UNVERIFIED",
                 }
         if self.analysis_service is not None:
             value["analysis"] = self.analysis_service.snapshot()
-        return value
+        if self.config.continuous_execution_evidence and "continuous" in value:
+            from soc_agent.security_ai.research.environment import read_local
+
+            directory = self.config.continuous_execution_evidence.absolute()
+            try:
+                validate_directory(directory)
+                path = directory / "first-error.json"
+                if path.exists():
+                    error = json.loads(await asyncio.to_thread(read_local, path, 32768))
+                    if not isinstance(error, dict):
+                        raise ValueError("CONTROLLER_DIAGNOSTIC_SCHEMA")
+                    value["continuous"]["controller_error"] = {
+                        key: error.get(key) for key in ("stage", "error", "message", "errno")
+                    }
+            except (OSError, ValueError):
+                value["continuous"]["controller_error"] = {
+                    "error": "CONTROLLER_DIAGNOSTIC_UNVERIFIED"
+                }
+        from soc_agent.gui.continuous_projection import project
+
+        return project(value)
 
     async def continuous_attach(self, directory: str):
         from soc_agent.continuous.cli import status
@@ -357,17 +380,23 @@ class Backend:
         return value
 
     async def continuous_status(self):
-        from soc_agent.continuous.cli import status
+        from soc_agent.continuous.cli import observed_status
 
         if self.continuous_directory is None:
             raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
-        return await asyncio.to_thread(status, self.continuous_directory)
+        return await asyncio.to_thread(observed_status, self.continuous_directory)
 
     async def continuous_start(self):
         from soc_agent.continuous.cli import start
+        from soc_agent.continuous.store import Store
 
         if self.continuous_directory is None:
             raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
+        store = await asyncio.to_thread(Store, self.continuous_directory)
+        if store.config.source == "NATIVE_SERVICE":
+            # A GUI Start must not spawn a second AI process outside the approved
+            # UID1000 service cgroup, or prepare an unrelated legacy collector.
+            raise ValueError("NATIVE_START_REQUIRES_APPROVED_SERVICE_ENTRYPOINT")
         await asyncio.to_thread(start, self.continuous_directory)
         return await self.continuous_status()
 

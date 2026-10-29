@@ -374,3 +374,79 @@ DNS9는 학습 추출 계약 미완료로 계속 차단한다.
 새 API 조사 subcomponent는 보존 Native Incident 기준 검증됐으며 OPERATIONS_VERIFIED로
 승격할 근거는 아니다. 최종 보고서 Commit/Push 및 종료 해시는 같은 증거 디렉터리의
 `completion.json`에 고정한다.
+
+## 2026-10-29 후속 Native 시험·모델·GUI 안정화
+
+이 절이 위의 "새 Native 미수행/BLOCKED" 시점 이후의 결과다. 기존 성공·실패 원본은 변경하지 않았다.
+작업 경로는 `continuous-soc-runtime` worktree이며 사용자 main의 변경은 보존했다.
+
+### 실제 실행과 최초 오류
+
+| 시험 | 실제 결과 | 최초 오류·Cleanup |
+|---|---|---|
+| `one-hour-operations-execution-20261029T044319Z` | 약22.47초 attach, TCP/Packet0 | idle Producer가 generation을 counters 안에만 표시해 첫 TCP 허용 READY와 순환. AUTHENTICATED_PRODUCER_READY_TIMEOUT. 소유 Root Cleanup VERIFIED, ordinary STOP 확인 UNKNOWN |
+| recovery의 취소된 인증 | Root 시작0/Capture0 | 초기화된 STOPPED 표시와 background sudo 인증 대기가 혼란 유발. 사용자가 취소한 증거 보존 |
+| `one-hour-operations-recovery-20261029T045628Z/execution-auth-recovery` | attach→종료348.551850659초, 전체 약350.05초. Native40, Window2, ELIGIBLE2/INCOMPLETE2. Helper2/TCP4 | CAPTURE에서 Root coordinator의 SQLite readonly timeout2초 후 `OperationalError: database is locked`. 종료2. 자동 재실행0. Root·ordinary owner STOP/ACK·소유 Cleanup VERIFIED |
+
+위 수집은 1시간 성공이 아니다. 다른 서비스의 Kernel ID 변화/과거 전역 Cleanup은 UNVERIFIED다.
+Legacy Ledger81행/SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`
+불변이며 기존 Campaign Root12/Native4·Batch3 Root9/Native1 이력을 유지한다.
+이번 Continuous 시험은 별도 Root Audit의 Append-only 기록이며 Legacy 예산을 임의 수정하지 않았다.
+
+### 이미 승인된 보존 Native 모델 결과
+
+사용자가 첫 봉인 job에 RF/LR 정확히2회를 별도 승인했다.
+Collector가 이미 종료됐으므로 `AnalysisService.start_retained_tcx`로 보존 입력을 분석했으며,
+기존 Runtime POISON1/PENDING1을 reset하거나 수집 중 Prediction으로 바꾸지 않았다.
+
+- Window `e44dc955cadff4005ebba992bcfe554b8cdb117628e4863057db3057cd4c2634`.
+- Session `091640f2-9a1d-518e-8931-11a7680c50c4`.
+- Incident `8b586ef5-5b43-5929-bba7-81e495f3e7e2`.
+- RF CLASS_1 / score0.3671875, LR CLASS_0 / score0.00018923306197393686.
+- 모델 SHA RF `53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603`,
+  LR `661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882`.
+- UNKNOWN_ANOMALY는 모델 불일치의 advisory다. 정상 TCP를 확인된 공격으로 판정하지 않았다.
+- 읽기 전용 조사 COMPLETED_READ_ONLY, SCRIPTED, 실제 API0, Audit/worker Cleanup VERIFIED.
+- 이 Incident의 결과는 `execution-auth-recovery/model-job-1-post-capture-result.json`에 있으며,
+  이전 다른 Native Incident의 실제 API2회 증거와 구분한다.
+
+### 발견·수정한 운영 결함
+
+| 결함 | 수정·검증 |
+|---|---|
+| READY와 최초 packet counter의 순환 | Producer 독립 generation 검증. 빈 counter만으로 적격성을 인정하지 않으며 authenticated heartbeat/Scope 유지. `3656c72`에서 수정 |
+| SIGTERM 시 receiver 먼저 취소되어 STOP/ACK 손실 | owner STOP→최종 seal/drain→close 순서. 다음 실제348초 시험에서 owner Cleanup VERIFIED |
+| fixed Root coordinator의 직접 SQLite 상태 polling | 다음 고정 coordinator에 bounded/private/동일 config/digest 검증 원자적 관측 reader 적용. 동일 reader를 독점 DB lock에서 비권한 검증. 권한·승인 판단은 기존 authoritative 계약 유지 |
+| GUI 상태 읽기와 AI 승인 대기의 DB 경합 | 일반 Store commit 이후 fsync+atomic replace `observation.json` 게시, `continuous observe`/GUI가 읽음. 모델 승인 polling의 초당10회 중복 durable publish 제거 |
+| 큰 조사 보고서가 health mirror 상한 초과 | mirror에는 요약+원본 참조만, 원본 DB/검증 보고서 상세는 보존. 300KiB 재현과 기존 장애·Authentication 모델 회귀 통과 |
+| 기존 dashboard가 legacy STOPPED/0을 표시 | attached Continuous metrics/state/source를 기존 dashboard에 투영. 실제 live counter와 명시적으로 선택한 보존 분석은 분리 |
+| Native 모델 결과가 기존 event/detail에 안 나타남 | 기존 Security Events에 요약 표시, 선택 시 원본 검증 분석 출력으로 AI Analysis 이동. 모델 카드 RF/LR 표시 |
+| Controller 오류가 Runtime STOPPED에 가려짐 | 명시적인 `--continuous-execution-evidence`로 최초 오류의 제한 필드만 표시. 손상/오래된 heartbeat는 UNKNOWN으로 표시 |
+| GUI Start가 다른 legacy 경로로 감 | Continuous attachment는 기존 service layer로 전달, Native 시작은 승인된 서비스 Entry Point 필수로 차단. GUI에서 Root 실행 없음 |
+| 인증 취소와 초기 STOPPED 혼동 | 다음 terminal은 foreground sudo 인증 완료 후 시작/READY 단계를 명확히 출력, 실제 Ready 이후만 상태 polling |
+
+### 비권한 검증·재현 빌드와 다음 명령
+
+최종 관련 Workspace **119 PASS**, 후속 GUI/오류 표시 **16 PASS**.
+독립 Export 관련 **93 PASS**, 최종 GUI 변경 독립 Export **16 PASS**.
+실제 Tk에서 Native40/STOPPED/live predictions0/선택 보존 RF·LR2/기존 Incident 선택/Audit·SCRIPTED 표시 확인.
+새 Root coordinator 관측 reader는 SQLite 독점 lock/부분 파일/digest/config/권한/symlink 거부를 검증한다.
+Native6개 이중 빌드와 기존 설치본 대조, Wheel 이중 빌드, Ruff/Format/Diff를 수행한다.
+정확한 최종 SHA·결과·종료 commit은
+`.git/operations-final-stabilization-20261029T052719Z/final-verification.json` 및 `completion.json`에 고정한다.
+Controller 실행 코드는 변경하지 않았으며 기존2개 재현 빌드 증거는 새 실행 권한이 아니다.
+
+직접 실행할 [명령어와 화면 확인 절차](native-gui-test-commands.md)를 준비했다.
+새 시험의 고정 준비 경로는
+`.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/`이다.
+정확한 Source·Root4개 설정·Namespace·Lease·Ledger·기간을 자동 검증하고,
+새 Scope/R1 직접 yes·foreground sudo 이후에만 한 번 실행한다. 이번 마무리에서 새 실행/설치는 하지 않았다.
+봉인 후 기존 exact 모델 Action 승인 helper를 제공하며 미래 Window 권한 자동 발급은 하지 않는다.
+TCP 상한은 기존40개 이하인38개/Helper19번으로 줄이고 3380초 이후 새 트래픽을 금지한다.
+마지막 Window가 승인되지 않은 신규 적격 job을 Stop 직전에 만들지 않도록 종료 구간을 비운다.
+DNS·새 API·Host 인증 수집·자동 Kernel 재시작은 포함하지 않는다.
+
+**현재 판정: PARTIALLY_VERIFIED. 수정본은 다음 GUI·Native 제한 재시험 준비본이며,
+1시간 실환경/Streaming 모델 전체/새 Runtime의 정상 Queue drain은 다음 실제 시험에서 확인해야 한다.**
+기존 Native 제한 성공·Offline DEMO_READY는 보존한다. 남은 Program1145 UNKNOWN,
+과거 전역 Cleanup UNVERIFIED, FAILED/false, 연구 모델의 오탐·추출 계약 한계는 해결됐다고 보고하지 않는다.

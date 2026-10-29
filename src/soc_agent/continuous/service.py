@@ -530,7 +530,8 @@ class ContinuousRuntime:
                 )
                 if grant is not None and grant.is_file():
                     break
-                await self.publish()
+                # The supervisor publishes the heartbeat at the configured rate.
+                # Polling an approval file must not cause 10 durable DB writes/sec.
                 await asyncio.sleep(0.1)
             if self.stop.is_set():
                 raise asyncio.CancelledError
@@ -797,6 +798,7 @@ class ContinuousRuntime:
                             cleanup=cleanup,
                             final_flush="FAILED" if flush_error else "VERIFIED",
                             collection_live=False,
+                            queue=self.store.queue.counts(),
                         )
                     )
                 except BaseException as error:
