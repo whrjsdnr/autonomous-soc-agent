@@ -1,5 +1,137 @@
 # SOC Agent Operations Verification — 비권한 사전 검증
 
+## 1시간 Native 시험 — 최종 승인 검토 추가
+
+2026-10-29, 실행 기준 Git **`62ba2739ae1d394731182763583daacf196bfd06`** /
+Tree **`9a84e7117cc7083de390bb93ea3f873b833382bd`**에서 비권한 준비를 이어서 완료했다.
+이 절의 요청이 아래 이전 초안보다 우선한다. **실제 시험은 여전히 BLOCKED(인간 승인 대기)**다.
+이번 추가 작업의 Root·Namespace 진입·Capture·TCP·Native 모델·API·예약·승인 영수증 발급은
+모두0회다. 기존 API2회 성공은 이전 보존 Native Incident의 결과로만 유지한다.
+
+### 확정된 검토 자료와 실제 파일
+
+공통 Git 디렉터리:
+`.git/one-hour-operations-review-20261029T030123Z/`.
+
+| 자료 | SHA256 |
+|---|---|
+| 최종 `approval-request-final.json` | `11dde925ffe1abd74bc1add20ea7b335fc3611a54480a6f09d31d612e98ec822` |
+| 정책 입력 `scope-input-v2.json` | `40f1ad747c319c40e210cb7227fc7c4ababb6764220a1c55d708e9b1a37b0188` |
+| 최종 Root 설치 Manifest `root-install-manifest-v3.json` | `5038a5f0f822f9063939f6ca516602e8614affa75e7cf541a330fd63cf2dae24` |
+| 설치 계약 후보 `continuous-installation-v2.json` | `a250b68cb424d6be7bb842eda65c03bc470d5ade9dd6d61e3b7f01fafebf845d` |
+| 새 Runtime 설정 `runtime-config-v2.json` | `294b84e4aa8c9bc25dadcbb7aee6a8a91e4851c81eb67bd5f6ce0794eef8ba7c` |
+| 일반 UID system unit `soc-operations-runtime.service` | `8e8e64167bb01983ab87d496b57447e2da55416cbec043b788b542681f7c5618` |
+| Git62ba273의 실제 Source tar snapshot | `5bc09c637970385070c9cc334a87298dff6ee08ca01068b179e77a30ffd2c2bb` |
+
+사용자가 SHA를 입력할 필요는 없다. 사람용 자료는 같은 디렉터리의 `approval-package.md`이며
+프로그램이 요청·Source·Runtime·모델·파일·Scope·Ledger를 대조한다. 후보 설치 계약과 이 요청의
+유효기간 상한은 **2026-10-30 12:04:19.131099 KST**다. 실제 인간 승인 시점+24시간보다
+길게 허용하지 않으며, 만료·남은 실행 시간 부족·Binding 변경 시 시작하지 않는다.
+실제 실행 Source는 검증된 Git62ba273 export로 동결했다. 이후 보고서 전용 Commit을 실행 코드
+변경으로 혼동하지 않으며 실행 중 checkout을 교체하지 않는다. 기존 Diagnostic Release/Image
+승인을 이 Continuous 설치 Manifest로 재사용하지 않는다.
+
+현재 승인 상태는 다섯 항목 모두 **PENDING**이다: 관리자 설치 정책/고정 설정 설치,
+Root Namespace check·고정 서비스 제어, R1 조건부 위험 수용, Native Continuous1회,
+로컬 TCP 공급. 하나의 사용자 검토에 묶되 기존 계약에 따라 각 결정을 독립적으로 기록한다.
+모델 Action은 봉인 이후 실제 입력에 대해 별도로 검증하며 아직 발급하지 않았다.
+
+### 이번 점검에서 발견한 실행 환경 문제와 준비한 수정
+
+현재 `systemctl --user show`는 **user bus 없음**으로 실패한다. 기존 일반 사용자 unit을
+설치·시작했다고 보고하거나, 자원 제한 없이 CLI process로 대체하지 않는다.
+기존 `continuous service-unit` 출력에 UID/GID1000·Capability 0을 명시한 **system manager용
+후보 unit**을 준비했다. CPU50%·Memory512MiB·Tasks32·NoNewPrivileges·자동 재시작 없음은
+유지하며, AF_UNIX만 허용하고 Source/Home은 read-only, 새 Runtime directory만 writable이다.
+모델/AI/GUI가 Root로 실행되는 변경이 아니다. `systemd-analyze verify` PASS지만 실제
+User1000 cgroup·Worker 생명주기는 승인된 실환경 시험에서 확인해야 한다.
+
+따라서 승인할 고정 Root 설정은 **4개**다. BPF/Provider/Root service/policy 실행 코드와
+기존 Helper는 교체하지 않는다.
+
+| 설치/교체 대상 | 변경 |
+|---|---|
+| `/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf` | 240초→3600초 후보. 실행 승인 전 적용 안 함 |
+| `/etc/systemd/system/soc-continuous-tcp-trial.service` | 무효 RuntimeMaxSec만 제거, 유효 TimeoutStart90초/Stop5초와 격리 유지 |
+| `/etc/soc-agent/continuous-installation.json` | 새로운 이 시험의 인간/R1 검토 입력 SHA와 유효기간에 결합. `native_model_inference=false` 유지 |
+| `/etc/systemd/system/soc-operations-runtime.service` | 현재 파일 없음. 고정 UID1000 ordinary Runtime, 512MiB/50%CPU/Tasks32/최대3650초/Restart=no |
+
+기존3개 파일 백업 및 신규 unit의 설치 전 부재를 Manifest에 명시했다. 설치 직후 daemon-reload와
+실제 적용된 제한·UID·Capability를 재검증하며, enable/상시 시작/패키지 설치/다른 서비스 변경은
+허용하지 않는다. 백업·Rollback은 보존한다. 신규 unit의 Rollback 삭제도 그 정확한 설치 파일과
+승인된 복구에만 해당한다. 현재 `/etc`와 실제 서비스 상태는 전혀 변경하지 않았다.
+
+설치 Manifest 초안에서 교체 대상 두 파일이 unchanged assertions에도 포함된 충돌을
+사전 검증 중 발견해 최종 v3에서 제거했다. 교체 전 SHA 검증은 `replacements`에 그대로
+유지한다. 초기 초안과 수정 기록은 남겼고, 승인·설치에 사용하지 않았다. 정책 입력→후보 정책
+출력→최종 설치 Manifest 순서를 지켜 자기 자신의 출력 SHA를 승인 입력에 요구하지 않는다.
+
+### 시간·자원·TCP·모델·종료 계약
+
+- 기존 Namespace `net:[4026532232]`, lo/Ingress. Host `net:[4026531833]`와 mount/boot/Lease
+  증거는 일치한다. **이번 내부 check는 미수행**이며 승인 후 실제 lo/Route/Cookie·빈 포트를 확인한다.
+- Collector **최대3600초 systemd 실행 상한**, 시작 최대1회, 오류 재시작0.
+  128MiB/CPU25%/Tasks4/MEMLOCK8MiB, 180초 또는4000 callbacks/Window,
+  전달 최대4096/Window·ring256KiB·per-CPU 분당4096 admission은 유지한다.
+- ordinary 서비스 UID1000/Capability0, 최대3650초는 수집 종료 후 Drain용 여유를 포함한다.
+  Queue32, 저장256MiB heartbeat 관측 상한, Window512, seen100000, heartbeat1초다.
+  Root Audit64MiB, 시작 전 가용 공간1GiB 이상, private0700/0600, 기존 증거 자동 삭제 없음이다.
+  Root 과거 Audit 최대행616bytes×3700행 추정은 약2.3MiB로 상한보다 작지만 미래 크기의 보장은 아니다.
+- 인증된 TCXProducer의 **RUNNING·새 `counter_state.generation`·fresh Root heartbeat**를 확인한 뒤
+  generation당 기존 helper1번, 시작 간격 최소180초, 최대20번이다. 존재하지 않는 별도 READY
+  프로토콜을 가정하지 않는다. Collector 시작3560초 이후 새 helper를 시작하지 않는다.
+- Listener127.0.0.1:18080, source18081/18082, 총TCP 최대40연결·요청40·응답40.
+  고정 payload와 helper의 시작2초 대기/첫 연결 EOF후35초 간격을 유지한다.
+  중첩·대체 포트·실패 helper 재시도·DNS·외부 연결은0이다.
+- 실제 Native Window/Flow가 봉인·적격 검증된 후 기존 exact job/output/implementation/model
+  Action을 검토한다. 수집 승인으로 미래 job의 권한을 발급하지 않는다. 최대 모델 호출40회,
+  10개 이상 서로 다른 적격 Window의 RF/LR 처리와 시간대별 진행을 목표로 한다.
+  부족하면 실측 범위만 보고하며 무인 연속 AI 운영을 주장하지 않는다.
+- 새 Native Incident의 LLM 경로는 **SCRIPTED**, 이번 Scope의 외부 API는 **0회**다.
+  이전 실제 API2회는 재사용 승인이 아니며 새 API는 별도 입력·호출·비용 승인 없이는 호출하지 않는다.
+- 3595초까지 owner-bound 정상 Stop을 요청하고 3600초 hard limit을 backstop으로 둔다.
+  Root STOP ACK/최종 drain/seal/소유 FD·Map·Link·Socket·cgroup 및 ordinary35초 Stop을 확인한다.
+  이 **1시간 시험 envelope에는 startup과 종료가 포함**된다. 실제 Kernel 부착·READY·수집 시간을
+  각각 기록하며, 3600초보다 짧은 수집을 정확히1시간 수집 성공으로 반올림하지 않는다.
+  엄밀한3600초 수집이 필수이면 이 Scope만으로 그 성공을 보장하지 않는다.
+
+시험 시작은 인간 승인→사용자 Scope `yes`·직접 sudo 인증→고정 파일 백업/설치/제한 확인→
+Namespace 내부 check→새 ordinary Store 초기화→Root Collector READY→UID1000 Runtime→
+인증된 generation/heartbeat→TCP 순서다. GUI는 이 서비스에 Attach하고 관측/Stop/재연결한다.
+별도 GUI Start로 cgroup 밖 프로세스를 띄우지 않는다. 봉인 후 실제 모델 Action 검토가 남으며,
+승인 대기 Queue를 Drain 성공으로 처리하지 않는다. 실제 모델 NORMAL/UNKNOWN_ANOMALY·
+불일치는 그대로 기록하며 정상 TCP를 공격으로 위조하지 않는다.
+
+최초 오류·단계·errno·자식 종료 코드와 후속 Cleanup 오류를 분리하고, Cleanup 불확실 시
+후속 실행을 중단한다. 기존 Program1145 UNKNOWN·과거 Cleanup UNVERIFIED·FAILED/false는
+이번 위험 수용의 미해결 조건으로 보존한다. Kernel 장애 주입과 자동 Native 재실행은 없다.
+
+### 이번 추가 비권한 검증
+
+| 항목 | Workspace | 독립 Export |
+|---|---:|---:|
+| Worker 실제 exit·복구, Queue Full, checkpoint 손상/재구성, Audit 손상, Cleanup 실패, 모델 품질 차단, Controller dependency·빌드 | 19 PASS | 19 PASS |
+| 실제 Tk 종료·Backend 유지·재연결·보존 Native 결과 | 2 PASS | 2 PASS |
+| 새 Native 빌드 | 6개 SHA 일치 | 6개 SHA 일치 |
+| 새 Wheel | `ee5bd7624b26c0537fae83ebeb89eda7b6a96ce0a99900a5097bcb3dd1534ef8` | 동일 |
+| Controller 기존 builder | 같은 입력2파일 재현 | 같은 입력2파일 재현 |
+
+각21개 관련 테스트가 통과했고 Ruff/Format/Diff 및 두 후보 unit의 verify도 통과했다.
+Native6개는 기존 성공본과도 동일하다. Controller 증거는 합성 Namespace의 guarded
+compile-only 검증이며 실제 권한 실행 Artifact가 아니다. 제품 Source는 바꾸지 않았다.
+이전107 PASS·실제 PCAP 결과와 API 증거도 보존했다.
+
+Legacy Ledger81행/SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`,
+Campaign Root12/Native4·Batch3 Root9/Native1은 불변이다. 새 설치 계약 후보는 검증했지만
+활성화하지 않았다. `future-runtime`·모델 승인 디렉터리도 아직 만들지 않았고 실제 예약은0이다.
+최종 검증·보고서 Commit/Push는 새 증거 디렉터리의 `completion.json`에 기록한다.
+
+**현재 실행 결과: 시간·Packet·Window·Flow·ELIGIBLE·Native RF/LR·새 Incident 모두 미수행.
+새 GUI Native LIVE·실제 장시간 Heartbeat/Drop/Drain·실환경 Cleanup도 미검증이다.
+판정은 BLOCKED(승인 대기), RC READY와 기존 제한 시험 VERIFIED는 유지한다.**
+
+---
+
 2026-10-29 KST. **이번 장시간 운영 시험 판정: BLOCKED — 새 운영 실행 승인 대기.**
 비권한 사전 검증은 통과했다. 기존 `RELEASE_CANDIDATE_READY`와 제한된 Native 성공은
 보존했다. 이번에 Root 설치·Namespace 진입·TCX Capture·트래픽 생성·서비스 활성화·
