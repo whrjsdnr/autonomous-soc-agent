@@ -138,6 +138,7 @@ class TCXProducer:
         self.cpus = {}
         self.stop_ack = asyncio.Event()
         self.remote_cleanup = "UNKNOWN"
+        self.sealed_epoch = None
 
     async def events(self):
         import os
@@ -165,6 +166,7 @@ class TCXProducer:
             raise
         self.state = "RUNNING"
         sequence = 0
+        window_sequence = 0
         try:
             while True:
                 body = await asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)
@@ -176,7 +178,7 @@ class TCXProducer:
                 if raw.get("contract") == "soc-continuous-tcx-stop:v1":
                     if (
                         raw.get("namespace") != policy["namespace"]
-                        or raw.get("generation") != self.epoch
+                        or raw.get("generation") != (self.epoch or self.sealed_epoch)
                         or raw.get("policy_sha256") != self.config.input_sha256
                     ):
                         raise ValueError("CONTINUOUS_STOP_ACK_BINDING")
@@ -203,7 +205,9 @@ class TCXProducer:
                     before_ns=raw["clock"][0], wall_ns=raw["clock"][1], after_ns=raw["clock"][2]
                 )
                 self.state = raw["state"]["state"]
-                if self.state not in ("RUNNING", "DEGRADED"):
+                if self.state not in ("RUNNING", "DEGRADED") and not (
+                    self.state == "SEALED" and raw.get("seal") is not None
+                ):
                     raise ValueError("CONTINUOUS_PRODUCER_NOT_RUNNING")
                 self.epoch = raw["generation"]
                 self.snapshot = raw["state"]
@@ -235,6 +239,7 @@ class TCXProducer:
                     self.snapshot["counter_state"] = checked.model_dump(mode="json")
                 for frame in raw["frames"]:
                     sequence += 1
+                    window_sequence += 1
                     self.received += 1
                     identity = str(uuid5(NAMESPACE_URL, f"{self.epoch}:{sequence}:{frame}"))
                     yield dict(
@@ -242,17 +247,50 @@ class TCXProducer:
                         id=identity,
                         sequence=sequence,
                         wire_hex=frame,
+                        window_sequence=window_sequence,
                         session=str(uuid5(NAMESPACE_URL, str(self.epoch))),
                         namespace=policy["namespace"],
                         program=raw["program_sha256"],
                         transport=raw["state"],
                         clock=raw["clock"],
                     )
+                if raw.get("seal") is not None:
+                    from soc_agent.continuous.capture import CaptureSeal
+
+                    seal = CaptureSeal.model_validate(raw["seal"])
+                    seal.check()
+                    if (
+                        seal.generation != self.epoch
+                        or seal.namespace != policy["namespace"]
+                        or seal.policy_sha256 != self.config.input_sha256
+                        or seal.program_sha256 != raw["program_sha256"]
+                        or seal.release_manifest != digest(policy["files"])
+                    ):
+                        raise ValueError("CONTINUOUS_PRODUCER_SEAL_BINDING")
+                    sequence += 1
+                    yield dict(
+                        kind="native_seal",
+                        id=str(uuid5(NAMESPACE_URL, seal.identity)),
+                        sequence=sequence,
+                        seal=seal.model_dump(mode="json"),
+                    )
+                    self.sealed_epoch = self.epoch
+                    self.epoch = None
+                    self.cpus = {}
+                    window_sequence = 0
         finally:
             await self.close()
 
     async def request_stop(self):
-        if self.socket is None or self.epoch is None:
+        if self.socket is None:
+            raise ValueError("CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER")
+        # Rotation seals the old epoch before advertising the next. Never send
+        # an old epoch STOP to a newly attached owned program.
+        for _ in range(50):
+            if self.epoch is not None:
+                break
+            await asyncio.sleep(0.05)
+        if self.epoch is None:
             raise ValueError("CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER")
         body = json.dumps(
             dict(

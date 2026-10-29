@@ -251,6 +251,11 @@ class OfflineWorkflow:
                         provenance=(
                             digest(transport),
                             "Recomputed evidence; source pin is not independent OS attestation",
+                        )
+                        + (
+                            ("CAPTURE_WINDOW:" + transport["continuous_window"]["id"],)
+                            if transport.get("continuous_window")
+                            else ()
                         ),
                     ),
                 )

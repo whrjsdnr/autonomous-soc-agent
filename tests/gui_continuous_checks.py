@@ -109,6 +109,7 @@ async def test_verified_three_domain_incidents_and_investigation_in_gui(tmp_path
         recent.append(
             dict(
                 incident_id=result["incident_id"],
+                origins=result["input_origins"],
                 domains=result["evidence_domains"],
                 classification=result["classification"],
                 eligibility=result["eligibility"],
@@ -138,7 +139,13 @@ async def test_verified_three_domain_incidents_and_investigation_in_gui(tmp_path
             app.continuous_incidents.item(i, "values")
             for i in app.continuous_incidents.get_children()
         ]
-        assert {value[0] for value in values} == {"NETWORK", "DNS", "AUTHENTICATION"}
+        columns = list(app.continuous_incidents["columns"])
+        assert {value[columns.index("domain")] for value in values} == {
+            "NETWORK",
+            "DNS",
+            "AUTHENTICATION",
+        }
+        assert {value[columns.index("origin")] for value in values} == {"FIXTURE"}
         assert "Native live: False" in app.continuous_summary.cget("text")
         app.continuous_incidents.selection_set(recent[1]["incident_id"])
         for widget in app.content.winfo_children():

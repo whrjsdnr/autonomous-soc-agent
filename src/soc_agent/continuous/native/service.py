@@ -14,6 +14,7 @@ import struct
 import time
 from collections import deque
 from pathlib import Path
+from sys import exception as sys_exception
 
 INSTALL = Path("/usr/lib/soc-agent/continuous")
 POLICY = Path("/etc/soc-agent/continuous-installation.json")
@@ -64,24 +65,86 @@ def resource_scope(proc=Path("/proc/self"), cgroups=Path("/sys/fs/cgroup")):
         raise ValueError("CONTINUOUS_SERVICE_RESOURCE_SCOPE")
 
 
+def cleanup_failed(error):
+    """Preserve the primary failure without losing chained owned-resource uncertainty."""
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        if "CLEANUP_UNVERIFIED" in str(error):
+            return True
+        error = error.__cause__ or error.__context__
+    return False
+
+
+def clock_samples(phase, generation):
+    result = []
+    for _ in range(3):
+        before = time.monotonic_ns()
+        wall = time.time_ns()
+        after = time.monotonic_ns()
+        result.append(
+            dict(phase=phase, generation=generation, before_ns=before, wall_ns=wall, after_ns=after)
+        )
+    return result
+
+
+def seal_record(policy, policy_pin, generation, rows, samples, callbacks, dropped):
+    import uuid
+
+    seal = dict(
+        contract="soc-continuous-seal:v1",
+        namespace=policy["namespace"],
+        session=str(uuid.uuid5(uuid.NAMESPACE_URL, str(generation))),
+        generation=generation,
+        program_sha256=policy["files"]["continuous.bpf.o"],
+        policy_sha256=policy_pin,
+        release_manifest=hashlib.sha256(
+            json.dumps(policy["files"], sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest(),
+        cpu_windows=rows,
+        clock_samples=samples,
+        callbacks=callbacks,
+        transport_dropped=dropped,
+        cleanup="VERIFIED",
+        drain_result=0,
+    )
+    encoded = json.dumps(seal, sort_keys=True, separators=(",", ":")).encode()
+    seal["seal_sha256"] = hashlib.sha256(encoded).hexdigest()
+    return seal
+
+
 class Provider:
-    def __init__(self, policy, receive):
+    def __init__(self, policy, receive, rates=None):
         self.lib = C.CDLL(str(INSTALL / "provider.so"), use_errno=True)
         self.callback = C.CFUNCTYPE(C.c_int, C.c_void_p, C.c_void_p, C.c_size_t)(
             lambda _, body, size: receive(C.string_at(body, size))
         )
-        self.lib.continuous_open.argtypes = [C.c_char_p, C.c_uint, C.c_uint64, type(self.callback)]
+        self.lib.continuous_open.argtypes = [
+            C.c_char_p,
+            C.c_uint,
+            C.c_uint64,
+            type(self.callback),
+            C.c_void_p,
+            C.c_size_t,
+        ]
         self.lib.continuous_open.restype = C.c_void_p
         for name in ("continuous_close", "continuous_poll", "continuous_cpus"):
             getattr(self.lib, name).argtypes = [C.c_void_p]
         self.lib.continuous_renew.argtypes = [C.c_void_p, C.c_uint64, C.c_uint64, C.c_uint]
         self.lib.continuous_counters.argtypes = [C.c_void_p, C.c_void_p, C.c_size_t]
+        for name in ("continuous_initial", "continuous_finish"):
+            getattr(self.lib, name).argtypes = [C.c_void_p, C.c_void_p, C.c_size_t]
         self.index = socket.if_nametoindex("lo")
+        self.generation = time.monotonic_ns()
+        self.samples = clock_samples(1, self.generation)
+        rate_array = (C.c_uint64 * len(rates))(*rates) if rates else None
         self.handle = self.lib.continuous_open(
             os.fsencode(INSTALL / "continuous.bpf.o"),
             self.index,
             int(policy["namespace"][5:-1]),
             self.callback,
+            rate_array,
+            len(rates) // 2 if rates else 0,
         )
         if not self.handle:
             import errno
@@ -89,7 +152,62 @@ class Provider:
             if C.get_errno() == errno.EUCLEAN:
                 raise ValueError("CONTINUOUS_TCX_ATTACH_CLEANUP_UNVERIFIED")
             raise ValueError("CONTINUOUS_TCX_ATTACH_FAILED_NO_RETRY")
-        self.generation = time.monotonic_ns()
+        try:
+            self.initial = self.boundary("continuous_initial", "PRE_ATTACH")
+        except BaseException as first:
+            try:
+                self.close()
+            except (ValueError, OSError) as cleanup:
+                raise first from cleanup
+            raise
+
+    def boundary(self, function, phase):
+        n = self.lib.continuous_cpus(self.handle)
+        if not 1 <= n <= 128:
+            raise ValueError("CONTINUOUS_ATTESTED_CPU_BOUND")
+        values = (C.c_uint64 * (n * 9 + 2))()
+        result = getattr(self.lib, function)(self.handle, values, C.sizeof(values))
+        if result:
+            import errno
+
+            if result == -errno.EUCLEAN:
+                raise ValueError("CONTINUOUS_TCX_CLEANUP_UNVERIFIED")
+            raise ValueError("CONTINUOUS_BOUNDARY_OR_DRAIN_FAILED")
+        names = (
+            "observed",
+            "emitted",
+            "ring_reservation_failures",
+            "unsupported",
+            "malformed",
+            "disabled",
+            "budget",
+        )
+        if phase == "POST_DETACH":
+            self.rates = [v for cpu in range(n) for v in values[2 + cpu * 9 + 7 : 2 + cpu * 9 + 9]]
+        return [
+            dict(
+                cpu=cpu,
+                possible_cpus=n,
+                phase=phase,
+                before_ns=values[0],
+                after_ns=values[1],
+                counters=dict(zip(names, values[2 + cpu * 9 : 2 + cpu * 9 + 7], strict=True)),
+            )
+            for cpu in range(n)
+        ]
+
+    def finish(self):
+        try:
+            rows = self.boundary("continuous_finish", "POST_DETACH")
+        except BaseException as first:
+            try:
+                self.close()
+            except (ValueError, OSError) as cleanup:
+                raise first from cleanup
+            raise
+        self.close()
+        samples = self.samples + clock_samples(2, self.generation)
+        return self.initial + rows, samples
 
     def renew(self):
         if self.lib.continuous_renew(self.handle, self.generation, time.monotonic_ns(), self.index):
@@ -165,6 +283,8 @@ def run():
     )
 
     def receive(body):
+        nonlocal window_callbacks
+        window_callbacks += 1
         if len(body) != 80:
             state["state"] = "DEGRADED"
             return -1
@@ -175,6 +295,7 @@ def run():
             frames.append(body.hex())
         return 0
 
+    window_callbacks = 0
     stop = False
 
     def request_stop(*_):
@@ -225,7 +346,27 @@ def run():
 
     server = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
     provider = peer = None
+    pending_seal = None
+    carried_rates = None
     owned = False
+
+    def finish_window():
+        nonlocal provider, pending_seal, carried_rates
+        generation = provider.generation
+        rows, samples = provider.finish()
+        carried_rates = provider.rates
+        provider = None
+        pending_seal = seal_record(
+            policy,
+            policy_pin,
+            generation,
+            rows,
+            samples,
+            window_callbacks,
+            state["transport_dropped"],
+        )
+        audit("CAPTURE_WINDOW_SEALED")
+
     try:
         server.bind(str(path))
         owned = True
@@ -237,6 +378,7 @@ def run():
         provider = Provider(policy, receive)
         state["state"] = "RUNNING"
         audit("ATTACH_OWNED")
+        window_started = time.monotonic()
         last = 0.0
         last_audit = 0.0
         sequence = 0
@@ -244,10 +386,20 @@ def run():
             validate(root_file(POLICY))  # Expiry/revocation fails closed on every poll.
             if installed() != policy:
                 raise ValueError("CONTINUOUS_POLICY_CHANGED")
-            provider.renew()
-            provider.poll()
+            if provider is None:
+                time.sleep(0.01)
+            if provider is not None:
+                provider.renew()
+                provider.poll()
+            # A bounded window is detached and drained before any seal is emitted.
+            # New owned maps start only after the previous seal was delivered.
+            if provider is not None and (
+                time.monotonic() - window_started >= 180 or window_callbacks >= 4000
+            ):
+                finish_window()
             if time.monotonic() - last_audit >= 1:
-                state["counters"] = provider.counters()
+                if provider is not None:
+                    state["counters"] = provider.counters()
                 audit("HEARTBEAT")
                 last_audit = time.monotonic()
             if peer is None:
@@ -275,7 +427,7 @@ def run():
                 command = json.loads(control)
                 if command != dict(
                     operation="STOP_CAPTURE",
-                    generation=provider.generation,
+                    generation=provider.generation if provider else pending_seal["generation"],
                     policy_sha256=policy_pin,
                 ):
                     peer.close()
@@ -291,13 +443,14 @@ def run():
                 packet = dict(
                     contract="soc-continuous-tcx:v1",
                     namespace=policy["namespace"],
-                    ifindex=provider.index,
-                    generation=provider.generation,
+                    ifindex=provider.index if provider else 1,
+                    generation=provider.generation if provider else pending_seal["generation"],
                     program_sha256=policy["files"]["continuous.bpf.o"],
                     clock=[before, wall, after],
                     state=dict(state),
                     frames=list(frames),
                     sequence=sequence + 1,
+                    seal=pending_seal,
                 )
                 try:
                     body = json.dumps(packet).encode()
@@ -305,6 +458,13 @@ def run():
                         raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
                     sequence += 1
                     frames.clear()
+                    if pending_seal is not None:
+                        pending_seal = None
+                        window_callbacks = 0
+                        state["transport_dropped"] = 0
+                        state["received"] = 0
+                        provider = Provider(policy, receive, carried_rates)
+                        window_started = time.monotonic()
                     last = time.monotonic()
                 except (BrokenPipeError, ConnectionResetError):
                     peer.close()
@@ -314,6 +474,32 @@ def run():
         state["state"] = "STOPPING"
     finally:
         try:
+            if provider and sys_exception() is None:
+                finish_window()
+            if pending_seal is not None and peer:
+                try:
+                    before = time.monotonic_ns()
+                    wall = time.time_ns()
+                    after = time.monotonic_ns()
+                    body = json.dumps(
+                        dict(
+                            contract="soc-continuous-tcx:v1",
+                            namespace=policy["namespace"],
+                            ifindex=1,
+                            generation=pending_seal["generation"],
+                            program_sha256=policy["files"]["continuous.bpf.o"],
+                            clock=[before, wall, after],
+                            state=dict(state, state="SEALED"),
+                            frames=list(frames),
+                            sequence=sequence + 1,
+                            seal=pending_seal,
+                        )
+                    ).encode()
+                    if len(body) > 262144 or peer.send(body) != len(body):
+                        raise ValueError("CONTINUOUS_FINAL_SEAL_SEND_FAILED")
+                except (OSError, ValueError):
+                    state["transport_dropped"] += len(frames)
+                    audit("CAPTURE_FINAL_SEAL_NOT_DELIVERED")
             if provider:
                 try:
                     provider.close()
@@ -325,7 +511,7 @@ def run():
             import sys
 
             pending = sys.exception()
-            if pending and "CLEANUP_UNVERIFIED" in str(pending):
+            if pending and cleanup_failed(pending):
                 state["cleanup"] = "UNVERIFIED"
                 audit("ATTACH_CLEANUP_UNVERIFIED")
                 raise pending
@@ -338,7 +524,9 @@ def run():
                         json.dumps(
                             dict(
                                 contract="soc-continuous-tcx-stop:v1",
-                                generation=provider.generation if provider else None,
+                                generation=provider.generation
+                                if provider
+                                else (pending_seal or {}).get("generation"),
                                 namespace=policy["namespace"],
                                 policy_sha256=policy_pin,
                                 cleanup=state["cleanup"],

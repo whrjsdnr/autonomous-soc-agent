@@ -78,8 +78,10 @@ def test_native_build_reproducible_and_no_privileged_entry(tmp_path):
         ctypes.c_uint,
         ctypes.c_uint64,
         ctypes.c_void_p,
+        ctypes.c_void_p,
+        ctypes.c_size_t,
     ]
-    assert not lib.continuous_open(b"/not-loaded", 1, 4026532232, None)
+    assert not lib.continuous_open(b"/not-loaded", 1, 4026532232, None, None, 0)
 
 
 def test_diagnostic_receipt_cannot_activate_continuous():

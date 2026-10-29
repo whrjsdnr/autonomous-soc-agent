@@ -88,7 +88,12 @@ async def infer(job, receipts, adapter: ResearchAdapter, record: Callable[[Infer
                     model_manifest_digest=r.model_manifest_digest,
                     artifact_digest=r.artifact_digest,
                     feature_fingerprint=r.feature_fingerprint,
-                    evidence_references=(r.source_digest, r.input_receipt_digest),
+                    evidence_references=(r.source_digest, r.input_receipt_digest)
+                    + (
+                        (job.result["tcx"]["data_plane"]["continuous_window"]["id"],)
+                        if job.result["tcx"]["data_plane"].get("continuous_window")
+                        else ()
+                    ),
                     prediction=r.prediction,
                     score=r.score,
                     score_semantics="Research-only ranking; not calibrated attack probability",

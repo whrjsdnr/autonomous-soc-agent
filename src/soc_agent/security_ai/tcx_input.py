@@ -53,6 +53,27 @@ def candidates(job: TCXAnalysisJob) -> tuple[dict, dict, list[dict]]:
         or transport.get("source") != expected_source
     ):
         raise ValueError("TCX_SESSION_NAMESPACE_RELEASE_OR_ORIGIN_MISMATCH")
+    continuous = transport.get("continuous_window")
+    if continuous is not None:
+        from soc_agent.continuous.capture import CaptureSeal
+
+        seal = CaptureSeal.model_validate(continuous["seal"])
+        seal.check()
+        if (
+            continuous["id"] != seal.identity
+            or seal.session != job.session
+            or seal.namespace != job.namespace
+            or seal.release_manifest != job.release_manifest
+            or seal.generation != plan.get("generation")
+            or seal.program_sha256 != plan.get("program_sha256")
+            or seal.policy_sha256 != plan.get("source_digest")
+            or list(seal.cpu_windows) != transport.get("cpu_windows")
+            or list(seal.clock_samples) != transport.get("clock_samples")
+            or seal.callbacks != transport.get("delivery_accounting", {}).get("callbacks")
+            or seal.transport_dropped != summary.get("queue_rejected")
+            or seal.cleanup != transport.get("drain_state")
+        ):
+            raise ValueError("CONTINUOUS_RETAINED_SEAL_BINDING")
     stored = transport.get("capture_evidence")
     if not isinstance(stored, dict):
         raise ValueError("TCX_CAPTURE_EVIDENCE_MISSING")

@@ -24,6 +24,7 @@ class ContinuousConfig(Frozen):
     input_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     ml_root: Path | None = None
     authentication_runtime: Path | None = None
+    native_model_approvals: Path | None = None
     journal_replay_file: Path | None = None
     journal_replay_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     authentication_packages: tuple[PackageInput, ...] = Field(default=(), max_length=1)
@@ -46,6 +47,8 @@ class ContinuousConfig(Frozen):
     def explicit_paths(self):
         if not self.input_file.is_absolute() or self.ml_root and not self.ml_root.is_absolute():
             raise ValueError("CONTINUOUS_ABSOLUTE_PATHS_REQUIRED")
+        if self.native_model_approvals and not self.native_model_approvals.is_absolute():
+            raise ValueError("CONTINUOUS_ABSOLUTE_APPROVAL_DIRECTORY_REQUIRED")
         if self.authentication_runtime and not self.authentication_runtime.is_absolute():
             raise ValueError("CONTINUOUS_ABSOLUTE_AUTH_RUNTIME_REQUIRED")
         if bool(self.journal_replay_file) != bool(self.journal_replay_sha256):

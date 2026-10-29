@@ -40,11 +40,11 @@ def build(app):
     app.continuous_summary.pack(anchor="w", pady=8)
     app.continuous_incidents = ttk.Treeview(
         app.content,
-        columns=("domain", "classification", "eligibility", "audit"),
+        columns=("origin", "domain", "classification", "eligibility", "audit"),
         show="headings",
         height=6,
     )
-    for name in ("domain", "classification", "eligibility", "audit"):
+    for name in ("origin", "domain", "classification", "eligibility", "audit"):
         app.continuous_incidents.heading(name, text=name.title())
     app.continuous_incidents.pack(fill="x", pady=6)
     app.continuous_outputs = {}
@@ -73,7 +73,11 @@ def render(app, value):
             f"Collector: {value.get('collector', 'UNKNOWN')} · "
             f"AI: {value.get('worker', 'UNKNOWN')}\n"
             f"Native live: {value.get('collection_live', False)} · "
-            f"Cleanup: {value.get('cleanup', 'UNKNOWN')}"
+            f"Cleanup: {value.get('cleanup', 'UNKNOWN')}\n"
+            "Capture: "
+            f"{value.get('capture_window', {}).get('assessment', {}).get('status', 'UNKNOWN')} · "
+            f"Queue: {value.get('queue', {})} · "
+            f"Drops: {value.get('metrics', {}).get('queue_dropped', 0)}"
         )
     )
     selected = app.continuous_incidents.selection()
@@ -86,6 +90,7 @@ def render(app, value):
             "end",
             iid=identity,
             values=(
+                ", ".join(result.get("origins", [])),
                 ", ".join(result.get("domains", [])),
                 result["classification"],
                 result["eligibility"],

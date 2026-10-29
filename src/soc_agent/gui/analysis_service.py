@@ -29,6 +29,12 @@ def project_result(result: AnalysisOutcome) -> dict:
         eligibility_scope=result.eligibility_scope,
         input_origins=origins,
         evidence_domains=sorted({e.domain for e in result.evidence}),
+        capture_windows=[
+            p.removeprefix("CAPTURE_WINDOW:")
+            for e in result.evidence
+            for p in e.provenance
+            if p.startswith("CAPTURE_WINDOW:")
+        ],
         inference_count=len(result.inference),
         models=[r.model_id for r in result.inference],
         predictions=[
@@ -37,6 +43,10 @@ def project_result(result: AnalysisOutcome) -> dict:
                 prediction=r.prediction,
                 score=r.score,
                 score_semantics=r.score_semantics,
+                model_artifact_sha256=r.artifact_digest,
+                feature_fingerprint=r.feature_fingerprint,
+                flow_id=r.event_identity,
+                evidence_references=list(r.evidence_references),
             )
             for r in result.inference
         ],
@@ -84,6 +94,17 @@ class AnalysisService:
         )
 
     async def start(self, input_file: Path):
+        return await self._start(input_file)
+
+    async def start_retained_tcx(self, input_file: Path, *, approvals: Path | None = None):
+        """Continuous composition only: existing exact action approvals, no issuer.
+
+        Stable output binding allows an operator to prepare the existing action
+        approval before starting the retained job. Fixture remains explicitly Fixture.
+        """
+        return await self._start(input_file, retained=True, approvals=approvals)
+
+    async def _start(self, input_file: Path, *, retained=False, approvals=None):
         async with self._lock:
             if (
                 self.closed
@@ -93,9 +114,13 @@ class AnalysisService:
                 raise ValueError("ANALYSIS_ALREADY_RUNNING_OR_CLOSED")
             body = await asyncio.to_thread(read_local, input_file.absolute(), 1024 * 1024)
             job = JOB.validate_json(body)
-            if job.kind in ("tcx_analysis", "native_checkpoint"):
+            if job.kind == "native_checkpoint" or (job.kind == "tcx_analysis" and not retained):
                 raise ValueError("NATIVE_ANALYSIS_REQUIRES_EXISTING_APPROVAL_ENTRYPOINT")
-            self.session = str(uuid4())
+            if retained and job.kind != "tcx_analysis":
+                raise ValueError("RETAINED_TCX_JOB_REQUIRED")
+            from soc_agent.security_ai.research.models import digest
+
+            self.session = digest(job.model_dump(mode="json")) if retained else str(uuid4())
             self.error = None
             self.result = None
             submitted = self.directory / (self.session + ".input.json")
@@ -120,6 +145,11 @@ class AnalysisService:
                 "--output",
                 str(self.output),
             ]
+            if retained and approvals:
+                approval = approvals / (self.session + ".json")
+                if approval.exists():
+                    pin = hashlib.sha256(read_local(approval, 32768)).hexdigest()
+                    args += ["--tcx-approval", str(approval), "--tcx-approval-sha256", pin]
             if self.ml_root:
                 args += ["--research-ml-root", str(self.ml_root)]
             try:

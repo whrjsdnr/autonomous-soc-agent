@@ -60,6 +60,11 @@ class ContinuousRuntime:
         self.native_windows = NativeWindows(
             self.config.namespace, str(self.store.database.store_id)
         )
+        from soc_agent.continuous.capture import CaptureWindows
+
+        self.capture_windows = CaptureWindows(
+            self.config.namespace, self.config.input_sha256, self.config.profiles
+        )
         self.analysis = analysis or AnalysisService(directory / "analysis", self.config.ml_root)
         self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
         self.epoch = uuid5(
@@ -138,7 +143,13 @@ class ContinuousRuntime:
                 if self.config.source == "NATIVE_SERVICE"
                 else "REPLAY_ONLY_NO_NATIVE_CAPTURE"
             ),
-            native_model="BLOCKED_CONTINUOUS_CAPTURE_ATTESTATION_AND_ACTION_GRANT_REQUIRED",
+            native_model="EXACT_RETAINED_WINDOW_ACTION_APPROVAL_REQUIRED",
+            capture_window=dict(
+                id=self.capture_windows.last_window,
+                assessment=self.capture_windows.last_capture,
+                pending_events=len(self.capture_windows.events),
+                abandoned_partial=self.capture_windows.abandoned,
+            ),
             producer=getattr(self.source, "snapshot", {}),
             auth_pending=len(self.auth.records),
             authentication_transport=dict(
@@ -231,6 +242,7 @@ class ContinuousRuntime:
             "authentication",
             "auth_watermark",
             "native_tcx",
+            "native_seal",
         ):
             raise ValueError("CONTINUOUS_SOURCE_RECORD_KIND")
         if kind == "packet":
@@ -245,33 +257,26 @@ class ContinuousRuntime:
         ):
             raise ValueError("CONTINUOUS_SOURCE_JOB_DOMAIN_NOT_ALLOWED")
         already_seen = False
-        if kind != "native_tcx":
+        if kind not in ("native_tcx", "native_seal"):
             already_seen = self.store.seen(
                 identity, {key: value for key, value in raw.items() if key != "sequence"}
             )
         if already_seen and not recovering:
             self.metrics["duplicates"] += 1
             return
-        if kind == "native_tcx":
+        if kind in ("native_tcx", "native_seal"):
             if self.config.source != "NATIVE_SERVICE":
                 raise ValueError("CONTINUOUS_REPLAY_CANNOT_ATTEST_NATIVE")
-            from soc_agent.continuous.tcx_producer import decode
-
-            event = decode(
-                bytes.fromhex(raw["wire_hex"]),
-                namespace=self.config.namespace,
-                session=UUID(raw["session"]),
-                program=raw["program"],
-                sequence=raw["sequence"],
-            )
-            if event.generation != self.source.epoch or event.ifindex != 1:
-                raise ValueError("CONTINUOUS_NATIVE_EVENT_SCOPE")
-            if self.store.native_event(raw, event):
-                for job in self.native_windows.add(event):
+            # Commit the exact authenticated Root transcript before window application.
+            # Restart replays it through the same decoder; no partial window becomes sealed.
+            key = "native-window:" + raw["id"]
+            if self.store.retain_auxiliary(key, raw):
+                jobs, capture = self.capture_windows.accept(raw)
+                if capture is not None:
+                    self.store.event("CONTINUOUS_CAPTURE_WINDOW_REASSESSED", capture)
+                for job in jobs:
                     await self.handoff(job)
-            self.metrics["native_events"] += 1
-            # Root capture authority does not confer an AI action or turn a
-            # monotonic Kernel timestamp into UTC fixture packet provenance.
+            self.metrics["native_events"] += int(kind == "native_tcx")
             self.store.applied(raw["sequence"])
             return
         if kind in ("authentication", "auth_watermark"):
@@ -465,6 +470,40 @@ class ContinuousRuntime:
             await self.source.close()
             self.done.set()
 
+    async def start_analysis(self, path, body):
+        """Keep a retained Native action pending without starting any model worker."""
+        job = JOB.validate_json(body)
+        if job.kind != "tcx_analysis":
+            await self.analysis.start(path)
+            return
+        from soc_agent.security_ai.tcx_input import candidates
+
+        receipts = candidates(job)[2]
+        if job.origin == "REAL_NATIVE" and any(r["eligible"] for r in receipts):
+            from soc_agent.security_ai.tcx_analysis import analysis_action
+
+            pin = digest(job.model_dump(mode="json"))
+            output = self.analysis.directory / ("run-" + pin)
+            action = analysis_action(job, output)
+            self.store.event(
+                "CONTINUOUS_MODEL_APPROVAL_WAIT",
+                dict(job=pin, action=action.model_dump(mode="json")),
+            )
+            while not self.stop.is_set():
+                self.worker_state = "WAITING_EXACT_MODEL_ACTION_APPROVAL"
+                grant = (
+                    self.config.native_model_approvals / (pin + ".json")
+                    if self.config.native_model_approvals
+                    else None
+                )
+                if grant is not None and grant.is_file():
+                    break
+                await self.publish()
+                await asyncio.sleep(0.1)
+            if self.stop.is_set():
+                raise asyncio.CancelledError
+        await self.analysis.start_retained_tcx(path, approvals=self.config.native_model_approvals)
+
     async def consume(self):
         self.worker_state = "IDLE"
         while not self.stop.is_set():
@@ -483,7 +522,7 @@ class ContinuousRuntime:
                 body = read_local(path, 1024 * 1024)
                 if digest(json.loads(body)) != dict(claim.event.normalized_fields)["job_digest"]:
                     raise ValueError("CONTINUOUS_INPUT_CHANGED")
-                await self.analysis.start(path)
+                await self.start_analysis(path, body)
                 await self.analysis.monitor
                 value = self.analysis.snapshot()
                 outcome = value.get("result")
@@ -498,6 +537,7 @@ class ContinuousRuntime:
                     + [
                         dict(
                             incident_id=outcome["incident_id"],
+                            origins=outcome.get("input_origins", []),
                             domains=outcome.get("evidence_domains", []),
                             investigation=outcome.get("investigation_status", "UNKNOWN"),
                             classification=outcome["classification"],
@@ -521,7 +561,7 @@ class ContinuousRuntime:
                 self.store.queue.finish(
                     claim,
                     dict(
-                        inference="VERIFIED_OFFLINE",
+                        inference="VERIFIED_RETAINED_EVIDENCE",
                         incident_id=outcome["incident_id"],
                         workflow="COMPLETED",
                         human_boundary="WRITE_DENIED",
@@ -568,10 +608,17 @@ class ContinuousRuntime:
                     self.store.event(
                         "CONTINUOUS_INGRESS_REBUILT", dict(count=self.metrics["recovered_events"])
                     )
+                if self.config.source == "NATIVE_SERVICE":
+                    for raw in self.store.auxiliary():
+                        if raw.get("kind") in ("native_tcx", "native_seal"):
+                            jobs, _ = self.capture_windows.accept(raw)
+                            for job in jobs:
+                                await self.handoff(job)
                 if self.journal:
                     self.journal.recover()
                     for retained in self.store.auxiliary():
-                        await self.project_journal(retained)
+                        if retained.get("kind") not in ("native_tcx", "native_seal"):
+                            await self.project_journal(retained)
                     journal = asyncio.create_task(self.collect_journal())
                 collector = asyncio.create_task(self.collect())
                 consumer = asyncio.create_task(self.consume())
