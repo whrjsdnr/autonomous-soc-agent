@@ -41,6 +41,29 @@ Workspace 관련171 PASS(기존5000-event 내구성은 중복 실행하지 않�
 TTY/GUI 시작 순서 회귀와 실제 Queue 복구를 별도로 판정한다.
 비권한 성공을 Kernel/TCX 실환경 성공으로 보고하지 않는다.
 
+최종 코드 동결은 `6d30f8d3c48cb8d5f4ad31b2077262427c3e5b00`, Tree
+`80bdd9aedfd8b4432d90a90d91f506af31331f3e`이며 원격에 Push했다.
+별도 detached worktree에서도171 PASS. 독립 Git Export 관련166 PASS(동일5000-event 제외),
+실제 PCAP→모델→운영 CLI→Tk1 PASS(43.59초), 추가 GUI 분리/세 도메인/실패 표시3 PASS다.
+새 고정 Root 감독자의 비권한 계약/READY/사용자 Stop/최초 오류 보존5 PASS.
+이 테스트에서 Root 설치·서비스 제어·Kernel 경계만 모의했고 영수증은 메모리 Fixture뿐이다.
+첫 보조 검증에서 Root Audit 읽기 경계를 모의하지 않은 PermissionDenied와
+모의 owner STOP ACK 누락으로 생긴 대기를 보존했으며 실제 권한 작업은 없었다.
+
+Native6개 파일의 이중 빌드가 기존 설치본과 일치하고 Workspace/Export Wheel SHA는
+`c20aa2580edaec0960b4c19509825fc7c778c414f36a33bb0900e19e60f0ad7f`로 일치한다.
+Source archive SHA는 `1551e4c2094707275239ab0a3c6c2b9a93c4b6e9e9341490727232c63c33dbb4`.
+새 검토 패키지는 증거 디렉터리의 `native-review-final/approval-package-final.md`이며
+요청서 SHA는 `92860cb2b0884194d6ad09415c1a88f59f65400868155d760485a7156610b7bf`다.
+Root Manifest SHA는 `7bb0a3431c5edc4481d00bd11a03cc059169ee37074ca3a2d07d4ccb74be9213`.
+승인·인증 전 현재 상태는 `PREVIEW_ONLY_REQUIRES_DIRECT_SCOPE_R1_AND_SUDO`다.
+Namespace 내부 check는 Host에서 실행하지 않았다. Ledger81행과 SHA는 그대로다.
+
+고정 감독자에 남아 있던 과거 Policy SHA를 새 정확한 Policy SHA로 교체했고,
+Root 자식 실패 종료 코드를 terminal과 CLI까지 전달한다. 실행 Timer는 Root 진입 시점에
+시작하고3500초까지 owner Stop을 요청해3600초 Envelope 안에서 종료 시간을 확보한다.
+실제 수집 시간·Root 전체 시간을 독립 기록하며 5초 watchdog을 완화하지 않는다.
+
 사용자는 실제 Root·TCX 장시간 통합 시험을 요청했다. 다음 새 패키지는 최대3600초 전체
 Envelope, 기존 Namespace `net:[4026532232]`, lo/Ingress, 고정 loopback TCP만 사용한다.
 Capture 종료를 먼저 준비해 Cleanup 시간을 Envelope 안에 확보하고 실제 수집 시간을 따로 기록한다.

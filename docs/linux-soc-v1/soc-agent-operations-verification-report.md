@@ -662,3 +662,34 @@ Native userspace Artifact6개 이중 빌드 및 Workspace/Export Wheel이 일치
 빌드 동결 Commit `3565293`, Wheel SHA
 `63759d8263dd0d5d0fcd2a19277f1c3bbc27de786253076edf527e2e05b73855`.
 전체 Source Identity와 실패를 포함한 상세 결과는 위 CLI 검증 보고서에 기록했다.
+# One-command Native 실환경 재시험 준비 · 2026-10-29
+
+사용자의 실제 Root·TCX 장시간 통합 시험 요청에 따라 새 Source를 동결했다.
+코드 `6d30f8d3c48cb8d5f4ad31b2077262427c3e5b00`이며 기존 사용자 main 변경을 건드리지 않았다.
+증거: `.git/one-command-native-finalization-20261029T090002Z/`.
+새 검토 패키지: `native-review-final/approval-package-final.md`.
+요청서 SHA `92860cb2b0884194d6ad09415c1a88f59f65400868155d760485a7156610b7bf`.
+
+Host 비소비 Preview는 Source/고정 Entry/Runtime/Ledger81행/Lease Binding PASS다.
+Target 내부 check는 권한 진입 후 수행하며 Host 성공으로 대체하지 않는다.
+읽기 전용 doctor에서 기존 설치·Root 서비스 제한·Runtime·모델·Storage·GUI는 PASS,
+Target 내부 검사는 BLOCKED로 정확히 구분했다. 현재 준비 단계에서 Root·Capture·TCP·API·
+실행 예약·영수증 기록·기존 Ledger 변경은 없다. 기존 Native360/Prediction22/Incident11 및
+53분28초 Timeout·Cleanup 증거를 그대로 보존했다. 실제 장시간 시험 완료 판정은 아직 아니다.
+
+새 시험은 전체 최대3600초,3500초까지 owner Stop 준비, 고정 설정4개 백업·적용,
+기존 Namespace/lo Ingress·Root 실행 파일 보존, 고정 loopback TCP 최대38연결이다.
+일반 사용자 GUI를 단일 `start --gui`에 연결하며, Root 인증은 사용자 TTY에서 직접 수행한다.
+새 정확한 Scope/R1 확인 후에만 영수증이 생성된다. 과거 소비된 승인은 재사용하지 않는다.
+RF/LR은 실제 봉인된 ELIGIBLE 작업의 별도 exact Action 승인 후에만 실행한다.
+API·DNS 생성·Host 인증 로그 수집·위험 대응·자동 재실행은 포함하지 않는다.
+
+비권한 Workspace171 PASS, detached 동결 소스171 PASS, 독립 Export 관련166 PASS,
+Export PCAP/모델/CLI/실제 Tk1 PASS 및 GUI 추가3 PASS, 고정 감독자5 PASS다.
+Native6개·Wheel 이중 빌드 일치. 미처리33건은 격리 복사본에서 DONE36/대기0으로 복구했고
+추가 Prediction62/Incident33/Drop0/Cleanup VERIFIED, 원본 파일 SHA 전체는 불변이다.
+이는 저장 PCAP 검증이며 Native 성공으로 보고하지 않는다.
+
+고정 감독자의 과거 Policy SHA, Root 실패 종료 코드 전달, 사용자 Stop 오분류를 수정했다.
+과거 5.5368초 Heartbeat 지연의 하위 원인은 여전히 UNKNOWN이며 수신 watchdog은 유지한다.
+Program1145 UNKNOWN·과거 global Cleanup UNVERIFIED·FAILED/false 기록도 유지한다.
