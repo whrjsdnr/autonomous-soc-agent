@@ -434,6 +434,7 @@ async def test_durable_native_handoff_crash_before_seal_application(tmp_path):
     rows = [raw_event(e) for e in events]
     for raw in rows:
         await runtime.observe(raw)
+    assert runtime.metrics["packets"] == runtime.metrics["native_events"] == len(events)
     final = dict(
         kind="native_seal",
         id=str(uuid5(SESSION, "seal")),
@@ -455,6 +456,27 @@ async def test_durable_native_handoff_crash_before_seal_application(tmp_path):
     assert store.queue.counts() == {"PENDING": 1}
     assert runtime.metrics["predictions"] == 0
     await runtime.analysis.close()
+
+
+@pytest.mark.asyncio
+async def test_native_flow_counters_recompute_eligibility_without_model_authority(tmp_path):
+    from tests.integration.test_tcx_ai_workflow import job
+    from tests.unit.continuous.test_runtime import make
+
+    from soc_agent.continuous.service import ContinuousRuntime
+
+    directory, store = make(tmp_path)
+    runtime = ContinuousRuntime(directory)
+    # Synthetic Native-shaped evidence includes one eligible and one rejected Flow.
+    retained = job(native=True)
+    try:
+        await runtime.handoff(retained)
+        assert runtime.metrics["flows"] == 2
+        assert runtime.metrics["eligible"] == runtime.metrics["incomplete"] == 1
+        assert runtime.metrics["predictions"] == runtime.metrics["incidents"] == 0
+        assert runtime.analysis.process is None and store.queue.counts() == {"PENDING": 1}
+    finally:
+        await runtime.analysis.close()
 
 
 def test_root_serializer_and_finish_cleanup_are_real_functions(monkeypatch):

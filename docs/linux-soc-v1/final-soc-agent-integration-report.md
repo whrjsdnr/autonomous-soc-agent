@@ -1,5 +1,29 @@
 # Final SOC Agent integration verification
 
+## Latest bounded Native Continuous verification — 2026-10-29
+
+The approved additional single trial at `608c03e` passed actual Kernel BPF load,
+TCX attach, authenticated Producer READY, two fixed local TCP connections, 20 real
+Native metadata events, two sealed windows (20/0 callbacks), attestation and cleanup.
+One of two Flow candidates was ELIGIBLE; the other remains INCOMPLETE under the
+unchanged observed-event timeout contract. A separate new human model Action then
+authorized analysis of the retained real Native input through the existing CLI:
+two actual RF/LR predictions, one UNKNOWN_ANOMALY Incident, SCRIPTED read-only
+investigation/evaluation/response and verified Audit. This is normal test traffic,
+not evidence that an attack occurred. No external API or DNS inference was called.
+
+Actual Tk displayed the live Native collector and subsequently the verified retained
+REAL_NATIVE model result. Root, ordinary Runtime and authenticated Collector cleanup
+were VERIFIED; Kernel link/prog/map snapshots were unchanged. The legacy Ledger
+remains81 rows. Historical UNKNOWN/UNVERIFIED/FAILED/false evidence remains intact.
+
+**Bounded Native Continuous network E2E VERIFIED; DEMO_READY.** Unattended production
+release, live DNS9/Auth, long-duration/high-load operation and REAL_API investigation
+of this Native result are not claimed. Full error register, hashes and test evidence:
+[Continuous runtime report](continuous-runtime-integration-report.md).
+
+The report below records the earlier state and is preserved as history.
+
 Final judgment: **DEMO_READY**. Real offline model analysis and verified historical
 real API investigations are visible in the existing desktop. **Native AI E2E is
 BLOCKED**, not VERIFIED; RELEASE_READY is not claimed.

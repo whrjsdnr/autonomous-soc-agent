@@ -1,4 +1,99 @@
-# Continuous Native AI 연결 — 2026-10-29 최종 비권한 통합
+# 최신 결과 — 2026-10-29 제한된 실제 Native Continuous E2E
+
+**실제 Kernel TCX → 봉인 Window → Network14 ELIGIBLE → 승인된 RF/LR → Incident →
+읽기 전용 SCRIPTED 조사·Audit → GUI 경로를 검증했다.** Capture는 제한 시험1회이고,
+모델은 정지 후 같은 원본 Native 입력을 기존 CLI에서 별도 인간 Action 승인으로 분석했다.
+무인 상시 운영·Host 전체 수집·운영 승격·실제 LLM API 검증을 의미하지 않는다.
+이하 이전 시점의 BLOCKED/FAILED/UNKNOWN 보고는 원문 그대로 보존한다.
+
+## 실제 실행과 증거
+
+- 실제 설치·Capture 코드: `608c03e71bf7f4f99a34d2230476c1249be864ec`.
+  사용자의 수정 후 재실행 지시를 새 파일/Source/Ledger Binding에 기록했다.
+  이전 소비 승인 재사용 없이 새 인간 결정·설치 정책을 검증했고, 사용자 터미널에서
+  Scope yes·sudo 인증 후 추가 시험 **1회**만 수행했다.
+- 증거: 공통 Git 디렉터리
+  `continuous-scalar-recovery-20261029T012308Z/execution/execution-result.json`.
+  실제 모델 결과: 같은 디렉터리 `retained-native-model-analysis/result.json`.
+  Source/build 검증 및 별도 인간 모델 Action 요청·결정·감사 파일을 함께 보존한다.
+- Target `net:[4026532232]`, Host `net:[4026531833]` 유지. 내부 check PASS,
+  lo UP/ifindex1/외부 Route·Interface 없음, Namespace Socket Cookie8855.
+- Kernel load·TCX attach·Root READY·인증된 ordinary Producer READY 모두 PASS.
+  Root 서비스 정상 exit0, 실행 약188초로 승인된240초 이내.
+- TCP `127.0.0.1:18080`, source18081/18082에서 연결2·요청2·응답2 성공.
+  첫 연결 종료부터 다음 연결 종료까지 `35.00120635s`; 고정 Helper 코드의35초 wait와
+  일반 사용자/Capability0 실행을 함께 검증했다. DNS·외부 접속0.
+- 실제 Native metadata **20건**, Window seal **2개**(callback20/0), Counter·Clock·epoch·
+  delivery/drain 정합성 및 Capture Attestation VERIFIED. Queue Drop/invalid/재시작0.
+- 보존된 첫 Window Session `131d3617-6393-5c63-aa69-6c92b5ea5146`.
+  Window ID `9a0854fc5718e7cf826e2ecec42cb83789b694d4a4b46c8fd37068065c16d79e`.
+  Flow2개 중 **ELIGIBLE1 / INCOMPLETE1**. 마지막 Flow는 이후 관측 이벤트 timeout witness가
+  없으므로 기존 계약대로 차단한다. 단순 벽시계 대기나 FIN만으로 승격하지 않았다.
+- 사용자 추가 `승인한다` 메시지는 당시 대기 중인 보존 Native 입력의 RF/LR Action으로
+  별도 기록했다. 기존 `ApprovalManager`·`GovernedExecutor`와 CLI가 job/implementation/
+  output/Session/Namespace/release/time을 검증했고 부적격 Flow는 추론하지 않았다.
+  실제 RF/LR **2 Prediction**, Incident **1개** 생성.
+  Incident `c37a311d-436d-57eb-a698-3166f1b7dd6b`, 분류 `UNKNOWN_ANOMALY`.
+  입력은 승인된 정상 TCP 시험이며 이 모델 결과가 실제 공격임을 입증하지 않는다.
+- SCRIPTED 조사 계획·읽기 전용 도구·평가·`SOURCE_CONTINUITY_VERIFIED`·Audit PASS.
+  실제 LLM API0, DNS9 추론0. 모델 receipt에 REAL_NATIVE·Artifact SHA·Feature fingerprint·
+  Window/Flow/증거 참조·지연을 기록했다. `analyze-offline`의 `native_executed=false`는
+  분석 명령이 새 Capture를 시작하지 않았다는 뜻이며 입력 origin은 REAL_NATIVE다.
+- 실제 Tk GUI에서 LIVE Native 수집 상태와, 이후 감사 검증된 REAL_NATIVE 모델 결과2건을
+  각각 표시했다. GUI 종료 후 Collector가 계속 동작함도 확인했다. 정지 후 결과는 LIVE로
+  표시하지 않는다. `execution/show-verified-native-result.sh`로 Root·Capture·추론 재실행 없이
+  보존된 실제 결과를 다시 열 수 있다.
+- Root·ordinary Runtime·인증 STOP ACK Cleanup 모두 VERIFIED, Helper Socket 정리 PASS.
+  이번 Kernel link/prog/map 전후 JSON 모두 동일. Root Audit chain PASS,
+  Continuous Audit8개 검증. 과거 전역 Cleanup UNVERIFIED·Program1145 UNKNOWN은 유지.
+- Legacy Ledger **81행**, SHA
+  `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae` 불변.
+  기존 Campaign Root12/Native4·Batch3 Root9/Native1 기록은 초기화/환급하지 않았다.
+  Continuous 시작 시도는 별도 실행 증거/Root Audit에 기록하며 이번 성공 시작은1회다.
+
+## 오류 탐색·수정 최종 목록
+
+| 문제 | 처리 및 실제 검증 |
+|---|---|
+| BTF 누락 | `-g`·prefix map·BTF/libbpf 파일 parse. 실제 Kernel load 성공 확인 |
+| 가변 stack 접근 verifier 거부 | 첫 복구의 map 임시 buffer도 다음 verifier에서 거부된 실패를 보존. 최종 고정 destination helper parser로 교체 |
+| 가변 map pointer verifier 거부 | scalar offset + 1/2/4/16-byte helper 읽기, cache/map 제거. 기존 parser와 정상·절단·변조 C differential 회귀, 실제 Kernel load/TCX 성공 |
+| 원래 errno 유실 | C cleanup 전 errno 보존·Python OSError 전달, cleanup EUCLEAN 우선 유지. 실제 EACCES 실패 로그도 보존 |
+| Kernel load 전에 소켓 READY 노출 | Provider load/attach 후 bind/listen. 운영 run 실패 회귀 및 이번 실제 READY 순서 확인 |
+| Root 자식 종료를 outer timeout으로만 표시 | 새 고정 Launcher가 Producer READY 대기 중 Root 실제 종료를 즉시 확인, 최초/후속 오류 분리 |
+| STOP ACK 뒤 닫힌 socket을 Cleanup 실패로 오판 | 검증된 binding의 stop_ack만 idempotent 처리. 이번 실제 Runtime·Collector Cleanup VERIFIED |
+| 모델 승인 대기 중 정상 Stop 오분류 | 사용자 Stop·승인 대기·실행 중 모델 자식 없음 조건만 정상 취소. 예상치 못한 취소는 UNKNOWN. 이번 실제 승인 대기 Stop 정상 |
+| GUI Cleanup 혼동 | ordinary/Collector Cleanup 분리, Replay NOT_APPLICABLE, 실제 ACK 없는 VERIFIED 승격 금지 |
+| Apport 후속 오류 | 해당 고정 서비스의 표준 excepthook만 복구, 원래 traceback 보존. 시스템 sandbox 변경 없음 |
+| bpftool wrapper 조회 실패 | 기존 고정 executable SHA 대조, 이번 Kernel 전후 조회 모두 성공·동일 |
+| Native Packet·Flow·Eligibility 집계 누락 | 후속 ordinary 코드에서 native_tcx Packet 수와 기존 candidates() 재검증 결과를 집계. 승인·모델 호출 조건 변경 없음. 원본 시험의 0 표시를 덮어쓰지 않고 별도 재계산 결과로 보존 |
+| 검증 runner의 다른 checkout/model 환경 참조 | 테스트 전용 기존 모델 root·각 subprocess Source 명시. 최초 실패 로그 보존 후 Workspace/Export 회귀 통과 |
+| 최종 Flow INCOMPLETE | 오류가 아닌 기존 관측 이벤트 기반 종료 계약의 정상 차단. 원본 INCOMPLETE 유지 |
+| systemd oneshot RuntimeMaxSec 경고 | 비차단 설정 경고이며 같은 unit의 `TimeoutStartSec=90s`가 실제 시작 상한을 유지함을 확인. 시험은37초 내 Helper 정상 종료. 기존 승인 unit은 임의 변경하지 않음 |
+
+## 후속 표시 수정과 최종 비권한 검증
+
+최종 ordinary 집계 수정의 Workspace/독립 Export **각90 PASS**, 장시간 stress2개는 deselected.
+실제 Tk GUI 회귀는 Workspace/Export **각2 PASS**이며, 별개로 위 실제 LIVE/보존 Native 모델 화면을 검증했다.
+Ruff·Format·Diff PASS. Native 산출물6개·Wheel 재현 빌드 일치.
+집계 수정은 Root 파일을 변경하지 않으며 이미 성공한 Capture를 다시 실행하지 않았다.
+
+- 최종 Source653개 `1d29c7c5a6376f5e71bc5a2cc25d3e84f1dd0f9670f787c6ce6b3e5555ce8059`
+- 최종 Wheel `93f5589a6364c98f86a7bf9c571707bdba07dc4fb11bee49ce7fe98a4d181e12`
+- BPF `da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6`
+- Provider `62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff`
+- Root Service `9a259bf55d1d8f1d88b86860fdc9ac9986fefea0958cc1435d8788f28e372119`
+- Root policy code `cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53`
+- 실제 시험 설치 정책 `edcf7a424d48a43a2e0a8412906e7c9cc8b78528b2084a7191712a5d2ac6040f`
+
+최종 판정은 **제한된 NATIVE_CONTINUOUS E2E VERIFIED / DEMO_READY**다. 장시간/고부하 상시
+운영, 새로운 Scope의 실행 승인, DNS9 학습 추출 계약, 실제 Native 이상에 대한 REAL_API 조사는
+이번 성공 범위가 아니다. 저장 파일 단독의 진위를 OS attestation으로 승격하지 않는다.
+실제 실행 원본·승인·Root Audit·비소비 검증을 결합한 이번 제한 시험의 결과만 판정한다.
+
+---
+
+# Continuous Native AI 연결 — 2026-10-29 최종 비권한 통합 (이전 보고 보존)
 
 **판정: Window Attestation → Native 모델 action admission → RF/LR → Incident·Audit·GUI
 운영 코드 연결 완료. 실제 Kernel/Native Continuous E2E는 미검증·실행 차단 유지.**

@@ -1,3 +1,17 @@
+# 2026-10-29 — 별도 Continuous 제한 시험 결과
+
+기존 Diagnostic 실패/승인/예산/UNKNOWN 기록과 별도로, `608c03e`의 승인된 Continuous
+제한 시험1회에서 실제 Kernel TCX→Native20건→Window Attestation VERIFIED→Network14
+ELIGIBLE1개를 확보했다. 정지 후 별도 인간 Action 승인을 받은 같은 보존 Native 입력으로
+실제 RF/LR Prediction2건·Incident1개·SCRIPTED 조사·Audit를 생성하고 실제 GUI 표시를 검증했다.
+Root/ordinary/Collector Cleanup VERIFIED, 이번 Kernel link/prog/map 전후 동일,
+Legacy Ledger81행 불변이다. 원본 Diagnostic 증거를 성공으로 재작성하지 않았다.
+실제 LLM API·DNS9 추론·추가 Capture는 없으며, 마지막 Flow1개는 INCOMPLETE를 유지한다.
+전체 오류 RCA·수정·SHA·검증 경계는
+[Continuous Runtime 최종 보고](continuous-runtime-integration-report.md)를 참조한다.
+
+---
+
 # Autonomous SOC Agent — Native E2E Execution Path Stabilization
 
 ## 판정

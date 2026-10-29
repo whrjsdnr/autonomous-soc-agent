@@ -191,6 +191,15 @@ class ContinuousRuntime:
             raise ValueError("CONTINUOUS_WINDOW_RETENTION_REQUIRES_ARCHIVAL")
         if job.kind == "packet_window":
             self.metrics["eligible" if job.quality == "ELIGIBLE" else "incomplete"] += 1
+        elif job.kind == "tcx_analysis":
+            from soc_agent.security_ai.tcx_input import candidates
+
+            # Count independently validated vectors, not the sealed job envelope.
+            # This is a display metric, never an inference or approval grant.
+            rows = candidates(job)[2]
+            self.metrics["flows"] += len(rows)
+            self.metrics["eligible"] += sum(row["eligible"] for row in rows)
+            self.metrics["incomplete"] += sum(not row["eligible"] for row in rows)
         try:
             self.store.enqueue(job)
         except QueueFull:
@@ -283,6 +292,7 @@ class ContinuousRuntime:
                 for job in jobs:
                     await self.handoff(job)
             self.metrics["native_events"] += int(kind == "native_tcx")
+            self.metrics["packets"] += int(kind == "native_tcx")
             self.store.applied(raw["sequence"])
             return
         if kind in ("authentication", "auth_watermark"):
