@@ -56,7 +56,11 @@ class DNSSession(StreamSession):
 
 def bundle() -> dict[str, str]:
     root = Path(__file__).parents[1]
-    files = ["continuous/dns_source.py", "continuous/dns_helper.py"] + [
+    files = [
+        "continuous/dns_source.py",
+        "continuous/dns_helper.py",
+        "realtime/source_identity.py",
+    ] + [
         "security_ai/operational/network_capture/" + name
         for name in (
             "stream_helper.py",

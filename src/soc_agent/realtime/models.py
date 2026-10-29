@@ -8,18 +8,13 @@ from pydantic import Field, StringConstraints, model_validator
 
 from soc_agent.external_runtime import FeatureRow
 from soc_agent.ingestion.models import Event
+from soc_agent.realtime.source_identity import SourceIdentity
 from soc_agent.review.identity import content_digest
 from soc_agent.review.models import Frozen
 from soc_agent.security_ai.external.models import content_digest_payload
 from soc_agent.state.evidence import UTCTimestamp
 
 Text = Annotated[str, StringConstraints(min_length=1, max_length=512)]
-
-
-class SourceIdentity(Frozen):
-    namespace: Text
-    generation: Text
-    record: Text
 
 
 class SourceMetadata(Frozen):

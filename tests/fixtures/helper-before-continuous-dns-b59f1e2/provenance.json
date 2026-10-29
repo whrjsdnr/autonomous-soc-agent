@@ -5,6 +5,7 @@
     "stream_helper.py": "5f767a6e6cb69a9b79853d5f714649f5a8ebf74af9c05867f393273b68fb633b",
     "helper_transport.py": "6c938ee2cfb2a85382b7ca970cf7036edc19526377090b8556865e0a241820b2",
     "calibrated-helper-manifest.json": "ade48c4ebc3d06a56e29bb735513540030c5e3b3ec472ec874523c7a120797c6",
-    "total-helper-manifest.json": "0267bafdaf9c85e9caddaa7b30e9249b5003883a4cef41c2a7cbc8e9326da4c1"
+    "total-helper-manifest.json": "0267bafdaf9c85e9caddaa7b30e9249b5003883a4cef41c2a7cbc8e9326da4c1",
+    "models.py": "6c6d1e973f57ee0dbae253c972acf17ae3a864b32a75ccc83d78085bf5a3ff81"
   }
 }

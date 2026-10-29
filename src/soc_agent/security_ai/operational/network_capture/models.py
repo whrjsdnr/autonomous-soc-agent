@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import Field, IPvAnyAddress, model_validator
 
-from soc_agent.realtime.models import SourceIdentity
+from soc_agent.realtime.source_identity import SourceIdentity
 from soc_agent.security_ai.external.models import Hash, Snapshot, content_digest_payload
 from soc_agent.state.evidence import UTCTimestamp
 

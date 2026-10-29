@@ -7,6 +7,7 @@ import asyncio
 import hashlib
 import json
 import socket
+import subprocess
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -58,6 +59,31 @@ def test_dns_policy_does_not_extend_legacy_diagnostic_policy():
     assert dns_source.DNSPolicy().seconds == 3600
     with pytest.raises(ValueError):
         dns_source.DNSPolicy(seconds=3601)
+
+
+def test_helper_import_never_loads_ai_application_or_ml_dependencies():
+    root = Path(dns_source.__file__).parents[2]
+    probe = f"""
+import sys, resource
+resource.setrlimit(resource.RLIMIT_AS, (268435456, 268435456))
+sys.path.insert(0, {str(root)!r})
+class BlockModels:
+    def find_spec(self, name, *args):
+        if name in ('numpy', 'sklearn', 'xgboost', 'soc_agent.application'):
+            raise RuntimeError('DNS_HELPER_IMPORTED_AI:' + name)
+sys.meta_path.insert(0, BlockModels())
+from soc_agent.continuous.dns_helper import main
+assert callable(main)
+print('LIGHTWEIGHT_HELPER_READY')
+"""
+    value = subprocess.run(
+        [sys.executable, "-I", "-B", "-c", probe],
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=True,
+    )
+    assert value.stdout.strip() == "LIGHTWEIGHT_HELPER_READY"
 
 
 def test_dns_requires_native_and_both_session_and_pin(tmp_path):
