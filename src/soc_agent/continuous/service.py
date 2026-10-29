@@ -467,7 +467,7 @@ class ContinuousRuntime:
                 )
                 try:
                     async for raw in self.source.events():
-                        if self.stop.is_set():
+                        if self.stop.is_set() and self.config.source != "NATIVE_SERVICE":
                             break
                         await self.observe(raw)
                         self.collector_event_unix = time.time()
@@ -713,6 +713,14 @@ class ContinuousRuntime:
                 # Collect cleanup failures separately and preserve the first exception.
                 self.stop.set()
                 failures = []
+                if self.config.source == "NATIVE_SERVICE" and collector and not collector.done():
+                    # SIGTERM sets stop directly, unlike the CLI control flag.
+                    # Keep the receiver alive for the final seal and bound STOP ACK
+                    # before cancelling it or closing the owner's socket.
+                    try:
+                        await self.source.request_stop()
+                    except BaseException as error:
+                        failures.append(error)
                 if collector:
                     collector.cancel()
                     collector_exit = await asyncio.gather(collector, return_exceptions=True)

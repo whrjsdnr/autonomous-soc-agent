@@ -194,6 +194,8 @@ class TCXProducer:
                     or raw["namespace"] != policy["namespace"]
                     or raw["ifindex"] != 1
                     or raw["program_sha256"] != policy["files"]["continuous.bpf.o"]
+                    or type(raw["generation"]) is not int
+                    or not 0 < raw["generation"] < 2**64
                 ):
                     raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
                 if self.last_sequence is not None and raw["sequence"] != self.last_sequence + 1:
@@ -214,7 +216,9 @@ class TCXProducer:
                 ):
                     raise ValueError("CONTINUOUS_PRODUCER_NOT_RUNNING")
                 self.epoch = raw["generation"]
-                self.snapshot = raw["state"]
+                # Readiness is control-plane identity, not proof of packet delivery.
+                # A quiet attached Collector legitimately has no per-CPU counters.
+                self.snapshot = dict(raw["state"], generation=self.epoch)
                 for cpu, values in raw["state"]["counters"].items():
                     checked = Counters(
                         generation=self.epoch,

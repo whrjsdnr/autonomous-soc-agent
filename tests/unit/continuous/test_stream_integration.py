@@ -631,6 +631,12 @@ async def test_owner_stop_protocol_is_bounded_and_bound(tmp_path, monkeypatch, c
             if source.epoch is not None:
                 break
             await asyncio.sleep(0.01)
+        # An attached quiet Collector is ready before the approved traffic starts.
+        # Do not require or invent packet counters to publish its authenticated epoch.
+        assert source.snapshot["generation"] == 1
+        assert source.snapshot["counters"] == {}
+        assert "counter_state" not in source.snapshot
+        assert source.last_message_unix is not None and source.received == 0
         if cleanup == "UNVERIFIED":
             with pytest.raises(ValueError, match="REMOTE_CLEANUP_UNVERIFIED"):
                 await source.request_stop()

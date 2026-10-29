@@ -46,6 +46,96 @@ async def test_no_ack_does_not_authorize_disconnected_stop(tmp_path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("stop_kind", ["signal", "cli"])
+async def test_native_shutdown_receives_final_seal_before_closing(tmp_path, monkeypatch, stop_kind):
+    """Run the production service; mock only installed authority and Root transport."""
+    directory, store = make(tmp_path)
+    entered, stopping, acknowledged = asyncio.Event(), asyncio.Event(), asyncio.Event()
+    order = []
+
+    class Source:
+        state = "RUNNING"
+        snapshot = {}
+        remote_cleanup = "UNKNOWN"
+
+        async def events(self):
+            entered.set()
+            await stopping.wait()
+            order.append("final_seal_received")
+            yield {"kind": "native_seal"}  # transport boundary; no forged model input
+            self.remote_cleanup = "VERIFIED"
+            order.append("bound_ack_received")
+            acknowledged.set()
+
+        async def request_stop(self):
+            order.append("owner_stop_requested")
+            stopping.set()
+            await asyncio.wait_for(acknowledged.wait(), 2)
+
+        async def close(self):
+            order.append("socket_closed")
+
+    source = Source()
+    runtime = ContinuousRuntime(directory, source=source)
+    runtime.config = runtime.config.model_copy(update={"source": "NATIVE_SERVICE"})
+    monkeypatch.setattr("soc_agent.continuous.service.require_source_authority", lambda _: None)
+
+    async def observe(raw):
+        assert raw == {"kind": "native_seal"}
+        order.append("final_seal_persisted")
+
+    monkeypatch.setattr(runtime, "observe", observe)
+    task = asyncio.create_task(runtime.run())
+    await asyncio.wait_for(entered.wait(), 3)
+    if stop_kind == "signal":
+        runtime.stop.set()  # exactly the installed CLI's SIGTERM handler
+    else:
+        store.control(stop=True)
+    await asyncio.wait_for(task, 5)
+    assert order.index("owner_stop_requested") < order.index("final_seal_persisted")
+    assert order.index("final_seal_persisted") < order.index("bound_ack_received")
+    assert order.index("bound_ack_received") < order.index("socket_closed")
+    assert order.count("owner_stop_requested") == 1
+    assert store.state()["cleanup"] == store.state()["collector_cleanup"] == "VERIFIED"
+    assert runtime.metrics["predictions"] == 0
+
+
+@pytest.mark.asyncio
+async def test_native_signal_stop_ack_failure_is_preserved(tmp_path, monkeypatch):
+    directory, store = make(tmp_path)
+    entered = asyncio.Event()
+
+    class Source:
+        state = "RUNNING"
+        snapshot = {}
+        remote_cleanup = "UNKNOWN"
+
+        async def events(self):
+            entered.set()
+            await asyncio.Event().wait()
+            if False:
+                yield None
+
+        async def request_stop(self):
+            raise TimeoutError("BOUND_STOP_ACK_MISSING")
+
+        async def close(self):
+            pass
+
+    runtime = ContinuousRuntime(directory, source=Source())
+    runtime.config = runtime.config.model_copy(update={"source": "NATIVE_SERVICE"})
+    monkeypatch.setattr("soc_agent.continuous.service.require_source_authority", lambda _: None)
+    task = asyncio.create_task(runtime.run())
+    await asyncio.wait_for(entered.wait(), 3)
+    runtime.stop.set()
+    with pytest.raises(TimeoutError, match="BOUND_STOP_ACK_MISSING"):
+        await asyncio.wait_for(task, 5)
+    state = store.state()
+    assert state["cleanup"] == "UNVERIFIED" and state["collector_cleanup"] == "UNKNOWN"
+    assert "BOUND_STOP_ACK_MISSING" in state["last_error"]
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("prior_completed_worker", [False, True])
 async def test_normal_stop_during_native_model_approval_wait(tmp_path, prior_completed_worker):
     directory, store = make(tmp_path)
