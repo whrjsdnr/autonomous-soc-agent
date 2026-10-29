@@ -1,5 +1,56 @@
 # 단일 CLI 운영 경로 검증 · 2026-10-29
 
+## 최신 보강 · 실제 Native 장시간 시험 준비
+
+기준선 `7e37a26`에서 기존 구성 요소를 유지하며 다음 운영 경로를 보강했다.
+
+- `start --preview`: Source·고정 Controller·Config·현재 Ledger·Namespace/Lease·one-shot
+  표식 검증. 승인·예약·sudo·Root·Collector 실행이 전혀 없는 사전 검사다.
+- Native `start --gui`: 승인된 고정 터미널 경계 전 비권한 조회 GUI를 별도 연결한다.
+  실제 권한·TTY·인증은 기존 Entry Point가 처리한다. 실패 시 소유 GUI만 회수한다.
+- `doctor`: PASS/WARN/BLOCKED/FAIL 및 Host/Target scope를 구조화했다. Python·의존성·
+  모델 SHA/Manifest/Network14 Fingerprint·Namespace mount·Root 설치·고정 systemd 조회·
+  Queue/Checkpoint/Audit·Storage·GUI·API 설정을 읽기 전용으로 검증한다.
+  Target 내부에서는 기존 `inspect_current_isolation` 관측을 재사용한다. Host에서 진입하지 않는다.
+- `setup --recover-from`: 검증된 STOPPED Replay의 격리 복사본만 복구한다. Native 권한,
+  기존 승인, POISON 재시도나 attempt 초기화는 제공하지 않는다.
+- 재시작 때 복원한 이벤트 시각을 지워 마지막 Window ID가 달라지는 결함을 수정했다.
+  보관 상한에서도 동일한 기존 작업의 재전달은 허용하되 새 Window 상한과 입력 SHA 검증은 유지한다.
+- Stop 요청은 `STOPPING / OPERATOR_REQUEST`를 먼저 게시한다. 새 고정 실환경 감독자는
+  이를 Collector 장애와 구분하고 승인된 소유 자원만 정리해야 한다.
+
+### 실제 보존 Queue 33건 복구
+
+증거: `.git/one-command-native-finalization-20261029T090002Z/queue-recovery-report.json`.
+원본은 이전 CLI 검증의 PCAP128 Runtime이며 원본 DB·입력·보고서·Audit 전체 파일 SHA를
+복사 전·후 대조했다. 원본은 DONE3/PENDING33, Cleanup VERIFIED 상태 그대로 보존됐다.
+
+격리 복사본에서 운영 setup/start/status/stop 경로로 176.89초 동안 처리했다.
+최종 DONE36 / PENDING0 / CLAIMED0 / POISON0, 기존 DONE3건을 재처리하지 않았다.
+추가 Prediction62 / Incident33이며 INCOMPLETE2건은 추론하지 않았다.
+기존3건을 포함한 보고서36개·고유 Incident36개·Prediction68개를 원본 Receipt/Audit로
+검증했다. Drop0 / 모델 오류0 / 외부 API0 / 소유 Cleanup VERIFIED다.
+recovered ingress128 및 duplicate delivery128은 같은 작업의 재추론을 뜻하지 않는다.
+단위 회귀에서는 손상 Checkpoint·변조 입력·Native 복구·미검증 Cleanup·동시 writer를 차단하고,
+불확실한 in-flight는 기존 retry_limit에 따라 POISON 처리했다. attempt를 환급하지 않았다.
+
+### 비권한 검증과 실환경 경계
+
+Workspace 관련171 PASS(기존5000-event 내구성은 중복 실행하지 않음).
+실제 PCAP·모델·운영 CLI·실제 Tk GUI 회귀1 PASS. Root 경계만 모의한 Native Preview/Entry/
+TTY/GUI 시작 순서 회귀와 실제 Queue 복구를 별도로 판정한다.
+비권한 성공을 Kernel/TCX 실환경 성공으로 보고하지 않는다.
+
+사용자는 실제 Root·TCX 장시간 통합 시험을 요청했다. 다음 새 패키지는 최대3600초 전체
+Envelope, 기존 Namespace `net:[4026532232]`, lo/Ingress, 고정 loopback TCP만 사용한다.
+Capture 종료를 먼저 준비해 Cleanup 시간을 Envelope 안에 확보하고 실제 수집 시간을 따로 기록한다.
+기존 소비된240초/1시간 승인·R1·모델 영수증은 재사용하지 않는다. 정확한 새 패키지 Scope/R1,
+사용자 직접 확인·sudo 후에만 실행하며 모델은 봉인된 실제 ELIGIBLE 입력의 별도 Action 승인이 필요하다.
+Program1145 UNKNOWN·과거 전역 Cleanup UNVERIFIED·FAILED/false 및 53분대 Timeout 이력은 유지한다.
+5초 수신 watchdog은 유지하며, 기존 Timeout의 하위 스케줄링/디스크 지연 원인을 해결했다고 단정하지 않는다.
+
+아래 내용은 `7e37a26` 시점의 기존 검증 기록이다.
+
 검토 기준선은 `feat/one-command-runtime` / `2c811294ba7455974b418190b42b450b204eb2c4`다.
 사용자 main의 미커밋 변경 대신 기존 clean worktree
 `/home/geonug/kdt-linux/soc-one-command-runtime`에서 수정했다.

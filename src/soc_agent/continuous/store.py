@@ -174,7 +174,12 @@ class Store:
 
         pin = digest(job.model_dump(mode="json"))
         path = self.directory / "inputs" / (pin + ".json")
-        if not path.exists():
+        if path.exists() or path.is_symlink():
+            from soc_agent.security_ai.research.environment import read_local
+
+            if digest(json.loads(read_local(path, 1024**2))) != pin:
+                raise ValueError("CONTINUOUS_INPUT_CHANGED")
+        else:
             write_new(path, job.model_dump(mode="json"))
         # The same immutable job can be handed off again after a process crash.
         # Return the existing queue admission rather than manufacture new arrival times.

@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -94,11 +95,22 @@ def setup(
     review: Path | None = None,
     ml_root: Path | None = None,
     authentication_runtime: Path | None = None,
+    recover_from: Path | None = None,
 ) -> dict:
     if (home / "agent.json").exists():
         raise ValueError("AGENT_ALREADY_CONFIGURED_USE_EXISTING_PROFILE")
     create_private_directory(home)
-    if review:
+    if recover_from:
+        from soc_agent.continuous.recovery import clone_replay
+
+        directory = (runtime or home / "runtime").absolute()
+        clone_replay(recover_from.absolute(), directory)
+        result = AgentProfile(
+            runtime=directory,
+            configuration=Store(directory).config,
+            backend_code_identity=service.code_identity(),
+        )
+    elif review:
         review = review.absolute()
         request = verify_review(review)
         cfg = ContinuousConfig.model_validate_json(
@@ -197,7 +209,7 @@ def status(home: Path) -> dict:
     )
 
 
-def doctor(home: Path) -> dict:
+def _basic_doctor(home: Path) -> dict:
     from soc_agent.security_ai.dns9_contract import inspect_training
 
     selected = profile(home)
@@ -250,25 +262,79 @@ def doctor(home: Path) -> dict:
             executable=interpreter.is_file() and os.access(interpreter, os.X_OK),
             scope="AVAILABILITY_ONLY_WORKER_VALIDATES_PINNED_DEPENDENCIES",
         )
+        from soc_agent.security_ai.research.environment import Paths, verify
+
+        checks["model_preflight"] = verify(
+            Paths(selected.configuration.ml_root, interpreter, Path(__file__).parents[1]),
+            offline=False,
+        )
     checks["dns9_training_contract"] = inspect_training(selected.configuration.ml_root)
     return dict(status="PREFLIGHT_ONLY_NO_INFERENCE", checks=checks, runtime=status(home))
 
 
-def start(home: Path) -> dict:
+def doctor(home: Path) -> dict:
+    from soc_agent.agent_diagnostics import collect
+
     selected = profile(home)
+    error_code = None
+    try:
+        basic = _basic_doctor(home)
+    except (ValueError, OSError) as error:
+        message = str(error)
+        error_code = (
+            message if re.fullmatch(r"[A-Z][A-Z0-9_]{1,127}", message) else type(error).__name__
+        )
+        basic = dict(
+            status="PREFLIGHT_ONLY_NO_INFERENCE",
+            checks=dict(source=selected.configuration.source, root_commands_executed=False),
+        )
+    return basic | collect(selected, basic["checks"], error_code)
+
+
+def start_preview(home: Path) -> dict:
+    selected = profile(home)
+    if selected.configuration.source != "NATIVE_SERVICE":
+        return dict(status="REPLAY_PREVIEW_ONLY", doctor=doctor(home), executed=False)
+    from soc_agent.agent_native import validate_plan
+
+    try:
+        return validate_plan(selected)
+    except (ValueError, OSError) as error:
+        code = str(error)
+        if not re.fullmatch(r"[A-Z][A-Z0-9_]{1,127}", code):
+            code = type(error).__name__
+        return dict(
+            status="BLOCKED",
+            error=code,
+            returncode=2,
+            root_executed=False,
+            capture_started=False,
+            reservations_created=False,
+            automatic_retry=False,
+        )
+
+
+def start(home: Path, *, preview: bool = False, gui: bool = False) -> dict:
+    selected = profile(home)
+    if preview:
+        return start_preview(home)
     with exclusive_runtime_lock(home / "application-start.lock"):
         preflight = doctor(home)
+        artifact = preflight.get("diagnostics", {}).get("artifact_integrity", {})
+        if artifact.get("status") == "FAIL":
+            raise ValueError(artifact["code"])
         current = status(home)
         if current.get("state") in {"RUNNING", "DEGRADED", "STOPPING"}:
             raise ValueError("AGENT_ALREADY_RUNNING")
         if selected.configuration.source == "NATIVE_SERVICE":
-            if not selected.review:
-                raise ValueError("AGENT_NATIVE_APPROVAL_REVIEW_REQUIRED_NO_ROOT_EXECUTION")
-            verify_review(selected.review, selected.review_sha256)
-            if (selected.review / "execution/root-execution-admitted.json").exists() or (
-                selected.review / "execution/scope-confirmed.json"
-            ).exists():
-                raise ValueError("AGENT_NATIVE_ONE_SHOT_CONSUMED_FRESH_SCOPE_REQUIRED")
+            from soc_agent.agent_native import validate_plan
+
+            plan = validate_plan(selected)
+            if any(
+                preflight.get("checks", {}).get("models", {}).get(name) != "VERIFIED_SHA"
+                for name in selected.configuration.profiles
+            ):
+                raise ValueError("AGENT_NATIVE_MODEL_ARTIFACT_NOT_READY")
             if not sys.stdin.isatty():
                 raise ValueError("AGENT_DIRECT_USER_TTY_SCOPE_AND_SUDO_REQUIRED")
             entry = selected.review / "execution/terminal.py"
@@ -281,12 +347,43 @@ def start(home: Path) -> dict:
             )
             # Fixed registered existing Entry Point, shell=False; it retains all
             # receipts, one-shot markers, Root manifest/Scope and TTY gates.
-            child = subprocess.run([sys.executable, str(entry)], check=False)
+            display = None
+            if gui:
+                log = os.open(
+                    home / "gui-launch.log",
+                    os.O_WRONLY | os.O_CREAT | os.O_APPEND | os.O_NOFOLLOW,
+                    0o600,
+                )
+                try:
+                    display = subprocess.Popen(
+                        [sys.executable, "-m", "soc_agent.cli", "gui", "--home", str(home)],
+                        stdin=subprocess.DEVNULL,
+                        stdout=log,
+                        stderr=log,
+                        start_new_session=True,
+                    )
+                finally:
+                    os.close(log)
+            try:
+                child = subprocess.run([sys.executable, str(entry)], check=False)
+            except (OSError, KeyboardInterrupt):
+                if display is not None and display.poll() is None:
+                    display.terminate()
+                    display.wait(timeout=30)
+                raise
+            if child.returncode and display is not None and display.poll() is None:
+                display.terminate()
+                display.wait(timeout=30)
             return dict(
                 status="NATIVE_REVIEW_ENTRY_EXITED",
                 returncode=child.returncode,
                 automatic_retry=False,
                 runtime=status(home),
+                preflight=plan,
+                gui_pid=display.pid if display is not None else None,
+                root_admission_recorded=(
+                    selected.review / "execution/root-execution-admitted.json"
+                ).exists(),
             )
         if Store(selected.runtime).config != selected.configuration:
             raise ValueError("AGENT_AUTHORITATIVE_CONFIG_CHANGED")

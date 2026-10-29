@@ -69,6 +69,10 @@ async def test_native_shutdown_receives_final_seal_before_closing(tmp_path, monk
 
         async def request_stop(self):
             order.append("owner_stop_requested")
+            if stop_kind == "cli":
+                observed = store.state()
+                assert observed["state"] == "STOPPING"
+                assert observed["stop_reason"] == "OPERATOR_REQUEST"
             stopping.set()
             await asyncio.wait_for(acknowledged.wait(), 2)
 

@@ -42,6 +42,33 @@ Authentication Runtime을 GUI에 연결하며, 그 명령 자체로 Host 수집�
 
 ## Native 실행 권한
 
+### Native 준비·시작·관리
+
+```bash
+# 새 정확한 검토 패키지를 준비한 후 등록한다. 이 명령 자체는 승인이나 설치가 아니다.
+.venv/bin/soc-agent setup --native-review /absolute/new-review --home /absolute/native-profile
+.venv/bin/soc-agent doctor --home /absolute/native-profile
+.venv/bin/soc-agent start --preview --home /absolute/native-profile
+# 정확한 실행 승인 후 사용자가 직접 실행하는 TTY에서만 진행한다.
+.venv/bin/soc-agent start --gui --home /absolute/native-profile
+# 다른 사용자 터미널에서 상태 확인·중지 가능
+.venv/bin/soc-agent status --home /absolute/native-profile
+.venv/bin/soc-agent stop --home /absolute/native-profile
+```
+
+`start --preview`는 승인 영수증·예약·프로세스를 생성하지 않는다. Source/Artifact/고정
+Controller 코드·Runtime Config·Ledger SHA·Namespace Lease·소비 표식을 자동 검증한다.
+준비된 패키지도 직접 Scope/R1 확인·sudo·기존 Entry Point 검증이 끝나기 전 실행 권한이 없다.
+승인이 없거나 Binding이 바뀌면 BLOCKED다. Namespace 내부 check는 승인된 기존 Root
+Entry Point가 수행하며, Host doctor는 `TARGET_READ_ONLY / BLOCKED`로 필요성을 표시한다.
+
+Native `start --gui`는 Native 실행이 끝난 뒤 GUI를 여는 대신, 비권한 상태 조회 GUI를
+별도 프로세스로 먼저 연결한다. 고정 terminal Entry Point가 실제 승인·인증·설치·Collector와
+일반 사용자 Supervisor를 관리한다. GUI 자체는 Root 명령을 실행하지 않는다.
+실패하면 이번 호출이 만든 GUI만 종료하며 Native 자동 재실행은 없다.
+CLI Stop은 `STOPPING / OPERATOR_REQUEST`를 먼저 게시한다. 감독자는 이 신호를
+운영자 Stop으로 구분하고 승인된 소유 서비스의 Stop·Drain·Cleanup을 수행해야 한다.
+
 `setup`은 Root 설치나 운영 권한 부여가 아니다. 현재 Native profile은 상태·GUI·Stop
 연결에 사용할 수 있지만, 소비된 시험을 다시 시작할 권한은 없다.
 
@@ -70,6 +97,34 @@ Collector/Worker를 Spawn하기 전에 차단한다. Interpreter 가용성 확�
 이미 STOPPED인 경우에도 Cleanup VERIFIED 검증을 생략하지 않는다.
 응답의 `queue_drain=PENDING_RETAINED`, `unprocessed_jobs`, `failed_jobs`를 확인한다.
 이 값은 Queue 완전 처리 여부이며, 로컬 프로세스 Cleanup 성공과 별개다.
+
+### Doctor 결과
+
+`diagnostics`는 Python·의존성·모델 파일/Manifest/Feature Fingerprint·Artifact·Namespace Mount·
+내부 Scope·Root 설치·고정 서비스 권한/자원·Collector·Queue/Storage·GUI·API 설정을
+PASS / WARN / BLOCKED / FAIL로 구분한다. `readiness`는 가장 높은 차단 수준이다.
+Doctor는 Root 서비스 조회만 하며 Namespace 진입·서비스 시작·API 연결을 하지 않는다.
+Mount inode 관측만으로 Namespace Lease 승인 완료를 주장하지 않는다.
+API Provider는 설정 유효성만 확인하고 키·Endpoint·모델 이름을 출력하지 않는다.
+현재 Runtime Provider는 SCRIPTED이며 설정이 있어도 실제 호출 권한은 별도다.
+
+### Pending Queue의 격리 복구
+
+```bash
+.venv/bin/soc-agent setup --recover-from /absolute/stopped-replay-runtime \
+  --home /absolute/fresh-recovery-profile
+.venv/bin/soc-agent doctor --home /absolute/fresh-recovery-profile
+.venv/bin/soc-agent start --home /absolute/fresh-recovery-profile
+.venv/bin/soc-agent status --home /absolute/fresh-recovery-profile
+# PENDING/CLAIMED가 없어졌는지 확인한 뒤 Stop
+.venv/bin/soc-agent stop --home /absolute/fresh-recovery-profile
+```
+
+복구는 Replay에 한정하고 원본 서비스 잠금·검증된 Stop·Checkpoint·Queue/입력 SHA·Audit를
+확인한다. 원본은 읽기 전용으로 보존하며 새 복사본만 현재 코드에 연결한다. DONE tombstone,
+retry 횟수, POISON을 보존하고 Native 권한이나 미확인 모델 실행을 복구하지 않는다.
+새 복사본의 `recovery-source.json`과 Audit에 출처를 기록한다. 원본이 동작 중이거나
+Cleanup 미검증·손상·Native 소스이면 차단한다. 기존 archive의 quiescence 조건은 유지한다.
 
 ## 실제 연결과 지원 범위
 

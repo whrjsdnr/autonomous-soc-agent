@@ -22,11 +22,17 @@ def main(argv=None) -> int:
             source.add_argument("--replay", type=Path)
             source.add_argument("--config", type=Path)
             source.add_argument("--native-review", type=Path)
+            source.add_argument(
+                "--recover-from", type=Path, help="Create an isolated Replay recovery copy"
+            )
             item.add_argument("--runtime", type=Path, help="Attach an existing initialized service")
             item.add_argument("--ml-root", type=Path)
             item.add_argument("--authentication-runtime", type=Path)
         if command == "start":
             item.add_argument("--gui", action="store_true")
+            item.add_argument(
+                "--preview", action="store_true", help="Non-consuming preflight; never execute"
+            )
     args = parser.parse_args(argv)
     try:
         if os.geteuid() == 0:
@@ -41,13 +47,21 @@ def main(argv=None) -> int:
                 review=args.native_review,
                 ml_root=args.ml_root,
                 authentication_runtime=args.authentication_runtime,
+                recover_from=args.recover_from,
             )
         elif args.command == "gui":
             return runtime.gui(home)
+        elif args.command == "start":
+            result = runtime.start(home, preview=args.preview, gui=args.gui)
         else:
             result = getattr(runtime, args.command)(home)
         print(json.dumps(result, indent=2, default=str))
-        if args.command == "start" and args.gui:
+        if (
+            args.command == "start"
+            and args.gui
+            and not args.preview
+            and runtime.profile(home).configuration.source != "NATIVE_SERVICE"
+        ):
             return runtime.gui(home)
         return int(result.get("returncode", 0) != 0)
     except (ValueError, OSError, StorageError) as error:

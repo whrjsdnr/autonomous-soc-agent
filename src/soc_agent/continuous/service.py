@@ -77,6 +77,7 @@ class ContinuousRuntime:
         self.collector_state = "STOPPED"
         self.worker_state = "STOPPED"
         self.last_error = None
+        self.stop_reason = None
         self.collector_failure = None
         self.circuit = False
         self.worker_failures = 0
@@ -185,6 +186,7 @@ class ContinuousRuntime:
             queue=self.store.queue.counts(),
             circuit_open=self.circuit,
             last_error=self.last_error,
+            stop_reason=self.stop_reason,
             analysis=analysis,
             recent_results=list(self.last_results),
             dns=self.dns.snapshot(),
@@ -203,7 +205,11 @@ class ContinuousRuntime:
 
     async def handoff(self, job):
         self.metrics["flows"] += int(job.kind == "packet_window")
-        if len(list((self.directory / "inputs").glob("*.json"))) >= self.config.max_windows:
+        existing = self.directory / "inputs" / (digest(job.model_dump(mode="json")) + ".json")
+        if (
+            not existing.exists()
+            and len(list((self.directory / "inputs").glob("*.json"))) >= self.config.max_windows
+        ):
             raise ValueError("CONTINUOUS_WINDOW_RETENTION_REQUIRES_ARCHIVAL")
         if job.kind == "packet_window":
             self.metrics["eligible" if job.quality == "ELIGIBLE" else "incomplete"] += 1
@@ -463,7 +469,11 @@ class ContinuousRuntime:
         try:
             for attempt in range(self.config.collector_restarts + 1):
                 self.last_sequence = 0
-                self.last_event_ns = None
+                # Retained ingress rebuilt the pending flows before this first
+                # collector start. Duplicate source delivery must not erase its
+                # event-time witness and manufacture different final-window IDs.
+                if attempt or not self.metrics["recovered_events"]:
+                    self.last_event_ns = None
                 self.collector_state = (
                     "RUNNING" if self.config.source == "NATIVE_SERVICE" else "RUNNING_REPLAY"
                 )
@@ -702,6 +712,8 @@ class ContinuousRuntime:
                 while not self.stop.is_set():
                     current = self.store.state()
                     if current["stop_requested"]:
+                        self.stop_reason = "OPERATOR_REQUEST"
+                        self.store.update(self.snapshot() | dict(state="STOPPING"))
                         if self.config.source == "NATIVE_SERVICE":
                             await self.source.request_stop()
                         self.stop.set()
