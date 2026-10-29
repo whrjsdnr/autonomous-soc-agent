@@ -1,3 +1,24 @@
+# 최신 운영 검증·GUI 통합 · 2026-10-29
+
+최신 실제 시험은 **PARTIALLY_VERIFIED**다. 약53분28초 동안 Native metadata360건,
+전달 봉인17개, ELIGIBLE17개, RF/LR22건, Incident11개를 확보했지만 receive timeout으로
+1시간에 도달하지 못했다. 자동 재실행하지 않았다. Root Audit Cleanup VERIFIED와
+Runtime STOP ACK UNKNOWN은 독립적으로 보존한다.
+
+GUI latency·assessment·읽기 전용 조사 단계·AI Analysis 자동 보고서 연결을 수정했다.
+별도 사용자 승인으로 Host Authentication을 읽기 전용으로 연결해 실제 인증1건을
+확인하고 Stop했다. Host IF 추론 검증이나 DNS Native 수집 성공을 의미하지 않는다.
+DNS9 원본 학습·추출 계약은 INCOMPLETE로 유지한다.
+
+새 작업 브랜치는 `feat/one-command-runtime`이며 `soc-agent setup/start/status/stop/gui/doctor`
+명령을 제공한다. [사용법](one-command-runtime.md), [상세 운영 검증·실패 RCA](soc-agent-operations-verification-report.md),
+[DNS9 계약](dns9-training-extraction-status.md)을 참고한다. 다음 Native 실행에는 새 승인과
+사용자 인증이 필요하며 소비된 시험을 재사용하지 않는다.
+
+---
+
+## 이전 통합·실행 이력 보존
+
 # 최신 결과 — 2026-10-29 제한된 실제 Native Continuous E2E
 
 **실제 Kernel TCX → 봉인 Window → Network14 ELIGIBLE → 승인된 RF/LR → Incident →

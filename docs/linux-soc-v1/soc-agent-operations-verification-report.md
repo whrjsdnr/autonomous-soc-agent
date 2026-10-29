@@ -1,4 +1,126 @@
-# SOC Agent Operations Verification — 비권한 사전 검증
+# SOC Agent Operations Verification
+
+# 2026-10-29 최종 GUI·CLI 통합 및 실제 시험 정산
+
+최신 판정: **PARTIALLY_VERIFIED**. 실제 Native→RF/LR→Incident→Audit→GUI는
+성공했지만, 1시간 시험은 receive timeout으로 조기 종료되어 OPERATIONS_VERIFIED가 아니다.
+기존 제한 시험 성공·FAILED·false·UNKNOWN·설치·Rollback·Ledger는 보존했다.
+
+## 실제 실행 결과
+
+실행 Source는 `3fac4c06c2978876872e5ccb4da0195f5bc3faff`의 동결 Export였다.
+직접 사용자 Scope/R1 `yes`와 실제 터미널 sudo 후 1회 실행했으며 자동 재실행하지 않았다.
+일반 Runtime은 Type=exec / UID1000 / CapEff0 / NoNewPrivs1로 검증됐다.
+이전 Type=simple 시작 직후 UID 검사의 원래 관측값은 UNKNOWN으로 보존한다.
+
+| 항목 | 실제 증거 |
+|---|---|
+| Collector 포함 실행 시간 | 3,208.187697749초, 약 53분28초. 3,600초 미달 |
+| 종료 시 Runtime 관측 uptime | 3,195.347420701초. Kernel attach 시간과 동일시하지 않음 |
+| Native metadata | 360건, 마지막 20건은 미전달 봉인 구간으로 보존 |
+| Root 봉인 / Runtime 전달 봉인 | 18 / 17개 |
+| Flow / ELIGIBLE / INCOMPLETE | 34 / 17 / 17. 마지막 partial을 적격 승격하지 않음 |
+| RF/LR / Incident | 22 / 11. 원본 Receipt·모델 SHA·Window·Flow·Audit 재검증 PASS |
+| 모델 오류 / Queue Drop / Source gap | 0 / 0 / 0 |
+| Collector invalid | 1: timeout. 모델 오류나 부적격 모델 입력으로 숨기지 않음 |
+| 종료 Queue | DONE11 / PENDING5 / POISON1. 수정·재승인·자동 재실행하지 않음 |
+| TCP | Helper18회 / 실제 연결36개 / 요청36·응답36. 포트18080/18081/18082, 내부35초 간격 |
+| DNS / 외부 API | 0 / 0. 이 시험은 TCP 전용 Scope |
+| 조사 | 11개 SCRIPTED 읽기 전용 조사. 정상 TCP를 확인된 공격으로 승격하지 않음 |
+
+Evidence root:
+`.git/final-gui-operations-verification-20261029T061104Z/identity-recovery/`.
+소비된 실행 자료는 `next-native-gui-trial/execution/`이며 다시 실행하지 않는다.
+
+## 최초 오류 및 Cleanup
+
+최초 오류는 07:28:36 UTC의 CAPTURE / `RUNTIME_FIRST_ERROR:TimeoutError:`다.
+Root Audit의 07:28:30.704695→07:28:36.241501 HEARTBEAT 간격은 5.536806435초였고,
+수신기의 fail-closed deadline은 5초였다. 이 시각이 실제 오류와 일치한다.
+해당 Root 지연의 구체적 원인(디스크·스케줄링 등)은 UNKNOWN이다.
+동시에 디스크 쓰기 스트레스 회귀를 수행한 것은 시험 부하를 교란했을 가능성이 있으므로
+다음 실제 시험과 분리한다. 이 관찰만으로 원인을 디스크로 확정하지 않는다.
+
+Root Stop 3개 명령 exit0, 서비스 cgroup 비어 있음, 소유 socket 제거를 확인했다.
+Root Audit hash chain 검증 PASS, 해당 policy의 마지막 SERVICE_STOPPED Cleanup VERIFIED다.
+Runtime 자체 Cleanup도 VERIFIED지만 원격 STOP ACK는 UNKNOWN이다. 이를 덮어쓰지 않았다.
+전·후 link/map 목록은 모두 비어 있고, cgroup 관련 Kernel program ID 변화는 기록했다.
+과거 전역 Cleanup UNVERIFIED와 Program1145 UNKNOWN을 해결된 것으로 변경하지 않는다.
+
+수정본은 5초 deadline을 유지하면서 `CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT`, 실패 단계,
+마지막 수신 시각·Sequence·generation·함수·행번호를 기록한다. 종료된 Producer snapshot도
+RUNNING으로 남지 않게 했다. 이 진단 수정본은 Kernel에서 재실행하지 않았다.
+
+## GUI 및 Host Authentication
+
+기존 GUI의 projection이 실측 latency·investigation·assessment를 버리고 있었고,
+AI Analysis도 수동 report 선택 전에는 비어 있었다. 완료된 보고서와 Audit·Receipt를
+읽어 검증하는 bounded view/cache를 연결했다. 파일 변경·Incident 불일치 시 그래프에서
+제외한다. 기록이 없는 latency·progress·severity는 생성하지 않는다.
+
+실제 Tk에서 RUNNING 중 및 STOPPED 뒤 Native/Replay 구분, 실측 latency,
+Info research assessment, 완료된 read_local_source_report 단계, AI Analysis의 모델2행과
+전체 조사 상세를 확인했다. GUI 종료·재연결로 Native Backend가 종료되지 않음을 검증했다.
+Capture Quality는 마지막 봉인 Window의 own-ring loss·clock·epoch·counter를 표시하며
+Queue Drop이나 system-wide loss를 대체값으로 쓰지 않는다. Helper 카드는 과거 legacy
+준비 상태 대신 관측된 설치 서비스 Scope를 표시하되 새 실행 권한으로 해석하지 않는다.
+
+사용자의 별도 “Host 로그 부착” 지시에 따라 기존 auth/authpriv/sshd 필터의 읽기 전용
+LinuxAuthenticationCollector/Monitor를 일반 사용자로 연결했다. API·Root·인증 시도 생성은
+없다. 실제 metadata 2,976건 중 정규화된 Authentication1건을 확인했다. 원문 MESSAGE는
+downstream에 저장하지 않고 기존 pseudonymous account/source·event identity를 사용한다.
+READ_ONLY 조사 모드, 응답 실행 DISABLED, 오류 없이 정상 Stop했다. 이 수집을 Native
+TCP Namespace의 인증 수집이나 Host IF 모델 추론 성공으로 보고하지 않는다.
+
+## 단일 CLI 및 DNS9
+
+`soc-agent setup/start/status/stop/gui/doctor`를 기존 Service/GUI Entry Point에 연결했다.
+setup은 private 설정이며 Root 설치·권한을 부여하지 않는다. Native start는 기존 유효한
+고정 review·직접 TTY Scope/R1·sudo 계약을 재사용하고 소비된 실행은 차단한다.
+기존 legacy start/continuous/analyze-offline/native-recovery 명령은 유지한다.
+
+실제 PCAP의 기본 Queue8에서 Drop106을 발견하여 application Replay 기본값만 128로
+수정했다. 재검증은 Queue Drop0 / RF·LR6 / Incident3 / Stop Cleanup VERIFIED였다.
+이것은 Offline 시연이며 전체 PCAP의 모든 Flow 분석 완료가 아니다. 미처리 입력은 보존한다.
+
+DNS9의 실제 모델·Feature Contract·Notebook 해시와 원본 UNB 특징 설명을 조사해
+typed training/extraction review를 추가했다. Raw DNS Transaction과 doctor에 누락 이유를
+연결했다. 원래 추출 코드·raw golden pair·Scaler/DNN Export 연결이 없어 INCOMPLETE다.
+TCP 전용 TCX metadata에는 DNS payload가 없으며 이번 작업에서 Live DNS 수집을 붙이거나
+DNS 트래픽을 생성하지 않았다. [추출 계약 검토](dns9-training-extraction-status.md)를 참고한다.
+
+## 검증·Artifact·Git
+
+- Workspace 핵심277 PASS, 이후 Replay 기본값·표시 수정 delta23 PASS.
+- 독립 최종 Export171 PASS. 기존 5,000-event 스트레스 사례도 통과했으며 실제 Native 시간으로
+  계산하지 않는다. 중복 stress 실행은 중단하고 primary 결과만 사용했다.
+- Ruff·Format·Diff PASS. Native6개 재현 빌드 일치, Root binary/source는 이번 GUI·CLI 수정에서 불변.
+- 최종 구현 Commit: `10e9152`; Artifact 동결 Git: `ed2febd8d177d9039f574c10936fc51ef18c9288`.
+- Tree: `31b2c1384679f7c38eac686d1d1273c68c89ec1a`.
+- Source snapshot: `9b0332f4f4be7154bd8359ae2c51c6f242ef392fc5fdbef5a76bc814cec28c2e`.
+- Source map: `23b3e75ccd0c7f501925e25a13f45483a1b39118e4ec28c960d354f178b39e54`.
+- Wheel 이중 빌드: `c2a203d85d3f99a5ac45667f3db8f6bcdadb7b62160c7c6ff44125c9a2f92448`.
+- 기존 소비된 시험 Root Manifest:
+  `575781ea1144733fadc724e92dd78532a0bc56ba82828235f90e274ab6cd3462`.
+  수정본의 새 실행 권한이나 새 Namespace image로 재사용하지 않는다.
+
+Legacy Ledger는 81행, SHA
+`07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`로 불변이다.
+역사적 Campaign Root12 / Native4, Batch3 Root9 / Native1도 초기화하지 않았다.
+이번 Continuous 실행의 private 결정·Root Audit·결과는 별도로 보존했다.
+
+## 다음 통합 시험의 최소 조건
+
+새 동결 Artifact/Namespace/Session/Scope 검토와 R1·Root 설치/진입·Native 승인,
+직접 사용자 확인·sudo가 필요하다. 기존 소비된 실행이나 모델 영수증을 재사용하지 않는다.
+DNS Worker/Sidecar의 실제 Continuous 전달·트래픽 Scope를 별도 확정하고 DNS9 추론은
+원본 계약 확보 전 차단한다. Host 인증 이벤트는 별도 Collector·완전한 호환 Window를
+통해 IF에 전달해야 하며, 현재 연결만으로 Host IF 검증 완료를 선언하지 않는다.
+실제 API 사용은 이번 시험과 별도다. 다음 Kernel 실행은 자동 예약·시작하지 않았다.
+
+---
+
+## 이전 검토·실행 이력 보존
 
 ## 1시간 Native 시험 — 최종 승인 검토 추가
 
