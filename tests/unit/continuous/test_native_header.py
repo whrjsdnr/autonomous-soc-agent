@@ -62,7 +62,7 @@ def packet(options):
 
 
 @pytest.mark.parametrize("options", [False, True])
-def test_real_ingress_metadata_and_temporary_header_erased(ingress, options):
+def test_real_ingress_metadata_with_bounded_scalar_reads(ingress, options):
     body = bytes(packet(options))
     output = ctypes.create_string_buffer(ABI.size)
     assert ingress.run_packet(body, len(body), 0, output, ABI.size) == 1
@@ -83,7 +83,7 @@ def test_real_ingress_metadata_and_temporary_header_erased(ingress, options):
 @pytest.mark.parametrize(
     "failure,expected", [(1, [1, 0, 0, 0, 1, 0, 0]), (2, [1, 0, 1, 0, 0, 0, 0])]
 )
-def test_copy_and_ring_failure_erase_header_and_account_loss(ingress, failure, expected):
+def test_copy_and_ring_failure_account_loss_without_header_cache(ingress, failure, expected):
     body = bytes(packet(True))
     output = ctypes.create_string_buffer(ABI.size)
     assert ingress.run_packet(body, len(body), failure, output, ABI.size) == 0
@@ -120,7 +120,7 @@ def test_actual_c_provider_preserves_primary_errno_after_cleanup(tmp_path):
 
 
 @pytest.mark.parametrize("ipv6,tcp", [(False, False), (True, False), (True, True)])
-def test_other_protocols_preserve_metadata_and_erase_header(ingress, ipv6, tcp):
+def test_other_protocols_preserve_metadata_with_bounded_reads(ingress, ipv6, tcp):
     body = wire(length=60 if ipv6 else 40, ipv6=ipv6, tcp=tcp)
     output = ctypes.create_string_buffer(ABI.size)
     assert ingress.run_packet(body, len(body), 0, output, ABI.size) == 1
@@ -134,3 +134,28 @@ def test_other_protocols_preserve_metadata_and_erase_header(ingress, ipv6, tcp):
     assert event.protocol == ("tcp" if tcp else "udp")
     assert event.source.version == (6 if ipv6 else 4)
     assert (event.source_port, event.destination_port) == (1000, 2000)
+
+
+def test_helper_parser_matches_unchanged_diagnostic_parser(ingress):
+    import random
+
+    ingress.compare_parsers.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+    ingress.compare_parsers.restype = ctypes.c_int
+    rng = random.Random(1145)
+    bases = [bytes(packet(False)), bytes(packet(True))]
+    bases += [
+        wire(length=60 if v6 else 40, ipv6=v6, tcp=tcp)
+        for v6 in (False, True)
+        for tcp in (False, True)
+    ]
+    for base in bases:
+        # Truncation, field corruption, unsupported EtherType/extensions/fragments,
+        # TCP offset/reserved bits and UDP length all retain the old verdict.
+        cases = [base[:n] for n in range(len(base) + 1)]
+        for _ in range(300):
+            body = bytearray(base)
+            for _ in range(rng.randint(1, 4)):
+                body[rng.randrange(len(body))] = rng.randrange(256)
+            cases.append(bytes(body))
+        for body in cases:
+            assert ingress.compare_parsers(body, len(body)) == 1, body.hex()

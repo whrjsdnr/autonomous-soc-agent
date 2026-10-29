@@ -128,6 +128,80 @@ def test_service_entry_preserves_original_exception_without_crash_reporter():
     assert "/var/crash" not in proc.stderr
 
 
+def test_failed_kernel_attach_never_publishes_ready_socket(tmp_path, monkeypatch):
+    """Execute run(), mocking only its privileged installation/system boundaries."""
+    import importlib.util
+    import os
+    import sys
+    from pathlib import Path
+    from types import SimpleNamespace
+
+    policy = {"namespace": "net:[4026532232]", "uid": 1000, "files": {"continuous.bpf.o": "a" * 64}}
+    installed = SimpleNamespace(
+        installed=lambda: policy, root_file=lambda _: b"policy", validate=lambda _: None
+    )
+    installed_spec = SimpleNamespace(loader=SimpleNamespace(exec_module=lambda _: None))
+    server = Mock()
+    failed = Mock(side_effect=PermissionError(errno.EACCES, "KERNEL_VERIFIER_REJECTED"))
+    original_lstat = Path.lstat
+    original_read = Path.read_text
+    original_open = os.open
+
+    def trusted_stat(path, *args, **kwargs):
+        row = original_lstat(
+            tmp_path if str(path) == "/run/soc-agent-continuous" else path, *args, **kwargs
+        )
+        return SimpleNamespace(st_uid=0, st_mode=row.st_mode & ~0o022)
+
+    def audit_open(path, flags, *args):
+        return original_open(tmp_path / "root-audit.jsonl", flags, *args)
+
+    with monkeypatch.context() as boundary:
+        boundary.setattr(service, "INSTALL", tmp_path)
+        boundary.setattr(service, "__file__", str(tmp_path / "service.py"))
+        (tmp_path / "service.py").touch()
+        (tmp_path / "policy.py").touch()
+        boundary.setattr(service.os, "geteuid", lambda: 0)
+        boundary.setattr(service.os, "readlink", lambda _: policy["namespace"])
+        boundary.setattr(Path, "lstat", trusted_stat)
+        boundary.setattr(
+            Path,
+            "read_text",
+            lambda p, *a, **kw: (
+                "" if str(p).startswith("/proc/self/net/") else original_read(p, *a, **kw)
+            ),
+        )
+        boundary.setattr(importlib.util, "spec_from_file_location", lambda *a: installed_spec)
+        boundary.setattr(importlib.util, "module_from_spec", lambda _: installed)
+        boundary.setattr(sys, "flags", SimpleNamespace(isolated=True))
+        for name in ("LD_PRELOAD", "LD_LIBRARY_PATH", "PYTHONPATH", "PYTHONHOME"):
+            boundary.delenv(name, raising=False)
+        boundary.setattr(service, "resource_scope", lambda: None)
+        boundary.setattr(service.socket, "if_nameindex", lambda: [(1, "lo")])
+        boundary.setattr(service.socket, "socket", lambda *a: server)
+        boundary.setattr(service.signal, "signal", lambda *a: None)
+        boundary.setattr(service.os, "open", audit_open)
+        original_fstat = os.fstat
+        boundary.setattr(
+            service.os,
+            "fstat",
+            lambda fd: SimpleNamespace(st_uid=0, st_mode=0o600, st_size=original_fstat(fd).st_size),
+        )
+        boundary.setattr(service, "Provider", failed)
+        with pytest.raises(PermissionError, match="KERNEL_VERIFIER_REJECTED"):
+            service.run()
+    failed.assert_called_once()
+    server.bind.assert_not_called()
+    server.listen.assert_not_called()
+    server.close.assert_called_once()
+    rows = [
+        __import__("json").loads(line)
+        for line in (tmp_path / "root-audit.jsonl").read_text().splitlines()
+    ]
+    assert [row["code"] for row in rows] == ["ATTACH_REQUESTED", "SERVICE_STOPPED"]
+    assert all(row["state"]["state"] != "RUNNING" for row in rows)
+
+
 @pytest.mark.asyncio
 async def test_runtime_does_not_promote_remote_collector_cleanup(tmp_path):
     from types import SimpleNamespace

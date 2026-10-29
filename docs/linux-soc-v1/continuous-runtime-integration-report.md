@@ -560,3 +560,41 @@ Kernel load/attach/Window/Eligibility 검증은 아직 남아 있다. Offline/Fi
 모델 대기 Stop 회귀에는 이전 분석 자식이 이미 정상 종료/정리된 경우도 포함했다. 완료된
 process 객체가 남아 있어도 현재 job의 새 모델 실행으로 오인하지 않으며, 실행 중 자식이나
 Cleanup UNVERIFIED 및 요청하지 않은 취소는 정상 종료로 승격하지 않는다.
+
+## 추가 Kernel 재시험과 helper 기반 파서 복구
+
+`072f58b`에 대한 정식 단일 재시험 승인은 사용자 터미널 Scope yes·sudo 인증 후 집행했다.
+증거는 공통 Git 디렉터리 `continuous-verifier-retest-approved-20261029T011029Z/`에 보존한다.
+기존 가변 스택 문제는 재발하지 않았으나 scratch map의 가변 offset에서 Kernel verifier가
+`R1 tried to add from different maps, paths or scalars`로 거부했다. 최초 원인은 Kernel load
+errno13이며 바깥 Producer READY timeout은 후속 오류다. 권한 부족으로 단정하거나 Capability를
+추가하지 않았다. 실제 TCX/TCP/Window/Native 모델 호출은 모두0, Root·ordinary Cleanup은
+VERIFIED, 이번 link/prog/map 전후는 동일, Root Audit chain과 Legacy Ledger81행은 불변이다.
+이 결과는 과거 전역 Cleanup UNVERIFIED나 Program1145 UNKNOWN을 변경하지 않는다.
+
+| ID | 확인된 오류 | 수정·검증 |
+|---|---|---|
+| P09 | scratch map의 가변 header pointer가 제한 Capability verifier에서 거부됨 | Continuous 전용 `packet_parser.h`에서 scalar skb offset + 고정1/2/4/16-byte helper destination으로 읽음. header cache/scratch map 제거. 기존 Phase D 파서는 그대로 두고 실제 C oracle과 정상·절단·변조 패킷을 비교 |
+| P10 | Kernel load 전에 Unix socket bind가 먼저 실행되어 Root Socket READY를 잘못 알림 | 실제 Provider load/attach 성공 후 bind/listen. 운영 `run()`을 실행하는 권한 경계 Mock 회귀에서 attach 거부 시 bind/listen0·socket close·Audit·최초 errno 보존 검증 |
+| P11 | 바깥 Launcher가 Root 조기 종료 후에도 Producer timeout까지 대기 | 다음 고정 단일 시험 recipe에서 Producer READY 대기 중 Root 자식 종료를 즉시 확인. 최초 Root 오류와 후속 outer 오류를 각각 보존 |
+
+패킷 metadata ABI, parser admission/drop 판정, ring/counter/lease/Window, Namespace·TCP·자원·권한
+상한은 유지한다. Host C 회귀와 BTF/libbpf 파일 parse는 실제 Kernel 검증과 구분한다.
+새 Native 산출물6개와 Wheel은 Workspace/독립 Export에서 일치한다.
+
+- Source653개 `32ec9c5da3747551ef6092d351d894065eb5b1fec92eab033855291a5bb6506e`
+- BPF `da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6`
+- Root Service `9a259bf55d1d8f1d88b86860fdc9ac9986fefea0958cc1435d8788f28e372119`
+- Provider `62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff`
+- Wheel `bf9a9a8e2154eec0d7fb0470077156ed4adbed5725a3ffe972d4a2f6feaa0449`
+
+사용자의 새 `오류 다 해결하고 자동 재실행해라` 지시는 같은 제한 범위에서 수정본 추가 시험1회에
+결합한다. 소비된 기존 승인 기록은 재사용하지 않고 새 Git/Source/파일/설치 정책·인간 결정으로
+결합하며, 실제 사용자 터미널 Scope yes·sudo 인증은 유지한다. 자동 반복 루프는 없다.
+Native RF/LR 모델 Action·DNS·외부 API 권한은 포함하지 않는다.
+
+비권한 검증은 Workspace/독립 Export **각89 PASS·장시간 stress2개 deselected**, 실제 Tk GUI
+**각2 PASS**, Ruff·Format·Diff PASS다. 최초 검증 실행의 테스트 환경에는 기존 모델 Interpreter
+root 및 자식 PYTHONPATH가 빠져 모델/CLI 회귀가 실패했다. 실패 로그를 지우지 않고 보존했으며,
+테스트 전용 기존 환경 root와 각 Source를 명시한 실행에서 모두 통과했다. 보안/모델 조건은
+수정하지 않았다. 새 외부 API 및 승인되지 않은 Native 모델 호출은0이다.

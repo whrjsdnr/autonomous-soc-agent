@@ -368,14 +368,15 @@ def run():
         audit("CAPTURE_WINDOW_SEALED")
 
     try:
+        audit("ATTACH_REQUESTED")
+        provider = Provider(policy, receive)
+        # A pathname must never advertise readiness before Kernel load/owned attach.
         server.bind(str(path))
         owned = True
         os.chmod(path, 0o600)
         os.chown(path, policy["uid"], -1)
         server.listen(1)
         server.setblocking(False)
-        audit("ATTACH_REQUESTED")
-        provider = Provider(policy, receive)
         state["state"] = "RUNNING"
         audit("ATTACH_OWNED")
         window_started = time.monotonic()
