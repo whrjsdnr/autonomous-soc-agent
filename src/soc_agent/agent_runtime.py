@@ -134,6 +134,7 @@ def setup(
                 input_file=source,
                 input_sha256=sha(source),
                 ml_root=root,
+                queue_capacity=128,
             )
         if cfg.source == "NATIVE_SERVICE":
             raise ValueError("AGENT_NATIVE_REQUIRES_EXISTING_APPROVED_REVIEW_OR_ATTACH")

@@ -106,3 +106,12 @@ def test_failed_partial_start_reaps_only_owned_child(tmp_path, monkeypatch):
     proc.terminate.assert_called_once()
     proc.wait.assert_called_once()
     proc.kill.assert_not_called()
+
+
+def test_application_replay_default_can_retain_bounded_pcap_burst(tmp_path):
+    source = tmp_path / "replay.jsonl"
+    source.write_text('{"kind":"excluded","id":"e1","sequence":1,"affects_integrity":false}\n')
+    home = tmp_path / "app"
+    agent_runtime.setup(home, replay=source)
+    cfg = agent_runtime.profile(home).configuration
+    assert cfg.source == "JSONL_REPLAY" and cfg.queue_capacity == 128
