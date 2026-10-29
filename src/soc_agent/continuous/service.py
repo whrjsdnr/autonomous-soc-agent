@@ -112,6 +112,8 @@ class ContinuousRuntime:
         self.dns = IsolatedDNS(self.epoch)
         self.dns_window = None
         self.started = time.monotonic()
+        self.collector_event_unix = None
+        self.worker_observed_unix = None
 
     def snapshot(self):
         analysis = self.analysis.snapshot()
@@ -163,6 +165,18 @@ class ContinuousRuntime:
                 source=self.journal.reader.identity if self.journal else None,
             ),
             heartbeat_unix=time.time(),
+            component_health=dict(
+                collector_event_unix=self.collector_event_unix,
+                collector_message_unix=getattr(self.source, "last_message_unix", None),
+                worker_observed_unix=self.worker_observed_unix,
+                worker_child_running=analysis.get("worker_running", False),
+                worker_child_returncode=analysis.get("child_returncode"),
+                worker_heartbeat_scope="SUPERVISOR_OBSERVATION_NOT_MODEL_PROGRESS",
+                collector_heartbeat_scope="AUTHENTICATED_ROOT_MESSAGE"
+                if self.config.source == "NATIVE_SERVICE"
+                else "REPLAY_EVENT_NOT_LIVE_CAPTURE",
+                automatic_kernel_restart=False,
+            ),
             uptime_seconds=time.monotonic() - self.started,
             clock_epoch=str(self.epoch),
             metrics=dict(self.metrics),
@@ -456,6 +470,7 @@ class ContinuousRuntime:
                         if self.stop.is_set():
                             break
                         await self.observe(raw)
+                        self.collector_event_unix = time.time()
                     self.collector_state = "STOPPED" if self.stop.is_set() else "EOF_NOT_LIVE"
                     break
                 except (ValueError, OSError, RuntimeError) as error:
@@ -507,6 +522,7 @@ class ContinuousRuntime:
             )
             while not self.stop.is_set():
                 self.worker_state = "WAITING_EXACT_MODEL_ACTION_APPROVAL"
+                self.worker_observed_unix = time.time()
                 grant = (
                     self.config.native_model_approvals / (pin + ".json")
                     if self.config.native_model_approvals
@@ -523,6 +539,7 @@ class ContinuousRuntime:
     async def consume(self):
         self.worker_state = "IDLE"
         while not self.stop.is_set():
+            self.worker_observed_unix = time.time()
             if self.circuit:
                 self.worker_state = "CIRCUIT_OPEN"
                 await asyncio.sleep(0.1)
@@ -539,6 +556,13 @@ class ContinuousRuntime:
                 if digest(json.loads(body)) != dict(claim.event.normalized_fields)["job_digest"]:
                     raise ValueError("CONTINUOUS_INPUT_CHANGED")
                 await self.start_analysis(path, body)
+                # Observation of a live owned task is not a model progress claim.
+                # Keep supervisor health fresh while the bounded CLI does its work.
+                while not self.analysis.monitor.done():
+                    self.worker_observed_unix = time.time()
+                    await asyncio.wait(
+                        {self.analysis.monitor}, timeout=self.config.heartbeat_seconds
+                    )
                 await self.analysis.monitor
                 value = self.analysis.snapshot()
                 outcome = value.get("result")
@@ -691,7 +715,14 @@ class ContinuousRuntime:
                 failures = []
                 if collector:
                     collector.cancel()
-                    await asyncio.gather(collector, return_exceptions=True)
+                    collector_exit = await asyncio.gather(collector, return_exceptions=True)
+                    failures.extend(
+                        e
+                        for e in collector_exit
+                        if isinstance(e, BaseException)
+                        and not isinstance(e, asyncio.CancelledError)
+                        and e is not primary
+                    )
                 if journal:
                     journal.cancel()
                     journal_exit = await asyncio.gather(journal, return_exceptions=True)
@@ -736,6 +767,8 @@ class ContinuousRuntime:
                         failures.append(error)
                 try:
                     cleanup = "UNVERIFIED" if failures else "VERIFIED"
+                    if failures and self.last_error is None:
+                        self.last_error = type(failures[0]).__name__ + ":" + str(failures[0])[:1000]
                     self.store.event(
                         "CONTINUOUS_SERVICE_STOPPED",
                         dict(

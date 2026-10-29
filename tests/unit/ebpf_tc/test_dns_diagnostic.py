@@ -257,6 +257,49 @@ def test_real_builder_creates_validating_entry_without_root(diagnostic):
     )
 
 
+def test_controller_two_file_build_reproduces_without_execution(setup, tmp_path, monkeypatch):
+    import hashlib
+
+    from tests.unit.ebpf_tc.test_namespace_runtime import config
+
+    origin = setup.binding
+    fake = lease(origin)
+    monkeypatch.setattr(dns, "inspect_lease", lambda *_: fake)
+    monkeypatch.setattr(isolated_dns_launcher, "inspect_lease", lambda *_: fake)
+    plan = ApplicationPlan(
+        controller=local_controller(),
+        mode="PHASE_A_NATIVE_BLOCKED",
+        scope=Scope(
+            net_namespace=fake["namespace"],
+            ifindex=1,
+            hook="INGRESS",
+            program_sha256="a" * 64,
+            loader_sha256="b" * 64,
+            bundle_digest="c" * 64,
+        ),
+    )
+    fixed = config(tmp_path)
+    pins = []
+    for name in ("first-controller-build", "second-controller-build"):
+        directory = tmp_path / name
+        dns.prepare(
+            directory,
+            package=setup.manifest.parent,
+            root_manifest=origin.artifact.root_manifest,
+            origin=origin,
+            lease_file=tmp_path / "synthetic-lease.json",
+            lease_sha="d" * 64,
+            source_snapshot="e" * 64,
+            plan=plan,
+            controller_config=fixed,
+        )
+        pins.append(
+            {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in directory.iterdir()}
+        )
+    assert set(pins[0]) == {"dns-diagnostic.py", "dns-diagnostic.json"}
+    assert pins[0] == pins[1]
+
+
 @pytest.mark.parametrize("change", ["session", "scope", "image", "source"])
 def test_artifact_binding_fail_closed(diagnostic, change):
     s, output, _ = diagnostic

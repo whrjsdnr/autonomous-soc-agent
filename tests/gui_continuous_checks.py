@@ -164,3 +164,63 @@ async def test_verified_three_domain_incidents_and_investigation_in_gui(tmp_path
         assert shown["evidence_domains"] == ["AUTHENTICATION"]
     finally:
         await close(root, app)
+
+
+@pytest.mark.asyncio
+async def test_stale_native_and_cleanup_failure_health_display(tmp_path):
+    """SYNTHETIC status snapshots, actual backend/Tk. Never a live Native claim."""
+    import time
+
+    from tests.unit.continuous.test_runtime import make
+
+    directory, store = make(tmp_path)
+    store.update(
+        dict(
+            state="RUNNING",
+            collector="RUNNING",
+            worker="ANALYZING",
+            collection_live=True,
+            source="NATIVE_SERVICE",
+            heartbeat_unix=0,
+        )
+    )
+    root = tk.Tk()
+    app = Desktop(root, GUIConfig(data_directory=tmp_path / "gui", continuous_directory=directory))
+    try:
+        await idle(root, app)
+        app.navigate("Continuous")
+        await idle(root, app)
+        text = app.continuous_summary.cget("text")
+        assert "UNKNOWN_STALE_HEARTBEAT" in text and "Native live: False" in text
+        store.update(
+            dict(
+                state="DEGRADED",
+                source="JSONL_REPLAY",
+                collector="STOPPED",
+                worker="CIRCUIT_OPEN",
+                collection_live=False,
+                cleanup="UNVERIFIED",
+                collector_cleanup="NOT_APPLICABLE_REPLAY",
+                heartbeat_unix=time.time(),
+                last_error="password=TEST_NOT_A_SECRET",
+                metrics=dict(
+                    packets=12, flows=2, eligible=1, incomplete=1, predictions=2, queue_dropped=3
+                ),
+                queue={"POISON": 1, "PENDING": 1},
+            )
+        )
+        app.call("continuous_status", callback=app.continuous_updated)
+        await idle(root, app)
+        text = app.continuous_summary.cget("text")
+        assert "Runtime cleanup: UNVERIFIED" in text and "CIRCUIT_OPEN" in text
+        assert "Packets: 12" in text and "Eligible: 1" in text and "Drops: 3" in text
+        assert "TEST_NOT_A_SECRET" not in text and "[REDACTED]" in text
+        app.navigate("Dashboard")
+        await idle(root, app)
+        assert "Packets 12" in app.continuous_overview.cget("text")
+        assert "Native live False" in app.continuous_overview.cget("text")
+        app.navigate("System")
+        await idle(root, app)
+        assert "Runtime cleanup UNVERIFIED" in app.system.get("1.0", "end")
+    finally:
+        await close(root, app)

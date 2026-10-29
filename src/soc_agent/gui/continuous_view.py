@@ -78,7 +78,15 @@ def render(app, value):
             "Capture: "
             f"{value.get('capture_window', {}).get('assessment', {}).get('status', 'UNKNOWN')} · "
             f"Queue: {value.get('queue', {})} · "
-            f"Drops: {value.get('metrics', {}).get('queue_dropped', 0)}"
+            f"Drops: {value.get('metrics', {}).get('queue_dropped', 0)}\n"
+            f"Packets: {value.get('metrics', {}).get('packets', 0)} · "
+            f"Flows: {value.get('metrics', {}).get('flows', 0)} · "
+            f"Eligible: {value.get('metrics', {}).get('eligible', 0)} · "
+            f"Incomplete: {value.get('metrics', {}).get('incomplete', 0)} · "
+            f"Predictions: {value.get('metrics', {}).get('predictions', 0)}\n"
+            "Worker observed (supervisor, not model progress): "
+            f"{value.get('component_health', {}).get('worker_observed_unix', 'UNKNOWN')} · "
+            f"Last error: {display_data(value.get('last_error') or 'NONE')}"
         )
     )
     selected = app.continuous_incidents.selection()

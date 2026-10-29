@@ -139,6 +139,7 @@ class TCXProducer:
         self.stop_ack = asyncio.Event()
         self.remote_cleanup = "UNKNOWN"
         self.sealed_epoch = None
+        self.last_message_unix = None
 
     async def events(self):
         import os
@@ -147,6 +148,7 @@ class TCXProducer:
         if policy["uid"] != os.getuid() or policy["namespace"] != self.config.namespace:
             raise ValueError("CONTINUOUS_PRODUCER_POLICY_SCOPE")
         self.state = "STARTING"
+        self.last_message_unix = None
         self.stop_ack.clear()
         self.remote_cleanup = "UNKNOWN"
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
@@ -239,6 +241,9 @@ class TCXProducer:
                         raise ValueError("CONTINUOUS_PRODUCER_COUNTER_REGRESSION")
                     self.cpus[cpu] = list(values)
                     self.snapshot["counter_state"] = checked.model_dump(mode="json")
+                import time
+
+                self.last_message_unix = time.time()
                 for frame in raw["frames"]:
                     sequence += 1
                     window_sequence += 1

@@ -1,4 +1,15 @@
 
+### Release Candidate · 2026-10-29
+
+The bounded Native Continuous test produced real TCX events, an eligible Network14
+Flow, two RF/LR predictions and an audited Incident visible in the GUI. This is
+separate from unattended or long-duration production verification.
+
+See the [Release Candidate report](docs/linux-soc-v1/soc-agent-release-candidate-report.md)
+and [start, stop, update and recovery runbook](docs/linux-soc-v1/soc-agent-release-candidate-runbook.md).
+Root capture and external LLM calls require their existing independent approvals.
+The previous offline/demo instructions below remain available.
+
 ### Audited AI analysis in the desktop
 
 Start the existing unprivileged Tkinter desktop:

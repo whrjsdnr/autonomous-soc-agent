@@ -68,9 +68,12 @@ def build(app):
 def render(app, value):
     state = value.get("state", "NOT_STARTED")
     result = value.get("result") or {}
+    origin_label = (
+        "RETAINED_NATIVE" if "REAL_NATIVE" in result.get("input_origins", []) else "OFFLINE"
+    )
     app.analysis_summary.configure(
         text=(
-            f"{state} · OFFLINE / not live capture · "
+            f"{state} · {origin_label} / not live capture · "
             f"Cleanup: {value.get('cleanup', 'NOT_STARTED')}\n"
             f"Incident: {result.get('incident_id', '—')} · "
             f"{result.get('classification', 'NO_RESULT')} · "

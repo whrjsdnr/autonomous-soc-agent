@@ -500,6 +500,29 @@ class OfflineWorkflow:
         response = None
         investigation = None
         context = dict(
+            incident_id=str(incident_id),
+            input_identity=dict(
+                job_digest=input_pin,
+                kind=job.kind,
+                origins=sorted({e.origin for e in envelopes}),
+                sessions=sorted({e.session for e in envelopes if e.session}),
+                namespaces=sorted({e.namespace for e in envelopes if e.namespace}),
+                capture_window_ids=sorted(
+                    {
+                        str(r.receipt.get("capture_window_digest"))
+                        for r in records
+                        if r.receipt.get("capture_window_digest")
+                    }
+                    | (
+                        {job.result["tcx"]["data_plane"]["continuous_window"]["id"]}
+                        if isinstance(job, TCXAnalysisJob)
+                        and records
+                        and job.result["tcx"]["data_plane"].get("continuous_window")
+                        else set()
+                    )
+                ),
+                flow_ids=sorted({r.event_identity for r in records}),
+            ),
             classification=kind,
             reasons=reasons,
             # Keep full source/feature provenance in immutable local receipts. Prompts
@@ -568,6 +591,8 @@ class OfflineWorkflow:
             or isinstance(job, CollectorFailureJob)
             and not known
         ):
+            self.write("investigation-context.json", context)
+            self.event("OFFLINE_INVESTIGATION_CONTEXT_BOUND", context)
             client = AdvisoryClient(api or self.llm_client or OfflineDesktopClient(), context)
             try:
                 planner_options = {"draft_model": APIInvestigationDraft} if api else {}
@@ -766,6 +791,15 @@ def verify_result(directory: Path) -> AnalysisOutcome:
                 )
             ):
                 raise ValueError("TCX_NATIVE_MODEL_COMPLETION_AUDIT_MISSING")
+    context_pins = [
+        e["binding_digest"] for e in events if e["code"] == "OFFLINE_INVESTIGATION_CONTEXT_BOUND"
+    ]
+    if context_pins:
+        context = json.loads(read_local(directory / "investigation-context.json", 1024 * 1024))
+        if context_pins != [digest(context)] or context.get("incident_id") != str(
+            result.incident_id
+        ):
+            raise ValueError("OFFLINE_INVESTIGATION_CONTEXT_AUDIT_MISMATCH")
     dns_pins = [
         e["binding_digest"] for e in events if e["code"] == "OFFLINE_DNS_TRANSACTIONS_COMPLETED"
     ]

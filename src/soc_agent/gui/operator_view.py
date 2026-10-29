@@ -19,6 +19,23 @@ from soc_agent.gui.components import (
 )
 
 
+def continuous_status_line(value):
+    current = value.get("continuous") or {}
+    counts = current.get("metrics") or {}
+    return (
+        f"Continuous {current.get('source', 'NOT_ATTACHED')} · "
+        f"{current.get('state', 'UNKNOWN')} · Collector {current.get('collector', 'UNKNOWN')} · "
+        f"Native live {current.get('collection_live', False)}\n"
+        f"Packets {counts.get('packets', 0)} · Window "
+        f"{current.get('capture_window', {}).get('assessment', {}).get('status', 'UNKNOWN')} · "
+        f"Eligible {counts.get('eligible', 0)} · AI {current.get('worker', 'UNKNOWN')} · "
+        f"Predictions {counts.get('predictions', 0)} · Incidents {counts.get('incidents', 0)}\n"
+        f"Queue {current.get('queue', {})} · Drops {counts.get('queue_dropped', 0)} · "
+        f"Runtime cleanup {current.get('cleanup', 'UNKNOWN')} · "
+        f"Collector cleanup {current.get('collector_cleanup', 'UNKNOWN')}"
+    )
+
+
 def friendly(value):
     if value is None:
         return "Unknown"
@@ -130,6 +147,10 @@ def dashboard(app):
         max_width=1100,
     )
     app.collector_summary.pack(anchor="w", pady=(0, 10))
+    app.continuous_overview = Label(
+        app.content, text="Continuous NOT_ATTACHED", size=11, fg=SECONDARY, max_width=1100
+    )
+    app.continuous_overview.pack(anchor="w", pady=(0, 10))
     app.dashboard_charts = visual_charts.grid(
         app.content,
         (
@@ -194,6 +215,7 @@ def dashboard(app):
 
 
 def render_dashboard(app, value, rows):
+    app.continuous_overview.configure(text=continuous_status_line(value))
     net, collectors = value.get("network", {}), value.get("collectors", {})
     collector = value.get("collector", {})
     metrics = collector.get("metrics", {})
@@ -641,6 +663,7 @@ def render_system(app, value):
         "operational_gate": value.get("operational_gate", "OPERATIONAL_INFERENCE_BLOCKED"),
         "dns9": "BLOCKED_PRODUCER_PARITY_UNVERIFIED",
         "write_policy": "WRITE_DENIED",
+        "continuous": value.get("continuous", {}),
     }
     if value.get("ebpf"):
         details["ebpf"] = value["ebpf"]
@@ -812,4 +835,5 @@ def render_system(app, value):
             + " / "
             + str(ebpf.get("correlation")),
         ]
+    lines += ["", "INDEPENDENT CONTINUOUS SERVICE", continuous_status_line(value)]
     app._text(app.system, "\n".join(lines))

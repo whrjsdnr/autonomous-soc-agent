@@ -38,6 +38,11 @@ def status(directory):
     if value.get("state") in ("RUNNING", "DEGRADED") and value["heartbeat_stale"]:
         value["state"] = "UNKNOWN_STALE_HEARTBEAT"
         value["cleanup"] = "UNVERIFIED_AFTER_SERVICE_LOSS"
+        value["collection_live"] = False
+        # Preserve the last observation, but do not display it as current liveness.
+        value["last_observed_collector"] = value.get("collector", "UNKNOWN")
+        value["last_observed_worker"] = value.get("worker", "UNKNOWN")
+        value["collector"] = value["worker"] = "UNKNOWN_STALE_HEARTBEAT"
     return value
 
 
@@ -51,6 +56,8 @@ def start(directory):
     with exclusive_runtime_lock(directory / "start.lock"):
         with exclusive_runtime_lock(directory / "service.lock"):
             pass
+        if status(directory).get("cleanup", "").startswith("UNVERIFIED"):
+            raise ValueError("CONTINUOUS_UNVERIFIED_CLEANUP_REVIEW_REQUIRED")
         log = os.open(
             directory / "service.log", os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600
         )
