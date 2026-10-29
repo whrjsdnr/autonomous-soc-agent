@@ -169,3 +169,11 @@ Host Authentication 이벤트를 표시하며 Native/Offline/Fixture와 SCRIPTED
 - TCX metadata 자체에는 DNS payload가 없다. 별도 승인된 DNS 수집 경로가 필요하다.
 - DNS9 학습 추출 계약은 INCOMPLETE다. [상세](dns9-training-extraction-status.md)를 참고한다.
 - Host 인증 로그 수집은 연결했지만 Host 인증 IF 모델 추론까지 검증한 것은 아니다.
+
+## Native + DNS 단일 시작 후보
+
+기존 TCX 경로와 별도로 검증된 DNS 메타데이터 수신기를 같은 Runtime의
+시작·상태·Stop·durable 복구·Audit·GUI에 연결했다. 실제1시간 시험은 사용자 지시에 따라 미뤘다.
+[최신 오류 목록·검증·실행 명령](one-command-dns-integration.md)을 참고한다.
+새 DNS Helper의 권한/Target Scope는 다음 정확한 검토 전까지 활성화하지 않는다.
+단일 `start --gui`가 R2 생성·미래 Native 모델 Action·Host 수집·API 권한을 자동 부여하지 않는다.

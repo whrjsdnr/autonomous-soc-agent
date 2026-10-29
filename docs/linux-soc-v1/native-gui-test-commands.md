@@ -155,3 +155,10 @@ Controller 오류를 별도 증거 경로로 표시하고 live/보존/Replay 결
 첫 적격 입력의 RF/LR2·Incident1·Audit·SCRIPTED 조사는 수집 종료 후 분석했다.
 따라서 **1시간 운영/실시간 모델 전체 성공은 아직 미검증**, 판정은 PARTIALLY_VERIFIED다.
 과거 Program1145 UNKNOWN/전역Cleanup UNVERIFIED/FAILED·false 기록은 보존한다.
+
+## DNS 수신기 포함 최신 후보 · 실제 시험은 다음 작업
+
+[DNS 단일 시작 보고서](one-command-dns-integration.md)의 `start-with-dns.sh`가
+기존 `soc-agent start --gui`로 새 전용 profile을 사용한다. 이 후보는 수동 DNS 수집이며
+실제 Query/Response 생성, Native 모델 exact Action, Host Authentication/API 자동 실행은 별도다.
+이전 소비된 Native script/profile을 다시 실행하지 않는다. 현재 실제1시간 시험은 미뤘다.

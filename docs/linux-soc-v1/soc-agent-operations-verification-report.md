@@ -693,3 +693,28 @@ Native6개·Wheel 이중 빌드 일치. 미처리33건은 격리 복사본에서
 고정 감독자의 과거 Policy SHA, Root 실패 종료 코드 전달, 사용자 Stop 오분류를 수정했다.
 과거 5.5368초 Heartbeat 지연의 하위 원인은 여전히 UNKNOWN이며 수신 watchdog은 유지한다.
 Program1145 UNKNOWN·과거 global Cleanup UNVERIFIED·FAILED/false 기록도 유지한다.
+
+## 2026-10-29 DNS 단일 시작 연결 및 최종 오류 수정
+
+사용자 요청에 따라 실제1시간 시험을 다음 작업으로 미뤘다. 이번 작업은 추가 Root/Native/DNS/
+Host Authentication/API 실행 없이 완료했다. 현재 코드·검토 패키지·사용 명령·오류 목록은
+[DNS 단일 시작 통합 보고서](one-command-dns-integration.md)에 정리했다.
+
+운영 수정 `b6b39a0`(DNS durable transaction/Audit/GUI lifecycle, Root 표본 취득 순서),
+`5ed95cf`(Helper의 불필요한 AI import 분리), 테스트 `a94e2f8`, 보관 상한 수정 `51788f5`, 승인·잠금 후 DNS listener 생성 수정 `4c05331`이다.
+최종 독립 Export466 PASS/6 opt-in SKIP/1 deselect, Workspace 집중42 PASS 및 receiver22 PASS,
+최종 byte-budget·승인 전 listener 미생성 집중40 PASS, Controller/R1/R2/Lease104 PASS, 권한 경계만 mock한 고정 coordinator10 PASS다.
+저장 PCAP/실제 RF-LR/운영 CLI/실제 Tk1 PASS(44.84초), 보존 Native의5화면·종료·재연결도 검증했다.
+Native6개/Wheel 이중 빌드 동일, 새로운 격리 Helper Python의 ML 미로딩·의존성 import 통과다.
+최초 회귀 실패와 수정 후 결과를 함께 보존했다. 과거 증거의 SHA는 재발급하지 않았다.
+
+직전 별도 실환경 시험은 Root전체321.0056초/Collector320.5266초, Native40/Window2/
+ELIGIBLE2/Prediction2/Incident1/Drop0/remote STOP ACK VERIFIED/소유 Cleanup VERIFIED였다.
+최초 `ROOT_HEARTBEAT_STALE` 실패와 OS 지연 UNKNOWN을 보존한다. 이 시험을1시간 성공으로
+해석하지 않는다. 당시 조사 SCRIPTED/API0와 과거 실제 API 증거도 혼합하지 않는다.
+
+새 후보는 TCX+App+수동 DNS Helper+GUI를 한 시작 경로로 묶었으나 미승인·미설치·미실행이다.
+DNS 질의 생성·모델 exact Action·Host 인증 수집·외부 API는 별도 권한을 유지한다.
+Host preview의 Source/Lease/Ledger/DNS Scope Binding은 PASS, Target 내부 검사는 실제
+승인 진입 전까지 BLOCKED다. Legacy Ledger81행과 기존 설치·Rollback 불변이다.
+최종 판정은 비권한 준비 완료이며 실제1시간 운영은 PARTIALLY_VERIFIED 상태를 유지한다.
