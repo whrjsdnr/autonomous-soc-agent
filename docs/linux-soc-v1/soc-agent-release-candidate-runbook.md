@@ -3,6 +3,9 @@
 이 절차는 일반 사용자 Replay/보존 결과 시연과, 별도 권한 계약이 필요한 Native Collector를
 구분한다. GUI는 Root로 실행하지 않는다. GUI 종료는 독립 서비스의 Stop이 아니다.
 실제 검증 범위·Git·SHA·제한은 [RC 보고서](soc-agent-release-candidate-report.md)를 따른다.
+2026-10-29 중단 후 재개한 비권한 사전 검증과 1시간 시험의 미승인 Scope는
+[운영 검증 보고서](soc-agent-operations-verification-report.md)에 정리했다.
+현재 설치의240초 제한과 봉인 이후 exact 모델 Action 승인은 계속 유효한 경계다.
 
 ## 모드와 프로세스 소유권
 

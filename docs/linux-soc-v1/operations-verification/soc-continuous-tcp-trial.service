@@ -1,0 +1,22 @@
+[Unit]
+Description=SOC approved fixed local TCP trial (ordinary UID)
+[Service]
+Type=oneshot
+User=1000
+Group=1000
+ExecStart=/usr/bin/python3 -I /usr/lib/soc-agent/continuous-trial/tcp-probe.py
+NetworkNamespacePath=/run/netns/soc-native-b3
+CapabilityBoundingSet=
+AmbientCapabilities=
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+RestrictAddressFamilies=AF_INET
+MemoryMax=64M
+CPUQuota=10%
+TasksMax=4
+TimeoutStartSec=90s
+TimeoutStopSec=5s
+Restart=no
+KillMode=control-group
