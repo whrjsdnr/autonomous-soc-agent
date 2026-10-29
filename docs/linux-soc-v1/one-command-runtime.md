@@ -29,6 +29,10 @@ export SOC_AGENT_HOME="$HOME/.local/state/soc-agent-offline-v1"
 Replay 기본 Queue는 128개로 제한한다. 실제 기본 PCAP burst에서 Queue8은
 Drop106건을 일으켰고, 수정 후 실제 CLI 재검증에서는 Drop0, RF/LR6, Incident3을 확인했다.
 이 검증은 전체 PCAP의 모든 Flow 분석 완료를 의미하지 않는다.
+큰 PCAP 전체를 계속 공급하면 Queue 포화에 따른 Drop이 계측되며,
+기본 Window 보관 상한 512개에 도달하면 `CONTINUOUS_WINDOW_RETENTION_REQUIRES_ARCHIVAL`로
+차단한다. 상한을 자동 확대하거나 오래된 증거를 삭제하지 않는다. 전체 PCAP 무손실 처리나
+무기한 Native 운영 검증으로 해석하지 않는다.
 
 별도 입력은 `setup --replay /absolute/file.pcap --ml-root /absolute/ML`,
 명시적 설정은 `setup --config /absolute/config.json`을 사용한다.
@@ -53,6 +57,9 @@ Namespace, R1, Root Scope와 실제 사용자 TTY·sudo 검증을 재사용한�
 
 `status`는 원자적 observation mirror를 사용하여 SQLite writer와 경합하지 않는다.
 이 mirror는 실행 승인 자료가 아니다. `doctor`는 사전 검증 결과이며 모델 호출이 아니다.
+PCAP 모드는 선택된 RF/LR 모델 SHA 또는 고정 격리 Interpreter 가용성 검사가 실패하면
+Collector/Worker를 Spawn하기 전에 차단한다. Interpreter 가용성 확인만으로 의존성 전체가
+검증되는 것은 아니며, 실제 Worker가 기존 pinned dependency 계약을 다시 검증한다.
 실행 중 중복 Start, 바뀐 Source/설정/실행 파일, 소모된 Native review는 차단한다.
 부분 Start 실패는 자신이 생성한 자식만 회수하고 원래 오류를 보존한다.
 
@@ -60,6 +67,39 @@ Namespace, R1, Root Scope와 실제 사용자 TTY·sudo 검증을 재사용한�
 미승인 모델 입력이나 미처리 Queue는 삭제하지 않고 보존한다. Stop이 모든 보존 입력을
 자동 승인·분석하는 것은 아니다. Root의 STOP ACK와 별도의 Root Audit Cleanup은
 독립적으로 표시한다. 실패한 Cleanup을 정상으로 바꾸지 않는다.
+이미 STOPPED인 경우에도 Cleanup VERIFIED 검증을 생략하지 않는다.
+응답의 `queue_drain=PENDING_RETAINED`, `unprocessed_jobs`, `failed_jobs`를 확인한다.
+이 값은 Queue 완전 처리 여부이며, 로컬 프로세스 Cleanup 성공과 별개다.
+
+## 실제 연결과 지원 범위
+
+콘솔 Entry Point는 `soc_agent.cli:main`이며 여섯 application 명령을
+`soc_agent.agent_cli.main` → `soc_agent.agent_runtime`으로 전달한다.
+
+| 명령 | 실제 Backend | 지원 범위 |
+| --- | --- | --- |
+| setup | AgentProfile / ContinuousConfig / Store.create | private profile·Queue 초기화 또는 기존 Runtime 연결. Root 설치는 수행하지 않음 |
+| start | continuous.cli.start → ContinuousRuntime.run | 독립 일반 사용자 Producer·Queue·AI Worker. Native는 별도 승인된 고정 terminal Entry Point |
+| status | continuous.cli.observed_status | atomic snapshot, Heartbeat·Collector·Worker·Queue·Drop·Window·Prediction·Incident·Cleanup |
+| stop | Store.control → Runtime 종료·소유 자원 회수 | 제한된 종료 대기, 미처리 작업 보존, Cleanup 검증 |
+| gui | gui.__main__.main → production.Desktop → Backend | 저장·실행 Runtime과 검증된 보고서 표시. GUI 종료 시 외부 Runtime 유지 |
+| doctor | profile·Source/코드 SHA·기존 review·모델 SHA 검사 | 읽기 전용 사전 진단. Native 내부 Scope check나 실행 승인·Root 설치를 대신하지 않음 |
+
+Replay의 `start`는 ReplaySource → StreamingFlows / CaptureWindows → Store.enqueue →
+EventQueue → AnalysisService → 기존 offline workflow → RF/LR → Incident·Audit로 연결된다.
+Window는 이벤트 시간·종료/idle 증거에 따라 생성된다. EOF나 Stop만으로 미완성 입력을
+ELIGIBLE로 승격하지 않는다. Native 경로는 TCXProducer와 Window Attestation 및
+별도 모델 Action 승인을 요구한다. Replay 검증을 Native 실환경 검증으로 판정하지 않는다.
+
+실제 PCAP·모델·Tk를 사용하는 명시적 비권한 CLI 통합 검증은 다음과 같다.
+
+```bash
+SOC_RESEARCH_VALIDATION_REPOSITORY=/home/geonug/kdt-linux/autonomous-soc-agent \
+  PYTHONPATH=src:. .venv/bin/python -m pytest tests/agent_cli_checks.py -v
+```
+
+기존 pinned ML workspace와 WSLg DISPLAY가 필요하다. 테스트는 새 private profile과
+자신의 Replay 자식 프로세스만 사용한다. 새 Native Capture·Host 수집·API 호출은 없다.
 
 GUI는 Root를 직접 실행하지 않는다. 최신 완료 보고서를 Audit·원본 Receipt와 대조하여
 AI Analysis에 자동 표시한다. 실측 latency, 조사 단계, assessment, Capture Quality,

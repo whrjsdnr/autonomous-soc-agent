@@ -241,6 +241,15 @@ def doctor(home: Path) -> dict:
                 if model.exists() and sha(model) == spec["sha256"]
                 else "UNAVAILABLE_OR_CHANGED"
             )
+        interpreter = (
+            selected.configuration.ml_root.parent
+            / "autonomous-soc-agent/.security-ai-demo/inference/bin/python"
+        )
+        checks["inference_interpreter"] = dict(
+            path=str(interpreter),
+            executable=interpreter.is_file() and os.access(interpreter, os.X_OK),
+            scope="AVAILABILITY_ONLY_WORKER_VALIDATES_PINNED_DEPENDENCIES",
+        )
     checks["dns9_training_contract"] = inspect_training(selected.configuration.ml_root)
     return dict(status="PREFLIGHT_ONLY_NO_INFERENCE", checks=checks, runtime=status(home))
 
@@ -248,7 +257,7 @@ def doctor(home: Path) -> dict:
 def start(home: Path) -> dict:
     selected = profile(home)
     with exclusive_runtime_lock(home / "application-start.lock"):
-        doctor(home)
+        preflight = doctor(home)
         current = status(home)
         if current.get("state") in {"RUNNING", "DEGRADED", "STOPPING"}:
             raise ValueError("AGENT_ALREADY_RUNNING")
@@ -281,6 +290,15 @@ def start(home: Path) -> dict:
             )
         if Store(selected.runtime).config != selected.configuration:
             raise ValueError("AGENT_AUTHORITATIVE_CONFIG_CHANGED")
+        if selected.configuration.source == "PCAP_REPLAY":
+            checks = preflight["checks"]
+            if not checks.get("inference_interpreter", {}).get("executable"):
+                raise ValueError("AGENT_REPLAY_INTERPRETER_UNAVAILABLE")
+            if any(
+                checks.get("models", {}).get(name) != "VERIFIED_SHA"
+                for name in selected.configuration.profiles
+            ):
+                raise ValueError("AGENT_REPLAY_MODEL_UNAVAILABLE_OR_CHANGED")
         return service.start(selected.runtime) | dict(runtime=status(home))
 
 
@@ -288,7 +306,7 @@ def stop(home: Path, timeout: float | None = None) -> dict:
     selected = profile(home)
     current = status(home)
     if current.get("state") == "STOPPED":
-        return dict(status="ALREADY_STOPPED", runtime=current)
+        return stopped_result(current, already=True)
     if not selected.runtime.exists():
         raise ValueError("AGENT_RUNTIME_NOT_STARTED")
     store = Store(selected.runtime)
@@ -306,11 +324,29 @@ def stop(home: Path, timeout: float | None = None) -> dict:
         ):
             raise ValueError("AGENT_STOP_CLEANUP_UNVERIFIED_EVIDENCE_PRESERVED")
         if current.get("state") == "STOPPED":
-            if current.get("cleanup") != "VERIFIED":
-                raise ValueError("AGENT_STOP_CLEANUP_UNVERIFIED_EVIDENCE_PRESERVED")
-            return dict(status="STOPPED_CLEANUP_VERIFIED", runtime=current)
+            return stopped_result(current)
         time.sleep(0.1)
     raise ValueError("AGENT_STOP_TIMEOUT_EVIDENCE_PRESERVED_NO_RETRY")
+
+
+def stopped_result(current: dict, *, already: bool = False) -> dict:
+    """Idempotent Stop must retain the same cleanup gate and disclose pending work.
+
+    The bounded service stop preserves unprocessed jobs for explicit recovery;
+    local process cleanup does not attest a remote Native STOP acknowledgement.
+    """
+    if current.get("cleanup") != "VERIFIED":
+        raise ValueError("AGENT_STOP_CLEANUP_UNVERIFIED_EVIDENCE_PRESERVED")
+    queue = current.get("queue", {})
+    pending = queue.get("PENDING", 0) + queue.get("CLAIMED", 0)
+    return dict(
+        status="ALREADY_STOPPED" if already else "STOPPED_CLEANUP_VERIFIED",
+        queue_drain="PENDING_RETAINED" if pending else "NO_PENDING_JOBS",
+        unprocessed_jobs=pending,
+        failed_jobs=queue.get("POISON", 0),
+        collector_cleanup=current.get("collector_cleanup", "UNKNOWN"),
+        runtime=current,
+    )
 
 
 def gui(home: Path) -> int:

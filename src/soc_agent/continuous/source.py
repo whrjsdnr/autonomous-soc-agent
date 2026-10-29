@@ -13,6 +13,7 @@ class ReplaySource:
     def __init__(self, config):
         self.config = config
         self.process = None
+        self._close_lock = asyncio.Lock()
 
     async def events(self):
         import hashlib
@@ -74,10 +75,23 @@ class ReplaySource:
             await self.close()
 
     async def close(self):
-        if self.process and self.process.returncode is None:
-            self.process.terminate()
+        # Generator finalization and service shutdown can both close this source.
+        # wait() alone can leave a paused stdout transport open when the producer
+        # was stopped before EOF. Reap AND drain that owned pipe before returning.
+        async with self._close_lock:
+            if self.process is None:
+                return
+            if self.process.returncode is None:
+                try:
+                    self.process.terminate()
+                except ProcessLookupError:
+                    pass  # Child exited between observing returncode and SIGTERM.
             try:
-                await asyncio.wait_for(self.process.wait(), 3)
+                await asyncio.wait_for(self.process.communicate(), 3)
             except TimeoutError:
-                self.process.kill()
-                await self.process.wait()
+                if self.process.returncode is None:
+                    try:
+                        self.process.kill()
+                    except ProcessLookupError:
+                        pass
+                await asyncio.wait_for(self.process.communicate(), 3)

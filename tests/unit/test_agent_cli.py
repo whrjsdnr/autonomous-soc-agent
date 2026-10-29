@@ -115,3 +115,45 @@ def test_application_replay_default_can_retain_bounded_pcap_burst(tmp_path):
     agent_runtime.setup(home, replay=source)
     cfg = agent_runtime.profile(home).configuration
     assert cfg.source == "JSONL_REPLAY" and cfg.queue_capacity == 128
+
+
+@pytest.mark.parametrize("cleanup", ["UNKNOWN", "UNVERIFIED", None])
+def test_idempotent_stop_keeps_cleanup_gate(tmp_path, monkeypatch, cleanup):
+    home, _ = configured(tmp_path)
+    monkeypatch.setattr(agent_runtime, "status", lambda _: dict(state="STOPPED", cleanup=cleanup))
+    with pytest.raises(ValueError, match="STOP_CLEANUP_UNVERIFIED"):
+        agent_runtime.stop(home)
+
+
+@pytest.mark.parametrize("already", [False, True])
+def test_stop_discloses_retained_queue_and_independent_collector_cleanup(already):
+    result = agent_runtime.stopped_result(
+        dict(
+            state="STOPPED",
+            cleanup="VERIFIED",
+            collector_cleanup="UNKNOWN",
+            queue={"PENDING": 3, "CLAIMED": 1, "POISON": 2, "DONE": 5},
+        ),
+        already=already,
+    )
+    assert result["queue_drain"] == "PENDING_RETAINED"
+    assert result["unprocessed_jobs"] == 4 and result["failed_jobs"] == 2
+    assert result["collector_cleanup"] == "UNKNOWN"
+    assert result["status"] == ("ALREADY_STOPPED" if already else "STOPPED_CLEANUP_VERIFIED")
+
+
+@pytest.mark.parametrize("missing", ["interpreter", "model"])
+def test_pcap_missing_dependencies_fail_before_service_start(tmp_path, monkeypatch, missing):
+    source = tmp_path / "input.pcap"
+    source.write_bytes(b"not-parsed-before-admission")
+    home = tmp_path / "app"
+    agent_runtime.setup(home, replay=source)
+    checks = dict(
+        inference_interpreter=dict(executable=missing != "interpreter"),
+        models=dict(quality="VERIFIED_SHA", edge="UNAVAILABLE_OR_CHANGED"),
+    )
+    monkeypatch.setattr(agent_runtime, "doctor", lambda _: dict(checks=checks))
+    monkeypatch.setattr(service, "start", lambda _: pytest.fail("Must fail before spawning"))
+    code = "REPLAY_INTERPRETER_UNAVAILABLE" if missing == "interpreter" else "REPLAY_MODEL"
+    with pytest.raises(ValueError, match=code):
+        agent_runtime.start(home)

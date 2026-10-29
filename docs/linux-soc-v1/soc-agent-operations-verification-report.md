@@ -626,3 +626,30 @@ NoNewPrivs1임을 명시적으로 검증한다. 누락·중복·위조·남은 c
 모델은 실제 봉인 후 별도 exact Action 승인이 필요하다.
 수정본의 실제 실행 여부·결과·새 Source/Artifact/테스트는 같은 증거 경로의
 `identity-recovery/`에 독립적으로 기록한다.
+
+## 2026-10-29 단일 CLI 실제 운영 경로 점검
+
+`feat/one-command-runtime` / `2c81129`의 기존 구현을 재사용했다.
+여섯 명령별 Entry Point·Backend·구현 판정은
+[단일 CLI 검증 보고서](one-command-cli-verification.md)에 정리했다.
+setup/status/stop/gui는 비권한 범위 VERIFIED, start는 Replay E2E VERIFIED 및
+Native 실환경 재시험 미수행으로 PARTIAL, doctor는 Host 읽기 전용 사전 검사 범위 PARTIAL이다.
+
+실제 원본 PCAP의 첫128개 레코드 바이트·시각을 그대로 사용해 운영 CLI로 검증했다.
+Packet70 / Flow36 / ELIGIBLE34 / INCOMPLETE2 / RF·LR6 / Incident·Audit3 / Drop0,
+Collector·Worker STOPPED 및 소유 Cleanup VERIFIED다. API0 / Native0이며 조사 SCRIPTED다.
+PENDING33개를 보존했고 Queue 완전 Drain으로 보고하지 않는다.
+실제 Tk의 Dashboard·Continuous·AI Analysis·Investigation·System을 확인했으며,
+GUI 종료 후 Runtime 유지 및 Stop 후 읽기 전용 재연결을 검증했다.
+
+수정: 중복 stop의 Cleanup 검증 누락, 미처리 Queue 응답 누락,
+PCAP 모델·Interpreter 미준비 상태의 Spawn, Replay 조기 종료의 Pipe Drain 누락.
+Workspace 관련153 PASS 및 실제 CLI/PCAP/Tk 통합1 PASS다.
+5,000-event 회귀는 이번 최초 실행에서 통과했고 최종 회귀에서는 중복 실행하지 않았다.
+큰 PCAP 전체 대기는 기존512 Window 보관 한도로 차단됐으며 그 최초 오류·Cleanup UNVERIFIED
+증거도 보존했다. 전체 PCAP 무손실 완료나 1시간 Native 운영 통과로 해석하지 않는다.
+
+기존 Native360 / ELIGIBLE17 / RF·LR22 / Incident11과 53분28초 PARTIALLY_VERIFIED 판정은
+그대로다. 기존 Ledger81행 및 SHA
+`07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`를 변경하지 않았다.
+실제 Root·Native·DNS·Host 인증 수집·외부 API·서비스 활성화·승인 소비는 수행하지 않았다.
