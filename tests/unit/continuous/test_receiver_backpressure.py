@@ -38,10 +38,13 @@ async def test_slow_projection_keeps_receiving_real_local_transport_heartbeats()
     source.socket = owner
     loop = asyncio.get_running_loop()
     messages = source.messages(loop, POLICY)
+    enough_sent = asyncio.Event()
 
     async def send():
         for i in range(17):
             await loop.sock_sendall(peer, packet(i))
+            if i == 13:
+                enough_sent.set()
             await asyncio.sleep(0.4)
         await loop.sock_sendall(
             peer,
@@ -59,6 +62,14 @@ async def test_slow_projection_keeps_receiving_real_local_transport_heartbeats()
         # receive deadline. The receiver must continue independently.
         await asyncio.to_thread(time.sleep, 6.1)
         assert source.last_message_unix > original + 5
+        # asyncio timers may run late under shared-host model/build load. Require
+        # the actual sender to have emitted the asserted backlog, rather than
+        # inferring its count from 6.1 / 0.4. The transport's 5s timeout and all
+        # freshness/backlog assertions remain unchanged.
+        await asyncio.wait_for(enough_sent.wait(), 3)
+        deadline = loop.time() + 1
+        while source.receiver_queue_depth < 12 and loop.time() < deadline:
+            await asyncio.sleep(0.01)
         assert time.time() - source.last_message_unix < 1
         assert source.receiver_queue_depth >= 12
         rest = [r async for r in messages]
