@@ -148,3 +148,10 @@ def test_offline_pcap_latency_is_visible_without_native_promotion():
     shown = project(dict(continuous=body))
     assert shown["input_origin"] == "OFFLINE_PCAP"
     assert record_series(shown, "latency") == [("recorded-time", 12.5, "quality · OFFLINE_PCAP")]
+
+
+def test_historical_timeout_is_visible_without_rewriting_the_original():
+    body = current() | dict(state="STOPPED", last_error="TimeoutError:")
+    shown = project(dict(continuous=body))
+    assert shown["last_error"] == "CONTINUOUS_SOURCE_TIMEOUT"
+    assert shown["continuous"]["last_error"] == "TimeoutError:"

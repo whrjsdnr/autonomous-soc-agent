@@ -110,6 +110,13 @@ def project(value: dict) -> dict:
                 )
             )
     resources = current.get("resources", {})
+    error = current.get("last_error")
+    if error == "TimeoutError:":
+        # Historical reports used an empty exception message. Keep the raw value
+        # in continuous details; expose the known category in the safe status banner.
+        error = "CONTINUOUS_SOURCE_TIMEOUT"
+    elif isinstance(error, str) and error.startswith("ValueError:"):
+        error = error.removeprefix("ValueError:")
     producer = current.get("producer", {})
     authenticated = (
         native
@@ -149,7 +156,7 @@ def project(value: dict) -> dict:
         collection_live=current.get("collection_live", False),
         session_id=current.get("clock_epoch"),
         input_origin=origin,
-        last_error=current.get("last_error")
+        last_error=error
         or ("CONTINUOUS_CONTROLLER_FAILURE" if current.get("controller_error") else None),
         collectors={
             "network": current.get("collector", "UNKNOWN"),

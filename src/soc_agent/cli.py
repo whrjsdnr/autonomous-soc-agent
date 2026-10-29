@@ -52,6 +52,8 @@ def main(argv=None) -> int:
     sub.add_parser(
         "native-recovery", help="Governed recovery prepare/check/execute; separate grants"
     )
+    for name in ("setup", "status", "stop", "gui", "doctor", "continuous"):
+        sub.add_parser(name, help="Application/service command; use this command's --help")
     start = sub.add_parser("start")
     start.add_argument("--gui", required=True, action="store_true")
     start.add_argument("--monitor", required=True, choices=("total",))
