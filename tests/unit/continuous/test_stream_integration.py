@@ -11,7 +11,7 @@ import pytest
 from tests.unit.continuous.test_runtime import make, window
 
 from soc_agent.continuous.authentication import AuthenticationWindows, normalized, validate_window
-from soc_agent.continuous.native.build import build
+from soc_agent.continuous.native.build import build, verify_object
 from soc_agent.continuous.native.policy import validate
 from soc_agent.continuous.native.service import run as root_run
 from soc_agent.continuous.retention import archive, verify
@@ -69,6 +69,12 @@ def test_tcx_roundtrip_and_monotonic_not_relabelled():
 
 def test_native_build_reproducible_and_no_privileged_entry(tmp_path):
     assert build(tmp_path / "one") == build(tmp_path / "two")
+    # Real userspace libbpf must parse BTF maps; this failed for the old -g0 object.
+    verify_object(tmp_path / "one/continuous.bpf.o")
+    broken = tmp_path / "broken.bpf.o"
+    broken.write_bytes(b"not an ELF object")
+    with pytest.raises(ValueError, match="BPF_OBJECT_PARSE_FAILED"):
+        verify_object(broken)
     with pytest.raises(ValueError, match="INSTALLATION_REQUIRED"):
         root_run()
     lib = ctypes.CDLL(str(tmp_path / "one/provider.so"))

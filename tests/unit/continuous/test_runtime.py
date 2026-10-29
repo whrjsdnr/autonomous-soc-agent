@@ -68,7 +68,11 @@ def test_event_time_witness_and_identity():
     assert validate_window(value.model_copy(update={"identities": (uuid4(),)})) == "INVALID"
 
 
-def test_native_service_requires_separate_unactivated_authority(tmp_path):
+def test_native_service_requires_separate_unactivated_authority(tmp_path, monkeypatch):
+    from soc_agent.continuous.native import policy
+
+    # The test must not depend on whether this workstation has an approved installation.
+    monkeypatch.setattr(policy, "POLICY", tmp_path / "not-installed.json")
     cfg = config(tmp_path).model_copy(update={"source": "NATIVE_SERVICE"})
     with pytest.raises(ValueError, match="NOT_ACTIVATED"):
         require_source_authority(cfg)

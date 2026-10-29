@@ -381,3 +381,68 @@ stat/readlink로 확인했다. Namespace 진입/변경은 하지 않았다. 고�
 실행·중지·복구와 uninstalled user-service unit 설명은
 [Continuous Replay Runtime](continuous-replay-runtime.md)에 있다.
 **Offline DEMO 경로 유지 / Continuous Replay 검증 / Native Continuous NOT_READY**다.
+
+## 2026-10-29 승인된 TCP 제한 시험 — BLOCKED
+
+승인된 기준 `f1d4dc3`와 Source 652개, Runtime, Namespace lease, Ledger 81행,
+고정 Helper/Unit SHA를 자동 대조했다. 사용자 터미널에서 Scope `yes` 및 sudo 인증을
+받은 뒤 고정 파일 설치와 Collector 서비스 시작을 **1회** 시도했다. 자동 재실행하지 않았다.
+증거: 공통 Git 디렉터리 `continuous-tcp-approved-20261029T002200Z/`.
+
+| 실환경 항목 | 결과 |
+|---|---|
+| Namespace 내부 사전 검사 | PASS: `net:[4026532232]`, ifindex 1 / lo UP, 외부 Interface·Route 없음 |
+| Socket Namespace Cookie | Target 8855 / Host 3; 내부 TCP/UDP Socket 목록 비어 있음 |
+| 고정 파일 설치 | Collector 파일·설치 정책·240초 drop-in 및 보충 승인된 Helper/Unit SHA 대조 완료 |
+| 승인된 포트 | 사전 조회에서 18080·18081·18082 미점유; 대체 포트 사용 없음 |
+| Collector | 09:24:42 KST 시작, 09:24:43 종료; 실제 서비스 exit 1 |
+| TCP Helper | Collector READY 전 실패로 시작하지 않음; 연결·요청·응답 모두 0; 35초 간격 검증 미실행 |
+| Packet / Window / ELIGIBLE | 각각 0 / 0 / 0; Attestation 입력 없음 |
+| 실제 Native RF/LR / Prediction / Incident | 각각 0 / 0 / 0; 모델 Action 미발급 |
+| GUI Native 결과 | 제공할 실제 수집·분석 결과 없음; LIVE VERIFIED로 표시하지 않음 |
+| DNS / LLM / DNS9 | 실행 없음; DNS9 INCOMPLETE 보존 |
+| Stop / 소유 자원 | systemctl stop exit 0, 서비스 cgroup 비어 있음, 소유 socket 제거; Root Audit의 SERVICE_STOPPED cleanup VERIFIED |
+| 전역 Kernel 비교 | UNVERIFIED: `/usr/sbin/bpftool`이 현재 WSL Kernel용 실행 파일을 찾지 못해 전·후 조회 모두 exit 2 |
+
+최초 원인은 libbpf의 `BTF is required, but is missing or corrupted`다.
+`Provider.__init__ → continuous_open → bpf_object__open_file`에서 객체 해석이 실패하여
+`CONTINUOUS_TCX_ATTACH_FAILED_NO_RETRY`로 종료했다. 실제 BPF load/attach 성공 증거는 없다.
+바깥 실행기는 `ROOT_SERVICE_EARLY_EXIT`, terminal exit 1로 후속 실패를 별도 보존했다.
+Apport의 `/var/crash` 읽기 전용 오류는 원래 예외 이후 발생한 후속 오류이며, 보안 설정을
+완화하지 않았다. 과거 Program 1145 UNKNOWN·Cleanup UNVERIFIED·FAILED/false는 그대로다.
+
+### 비권한 최소 수정
+
+BPF Source의 BTF `.maps` 선언과 달리 빌더가 `clang -g0`를 사용하여 `.BTF`를 제거했다.
+원래 객체의 libbpf userspace open 실패를 Root·Kernel 호출 없이 재현했다. 빌더만 `-g`와
+고정 debug 경로로 변경하고, 모든 빌드에서 실제 `bpf_object__open_file` 파싱 성공을 요구하도록
+보강했다. 이 검사는 `bpf_object__load`나 TCX attach를 호출하지 않는다. 손상 ELF 거부와
+실제 BTF 객체 파싱을 기존 재현 빌드 회귀에 추가했다. Namespace·권한·트래픽·적격성 계약은
+변경하지 않았다. 설치된 승인본이나 원본 실행 증거를 수정하지 않았다.
+
+수정본 비권한 빌드(미설치):
+
+- Source: `ca4a3f1ad9c45ede054148fb1b6bb38dcc8f2318b57db7fd21ec27ec4d559bfa`
+- BPF object: `408744c24580f4d643a4235cb581409b3ee669092e1a902d99bbf938b3221ac8`
+- Wheel: `f02ea8360130bf32621760c2fea9ae3c16a4e7709eba9bb566bc377a2bc754f6`
+- 독립 Export와 Workspace Native 6/6 SHA 및 Wheel SHA 동일.
+- Provider·Service·Policy·Runtime identity·Unit SHA는 기존 승인본과 동일하다.
+
+Legacy Ledger는 81행 / `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`
+그대로다. 기존 Campaign Root 12·Native 4 / Batch 3 Root 9·Native 1 기록을 환급하거나
+초기화하지 않았다. 이번 별도 Continuous 서비스 시작 시도 1회는 인간 결정·설치 SHA·Root
+Audit·terminal exit에 기록했으며, 이를 Legacy Diagnostic 예약 또는 예산 소비로 가장하지 않았다.
+
+현재 판정은 **BLOCKED**다. 수정본은 userspace 파싱과 빌드만 검증됐으며 Kernel 성공이 아니다.
+다음 시험에는 새 BPF/Source Binding, 미소비 실행 승인, 기존 설치 보존 교체 계획, 정상 TCP
+Scope, 사용자 확인·sudo가 필요하다. 현재 1회 승인을 재사용하거나 자동 재실행하지 않는다.
+실제 봉인 Window와 적격 job이 확보된 후 별도의 exact model Action 승인이 필요하다.
+
+修复回归：Workspace / 独立 Git Export 各 **66 PASS，2 deselected**。范围包含 Capture
+Attestation、模型 Action 拦截、Fixture 实际 RF/LR、Queue/Worker、Transport、Root 服务边界
+及 BTF 用户态解析。未重跑 5,000 事件和 multi-hour 两项长时压力测试，不宣称全量回归。
+首次批次使用过长的证据目录作为 pytest basetemp，Unix socket 测试触发 AF_UNIX 路径上限；
+另一个“未安装”测试依赖本机确实没有安装策略。日志保留，长时批次中止后换短 `/tmp` 路径，
+并将该测试的缺失策略路径显式隔离，原拒绝断言不变。最终双环境上述 66 项全部通过。
+Ruff 全仓检查、Format（1,469 files）、Diff 均通过。新的 BTF 构建与测试均没有 Kernel load、
+权限提升、TCP/DNS 发送或 Native 模型 Action。Fixture 模型测试不计入 Native 成功。

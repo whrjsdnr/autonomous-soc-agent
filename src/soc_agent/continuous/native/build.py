@@ -5,6 +5,26 @@ import subprocess
 from pathlib import Path
 
 
+def verify_object(path: Path) -> None:
+    """Parse BTF map definitions in userspace; never load or attach a BPF program."""
+    import ctypes
+
+    from soc_agent.continuous.native.policy import RUNTIME_FILES
+
+    lib = ctypes.CDLL(str(RUNTIME_FILES["libbpf"]), use_errno=True)
+    lib.bpf_object__open_file.argtypes = [ctypes.c_char_p, ctypes.c_void_p]
+    lib.bpf_object__open_file.restype = ctypes.c_void_p
+    lib.libbpf_get_error.argtypes = [ctypes.c_void_p]
+    lib.libbpf_get_error.restype = ctypes.c_long
+    lib.bpf_object__close.argtypes = [ctypes.c_void_p]
+    lib.bpf_object__close.restype = None
+    obj = lib.bpf_object__open_file(bytes(path), None)
+    if not obj or lib.libbpf_get_error(obj):
+        raise ValueError("CONTINUOUS_BPF_OBJECT_PARSE_FAILED")
+    # bpf_object__load is intentionally absent: parsing requires no Kernel authority.
+    lib.bpf_object__close(obj)
+
+
 def build(directory: Path) -> dict[str, str]:
     directory.mkdir(mode=0o700, parents=True, exist_ok=False)
     root = Path(__file__).parent
@@ -13,7 +33,9 @@ def build(directory: Path) -> dict[str, str]:
         [
             "clang-18",
             "-O2",
-            "-g0",
+            "-g",
+            "-ffile-prefix-map=" + str(root.parents[3]) + "=/soc-agent-source",
+            "-fdebug-compilation-dir=/soc-agent-build",
             "-target",
             "bpf",
             "-D__TARGET_ARCH_x86",
@@ -44,6 +66,7 @@ def build(directory: Path) -> dict[str, str]:
     ]
     for command in commands:
         subprocess.run(command, check=True, capture_output=True, timeout=60)
+    verify_object(directory / "continuous.bpf.o")
     import json
     import shutil
 
