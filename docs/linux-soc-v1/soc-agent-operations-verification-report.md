@@ -450,3 +450,57 @@ DNS·새 API·Host 인증 수집·자동 Kernel 재시작은 포함하지 않는
 1시간 실환경/Streaming 모델 전체/새 Runtime의 정상 Queue drain은 다음 실제 시험에서 확인해야 한다.**
 기존 Native 제한 성공·Offline DEMO_READY는 보존한다. 남은 Program1145 UNKNOWN,
 과거 전역 Cleanup UNVERIFIED, FAILED/false, 연구 모델의 오탐·추출 계약 한계는 해결됐다고 보고하지 않는다.
+
+## 2026-10-29 GUI 최종 확인 및 후속 시작 오류 복구
+
+보존 결과를 실제 Tk GUI에서 다시 검증했다. 지정된 `open-preserved-gui.sh`를 먼저 확인하고
+일반 사용자로 실행했으며, 기존 Dashboard/Security Events/AI Analysis를 사용했다.
+Native metadata40, 보존 RF·LR2, Incident1, 원본 Session/Window/Flow, 모델 SHA와 Audit가
+원본 검증 보고서와 일치했다. 수집 중 분석은0으로 유지하고 보존 분석으로 표시했다.
+SCRIPTED/API0, Runtime/Collector의 원본 소유 Cleanup VERIFIED와 viewer가 외부 분석을
+소유하지 않는다는 상태를 구분한다. 실제 화면 PNG와 결과는
+`.git/final-gui-operations-verification-20261029T061104Z/`에 보존했다.
+
+비권한 preflight에서는 Source654개, Native6개/쌍, Wheel쌍, 고정 Root4개 설정의
+이전/후보 SHA, 현재 Lease/Boot/Runtime, Legacy Ledger81행을 확인했다.
+모델 artifact/schema 읽기 전용 확인은 READY이며 새 추론을 실행하지 않았다.
+관측/GUI projection/실제 고정 coordinator 관측 reader 집중 회귀는19 PASS였다.
+이전 Controller2개 빌드는 Diagnostic compile 증거이며 이번 Continuous 실행 권한이 아니다.
+
+### 사용자 직접 확인 후의 실제 시작 결과
+
+사용자가 새 패키지의 정확한 Scope/R1을 TTY에서 `yes`로 확인하고 sudo를 직접 인증했다.
+새 승인5개 기록, 고정 Root4개 설정의 백업·교체, 내부 Namespace check,
+Collector 시작까지 진행했으나 `ORDINARY_RUNTIME_START`에서 중단됐다.
+
+- 요청 SHA `580bd26902c3717edb743576e82161ad9222046bce7355d27247e81054a292c2`.
+- 최초 실패: `check_process(APP)`의 UID 집합 검사 `AssertionError`, 실제 종료2.
+- 실패 당시 UID 값은 원본 진단에 기록되지 않았으므로 **UNKNOWN**으로 유지한다.
+- Collector 시작부터 최종 정산까지 약0.70085초이며, 일반 Runtime은 NOT_STARTED다.
+- 인증된 Producer READY/TCP/Native metadata/모델/Incident는0, Queue는 비어 있다.
+- 소유 서비스 Stop 명령은0, 소유 Socket은 없음. Namespace/Kernel 전후 증거를 보존했다.
+- 자동 재실행0. 소비된 요청/승인/설치/최초 오류는 수정하지 않는다.
+
+실행 증거는
+`.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/`이다.
+이전348.55초 시험 및 보존 모델2건과 이번 시작 실패를 합쳐 1시간 성공으로 보고하지 않는다.
+
+### 최소 수정
+
+기존 일반 Runtime 후보는 `Type=simple`이었다. 이 시작 계약은 fork 이후 서비스가 active로
+보일 수 있어, `systemctl start` 직후의 `/proc` UID 검사가 exec/credential 준비와 경쟁한다.
+이 **준비 계약의 결함**은 확인됐지만, 원본에 UID 값이 없어 실제 실패가 과도기 Root UID
+때문이었다고 확정하지 않는다. 수정 후보는 `Type=exec`로 실행 파일 exec 이후까지
+서비스 시작 완료를 기다리며 UID1000/Capability0 검사를 그대로 유지한다.
+
+`continuous/process_identity.py`는 UID4개가 모두1000, capability5개가 모두0,
+NoNewPrivs1임을 명시적으로 검증한다. 누락·중복·위조·남은 capability는 차단한다.
+다음 고정 coordinator는 이 동일 validator를 Source SHA로 고정해 포함하고,
+검사 전에 실제 PID/properties/status를 먼저 보존하며, 빈 AssertionError 대신
+명확한 실패 코드를 기록한다. Root 서비스 실행 파일/Capability 확대는 하지 않는다.
+
+사용자가 오류 수정 후 재시도를 지시했으므로 수정본 검증·새 Binding·새 Scope/R1/TTY
+확인을 거쳐 최대1회 재시도한다. 소비된 영수증/Runtime을 재사용하지 않으며
+모델은 실제 봉인 후 별도 exact Action 승인이 필요하다.
+수정본의 실제 실행 여부·결과·새 Source/Artifact/테스트는 같은 증거 경로의
+`identity-recovery/`에 독립적으로 기록한다.
