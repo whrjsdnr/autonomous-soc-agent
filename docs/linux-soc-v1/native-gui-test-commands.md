@@ -1,5 +1,37 @@
 # Native·RF/LR·기존 대시보드 테스트 명령
 
+## 현재 사용 명령 · 2026-10-29 최종 갱신
+
+아래쪽의 `next-native-gui-trial`은 이미 소비된 과거 시험이다.
+그 `run-terminal.sh`를 재실행하지 않는다. 새 실제 Native 시험은 새 검토·인증이 필요하다.
+최신 실제 시험은 Native360 / ELIGIBLE17 / RF·LR22 / Incident11을 확보했지만
+53분대 Timeout으로 종료되어 1시간 운영 통과가 아니다.
+
+현재 보존 결과를 새 CLI로 확인한다. 새 Capture·모델·API 호출 없이 읽는다.
+
+```bash
+cd /home/geonug/kdt-linux/soc-one-command-runtime
+SOC_GUI_PROFILE=/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-gui-operations-verification-20261029T061104Z/identity-recovery/onecommand-native-view
+.venv/bin/soc-agent status --home "$SOC_GUI_PROFILE"
+.venv/bin/soc-agent doctor --home "$SOC_GUI_PROFILE"
+.venv/bin/soc-agent gui --home "$SOC_GUI_PROFILE"
+```
+
+Dashboard / Investigation에서 실측 latency·research assessment·완료된 읽기 전용 조사
+단계를 확인한다. AI Analysis는 최신 검증 보고서를 자동 표시한다. Scripted 조사는
+실제 API 조사로 표시하지 않는다. Authentication은 별도로 승인된 Host journald의
+읽기 전용 Runtime이며, 이번 연결에서 실제 인증 이벤트1건을 확인했다. 해당 Runtime도
+현재 정상 Stop했고 보존 이벤트를 표시한다. Native 시험의 인증 IF 추론은 0회다.
+
+System의 Capture Quality는 마지막 봉인 Window의 own-hook 증거다. Root Audit의
+Cleanup VERIFIED와 Runtime STOP ACK UNKNOWN은 독립적으로 남아 있다.
+DNS는 이번 TCP 전용 시험에서 수집하지 않았다. DNS9 계약은 계속 INCOMPLETE다.
+
+새 Offline profile 시작·중지는 [단일 CLI 사용법](one-command-runtime.md)을 따른다.
+GUI 종료로 외부 Runtime을 중지하지 않는다.
+
+## 과거 시험 기록 · 아래 실행 패키지는 재사용하지 않음
+
 작업 브랜치는 `feat/continuous-runtime`, 작업 경로는
 `/home/geonug/kdt-linux/continuous-soc-runtime`이다. 사용자 main 작업 경로
 `/home/geonug/kdt-linux/autonomous-soc-agent`의 미커밋 변경은 보존했다.

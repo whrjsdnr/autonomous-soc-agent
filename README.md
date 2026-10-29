@@ -1,4 +1,12 @@
 
+### Application CLI · 2026-10-29
+
+The ordinary-user application now provides `soc-agent setup`, `start`, `status`,
+`stop`, `gui`, and `doctor`. Start with the [one-command guide](docs/linux-soc-v1/one-command-runtime.md).
+Existing Native terminal approvals remain mandatory; setup does not grant Root authority.
+The latest one-hour attempt ended after approximately 53 minutes with a receive
+timeout and is **PARTIALLY_VERIFIED**, not a completed one-hour operations test.
+
 ### Release Candidate · 2026-10-29
 
 The bounded Native Continuous test produced real TCX events, an eligible Network14
