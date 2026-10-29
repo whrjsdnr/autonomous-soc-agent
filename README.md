@@ -44,3 +44,8 @@ Closing the GUI leaves this service running. The separate TCX producer/backend i
 blocked pending an administrator-reviewed installation contract and Live validation.
 Native capture attestation and model-action admission remain blocked. Existing
 Native diagnostics and Offline demonstrations are preserved.
+
+Continuous Native sealed-window integration and the retained RF/LR action boundary are
+implemented but remain inactive and Kernel-unverified. See
+[Continuous operations](docs/linux-soc-v1/continuous-runtime-operations.md) for bounded
+window coverage, exact model approvals and the remaining Live validation conditions.

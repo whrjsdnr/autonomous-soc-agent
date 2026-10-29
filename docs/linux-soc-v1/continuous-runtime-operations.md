@@ -65,19 +65,56 @@ owner-bound STOP_CAPTURE command and requires the matching cleanup acknowledgeme
 connection loss alone does not invent verified remote cleanup. The protocol cannot
 execute arbitrary commands or start/replace privileged binaries.
 
-## Native feature status
+## Sealed Native windows and model admission
 
-`NativeWindows` reuses the existing incremental Network14 Window and event ordering
-arithmetic directly on Kernel monotonic ns, with bounded per-flow references and
-30s/120s event-time completion. It never relabels monotonic ns as UTC. Candidates go
-through the incident/audit workflow as UNKNOWN/INCOMPLETE, without a model call.
+The inactive Root service now rotates fresh owned maps after 180 seconds or 4,000
+callbacks. Every capture window retains the actual PRE_ATTACH snapshot, three
+pre-capture clock brackets, detach → final ring consume → POST_DETACH counters,
+three final clock brackets, callback/drop totals and a canonical seal SHA. More than
+4,096 delivered events or 128 possible CPUs is rejected. The per-minute BPF quota
+remains independent. Only its period/admission state is carried into fresh maps;
+rotation cannot reset the admission allowance within the same minute. No Phase D limits or validators were modified.
 
-**The Continuous capture attestation/model-action admission bridge is still not
-implemented.** Root streaming counters alone are not Phase D P02/P03 proof. The
-policy currently rejects Native model inference. Activation plus a Live producer
-check therefore does not by itself complete Native AI E2E; capture-window proof
-and separately governed model-action integration remain required. Do not weaken
-that gate or reuse Diagnostic R1/R2/model receipts to enable it.
+A new window starts only after the prior seal was delivered. There are explicit
+unobserved gaps between detach and the next attach, and flows are **never joined
+across them**. This is bounded owned-hook metadata assurance, not lossless Host
+coverage. Clock drift, unsupported traffic, disabled attempts, drops or incomplete
+per-CPU delivery prevent eligibility. TCP FIN/RST and wall-clock waiting cannot
+replace the existing observed-event 30s/120s timeout witness.
+
+`continuous.capture` recomputes features from retained events, then calls the unchanged
+Phase D `assess_capture` and Network14 input validators. Long process lifetime is not
+one capture window. Seal/session/epoch/namespace/program/policy/install-release digest
+are bound independently. The release identity is the canonical digest of the installed
+file SHA map, not a fabricated Root Release manifest or a Diagnostic receipt.
+
+The retained transcript is durable before analysis handoff. Restart rebuilds the same
+window and queue identity; missing prefixes remain incomplete through counter
+reconciliation. A new epoch abandons partial old evidence without promoting it.
+Duplicate sealed epochs and altered seals fail closed. Retained records remain
+DECLARED_UNATTESTED outside their authenticated Root transport; recomputation alone
+does not authenticate a user-authored Native transcript.
+
+`native_model_inference=false` continues to prohibit the Root collector from running
+models. The ordinary analysis worker uses the **existing exact retained TCX action
+approval**, not collector authority. Eligible Native jobs wait for that approval without
+starting a model subprocess. Incomplete jobs never call a model. The operator can
+prepare the existing `analysis_action(job, output_directory)` approval for the immutable
+job in `inputs/`; the wait audit records the exact action. No approval issuer or new
+approval framework was added.
+
+Optional configuration `native_model_approvals` is an absolute directory of existing
+approved action JSON files named `<job-digest>.json`. The output binding is
+`<runtime>/analysis/run-<job-digest>`. The existing CLI verifies approval SHA, action,
+implementation, expiry and scope before RF/LR execution. An invalid approval fails;
+it does not automatically retry or grant scope to later windows. Repeated unattended
+model authorization beyond that existing contract is not activated by this change.
+
+Source/installation hashes changed: old installation or model action approvals must
+not be reused. **No service installation, policy activation, Kernel operation or Live
+verification has occurred.** Next Live validation requires a fresh human-approved
+service installation/namespace scope and the independent model-action permission.
+DNS traffic requires its separate exact R2 scope; this passive service generates none.
 
 ## Authentication and DNS
 

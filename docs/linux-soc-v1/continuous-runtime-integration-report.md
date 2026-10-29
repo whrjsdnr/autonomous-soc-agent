@@ -1,3 +1,127 @@
+# Continuous Native AI 연결 — 2026-10-29 최종 비권한 통합
+
+**판정: Window Attestation → Native 모델 action admission → RF/LR → Incident·Audit·GUI
+운영 코드 연결 완료. 실제 Kernel/Native Continuous E2E는 미검증·실행 차단 유지.**
+이 판정은 Fixture/Offline 성공이며 LIVE VERIFIED 또는 RELEASE_READY가 아니다.
+운영 코드 Commit: `b7efb09855b8387b47959ab0a4d853dfc8ea5630`,
+Tree: `7941ae00b39aff5b4d2e7e230e984bf84796a720`.
+브랜치 `feat/continuous-runtime`에 이번 변경만 선별 Commit/Push한다.
+이전 보고는 아래에 당시 상태로 보존한다.
+
+## 구현과 검증 경계
+
+`continuous.capture`는 Root가 보낸 봉인 Window와 보존된 이벤트에서 Feature와 입력 영수증을
+다시 계산한다. 기존 Phase D `assess_capture`, `assess_windows`, `input_receipts`,
+`tcx_input`, `VectorRequest`와 RF/LR Adapter를 재사용했다. 기존 Phase D 정책·제한·검증식은
+변경하지 않았다. 새로운 예산/승인 프레임워크나 정책 영수증 발급기는 추가하지 않았다.
+
+Root 서비스는 180초 또는 4,000 callback에서 새 소유 Map Window를 종료한다.
+실제 PRE_ATTACH Counter, 시작 Clock bracket 3개, detach→ring consume→POST_DETACH Counter,
+종료 Clock bracket 3개와 callback/drop 정산을 봉인한다. Window당 최대 4,096 metadata와
+128 possible CPU를 검증한다. BPF의 분당 admission 상태만 다음 Map으로 전달하므로
+Map 교체가 같은 분의 quota를 초기화하지 않는다. Capture Counter는 새 Map의 실제
+조회 결과로 검증하며, 이전 값을 빼서 가짜 zero baseline을 만들지 않는다.
+
+Window 교체 사이에는 관측되지 않는 구간이 있다. 이 경계를 넘는 Flow는 합치지 않는다.
+이 보장은 소유 hook의 지원되는 metadata 범위이며 Host 전체 무손실 수집 보장이 아니다.
+FIN/RST나 wall-clock 대기는 기존 30s/120s 관측 이벤트 timeout witness를 대체하지 않는다.
+부족한 Counter/Clock/epoch/drop/drain/Feature 증거는 INCOMPLETE/UNKNOWN/INVALID로 차단한다.
+
+일반 사용자 Runtime은 Root peer·Namespace·program·policy·epoch·seal을 확인하고,
+원본 transcript를 durable commit한 뒤 모델 Queue로 전달한다. 각 Window/Flow/job/Incident는
+결정적 Identity를 사용한다. Crash 후 같은 transcript를 재구성해 기존 Queue admission을
+재사용한다. 일부 입력만 남은 Window는 Counter 정산을 통과할 수 없으며, 새 epoch에서
+과거 부분 Window를 적격으로 승격하지 않는다. Replay/변조 seal은 거부한다.
+
+Native 모델 호출은 Capture 권한과 분리했다. 적격 Native job도 **기존 exact retained TCX
+model action approval**이 없으면 Worker를 시작하지 않고 대기한다. 승인 파일의 SHA·action·
+Session·Namespace·release identity·implementation·유효기간은 기존 CLI/Executor가 검증한다.
+`native_model_approvals`는 기존 영수증을 읽는 디렉터리이며 발급기가 아니다. 일반 GUI의
+Native 분석 직접 시작 차단은 유지했다. Collector의 `native_model_inference=false`도 유지하며,
+Root 서비스가 모델을 실행하도록 확대하지 않았다. 새 Window에 이전 action 승인을 재사용하지 않는다.
+
+봉인 release identity는 설치 파일 SHA map의 canonical digest다. 기존 Root Release manifest나
+Namespace 정책 영수증으로 가장하지 않는다. 저장 파일의 재계산만으로 OS 진위를 확정하지 않으며,
+retained Native Evidence Envelope는 기존 DECLARED_UNATTESTED 구분을 유지한다.
+
+## 실제 데이터·모델 결과
+
+| 시나리오 | 결과·근거 |
+|---|---|
+| 실제 저장 PCAP, REAL_OFFLINE / REAL_MODEL | 이번 개발의 Continuous CLI 실행에서 Packet 88개, Flow 45개, RF/LR Prediction 6개, NORMAL Incident·Audit 3개 |
+| 봉인 Window, FIXTURE / REAL_MODEL | ELIGIBLE Flow 1개와 INCOMPLETE Flow 1개를 구분; RF/LR Prediction 2개, UNKNOWN_ANOMALY Incident·SCRIPTED 조사·읽기 전용 평가·Audit |
+| 운영 Queue → 분석 subprocess | 같은 Fixture를 실제 Continuous Worker와 CLI에서 처리하고 결과·Audit 재검증 |
+| Native 형태의 합성 증거 / 승인 없음 | Feature 적격성은 독립 심사하되 모델 호출 0개, 기존 action 승인 요구 |
+| 과거 저장 Native 증거 | 9개 후보 중 ELIGIBLE 0개, INCOMPLETE/UNKNOWN 유지, 모델 호출 없음 |
+| 실패 Attestation | Counter gap·ring loss·disabled·clock drift·epoch·drop·partial·baseline·drain·cleanup·schema·namespace·seal 변조 차단 |
+| 복구 | transcript 게시 후 handoff 전 중단, 동일 epoch receiver 재시작, 중복 seal·job·새 epoch 부분 Window 검증 |
+| GUI | 실제 Tk에서 Fixture/Replay origin·domain·eligibility·Prediction·Incident 상세·Audit·종료·재연결 검증 |
+
+PCAP 실행은 후속 Root 종료 오류 보존 보완 전의 처리량/Stop 중도 종료 검증이다.
+후속 변경은 Root 오류 분류/원인 보존에 한정되며 최종 Source 집중 검증으로 확인했다. `38 dropped + 3 DONE + 4 PENDING = 45`
+Window를 계측했고, 남은 입력은 보존했다. 모델 오류 0개, Stop·Cleanup VERIFIED다.
+새 외부 API 호출은 0회이며 새 조사는 SCRIPTED다. 실제 Kernel Event/Live/LLM 성공으로
+표기하지 않는다. DNS9 학습 추출 계약 부족에 따른 차단은 유지했다.
+
+과거 Native 파일 SHA:
+`f1b1e42143ef8be973f2ee16319c18757cdda114dbb7304e9f479d6503147388`
+(`native-stabilization-batch3/approved-runtime-20261027-1/stage/supervised-result.json`).
+그 원본 파일, 기존 FAILED/false/UNKNOWN, 설치·Rollback은 수정하지 않았다.
+
+## 회귀와 재현 빌드
+
+관련 전체 회귀는 Workspace/독립 Export 각각 **314 PASS · GUI 1 FAIL**이었다.
+GUI 실패는 Test Fixture가 새 origin 필드를 전달하지 않았던 원인까지 수정해 별도 재검증했다.
+최종 Source의 **Capture/admission/Root 종료 진단 집중 검증은 양쪽 각각 32 PASS**다.
+이 배치에는 detach 실패와 chained Cleanup 오류가 VERIFIED로 덮이지 않는 검증도 포함된다.
+**최종 실제 Tk GUI는 Workspace/독립 Export 각각 2 PASS**다.
+식별된 실패는 모두 수정 후 해당 경로 재검증을 통과했다. 겹치는 테스트를 합산하지 않는다.
+집중 검증 범위: Window/admission/Unix framing/durable recovery/실제 RF·LR/Root 빌드 경계.
+Root peer·설치 권한·Kernel boundary는 Mock이며 실제 Root/Kernel 테스트가 아니다.
+
+첫 전체 회귀는 Workspace/Export 각각 313 PASS·GUI 1 FAIL이었다. origin 열 추가 후 기존 GUI
+테스트가 domain을 고정 열 0에서 읽던 원인이었다. 열 이름으로 검증하고 Fixture origin 확인을
+추가했다. 추가 origin 확인에서는 기존 Fixture의 누락 필드를 보완했다. 테스트 assertion을 제거하거나 모델·적격성 기준을 완화하지 않았다.
+초기 수집 단계의 동명 test_contracts 충돌은 `--import-mode=importlib`로 실행했다.
+처음의 worktree model backend 경로 누락은 기존 검증용 환경을 명시해 해결했다.
+
+Ruff check·format(1,469 files)·Diff 통과.
+최종 Source Snapshot(652 files):
+`2e8788d43d2236dc5aa70d8da6a9dfb1a8602a3642bb6c9f9fe1dc1838098cb1`.
+Workspace/Export Source 동일. Native 산출물 6/6 및 Wheel byte-identical.
+
+| 산출물 | SHA256 |
+|---|---|
+| Wheel | `905512792be47286ed9a7fe8e317dfcac0058ab5cc4032d04e277d4b64d716f5` |
+| continuous.bpf.o | `a5e249726ac00966679b2b0c9360825e69ec9da64e44cf360d0a1ea608fa7548` |
+| provider.so | `cc66ab23b3d28e32ab3a4f7581b155d1cca704c047d5cc2006ac18fd3557980d` |
+| Root service.py | `5126b0661cce26c8fe527cccff2022d74cb4a3c12695ee1a7ecdc23aa8db6fd6` |
+| policy.py | `cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53` |
+| Runtime identity | `431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb` |
+| Service unit | `df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033` |
+
+모델은 기존 RF/LR 고정 Artifact이며 SHA는 이전 기록과 같다. 새 모델·새 Feature 정의는 없다.
+증거: 공통 Git 디렉터리 `.git/continuous-native-attestation-20261028T234603Z/`.
+최종 Source/build identity, Fixture 결과·Audit, 현재 PCAP 서비스 결과·Audit를 보존했다.
+
+## 실제 Kernel 검증에 필요한 조건
+
+1. 변경된 파일/Source SHA·Runtime·Namespace·lo·capability·자원 제한을 대상으로 한 별도
+   Continuous 서비스 설치/시작 Approved Update. 이전 Diagnostic 영수증은 사용할 수 없다.
+2. 실제 Kernel attach/detach·per-CPU Counter·clock·ring drain·재시작·소유 자원 Cleanup 검증.
+3. 봉인된 적격 Native Window의 기존 action-specific 모델 실행 승인. 이는 자동 발급되지 않는다.
+4. 트래픽을 생성한다면 별도 정확한 R2/Root Scope 승인. 이 서비스는 DNS를 생성하지 않는다.
+
+Continuous Native AI는 코드상 연결됐으나 실환경 E2E VERIFIED는 아니다. 실제 Root·Native·DNS·
+Namespace 진입·Host 인증 로그·API 호출·예약·영수증 소비는 수행하지 않았다.
+Ledger 81행과 SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae` 유지.
+Campaign Root 12/Native 4, Batch 3 Root 9/Native 1 이력과 기존 OBSERVE_ONLY/운영 한도를 보존했다.
+Host `net:[4026531833]`, SOC inode `4026532232`는 비권한 조회만 수행했다.
+
+---
+
+## 이전 통합 이력 (이하 당시 보고 보존)
+
 # Continuous Runtime 장시간 자율 통합 결과 — 2026-10-28
 
 **판정: Offline/저장 증거 기반 통합 검증 완료. Native Continuous AI는 NOT_READY.**
