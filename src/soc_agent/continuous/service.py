@@ -9,7 +9,9 @@ import json
 import os
 import resource
 import time
+from collections.abc import Callable
 from pathlib import Path
+from typing import ParamSpec, TypeVar
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from soc_agent.continuous.models import require_source_authority
@@ -24,6 +26,9 @@ from soc_agent.security_ai.research.environment import read_local
 from soc_agent.security_ai.research.live_input import timestamp_ns
 from soc_agent.security_ai.research.models import digest
 from soc_agent.security_ai.workflow_models import JOB, PacketWindowJob
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class ContinuousRuntime:
@@ -116,6 +121,8 @@ class ContinuousRuntime:
         self.started = time.monotonic()
         self.collector_event_unix = None
         self.worker_observed_unix = None
+        self.storage_lock = asyncio.Lock()
+        self.storage_health = dict(pending=False, last_seconds=None, max_seconds=0.0)
 
     def snapshot(self):
         analysis = self.analysis.snapshot()
@@ -155,7 +162,15 @@ class ContinuousRuntime:
                 pending_events=len(self.capture_windows.events),
                 abandoned_partial=self.capture_windows.abandoned,
             ),
-            producer=getattr(self.source, "snapshot", {}),
+            producer=getattr(self.source, "snapshot", {})
+            | (
+                dict(
+                    receiver_queue_depth=getattr(self.source, "receiver_queue_depth", 0),
+                    receiver_dropped_batches=getattr(self.source, "receiver_dropped_batches", 0),
+                )
+                if self.config.source == "NATIVE_SERVICE"
+                else {}
+            ),
             collector_cleanup=(
                 getattr(self.source, "remote_cleanup", "UNKNOWN")
                 if self.config.source == "NATIVE_SERVICE"
@@ -179,6 +194,7 @@ class ContinuousRuntime:
                 if self.config.source == "NATIVE_SERVICE"
                 else "REPLAY_EVENT_NOT_LIVE_CAPTURE",
                 automatic_kernel_restart=False,
+                storage=dict(self.storage_health),
             ),
             uptime_seconds=time.monotonic() - self.started,
             clock_epoch=str(self.epoch),
@@ -200,8 +216,35 @@ class ContinuousRuntime:
             cleanup="PENDING_SERVICE_STOP",
         )
 
+    async def storage(self, operation: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+        """Keep Native fsync/SQLite work off the authenticated receiver's event loop.
+
+        Serialize writes and join them before declaring cancellation/cleanup. The
+        durable operation and all of its validation remain unchanged.
+        """
+        if self.config.source != "NATIVE_SERVICE":
+            return operation(*args, **kwargs)
+        async with self.storage_lock:
+            started = time.monotonic()
+            self.storage_health.update(
+                pending=True, operation=getattr(operation, "__name__", type(operation).__name__)
+            )
+            pending = asyncio.create_task(asyncio.to_thread(operation, *args, **kwargs))
+            try:
+                return await asyncio.shield(pending)
+            except asyncio.CancelledError:
+                await pending
+                raise
+            finally:
+                elapsed = time.monotonic() - started
+                self.storage_health.update(
+                    pending=False,
+                    last_seconds=elapsed,
+                    max_seconds=max(elapsed, self.storage_health["max_seconds"]),
+                )
+
     async def publish(self):
-        self.store.update(self.snapshot())
+        await self.storage(self.store.update, self.snapshot())
 
     async def handoff(self, job):
         self.metrics["flows"] += int(job.kind == "packet_window")
@@ -223,10 +266,11 @@ class ContinuousRuntime:
             self.metrics["eligible"] += sum(row["eligible"] for row in rows)
             self.metrics["incomplete"] += sum(not row["eligible"] for row in rows)
         try:
-            self.store.enqueue(job)
+            await self.storage(self.store.enqueue, job)
         except QueueFull:
             self.metrics["queue_dropped"] += 1
-            self.store.event(
+            await self.storage(
+                self.store.event,
                 "CONTINUOUS_INFERENCE_QUEUE_FULL",
                 dict(
                     job_digest=digest(job.model_dump(mode="json")),
@@ -307,10 +351,12 @@ class ContinuousRuntime:
             # Commit the exact authenticated Root transcript before window application.
             # Restart replays it through the same decoder; no partial window becomes sealed.
             key = "native-window:" + raw["id"]
-            if self.store.retain_auxiliary(key, raw):
+            if await self.storage(self.store.retain_auxiliary, key, raw):
                 jobs, capture = self.capture_windows.accept(raw)
                 if capture is not None:
-                    self.store.event("CONTINUOUS_CAPTURE_WINDOW_REASSESSED", capture)
+                    await self.storage(
+                        self.store.event, "CONTINUOUS_CAPTURE_WINDOW_REASSESSED", capture
+                    )
                 for job in jobs:
                     await self.handoff(job)
             self.metrics["native_events"] += int(kind == "native_tcx")
@@ -502,7 +548,8 @@ class ContinuousRuntime:
                         )
                     self.metrics["invalid"] += 1
                     self.collector_failures += 1
-                    self.store.event(
+                    await self.storage(
+                        self.store.event,
                         "CONTINUOUS_COLLECTOR_FAILED",
                         dict(
                             attempt=attempt,
@@ -545,7 +592,8 @@ class ContinuousRuntime:
             pin = digest(job.model_dump(mode="json"))
             output = self.analysis.directory / ("run-" + pin)
             action = analysis_action(job, output)
-            self.store.event(
+            await self.storage(
+                self.store.event,
                 "CONTINUOUS_MODEL_APPROVAL_WAIT",
                 dict(job=pin, action=action.model_dump(mode="json")),
             )
@@ -574,7 +622,7 @@ class ContinuousRuntime:
                 self.worker_state = "CIRCUIT_OPEN"
                 await asyncio.sleep(0.1)
                 continue
-            claim = self.store.queue.claim()
+            claim = await self.storage(self.store.queue.claim)
             if claim is None:
                 self.worker_state = "IDLE"
                 await asyncio.sleep(0.05)
@@ -620,7 +668,8 @@ class ContinuousRuntime:
                         )
                     ]
                 )[-32:]
-                self.store.event(
+                await self.storage(
+                    self.store.event,
                     "CONTINUOUS_ANALYSIS_COMPLETED",
                     dict(
                         event=str(claim.event.event_id),
@@ -628,7 +677,8 @@ class ContinuousRuntime:
                         incident=outcome["incident_id"],
                     ),
                 )
-                self.store.queue.finish(
+                await self.storage(
+                    self.store.queue.finish,
                     claim,
                     dict(
                         inference="VERIFIED_RETAINED_EVIDENCE",
@@ -650,11 +700,13 @@ class ContinuousRuntime:
                         )
                     )
                 )
-                self.store.queue.fail(
+                await self.storage(
+                    self.store.queue.fail,
                     claim,
                     "INFERENCE_UNAVAILABLE" if self.approval_wait_cancelled else "WORKER_FAILURE",
                 )
-                self.store.event(
+                await self.storage(
+                    self.store.event,
                     "CONTINUOUS_MODEL_APPROVAL_WAIT_STOPPED"
                     if self.approval_wait_cancelled
                     else "CONTINUOUS_WORKER_CANCELLED_UNKNOWN",
@@ -664,8 +716,9 @@ class ContinuousRuntime:
             except (ValueError, OSError, RuntimeError):
                 self.metrics["model_errors"] += 1
                 self.worker_failures += 1
-                self.store.queue.fail(claim, "WORKER_FAILURE")
-                self.store.event(
+                await self.storage(self.store.queue.fail, claim, "WORKER_FAILURE")
+                await self.storage(
+                    self.store.event,
                     "CONTINUOUS_WORKER_FAILED_NO_RETRY",
                     dict(event=str(claim.event.event_id), failures=self.worker_failures),
                 )
@@ -710,10 +763,12 @@ class ContinuousRuntime:
                 collector = asyncio.create_task(self.collect())
                 consumer = asyncio.create_task(self.consume())
                 while not self.stop.is_set():
-                    current = self.store.state()
+                    current = await self.storage(self.store.state)
                     if current["stop_requested"]:
                         self.stop_reason = "OPERATOR_REQUEST"
-                        self.store.update(self.snapshot() | dict(state="STOPPING"))
+                        await self.storage(
+                            self.store.update, self.snapshot() | dict(state="STOPPING")
+                        )
                         if self.config.source == "NATIVE_SERVICE":
                             await self.source.request_stop()
                         self.stop.set()

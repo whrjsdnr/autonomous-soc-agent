@@ -5,6 +5,7 @@ import ipaddress
 import json
 import socket
 import struct
+import time
 from datetime import UTC, datetime
 from uuid import NAMESPACE_URL, uuid5
 
@@ -141,6 +142,83 @@ class TCXProducer:
         self.sealed_epoch = None
         self.last_message_unix = None
         self.failure = None
+        self.receiver_queue_depth = 0
+        self.receiver_dropped_batches = 0
+
+    async def messages(self, loop, policy):
+        """Receive authenticated bounded envelopes independently of durable projection.
+
+        A slow event consumer must not stop reading quiet control heartbeats.
+        Capacity remains bounded; overflow fails the stream and cannot attest a
+        complete window. No Kernel restart or timeout extension is performed.
+        """
+        queue = asyncio.Queue(maxsize=self.config.queue_capacity)
+
+        async def receive():
+            while True:
+                body = await self.receive_message(loop)
+                if not body:
+                    raise ValueError("CONTINUOUS_PRODUCER_DISCONNECTED")
+                if len(body) > 262144:
+                    raise ValueError("CONTINUOUS_PRODUCER_RECORD_BOUND")
+                raw = json.loads(body)
+                if not isinstance(raw, dict):
+                    raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
+                contract = raw.get("contract")
+                if contract not in ("soc-continuous-tcx:v1", "soc-continuous-tcx-stop:v1"):
+                    raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
+                if raw.get("namespace") != policy["namespace"]:
+                    raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
+                if (
+                    contract == "soc-continuous-tcx-stop:v1"
+                    and raw.get("policy_sha256") != self.config.input_sha256
+                ):
+                    raise ValueError("CONTINUOUS_STOP_ACK_BINDING")
+                if contract == "soc-continuous-tcx:v1" and (
+                    raw.get("ifindex") != 1
+                    or raw.get("program_sha256") != policy["files"]["continuous.bpf.o"]
+                ):
+                    raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
+                # Full sequence/epoch/counter/seal validation still precedes
+                # projection below. This is transport freshness, not admission.
+                self.last_message_unix = time.time()
+                try:
+                    queue.put_nowait(raw)
+                except asyncio.QueueFull as error:
+                    self.receiver_dropped_batches += 1
+                    self.failure = dict(
+                        code="CONTINUOUS_PRODUCER_RECEIVER_QUEUE_FULL",
+                        stage="AUTHENTICATED_ROOT_HANDOFF",
+                        capacity=self.config.queue_capacity,
+                        dropped_batches=self.receiver_dropped_batches,
+                        capture_restarted=False,
+                    )
+                    raise ValueError("CONTINUOUS_PRODUCER_RECEIVER_QUEUE_FULL") from error
+                self.receiver_queue_depth = queue.qsize()
+                if contract == "soc-continuous-tcx-stop:v1":
+                    return
+
+        reader = asyncio.create_task(receive())
+        pending = None
+        try:
+            while True:
+                if reader.done():
+                    reader.result()  # A failure takes precedence over queued partial evidence.
+                    if queue.empty():
+                        return
+                pending = asyncio.create_task(queue.get())
+                await asyncio.wait((pending, reader), return_when=asyncio.FIRST_COMPLETED)
+                if reader.done():
+                    reader.result()
+                raw = await pending
+                pending = None
+                self.receiver_queue_depth = queue.qsize()
+                yield raw
+        finally:
+            if pending is not None:
+                pending.cancel()
+            reader.cancel()
+            await asyncio.gather(reader, *([pending] if pending else []), return_exceptions=True)
 
     async def receive_message(self, loop):
         """Keep the five-second fail-closed deadline and preserve its exact stage."""
@@ -193,14 +271,9 @@ class TCXProducer:
         self.state = "RUNNING"
         sequence = 0
         window_sequence = 0
+        messages = self.messages(loop, policy)
         try:
-            while True:
-                body = await self.receive_message(loop)
-                if not body:
-                    raise ValueError("CONTINUOUS_PRODUCER_DISCONNECTED")
-                if len(body) > 262144:
-                    raise ValueError("CONTINUOUS_PRODUCER_RECORD_BOUND")
-                raw = json.loads(body)
+            async for raw in messages:
                 if raw.get("contract") == "soc-continuous-tcx-stop:v1":
                     if (
                         raw.get("namespace") != policy["namespace"]
@@ -267,9 +340,6 @@ class TCXProducer:
                         raise ValueError("CONTINUOUS_PRODUCER_COUNTER_REGRESSION")
                     self.cpus[cpu] = list(values)
                     self.snapshot["counter_state"] = checked.model_dump(mode="json")
-                import time
-
-                self.last_message_unix = time.time()
                 for frame in raw["frames"]:
                     sequence += 1
                     window_sequence += 1
@@ -312,6 +382,7 @@ class TCXProducer:
                     self.cpus = {}
                     window_sequence = 0
         finally:
+            await messages.aclose()
             await self.close()
 
     async def request_stop(self):
@@ -352,4 +423,6 @@ class TCXProducer:
             state="STOPPED",
             failure=self.failure,
             cleanup=self.remote_cleanup,
+            receiver_queue_depth=self.receiver_queue_depth,
+            receiver_dropped_batches=self.receiver_dropped_batches,
         )

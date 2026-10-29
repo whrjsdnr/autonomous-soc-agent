@@ -2,6 +2,31 @@
 
 ## 최신 보강 · 실제 Native 장시간 시험 준비
 
+### 실제 재시험과 수신 지연 복구
+
+`one-command-native-finalization-20261029T090002Z/native-review-final/execution`에서
+새 TTY Scope/R1 확인·인증 후 실제 Root/TCX를1회 실행했다. Kernel Load/Attach/READY,
+실제 패킷10건은 확인했으나19.36초 전체 실행 중 `ROOT_HEARTBEAT_STALE`로 종료됐다.
+Runtime 후속 오류는 `CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT`, Root 후속 종료는
+peer reset이다. Window 미봉인, ELIGIBLE0/Prediction0/Incident0으로 유지한다.
+Root Audit의 소유 Cleanup은 VERIFIED, 수신 측 STOP ACK는 UNKNOWN이다.
+종료 후 Namespace 검사의 `APPROVED_PORT_BUSY` 때문에 전체 종료 검사 완료를 주장하지 않는다.
+그 당시 Socket state 원문이 없어 TIME_WAIT였다고 확정할 수 없다.
+
+Root Audit에는 실패 직전까지 Heartbeat가 기록됐지만 사용자 Runtime의 마지막 수신
+시각은 오래돼 있었다. 기존 async generator가 Packet의 동기 SQLite/fsync 처리 동안
+다음 제어 메시지를 읽지 못하는 결합을 확인했다. 저장 지연의 하위 OS 원인은 UNKNOWN이다.
+고정 크기32의 별도 인증 메시지 수신 Queue와 Native 저장 전용 직렬 thread 경계를 연결했다.
+증거의 순서·Schema·Counter·Seal 검증, 저장 후 Feature 반영, 원본 SHA 검증은 유지한다.
+Queue 포화는 Drop을 계측하고 fail-closed하며5초 Timeout을 연장하지 않는다.
+취소된 저장 작업도 Join한 후 종료하며 저장 지연·수신 Queue 상태를 관측에 포함한다.
+
+실제 로컬 AF_UNIX 수신에서6.1초 저장 지연 동안 Heartbeat 수신 유지,
+메시지 단절5초 차단, Queue 포화 차단, 취소한 writer Join을 확인했다.
+수신/Stop/Attestation 집중 회귀53 PASS. 앞선 전체 회귀169 PASS/종료 시간1 FAIL은
+그대로 기록하고 해당 종료 경로 단독2 PASS를 별도 보존했다. Assertion·Timeout은 완화하지 않았다.
+수정본 실환경 재시도는 새 Artifact/Scope/R1·직접 TTY 확인을 사용하며 과거 소비된 승인을 재사용하지 않는다.
+
 기준선 `7e37a26`에서 기존 구성 요소를 유지하며 다음 운영 경로를 보강했다.
 
 - `start --preview`: Source·고정 Controller·Config·현재 Ledger·Namespace/Lease·one-shot
