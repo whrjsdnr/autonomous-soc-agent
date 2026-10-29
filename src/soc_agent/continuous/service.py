@@ -56,10 +56,17 @@ class ContinuousRuntime:
         self.auth = AuthenticationWindows(self.config.authentication_packages)
         self.journal = journal_transport
         self.dns_source = dns_source
+        self.dns_session = getattr(dns_source, "session", None)
         if self.config.dns_session and self.dns_source is None:
-            from soc_agent.continuous.dns_source import DNSProducer
+            from soc_agent.continuous.dns_source import inspect
 
-            self.dns_source = DNSProducer(self.config.dns_session, self.config.dns_session_sha256)
+            # Metadata validation is read-only. Allocate the listener only inside
+            # run's authorized, locked cleanup scope, never during construction.
+            self.dns_session = inspect(
+                self.config.dns_session,
+                namespace=self.config.namespace,
+                sha256=self.config.dns_session_sha256,
+            )
         if self.config.journal_replay_file:
             from soc_agent.continuous.journal_transport import JournalTransport, StoredJournalReader
 
@@ -132,8 +139,8 @@ class ContinuousRuntime:
         from soc_agent.security_ai.research.isolated_dns import IsolatedDNS
 
         self.dns = IsolatedDNS(
-            self.dns_source.session.session_id if self.dns_source else self.epoch,
-            max_observations=77312 if self.dns_source else 38656,
+            self.dns_session.session_id if self.dns_session else self.epoch,
+            max_observations=77312 if self.dns_session else 38656,
         )
         self.dns_window = None
         self.dns_sequence = 0
@@ -228,7 +235,12 @@ class ContinuousRuntime:
             dns_transport=(
                 self.dns_source.snapshot
                 if self.dns_source
-                else dict(state="NOT_COLLECTED_IN_THIS_SCOPE", origin="NO_DATA")
+                else dict(
+                    state="WAITING_APPROVED_START"
+                    if self.dns_session
+                    else "NOT_COLLECTED_IN_THIS_SCOPE",
+                    origin="NO_DATA",
+                )
             ),
             dns9="INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
             api="NOT_AUTOMATICALLY_AUTHORIZED",
@@ -822,6 +834,12 @@ class ContinuousRuntime:
             collector = consumer = journal = dns_task = None
             primary = None
             try:
+                if self.config.dns_session and self.dns_source is None:
+                    from soc_agent.continuous.dns_source import DNSProducer
+
+                    self.dns_source = DNSProducer(
+                        self.config.dns_session, self.config.dns_session_sha256
+                    )
                 self.store.control()
                 self.store.queue.recover()
                 self.store.event(

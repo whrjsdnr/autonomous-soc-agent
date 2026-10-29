@@ -61,6 +61,32 @@ def test_dns_policy_does_not_extend_legacy_diagnostic_policy():
         dns_source.DNSPolicy(seconds=3601)
 
 
+@pytest.mark.asyncio
+async def test_authority_denial_never_allocates_dns_listener(tmp_path, monkeypatch):
+    import soc_agent.continuous.service as module
+
+    path, _, pin = prepared(tmp_path)
+    cfg = config(tmp_path).model_copy(
+        update=dict(source="NATIVE_SERVICE", dns_session=path, dns_session_sha256=pin)
+    )
+    directory = tmp_path / "runtime"
+    Store.create(directory, cfg)
+    monkeypatch.setattr(
+        dns_source, "DNSProducer", lambda *_: pytest.fail("listener before authorized run")
+    )
+
+    def deny(_):
+        raise ValueError("SIMULATED_AUTHORITY_DENIED")
+
+    monkeypatch.setattr(module, "require_source_authority", deny)
+    runtime = ContinuousRuntime(directory)
+    assert runtime.dns_source is None
+    assert runtime.snapshot()["dns_transport"]["state"] == "WAITING_APPROVED_START"
+    with pytest.raises(ValueError, match="SIMULATED_AUTHORITY_DENIED"):
+        await runtime.run()
+    assert not (path / "verified-ready.json").exists()
+
+
 def test_helper_import_never_loads_ai_application_or_ml_dependencies():
     root = Path(dns_source.__file__).parents[2]
     probe = f"""
