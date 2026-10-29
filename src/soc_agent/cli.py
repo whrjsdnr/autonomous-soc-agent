@@ -23,6 +23,15 @@ def terminal_authenticate(*, run=None):
 
 def main(argv=None) -> int:
     arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and (
+        arguments[0] in {"setup", "status", "stop", "gui", "doctor"}
+        or arguments[0] == "start"
+        and "--monitor" not in arguments
+        and not any(a.startswith("--monitor=") for a in arguments)
+    ):
+        from soc_agent.agent_cli import main as application_main
+
+        return application_main(arguments)
     if arguments and arguments[0] == "continuous":
         from soc_agent.continuous.cli import main as continuous_main
 

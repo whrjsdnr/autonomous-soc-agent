@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from soc_agent.gui.continuous_projection import project
 from soc_agent.gui.production import event_rows
-from soc_agent.gui.visual_metrics import VisualHistory
+from soc_agent.gui.visual_metrics import VisualHistory, record_series
 
 
 def current():
@@ -77,3 +77,74 @@ def test_retained_model_selection_does_not_increment_live_predictions():
 def test_legacy_dashboard_is_unchanged_without_attachment():
     value = dict(state="LIVE_COLLECTION", research=dict(records=[]))
     assert project(value) is value
+
+
+def test_capture_quality_uses_sealed_counter_evidence_not_queue_or_system_wide_loss():
+    body = current()
+    body["metrics"] |= dict(queue_dropped=7, source_gaps=2)
+    body["producer"] = dict(generation=11)
+    body["capture_window"] = dict(
+        id="window-10",
+        assessment=dict(
+            status="INCOMPLETE",
+            same_epoch=True,
+            counter_reconciliation="RECONCILED",
+            window_evidence=dict(
+                clock=dict(status="VERIFIED", epoch=10),
+                cpus=[
+                    dict(cpu=0, counters=dict(ring_reservation_failures=0)),
+                    dict(cpu=1, counters=dict(ring_reservation_failures=1)),
+                ],
+            ),
+        ),
+    )
+    shown = project(dict(continuous=body))
+    quality = shown["capture_quality"]
+    assert quality["window_id"] == "window-10"
+    assert quality["active_generation"] == 11 and quality["sealed_generation"] == 10
+    assert quality["kernel_wide_drops"] == "UNKNOWN" and quality["owned_ring_loss"] == 1
+    assert quality["queue_drops"] == 7
+    assert shown["network"]["capture_drops"] == 1 and shown["network"]["gap_count"] == 2
+    history = VisualHistory()
+    history.observe(shown, at=1)
+    assert history.samples[-1].values["drops"] == 1
+
+
+def test_missing_sealed_counter_is_not_reported_as_zero_loss():
+    shown = project(dict(continuous=current()))
+    assert shown["capture_quality"]["owned_ring_loss"] is None
+    assert shown["network"]["capture_drops"] is None
+
+
+def test_authentication_scope_and_collection_state_are_not_borrowed_from_network():
+    body = current() | dict(
+        authentication=dict(state="NOT_ATTACHED", events=None),
+        authentication_transport=dict(state="NOT_ATTACHED", source=None),
+    )
+    shown = project(dict(continuous=body))
+    assert shown["authentication"]["runtime_state"] == "NOT_ATTACHED"
+    assert shown["authentication"]["input_origin"] == "NO_DATA"
+    assert "NOT_IN_TCP_TRIAL_SCOPE" in shown["authentication"]["reason"]
+
+
+def test_offline_pcap_latency_is_visible_without_native_promotion():
+    body = current() | dict(
+        source="PCAP_REPLAY",
+        recent_results=[
+            dict(
+                incident_id="offline-incident",
+                origins=["OFFLINE_PCAP"],
+                predictions=[
+                    dict(
+                        model="linux-network14-research-v1-quality_rf",
+                        prediction="CLASS_0",
+                        inference_latency_ms=12.5,
+                        inferred_at="recorded-time",
+                    )
+                ],
+            )
+        ],
+    )
+    shown = project(dict(continuous=body))
+    assert shown["input_origin"] == "OFFLINE_PCAP"
+    assert record_series(shown, "latency") == [("recorded-time", 12.5, "quality · OFFLINE_PCAP")]

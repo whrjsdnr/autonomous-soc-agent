@@ -77,6 +77,7 @@ class ContinuousRuntime:
         self.collector_state = "STOPPED"
         self.worker_state = "STOPPED"
         self.last_error = None
+        self.collector_failure = None
         self.circuit = False
         self.worker_failures = 0
         self.approval_wait_cancelled = False
@@ -159,6 +160,7 @@ class ContinuousRuntime:
                 if self.config.source == "NATIVE_SERVICE"
                 else "NOT_APPLICABLE_REPLAY"
             ),
+            collector_failure=self.collector_failure,
             auth_pending=len(self.auth.records),
             authentication_transport=dict(
                 state=self.journal_state,
@@ -474,13 +476,30 @@ class ContinuousRuntime:
                     self.collector_state = "STOPPED" if self.stop.is_set() else "EOF_NOT_LIVE"
                     break
                 except (ValueError, OSError, RuntimeError) as error:
+                    import traceback
+
                     if self.last_error is None:
                         self.last_error = type(error).__name__ + ":" + str(error)
+                        self.collector_failure = dict(
+                            code=str(error),
+                            category=type(error).__name__,
+                            origin=[
+                                dict(
+                                    file=Path(row.filename).name, function=row.name, line=row.lineno
+                                )
+                                for row in traceback.extract_tb(error.__traceback__)[-8:]
+                            ],
+                        )
                     self.metrics["invalid"] += 1
                     self.collector_failures += 1
                     self.store.event(
                         "CONTINUOUS_COLLECTOR_FAILED",
-                        dict(attempt=attempt, epoch=str(self.epoch), first_error=self.last_error),
+                        dict(
+                            attempt=attempt,
+                            epoch=str(self.epoch),
+                            first_error=self.last_error,
+                            failure=self.collector_failure,
+                        ),
                     )
                     await self.complete(
                         self.aggregator.close("RESTART_GAP"), self.last_event_ns or 0

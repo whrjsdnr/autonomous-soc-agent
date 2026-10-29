@@ -1,0 +1,55 @@
+{
+  "contract": "soc-dns9-training-extraction-review:v1",
+  "status": "INCOMPLETE",
+  "upstream_reference": "https://www.unb.ca/cic/datasets/dns-exf-2021.html",
+  "schema_version": "cic-bell-dns-stateless9-v1",
+  "feature_names": [
+    "FQDN_count",
+    "subdomain_length",
+    "numeric",
+    "entropy",
+    "special",
+    "labels",
+    "labels_max",
+    "labels_average",
+    "len"
+  ],
+  "source_files": {
+    "packages/dns-security-ai/src/dns_security_ai/feature_contract.json": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+    "packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+    "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_ML.ipynb": "16585061430566be3ab70bba30b56872a296db07d1e8f5dbaba303f958c5ca1b",
+    "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_EDA.ipynb": "c767afd549cf0f383338b0d33c2845752c7e09ba4a38fd9de1c4a62fef223225"
+  },
+  "feature_units": {
+    "FQDN_count": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "subdomain_length": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "numeric": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "entropy": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "special": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "labels": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "labels_max": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "labels_average": "UNVERIFIED; upstream dataset feature extraction unavailable",
+    "len": "UNVERIFIED; upstream dataset feature extraction unavailable"
+  },
+  "upstream_extractor": null,
+  "golden_raw_query_feature_pairs": [],
+  "missing": [
+    "ORIGINAL_QUERY_CANONICALIZATION_AND_SUBDOMAIN_RULES",
+    "EXACT_NINE_FEATURE_COMPUTATION_AND_UNITS",
+    "TRAINING_SCALER_MODEL_EXPORT_LINKAGE",
+    "INDEPENDENT_RAW_DNS_TO_NINE_FEATURE_GOLDEN_PAIRS",
+    "CLASS_MAPPING_AND_THRESHOLD_VALIDATION"
+  ],
+  "authority": "RESEARCH_REVIEW_ONLY_NO_INFERENCE_OR_EXECUTION_GRANT",
+  "upstream_documented_semantics": {
+    "FQDN_count": "character count of FQDN",
+    "subdomain_length": "subdomain character count",
+    "numeric": "digit count",
+    "entropy": "query-name symbol entropy, base 2",
+    "special": "special character count; original character set incomplete",
+    "labels": "dot-separated label count",
+    "labels_max": "longest label length",
+    "labels_average": "mean label length",
+    "len": "domain and subdomain length"
+  }
+}

@@ -56,6 +56,18 @@ def event_rows(snapshot, search=""):
         )
         if search.casefold() in str(row).casefold():
             result.append((row, {"collector_event": event}))
+    for event in snapshot.get("authentication", {}).get("recent_events", [])[:16]:
+        row = (
+            event.get("observed_at", "UNKNOWN"),
+            "Authentication event",
+            event.get("result", "UNKNOWN"),
+            "NOT_INFERABLE",
+            "OBSERVED_EVENT_NOT_MODEL_FINDING",
+            event.get("collector", "UNKNOWN"),
+            "READ_ONLY_NO_MODEL_ASSESSMENT",
+        )
+        if search.casefold() in str(row).casefold():
+            result.append((row, {"authentication_event": event}))
     return result
 
 
@@ -385,6 +397,7 @@ class Desktop:
                 "collector": value.get("collector"),
                 "audit": value.get("runtime_audit_integrity"),
                 "origin": value.get("input_origin"),
+                "authentication": value.get("authentication"),
             }
         body = json.dumps(
             projection,
@@ -439,6 +452,14 @@ class Desktop:
                 )
                 return
             record = display_data(original)
+            if "authentication_event" in record:
+                self.detail_title.configure(text="Host authentication · observed event")
+                self._text(
+                    self.detail,
+                    json.dumps(record["authentication_event"], indent=2)
+                    + "\nNo per-event IF prediction. Complete compatible windows are required.",
+                )
+                return
             if "collector_event" in record:
                 self.detail_title.configure(text="Zeek diagnostic · AI BLOCKED")
                 self._text(

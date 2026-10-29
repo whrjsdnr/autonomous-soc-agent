@@ -74,7 +74,12 @@ def render(app, value):
     app.analysis_summary.configure(
         text=(
             f"{state} · {origin_label} / not live capture · "
-            f"Cleanup: {value.get('cleanup', 'NOT_STARTED')}\n"
+            + (
+                "Produced by attached Continuous Runtime · "
+                if value.get("mode") == "ATTACHED_CONTINUOUS_RESULT"
+                else ""
+            )
+            + f"Cleanup: {value.get('cleanup', 'NOT_STARTED')}\n"
             f"Incident: {result.get('incident_id', '—')} · "
             f"{result.get('classification', 'NO_RESULT')} · "
             f"Eligibility: {result.get('eligibility', 'UNKNOWN')}\n"

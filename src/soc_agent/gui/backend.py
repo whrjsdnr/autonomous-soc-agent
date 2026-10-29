@@ -82,6 +82,9 @@ class Backend:
         self.scenario_results = []
         self.analysis_service = None
         self.continuous_directory = config.continuous_directory
+        from soc_agent.gui.result_views import ResultViews
+
+        self.result_views = ResultViews()
 
     def _owner(self, name):
         if name not in self._owners:
@@ -336,6 +339,20 @@ class Backend:
         if self.runtime is not None:
             try:
                 value["authentication"] = await asyncio.to_thread(status, self.runtime)
+                from soc_agent.gui.queries import (
+                    authentication_rows,
+                    investigation_rows,
+                    stored_counts,
+                )
+
+                value["authentication"].update(await asyncio.to_thread(stored_counts, self.runtime))
+                value["authentication"]["findings"] = await asyncio.to_thread(
+                    investigation_rows, self.runtime, 16
+                )
+                value["authentication"]["scope"] = "SEPARATE_READ_ONLY_AUTHENTICATION_RUNTIME"
+                value["authentication"]["recent_events"] = await asyncio.to_thread(
+                    authentication_rows, self.runtime
+                )
             except (OSError, ValueError, sqlite3.Error):
                 value["authentication"] = {"state": "UNKNOWN", "last_error": "STATUS_INVALID"}
         if self.continuous_directory is not None:
@@ -349,6 +366,10 @@ class Backend:
                 }
         if self.analysis_service is not None:
             value["analysis"] = self.analysis_service.snapshot()
+        elif "continuous" in value:
+            attached = self.result_views.analysis(value["continuous"])
+            if attached:
+                value["analysis"] = attached
         if self.config.continuous_execution_evidence and "continuous" in value:
             from soc_agent.security_ai.research.environment import read_local
 
@@ -384,7 +405,8 @@ class Backend:
 
         if self.continuous_directory is None:
             raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
-        return await asyncio.to_thread(observed_status, self.continuous_directory)
+        value = await asyncio.to_thread(observed_status, self.continuous_directory)
+        return await asyncio.to_thread(self.result_views.enrich, self.continuous_directory, value)
 
     async def continuous_start(self):
         from soc_agent.continuous.cli import start

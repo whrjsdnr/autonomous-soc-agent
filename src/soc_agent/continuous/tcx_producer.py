@@ -140,6 +140,28 @@ class TCXProducer:
         self.remote_cleanup = "UNKNOWN"
         self.sealed_epoch = None
         self.last_message_unix = None
+        self.failure = None
+
+    async def receive_message(self, loop):
+        """Keep the five-second fail-closed deadline and preserve its exact stage."""
+        try:
+            return await asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)
+        except TimeoutError as error:
+            import time
+
+            self.failure = dict(
+                code="CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT",
+                stage="AUTHENTICATED_ROOT_RECEIVE",
+                timeout_seconds=5,
+                last_message_unix=self.last_message_unix,
+                last_message_age_seconds=(time.time() - self.last_message_unix)
+                if self.last_message_unix is not None
+                else None,
+                generation=self.epoch,
+                last_sequence=self.last_sequence,
+                capture_restarted=False,
+            )
+            raise ValueError("CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT") from error
 
     async def events(self):
         import os
@@ -173,7 +195,7 @@ class TCXProducer:
         window_sequence = 0
         try:
             while True:
-                body = await asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)
+                body = await self.receive_message(loop)
                 if not body:
                     raise ValueError("CONTINUOUS_PRODUCER_DISCONNECTED")
                 if len(body) > 262144:
@@ -326,3 +348,8 @@ class TCXProducer:
             self.socket.close()
             self.socket = None
         self.state = "STOPPED"
+        self.snapshot = self.snapshot | dict(
+            state="STOPPED",
+            failure=self.failure,
+            cleanup=self.remote_cleanup,
+        )

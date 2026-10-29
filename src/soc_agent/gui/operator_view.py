@@ -3,6 +3,7 @@
 No runtime construction, background task, model load or polling belongs here.
 """
 
+import json
 import tkinter as tk
 from tkinter import ttk
 
@@ -17,6 +18,7 @@ from soc_agent.gui.components import (
     Label,
     color,
 )
+from soc_agent.gui.redaction import display_data
 
 
 def continuous_status_line(value):
@@ -311,13 +313,16 @@ def render_dashboard(app, value, rows):
         f"GUI/controller CPU {cpu:.2f}s" if isinstance(cpu, (float, int)) else "CPU · UNKNOWN",
     )
     auth = value.get("authentication", {})
+    auth_events = auth.get("authentication_events", auth.get("processed_inputs", "UNKNOWN"))
     app.status_cards["Authentication"].update_value(
         value.get("state")
         if value.get("startup_phase")
         else auth.get("runtime_state", "NOT_ATTACHED"),
         "Terminal-authenticated session · Native AI BLOCKED"
         if value.get("startup_phase")
-        else "Retained evidence is not live collection",
+        else auth.get("reason")
+        or f"{auth_events} auth events · "
+        + str(auth.get("collector_state", auth.get("input_origin", "UNVERIFIED"))),
     )
     account = net.get("packet_accounting", {})
 
@@ -406,10 +411,10 @@ def records(app):
                 "READ-ONLY INVESTIGATION TIMELINE"
                 if investigation
                 else "EVENT ASSESSMENT TIMELINE",
-                (("progress", "Checkpoint sequence"),)
+                (("progress", "Recorded checkpoint / completed steps"),)
                 if investigation
                 else (("severity", "Research severity"),),
-                "latest / selected incident checkpoints · no completion percentage"
+                "latest incident · actual recorded steps · no completion percentage"
                 if investigation
                 else "event order · ordinal severity, not calibrated risk",
                 "records",
@@ -553,8 +558,8 @@ def system(app):
             ),
             (
                 "CAPTURE QUALITY",
-                (("drops", "Kernel drops"), ("gaps", "Explicit gaps")),
-                "observed cumulative counts",
+                (("drops", "Reported / scoped ring loss"), ("gaps", "Explicit gaps")),
+                "Continuous: last sealed ring loss / cumulative delivery gaps; system loss UNKNOWN",
             ),
             (
                 "APPROVED RATE / TOKEN BUDGET",
@@ -617,6 +622,14 @@ def render_system(app, value):
         app.system_cards["Helper approval"].update_value(
             net.get("policy_approval", "NOT_PREPARED"), "READY listener required before copy / auth"
         )
+    if value.get("continuous"):
+        scope = value.get("service_scope", {})
+        app.system_cards["Helper approval"].update_value(
+            scope.get("status", "UNVERIFIED"),
+            "Installed service · "
+            + str(scope.get("namespace", "UNKNOWN"))
+            + " · Model Action remains independent",
+        )
     app.system_cards["Audit integrity"].update_value(
         value.get("runtime_audit_integrity", "UNKNOWN"), "Hash chain validation retained"
     )
@@ -663,7 +676,10 @@ def render_system(app, value):
         "cleanup_verified": value.get("cleanup_verified", "UNKNOWN"),
         "finalization_state": value.get("finalization_state", "NOT_OBSERVED"),
         "capture_interface": collector.get("interface", "NOT_OBSERVED"),
-        "capture_integrity": collector.get("capture_integrity", "NOT_OBSERVED"),
+        "capture_integrity": net.get(
+            "capture_integrity", collector.get("capture_integrity", "NOT_OBSERVED")
+        ),
+        "continuous_capture_quality": value.get("capture_quality"),
         "integrity_evidence": value.get("capture_integrity_evidence") or {},
         "preprocessing": value.get("preprocessing") or {},
         "capture_attestation": value.get("capture_attestation") or {},
@@ -688,6 +704,17 @@ def render_system(app, value):
         "write_policy": "WRITE_DENIED",
         "continuous": value.get("continuous", {}),
     }
+    if value.get("continuous"):
+        current = value["continuous"]
+        details.update(
+            collector_type=current.get("source", "UNKNOWN"),
+            collector_health=current.get("collector", "UNKNOWN"),
+            capture_interface=current.get("capture_window", {})
+            .get("assessment", {})
+            .get("source_provenance", {})
+            .get("interface", "UNKNOWN"),
+            cleanup_verified=current.get("collector_cleanup", "PENDING"),
+        )
     if value.get("ebpf"):
         details["ebpf"] = value["ebpf"]
     app.system_details = details
@@ -815,6 +842,12 @@ def render_system(app, value):
         "Budget failure   " + str(details["budget_error"]),
         "",
     ]
+    if value.get("capture_quality"):
+        quality = value["capture_quality"]
+        lines += [
+            "CONTINUOUS CAPTURE QUALITY (LAST SEALED WINDOW)",
+            json.dumps(display_data(quality), ensure_ascii=False, indent=2),
+        ]
     for name in ("quality", "edge"):
         model = models.get(name, {})
         lines.append(

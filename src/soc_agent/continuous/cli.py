@@ -102,15 +102,30 @@ def start(directory):
             )
         finally:
             os.close(log)
-        deadline = time.monotonic() + 10
-        while time.monotonic() < deadline:
-            if proc.poll() is not None:
-                raise ValueError("CONTINUOUS_SERVICE_START_FAILED")
-            current = status(directory)
-            if current.get("service_pid") == proc.pid and not current["heartbeat_stale"]:
-                return dict(status="SERVICE_HEARTBEAT_VERIFIED", pid=proc.pid, mode="CONTINUOUS")
-            time.sleep(0.05)
-        raise ValueError("CONTINUOUS_START_HEALTH_TIMEOUT_REVIEW_REQUIRED")
+        try:
+            deadline = time.monotonic() + 10
+            while time.monotonic() < deadline:
+                if proc.poll() is not None:
+                    raise ValueError("CONTINUOUS_SERVICE_START_FAILED")
+                current = status(directory)
+                if current.get("service_pid") == proc.pid and not current["heartbeat_stale"]:
+                    return dict(
+                        status="SERVICE_HEARTBEAT_VERIFIED", pid=proc.pid, mode="CONTINUOUS"
+                    )
+                time.sleep(0.05)
+            raise ValueError("CONTINUOUS_START_HEALTH_TIMEOUT_REVIEW_REQUIRED")
+        except (ValueError, OSError):
+            # Only the child created above is owned. Never stop another service
+            # or leave this partial start running after reporting failure.
+            if proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=store.config.shutdown_seconds + 5)
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    proc.wait(timeout=5)
+                    store.event("CONTINUOUS_START_FORCED_REAP", {"cleanup": "UNVERIFIED"})
+            raise
 
 
 async def run(directory):

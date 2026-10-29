@@ -123,6 +123,8 @@ def transactions(job: "RawDNSJob") -> dict:
         for k, r in pending.items()
     ]
     model = catalogue()["model"]
+    from soc_agent.security_ai.dns9_contract import inspect_training
+
     result = dict(
         contract="soc-stored-dns-transactions:v1",
         source_sha256=job.source_sha256,
@@ -136,6 +138,7 @@ def transactions(job: "RawDNSJob") -> dict:
         dns9_feature_names=model["feature_names"],
         dns9_feature_contract_digest=model["feature_contract_digest"],
         dns9_model_sha256=model["artifacts"]["model_path"]["sha256"],
+        dns9_training_contract=inspect_training(),
         eligibility="INVALID"
         if any(r["status"] == "INVALID_DNS_MESSAGE" for r in events)
         else "INCOMPLETE",

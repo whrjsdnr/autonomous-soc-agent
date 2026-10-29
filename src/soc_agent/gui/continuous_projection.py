@@ -7,9 +7,37 @@ def project(value: dict) -> dict:
         return value
     metrics = current.get("metrics", {})
     native = current.get("source") == "NATIVE_SERVICE"
-    origin = "REAL_NATIVE" if native else "REPLAY"
+    origin = (
+        "REAL_NATIVE"
+        if native
+        else ("OFFLINE_PCAP" if current.get("source") == "PCAP_REPLAY" else "REPLAY")
+    )
     queue = current.get("queue", {})
     capture = current.get("capture_window", {}).get("assessment", {})
+    window = capture.get("window_evidence", {})
+    cpus = window.get("cpus", [])
+    losses = [row.get("counters", {}).get("ring_reservation_failures") for row in cpus]
+    ring_loss = (
+        sum(losses)
+        if losses and all(type(value) is int and value >= 0 for value in losses)
+        else None
+    )
+    quality = dict(
+        status=capture.get("status", "UNKNOWN"),
+        window_id=current.get("capture_window", {}).get("id"),
+        scope="LAST_SEALED_WINDOW_OWNED_HOOK_NOT_SYSTEM_WIDE",
+        active_generation=current.get("producer", {}).get("generation"),
+        sealed_generation=window.get("clock", {}).get("epoch"),
+        clock=window.get("clock", {}).get("status", "UNKNOWN"),
+        same_epoch=capture.get("same_epoch", "UNKNOWN"),
+        counter_reconciliation=capture.get("counter_reconciliation", "UNKNOWN"),
+        owned_ring_loss=ring_loss,
+        queue_drops=metrics.get("queue_dropped"),
+        source_gaps=metrics.get("source_gaps"),
+        kernel_wide_drops="UNKNOWN",
+        reasons=capture.get("reasons", []),
+        per_cpu=cpus,
+    )
     pending = sum(queue.get(k, 0) for k in ("PENDING", "CLAIMED"))
     outcomes = list(current.get("recent_results", []))
     selected = value.get("analysis", {}).get("result")
@@ -25,6 +53,7 @@ def project(value: dict) -> dict:
                 classification=selected["classification"],
                 predictions=selected.get("predictions", []),
                 investigation=selected.get("investigation_status", "UNKNOWN"),
+                investigation_detail=selected.get("investigation_detail", {}),
                 output=value["analysis"].get("output"),
                 audit="VERIFIED",
                 retained_selection=True,
@@ -43,7 +72,13 @@ def project(value: dict) -> dict:
                 else model
             )
             model_state = models.setdefault(
-                profile, dict(state="VERIFIED_RETAINED_RESULT", successful=0)
+                profile,
+                dict(
+                    state="VERIFIED_RETAINED_RESULT"
+                    if outcome.get("retained_selection")
+                    else "VERIFIED_CONTINUOUS_RESULT",
+                    successful=0,
+                ),
             )
             model_state["successful"] += 1
             # A GUI view is explicitly not a replacement for the original model receipt.
@@ -54,7 +89,8 @@ def project(value: dict) -> dict:
                 origin=", ".join(outcome.get("origins", [])),
                 prediction=prediction["prediction"],
                 score=prediction.get("score"),
-                inferred_at="UNKNOWN",
+                inferred_at=prediction.get("inferred_at", "UNKNOWN"),
+                inference_latency_ms=prediction.get("inference_latency_ms"),
                 model_artifact_sha256=prediction.get("model_artifact_sha256"),
                 feature_fingerprint=prediction.get("feature_fingerprint"),
                 flow_id=prediction.get("flow_id"),
@@ -64,14 +100,51 @@ def project(value: dict) -> dict:
                 dict(
                     receipt=receipt,
                     status="COMPLETE",
-                    advisory_current="RETAINED_ADVISORY_NOT_CONFIRMED_ATTACK",
-                    investigation=dict(status=outcome.get("investigation", "UNKNOWN")),
+                    advisory_current="RETAINED_ADVISORY_NOT_CONFIRMED_ATTACK"
+                    if outcome.get("retained_selection")
+                    else "CONTINUOUS_ADVISORY_NOT_CONFIRMED_ATTACK",
+                    investigation=outcome.get("investigation_detail")
+                    or dict(status=outcome.get("investigation", "UNKNOWN")),
                     analysis_output=outcome.get("output"),
                     incident_id=outcome["incident_id"],
                 )
             )
     resources = current.get("resources", {})
+    producer = current.get("producer", {})
+    authenticated = (
+        native
+        and current.get("source_assurance") == "ROOT_INSTALLED_PASSIVE_TCX"
+        and bool(producer.get("policy_sha256"))
+        and producer.get("policy_sha256")
+        == capture.get("source_provenance", {}).get("approval_digest")
+    )
+    attached = value.get("authentication", {})
+    authentication = dict(
+        attached if attached.get("runtime_state") else current.get("authentication", {})
+    )
+    transport = current.get("authentication_transport", {})
+    if authentication.get("state") == "NOT_ATTACHED":
+        authentication.update(
+            runtime_state="NOT_ATTACHED",
+            reason="HOST_AUTHENTICATION_COLLECTION_NOT_IN_TCP_TRIAL_SCOPE"
+            if native
+            else "NO_AUTHENTICATION_RUNTIME_OR_JOURNAL_REPLAY_CONFIGURED",
+            input_origin="NO_DATA",
+        )
+    else:
+        authentication.setdefault("runtime_state", authentication.get("state", "UNKNOWN"))
+    authentication["transport"] = transport
+    authentication["processed_inputs"] = metrics.get("authentication_inputs")
     return value | dict(
+        capture_quality=quality,
+        service_scope=dict(
+            status="AUTHENTICATED_SERVICE_SCOPE_OBSERVED" if authenticated else "UNVERIFIED",
+            policy_sha256=producer.get("policy_sha256"),
+            namespace=producer.get("namespace"),
+            interface=capture.get("source_provenance", {}).get("interface"),
+            authority="DISPLAY_ONLY_NOT_A_NEW_EXECUTION_OR_MODEL_GRANT",
+        ),
+        authentication=authentication,
         state=current.get("state", "UNKNOWN"),
         collection_live=current.get("collection_live", False),
         session_id=current.get("clock_epoch"),
@@ -93,6 +166,9 @@ def project(value: dict) -> dict:
             else metrics.get("received"),
             inference_count=metrics.get("predictions"),
             capture_uptime_seconds=current.get("uptime_seconds"),
+            capture_drops=ring_loss,
+            gap_count=metrics.get("source_gaps"),
+            capture_drop_scope="LAST_SEALED_WINDOW_OWNED_RING_ONLY",
             capture_integrity=capture.get("status", "UNKNOWN"),
             integrity_state=capture.get("status", "UNKNOWN"),
             queue_backlog=pending,

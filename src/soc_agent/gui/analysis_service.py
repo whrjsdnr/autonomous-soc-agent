@@ -43,6 +43,8 @@ def project_result(result: AnalysisOutcome) -> dict:
                 prediction=r.prediction,
                 score=r.score,
                 score_semantics=r.score_semantics,
+                inferred_at=r.inferred_at.isoformat(),
+                inference_latency_ms=r.latency_ms,
                 model_artifact_sha256=r.artifact_digest,
                 feature_fingerprint=r.feature_fingerprint,
                 flow_id=r.event_identity,
@@ -53,10 +55,35 @@ def project_result(result: AnalysisOutcome) -> dict:
         llm_mode=result.llm_mode,
         external_provider_calls=result.external_provider_calls,
         investigation_status=(result.investigation or {}).get("status", "NOT_REQUESTED"),
+        investigation_detail=investigation_view(result),
         response_status=(result.response or {}).get("postcondition", "NOT_REQUESTED"),
         audit="VERIFIED",
         capture_started_by_gui=False,
         detail=result.model_dump(mode="json"),
+    )
+
+
+def investigation_view(result: AnalysisOutcome) -> dict:
+    """Keep recorded assessment and completed steps, without synthesizing checkpoints."""
+    source = result.investigation or {}
+    assessment = source.get("assessment") or {}
+    completed = source.get("result") or {}
+    plan = completed.get("plan") or source.get("plan") or {}
+    return dict(
+        incident_id=str(result.incident_id),
+        status=source.get("status", "NOT_REQUESTED"),
+        llm_mode=result.llm_mode,
+        external_provider_calls=result.external_provider_calls,
+        assessment={"threat_assessment": assessment.get("threat_assessment", {})},
+        plan={
+            "goal": plan.get("goal"),
+            "steps": [
+                {key: step.get(key) for key in ("step_id", "tool_name", "status", "evidence_id")}
+                for step in plan.get("steps", [])[:16]
+            ],
+        },
+        timeline=source.get("timeline"),
+        unresolved=source.get("unresolved", []),
     )
 
 

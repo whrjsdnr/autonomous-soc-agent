@@ -152,10 +152,20 @@ def record_series(snapshot: dict, metric: str) -> list[tuple[str, float | None, 
             and receipt["capture_session"] != snapshot["session_id"]
         ):
             continue
-        if receipt.get("origin") and snapshot.get("input_origin") not in (
-            None,
-            "NO_DATA",
-            receipt["origin"],
+        replay_record = (
+            snapshot.get("input_origin") == "REPLAY"
+            and snapshot.get("continuous", {}).get("source") == "JSONL_REPLAY"
+            and receipt.get("origin") in {"FIXTURE", "DECLARED_STORED_RECORDS", "OFFLINE_PCAP"}
+        )
+        if (
+            not replay_record
+            and receipt.get("origin")
+            and snapshot.get("input_origin")
+            not in (
+                None,
+                "NO_DATA",
+                receipt["origin"],
+            )
         ):
             continue
         # Preserve revoked provenance visually; never display it as healthy model output.
@@ -194,4 +204,19 @@ def record_series(snapshot: dict, metric: str) -> list[tuple[str, float | None, 
                         str(result.get("reason", "UNKNOWN")),
                     )
                 )
+            if not entries:
+                # Persisted workflow reports record completed plan steps rather than
+                # checkpoint sequences. Show observed completed-step count explicitly.
+                completed = 0
+                for step in (investigation.get("plan") or {}).get("steps", [])[:16]:
+                    completed += step.get("status") == "completed"
+                    points.append(
+                        (
+                            str(step.get("step_id", "UNKNOWN"))[:8],
+                            float(completed),
+                            str(step.get("tool_name", "UNKNOWN"))
+                            + " · "
+                            + str(step.get("status", "UNKNOWN")),
+                        )
+                    )
     return points[-64:]

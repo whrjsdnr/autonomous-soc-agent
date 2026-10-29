@@ -98,6 +98,39 @@ def stored_counts(directory: Path) -> dict:
     }
 
 
+def authentication_rows(directory: Path, limit: int = 16) -> list[dict]:
+    """Bounded pseudonymous authentication events, separate from model findings."""
+    from soc_agent.security_ai.operational.source_records import AuthenticationSource
+
+    if type(limit) is not int or not 1 <= limit <= 64:
+        raise ValueError("VIEW_LIMIT")
+    store = RuntimeStore(directory)
+    pipeline = open_pipeline(directory, store.config)
+    with pipeline.store.database.transaction(write=False) as c:
+        rows = c.execute(
+            "SELECT payload FROM operational_sources WHERE incident_id=? "
+            "AND status='ACCEPTED' AND json_extract(payload,'$.kind')='authentication' "
+            "ORDER BY rowid DESC LIMIT ?",
+            (str(store.config.incident_id), limit),
+        ).fetchall()
+    result = []
+    for row in rows:
+        source = AuthenticationSource.model_validate_json(row[0])
+        pipeline.store.load(source, expected_incident=store.config.incident_id)
+        result.append(
+            dict(
+                event_id=source.event.event_id,
+                observed_at=source.event.event_time.isoformat(),
+                result=source.event.authentication_result,
+                collector=source.header.collector_id,
+                source_assurance=source.header.source_assurance,
+                source_digest=source.content_digest,
+                inference="NOT_INFERABLE_EVENT_ONLY",
+            )
+        )
+    return result
+
+
 def approval_rows(directory: Path, restricted: bool) -> list[dict]:
     from soc_agent.linux_runtime.operator import view
     from soc_agent.linux_runtime.response_simulation import RuntimeResponseSimulation
