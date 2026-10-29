@@ -30,7 +30,14 @@ from soc_agent.security_ai.operational.network_capture.stream_session import Rat
 from soc_agent.security_ai.research.models import digest
 
 
-def run(directory: Path, approved_digest: str, *, session_loader=None, dns_metadata=False):
+def run(
+    directory: Path,
+    approved_digest: str,
+    *,
+    session_loader=None,
+    dns_metadata=False,
+    packet_filter=None,
+):
     check_privileges()  # Reject before constructing/opening any AF_PACKET socket.
     session = (session_loader or load)(directory)
     if digest(session.model_dump(mode="json")) != approved_digest:
@@ -154,7 +161,7 @@ def run(directory: Path, approved_digest: str, *, session_loader=None, dns_metad
             )
             require_counters(stats)
             # Never forward this interval's packet before its counters pass.
-            if packet is not None:
+            if packet is not None and (packet_filter is None or packet_filter(packet)):
                 sent += 1
                 send(
                     "PACKET",

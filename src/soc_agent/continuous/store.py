@@ -110,6 +110,22 @@ class Store:
             c.execute("INSERT INTO continuous_seen VALUES(?,?)", (identity, digest(body)))
         return False
 
+    def event_once(self, code, details):
+        """Idempotent recovered projection and Audit in one existing transaction."""
+        with self.database.transaction() as c:
+            validate_audit(c)
+            pin = digest(details)
+            present = c.execute(
+                "SELECT payload FROM continuous_details WHERE digest=?", (pin,)
+            ).fetchone()
+            if present is not None:
+                if digest(json.loads(present["payload"])) != pin:
+                    raise ValueError("CONTINUOUS_AUDIT_DETAIL_CHANGED")
+                return False
+            c.execute("INSERT INTO continuous_details VALUES(?,?)", (pin, json.dumps(details)))
+            audit(c, code, binding_digest=pin)
+            return True
+
     def update(self, value):
         with self.database.transaction() as c:
             c.execute(

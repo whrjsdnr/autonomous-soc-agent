@@ -74,6 +74,7 @@ def validate_peer(channel, ready: Message, session: Session, directory: Path, *,
         "soc_agent.security_ai.operational.network_capture.stream_helper",
         "soc_agent.security_ai.operational.network_capture.total_helper",
         "soc_agent.security_ai.operational.network_capture.calibrated_helper",
+        "soc_agent.continuous.dns_helper",
     }:
         raise CaptureUnavailable("HELPER_MODULE_NOT_ALLOWLISTED")
     pid, uid, gid = struct.unpack(

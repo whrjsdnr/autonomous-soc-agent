@@ -192,6 +192,27 @@ def collect(selected, basic, artifact_error=None) -> dict:
         ),
     ).model_dump()
     checks["api_provider"] = checked(api_settings)
+    if selected.configuration.dns_session:
+        from soc_agent.continuous.dns_source import inspect
+
+        checks["dns_metadata"] = checked(
+            lambda: dict(
+                session=str(
+                    inspect(
+                        selected.configuration.dns_session,
+                        namespace=selected.configuration.namespace,
+                        sha256=selected.configuration.dns_session_sha256,
+                    ).session_id
+                ),
+                capture_started=False,
+                helper_authority="SEPARATE_REVIEWED_ROOT_LAUNCH_REQUIRED",
+                dns9="INCOMPLETE",
+            )
+        )
+    else:
+        checks["dns_metadata"] = Check(
+            status="WARN", code="DNS_NOT_CONFIGURED_NO_CAPTURE"
+        ).model_dump()
     if selected.configuration.source == "NATIVE_SERVICE":
         checks["native_plan"] = checked(lambda: validate_plan(selected), failure="BLOCKED")
     else:

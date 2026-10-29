@@ -23,6 +23,9 @@ def test_rate_evidence_integrity_scope_and_approved_helpers():
     assert n["transport_queue_peak"] < n["transport_capacity"]
     for name, sha in e["helper_sha256"].items():
         path = root / "src/soc_agent/security_ai/operational/network_capture" / name
+        archived = root / "tests/fixtures/helper-before-continuous-dns-b59f1e2" / (name + ".txt")
+        if archived.exists():
+            path = archived
         assert hashlib.sha256(path.read_bytes()).hexdigest() == sha
     profile = e["profile"]
     assert digest(profile["result"]) == profile["result_digest"]

@@ -68,6 +68,18 @@ def event_rows(snapshot, search=""):
         )
         if search.casefold() in str(row).casefold():
             result.append((row, {"authentication_event": event}))
+    for event in snapshot.get("dns", {}).get("recent_events", [])[-32:]:
+        row = (
+            event.get("event_ns", "UNKNOWN"),
+            "DNS transaction",
+            event.get("status", "UNKNOWN"),
+            "NOT_INFERABLE",
+            "DNS_METADATA_DIAGNOSTIC_ONLY",
+            snapshot.get("dns", {}).get("transport", {}).get("origin", "REPLAY"),
+            "DNS9_TRAINING_CONTRACT_BLOCKED",
+        )
+        if search.casefold() in str(row).casefold():
+            result.append((row, {"dns_event": event}))
     return result
 
 
@@ -398,6 +410,7 @@ class Desktop:
                 "audit": value.get("runtime_audit_integrity"),
                 "origin": value.get("input_origin"),
                 "authentication": value.get("authentication"),
+                "dns": value.get("dns"),
             }
         body = json.dumps(
             projection,
@@ -452,6 +465,14 @@ class Desktop:
                 )
                 return
             record = display_data(original)
+            if "dns_event" in record:
+                self.detail_title.configure(text="DNS metadata · transaction evidence")
+                self._text(
+                    self.detail,
+                    json.dumps(record["dns_event"], indent=2)
+                    + "\nDNS9 inference BLOCKED: training extraction contract incomplete.",
+                )
+                return
             if "authentication_event" in record:
                 self.detail_title.configure(text="Host authentication · observed event")
                 self._text(

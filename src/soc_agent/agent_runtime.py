@@ -195,14 +195,16 @@ def status(home: Path) -> dict:
     mirror = selected.runtime / "observation.json"
     if mirror.exists():
         record = json.loads(read_local(mirror, 262144))
-        if record.get("configuration") != selected.configuration.model_dump(mode="json"):
+        if ContinuousConfig.model_validate(record.get("configuration")) != selected.configuration:
             raise ValueError("AGENT_RUNTIME_CONFIGURATION_CHANGED")
     current = service.observed_status(selected.runtime)
     if current.get("source", selected.configuration.source) != selected.configuration.source:
         raise ValueError("AGENT_RUNTIME_SOURCE_CHANGED")
     return current | dict(
         runtime=str(selected.runtime),
-        dns_collection="NOT_COLLECTED_IN_NATIVE_TCP_TRIAL"
+        dns_collection=current.get("dns_transport", {}).get(
+            "state", "NOT_COLLECTED_IN_NATIVE_TCP_TRIAL"
+        )
         if selected.configuration.source == "NATIVE_SERVICE"
         else "INPUT_DEPENDENT",
         dns9="INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",

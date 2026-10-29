@@ -31,19 +31,33 @@ def test_frozen_source_and_bundle_integrity(evidence):
         "src/soc_agent/gui/live_view.py": "live-view.txt",
         "src/soc_agent/security_ai/research/stream_service.py": "stream-service.txt",
     }
+    archived = ROOT / "tests/fixtures/helper-before-continuous-dns-b59f1e2"
+    historical_helpers = {"helper_transport.py", "calibrated-helper-manifest.json"}
     for name, expected in evidence["source_files_sha256"].items():
         path = (
             ROOT / "tests/fixtures/calibration-89a7989" / historical[name]
             if name in historical
             else ROOT / name
         )
+        if Path(name).name in historical_helpers:
+            path = archived / (Path(name).name + ".txt")
         assert hashlib.sha256(path.read_bytes()).hexdigest() == expected, name
-    reviewed = calibrated_session.verify_bundle()
+    reviewed = json.loads((archived / "calibrated-helper-manifest.json.txt").read_text())
+    for name, pin in reviewed.items():
+        path = archived / (name + ".txt")
+        if not path.exists():
+            path = ROOT / "src/soc_agent/security_ai/operational/network_capture" / name
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == pin, name
     assert evidence["helper"]["bundle_files"] == reviewed
     assert evidence["helper"]["bundle_digest"] == digest(reviewed)
     assert evidence["helper"]["sha256"] == reviewed["calibrated_helper.py"]
-    assert digest(total_session.verify_bundle()) == (
+    assert digest(json.loads((archived / "total-helper-manifest.json.txt").read_text())) == (
         "e26057b77534b552701826dd1c4d6829e76d94fcfc0bb8c263fd661f2038ac0f"
+    )
+    # New source still passes its own manifest; historical approval does not bind it.
+    assert calibrated_session.verify_bundle() != reviewed
+    assert total_session.verify_bundle() != json.loads(
+        (archived / "total-helper-manifest.json.txt").read_text()
     )
 
 

@@ -32,7 +32,15 @@ T = TypeVar("T")
 
 
 class ContinuousRuntime:
-    def __init__(self, directory: Path, *, source=None, analysis=None, journal_transport=None):
+    def __init__(
+        self,
+        directory: Path,
+        *,
+        source=None,
+        analysis=None,
+        journal_transport=None,
+        dns_source=None,
+    ):
         self.directory = directory
         self.store = Store(directory)
         self.store.require_streaming_schema()
@@ -47,6 +55,11 @@ class ContinuousRuntime:
         )
         self.auth = AuthenticationWindows(self.config.authentication_packages)
         self.journal = journal_transport
+        self.dns_source = dns_source
+        if self.config.dns_session and self.dns_source is None:
+            from soc_agent.continuous.dns_source import DNSProducer
+
+            self.dns_source = DNSProducer(self.config.dns_session, self.config.dns_session_sha256)
         if self.config.journal_replay_file:
             from soc_agent.continuous.journal_transport import JournalTransport, StoredJournalReader
 
@@ -116,8 +129,12 @@ class ContinuousRuntime:
         self.output = None
         from soc_agent.security_ai.research.isolated_dns import IsolatedDNS
 
-        self.dns = IsolatedDNS(self.epoch)
+        self.dns = IsolatedDNS(
+            self.dns_source.session.session_id if self.dns_source else self.epoch,
+            max_observations=77312 if self.dns_source else 38656,
+        )
         self.dns_window = None
+        self.dns_sequence = 0
         self.started = time.monotonic()
         self.collector_event_unix = None
         self.worker_observed_unix = None
@@ -206,6 +223,11 @@ class ContinuousRuntime:
             analysis=analysis,
             recent_results=list(self.last_results),
             dns=self.dns.snapshot(),
+            dns_transport=(
+                self.dns_source.snapshot
+                if self.dns_source
+                else dict(state="NOT_COLLECTED_IN_THIS_SCOPE", origin="NO_DATA")
+            ),
             dns9="INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
             api="NOT_AUTOMATICALLY_AUTHORIZED",
             audit="VERIFIED",
@@ -466,6 +488,61 @@ class ContinuousRuntime:
         else:
             raise ValueError("CONTINUOUS_SOURCE_RECORD_KIND")
         self.store.applied(raw["sequence"])
+
+    async def project_dns(self, raw, *, recovering=False):
+        """Durable metadata only; never manufactures a Replay/model job from DNS."""
+        if self.config.source != "NATIVE_SERVICE" or self.dns_source is None:
+            raise ValueError("CONTINUOUS_DNS_APPROVED_SOURCE_REQUIRED")
+        if (
+            raw.get("kind") != "native_dns"
+            or raw.get("session") != str(self.dns_source.session.session_id)
+            or raw.get("namespace") != self.config.namespace
+            or type(raw.get("sequence")) is not int
+            or raw["sequence"] != self.dns_sequence + 1
+        ):
+            raise ValueError("CONTINUOUS_DNS_SESSION_OR_SEQUENCE_BINDING")
+        packet = PacketObservation.model_validate(raw["packet"])
+        if (
+            packet.interface_id != self.dns_source.session.interface_id
+            or packet.timestamp_origin != "KERNEL_SO_TIMESTAMPNS"
+            or packet.direction != "OUTBOUND"
+            or 53 not in (packet.source_port, packet.destination_port)
+            or packet.dns is not None
+            and packet.dns.query_name is not None
+        ):
+            raise ValueError("CONTINUOUS_DNS_PACKET_BINDING")
+        key = "dns:" + raw["session"] + ":" + str(raw["sequence"])
+        if not recovering:
+            fresh = await self.storage(self.store.retain_auxiliary, key, raw)
+            if not fresh:
+                raise ValueError("CONTINUOUS_DNS_DUPLICATE_SEQUENCE")
+        events = self.dns.observe(packet, raw["sequence"])
+        self.dns_sequence = raw["sequence"]
+        self.metrics["dns_inputs"] += 1
+        for event in events:
+            # Recovery replays the exact retained metadata through the same engine.
+            # Event identity deduplicates persisted projections atomically with Audit.
+            await self.storage(self.store.event_once, "CONTINUOUS_DNS_TRANSACTION", event)
+
+    async def collect_dns(self):
+        try:
+            async for packet in self.dns_source.events():
+                await self.project_dns(
+                    dict(
+                        kind="native_dns",
+                        session=str(self.dns_source.session.session_id),
+                        namespace=self.config.namespace,
+                        sequence=self.dns_source.sequence,
+                        packet=packet.model_dump(mode="json"),
+                    )
+                )
+            if not self.stop.is_set():
+                raise ValueError("CONTINUOUS_DNS_SOURCE_EARLY_EXIT")
+        except asyncio.CancelledError:
+            raise
+        except (OSError, ValueError, RuntimeError) as error:
+            self.last_error = self.last_error or type(error).__name__ + ":" + str(error)
+            raise
 
     async def project_journal(self, message):
         from soc_agent.continuous.authentication import normalized
@@ -732,7 +809,7 @@ class ContinuousRuntime:
             raise ValueError("CONTINUOUS_AI_SERVICE_REQUIRES_ORDINARY_UID")
         require_source_authority(self.config)
         with exclusive_runtime_lock(self.directory / "service.lock"):
-            collector = consumer = journal = None
+            collector = consumer = journal = dns_task = None
             primary = None
             try:
                 self.store.control()
@@ -754,12 +831,16 @@ class ContinuousRuntime:
                             jobs, _ = self.capture_windows.accept(raw)
                             for job in jobs:
                                 await self.handoff(job)
+                        elif raw.get("kind") == "native_dns":
+                            await self.project_dns(raw, recovering=True)
                 if self.journal:
                     self.journal.recover()
                     for retained in self.store.auxiliary():
-                        if retained.get("kind") not in ("native_tcx", "native_seal"):
+                        if retained.get("kind") not in ("native_tcx", "native_seal", "native_dns"):
                             await self.project_journal(retained)
                     journal = asyncio.create_task(self.collect_journal())
+                if self.dns_source:
+                    dns_task = asyncio.create_task(self.collect_dns())
                 collector = asyncio.create_task(self.collect())
                 consumer = asyncio.create_task(self.consume())
                 while not self.stop.is_set():
@@ -786,6 +867,9 @@ class ContinuousRuntime:
                     if journal and journal.done():
                         journal.result()
                         raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
+                    if dns_task and dns_task.done():
+                        dns_task.result()
+                        raise ValueError("CONTINUOUS_DNS_TASK_EXITED")
                     size = sum(p.stat().st_size for p in self.directory.rglob("*") if p.is_file())
                     if size >= self.config.max_storage_bytes:
                         raise ValueError("CONTINUOUS_STORAGE_LIMIT_REQUIRES_ARCHIVAL")
@@ -800,6 +884,34 @@ class ContinuousRuntime:
                 # Collect cleanup failures separately and preserve the first exception.
                 self.stop.set()
                 failures = []
+                if self.dns_source:
+                    try:
+                        await self.dns_source.request_stop()
+                        if dns_task and not dns_task.done():
+                            await asyncio.wait_for(
+                                asyncio.shield(dns_task), self.config.shutdown_seconds
+                            )
+                    except BaseException as error:
+                        if error is not primary:
+                            failures.append(error)
+                    finally:
+                        if dns_task:
+                            dns_task.cancel()
+                            result = await asyncio.gather(dns_task, return_exceptions=True)
+                            failures.extend(
+                                e
+                                for e in result
+                                if isinstance(e, BaseException)
+                                and not isinstance(e, asyncio.CancelledError)
+                                and e is not primary
+                                and e not in failures
+                            )
+                        try:
+                            await self.dns_source.close()
+                            if self.dns_source.snapshot["cleanup"] != "VERIFIED":
+                                raise ValueError("CONTINUOUS_DNS_CLEANUP_UNVERIFIED")
+                        except BaseException as error:
+                            failures.append(error)
                 if self.config.source == "NATIVE_SERVICE" and collector and not collector.done():
                     # SIGTERM sets stop directly, unlike the CLI control flag.
                     # Keep the receiver alive for the final seal and bound STOP ACK
@@ -850,7 +962,7 @@ class ContinuousRuntime:
                 flush_error = None
                 try:
                     for event in self.dns.finish(aborted=True):
-                        self.store.event("CONTINUOUS_DNS_TRANSACTION", event)
+                        self.store.event_once("CONTINUOUS_DNS_TRANSACTION", event)
                     await self.complete(self.aggregator.close("SHUTDOWN"), self.last_event_ns or 0)
                     for job in self.native_windows.close():
                         await self.handoff(job)

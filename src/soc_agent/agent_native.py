@@ -133,6 +133,9 @@ def validate_plan(selected) -> dict:
     if any(current[key] != request["ledger"][key] for key in ("rows", "sha256")):
         raise ValueError("AGENT_NATIVE_STALE_LEDGER_REVIEW")
     namespace = namespace_binding(cfg.namespace, review, request)
+    from soc_agent.continuous.dns_review import verify_review as verify_dns_review
+
+    dns = verify_dns_review(cfg, review, request)
     if any(
         (review / "execution" / name).exists()
         for name in (
@@ -155,6 +158,7 @@ def validate_plan(selected) -> dict:
         status="PREVIEW_ONLY_REQUIRES_DIRECT_SCOPE_R1_AND_SUDO",
         artifact="VERIFIED_EXISTING_FROZEN_REVIEW_NOT_EXECUTION_AUTHORITY",
         namespace=namespace,
+        dns=dns,
         ledger=current,
         runtime=str(selected.runtime),
         model_action="SEPARATE_EXACT_SEALED_WINDOW_APPROVAL_REQUIRED",

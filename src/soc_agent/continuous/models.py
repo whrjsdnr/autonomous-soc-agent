@@ -25,6 +25,8 @@ class ContinuousConfig(Frozen):
     ml_root: Path | None = None
     authentication_runtime: Path | None = None
     native_model_approvals: Path | None = None
+    dns_session: Path | None = None
+    dns_session_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     journal_replay_file: Path | None = None
     journal_replay_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
     authentication_packages: tuple[PackageInput, ...] = Field(default=(), max_length=1)
@@ -49,6 +51,12 @@ class ContinuousConfig(Frozen):
             raise ValueError("CONTINUOUS_ABSOLUTE_PATHS_REQUIRED")
         if self.native_model_approvals and not self.native_model_approvals.is_absolute():
             raise ValueError("CONTINUOUS_ABSOLUTE_APPROVAL_DIRECTORY_REQUIRED")
+        if (
+            bool(self.dns_session) != bool(self.dns_session_sha256)
+            or self.dns_session
+            and (not self.dns_session.is_absolute() or self.source != "NATIVE_SERVICE")
+        ):
+            raise ValueError("CONTINUOUS_DNS_REQUIRES_NATIVE_SESSION_AND_PIN")
         if self.authentication_runtime and not self.authentication_runtime.is_absolute():
             raise ValueError("CONTINUOUS_ABSOLUTE_AUTH_RUNTIME_REQUIRED")
         if bool(self.journal_replay_file) != bool(self.journal_replay_sha256):

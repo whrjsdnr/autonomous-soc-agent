@@ -152,6 +152,12 @@ def project(value: dict) -> dict:
             authority="DISPLAY_ONLY_NOT_A_NEW_EXECUTION_OR_MODEL_GRANT",
         ),
         authentication=authentication,
+        dns=current.get("dns", {}) | dict(transport=current.get("dns_transport", {})),
+        dns_observation=(
+            str(current.get("dns", {}).get("counts", {}))
+            if metrics.get("dns_inputs", 0)
+            else "NO_DNS_OBSERVATIONS"
+        ),
         state=current.get("state", "UNKNOWN"),
         collection_live=current.get("collection_live", False),
         session_id=current.get("clock_epoch"),
@@ -160,7 +166,7 @@ def project(value: dict) -> dict:
         or ("CONTINUOUS_CONTROLLER_FAILURE" if current.get("controller_error") else None),
         collectors={
             "network": current.get("collector", "UNKNOWN"),
-            "dns": "NOT_COLLECTED_IN_THIS_SCOPE"
+            "dns": current.get("dns_transport", {}).get("state", "NOT_COLLECTED_IN_THIS_SCOPE")
             if native
             else current.get("dns", {}).get("diagnostic_status", "UNKNOWN"),
             "dns9_ai": "BLOCKED_TRAINING_EXTRACTION_CONTRACT",
