@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import time
 from unittest.mock import Mock
 
 import pytest
@@ -16,7 +17,8 @@ from soc_agent.continuous.store import Store
 def configured(tmp_path):
     source = tmp_path / "input.jsonl"
     source.write_text(
-        '{"kind":"excluded","id":"excluded-1","sequence":1,"affects_integrity":false}\n'
+        '{"kind":"excluded","id":"00000000-0000-0000-0000-000000000001",'
+        '"sequence":1,"affects_integrity":false}\n'
     )
     cfg = ContinuousConfig(
         source="JSONL_REPLAY",
@@ -37,8 +39,14 @@ def test_one_command_service_start_status_duplicate_stop(tmp_path, capsys):
         assert main(["doctor", "--home", str(home)]) == 0
         assert main(["start", "--home", str(home)]) == 0
         actual = agent_runtime.status(home)
+        deadline = time.monotonic() + 3
+        while actual.get("metrics", {}).get("excluded") != 1 and time.monotonic() < deadline:
+            time.sleep(0.05)
+            actual = agent_runtime.status(home)
         assert actual["state"] == "RUNNING" and actual["source"] == "JSONL_REPLAY"
         assert not actual["collection_live"]
+        assert actual["metrics"]["excluded"] == 1 and actual["metrics"]["invalid"] == 0
+        assert actual["last_error"] is None
         assert main(["start", "--home", str(home)]) == 2
         assert "AGENT_ALREADY_RUNNING" in capsys.readouterr().err
     finally:

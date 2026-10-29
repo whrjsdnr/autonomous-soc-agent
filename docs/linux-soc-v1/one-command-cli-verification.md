@@ -108,5 +108,22 @@ GUI는 실제 CLI main과 Tk Desktop/Backend를 사용하며, 테스트 instrume
 - 실제 PCAP → 운영 CLI → RF/LR → Incident·Audit → 실제 Tk GUI: 1 PASS, 32.16초.
 - Cleanup/의존성 선행 차단·Unix transport 집중 회귀: 17 PASS.
 - 포화 Pipe 및 CLI 집중 회귀: 14 PASS.
-- Ruff check·format·diff check 통과. 최종 Source 동결 후 독립 Export 결과와 Commit은
-  Operations Verification 보고서의 이번 CLI 검증 항목에 기록한다.
+- 독립 Git Export: 동일 관련153 PASS, 실제 PCAP/CLI/Tk 통합1 PASS(32.79초).
+  Workspace와 같은 Packet70 / RF·LR6 / Incident3 / Drop0 / Cleanup VERIFIED를 확인했다.
+- 실제 `.venv/bin/soc-agent` 실행 파일로 setup/doctor/start/status/stop/gui/status를
+  별도 확인했다(`console-smoke.json`). 이 보조 검증은 UUID가 유효한 명시적 JSONL Fixture이며
+  실제 모델 경로 검증은 앞의 실제 PCAP 시험이다. 첫 보조 입력의 잘못된 UUID 실패도 보존했다.
+  기존 lifecycle 단위 테스트도 유효 UUID를 사용하고 실제 처리1·invalid0을 확인하도록 보강했다
+  (보강 후13 PASS). 운영 입력 validator를 완화하지 않았다.
+- Ruff check·format·diff check 통과. Native userspace 빌드6개 및 Wheel 이중 빌드 일치.
+
+빌드 동결 Commit `3565293cfa3ae9fb20a6612c13fd8f645fb8d5f1`, Tree
+`3c2786961677fcff8129c4135f9804f3d65c613b`.
+Source archive SHA `80e17d7461a145573b8fd713dedd7a792d11797c91bb23491e182546769acfde`.
+Runtime source660개 파일 map SHA
+`4d7127167618c25024c97e470352a3123b9797e77f20f6e05b581e379750c46a`.
+Workspace/Export Wheel SHA
+`63759d8263dd0d5d0fcd2a19277f1c3bbc27de786253076edf527e2e05b73855`.
+후속 보고·단위 테스트 Fixture 보강은 Runtime source나 Wheel을 변경하지 않는다.
+빌드와 검증 로그는 증거 디렉터리의 `build-identity.json`, `source-files.json`,
+`workspace-final-tests.log`, `export-tests.log`, `export-cli-gui-tests.log`에 보존했다.

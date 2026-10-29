@@ -653,3 +653,12 @@ Workspace 관련153 PASS 및 실제 CLI/PCAP/Tk 통합1 PASS다.
 그대로다. 기존 Ledger81행 및 SHA
 `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`를 변경하지 않았다.
 실제 Root·Native·DNS·Host 인증 수집·외부 API·서비스 활성화·승인 소비는 수행하지 않았다.
+
+독립 Export도 관련153 PASS + 실제 CLI/PCAP/Tk 통합1 PASS이며, Packet70 / RF·LR6 /
+Incident3 / Drop0 / Cleanup VERIFIED가 재현됐다. 실제 console 실행 파일의 여섯 명령도
+별도 JSONL Fixture로 통과했다. 보조 테스트의 잘못된 UUID 입력은 수정하고 유효 입력의
+실제 처리 여부를 단위 테스트에서 확인했다(보강 후13 PASS).
+Native userspace Artifact6개 이중 빌드 및 Workspace/Export Wheel이 일치한다.
+빌드 동결 Commit `3565293`, Wheel SHA
+`63759d8263dd0d5d0fcd2a19277f1c3bbc27de786253076edf527e2e05b73855`.
+전체 Source Identity와 실패를 포함한 상세 결과는 위 CLI 검증 보고서에 기록했다.
