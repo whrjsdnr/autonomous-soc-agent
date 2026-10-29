@@ -15,7 +15,7 @@ Tree **`9a84e7117cc7083de390bb93ea3f873b833382bd`**에서 비권한 준비를 �
 
 | 자료 | SHA256 |
 |---|---|
-| 최종 `approval-request-final.json` | `11dde925ffe1abd74bc1add20ea7b335fc3611a54480a6f09d31d612e98ec822` |
+| 최종 `approval-request-final-v2.json` | `4e8856136e15c91738a998545dbee867c331d00cc9384343eee3c1f10deac5cd` |
 | 정책 입력 `scope-input-v2.json` | `40f1ad747c319c40e210cb7227fc7c4ababb6764220a1c55d708e9b1a37b0188` |
 | 최종 Root 설치 Manifest `root-install-manifest-v3.json` | `5038a5f0f822f9063939f6ca516602e8614affa75e7cf541a330fd63cf2dae24` |
 | 설치 계약 후보 `continuous-installation-v2.json` | `a250b68cb424d6be7bb842eda65c03bc470d5ade9dd6d61e3b7f01fafebf845d` |
@@ -23,7 +23,7 @@ Tree **`9a84e7117cc7083de390bb93ea3f873b833382bd`**에서 비권한 준비를 �
 | 일반 UID system unit `soc-operations-runtime.service` | `8e8e64167bb01983ab87d496b57447e2da55416cbec043b788b542681f7c5618` |
 | Git62ba273의 실제 Source tar snapshot | `5bc09c637970385070c9cc334a87298dff6ee08ca01068b179e77a30ffd2c2bb` |
 
-사용자가 SHA를 입력할 필요는 없다. 사람용 자료는 같은 디렉터리의 `approval-package.md`이며
+사용자가 SHA를 입력할 필요는 없다. 사람용 자료는 같은 디렉터리의 `approval-package-final.md`이며
 프로그램이 요청·Source·Runtime·모델·파일·Scope·Ledger를 대조한다. 후보 설치 계약과 이 요청의
 유효기간 상한은 **2026-10-30 12:04:19.131099 KST**다. 실제 인간 승인 시점+24시간보다
 길게 허용하지 않으며, 만료·남은 실행 시간 부족·Binding 변경 시 시작하지 않는다.
