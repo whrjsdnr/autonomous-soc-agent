@@ -1,5 +1,19 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: Packet·DNS·Helper 종료 재시험 통합 검토 준비
+
+완료된 Cleanup9개 증거를 재사용하고 추가 Root 조회 없이 새 통합 검토를 준비했다.
+운영 Source5b14a67·검증된 Artifact·Root Manifest와 미시작 Runtime/DNS Session을 유지했다.
+새 요청서는 현재 자원 증거·기반 Native 요청서·필수 CLOSED/Counter/STOP ACK·Cleanup 조건을 함께 결합한다.
+현재 Ledger81행·기존99개 SHA 보존, 승인·예약·Root 설치·Capture·트래픽·모델 호출0이다.
+
+검토 패키지는 `.git/packet-dns-cleanup-final-retest-review-20261030T034224Z/approval-package.md`,
+통합 요청서 SHA는 `897c3ef03d2c382392759152b5f1718f45381209562bb6ae252041aa982e155d`다.
+R1·고정 Root7경로·TCX1회·TCP최대38연결·DNS UDP2/TCP1을 검토하며 모델 Action은 봉인 후 별도 승인이다.
+전체최대3600초·정상 경로 약58~60분, 상위 만료17:36:32 KST와 기존 자원 제한을 유지한다.
+Root Exit0만으로 성공 판정하지 않으며 Helper·Root·Runtime 종료 증거가 모두 필요하다.
+[정확한 Binding·Scope·자원·필수 증거·승인 조건](packet-dns-cleanup-retest-readiness.md)을 정리했다.
+
 ## 2026-10-30 최신: 승인된 Cleanup Root 읽기 전용9개 PASS
 
 사용자 직접 Scope 확인·sudo 인증 후 승인된 조회9개를 각각1회 실행했고 모두 Exit0이었다.
