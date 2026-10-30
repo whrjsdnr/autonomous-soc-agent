@@ -129,6 +129,9 @@ async def test_dns_unix_to_durable_transaction_audit_gui_and_recovery(tmp_path, 
     monkeypatch.setattr(dns_source, "load", lambda _: session)  # Target entry boundary only.
     monkeypatch.setattr(helper_transport, "validate_peer", lambda *a, **kw: None)
     source = dns_source.DNSProducer(path, pin)
+    # External privileged-helper lifecycle boundary; real ordinary child exits
+    # are covered independently in test_dns_lifecycle.py.
+    source.capture.process_observation = lambda: dict(state="EXITED", exit_code=None)
     cfg = config(tmp_path).model_copy(
         update=dict(source="NATIVE_SERVICE", dns_session=path, dns_session_sha256=pin)
     )
@@ -388,18 +391,13 @@ async def test_runtime_owns_dns_stop_and_reports_failure_without_touching_root(
 
 
 @pytest.mark.asyncio
-async def test_failed_helper_close_never_leaves_cleanup_not_started():
-    import threading
-    from types import SimpleNamespace
-
-    from soc_agent.continuous.dns_source import DNSProducer
-
-    closed = threading.Event()
-    capture = SimpleNamespace(closed=closed, terminal=None, close=lambda **_: closed.set())
-    source = DNSProducer.__new__(DNSProducer)
-    source.capture = capture
-    source._close_lock = asyncio.Lock()
+async def test_failed_helper_close_never_leaves_cleanup_not_started(tmp_path, monkeypatch):
+    path, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    source = dns_source.DNSProducer(path, pin)
     source.last_error = "CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE"
-    source.cleanup = "NOT_STARTED"
     await source.close()
-    assert source.cleanup == "UNVERIFIED" and source.state == "FAILED" and closed.is_set()
+    assert source.cleanup == "UNVERIFIED" and source.state == "FAILED"
+    assert source.capture.closed.is_set()
+    proof = json.loads((path / "cleanup.json").read_text())
+    assert not proof["authenticated_closed"] and proof["global_kernel_cleanup"] == "UNKNOWN"

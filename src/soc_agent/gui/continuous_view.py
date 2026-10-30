@@ -68,6 +68,9 @@ def build(app):
 
 
 def render(app, value):
+    dns_transport = value.get("dns_transport", {})
+    helper_process = dns_transport.get("helper_process", {}).get("state", "NOT_RECORDED")
+    heartbeat_status = dns_transport.get("heartbeat_status", "NOT_RECORDED")
     app.continuous_summary.configure(
         text=(
             f"{value.get('state', 'NOT_ATTACHED')} · {value.get('source', 'NO_SOURCE')}\n"
@@ -88,6 +91,10 @@ def render(app, value):
             f"DNS: {value.get('dns_transport', {}).get('state', 'NOT_COLLECTED_IN_THIS_SCOPE')} · "
             f"Metadata: {value.get('metrics', {}).get('dns_inputs', 0)} · "
             f"Transactions: {value.get('dns', {}).get('counts', {})} · DNS9 BLOCKED\n"
+            "DNS Helper process: "
+            f"{helper_process} · "
+            f"Heartbeat: {heartbeat_status} · "
+            f"Cleanup: {value.get('dns_transport', {}).get('cleanup', 'UNKNOWN')}\n"
             "Worker observed (supervisor, not model progress): "
             f"{value.get('component_health', {}).get('worker_observed_unix', 'UNKNOWN')} · "
             f"Last error: {display_data(value.get('last_error') or 'NONE')}"

@@ -7,9 +7,12 @@ this ordinary receiver nor the GUI can install, authenticate or start it.
 
 import asyncio
 import hashlib
+import json
 import os
+import select
 import socket
 import sys
+import threading
 import time
 from pathlib import Path
 from typing import Literal
@@ -24,7 +27,11 @@ from soc_agent.review.persistence.secure_storage import (
     validate_file,
 )
 from soc_agent.security_ai.external.models import content_digest_payload
-from soc_agent.security_ai.operational.network_capture.capture import interface_identity
+from soc_agent.security_ai.operational.network_capture.capture import (
+    CaptureUnavailable,
+    interface_identity,
+)
+from soc_agent.security_ai.operational.network_capture.live_helper import process_start
 from soc_agent.security_ai.operational.network_capture.stream_session import (
     StreamPolicy,
     StreamSession,
@@ -150,16 +157,152 @@ class DNSMessage(StreamMessage):
     elapsed_seconds: float | None = Field(default=None, ge=0, le=3602, allow_inf_nan=False)
 
 
+def write_cleanup(directory: Path, value: dict) -> str:
+    """Immutable receipt, acknowledged only after file and directory durability."""
+    body = json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+    if len(body) > 65536:
+        raise ValueError("CONTINUOUS_DNS_CLEANUP_EVIDENCE_BOUND")
+    fd = os.open(
+        directory / "cleanup.json", os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600
+    )
+    with os.fdopen(fd, "wb") as stream:
+        stream.write(body)
+        stream.flush()
+        os.fsync(stream.fileno())
+    parent = os.open(directory, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+    try:
+        os.fsync(parent)
+    finally:
+        os.close(parent)
+    return hashlib.sha256(body).hexdigest()
+
+
 class DNSCapture(TotalCapture):
     helper_module = MODULE
+
+    def __init__(self, directory, session):
+        super().__init__(directory, session)
+        self.stop_requested_unix = None
+        self.failure_stop_error = None
+        self.quarantined_packets = 0
+        self.stop_lock = threading.Lock()
+
+    def process_observation(self):
+        """PID existence is independent of heartbeat and is never an exit-code receipt."""
+        ready = self.ready
+        value = dict(
+            observed_at_unix=time.time(),
+            pid=ready.pid if ready else None,
+            expected_start=ready.process_start if ready else None,
+            state="NOT_OBSERVED",
+            exit_code=None,
+            namespace="UNKNOWN",
+        )
+        if ready is None or ready.pid is None or ready.process_start is None:
+            return value
+        try:
+            start = process_start(ready.pid)
+            value["observed_start"] = start
+            if start != ready.process_start:
+                value["state"] = "PID_REUSED_OR_IDENTITY_CHANGED"
+                return value
+            status = Path(f"/proc/{ready.pid}/stat").read_text().rsplit(")", 1)[1].split()[0]
+            value["state"] = "EXITED_ZOMBIE" if status in {"Z", "X"} else "ALIVE"
+            try:
+                value["namespace"] = os.readlink(f"/proc/{ready.pid}/ns/net")
+            except OSError:
+                pass  # Observation unavailable, never a namespace identity grant.
+        except FileNotFoundError:
+            value["state"] = "EXITED"
+        except (OSError, ValueError):
+            value["state"] = "UNKNOWN"
+        return value
+
+    def request_stop(self):
+        with self.stop_lock:
+            if self.stop_requested_unix is None and self.channel is not None:
+                super().request_stop()
+                self.stop_requested_unix = time.time()
+
+    def cleanup_ack_verified(self):
+        """Only owned capture closure; a failed stream remains inadmissible."""
+        end = self.terminal
+        return bool(
+            self.reader_error == "HELPER_HEARTBEAT_OR_PROCESS_STALE"
+            and self.failure_stop_error is None
+            and self.reader_diagnostic_error is None
+            and self.counter_issue is None
+            and end is not None
+            and end.error is None
+            and end.capabilities == self.ready.capabilities
+            and end.counter_status == "COUNTER_VERIFIED"
+            and end.capture_drops_total == 0
+            and end.sent_packets == self.sequence
+            and self.sequence == self.delivered + self.packets.qsize() + self.quarantined_packets
+            and end.received_frames is not None
+            and self.sequence <= end.received_frames <= self.session.max_packets
+            and end.elapsed_seconds is not None
+            and end.elapsed_seconds <= self.session.seconds
+        )
+
+    def shutdown_failed_reader(self):
+        # A protocol/identity/counter violation still disconnects immediately.
+        # After a liveness failure, STOP first and drain only closure evidence.
+        # This is not a retry: no packet is delivered or capture reopened.
+        if self.reader_error != "HELPER_HEARTBEAT_OR_PROCESS_STALE":
+            return super().shutdown_failed_reader()
+        try:
+            self.request_stop()
+            deadline = time.monotonic() + 5
+            records = 0
+            while records < 64 and time.monotonic() < deadline:
+                readable, _, _ = select.select([self.channel], [], [], 0.05)
+                if not readable:
+                    continue
+                message = self.message()
+                records += 1
+                with self.reader_lock:
+                    packet = self._receive_record(message)
+                    if packet is not None:
+                        self.quarantined_packets += 1
+                        self.seals.pop()  # Validated sequence, never admitted/delivered.
+                    if self.terminal is not None:
+                        return
+            self.failure_stop_error = "CONTINUOUS_DNS_FAILURE_STOP_ACK_MISSING"
+        except (OSError, ValueError, RuntimeError):
+            self.failure_stop_error = "CONTINUOUS_DNS_FAILURE_STOP_ACK_INVALID"
+        finally:
+            super().shutdown_failed_reader()
+
+    def extra_metrics(self):
+        return super().extra_metrics() | dict(
+            stop_requested_unix=self.stop_requested_unix,
+            failure_stop_error=self.failure_stop_error,
+            quarantined_after_failure=self.quarantined_packets,
+            helper_process=self.process_observation(),
+            cleanup_scope="OWNED_DNS_CAPTURE_AND_TRANSPORT_NOT_GLOBAL_KERNEL",
+            heartbeat_status=(
+                "ENDED_AFTER_STREAM_FAILURE"
+                if self.terminal is not None and self.reader_error
+                else "ENDED_AUTHENTICATED_CLOSED"
+                if self.terminal is not None
+                else "FAILED_ADMISSION_CLEANUP_PENDING"
+                if self.reader_error is not None
+                else "NOT_STARTED"
+                if self.ready is None
+                else "DELAYED_NOT_PROOF_OF_PROCESS_EXIT"
+                if self.last_heartbeat is None or time.monotonic() - self.last_heartbeat > 2
+                else "CURRENT"
+            ),
+        )
 
     def message(self):
         body, _, flags, _ = self.channel.recvmsg(8192)
         if flags & socket.MSG_TRUNC or not body:
-            raise ValueError("HELPER_DISCONNECTED_OR_RECORD_LIMIT")
+            raise CaptureUnavailable("HELPER_DISCONNECTED_OR_RECORD_LIMIT")
         value = DNSMessage.model_validate_json(body)
         if value.session_id != self.session.session_id:
-            raise ValueError("HELPER_SESSION_FORGERY")
+            raise CaptureUnavailable("HELPER_SESSION_FORGERY")
         return value
 
 
@@ -167,12 +310,24 @@ class DNSProducer:
     def __init__(self, directory: Path, sha256: str):
         self.session = load(directory)
         inspect(directory, namespace=self.session.namespace, sha256=sha256)
+        if any(
+            (directory / name).exists()
+            for name in (
+                "verified-ready.json",
+                "verified-closed.json",
+                "transport-failure.json",
+                "cleanup.json",
+            )
+        ):
+            raise ValueError("CONTINUOUS_DNS_SESSION_ALREADY_ADMITTED_REVIEW_REQUIRED")
         self.capture = DNSCapture(directory, self.session)
         self.state = "WAITING_APPROVED_HELPER"
         self.received = 0
         self.cleanup = "NOT_STARTED"
         self.last_error = None
+        self.last_error_observed_unix = None
         self.cleanup_error = None
+        self.cleanup_evidence_sha256 = None
         self.sequence = 0
         self._close_lock = asyncio.Lock()
 
@@ -196,7 +351,9 @@ class DNSProducer:
                 else None
             ),
             last_error=self.last_error,
+            last_error_observed_unix=self.last_error_observed_unix,
             cleanup_error=self.cleanup_error,
+            cleanup_evidence_sha256=self.cleanup_evidence_sha256,
             dns9="INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
             names_retained=False,
             capture_quality="PEER_VERIFIED_AF_PACKET_METADATA_NOT_TCX_ATTESTATION",
@@ -218,16 +375,17 @@ class DNSProducer:
                         raise ValueError("CONTINUOUS_DNS_NON_DNS_PACKET")
                     yield packet
                 elif self.capture.terminal is not None and self.capture.packets.empty():
-                    self.cleanup = (
-                        "VERIFIED" if self.capture.completion_verified() else "UNVERIFIED"
-                    )
-                    if self.cleanup != "VERIFIED":
+                    if not self.capture.completion_verified():
+                        self.cleanup = "UNVERIFIED"
                         raise ValueError("CONTINUOUS_DNS_FINAL_COUNTERS_UNVERIFIED")
+                    self.cleanup = "PENDING_OWNED_CLOSURE"
                     return
                 else:
                     await asyncio.sleep(0.02)
         except (ValueError, OSError, RuntimeError) as error:
-            self.last_error = type(error).__name__ + ":" + str(error)
+            if self.last_error is None:
+                self.last_error = type(error).__name__ + ":" + str(error)
+                self.last_error_observed_unix = time.time()
             self.state = "FAILED"
             raise
         finally:
@@ -249,7 +407,14 @@ class DNSProducer:
             self.capture.request_stop()
         deadline = time.monotonic() + 5
         while self.capture.terminal is None:
-            if self.capture.reader_failed() or time.monotonic() >= deadline:
+            if self.capture.reader_failed():
+                thread = self.capture.reader_thread
+                if self.capture.reader_error == "HELPER_HEARTBEAT_OR_PROCESS_STALE" and thread:
+                    await asyncio.to_thread(thread.join, max(0, deadline - time.monotonic()))
+                if self.capture.terminal is None:
+                    raise ValueError("CONTINUOUS_DNS_STOP_ACK_MISSING")
+                return
+            if time.monotonic() >= deadline:
                 raise ValueError("CONTINUOUS_DNS_STOP_ACK_MISSING")
             await asyncio.sleep(0.02)
 
@@ -257,10 +422,71 @@ class DNSProducer:
         async with self._close_lock:
             if self.capture.closed.is_set():
                 return
-            self.cleanup = (
-                "VERIFIED"
-                if self.capture.terminal is not None and self.capture.completion_verified()
-                else "UNVERIFIED"
-            )
+            thread = self.capture.reader_thread
+            if thread is not None and self.capture.reader_error is not None:
+                # Do not destroy the transport while its bounded failure STOP is
+                # collecting the final receipt. Never hold the event loop here.
+                await asyncio.to_thread(thread.join, 5.1)
+            protocol_closed = (
+                self.capture.terminal is not None and self.capture.completion_verified()
+            ) or self.capture.cleanup_ack_verified()
+            self.cleanup = "UNVERIFIED"
             await asyncio.to_thread(self.capture.close, reason="CONTINUOUS_DNS_OWNER_STOP")
+            process = self.capture.process_observation()
+            # CLOSED proves capture.close() returned in the pinned helper. Its
+            # process exit is independently observed, without sending any signal.
+            deadline = time.monotonic() + 1
+            while protocol_closed and process["state"] == "ALIVE" and time.monotonic() < deadline:
+                await asyncio.sleep(0.01)
+                process = self.capture.process_observation()
+            stopped = process["state"] in {
+                "EXITED",
+                "EXITED_ZOMBIE",
+                "PID_REUSED_OR_IDENTITY_CHANGED",
+            }
+            local_closed = (
+                self.capture.listener.fileno() == -1
+                and (self.capture.channel is None or self.capture.channel.fileno() == -1)
+                and (thread is None or not thread.is_alive())
+            )
+            verified = bool(protocol_closed and stopped and local_closed)
+            if self.last_error is None and self.capture.reader_error:
+                self.last_error = "CaptureUnavailable:" + self.capture.reader_error
+                self.last_error_observed_unix = self.capture.reader_failure_observed_unix
             self.state = "FAILED" if self.last_error else "STOPPED"
+            proof = dict(
+                contract="soc-continuous-dns-owned-cleanup:v1",
+                session=str(self.session.session_id),
+                namespace=self.session.namespace,
+                observed_at_unix=time.time(),
+                first_error=self.last_error or self.capture.reader_error,
+                capture_admission="DENIED_AFTER_FAILURE"
+                if self.capture.reader_error
+                else "UNCHANGED",
+                stop_requested_unix=self.capture.stop_requested_unix,
+                closed_observed_unix=self.capture.terminal_observed_unix,
+                authenticated_closed=bool(protocol_closed),
+                stream_completion_verified=self.capture.completion_verified(),
+                closed_sha256=(
+                    hashlib.sha256(self.capture.terminal.model_dump_json().encode()).hexdigest()
+                    if self.capture.terminal is not None
+                    else None
+                ),
+                helper_process=process,
+                listener_closed=self.capture.listener.fileno() == -1,
+                channel_closed=self.capture.channel is None or self.capture.channel.fileno() == -1,
+                reader_joined=thread is None or not thread.is_alive(),
+                global_kernel_cleanup="UNKNOWN",
+                quarantined_packets=self.capture.quarantined_packets,
+                failure_stop_error=self.capture.failure_stop_error,
+                transport_diagnostic_error=self.capture.reader_diagnostic_error,
+                cleanup="VERIFIED" if verified else "UNVERIFIED",
+            )
+            try:
+                self.cleanup_evidence_sha256 = await asyncio.to_thread(
+                    write_cleanup, self.capture.directory, proof
+                )
+            except (OSError, ValueError):
+                self.state = "FAILED"
+                raise
+            self.cleanup = proof["cleanup"]

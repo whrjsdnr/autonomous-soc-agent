@@ -177,6 +177,10 @@ class HelperCapture:
         self.counter_issue = None
         self.reader_thread: threading.Thread | None = None
         self.reader_error: str | None = None
+        self.reader_diagnostic_error: str | None = None
+        self.reader_failure_observed_unix: float | None = None
+        self.last_heartbeat_unix: float | None = None
+        self.terminal_observed_unix: float | None = None
         # At most 512 metadata records (4 MiB encoded upper bound), tied to the
         # already approved frame budget. This is not a second persistent queue.
         capacity = session.max_packets if queue_capacity is None else queue_capacity
@@ -253,6 +257,7 @@ class HelperCapture:
                 )
                 with self.reader_lock:
                     self.reader_error = code
+                    self.reader_failure_observed_unix = time.time()
                     self.alive = False
                     try:
                         write_private(
@@ -282,13 +287,16 @@ class HelperCapture:
                             },
                         )
                     except (OSError, ValueError):
-                        self.reader_error = "HELPER_TRANSPORT_DIAGNOSTIC_WRITE_FAILED"
-                    finally:
-                        # Disconnect is a bounded helper stop condition. No retry/reconnect.
-                        try:
-                            self.channel.shutdown(socket.SHUT_RDWR)
-                        except OSError:
-                            pass
+                        self.reader_diagnostic_error = "HELPER_TRANSPORT_DIAGNOSTIC_WRITE_FAILED"
+                # Admission stays failed. Subclasses may collect a bounded STOP
+                # receipt, outside reader_lock, before the final disconnect.
+                self.shutdown_failed_reader()
+
+    def shutdown_failed_reader(self):
+        try:
+            self.channel.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass  # Disconnect is itself a stop condition; no retry or reconnect.
 
     def reader_failed(self):
         with self.reader_lock:
@@ -403,6 +411,7 @@ class HelperCapture:
             self.ready = ready
             self.alive = True
             self.last_heartbeat = time.monotonic()
+            self.last_heartbeat_unix = time.time()
         self.usage = {
             "helper_rss_peak_bytes": ready.rss_peak_bytes,
             "helper_cpu_seconds": ready.cpu_seconds,
@@ -505,7 +514,9 @@ class HelperCapture:
             if message.kind == "CLOSED":
                 self._record_rejected_closed(message, str(error))
             raise
-        self.last_heartbeat = time.monotonic()
+        if message.kind == "HEARTBEAT":
+            self.last_heartbeat = time.monotonic()
+            self.last_heartbeat_unix = time.time()
         self.usage = {
             "helper_rss_peak_bytes": message.rss_peak_bytes,
             "helper_cpu_seconds": message.cpu_seconds,
@@ -526,6 +537,7 @@ class HelperCapture:
             write_private(self.directory / "verified-closed.json", message.model_dump(mode="json"))
             # Publish terminal readiness only after the evidence write succeeds.
             self.terminal = message
+            self.terminal_observed_unix = time.time()
             self.alive = False
             if self.stop and self.reader_thread is None:
                 self.stop.set()
@@ -604,6 +616,11 @@ class HelperCapture:
                     self.reader_thread and self.reader_thread.is_alive()
                 ),
                 "transport_error": self.reader_error,
+                "transport_diagnostic_error": self.reader_diagnostic_error,
+                "transport_failure_observed_unix": self.reader_failure_observed_unix,
+                "last_heartbeat_observed_unix": self.last_heartbeat_unix,
+                "closed_observed_unix": self.terminal_observed_unix,
+                "timestamp_scope": "RECEIVER_OBSERVATION_NOT_HELPER_EMISSION",
                 "transport_queue_depth": self.packets.qsize(),
                 "transport_queue_capacity": self.packets.maxsize,
                 "transport_queue_high_water": self.queue_high_water,

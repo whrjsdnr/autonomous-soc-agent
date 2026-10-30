@@ -227,7 +227,9 @@ class ContinuousRuntime:
             metrics=dict(self.metrics),
             queue=self.store.queue.counts(),
             circuit_open=self.circuit,
-            last_error=self.last_error,
+            # DNS cleanup may still be draining after the first source failure.
+            # Observers must see that failure before a later Collector STOP.
+            last_error=self.last_error or getattr(self.dns_source, "last_error", None),
             stop_reason=self.stop_reason,
             analysis=analysis,
             recent_results=list(self.last_results),

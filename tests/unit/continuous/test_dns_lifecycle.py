@@ -1,0 +1,315 @@
+"""Real ordinary child + AF_UNIX; AF_PACKET/Namespace authority is simulated only.
+
+These are protocol/lifecycle tests, never Native or DNS traffic verification.
+"""
+
+import asyncio
+import hashlib
+import json
+import subprocess
+import sys
+import time
+
+import pytest
+from tests.unit.continuous.test_dns_source import prepared
+
+from soc_agent.continuous import dns_source
+from soc_agent.security_ai.operational.network_capture import helper_transport
+
+CHILD = r"""
+import os,select,socket,sys,time
+from pathlib import Path
+from soc_agent.continuous.dns_source import DNSSession,DNSMessage
+from soc_agent.security_ai.operational.network_capture.live_helper import process_start
+s=DNSSession.model_validate_json(Path(sys.argv[1]).read_bytes())
+mode=sys.argv[2]; c=socket.socket(socket.AF_UNIX,socket.SOCK_SEQPACKET)
+c.connect(s.socket_address); seq=1; total=sent=0; began=time.monotonic()
+caps=dict(euid=s.uid,egid=s.gid,CapEff=0,CapPrm=0,CapInh=0,CapAmb=0,CapBnd=8192,NoNewPrivs=1)
+def send(kind,**kw):
+ c.sendall(DNSMessage(kind=kind,session_id=s.session_id,counter_sequence=seq,
+  kernel_packets=kw.pop("interval",0),capture_drops=0,kernel_packets_total=total,capture_drops_total=0,
+  counter_status="COUNTER_VERIFIED",received_frames=total,sent_packets=sent,**kw).model_dump_json().encode())
+send("READY",pid=os.getpid(),process_start=process_start(os.getpid()),capabilities=caps)
+if mode=="crash":
+ time.sleep(.1);os._exit(7)
+while time.monotonic()-began<(15 if mode=="ignore_stop" else 7):
+ if select.select([c],[],[],.05)[0]:
+  if c.recv(64)==b"STOP":
+   if mode=="ignore_stop": continue
+   if mode=="no_ack": os._exit(7)
+   if mode=="delayed_ack": time.sleep(.2)
+   if mode=="quarantine":
+    from types import SimpleNamespace
+    from tests.total_monitoring_support import dns_packet
+    from soc_agent.security_ai.research.live_input import timestamp_ns
+    p=dns_packet(SimpleNamespace(session=s),1)
+    p=p.model_copy(update=dict(timestamp_origin="KERNEL_SO_TIMESTAMPNS",capture_timestamp_ns=timestamp_ns(p)))
+    seq+=1;total=1;send("HEARTBEAT",interval=1)
+    sent=1;send("PACKET",sequence=1,packet=p)
+   if mode!="bad_ack": seq+=1
+   send("CLOSED",capabilities=caps,elapsed_seconds=time.monotonic()-began)
+   c.close();sys.exit(0)
+ if mode=="normal":
+  seq+=1;send("HEARTBEAT")
+c.close();sys.exit(8)
+"""
+
+
+async def started(tmp_path, monkeypatch, mode):
+    directory, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    monkeypatch.setattr(helper_transport, "validate_peer", lambda *a, **kw: None)
+    source = dns_source.DNSProducer(directory, pin)
+    child = subprocess.Popen(
+        [sys.executable, "-c", CHILD, str(directory / "session.json"), mode],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+    async def consume():
+        values = []
+        async for packet in source.events():
+            values.append(packet)
+        return values
+
+    task = asyncio.create_task(consume())
+    deadline = time.monotonic() + 3
+    while source.state != "RUNNING" and not task.done() and time.monotonic() < deadline:
+        await asyncio.sleep(0.01)
+    assert source.state == "RUNNING"
+    assert source.capture.ready.pid == child.pid
+    assert source.capture.process_observation()["state"] == "ALIVE"
+    return directory, source, child, task
+
+
+async def reap(source, child, task):
+    task.cancel()
+    await asyncio.gather(task, return_exceptions=True)
+    await source.close()
+    if child.poll() is None:
+        child.terminate()  # Only the ordinary fake helper child created by this test.
+    child.wait(timeout=3)
+    child.stdout.close()
+    child.stderr.close()
+
+
+@pytest.mark.asyncio
+async def test_normal_stop_ack_process_exit_socket_cleanup_and_restart_guard(tmp_path, monkeypatch):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "normal")
+    try:
+        pin = hashlib.sha256((directory / "session.json").read_bytes()).hexdigest()
+        ready_before = (directory / "verified-ready.json").read_bytes()
+        with pytest.raises(ValueError, match="SESSION_ALREADY_ADMITTED"):
+            dns_source.DNSProducer(directory, pin)
+        assert child.poll() is None and source.state == "RUNNING"
+        assert (directory / "verified-ready.json").read_bytes() == ready_before
+        await source.request_stop()
+        assert await asyncio.wait_for(task, 3) == []
+        assert child.wait(timeout=2) == 0
+        assert source.state == "STOPPED" and source.cleanup == "VERIFIED"
+        source.capture.last_heartbeat = time.monotonic() - 30
+        view = source.snapshot
+        assert view["heartbeat_status"] == "ENDED_AUTHENTICATED_CLOSED"
+        assert view["helper_process"]["state"] == "EXITED"
+        assert view["helper_process"]["exit_code"] is None  # Not this receiver's child.
+        assert view["transport_error"] is None
+        assert view["closed_observed_unix"] >= view["stop_requested_unix"]
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["cleanup"] == "VERIFIED"
+        assert proof["channel_closed"] and proof["listener_closed"] and proof["reader_joined"]
+        assert proof["global_kernel_cleanup"] == "UNKNOWN"
+        original = (directory / "cleanup.json").read_bytes()
+        pin = hashlib.sha256((directory / "session.json").read_bytes()).hexdigest()
+        with pytest.raises(ValueError, match="SESSION_ALREADY_ADMITTED"):
+            dns_source.DNSProducer(directory, pin)
+        await source.close()
+        assert (directory / "cleanup.json").read_bytes() == original
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["delayed", "quarantine", "no_ack", "bad_ack"])
+async def test_delayed_heartbeat_stops_admission_but_drains_owned_cleanup(
+    tmp_path, monkeypatch, mode
+):
+    directory, source, child, task = await started(tmp_path, monkeypatch, mode)
+    acknowledged = mode in {"delayed", "quarantine"}
+    try:
+        source.capture.last_heartbeat = time.monotonic() - 3
+        with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+            await asyncio.wait_for(task, 7)
+        assert child.wait(timeout=2) == (7 if mode == "no_ack" else 0)
+        assert (
+            source.state == "FAILED"
+            and source.capture.reader_error == "HELPER_HEARTBEAT_OR_PROCESS_STALE"
+        )
+        assert source.cleanup == ("VERIFIED" if acknowledged else "UNVERIFIED")
+        assert not source.capture.completion_verified()  # Stream integrity never promoted.
+        assert source.received == source.capture.delivered == 0
+        assert source.capture.quarantined_packets == int(mode == "quarantine")
+        assert not source.capture.is_live()
+        assert source.capture.process_observation()["state"] == "EXITED"
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["capture_admission"] == "DENIED_AFTER_FAILURE"
+        assert proof["first_error"] == source.last_error
+        assert proof["authenticated_closed"] is acknowledged
+        assert proof["channel_closed"] and proof["listener_closed"] and proof["reader_joined"]
+        assert proof["global_kernel_cleanup"] == "UNKNOWN"
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+async def test_actual_abnormal_process_exit_is_not_mislabeled_heartbeat_stale(
+    tmp_path, monkeypatch
+):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "crash")
+    try:
+        with pytest.raises(ValueError, match="DISCONNECTED_OR_RECORD_LIMIT"):
+            await asyncio.wait_for(task, 3)
+        assert child.wait(timeout=2) == 7
+        assert source.last_error == "CaptureUnavailable:HELPER_DISCONNECTED_OR_RECORD_LIMIT"
+        assert source.cleanup == "UNVERIFIED"
+        assert source.capture.process_observation()["state"] == "EXITED"
+        assert not (directory / "verified-closed.json").exists()
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["normal", "delayed"])
+async def test_cleanup_audit_failure_never_overwrites_primary_or_claims_commit(
+    tmp_path, monkeypatch, mode
+):
+    directory, source, child, task = await started(tmp_path, monkeypatch, mode)
+
+    def disk_full(*_):
+        raise OSError(28, "fixture disk full")
+
+    monkeypatch.setattr(dns_source, "write_cleanup", disk_full)
+    try:
+        if mode == "normal":
+            await source.request_stop()
+            with pytest.raises(OSError) as result:
+                await asyncio.wait_for(task, 3)
+            assert result.value.errno == 28
+        else:
+            source.capture.last_heartbeat = time.monotonic() - 3
+            with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+                await asyncio.wait_for(task, 7)
+            assert "HEARTBEAT_OR_PROCESS_STALE" in source.last_error
+        assert child.wait(timeout=2) == 0
+        assert source.cleanup == "UNVERIFIED" and source.state == "FAILED"
+        assert source.cleanup_evidence_sha256 is None
+        assert source.cleanup_error.startswith("OSError:")
+        assert not (directory / "cleanup.json").exists()
+        assert source.capture.listener.fileno() == source.capture.channel.fileno() == -1
+    finally:
+        await reap(source, child, task)
+
+
+def test_supervisor_exposes_dns_first_error_while_cleanup_is_pending(tmp_path):
+    from types import SimpleNamespace
+
+    from tests.unit.continuous.test_runtime import config
+
+    from soc_agent.continuous.service import ContinuousRuntime
+    from soc_agent.continuous.store import Store
+
+    directory = tmp_path / "runtime"
+    Store.create(directory, config(tmp_path))
+    error = "CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE"
+    dns = SimpleNamespace(last_error=error, snapshot=dict(state="FAILED", cleanup="PENDING"))
+    runtime = ContinuousRuntime(directory, dns_source=dns)
+    assert runtime.last_error is None
+    assert runtime.snapshot()["last_error"] == error
+    runtime.last_error = "OLDER_PRIMARY_ERROR"
+    assert runtime.snapshot()["last_error"] == "OLDER_PRIMARY_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_failed_failure_log_keeps_first_error_and_cleanup_unverified(tmp_path, monkeypatch):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "delayed")
+    original = helper_transport.write_private
+
+    def failed_diagnostic(path, value):
+        if path.name == "transport-failure.json":
+            raise OSError(28, "fixture disk full")
+        original(path, value)
+
+    monkeypatch.setattr(helper_transport, "write_private", failed_diagnostic)
+    try:
+        source.capture.last_heartbeat = time.monotonic() - 3
+        with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+            await asyncio.wait_for(task, 7)
+        assert child.wait(timeout=2) == 0
+        assert source.capture.reader_error == "HELPER_HEARTBEAT_OR_PROCESS_STALE"
+        assert source.capture.reader_diagnostic_error == "HELPER_TRANSPORT_DIAGNOSTIC_WRITE_FAILED"
+        assert source.cleanup == "UNVERIFIED"
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["transport_diagnostic_error"] == source.capture.reader_diagnostic_error
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+async def test_real_two_second_silence_is_not_an_initial_process_exit(tmp_path, monkeypatch):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "delayed")
+    try:
+        began = time.monotonic()
+        assert child.poll() is None and source.capture.process_observation()["state"] == "ALIVE"
+        with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+            await asyncio.wait_for(task, 6)
+        assert 1.8 < time.monotonic() - began < 5
+        assert child.wait(timeout=2) == 0
+        assert source.state == "FAILED" and source.cleanup == "VERIFIED"
+        assert source.last_error_observed_unix >= source.capture.last_heartbeat_unix + 1.9
+        assert source.snapshot["heartbeat_status"] == "ENDED_AFTER_STREAM_FAILURE"
+        assert source.snapshot["helper_process"]["state"] == "EXITED"
+        assert not source.capture.completion_verified()
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+async def test_missing_ack_has_bounded_drain_and_no_receiver_process_kill(tmp_path, monkeypatch):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "ignore_stop")
+    try:
+        source.capture.last_heartbeat = time.monotonic() - 3
+        began = time.monotonic()
+        with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+            await asyncio.wait_for(task, 8)
+        assert 4.9 <= time.monotonic() - began < 7
+        assert source.cleanup == "UNVERIFIED"
+        assert source.capture.failure_stop_error == "CONTINUOUS_DNS_FAILURE_STOP_ACK_MISSING"
+        assert child.poll() is None  # The receiver never signals a service-owned PID.
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert not proof["authenticated_closed"] and not proof["stream_completion_verified"]
+        assert proof["reader_joined"] and proof["channel_closed"]
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+async def test_owner_stop_joins_in_progress_failure_ack_without_false_cleanup_failure(
+    tmp_path, monkeypatch
+):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "delayed_ack")
+    try:
+        source.capture.last_heartbeat = time.monotonic() - 3
+        deadline = time.monotonic() + 2
+        while source.capture.reader_error is None and time.monotonic() < deadline:
+            await asyncio.sleep(0.005)
+        assert source.capture.reader_error == "HELPER_HEARTBEAT_OR_PROCESS_STALE"
+        await source.request_stop()
+        with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+            await asyncio.wait_for(task, 3)
+        assert child.wait(timeout=2) == 0
+        assert source.cleanup == "VERIFIED" and source.state == "FAILED"
+        assert source.capture.terminal is not None
+        assert source.capture.failure_stop_error is None
+        assert not source.capture.completion_verified()
+    finally:
+        await reap(source, child, task)
