@@ -345,13 +345,14 @@ async def test_runtime_owns_dns_stop_and_reports_failure_without_touching_root(
 
     class PassiveTCX:
         state = "RUNNING"
+        remote_cleanup = "UNKNOWN"
 
         async def events(self):
             await asyncio.Event().wait()
             yield  # unreachable; no fixture promoted to Native capture
 
         async def request_stop(self):
-            pass
+            self.remote_cleanup = "VERIFIED"  # Simulated bound Root ACK boundary.
 
         async def close(self):
             self.state = "STOPPED"

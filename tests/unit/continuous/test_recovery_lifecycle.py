@@ -311,6 +311,41 @@ async def test_runtime_does_not_promote_remote_collector_cleanup(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_failed_collector_without_bound_stop_ack_cannot_report_verified_cleanup(
+    tmp_path, monkeypatch
+):
+    directory, store = make(tmp_path)
+    closed = []
+
+    class FailedSource:
+        state = "STOPPED"
+        remote_cleanup = "UNKNOWN"
+        snapshot = {}
+
+        async def events(self):
+            raise ValueError("CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT")
+            yield
+
+        async def request_stop(self):
+            pytest.fail("already failed transport cannot fabricate a STOP ACK")
+
+        async def close(self):
+            closed.append(True)
+
+    runtime = ContinuousRuntime(directory, source=FailedSource())
+    runtime.config = runtime.config.model_copy(update={"source": "NATIVE_SERVICE"})
+    monkeypatch.setattr("soc_agent.continuous.service.require_source_authority", lambda _: None)
+    with pytest.raises(ValueError, match="NATIVE_COLLECTOR_EARLY_EXIT"):
+        await asyncio.wait_for(runtime.run(), 3)
+    value = store.state()
+    assert value["state"] == "DEGRADED" and value["cleanup"] == "UNVERIFIED"
+    assert value["collector_cleanup"] == "UNKNOWN" and closed
+    assert value["last_error"] == "ValueError:CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT"
+    assert value["collector_failure"]["code"] == "CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT"
+    assert runtime.metrics["predictions"] == 0
+
+
+@pytest.mark.asyncio
 async def test_unrequested_worker_cancel_remains_unknown_failure(tmp_path):
     directory, store = make(tmp_path)
     store.enqueue(sealed_jobs(*transcript())[0][0])

@@ -78,6 +78,32 @@ class IsolatedDNS:
         if packet.dns is None:
             if not self.changes_projection(packet):
                 return []  # Unrelated packets never expire DNS queries.
+            if (
+                packet.transport == "tcp"
+                and 53 in (packet.source_port, packet.destination_port)
+                and packet.ip_length == packet.header_length
+            ):
+                # SYN/ACK/FIN without application bytes contain no DNS message.
+                # Retain their provenance without calling them malformed DNS or
+                # pretending to reassemble a partial payload.
+                return self._record(
+                    [
+                        self._fault(
+                            "TRANSPORT_CONTROL",
+                            timestamp_ns(packet),
+                            digest(
+                                dict(
+                                    session=self.session_id,
+                                    sequence=sequence,
+                                    packet=packet.model_dump(mode="json"),
+                                )
+                            ),
+                            transport="tcp",
+                            tcp_flags=packet.tcp_flags,
+                            content_status="NO_APPLICATION_PAYLOAD",
+                        )
+                    ]
+                )
             return self._record(DNSDiagnostics(self.session_id).observe(packet, sequence))
         key, now = digest(FlowTable.key(packet)), timestamp_ns(packet)
         reference = digest(dict(session=self.session_id, sequence=sequence, connection=key))

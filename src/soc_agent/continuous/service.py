@@ -892,6 +892,8 @@ class ContinuousRuntime:
                         raise ValueError("CONTINUOUS_WORKER_TASK_EXITED")
                     if collector.done():
                         collector.result()
+                        if self.config.source == "NATIVE_SERVICE" and not self.stop.is_set():
+                            raise ValueError("CONTINUOUS_NATIVE_COLLECTOR_EARLY_EXIT")
                     if journal and journal.done():
                         journal.result()
                         raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
@@ -987,6 +989,13 @@ class ContinuousRuntime:
                         await close()
                     except BaseException as error:
                         failures.append(error)
+                if (
+                    self.config.source == "NATIVE_SERVICE"
+                    and getattr(self.source, "remote_cleanup", "UNKNOWN") != "VERIFIED"
+                ):
+                    # A collector that already failed will not enter request_stop
+                    # above. Local socket closure cannot replace its bound ACK.
+                    failures.append(ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED"))
                 flush_error = None
                 try:
                     for event in self.dns.finish(aborted=True):

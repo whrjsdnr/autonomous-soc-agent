@@ -8,9 +8,11 @@ import ctypes as C
 import hashlib
 import json
 import os
+import queue
 import signal
 import socket
 import struct
+import threading
 import time
 from collections import deque
 from pathlib import Path
@@ -18,6 +20,93 @@ from sys import exception as sys_exception
 
 INSTALL = Path("/usr/lib/soc-agent/continuous")
 POLICY = Path("/etc/soc-agent/continuous-installation.json")
+
+
+class OrderedAudit:
+    """One bounded writer; seal/attach/stop barriers still require durable COMMIT.
+
+    Transport heartbeats must not wait on each heartbeat's fsync. Pending rows
+    grant no capture eligibility; the seal barrier drains every preceding row.
+    The writer owns its descriptor, including on a timed-out shutdown.
+    """
+
+    def __init__(self, fd, previous):
+        self.fd, self.previous = fd, previous
+        self.queue = queue.Queue(maxsize=8)
+        self.stopping = threading.Event()
+        self.failure = None
+        self.submitted = self.committed = 0
+        self.thread = threading.Thread(target=self._write, daemon=True, name="soc-root-audit")
+        try:
+            self.thread.start()
+        except BaseException:
+            os.close(fd)
+            raise
+
+    @property
+    def pending(self):
+        return self.submitted - self.committed
+
+    def check(self):
+        if self.failure is not None:
+            raise ValueError("CONTINUOUS_ROOT_AUDIT_WRITE_FAILED") from self.failure
+
+    def record(self, code, state, *, wait=True):
+        self.check()
+        if self.stopping.is_set():
+            raise ValueError("CONTINUOUS_ROOT_AUDIT_CLOSED")
+        row = dict(code=code, state=dict(state), previous=self.previous, at=time.time_ns())
+        encoded = json.dumps(row, sort_keys=True, separators=(",", ":")).encode()
+        pin = hashlib.sha256(encoded).hexdigest()
+        body = json.dumps(row | dict(sha256=pin)).encode() + b"\n"
+        if len(body) > 1024**2:
+            raise ValueError("CONTINUOUS_ROOT_AUDIT_RECORD_BOUND")
+        done = threading.Event()
+        try:
+            self.queue.put_nowait((body, done))
+        except queue.Full as error:
+            raise ValueError("CONTINUOUS_ROOT_AUDIT_BACKPRESSURE") from error
+        self.previous = pin
+        self.submitted += 1
+        if wait:
+            if not done.wait(5):
+                raise ValueError("CONTINUOUS_ROOT_AUDIT_COMMIT_DEADLINE")
+            self.check()
+
+    def _write(self):
+        try:
+            while not self.stopping.is_set() or not self.queue.empty():
+                try:
+                    body, done = self.queue.get(timeout=0.05)
+                except queue.Empty:
+                    continue
+                try:
+                    if os.fstat(self.fd).st_size + len(body) > 64 * 1024**2:
+                        raise ValueError("CONTINUOUS_ROOT_AUDIT_QUOTA")
+                    if os.write(self.fd, body) != len(body):
+                        raise ValueError("CONTINUOUS_ROOT_AUDIT_PARTIAL")
+                    os.fsync(self.fd)
+                    self.committed += 1
+                except (OSError, ValueError) as error:
+                    self.failure = error
+                    return
+                finally:
+                    done.set()
+        finally:
+            try:
+                os.close(self.fd)
+            except OSError as error:
+                self.failure = self.failure or error
+            while not self.queue.empty():
+                _, done = self.queue.get_nowait()
+                done.set()
+
+    def close(self):
+        self.stopping.set()
+        self.thread.join(5)
+        if self.thread.is_alive():
+            raise ValueError("CONTINUOUS_ROOT_AUDIT_DRAIN_UNVERIFIED")
+        self.check()
 
 
 def audit_tail(lines):
@@ -332,17 +421,10 @@ def run():
         finally:
             os.close(reader)
 
+    audit_writer = OrderedAudit(fd, previous)
+
     def audit(code):
-        nonlocal previous
-        if os.fstat(fd).st_size >= 64 * 1024**2:
-            raise ValueError("CONTINUOUS_ROOT_AUDIT_QUOTA")
-        row = dict(code=code, state=dict(state), previous=previous, at=time.time_ns())
-        encoded = json.dumps(row, sort_keys=True, separators=(",", ":")).encode()
-        previous = hashlib.sha256(encoded).hexdigest()
-        body = json.dumps(row | dict(sha256=previous)).encode() + b"\n"
-        if os.write(fd, body) != len(body):
-            raise ValueError("CONTINUOUS_ROOT_AUDIT_PARTIAL")
-        os.fsync(fd)
+        audit_writer.record(code, state, wait=code != "HEARTBEAT")
 
     server = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET | socket.SOCK_CLOEXEC)
     provider = peer = None
@@ -384,6 +466,7 @@ def run():
         last_audit = 0.0
         sequence = 0
         while not stop:
+            audit_writer.check()  # An asynchronous persistence failure stops capture.
             validate(root_file(POLICY))  # Expiry/revocation fails closed on every poll.
             if installed() != policy:
                 raise ValueError("CONTINUOUS_POLICY_CHANGED")
@@ -448,7 +531,7 @@ def run():
                     generation=provider.generation if provider else pending_seal["generation"],
                     program_sha256=policy["files"]["continuous.bpf.o"],
                     clock=[before, wall, after],
-                    state=dict(state),
+                    state=dict(state, audit_pending=audit_writer.pending),
                     frames=list(frames),
                     sequence=sequence + 1,
                     seal=pending_seal,
@@ -519,6 +602,7 @@ def run():
             state["cleanup"] = "VERIFIED"
             state["state"] = "STOPPED"
             audit("SERVICE_STOPPED")
+            audit_writer.close()  # No verified STOP ACK before the audit drain.
             if peer:
                 try:
                     peer.send(
@@ -543,7 +627,7 @@ def run():
             server.close()
             if owned:
                 path.unlink()
-            os.close(fd)
+            audit_writer.close()
 
 
 if __name__ == "__main__":
