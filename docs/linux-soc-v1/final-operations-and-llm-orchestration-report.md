@@ -1,5 +1,172 @@
 # Final operations and LLM orchestration verification
 
+## 2026-10-30 승인된 A/B 실제 실행 최종 결과
+
+**최종 판정: PARTIALLY_VERIFIED.** A의 실제 Plan은 검증했지만 Assessment는 실패했다.
+B는 실제 수집·모델·조사·GUI를 일부 검증했지만, 순수 수집 3,600초와 Runtime Cleanup을
+충족하지 못했다. `LLM_ORCHESTRATION_VERIFIED`, `NATIVE_ONE_HOUR_VERIFIED`,
+`OPERATIONS_VERIFIED`는 이번 시험에 부여하지 않는다. 기존 제한 시험의 성공 판정은 보존한다.
+
+아래 실제 결과가 최신 판정이다. 문서 후반의 사전 검증 기록은 승인·실행 전 시점의 이력이며
+현재 재실행 안내가 아니다. 승인된 API 2회와 Native 1회를 사용했다. 자동 재실행은 하지 않았다.
+
+### 실제 실행 Binding 및 증거
+
+- 실행 코드: `66814fcd6d987b50a3a77e92bbad484961d32852`, 보고 기준 HEAD: `29c0234`.
+- 코드 Tree: `702eadfcb0ecdbb7896ca3424577a5e0f7c868f1`.
+- Source digest: `2da026fb46fdd72ba66316190413c6f3a71ebd07dee1aef477864d0c2d9e4afd`.
+- 승인 패키지 SHA: `5d8dc41fb4bcd00ac2b7f9eb35f77128545ec583142cc17fa9e3a70a507b6a74`.
+- Root Manifest: `47be0e61d6fb6347bfcbf5b64a2a9055f175b95bc7b70a8fa731a44ac2fd6819`.
+- 실행 Wheel: `76c082b6a279506dae34d3da3814898ee8adb63453cdb76e73d4ab4d31eda9eb`.
+- Runtime Session: `64ac9f4f-1883-4062-a9dc-98e0b0798547`.
+- DNS Session: `6264cbd6-a2de-499b-a7c0-87739b639a31`.
+- Namespace `net:[4026532232]`, `lo / Ingress` 유지.
+- 원본 실행 소스 `frozen-source-final`, 후보 `native-one-hour-final`은 수정하지 않았다.
+- 최신 근거: 공유 `.git/final-llm-hour-preflight-20261030T100117Z/approved-execution-records/`
+  아래 `api-final-summary.json`, `native-final-summary.json`, GUI 검증 결과 및 회귀·빌드 로그.
+- 상세 Root/Runtime 결과는 `native-one-hour-final/execution/`, `future-runtime/`에 보존했다.
+
+### A — 실제 LLM Plan 성공, Assessment Timeout
+
+| 항목 | 실제 결과 |
+|---|---|
+| Provider / 모델 | 기존 OpenAI / `gpt-5-mini` |
+| 요청 / 재시도 | 2회 / 0회 |
+| Investigation Plan | 실제 응답, 구조화된 Schema 검증 통과 |
+| Read-only Tool | `read_local_source_report` 완료 |
+| Assessment | 승인된 20초에서 `LLMTimeoutError`, 응답·사용량 없음 |
+| 후속 Replan | 미실행; 최초 Adaptive 계획을 평가 후 재계획으로 계산하지 않음 |
+| Checkpoint / GUI | Revision 5, FAILED 상태와 Plan·Timeout을 실제 Tk 재연결 2회에서 확인 |
+| Audit | 체인 검증 통과; 원본 Native 증거 불변 |
+
+고정 Incident `83d6db5e-7b0a-5b39-934a-97e860b3b752`, Task
+`74819a09-b7c4-5891-a35d-d4ca71e25c99`, Evidence Revision
+`9c82b6ff11f6a23cec30163e2280b4c3474e729640b947de3dceac85c1901295`를 사용했다.
+첫 요청은 약 9.139초, 입력 2,264 / 출력 689 token이다. 공식 단가로 계산한 **첫 응답 비용은
+$0.001944**다. 두 번째 요청은 사용량 응답이 없으므로 **총 청구 비용은 UNKNOWN**이다.
+두 요청의 사전 로컬 비용 예약 합계는 $0.02255775로 승인 상한 $0.05 이내였다.
+키·민감 원문을 로그나 Git에 노출하지 않았고, 최소화된 증거만 승인된 API로 전송했다.
+
+원격 Timeout 원인은 응답 증거가 없어 UNKNOWN이다. 요청 한도·20초 Timeout을 늘리거나
+재호출하지 않았다. 실행 wrapper의 최종 `AssertionError`/exit 2는 성공 요건 불충족을
+알린 후속 오류이며, 최초 운영 오류는 Assessment의 `LLMTimeoutError`다.
+Coordination 우선순위는 LOCAL_RULE이고 실제 LLM 판단은 Plan에 한정한다.
+
+### B — 실제 Native 수집 및 종료 결과
+
+사용자가 터미널에서 Scope를 직접 확인하고 sudo 인증한 후 1회 실행했다.
+고정 Root 8경로 중 승인된 5개 변경만 적용했으며 기존 설치 백업·Rollback을 보존했다.
+상한은 전체 4,200초, Collector 128MiB/CPU25%, Runtime 512MiB/CPU50%, Queue32,
+Runtime 저장 점검256MiB / Root Audit64MiB였다. 실행 중 상한을 완화하지 않았다.
+
+| 항목 | 실제 결과 |
+|---|---|
+| 전체 실행 | 1,165.985초 (약 19분26초) |
+| Collector 부착 경과 시간 | 1,150.322초 |
+| VERIFIED seal의 활성 수집 합계 | **1,080.335초 (약 18분), 목표 3,600초 미달** |
+| Native metadata | 144건: Runtime 수용134건 + 실패 후 격리10건 |
+| DNS Transaction | UDP2 + TCP1 = 3개 |
+| Window | 정상 봉인·Attestation VERIFIED6개 + 실패 진단 Window1개 |
+| Network14 | ELIGIBLE9 / INCOMPLETE6 |
+| RF/LR | 별도 인간 승인된 1개 작업, 4개 입력, 실제 Prediction8건 |
+| Incident / Investigation Task | 2개 / 5개 |
+| Runtime Queue | DONE2 / PENDING4 / POISON1, 원본 보존 |
+| Queue Drop / 모델 오류 | 0 / 0 |
+| 실제 외부 API / DNS9 | B에서 모두 0회 |
+| Runtime·Root 종료 코드 | 2 |
+
+TCP는 6개 Helper 실행에서 12연결 완료를 확인했다. 일곱 번째 Helper는 실행 중 Cleanup으로
+취소됐다. 이 마지막 실행의 연결 완료 수를 추정하지 않으며 14연결 완료로 보고하지 않는다.
+최대 38연결 계약을 초과하지 않았다. DNS는 기존 로컬 dnsmasq만 사용했다.
+
+첫 봉인 작업만 사용자가 별도 승인했다. 이후 5개 작업 검토는 미승인 상태에서 실패했으며,
+열려 있던 해당 검토 터미널만 종료했다. 새 모델 영수증이나 추가 모델 호출은 없었다.
+조사는 SCRIPTED이며 A의 실제 API 결과를 B의 실시간 LLM 조율로 합산하지 않는다.
+
+실제 Tk GUI의 종료·재연결 후 Backend가 동일 PID로 RUNNING인 것을 확인했다.
+Dashboard·Continuous·Investigation·AI Analysis 등 실제 화면에서 Native 상태,
+Prediction8·Incident2·Task5와 SCRIPTED 조사 표기를 확인하고 화면 증거를 보존했다.
+Authentication NOT_ATTACHED를 실제 수집으로 표시하지 않았다. 실패 후 지속 운영 성공이나
+발생하지 않은 충돌·재계획 성공은 주장하지 않는다.
+
+### 오류 목록 및 RCA
+
+| 오류 | 증거 및 처리 |
+|---|---|
+| A Assessment `LLMTimeoutError` | 실제 요청 2번째, 20초 무응답. 공급자 측 원인 UNKNOWN. 재시도 없이 보존 |
+| B `CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT` | 11:16:24.126639 UTC, control 수신 공백 5.001초. 같은 Producer PID/start identity, IPC 연결 유지, receiver queue0/drop0. Root heartbeat 최대 공백6.253초 확인 |
+| Root `COLLECTOR_EARLY_EXIT` | 위 Timeout 후 STOP에 따른 후속 관측 오류. 최초 원인으로 바꾸지 않음 |
+| DNS 종료 중 heartbeat/exit 증거 부족 | STOP 후 CLOSED와 최종 Counter는 수신했지만 Runtime receipt 시점 프로세스 ALIVE. 당시 Cleanup UNVERIFIED 유지 |
+| CLI `executed:false` 오표시 | 실제 Capture 뒤 실패해도 BLOCKED/false를 출력하는 결함 확인. 비권한 최소 수정·회귀 완료 |
+
+Native Timeout은 단순 무트래픽 판단과 구별된다. 마지막 데이터 후 약145초였지만 control
+메시지가 끊긴 5초에 실패했다. 마지막 성공 수신은 11:16:19.125606 UTC였고 Root 다음
+heartbeat는 약6.253초 뒤였다. Root의 검증·lease 갱신·poll 경로 중 어느 단계가 지연됐는지,
+OS 스케줄링 또는 I/O가 원인인지는 현 증거만으로 확정할 수 없어 UNKNOWN으로 남긴다.
+Queue 포화·Producer 교체·OOM을 원인으로 단정하지 않았다. Timeout을 임의로 늘리지 않았다.
+
+### Cleanup — 영역별 독립 판정
+
+| 영역 | 판정 및 증거 |
+|---|---|
+| TCX | STOP ACK 수신, failure STOP 약1.322초, 소유 Collector Cleanup VERIFIED |
+| Window | 정상6개 보존, 실패 진단 seal1개는 정상 VERIFIED 입력으로 승격하지 않음 |
+| DNS Helper | CLOSED·최종 Counter VERIFIED. Runtime 종료 receipt에서는 ALIVE이므로 Cleanup UNVERIFIED |
+| Root 소유 자원 | 최종 고정 unit MainPID0, 소유 Map/Link/Socket 잔류 없음; 해당 Scope VERIFIED |
+| Runtime | 마지막 Flush VERIFIED, 전체 Cleanup UNVERIFIED; 후속 오류가 최초 Timeout을 덮지 않음 |
+| Global Kernel | UNVERIFIED 유지; 현재 소유 자원 정리를 과거·전역 보장으로 확대하지 않음 |
+
+DNS STOP 요청은 11:16:26.177538 UTC, CLOSED 관측은 11:16:28.179570 UTC였다.
+Runtime receipt는 11:16:29.188 부근에서 프로세스가 살아 있음을 기록했다. 이후 Root 최종
+unit 결과는 MainPID0/Exit0이었다. **뒤늦은 종료 증거로 앞선 Runtime receipt를 고치지 않았다.**
+현재 해당 Producer·Runtime·Helper PID가 없다는 일반 사용자 조회도 과거 증거와 분리했다.
+
+Ledger는 기존 **81행**, SHA
+`07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae`로 불변이다.
+이번 실행·승인·종료는 별도 실행 영수증/Audit에 기록됐으며 기존 Campaign 계수를 초기화하거나
+과거 영수증을 재사용하지 않았다. Root Audit 기존 prefix와 추가 체인, Runtime Audit 체인,
+A service/B service/queue SQLite integrity_check 모두 통과했다. 기존 증거211개 SHA를 보존했다.
+
+### 실패 후 최소 수정·검증·Git
+
+코드 Commit **`970c43a`**: `continuous/cli.py`의 foreground `run` 오류는 이제
+`FAILED_OR_BLOCKED`, `executed:null`, 증거 디렉터리를 반환한다. 실행 여부는 보존된
+Runtime/Audit로 확인하게 하고, 실제 수집 후 실패를 미실행으로 단정하지 않는다.
+기존 `test_operating_cli_child_exit_and_failure_evidence`에 해당 결과 검증을 추가했다.
+승인·Timeout·Kernel·Root 정책을 변경하지 않았고, 설치된 시험 Artifact에도 적용하지 않았다.
+
+- Workspace 관련 회귀 **88 PASS** (54.79초).
+- 독립 Export 같은 회귀 **88 PASS** (61.30초).
+- Workspace의 pytest 임시 디렉터리 정리 경고49건은 별도 보존. Export 전용 임시 경로는 경고 없이 통과.
+- Ruff check PASS / format 1,539파일 PASS / `git diff --check` PASS.
+- Native6개: Workspace 이중 빌드·Export 일치, 실제 실행 Native6개와도 일치.
+- Wheel: Workspace 이중 빌드·Export SHA 일치.
+- 수정 후 Wheel SHA: `e0a3bb92ee6a7b5cad01b7dfb02793a6240e707d2dbe3920f932dce00d8741bb`.
+- 새 Wheel은 **비권한 빌드 결과**이며 위 실행 Wheel과 다른 Artifact다. 기존 승인을 승계하지 않는다.
+- 재현·회귀 증거: `approved-execution-records/postfailure-validation/`.
+
+코드·테스트와 이 보고서만 선별 Commit/Push하며 최종 Git 결과는
+`approved-execution-records/git-final-executed.json` 및 최종 응답에 기록한다.
+
+### 남은 조건
+
+1. API Assessment 무응답 원인과 적정 시간 계약을 확인해야 한다. 새 호출은 새 정확한 승인 필요.
+2. Root control heartbeat 공백의 단계별 원인을 더 좁혀야 한다. 이번에 원인을 해결했다고 주장하지 않는다.
+3. DNS CLOSED 이후 실제 종료와 Runtime Cleanup receipt 사이의 경합을 해결·비권한 검증해야 한다.
+4. 수정본은 새 Source/Artifact Binding으로 검토하고 Root·Native·R1·트래픽·시간 Scope,
+   사용자 확인·sudo 인증을 다시 충족해야 한다. 모델은 봉인된 ELIGIBLE 작업별 별도 승인이다.
+5. 3,600초 VERIFIED 활성 수집과 전체 Cleanup이 모두 충족되기 전에는 1시간/운영 VERIFIED가 아니다.
+
+추가 Root·Native·DNS·API 실행, 설치, 승인 소비를 하지 않았다. 재시험을 자동 시작하지 않는다.
+
+---
+
+## 보존된 승인 전 사전 검증 기록 (이하 과거 시점)
+
+아래 BLOCKED/NOT_RUN/승인 대기·미설치 표현과 실행 예시는 **실행 전 기록**이다.
+이번에 소비한 Session/승인을 다시 실행하는 지침으로 사용하지 않는다.
+
+
 Date: 2026-10-30, Asia/Seoul. Branch: `feat/one-command-runtime`.
 
 **비권한 준비·수정·검증 완료. 실제 API 및 1시간 Native 시험은 새 승인 대기(BLOCKED).**
