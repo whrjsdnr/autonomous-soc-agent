@@ -9,9 +9,9 @@ Date: 2026-10-30, Asia/Seoul. Branch: `feat/one-command-runtime`.
 ## 기준선과 보존
 
 시작 HEAD `7de4794`, 기존 후속 코드 `71377c7`. 실제 이전 Kernel 시험은 별도로 동결한
-`c542398`에서 실행됐다. 이번 코드 Commit은 `33778d009f5a35fe44caaec3b22f2492aab25d88`,
-Tree `7c42ab9c179ff13416c5aaf08800307083bbbc89`이다. 이후 보고서 Commit은 실행 Source를
-바꾸지 않으며, 새 시험은 private `frozen-source`의 이 코드에 결합된다.
+`c542398`에서 실행됐다. 이번 코드 Commit은 `66814fcd6d987b50a3a77e92bbad484961d32852`,
+Tree `702eadfcb0ecdbb7896ca3424577a5e0f7c868f1`이다. 이후 보고서 Commit은 실행 Source를
+바꾸지 않으며, 새 시험은 private `frozen-source-final`의 이 코드에 결합된다.
 
 기존 실제 결과: Packet54, DNS Transaction3, attested Window3, Network14 ELIGIBLE5,
 RF/LR8, Incident2, Investigation Task5, Queue Drop0, 모델 오류0, 소유 범위 Cleanup VERIFIED.
@@ -27,8 +27,8 @@ RF/LR8, Incident2, Investigation Task5, Queue Drop0, 모델 오류0, 소유 범�
 
 증거 디렉터리(공유 Git 디렉터리 기준):
 `.git/final-llm-hour-preflight-20261030T100117Z/`.
-최종 후보는 **`native-review-ready/`**뿐이다. `native-review`, `native-review-final`,
-`native-review-final-v2`는 이전 비실행 초안으로 보존하며 승인·실행에 사용하지 않는다.
+최종 후보는 **`native-one-hour-final/`**뿐이다. `native-review`, `native-review-final`,
+`native-review-final-v2`, `native-review-ready`는 이전 비실행 초안으로 보존하며 승인·실행에 사용하지 않는다.
 
 ## 확인한 결함과 최소 수정
 
@@ -37,7 +37,7 @@ RF/LR8, Incident2, Investigation Task5, Queue Drop0, 모델 오류0, 소유 범�
 | 기존 API 최소화기가 Continuous advisory 및 Adaptive tool/evidence/history 항목을 전달하지 않음 | 기존 `security_ai/api_investigation.minimized`에 UUID·digest·enum·허용 tool catalog만 투영. Raw source와 자유형 error/purpose는 전달하지 않음 |
 | 기존 2회 API 계약과 Continuous coordination/planning의 호출 수가 다름 | `continuous/api_investigation.RetainedAPIClient`가 정확한 Task·Source Revision을 고정. Coordination은 명시적 LOCAL_RULE, 계획·평가만 기존 API adapter 호출. 이후 재계획은 HUMAN REVIEW |
 | DNS 정책의 정상 유한 종료도 Continuous Runtime이 EARLY_EXIT로 처리 | `DNSProducer.policy_duration_completed`가 정책 종료시각·Counter·인증된 CLOSED·프로세스 종료·durable cleanup을 모두 검증할 때만 종료 허용. 조기 종료·증거 누락·오류는 계속 차단 |
-| PRE_ATTACH/POST_DETACH 시간은 실제 capture-enabled 시간보다 넓음 | Root `continuous/native/service.py`가 첫 enable 이후부터 종료/lease 만료 중 이른 시점까지 기록. Lease 공백 발생 시 해당 Window의 enabled duration 주장 금지 |
+| PRE_ATTACH/POST_DETACH 시간은 실제 capture-enabled 시간보다 넓음 | Root `continuous/native/service.py`가 첫 enable 이후부터 종료/lease 만료 중 이른 시점까지 기록. Lease 공백 발생 시 해당 Window의 enabled duration 주장 금지. 갱신 시작뿐 아니라 syscall 완료 시각까지 이전 lease와 비교해 호출 중 만료도 제외 |
 | 회전·복구 시 활성 수집 시간 합산 근거 부족 | `CaptureSeal`에 선택적 interval 증거, CPU boundary 내부 검증, 겹침·Replay 차단. VERIFIED seal의 서로 겹치지 않는 구간만 Runtime이 재구성·합산. 과거 seal에는 시간 증거를 소급 생성하지 않음 |
 | 실행 후보 복사본에 이전 600초·변경 파일3개 등의 안내가 남음 | 새 후보의 요청·독립 승인 항목·terminal·Root fixed launcher·systemd 제한을 4200초 계약 및 실제5개 변경으로 대조. Scope 입력 전에 잔여75분 검사 |
 | 새 retained API entry의 display Source가 Store config와 달라 GUI가 거부 | private 실행 entry가 기존 JSONL_REPLAY 저장소 종류를 유지하고 별도 `RETAINED_REAL_NATIVE_NO_NEW_CAPTURE` origin 표기. 기존 GUI 무결성 검사를 완화하지 않음 |
@@ -132,16 +132,16 @@ DNS helper512MiB/CPU10%/PID4, UID1000 초기 socket open에 NET_RAW, 이후Capab
 
 | 항목 | 값 |
 |---|---|
-| Runtime Session | `5d4257a5-31fe-403e-90e5-e33884cb6fc8` |
-| DNS Session | `8be00d75-d316-401d-9a90-503ced994554` |
+| Runtime Session | `64ac9f4f-1883-4062-a9dc-98e0b0798547` |
+| DNS Session | `6264cbd6-a2de-499b-a7c0-87739b639a31` |
 | Release | `0.6.3` |
-| Source map canonical SHA | `4b34cb528e90696fac359f10a2df74b62762b4f081a80797fd10ca6405b19d7b` |
-| Source archive SHA | `743a6a45642f28d24e35eb507f258582ceef3dd17b97fd4bc5cd33381fe79408` |
-| Wheel SHA | `a879c0616229f5605075ec7d2c63bf77b9aca5403301cf9fc19a25cba81d4454` |
-| Collector service.py SHA | `f30045cb887351493f5f2888b62af57e16c0a6d66260d28c807cf199420132f2` |
-| Root Manifest SHA | `87506c515882d4bef3f79bb934f3162ec043ccd9025b68ac72df72aa44664cb8` |
-| Native request SHA | `193b3d685e5489c068c586973a0b191943519218ea866f3a6a83cefbd6e198a8` |
-| Execution pins SHA | `3a9d95f0a80ecd2047cb3ca8376e0e06332239933f51a7b3359a6006c46034d7` |
+| Source map canonical SHA | `2da026fb46fdd72ba66316190413c6f3a71ebd07dee1aef477864d0c2d9e4afd` |
+| Source archive SHA | `ddf077802ab0be2b7a4ae1db650042073b7ba9ef0ce26e1573134702c003ac73` |
+| Wheel SHA | `76c082b6a279506dae34d3da3814898ee8adb63453cdb76e73d4ab4d31eda9eb` |
+| Collector service.py SHA | `2f4de1475b9092025da195db1872ede9be1bcd2e5817d1a46dbbb0bae9d05024` |
+| Root Manifest SHA | `47be0e61d6fb6347bfcbf5b64a2a9055f175b95bc7b70a8fa731a44ac2fd6819` |
+| Native request SHA | `b78b7e363fe3884b77f396c8288b2e84987d31d8b6794add0f07778c27bcaa50` |
+| Execution pins SHA | `0681754ecdfd90574a42037785801cd3ffd52fd9d3d59f08338ff3653b519913` |
 
 전체 Native6개 SHA는 증거 디렉터리의 `final-artifact-identity.json`에 있다.
 소유 Cleanup 성공은 TCX STOP ACK·진단/정상 Seal·DNS CLOSED/최종 Counter·durable proof·
@@ -154,8 +154,9 @@ Root/Runtime/Audit Drain을 각각 검증해야 한다. 자연 DNS 정책 종료
 |---|---|
 | Workspace Continuous/API/Provider 회귀 | 388 PASS |
 | Workspace SOCRuntime/Planner/Assessment/GUI/CLI | 402 PASS; 합계790 distinct |
-| 독립 Export 같은790개 | 첫 실행789 PASS/1 FAIL; 동일 실패 테스트 무수정 단독 재검증1 PASS |
+| 독립 Export 기본 같은790개 | 첫 실행789 PASS/1 FAIL; 동일 실패 테스트 무수정 단독 재검증1 PASS |
 | Export 최초 실패 | DNS silence 테스트의 전체 시간5.4657초가 기존5초 assertion 초과; 단독3.43초 PASS |
+| 최종 lease 경계 수정 회귀 | Workspace65 PASS / 최종 독립 Export65 PASS; 신규 호출 중/최초 lease 만료2건 포함 |
 | 시간 실패 원인 판정 | 실제 스케줄링/fsync 기여는 UNKNOWN; Assertion·제품 timeout 완화 안 함, 최초 로그 보존 |
 | Ruff / Format / diff | PASS; 최종 Format1539개 |
 | Native build | Workspace2회 + Export,6개 모두 동일; libbpf 비권한 파싱만, Kernel load 없음 |
@@ -170,7 +171,10 @@ Root/Runtime/Audit Drain을 각각 검증해야 한다. 자연 DNS 정책 종료
 
 이전 초안의 scope 문자열·nested deadline 복사 오류는 최종 후보 전부 대조 후 교정했다.
 Source·Source archive·frozen/export/실행 pin 및 기존 설치 SHA 대조가 통과했다.
-전체 테스트를 무한 반복하지 않았으며 마지막 Export 시간조건은 해당 케이스만 재검증했다.
+기본790건 검증 후 최종 Root lease 경계2건을 추가했다. 최종 Source의 관련65건과 빌드를
+양쪽에서 다시 검증했다. 최초 focused invocation의 모델 fixture1건은 기존 검증 repository
+환경 변수가 빠져 fail-closed됐고, 올바른 환경의65건 전체는 PASS했다. 해당 로그도 보존한다.
+Export의 기존 시간조건1건은 Assertion 수정 없이 해당 케이스만 재검증했다.
 
 ## 실행 준비와 승인 경계
 
@@ -186,7 +190,7 @@ RF/LR는 실제 ELIGIBLE 작업마다 기존 action-specific 승인(상한96호�
 
 ```bash
 cd /home/geonug/kdt-linux/soc-one-command-runtime
-export SOC_AGENT_HOME=/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-llm-hour-preflight-20261030T100117Z/native-cli-profile
+export SOC_AGENT_HOME=/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-llm-hour-preflight-20261030T100117Z/native-cli-profile-final
 PYTHONPATH="$PWD/src" .venv/bin/python -m soc_agent.cli doctor
 PYTHONPATH="$PWD/src" .venv/bin/python -m soc_agent.cli start --preview
 PYTHONPATH="$PWD/src" .venv/bin/python -m soc_agent.cli status
@@ -194,7 +198,7 @@ PYTHONPATH="$PWD/src" .venv/bin/python -m soc_agent.cli status
 
 별도 정확한 B 승인 후에만 같은 프로필로 `soc-agent start --gui`를 사용한다.
 사용자 Scope yes와 sudo는 사용자 터미널에서 직접 받는다. 실제 봉인 작업은 준비된
-`native-review-ready/execution/approve-sealed-models.sh`에서 별도 검토한다.
+`native-one-hour-final/execution/approve-sealed-models.sh`에서 별도 검토한다.
 이번에 start/gui 인증 대기 터미널을 열거나 실행을 예약하지 않았다.
 
 Phase A는 `llm-review/api-approval-review.md`를 승인한 후 기존 APIRunAuthorization을
@@ -217,5 +221,5 @@ Phase A는 `llm-review/api-approval-review.md`를 승인한 후 기존 APIRunAut
 전역 Kernel Cleanup·무중단 장기 운영·실시간 Native Runtime 내부 실제 LLM 호출·DNS9·
 Host Authentication은 이 후보로 검증됐다고 주장하지 않는다.
 
-코드 `33778d0`과 이 보고서만 선별 Commit/Push한다. 기존 사용자 변경은 포함하지 않는다.
+코드 `33778d0`, 최종 lease 보정 `66814fc`와 보고서만 선별 Commit/Push한다. 기존 사용자 변경은 포함하지 않는다.
 최종 Push 결과는 세션 종료 응답과 private `git-final.json`에 기록한다.
