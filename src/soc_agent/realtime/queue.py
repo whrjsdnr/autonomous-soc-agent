@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from soc_agent.realtime.models import CommonEvent
 from soc_agent.review.persistence.database import GovernanceDatabase
@@ -146,11 +146,29 @@ class EventQueue:
                 (self.retry_limit,),
             )
 
-    def claim(self) -> Claim | None:
+    def claim(self, *, priorities: dict[UUID, int] | None = None) -> Claim | None:
         with self.database.transaction() as c:
-            row = c.execute(
-                "SELECT * FROM realtime_events WHERE status='PENDING' ORDER BY rowid LIMIT 1"
-            ).fetchone()
+            if priorities is None:
+                row = c.execute(
+                    "SELECT * FROM realtime_events WHERE status='PENDING' ORDER BY rowid LIMIT 1"
+                ).fetchone()
+            else:
+                if any(type(p) is not int or not 0 <= p <= 2 for p in priorities.values()):
+                    raise ValueError("QUEUE_PRIORITY_RANGE")
+                rows = c.execute(
+                    "SELECT rowid AS arrival,* FROM realtime_events WHERE status='PENDING' "
+                    "ORDER BY rowid"
+                ).fetchall()
+                # At most eight newer arrivals can overtake an older normal task.
+                # Persistent arrival order bounds starvation across process restarts.
+                row = min(
+                    rows,
+                    key=lambda r: (
+                        r["arrival"] - 4 * priorities.get(self._decode(r).event_id, 0),
+                        r["arrival"],
+                    ),
+                    default=None,
+                )
             if row is None:
                 return None
             event = self._decode(row)

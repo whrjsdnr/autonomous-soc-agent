@@ -136,6 +136,7 @@ class OfflineWorkflow:
         api_authorization: APIRunAuthorization | None = None,
         api_settings: OpenAICompatibleSettings | None = None,
         tcx_approval: ApprovalRequest | None = None,
+        defer_investigation: bool = False,
     ):
         if bool(api_authorization) != bool(api_settings) or api_authorization and llm_client:
             raise ValueError("API_EXPLICIT_EXCLUSIVE_CONFIGURATION_REQUIRED")
@@ -150,6 +151,9 @@ class OfflineWorkflow:
         self.paths, self.llm_client, self.claimed = paths, llm_client, False
         self.api_authorization, self.api_settings = api_authorization, api_settings
         self.tcx_approval = tcx_approval
+        if defer_investigation and (api_authorization or llm_client):
+            raise ValueError("DEFERRED_INVESTIGATION_HAS_NO_PROVIDER_AUTHORITY")
+        self.defer_investigation = defer_investigation
 
     def event(self, code: str, payload: object):
         with self.store.database.transaction() as c:
@@ -586,10 +590,16 @@ class OfflineWorkflow:
                 error_type=type(exc).__name__,
             )
             self.event("OFFLINE_RESPONSE_FAILED", response)
-        if (not isinstance(job, TCXAnalysisJob) or records) and (
-            kind in ("UNKNOWN_ANOMALY", "MODEL_ERROR")
-            or isinstance(job, CollectorFailureJob)
-            and not known
+        if self.defer_investigation:
+            self.event("OFFLINE_INVESTIGATION_DEFERRED", context)
+        if (
+            not self.defer_investigation
+            and (not isinstance(job, TCXAnalysisJob) or records)
+            and (
+                kind in ("UNKNOWN_ANOMALY", "MODEL_ERROR")
+                or isinstance(job, CollectorFailureJob)
+                and not known
+            )
         ):
             self.write("investigation-context.json", context)
             self.event("OFFLINE_INVESTIGATION_CONTEXT_BOUND", context)

@@ -90,7 +90,12 @@ class ContinuousRuntime:
         self.capture_windows = CaptureWindows(
             self.config.namespace, self.config.input_sha256, self.config.profiles
         )
-        self.analysis = analysis or AnalysisService(directory / "analysis", self.config.ml_root)
+        self.analysis = analysis or AnalysisService(
+            directory / "analysis", self.config.ml_root, defer_investigation=True
+        )
+        self.investigations = None
+        self.investigation_progress = {"state": "NOT_STARTED", "provider": "SCRIPTED"}
+        self.investigation_snapshot = {}
         self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
         self.epoch = uuid5(
             NAMESPACE_URL, str(self.store.database.store_id) + self.config.input_sha256
@@ -158,6 +163,8 @@ class ContinuousRuntime:
 
             authentication = status(self.config.authentication_runtime)
         return dict(
+            orchestration=self.investigation_snapshot
+            | dict(worker=dict(self.investigation_progress)),
             authentication=authentication,
             mode="CONTINUOUS",
             source=self.config.source,
@@ -557,6 +564,35 @@ class ContinuousRuntime:
             # Recovery replays the exact retained metadata through the same engine.
             # Event identity deduplicates persisted projections atomically with Audit.
             await self.storage(self.store.event_once, "CONTINUOUS_DNS_TRANSACTION", event)
+            if self.investigations is not None and event["status"] == "MATCHED_RESPONSE":
+                from soc_agent.continuous.investigation_models import InvestigationSource
+
+                source = InvestigationSource(
+                    incident_id=uuid5(NAMESPACE_URL, "continuous-dns:" + event["event_id"]),
+                    role="DNS",
+                    origin="REAL_NATIVE_DNS_METADATA",
+                    namespace=self.config.namespace,
+                    scope=self.config.input_sha256,
+                    reference=event["event_id"],
+                    observed_at=packet.timestamp,
+                    target=digest(str(packet.destination_address)),
+                    clock="UTC",
+                    event_ns=event["event_ns"],
+                    advisory=event,
+                )
+                await self.submit_investigation(source)
+
+    async def submit_investigation(self, source):
+        try:
+            await self.storage(self.investigations.submit, source)
+        except QueueFull:
+            # The immutable source remains retained for explicit/restart recovery.
+            # Backpressure must not repeat model inference or block Collector on LLM.
+            await self.storage(
+                self.store.event,
+                "CONTINUOUS_ORCHESTRATION_BACKPRESSURE",
+                dict(source=source.pin, disposition="RETAINED_NOT_DROPPED"),
+            )
 
     async def collect_dns(self):
         try:
@@ -783,6 +819,16 @@ class ContinuousRuntime:
                         )
                     ]
                 )[-32:]
+                if self.investigations is not None:
+                    from soc_agent.continuous.investigation import from_analysis
+
+                    source = await self.storage(
+                        from_analysis,
+                        Path(value["output"]),
+                        scope=self.config.input_sha256,
+                        namespace=self.config.namespace,
+                    )
+                    await self.submit_investigation(source)
                 await self.storage(
                     self.store.event,
                     "CONTINUOUS_ANALYSIS_COMPLETED",
@@ -847,9 +893,16 @@ class ContinuousRuntime:
             raise ValueError("CONTINUOUS_AI_SERVICE_REQUIRES_ORDINARY_UID")
         require_source_authority(self.config)
         with exclusive_runtime_lock(self.directory / "service.lock"):
-            collector = consumer = journal = dns_task = None
+            collector = consumer = journal = dns_task = investigation_worker = None
             primary = None
             try:
+                from soc_agent.continuous.investigation import consume as investigate
+                from soc_agent.continuous.investigation_store import InvestigationTasks
+
+                self.investigations = await self.storage(InvestigationTasks, self.store)
+                investigation_worker = asyncio.create_task(
+                    investigate(self.investigations, self.stop, self.investigation_progress)
+                )
                 if self.config.dns_session and self.dns_source is None:
                     from soc_agent.continuous.dns_source import DNSProducer
 
@@ -903,6 +956,11 @@ class ContinuousRuntime:
                         self.worker_failures = 0
                         self.store.control()
                         self.store.event("CONTINUOUS_WORKER_RESET", {})
+                    if investigation_worker.done():
+                        investigation_worker.result()
+                        if not self.stop.is_set():
+                            raise ValueError("CONTINUOUS_INVESTIGATION_WORKER_EXITED")
+                    self.investigation_snapshot = await self.storage(self.investigations.snapshot)
                     if consumer.done():
                         consumer.result()
                         raise ValueError("CONTINUOUS_WORKER_TASK_EXITED")
@@ -1003,6 +1061,21 @@ class ContinuousRuntime:
                             and primary is None
                         ):
                             failures.append(error)
+                if investigation_worker:
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.shield(investigation_worker), self.config.shutdown_seconds
+                        )
+                    except TimeoutError:
+                        investigation_worker.cancel()
+                        await asyncio.gather(investigation_worker, return_exceptions=True)
+                        self.investigation_progress.update(
+                            state="CANCELLED_CHECKPOINT_REVIEW_REQUIRED"
+                        )
+                    except BaseException as error:
+                        if error is not primary:
+                            failures.append(error)
+                    self.investigation_snapshot = await self.storage(self.investigations.snapshot)
                 for close in (self.source.close, self.analysis.close):
                     try:
                         await close()

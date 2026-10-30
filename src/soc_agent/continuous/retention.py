@@ -38,6 +38,12 @@ def archive(directory: Path):
         store = Store(directory)
         state = store.state()
         counts = store.queue.counts()
+        if (directory / "orchestration/queue.sqlite").exists():
+            from soc_agent.continuous.investigation_store import InvestigationTasks
+
+            investigations = InvestigationTasks(store)
+            if any(investigations.queue.counts().get(k, 0) for k in ("PENDING", "CLAIMED")):
+                raise ValueError("CONTINUOUS_ARCHIVE_QUIESCENCE_REQUIRED")
         if (
             state["state"] != "STOPPED"
             or state["cleanup"] != "VERIFIED"
@@ -65,7 +71,7 @@ def archive(directory: Path):
                         source.backup(output)
             if (directory / "code-identity").exists():
                 shutil.copyfile(directory / "code-identity", stage / "code-identity")
-            for name in ("inputs", "analysis", "segments"):
+            for name in ("inputs", "analysis", "segments", "orchestration"):
                 if (directory / name).exists():
                     if (directory / name).is_symlink() or any(
                         p.is_symlink() for p in (directory / name).rglob("*")
@@ -132,7 +138,12 @@ def restore(archived: Path, target: Path):
     try:
         for name in manifest["files"]:
             destination = target / name
-            create_private_directory(destination.parent)
+            # mkdir(parents=True) only applies mode to the leaf. Every newly
+            # restored ancestor must satisfy the existing private-store contract.
+            parent = target
+            for part in Path(name).parts[:-1]:
+                parent = parent / part
+                create_private_directory(parent)
             shutil.copyfile(archived / name, destination)
             destination.chmod(0o600)
         create_private_directory(target / "inputs")

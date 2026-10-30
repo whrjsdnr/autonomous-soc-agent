@@ -87,3 +87,9 @@ class InvestigationPlanner:
         result = validate_strategy(plan, strategy, tools=tools) if strategy is not None else plan
         self.last_draft = draft
         return result
+
+    async def create_followup(
+        self, incident_state: IncidentState, history: InvestigationPlan
+    ) -> InvestigationPlan:
+        """Existing behavior by default; adapters may reuse the adaptive planner."""
+        return await self.create_plan(incident_state)

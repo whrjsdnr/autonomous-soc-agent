@@ -20,6 +20,7 @@ def main(argv=None) -> int:
     parser.add_argument("--input-sha256")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--verify", action="store_true")
+    parser.add_argument("--defer-investigation", action="store_true")
     parser.add_argument("--research-ml-root", type=Path)
     parser.add_argument("--api-authorization", type=Path)
     parser.add_argument("--api-env-file", type=Path)
@@ -105,6 +106,7 @@ def main(argv=None) -> int:
                 api_authorization=authorization,
                 api_settings=settings,
                 tcx_approval=tcx_approval,
+                defer_investigation=args.defer_investigation,
             )
             workflow.write("submitted-input.json", submitted)
             workflow.event("OFFLINE_SUBMITTED_INPUT_RETAINED", submitted)

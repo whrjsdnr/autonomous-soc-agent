@@ -88,10 +88,13 @@ def investigation_view(result: AnalysisOutcome) -> dict:
 
 
 class AnalysisService:
-    def __init__(self, directory: Path, ml_root: Path | None = None):
+    def __init__(
+        self, directory: Path, ml_root: Path | None = None, *, defer_investigation: bool = False
+    ):
         self.directory = directory.absolute()
         create_private_directory(self.directory)
         self.ml_root = ml_root
+        self.defer_investigation = defer_investigation
         self.state = "IDLE"
         self.session = None
         self.process = None
@@ -179,6 +182,8 @@ class AnalysisService:
                     args += ["--tcx-approval", str(approval), "--tcx-approval-sha256", pin]
             if self.ml_root:
                 args += ["--research-ml-root", str(self.ml_root)]
+            if self.defer_investigation:
+                args += ["--defer-investigation"]
             try:
                 self.process = await asyncio.create_subprocess_exec(
                     *args,

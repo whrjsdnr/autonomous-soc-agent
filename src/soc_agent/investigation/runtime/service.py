@@ -32,6 +32,7 @@ from soc_agent.investigation.runtime.trace import (
     TraceContent,
 )
 from soc_agent.planning import InvestigationPlanner
+from soc_agent.planning.errors import PlanningReviewRequired
 from soc_agent.response.advisory import (
     CandidateIntent,
     PersistentPlanningSource,
@@ -96,6 +97,8 @@ class SOCRuntime:
         max_investigation_rounds: int = 2,
         checkpoints: CheckpointStore | None = None,
         external=None,
+        investigate_first: bool = False,
+        replan_read_failures: bool = False,
     ) -> None:
         if type(max_investigation_rounds) is not int or max_investigation_rounds < 1:
             raise ValueError("A positive finite investigation budget is required")
@@ -106,6 +109,8 @@ class SOCRuntime:
         self._bridge, self._executor = bridge, executor
         self._models = model_analysis
         self._limit = max_investigation_rounds
+        self._investigate_first = investigate_first
+        self._replan_read_failures = replan_read_failures
         self._workflows: dict[UUID, _Workflow] = {}
         self._source = PersistentPlanningSource(store)
         if checkpoints is not None and checkpoints.governance.store_id != store.store_id:
@@ -559,7 +564,11 @@ class SOCRuntime:
             self._external.require_scope(state.incident_id)
         step = w.step
         if step == WorkflowStep.OBSERVE:
-            w.step = WorkflowStep.ROUTE if state.evidence else WorkflowStep.PLAN
+            w.step = (
+                WorkflowStep.ROUTE
+                if state.evidence and not self._investigate_first
+                else WorkflowStep.PLAN
+            )
             return self._result(w, current, "Route current evidence or request investigation")
         if step == WorkflowStep.PLAN:
             limit = w.checkpoint.round_limit if w.checkpoint else self._limit
@@ -571,7 +580,22 @@ class SOCRuntime:
                     waiting=True,
                     failure=WorkflowFailure.LOOP_GUARD,
                 )
-            plan = checked(InvestigationPlan, await self._planner.create_plan(state))
+            try:
+                proposed = (
+                    await self._planner.create_followup(state, w.investigation)
+                    if w.investigation is not None
+                    else await self._planner.create_plan(state)
+                )
+            except PlanningReviewRequired:
+                w.rounds = limit
+                return self._result(
+                    w,
+                    current,
+                    "Planner requires independent human review",
+                    waiting=True,
+                    failure=WorkflowFailure.LOOP_GUARD,
+                )
+            plan = checked(InvestigationPlan, proposed)
             if plan.incident_id != state.incident_id:
                 raise ValueError("Investigation belongs to another incident")
             if any(s.status != InvestigationStepStatus.PENDING for s in plan.steps):
@@ -623,6 +647,16 @@ class SOCRuntime:
                 w.investigation = result.plan
                 completed = result.plan.get_step(pending.step_id)
                 if completed.status != InvestigationStepStatus.COMPLETED:
+                    limit = w.checkpoint.round_limit if w.checkpoint else self._limit
+                    if (
+                        self._replan_read_failures
+                        and completed.status == InvestigationStepStatus.FAILED
+                        and w.rounds < limit
+                    ):
+                        w.step = WorkflowStep.PLAN
+                        return self._result(
+                            w, current, "Read-only step failed; bounded distinct follow-up required"
+                        )
                     w.step = WorkflowStep.COMPLETE
                     return self._result(
                         w,

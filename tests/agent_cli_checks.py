@@ -55,6 +55,18 @@ def open_gui(home, monkeypatch, *, state):
                 assert self.snapshot["network"]["inference_count"] >= 2
                 assert self.snapshot["research"]["records"]
                 assert self.snapshot["analysis"]["result"]["audit"] == "VERIFIED"
+                orchestration = self.snapshot["continuous"]["orchestration"]
+                assert orchestration["tasks"]
+                assert orchestration["worker"]["provider"] == "SCRIPTED"
+                assert all(t["evidence_revision"] for t in orchestration["tasks"])
+                assert any(
+                    r.get("investigation", {}).get("llm_mode") == "SCRIPTED"
+                    and r["investigation"].get("assessment")
+                    for r in self.snapshot["research"]["records"]
+                )
+                if self.page == "Continuous":
+                    assert self.continuous_tasks.get_children()
+                    assert any(t["decisions"] for t in orchestration["tasks"])
                 snapshots.append(dict(page=self.page, state=state))
                 if pages:
                     self.navigate(pages.pop(0))
@@ -115,7 +127,11 @@ def test_cli_pcap_to_models_incident_audit_gui_and_detach(tmp_path, monkeypatch)
         while time.monotonic() < deadline:
             current = command(home, "status")
             assert current["last_error"] is None, current["last_error"]
-            if current["metrics"]["predictions"] >= 2 and current["collector"] == "EOF_NOT_LIVE":
+            if (
+                current["metrics"]["predictions"] >= 2
+                and current["collector"] == "EOF_NOT_LIVE"
+                and current.get("orchestration", {}).get("queue", {}).get("DONE", 0) >= 1
+            ):
                 break
             time.sleep(0.2)
         else:

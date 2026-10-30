@@ -61,6 +61,18 @@ def build(app):
     ttk.Button(app.content, text="Inspect Selected Incident", command=inspect_incident).pack(
         anchor="w"
     )
+    ttk.Label(
+        app.content, text="Investigation tasks · priority / evidence revision / wait reason"
+    ).pack(anchor="w")
+    app.continuous_tasks = ttk.Treeview(
+        app.content,
+        columns=("role", "task", "state", "priority", "revision", "wait"),
+        show="headings",
+        height=5,
+    )
+    for column in ("role", "task", "state", "priority", "revision", "wait"):
+        app.continuous_tasks.heading(column, text=column.title())
+    app.continuous_tasks.pack(fill="x", pady=6)
     app.continuous_detail = tk.Text(
         app.content, height=18, wrap="word", bg="#17243A", fg="#F1F5F9", state="disabled"
     )
@@ -68,6 +80,21 @@ def build(app):
 
 
 def render(app, value):
+    app.continuous_tasks.delete(*app.continuous_tasks.get_children())
+    for task in value.get("orchestration", {}).get("tasks", []):
+        app.continuous_tasks.insert(
+            "",
+            "end",
+            iid=task["task_id"],
+            values=(
+                ", ".join(task["roles"]),
+                task["task_id"],
+                task["state"],
+                task["priority"],
+                task["evidence_revision"],
+                task.get("waiting_reason") or "",
+            ),
+        )
     dns_transport = value.get("dns_transport", {})
     helper_process = dns_transport.get("helper_process", {}).get("state", "NOT_RECORDED")
     heartbeat_status = dns_transport.get("heartbeat_status", "NOT_RECORDED")
@@ -106,6 +133,8 @@ def render(app, value):
             f"\nController: {display_data(value.get('controller_error') or 'NO_REPORTED_ERROR')}"
             f"\nAI measurements: {availability(value, [])['inference']} · "
             f"Investigation: {availability(value, [])['investigation']}"
+            f"\nInvestigation worker: {value.get('orchestration', {}).get('worker', {})}"
+            f"\nSource roles: {value.get('orchestration', {}).get('agents', {})}"
         )
     )
     selected = app.continuous_incidents.selection()

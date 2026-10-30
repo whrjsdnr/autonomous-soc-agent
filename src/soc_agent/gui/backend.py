@@ -788,9 +788,27 @@ class Backend:
     async def investigations(self):
         from soc_agent.gui.queries import investigation_rows
 
-        if self.runtime is None:
-            return []
-        return await asyncio.to_thread(investigation_rows, self.runtime)
+        rows = (
+            []
+            if self.runtime is None
+            else await asyncio.to_thread(investigation_rows, self.runtime)
+        )
+        if self.continuous_directory is not None:
+            current = await self.continuous_status()
+            coordination = current.get("orchestration", {})
+            for task in coordination.get("tasks", []):
+                origins = sorted({s["origin"] for s in task.get("sources", [])})
+                rows.append(
+                    task
+                    | dict(
+                        finding_id=task["task_id"],
+                        rule_id="CONTINUOUS_INVESTIGATION",
+                        status=task["state"],
+                        origin=", ".join(origins),
+                        assessment_mode=coordination.get("worker", {}).get("provider", "UNKNOWN"),
+                    )
+                )
+        return rows
 
     async def improvement_records(self, kind: str):
         from soc_agent.gui.queries import improvement_records

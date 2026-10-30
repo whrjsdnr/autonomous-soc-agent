@@ -5,6 +5,10 @@ class PlanningError(Exception):
     """Root of deterministic planning failures."""
 
 
+class PlanningReviewRequired(PlanningError):
+    """No executable follow-up; retain progress and stop for independent human review."""
+
+
 class UnknownPlannedToolError(PlanningError):
     """Draft selected a tool outside the planning snapshot."""
 

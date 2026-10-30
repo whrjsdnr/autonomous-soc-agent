@@ -76,6 +76,9 @@ def compose_application(
     authority: HumanAuthority | None = None,
     external_artifacts: Path | None = None,
     external_interpreter: Path | None = None,
+    investigation_planner: InvestigationPlanner | None = None,
+    investigate_first: bool = False,
+    replan_read_failures: bool = False,
 ) -> ApplicationComposition:
     """Same wiring for every profile; initialized persistence and adapters are explicit.
 
@@ -110,13 +113,16 @@ def compose_application(
             investigator=InvestigationOrchestrator(
                 executor=GovernedExecutor(registry=registry, policy=policy, approvals=approvals)
             ),
-            planner=InvestigationPlanner(llm_client=llm_client, registry=registry),
+            planner=investigation_planner
+            or InvestigationPlanner(llm_client=llm_client, registry=registry),
             assessor=ThreatAssessor(llm_client=llm_client),
             responses=ResponsePlanner(registry=registry, source=PersistentPlanningSource(store)),
             bridge=bridge,
             executor=executor,
             model_analysis=model_analysis,
             external=external,
+            investigate_first=investigate_first,
+            replan_read_failures=replan_read_failures,
         )
 
     service = ApplicationService(

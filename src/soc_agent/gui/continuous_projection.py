@@ -30,7 +30,7 @@ def availability(current: dict, records: list) -> dict:
         inference=inference,
         latency="MEASURED_RECEIPT_LATENCY" if measured else inference,
         investigation="RECORDED_RESULTS_AVAILABLE"
-        if records
+        if records or current.get("orchestration", {}).get("tasks")
         else "NO_INCIDENT_NO_INVESTIGATION_RESULT",
         assessment="RECORDED_RESULTS_AVAILABLE"
         if records
@@ -130,6 +130,14 @@ def project(value: dict) -> dict:
     records = []
     models = {}
     for outcome in outcomes[-32:]:
+        task = next(
+            (
+                t
+                for t in current.get("orchestration", {}).get("tasks", [])
+                if outcome["incident_id"] in t["related_incidents"] and t["state"] != "SUPERSEDED"
+            ),
+            None,
+        )
         for prediction in outcome.get("predictions", []):
             model = prediction["model"]
             profile = (
@@ -171,7 +179,8 @@ def project(value: dict) -> dict:
                     advisory_current="RETAINED_ADVISORY_NOT_CONFIRMED_ATTACK"
                     if outcome.get("retained_selection")
                     else "CONTINUOUS_ADVISORY_NOT_CONFIRMED_ATTACK",
-                    investigation=outcome.get("investigation_detail")
+                    investigation=(task.get("investigation") if task else None)
+                    or outcome.get("investigation_detail")
                     or dict(status=outcome.get("investigation", "UNKNOWN")),
                     analysis_output=outcome.get("output"),
                     incident_id=outcome["incident_id"],
@@ -219,6 +228,7 @@ def project(value: dict) -> dict:
     return value | dict(
         capture_quality=quality,
         runtime_observability=observability,
+        orchestration=current.get("orchestration", {}),
         service_scope=dict(
             status="AUTHENTICATED_SERVICE_SCOPE_OBSERVED" if authenticated else "UNVERIFIED",
             policy_sha256=producer.get("policy_sha256"),
