@@ -1,6 +1,74 @@
 """Presentation of an attached Runtime in the existing dashboard, never authority."""
 
 
+def availability(current: dict, records: list) -> dict:
+    """Explain absent measurements without inventing results or execution authority."""
+    counts = current.get("metrics", {})
+    native = current.get("source") == "NATIVE_SERVICE"
+    measured = any(
+        row.get("receipt", {}).get("inference_latency_ms") is not None for row in records
+    )
+    if counts.get("model_errors", 0):
+        inference = "ERROR_MODEL_FAILURE"
+    elif measured or counts.get("predictions", 0):
+        inference = "MEASURED_RESULTS_AVAILABLE"
+    elif native and current.get("native_model") == "EXACT_RETAINED_WINDOW_ACTION_APPROVAL_REQUIRED":
+        inference = (
+            "BLOCKED_SEALED_JOB_ACTION_APPROVAL"
+            if counts.get("eligible", 0)
+            else "WAITING_ELIGIBLE_WINDOW_THEN_ACTION_APPROVAL"
+        )
+    else:
+        inference = "WAITING_MODEL_RESULT"
+    assessment = current.get("capture_window", {}).get("assessment", {})
+    dns = current.get("dns", {})
+    transport = current.get("dns_transport", {})
+    return dict(
+        runtime_error=current.get("last_error"),
+        capture=assessment.get("status", "UNKNOWN"),
+        capture_reasons=assessment.get("reasons", []),
+        inference=inference,
+        latency="MEASURED_RECEIPT_LATENCY" if measured else inference,
+        investigation="RECORDED_RESULTS_AVAILABLE"
+        if records
+        else "NO_INCIDENT_NO_INVESTIGATION_RESULT",
+        assessment="RECORDED_RESULTS_AVAILABLE"
+        if records
+        else "NO_INCIDENT_NO_RESEARCH_ASSESSMENT",
+        authentication=current.get("authentication", {}).get("state", "NOT_ATTACHED"),
+        dns=dict(
+            state=transport.get("state", "NOT_ATTACHED"),
+            queries=dns.get("counts", {}).get("QUERY", 0),
+            transactions=dns.get("counts", {}).get("MATCHED_RESPONSE", 0),
+            diagnostic=dns.get("diagnostic_status", "UNKNOWN"),
+            semantic_parse_failures=dns.get("counts", {}).get("PARSE_FAILURE", 0),
+            transport_control=dns.get("counts", {}).get("TRANSPORT_CONTROL", 0),
+            raw_helper_parse_failures=transport.get("dns_parse_failures"),
+            raw_helper_counter_scope=(
+                "INCLUDES_TCP_CONTROL_WITHOUT_DNS_PAYLOAD; DISTINCT_FROM_TRANSACTION_PARSE_FAILURES"
+            ),
+            helper_authenticated=transport.get("origin") == "REAL_NATIVE_DNS_METADATA",
+            listener_scope="ACCEPT_LISTENER_CLOSED_AFTER_SINGLE_AUTHENTICATED_HELPER_CONNECTS",
+            dns9="BLOCKED_TRAINING_EXTRACTION_CONTRACT",
+        ),
+        cleanup=current.get("cleanup", "UNKNOWN"),
+        remote_cleanup=current.get("collector_cleanup", "UNKNOWN"),
+    )
+
+
+def measurement_reason(snapshot: dict, metric: str) -> str:
+    states = snapshot.get("runtime_observability", {})
+    if not states:
+        return "NOT OBSERVED · no measured values"
+    name = {
+        "severity": "assessment",
+        "progress": "investigation",
+        "quality": "inference",
+        "edge": "inference",
+    }.get(metric, metric)
+    return str(states.get(name, "NO_MEASURED_RESULT"))
+
+
 def project(value: dict) -> dict:
     current = value.get("continuous")
     if not current:
@@ -109,6 +177,12 @@ def project(value: dict) -> dict:
                     incident_id=outcome["incident_id"],
                 )
             )
+    observability = availability(current, records)
+    for name in ("quality", "edge"):
+        models.setdefault(
+            name,
+            dict(state=observability["inference"], successful=0, reason=observability["inference"]),
+        )
     resources = current.get("resources", {})
     error = current.get("last_error")
     if error == "TimeoutError:":
@@ -144,6 +218,7 @@ def project(value: dict) -> dict:
     authentication["processed_inputs"] = metrics.get("authentication_inputs")
     return value | dict(
         capture_quality=quality,
+        runtime_observability=observability,
         service_scope=dict(
             status="AUTHENTICATED_SERVICE_SCOPE_OBSERVED" if authenticated else "UNVERIFIED",
             policy_sha256=producer.get("policy_sha256"),

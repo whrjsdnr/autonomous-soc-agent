@@ -65,7 +65,18 @@ def _freshness(value, heartbeat_seconds):
     value["heartbeat_stale"] = time.time() - value.get("heartbeat_unix", 0) > max(
         10, heartbeat_seconds * 3
     )
-    if value.get("state") in ("RUNNING", "DEGRADED") and value["heartbeat_stale"]:
+    terminal_failure = (
+        value.get("state") == "DEGRADED"
+        and value.get("collector") == value.get("worker") == "STOPPED"
+        and value.get("collection_live") is False
+        and value.get("final_flush") in {"VERIFIED", "FAILED"}
+        and str(value.get("cleanup", "")).startswith("UNVERIFIED")
+    )
+    if (
+        value.get("state") in ("RUNNING", "DEGRADED")
+        and value["heartbeat_stale"]
+        and not terminal_failure
+    ):
         value["state"] = "UNKNOWN_STALE_HEARTBEAT"
         value["cleanup"] = "UNVERIFIED_AFTER_SERVICE_LOSS"
         value["collection_live"] = False

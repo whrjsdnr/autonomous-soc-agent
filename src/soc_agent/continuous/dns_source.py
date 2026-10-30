@@ -257,7 +257,10 @@ class DNSProducer:
         async with self._close_lock:
             if self.capture.closed.is_set():
                 return
-            if self.capture.terminal is not None and self.capture.completion_verified():
-                self.cleanup = "VERIFIED"
+            self.cleanup = (
+                "VERIFIED"
+                if self.capture.terminal is not None and self.capture.completion_verified()
+                else "UNVERIFIED"
+            )
             await asyncio.to_thread(self.capture.close, reason="CONTINUOUS_DNS_OWNER_STOP")
             self.state = "FAILED" if self.last_error else "STOPPED"

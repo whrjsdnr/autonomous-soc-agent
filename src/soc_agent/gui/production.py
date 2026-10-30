@@ -22,6 +22,11 @@ BG, PANEL, TEXT, ACCENT = "#0B1220", "#17243A", "#F1F5F9", "#38BDF8"
 
 
 def safe_error(value):
+    if isinstance(value, str):
+        for prefix in ("ValueError:", "CaptureUnavailable:", "RuntimeError:"):
+            if value.startswith(prefix):
+                value = value.removeprefix(prefix)
+                break
     return (
         value if isinstance(value, str) and re.fullmatch(r"[A-Z0-9_:]{1,128}", value) else "UNKNOWN"
     )
@@ -166,13 +171,16 @@ class Desktop:
         top.pack(fill="x", pady=(0, 14))
         self.page_title = Label(top, text="COMMAND CENTER", size=11, fg="#94A3B8")
         self.page_title.pack(side="left")
-        Label(top, text="RESEARCH ONLY   /   OPERATIONAL GATE BLOCKED", size=10, fg="#FBBF24").pack(
-            side="right"
+        self.scope_label = Label(
+            top, text="RESEARCH ONLY / OPERATIONAL GATE BLOCKED", size=10, fg="#FBBF24"
         )
+        self.scope_label.pack(side="right")
         self.status_label = Label(
             workspace, textvariable=self.status, size=12, fg=ACCENT, max_width=1100
         )
-        self.status_label.pack(anchor="w", pady=(0, 12))
+        self.status_label.pack(anchor="w", pady=(0, 6))
+        self.observability_label = Label(workspace, text="", size=11, fg="#FBBF24", max_width=1100)
+        self.observability_label.pack(anchor="w", pady=(0, 10))
         scroll = ttk.Frame(workspace)
         scroll.pack(fill="both", expand=True)
         self.canvas = tk.Canvas(scroll, background=BG, highlightthickness=0)
@@ -402,6 +410,32 @@ class Desktop:
         value = self.snapshot
         if not value:
             return
+        states = value.get("runtime_observability", {})
+        self.scope_label.configure(
+            text=(
+                "NATIVE OBSERVED / MODEL ACTION SEPARATE"
+                if value.get("continuous", {}).get("source") == "NATIVE_SERVICE"
+                else "RESEARCH ONLY / OPERATIONAL GATE BLOCKED"
+            )
+        )
+        self.observability_label.configure(
+            text=(
+                "AI / latency: "
+                + str(states.get("inference", "NO_MEASURED_RESULT"))
+                + " · Investigation: "
+                + str(states.get("investigation", "NO_MEASURED_RESULT"))
+                + "\nDNS transactions: "
+                + str(states.get("dns", {}).get("transactions", "UNKNOWN"))
+                + " · DNS message errors: "
+                + str(states.get("dns", {}).get("semantic_parse_failures", "UNKNOWN"))
+                + " · TCP control: "
+                + str(states.get("dns", {}).get("transport_control", "UNKNOWN"))
+                + " · Auth: "
+                + str(states.get("authentication", "NOT_ATTACHED"))
+            )
+            if states
+            else ""
+        )
         projection = {k: v for k, v in value.items() if k != "observation_started_ns"}
         if self.page in ("Security Events", "Investigation"):
             projection = {
@@ -450,7 +484,14 @@ class Desktop:
         elif self.page == "Continuous":
             continuous_view.render(self, value.get("continuous", {}))
         elif self.page == "AI Analysis":
-            analysis_view.render(self, value.get("analysis", {}))
+            analysis_view.render(
+                self,
+                value.get("analysis", {})
+                | dict(
+                    runtime_observability=states,
+                    runtime_source=value.get("continuous", {}).get("source"),
+                ),
+            )
         else:
             operator_view.render_system(self, value)
 

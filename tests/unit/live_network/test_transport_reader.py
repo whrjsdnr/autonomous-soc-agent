@@ -248,3 +248,60 @@ def test_terminal_error_is_classified_without_success_receipt(tmp_path, error):
     finally:
         capture.close()
         sender.close()
+
+
+def test_queued_authenticated_heartbeat_is_read_before_silence_judgment(tmp_path):
+    capture, sender, session = fixture_channel(tmp_path / "session")
+    capture.last_heartbeat = time.monotonic() - 3  # Descheduled reader, buffered message.
+    try:
+        send(
+            sender,
+            Message(
+                kind="HEARTBEAT",
+                session_id=session.session_id,
+                kernel_packets=0,
+                capture_drops=0,
+                counter_sequence=2,
+                counter_status="COUNTER_VERIFIED",
+                kernel_packets_total=0,
+                capture_drops_total=0,
+            ),
+        )
+        capture.start_reader()
+        wait_for(lambda: capture.counter_sequence == 2 or capture.reader_error is not None)
+        assert capture.reader_error is None and capture.counter_sequence == 2
+        assert time.monotonic() - capture.last_heartbeat < 1
+        assert not (capture.directory / "transport-failure.json").exists()
+    finally:
+        capture.close()
+        sender.close()
+
+
+def test_queued_replayed_heartbeat_cannot_revive_stale_reader(tmp_path):
+    capture, sender, session = fixture_channel(tmp_path / "session")
+    capture.last_heartbeat = time.monotonic() - 3
+    try:
+        send(
+            sender,
+            Message(
+                kind="HEARTBEAT",
+                session_id=session.session_id,
+                kernel_packets=0,
+                capture_drops=0,
+                counter_sequence=1,  # READY already used one.
+                counter_status="COUNTER_VERIFIED",
+                kernel_packets_total=0,
+                capture_drops_total=0,
+            ),
+        )
+        capture.start_reader()
+        wait_for(lambda: capture.reader_error is not None)
+        assert capture.reader_error == "HELPER_CAPTURE_COUNTER_INTEGRITY_FAILED"
+        assert not capture.alive
+        value = json.loads((capture.directory / "transport-failure.json").read_text())
+        assert value["stage"] == "AUTHENTICATED_HELPER_READER"
+        assert value["heartbeat_deadline_seconds"] == 2
+        assert value["session"] == str(session.session_id)
+    finally:
+        capture.close()
+        sender.close()

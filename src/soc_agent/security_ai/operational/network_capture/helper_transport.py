@@ -191,6 +191,8 @@ class HelperCapture:
         self.last_delivered_at = None
         self.shutdown_reason = None
         self.rejected_closed_digest: str | None = None
+        self.reader_last_poll = None
+        self.reader_max_poll_gap = 0.0
 
     def start_reader(self):
         """One bounded metadata reader, independent of SQLite/model/event-loop work."""
@@ -215,10 +217,19 @@ class HelperCapture:
     def _read_loop(self):
         try:
             while not self.closed.is_set():
-                if time.monotonic() - self.last_heartbeat > 2:
-                    raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
+                polled = time.monotonic()
+                if self.reader_last_poll is not None:
+                    self.reader_max_poll_gap = max(
+                        self.reader_max_poll_gap, polled - self.reader_last_poll
+                    )
+                self.reader_last_poll = polled
+                # A descheduled reader may already have authenticated control
+                # evidence waiting in the socket. Inspect readiness before declaring
+                # silence; an empty socket still has the unchanged two-second bound.
                 readable, _, _ = select.select([self.channel], [], [], 0.05)
                 if not readable:
+                    if time.monotonic() - self.last_heartbeat > 2:
+                        raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
                     continue
                 with self.reader_lock:
                     try:
@@ -248,6 +259,15 @@ class HelperCapture:
                             self.directory / "transport-failure.json",
                             {
                                 "error": code,
+                                "stage": "AUTHENTICATED_HELPER_READER",
+                                "at_unix": time.time(),
+                                "last_heartbeat_age_seconds": time.monotonic()
+                                - self.last_heartbeat,
+                                "heartbeat_deadline_seconds": 2,
+                                "reader_max_poll_gap_seconds": self.reader_max_poll_gap,
+                                "helper_pid": self.ready.pid if self.ready is not None else None,
+                                "session": str(self.session.session_id),
+                                "reader_loop": "HelperCapture._read_loop",
                                 "queue_depth": self.packets.qsize(),
                                 "queue_capacity": self.packets.maxsize,
                                 "queue_high_water": self.queue_high_water,

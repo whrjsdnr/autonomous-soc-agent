@@ -4,6 +4,7 @@ import json
 import tkinter as tk
 from tkinter import filedialog, ttk
 
+from soc_agent.gui.continuous_projection import availability
 from soc_agent.gui.redaction import display_data
 
 
@@ -91,6 +92,8 @@ def render(app, value):
             f"{value.get('component_health', {}).get('worker_observed_unix', 'UNKNOWN')} · "
             f"Last error: {display_data(value.get('last_error') or 'NONE')}"
             f"\nController: {display_data(value.get('controller_error') or 'NO_REPORTED_ERROR')}"
+            f"\nAI measurements: {availability(value, [])['inference']} · "
+            f"Investigation: {availability(value, [])['investigation']}"
         )
     )
     selected = app.continuous_incidents.selection()

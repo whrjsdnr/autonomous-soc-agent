@@ -34,7 +34,10 @@ def continuous_status_line(value):
         f"Predictions {counts.get('predictions', 0)} · Incidents {counts.get('incidents', 0)}\n"
         f"Queue {current.get('queue', {})} · Drops {counts.get('queue_dropped', 0)} · "
         f"Runtime cleanup {current.get('cleanup', 'UNKNOWN')} · "
-        f"Collector cleanup {current.get('collector_cleanup', 'UNKNOWN')}"
+        f"Collector cleanup {current.get('collector_cleanup', 'UNKNOWN')}\n"
+        f"AI: {value.get('runtime_observability', {}).get('inference', 'NO_MEASURED_RESULT')} · "
+        "Investigation: "
+        + str(value.get("runtime_observability", {}).get("investigation", "NO_MEASURED_RESULT"))
     )
 
 
@@ -290,7 +293,7 @@ def render_dashboard(app, value, rows):
     app.status_cards["DNS diagnostics"].update_value(
         collectors.get("dns", "UNKNOWN"),
         value.get("dns_observation", "NOT_OBSERVED") + " · DNS9 model BLOCKED"
-        if collector.get("type") == "zeek-live"
+        if collector.get("type") == "zeek-live" or continuous
         else "DNS9 model · BLOCKED",
     )
     app.status_cards["Capture integrity"].update_value(
@@ -303,7 +306,7 @@ def render_dashboard(app, value, rows):
         model = models.get(profile, {})
         app.status_cards[name].update_value(
             model.get("state", "NOT_LOADED"),
-            f"{model.get('successful', 0)} receipts · RESEARCH_ONLY",
+            str(model.get("reason") or f"{model.get('successful', 0)} receipts · RESEARCH_ONLY"),
         )
     resources = value.get("gui_resources", {})
     rss, cpu = resources.get("rss_bytes"), resources.get("cpu_seconds")

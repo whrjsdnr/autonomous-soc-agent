@@ -71,6 +71,9 @@ def render(app, value):
     origin_label = (
         "RETAINED_NATIVE" if "REAL_NATIVE" in result.get("input_origins", []) else "OFFLINE"
     )
+    states = value.get("runtime_observability", {})
+    if not result and value.get("runtime_source") == "NATIVE_SERVICE":
+        origin_label = "NATIVE_NO_MODEL_RESULT"
     app.analysis_summary.configure(
         text=(
             f"{state} · {origin_label} / not live capture · "
@@ -86,6 +89,14 @@ def render(app, value):
             f"Origins: {', '.join(result.get('input_origins', [])) or 'NONE'} · "
             f"LLM: {result.get('llm_mode', 'NOT_REQUESTED')} · "
             f"Audit: {result.get('audit', 'PENDING')}"
+            + (
+                "\nAI / latency: "
+                + str(states.get("inference"))
+                + " · Investigation: "
+                + str(states.get("investigation"))
+                if states
+                else ""
+            )
         )
     )
     tree = app.analysis_predictions

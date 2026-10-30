@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from soc_agent.gui.components import ELEVATED, SECONDARY, SURFACE, TEXT
+from soc_agent.gui.continuous_projection import measurement_reason
 from soc_agent.gui.typography import text
 from soc_agent.gui.visual_metrics import record_series
 
@@ -58,6 +59,7 @@ class Chart(tk.Canvas):
             snapshot.get("session_id"),
             snapshot.get("input_origin"),
             snapshot.get("state"),
+            repr(snapshot.get("runtime_observability")),
         )
         if not force and marker == self.marker:
             return
@@ -109,7 +111,7 @@ class Chart(tk.Canvas):
                 self,
                 width / 2,
                 height / 2,
-                "NOT OBSERVED · no measured values",
+                measurement_reason(snapshot, self.series[0][0]),
                 size=12,
                 anchor="center",
                 width=width - 40,

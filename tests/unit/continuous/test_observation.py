@@ -163,3 +163,25 @@ def test_explicit_controller_error_preserved_without_fake_live_state(tmp_path, m
     else:
         assert error["stage"] == "CAPTURE" and error["message"] == "database is locked"
         assert "unselected" not in error
+
+
+def test_final_degraded_stop_keeps_failure_instead_of_claiming_lost_running_service(tmp_path):
+    directory, store = make(tmp_path)
+    store.update(
+        snapshot(
+            state="DEGRADED",
+            heartbeat_unix=0,
+            collector="STOPPED",
+            worker="STOPPED",
+            final_flush="VERIFIED",
+            cleanup="UNVERIFIED",
+            last_error="CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE",
+        )
+    )
+    before = (directory / "observation.json").read_bytes()
+    shown = observed_status(directory)
+    assert shown["heartbeat_stale"] and shown["state"] == "DEGRADED"
+    assert shown["collector"] == shown["worker"] == "STOPPED"
+    assert not shown["collection_live"] and shown["cleanup"] == "UNVERIFIED"
+    assert shown["last_error"] == "CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE"
+    assert (directory / "observation.json").read_bytes() == before

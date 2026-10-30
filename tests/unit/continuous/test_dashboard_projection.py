@@ -155,3 +155,40 @@ def test_historical_timeout_is_visible_without_rewriting_the_original():
     shown = project(dict(continuous=body))
     assert shown["last_error"] == "CONTINUOUS_SOURCE_TIMEOUT"
     assert shown["continuous"]["last_error"] == "TimeoutError:"
+
+
+def test_native_empty_charts_explain_action_gate_and_keep_dns_counters_separate():
+    from soc_agent.gui.continuous_projection import measurement_reason
+    from soc_agent.gui.production import safe_error
+
+    body = current() | dict(
+        state="DEGRADED",
+        last_error="CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE",
+        native_model="EXACT_RETAINED_WINDOW_ACTION_APPROVAL_REQUIRED",
+        dns=dict(
+            counts={"QUERY": 3, "MATCHED_RESPONSE": 3, "TRANSPORT_CONTROL": 8},
+            diagnostic_status="HEALTHY",
+        ),
+        dns_transport=dict(
+            state="FAILED",
+            origin="REAL_NATIVE_DNS_METADATA",
+            listener_ready=False,
+            dns_parse_failures=8,
+        ),
+        cleanup="UNVERIFIED",
+    )
+    original = deepcopy(body)
+    shown = project(dict(continuous=body))
+    assert body == original
+    state = shown["runtime_observability"]
+    assert state["inference"] == "BLOCKED_SEALED_JOB_ACTION_APPROVAL"
+    assert state["investigation"] == "NO_INCIDENT_NO_INVESTIGATION_RESULT"
+    assert measurement_reason(shown, "latency") == state["inference"]
+    assert measurement_reason(shown, "severity") == "NO_INCIDENT_NO_RESEARCH_ASSESSMENT"
+    assert state["dns"]["transactions"] == 3 and state["dns"]["raw_helper_parse_failures"] == 8
+    assert state["dns"]["semantic_parse_failures"] == 0
+    assert state["dns"]["helper_authenticated"] and state["dns"]["transport_control"] == 8
+    assert shown["research"]["model_metrics"]["quality"]["successful"] == 0
+    assert safe_error(shown["last_error"]) == "HELPER_HEARTBEAT_OR_PROCESS_STALE"
+    assert safe_error("CaptureUnavailable:secret=never show") == "UNKNOWN"
+    assert state["cleanup"] == "UNVERIFIED"

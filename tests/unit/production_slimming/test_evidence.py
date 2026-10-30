@@ -24,6 +24,7 @@ def test_sources_screenshots_and_signed_helper_are_exact():
             "src/soc_agent/gui/backend.py": "src__soc_agent__gui__backend.py",
             "src/soc_agent/gui/production.py": "production",
             "src/soc_agent/gui/operator_view.py": "operator_view",
+            "src/soc_agent/gui/queries.py": "queries",
             "src/soc_agent/security_ai/research/stream_service.py": "stream_service",
         }
         source = ROOT / name
@@ -37,7 +38,15 @@ def test_sources_screenshots_and_signed_helper_are_exact():
         assert list(struct.unpack(">II", data[16:24])) == entry["dimensions"]
     files = calibrated_session.verify_bundle()
     assert files["calibrated_helper.py"] == doc["helper_sha256"]
-    assert digest(files) == doc["bundle_digest"]
+    # Current execution pins remain strict; the dated measured report binds its
+    # own original helper bundle, not a later transport implementation.
+    assert files == calibrated_session.code_hashes()
+    archive = ROOT / "tests/fixtures/slimming-7a0bd44/helper"
+    historic_files = json.loads((archive / "manifest.json").read_text())
+    for name, pin in historic_files.items():
+        assert hashlib.sha256((archive / (name + ".txt")).read_bytes()).hexdigest() == pin
+    assert historic_files["calibrated_helper.py"] == doc["helper_sha256"]
+    assert digest(historic_files) == doc["bundle_digest"]
 
 
 def test_benchmarks_are_scoped_and_do_not_invent_native_success():
