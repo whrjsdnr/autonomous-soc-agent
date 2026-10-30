@@ -1,5 +1,20 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: Short Retest 전체600초 Deadline 비권한 검증
+
+원본600초 서비스 제한 후보는 사용자의 전체600초 조건을 충족하지 못하므로 실행하지 않았다.
+기존 Launcher에 일반worker590+5초·Root530+30초 GNU timeout, 공유 monotonic clock의 늦은 시작 차단,
+서비스420초·Owner STOP400초·Drain460초, systemd job/start/stop/cgroup 제한을 함께 적용한 새 후보를 만들었다.
+DNS unit 원문 계약을 유지하기 위해 Deadline drop-in 한 개를 추가하여 **새8경로·7개 설정 내용 변경**이 됐다.
+Root 실행 bytes·Collector 기능·권한 확대는 없으며 원본 Binding 승인은 재사용하지 않는다.
+
+Workspace·Export 각각35 PASS, systemd 오프라인 구문 Exit0, 새 CLI setup/doctor/start --preview/status 통과.
+일반 프로세스만 대상으로 실제 wall-clock **595.003136초** 후 강제 종료/하위 프로세스 회수를 확인했다.
+이는 Native Capture 성공이 아니다. Root·Native·DNS·모델/API·예약·영수증 발급/소비·기존 Ledger 변경0이다.
+새 검토서 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/tcx-short-deadline-recovery-20261030T061425Z/review-final/approval-package-final.md`의 정확한8경로 Scope 확인·직접 yes/sudo 후에만 실제 시험이 가능하다.
+기존 상위 만료17:36:32 KST·입장 여유65분 유지. 현재 Ledger81행·과거 실패/UNKNOWN/Cleanup 판정 보존.
+[새 Binding·전체 Deadline·비권한 검증·실행 명령](tcx-short-native-deadline-report.md)을 기록했다.
+
 ## 2026-10-30 최신: Timeout 수정본 600초 서비스 제한 재시험 준비
 
 운영 Source68209cf와 보고/회귀 HEAD2674a90을 새 독립 Source/Artifact/Runtime·DNS Session으로 동결했다.
