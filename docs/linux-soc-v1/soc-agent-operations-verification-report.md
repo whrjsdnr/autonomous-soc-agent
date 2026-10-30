@@ -1,5 +1,90 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 Packet·DNS 실제 재시험 및 heartbeat 복구
+
+최신 실제 시험 판정은 **PARTIALLY_VERIFIED**다. Source `e715aa0`, 보고서 기준
+`3869649`의 정확한 패키지를 사용자 TTY Scope/R1 yes·sudo 후 1회 실행했다.
+실행 증거는 `.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/`에 보존했다.
+이후 사용자가 오류 수정과 자동 재시도를 허용했다. 소비된 Session을 재사용하지 않고,
+수정본의 정확한 새 Scope·새 Session·독립 영수증과 직접 TTY 확인·sudo 계약을 유지한다.
+
+| 항목 | 직전 실제 시험 결과 |
+|---|---|
+| Root 전체 / Collector 시작 이후 | 39.185378810초 / 37.905407194초; Root Exit2 |
+| Kernel Load / TCX Attach / READY | 성공 |
+| DNS Helper UID/GID | 1000/1000, supplementary groups 비움 |
+| Helper Capability | Eff/Prm/Inh/Amb0, Bounding NET_RAW만, NoNewPrivs1 |
+| Native TCX metadata | 12건 |
+| Raw DNS / Transaction | 보존 metadata12; UDP1·TCP1 NOERROR 거래2 |
+| DNS 실제 latency | UDP0.003062896초 / TCP0.002823586초 |
+| 승인된 전체 DNS 계획 | UDP2·TCP1 중 늦은 UDP는 중단으로 미전송; 완료로 판정하지 않음 |
+| Window / ELIGIBLE / Prediction / Incident / API | Runtime 전달 봉인0 / 0 / 0 / 0 / 0 |
+| Queue Drop | 0 |
+| DNS Cleanup | CLOSED·VERIFIED |
+| 원격 TCX STOP ACK | UNKNOWN; Root의 소유 자원 정리와 구분 |
+| Native GUI | 실제 저장 Native12·DNS2·모델0; 5개 페이지 및 2회 종료/재연결 PASS |
+
+### 확인된 오류와 수정
+
+1. **Heartbeat 중단:** 최초 외부 오류 `ROOT_HEARTBEAT_STALE`, 실제 receiver 오류
+   `CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT`. Root Audit heartbeat의 간격은
+   6.070054초(01:00:47.049568→01:00:53.119622 UTC)였으며 기존 5초 수신·6초
+   관측 상한을 초과했다. 실제 지연 syscall은 계측되지 않아 UNKNOWN이다.
+   동기 Audit write/fsync가 Root Kernel poll·전송 루프를 직접 막는 결합은 확인했고,
+   비권한 6초 이상 fsync 지연으로 재현했다. `OrderedAudit`의 단일 bounded writer로
+   heartbeat fsync를 분리했다. Queue8+실행중1, 행1MiB·파일64MiB 상한, 순서·해시체인·각 fsync를 유지한다.
+   Attach/Seal/STOP은 앞선 모든 행의 디스크 완료를 확인해야 하며 5초 지연·ENOSPC·
+   부분 쓰기·Queue 포화 시 fail-closed다. 정상 STOP ACK 전에 Audit Drain이 완료돼야 한다.
+   Receiver/관측 timeout이나 Capability·수집 범위·시간 상한은 늘리지 않았다.
+2. **Cleanup 집계 오류:** 수신 실패로 원격 ACK가 UNKNOWN인데 App이 Cleanup VERIFIED를
+   남겼다. 원본 기록은 변경하지 않는다. 수정본은 원격 ACK가 VERIFIED가 아니면
+   전체 Cleanup UNVERIFIED·Runtime DEGRADED로 기록하고, Collector 조기 종료도 명시적 오류로 처리한다.
+3. **DNS 제어 프레임 오분류:** TCP SYN/ACK/FIN 등 application payload 없는 8개 프레임을
+   기존 분석기가 재조립 필요 오류로 집계했다. 수정본은 `TRANSPORT_CONTROL`로 원본 Provenance를
+   보존하고 잘못된 DNS query/parse failure를 만들지 않는다. payload가 있는 partial DNS는
+   여전히 차단한다. DNS9 계약은 INCOMPLETE, 실제 추론0이다.
+
+### 수정본 비권한 검증·재현 빌드
+
+- 구현 Commit `cd78b59922d58f9f98babdba3154b3ce9305f407`, Tree `a2a4950409147d01277f18283d98e1f71a55f48d`.
+- Workspace **408 PASS / 1 deselected**, 독립 Export **408 PASS / 1 deselected**.
+  이미 통과한 5,000-event 장시간 stress 1건은 다시 실행하지 않았다.
+- 실제 고정 Root coordinator를 AST로 재사용한 비권한 테스트 **11 PASS**.
+  Root/service/traffic 권한 경계만 Mock이며, 실제 설치·영수증·예약을 만들지 않았다.
+- 느린 fsync 중 실제 UNIX transport의 5초 수신 계약 유지, Seal durable barrier,
+  ENOSPC·partial append·bounded queue·원격 Cleanup 실패·DNS control/partial 차단 PASS.
+- Native6개 이중 빌드와 Wheel 이중 빌드 일치, libbpf BTF userspace parse PASS.
+- Ruff·Format·Diff PASS. 기존 실행·Ledger81행 SHA 불변, 기존 설치·Rollback 보존.
+- `final/cli-setup.json`, `cli-doctor.json`, `cli-preview.json`: 설정·읽기 전용 진단·Preview PASS.
+  Host/Target Scope는 구분하며 내부 check는 새 승인된 Root 진입 후 필요하다.
+
+### 새 정확한 재시험 Scope
+
+`.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/approval-package-final.md`.
+기존 설정6개에 **Root Collector service.py 1개**를 더한 총7개 교체다.
+BPF/provider/policy/Collector Unit은 보존하고 별도 backup에 기존7파일을 보관한다.
+이 확대된 파일 목록은 TTY에 명시하며 직접 새 Scope/R1 yes·sudo 전에는 설치하지 않는다.
+같은 Namespace `net:[4026532232]`·lo/Ingress·전체3,600초·TCP최대38연결·DNS UDP2/TCP1이다.
+새 Session `49525e9b-74fa-4983-9254-8ca1b7d249c4`. 이 Session의 Collector start는 최대1회,
+서비스 Restart=no. 사용자 재시도 허용을 무제한 Kernel 재시작 정책으로 변경하지 않는다.
+
+- Request `7b661ae3cfb73d8b2bc654c95f77ca50406143ac3335ac21a7f2c89afa2b53d2`
+- Root Manifest `2aa31451ee530e85f48c17737a19050d8e715a673c732edea9ad67e86520e27d`
+- Root Collector `afdf9c86e5098ead73bcd1e27311ee419b1eef5d393a449b1dd95c4abd315041`
+- Source `1d4f9c188f73378ef22ad3b1b05a987cd65255d00c8b537366cb096423a9bab2`
+- Wheel `322ac3193cbd9a278a61339af1fb2af2ca1607a38882d0980debdf2ae940de83`
+
+단일 진입 명령(직접 TTY Scope·sudo를 포함):
+
+```bash
+bash /home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/start-integrated.sh
+```
+
+SHA 입력은 요구하지 않는다. 별도 봉인된 작업별 모델 Action 승인 전 RF/LR은 차단하며,
+실제 API·DNS9·Host Auth 추가 수집은 제외한다. 신규 Kernel 재시험 결과는 아직 미확정이다.
+과거 Program1145 UNKNOWN·전역 Cleanup UNVERIFIED·FAILED·false를 변경하지 않는다.
+
+
 # 2026-10-29 최종 GUI·CLI 통합 및 실제 시험 정산
 
 최신 판정: **PARTIALLY_VERIFIED**. 실제 Native→RF/LR→Incident→Audit→GUI는

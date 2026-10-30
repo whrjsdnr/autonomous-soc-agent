@@ -1,5 +1,30 @@
 # Native·RF/LR·기존 대시보드 테스트 명령
 
+## 2026-10-30 heartbeat 복구본 — 새 Session에서만 실행
+
+기존 소비된 시험은 다시 실행하지 않는다. 새 `cd78b59` 수정본은 Root 설정6개와
+Collector service.py 1개, 총7개 교체를 TTY에서 정확히 검토·Scope/R1 yes·sudo 후 실행한다.
+
+```bash
+bash /home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/start-integrated.sh
+```
+
+같은 Namespace lo/Ingress, 전체3,600초, 로컬 TCP최대38연결·DNS UDP2/TCP1.
+GUI는 Backend와 함께 열린다. 닫아도 Collector를 중지하지 않는다. 새 프로필의 상태·종료:
+
+```bash
+cd /home/geonug/kdt-linux/soc-one-command-runtime
+SOC_GUI_PROFILE=/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/profile
+.venv/bin/soc-agent status --home "$SOC_GUI_PROFILE"
+.venv/bin/soc-agent gui --home "$SOC_GUI_PROFILE"
+.venv/bin/soc-agent stop --home "$SOC_GUI_PROFILE"
+```
+
+모델은 봉인된 ELIGIBLE 작업별 별도 Action 승인 전에는 실행하지 않는다.
+수정본의 Kernel 재시험은 아직 미확정이다. 직전 실제 시험은 Native12·DNS2 거래를
+수집했고 heartbeat timeout으로 중단됐다. 당시 원격 Cleanup ACK는 UNKNOWN으로 보존한다.
+
+
 ## 현재 사용 명령 · 2026-10-29 최종 갱신
 
 아래쪽의 `next-native-gui-trial`은 이미 소비된 과거 시험이다.
