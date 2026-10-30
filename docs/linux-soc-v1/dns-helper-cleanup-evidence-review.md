@@ -126,3 +126,7 @@ Root Collector·BPF·Provider 실행 파일 변경은 없다. 새 후보의 승�
 Ledger81행·Campaign Root12/Native4·Batch3 Root9/Native1의 기존 기록을 보존했다.
 최신 통합 시험의 별도 Root Audit를 Legacy Ledger로 역산해 추가하지 않았다.
 이번 저장소 변경은 이 보고서와 기존 보고서의 연결 문서뿐이다. 운영 Source·승인·예약은 변경하지 않았다.
+
+후속 현재 Snapshot과 정확한 읽기 전용 권한 검사9개는
+[최종 Cleanup 확인 보고서](dns-helper-cleanup-final-check.md)에 정리했다.
+과거 판정과 이 검토서의 Native Artifact·Session·요청서는 변경하지 않았다.

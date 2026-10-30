@@ -1,5 +1,19 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: Cleanup 현재 Snapshot·권한 검사 명령 확정
+
+현재 일반 사용자 권한으로 서비스5개 MainPID0·서비스 cgroup 부재·원 PID4개 부재·
+Collector 소유 Unix socket 경로 부재를 확인했다. 설치7개·기존99개 증거 SHA·Ledger81행도 일치한다.
+실제 잔류 소유 자원은 Host 가시 범위에서 발견되지 않았지만, 현재 Target Socket/TCX/Map과
+Root 백업7개는 권한 검사 대기다. 실제 물리 Cleanup 미완료가 입증된 상태와 증거 부족을 구분했다.
+과거 Helper/Root/Runtime/Global Cleanup UNVERIFIED, 소유 TCX Collector VERIFIED는 변경하지 않았다.
+
+기존 namespace()/kernel() 조회 경로로 읽기 전용 Root 검사9개·전체최대180초의 정확한 argv·
+binary/명령 SHA·Scope를 준비했으며 실행하지 않았다. Workspace/독립 Export의 비실행·변조/Replay·
+Host 진단 회귀는 각각9 PASS다. 기존 Native 후보 Session·Artifact는 그대로 재검증했고 새 영수증은 없다.
+현재 **재시험 BLOCKED**이며 [최종 Cleanup 확인 보고서](dns-helper-cleanup-final-check.md)에
+현재/과거 판정, 권한 검사 명령과 남은 인간 승인을 기록했다.
+
 ## 2026-10-30 최신: Cleanup 증거 재검증·새 종료 시험 후보
 
 운영 Source `5b14a67`·기존 증거·설치를 보존했다. 새 운영 코드 변경이나 실제 실행은 없다.
