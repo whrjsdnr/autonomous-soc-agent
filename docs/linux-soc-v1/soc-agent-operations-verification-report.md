@@ -1,5 +1,21 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: 승인된 Cleanup Root 읽기 전용9개 PASS
+
+사용자 직접 Scope 확인·sudo 인증 후 승인된 조회9개를 각각1회 실행했고 모두 Exit0이었다.
+Target net:[4026532232]·lo/up·cookie8855, TCP/UDP/AF_PACKET/Unix socket0,
+Target TCX 없음, 전역 Link/Map0, 기존 BPF 프로그램11개 유지, Root 백업7개 SHA 일치,
+기존 Root Audit raw SHA 일치를 확인했다. Scope·인증 포함3.834초, 최종 terminal exit0이다.
+
+초기 ordinary launcher의 `sudo -k -v` 캐시 미갱신 오류는 Root 실행0개에서 중단했다.
+기존 `sudo -v` 흐름으로 수정하고 사용자가 다시 Scope·인증을 직접 완료한 뒤에만 실제9개를 수행했다.
+최초 sudo exit1/wrapper exit2와 성공 증거를 분리 보존했다. Native 자동 재실행은 하지 않았다.
+
+**현재 소유 자원 전제조건 PASS / 실제 Native 재시험은 독립 승인 대기**다.
+과거 Helper/Root/Runtime/Global Cleanup UNVERIFIED·Program1145/heartbeat 원인 UNKNOWN은 유지한다.
+기존99개 SHA·Ledger81행·설치·Rollback·Root Audit 보존, 새 검사 결과·Audit9행만 별도 저장했다.
+[9개 검사 결과·인증 RCA·현재/과거 판정·다음 조건](dns-helper-cleanup-readonly-execution-report.md)에 기록했다.
+
 ## 2026-10-30 최신: Cleanup 현재 Snapshot·권한 검사 명령 확정
 
 현재 일반 사용자 권한으로 서비스5개 MainPID0·서비스 cgroup 부재·원 PID4개 부재·
