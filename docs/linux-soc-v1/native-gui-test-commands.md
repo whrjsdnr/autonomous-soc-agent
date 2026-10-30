@@ -1,5 +1,30 @@
 # Native·RF/LR·기존 대시보드 테스트 명령
 
+## 2026-10-30 최신 GUI: 실측값과 승인 대기·오류 구분
+
+아래 `heartbeat 복구본`의 start 패키지는 실제 재시험으로 **소비됐다**. 다시 실행하지 않는다.
+최신 결과는 Native34 / DNS UDP2·TCP1 거래3 / ELIGIBLE4 / RF·LR0이며,
+200.63초 뒤 DNS helper heartbeat 오류로 종료됐다. 전체 Cleanup UNVERIFIED·DEGRADED를 유지한다.
+모델은 작업별 Action 승인 대기, 조사·Assessment는 Incident 없음이며 임의 값을 표시하지 않는다.
+새 GUI에서 이 상태와 실제 오류 코드를 구분해 볼 수 있다. 이미 열려 있으면 기존 창을 사용한다.
+
+```bash
+cd /home/geonug/kdt-linux/soc-one-command-runtime
+SOC_GUI_PROFILE=/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/profile
+.venv/bin/soc-agent status --home "$SOC_GUI_PROFILE"
+.venv/bin/soc-agent gui --home "$SOC_GUI_PROFILE"
+```
+
+다음 수정본은 별도 GUARD 상태다. 새 실행·예약·영수증 발급 없이 점검만 할 수 있다.
+이전 Cleanup 미검증 범위와 새 Scope/R1 검토 전에는 Root/Collector를 다시 실행하지 않는다.
+
+```bash
+SOC_NEXT_PROFILE=/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/dns-reader-ui-final/profile
+.venv/bin/soc-agent doctor --home "$SOC_NEXT_PROFILE"
+.venv/bin/soc-agent start --preview --home "$SOC_NEXT_PROFILE"
+```
+
+
 ## 2026-10-30 heartbeat 복구본 — 새 Session에서만 실행
 
 기존 소비된 시험은 다시 실행하지 않는다. 새 `cd78b59` 수정본은 Root 설정6개와

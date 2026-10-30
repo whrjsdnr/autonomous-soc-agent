@@ -1,5 +1,115 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: 실제 재시험 정산·GUI 값/오류 구분
+
+최종 현재 판정은 **PARTIALLY_VERIFIED**다. 사용자의 자동 재시도 허용 후 새 정확한
+7파일 Scope/R1을 실제 TTY에서 직접 `yes`·sudo 인증하고 새 Session으로 1회 재시험했다.
+실제 실행 Source는 `cd78b59922d58f9f98babdba3154b3ce9305f407`이며,
+그 뒤 DNS reader·GUI 수정본 `0263eb5197ffdb11de2423b8165e25dae5d16783`은 비권한 검증만 완료했다. 둘을 혼동하지 않는다.
+
+### 실제 재시험 결과
+
+Evidence: `.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/`.
+직접 사용자 승인 영수증·Root 설치 백업·Kernel 전후·원본 stderr·Audit·최초 오류는 보존했다.
+
+| 항목 | 실제 결과 |
+|---|---|
+| Root 전체 / Collector 시작 이후 | **200.629109373초 / 199.709640756초**, 1시간 미달 |
+| Kernel Load / TCX Attach / READY | 성공 |
+| Native metadata / Root Seal | **34건 / 2개**, Runtime에 전달됨 |
+| Capture Attestation | VERIFIED, owned-hook 범위; 시스템 전체 손실로 확대하지 않음 |
+| Network14 Flow / ELIGIBLE / INCOMPLETE | **5 / 4 / 1**, 마지막 부적격 입력 유지 |
+| DNS | **UDP2·TCP1 NOERROR 거래3개**, 고정 로컬 dnsmasq·승인된 wire SHA 일치 |
+| DNS 관측 | Query3 / Matched Response3 / TCP control8 / semantic parse failure0 |
+| DNS raw helper counter | parse_failures8: DNS payload 없는 TCP 제어 프레임 포함. 의미 분석기 오류0과 구분 |
+| TCP 정상 공급원 | 고정2연결·요청2·응답2, 연결 종료35초 간격·socket Cleanup VERIFIED |
+| 모델 / Incident / 외부 API | **0 / 0 / 0**, 작업별 모델 Action 미승인으로 차단 |
+| Queue Drop / Source Gap / 중복 | **0 / 0 / 0** |
+| 종료 Queue | PENDING1 / POISON1, 원본 수정·재처리·삭제하지 않음 |
+| Root heartbeat | 183행, 최대 간격 **2.905964264초**; 직전 6초 초과 timeout 재발 없음 |
+| Root Audit | 188행, hash chain·이전 prefix·2개 Seal·durable SERVICE_STOPPED 확인 |
+| 원격 TCX STOP ACK / owned Cleanup | VERIFIED |
+| DNS 최종 CLOSED·Counter | **미검증**, 원본 cleanup NOT_STARTED도 보존; 정상 완료로 승격하지 않음 |
+| 전체 Runtime Cleanup | **UNVERIFIED**, Runtime DEGRADED, Collector/Worker STOPPED |
+| 서비스 종료 | 5개 서비스 MainPID0, owned socket 제거; Runtime Exit2, Collector/Helper Exit0 |
+| Host Authentication / DNS9 / API | 새 수집 없음 / INCOMPLETE 차단 / 호출0 |
+
+최초 외부 Root 오류는 `COLLECTOR_EARLY_EXIT`다. 상세 Runtime 원인은
+`CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE`이며 DNS reader가 Counter933,
+metadata14건 전달 뒤 실패했다. 마지막 health의 heartbeat age는 3.471초다.
+당시 reader scheduling gap·소켓의 대기 메시지 여부는 원본에 없어 UNKNOWN으로 유지한다.
+Root 서비스가 먼저 crash한 것으로 판정하지 않는다. Root는 정상 STOP·Seal·ACK 후 종료했다.
+
+### 오류 목록·수정 및 의도된 차단
+
+1. 기존 DNS Helper setresuid EPERM: UID/GID1000·groups 없음·Eff/Prm/Inh/Amb0·NNP1을
+   두 실제 시험에서 확인했다. Root bootstrap의 전달 문제는 실제 검증됐다.
+2. Root heartbeat 동기 fsync 결합: bounded ordered writer 수정 후 실제 2개 Window와
+   durable Audit·STOP ACK를 검증했다. 이전 지연 syscall 자체는 여전히 UNKNOWN이다.
+3. DNS reader의 **socket readiness보다 stale 판정을 먼저 하는 결함**을 비권한으로 재현·수정했다.
+   이미 도착한 메시지를 검증해 읽은 뒤, 소켓이 비었으면 기존 **2초** 침묵 상한으로 차단한다.
+   Counter·Session·Replay·Drop·Queue 검증은 유지한다. stale 빈 소켓·Replay 반례도 통과했다.
+   다음 실패 기록에 단계·시각·Session·heartbeat age·최대 reader poll gap을 추가했다.
+   이 수정이 기존 실제 실패의 원인을 완전히 설명하는지는 다음 Kernel 시험 전까지 미검증이다.
+4. DNS 실패 종료가 Cleanup NOT_STARTED로 남는 문제: 신규 실행에서는 최종 CLOSED/Counter가
+   검증되지 않으면 UNVERIFIED로 남긴다. 기존 원본 상태는 수정하지 않는다.
+5. GUI가 `CaptureUnavailable:...`를 UNKNOWN으로 숨기는 문제: 알려진 예외 prefix만 제거하고
+   허용된 오류 코드만 표시한다. 비밀번호·임의 오류 문자열을 표시하는 것으로 완화하지 않는다.
+6. 실패 후 정상 정지한 DEGRADED 기록을 stale RUNNING으로 덮어쓰는 문제: Collector/Worker STOPPED,
+   final flush 완료·실패, Cleanup UNVERIFIED가 함께 확인된 최종 기록은 DEGRADED 그대로 표시한다.
+   아직 RUNNING인 stale 서비스는 계속 UNKNOWN·Cleanup UNVERIFIED로 표시하고 재시작을 차단한다.
+7. GUI의 빈 그래프·NOT_LOADED·OFFLINE 기본값: Native 모델 Action 대기, 새 적격 입력 대기,
+   Incident 없음, 실제 오류를 명시한다. 실제 없는 모델 latency·Assessment·조사 값은 만들지 않는다.
+8. DNS 제어 프레임과 semantic error를 같은 오류로 보던 표시: raw helper 통계와 Transaction
+   오류를 분리한다. accept listener가 연결 뒤 닫히는 상태와 Helper 인증 상태도 상세에서 구분한다.
+9. 회귀 중 과거 성능 보고서가 현재 queries.py/Helper bundle을 비교하던 시점 결함을 발견했다.
+   원본 7a0bd44 파일을 Git blob에서 복원·SHA 확인해 별도 fixture에 고정했다. 기존 문서·스크린샷·
+   assertion은 유지하고 현재 실행 bundle의 strict 검증도 별도로 유지한다.
+
+**의도된 상태:** 모델 호출0·latency 없음은 작업별 Action 미승인 때문이다. Investigation/Research Assessment는
+Incident가 없어 생성되지 않았다. Host Authentication은 이번 Scope에 부착하지 않았고 DNS9도 차단한다.
+두 번째 동일 GUI 창의 BlockingIOError는 중복 GUI 잠금이며 Collector 장애와 구분한다.
+**실제 오류:** DNS helper heartbeat 실패와 그로 인한 전체 Cleanup 미검증은 정상 대기로 표시하지 않는다.
+
+### GUI 실제 연결 검증
+
+새 GUI는 실제 보존 Backend Native34·DNS3·ELIGIBLE4·모델0·오류·Cleanup 값을 읽는다.
+Dashboard / Continuous / AI Analysis / Investigation / System 5개 페이지를 실제 Tk로 열고
+2회 종료·재연결했으며 서비스 PID·원본 결과를 변경하지 않았다. API·새 Capture·모델 실행은 없다.
+AI Analysis에서 NATIVE_NO_MODEL_RESULT·BLOCKED_SEALED_JOB_ACTION_APPROVAL,
+상단에서 HELPER_HEARTBEAT_OR_PROCESS_STALE, DNS 거래3/메시지오류0/TCP control8을 확인했다.
+결과는 `final/gui-final-verification-r3.log` 및 `final/native-gui-current-code.json`에 있다.
+현재 설명을 보강한 실제 GUI를 열어 두었다. 창을 닫은 뒤 아래 명령으로 다시 읽을 수 있다.
+
+```bash
+cd /home/geonug/kdt-linux/soc-one-command-runtime
+SOC_GUI_PROFILE=/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/profile
+.venv/bin/soc-agent status --home "$SOC_GUI_PROFILE"
+.venv/bin/soc-agent gui --home "$SOC_GUI_PROFILE"
+```
+
+### 최종 수정본 검증·Artifact
+
+- Workspace **523 PASS / 1 deselected**, 독립 Export **523 PASS / 1 deselected**.
+- 고정 Root coordinator 비권한 검증 **11 PASS**. 기존 5,000-event stress는 이미 통과한 결과를 보존하고 재실행하지 않았다.
+- 실제 GUI 5개 화면·2회 재연결 PASS, Native6개 이중 빌드·Wheel 이중 빌드 일치.
+- Ruff·Format·Diff PASS. 두 소비된 시험의 파일 SHA 및 legacy Ledger81행 SHA 불변.
+- 구현 `0263eb5197ffdb11de2423b8165e25dae5d16783` / Tree `a1021451bba86db9eb71cdd4ae355faa0d9daf8f`.
+- Source `df9472020914d57d22747f3eb6c69ba85eab4150628cee6712f2155383dad104`.
+- Wheel `9e3dfa29d6bbbff8361d7930cd20b06734b08e156b01e508daa013b0b744a5aa`.
+- Root Collector `afdf9c86e5098ead73bcd1e27311ee419b1eef5d393a449b1dd95c4abd315041`: 실제 설치된 heartbeat 복구본과 같은 내용.
+- 새 후보 Root Manifest `3a7b3348f48def0a7f3dfba1f224ed30acc1d977231a6137e08a7ed2c9a86fd5` / Request `7e356a48cf96aaae06464ccc2af383aa6abedfe4017f07681d5539aca344ffed`.
+- 새 Runtime Session `5afa896c-7b0e-4bfb-8d09-bf9bcc58d1d8`. 새 후보는 **GUARDED / NOT_EXECUTED**이며 영수증·예약을 만들지 않았다.
+
+후속 검토서는 `.git/packet-dns-heartbeat-recovery-20261030T010933Z/dns-reader-ui-final/review/approval-package-final.md`다.
+읽기 전용 doctor·setup·start --preview는 통과했다. 새 helper code·bundle·Source Binding을 사용하며
+소비된 영수증을 재사용하지 않는다. **전체 Cleanup UNVERIFIED 조건 때문에 후속 권한 시험은 중단했다.**
+자동 재시도 허용을 이 중단 조건의 삭제로 해석하지 않는다. 이전 DNS 소유 자원·최종 Counter 미검증 범위와
+새 정확한 Scope/R1을 검토하고 직접 사용자 확인·sudo 조건을 충족해야 다음 Kernel 시험이 가능하다.
+모델 Action은 그대로 별도이며 현재 실패한 Runtime에 승인·추론을 자동 발급하지 않는다.
+실제 1시간 및 수정 DNS reader의 Kernel 안정성은 여전히 미검증이다. 기존 Native→AI 성공 증거는 보존한다.
+
+
 ## 2026-10-30 Packet·DNS 실제 재시험 및 heartbeat 복구
 
 최신 실제 시험 판정은 **PARTIALLY_VERIFIED**다. Source `e715aa0`, 보고서 기준
