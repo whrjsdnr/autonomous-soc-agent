@@ -70,7 +70,7 @@ def completed():
     return dict(
         state="DNS_DIAGNOSTIC_COMPLETED",
         exchanges=[dict(transport=t) for t in ("UDP", "TCP", "UDP")],
-        listener_fds_closed=True,
+        client_fds_closed=True,
     )
 
 
@@ -112,3 +112,53 @@ def test_failures_remain_explicit_and_child_cleanup_is_owned(monkeypatch, fault)
         probe.poll()
     assert probe.close()["started"] is True
     assert not probe.completed
+
+
+def test_dnsmasq_candidate_uses_installed_server_without_upstream_or_host_config():
+    from soc_agent.continuous.dns_trial import arguments, candidate
+
+    result = candidate()
+    assert result["server_implemented_by"] == "dnsmasq"
+    assert result["binary"] == "/usr/sbin/dnsmasq"
+    assert result["upstream_servers"] == [] and not result["host_configuration"]
+    args = arguments()
+    assert "--conf-file=/dev/null" in args and "--no-resolv" in args and "--no-hosts" in args
+    assert "--listen-address=127.0.0.53" in args and "--port=53" in args
+    assert not any(a.startswith(("--server=", "--enable-dbus", "--dhcp-range")) for a in args)
+    assert "CapabilityBoundingSet=CAP_NET_BIND_SERVICE\n" in result["body"]
+    assert "Restart=no\n" in result["body"] and "RuntimeMaxSec=90s\n" in result["body"]
+    assert "--port=1053" in arguments(local_test=True)
+
+
+@pytest.mark.parametrize("fault", ["id", "rcode", "address", "partial", "question"])
+def test_oss_response_validation_denies_changed_evidence(fault):
+    import struct
+
+    from soc_agent.continuous.dns_trial import validate_response
+    from soc_agent.security_ai.ebpf_tc.namespace_isolation import local_dns_response
+    from soc_agent.security_ai.ebpf_tc.r2_diagnostic import QUESTION
+
+    query = struct.pack("!6H", 0xC201, 0x100, 1, 0, 0, 0) + QUESTION
+    response = bytearray(local_dns_response(query))
+    if fault == "id":
+        response[0] ^= 1
+    elif fault == "rcode":
+        response[3] |= 1
+    elif fault == "address":
+        response[-1] = 2
+    elif fault == "partial":
+        response.pop()
+    else:
+        response[14] ^= 1
+    with pytest.raises(ValueError, match="CONTINUOUS_DNSMASQ_RESPONSE"):
+        validate_response(query, bytes(response))
+
+
+def test_native_client_cannot_send_from_host(monkeypatch):
+    import os
+
+    from soc_agent.continuous.dns_trial import dnsmasq_client
+
+    monkeypatch.setattr(os, "readlink", lambda _: "net:[4026531833]")
+    with pytest.raises(ValueError, match="CLIENT_IDENTITY"):
+        dnsmasq_client(SimpleNamespace(namespace="net:[4026532232]"), ready=lambda _: None)
