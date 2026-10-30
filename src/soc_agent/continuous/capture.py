@@ -7,7 +7,7 @@ The Root peer authenticates transport; retained files alone remain declared evid
 
 from uuid import NAMESPACE_URL, UUID, uuid5
 
-from pydantic import Field
+from pydantic import Field, StrictInt
 
 from soc_agent.review.models import Hash
 from soc_agent.security_ai.ebpf.clock import ClockSample
@@ -31,6 +31,9 @@ class CaptureSeal(Frozen):
     transport_dropped: int = Field(ge=0, strict=True)
     cleanup: str
     drain_result: int
+    capture_interval_ns: tuple[StrictInt, StrictInt] | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
     seal_sha256: Hash
 
     @property
@@ -38,9 +41,10 @@ class CaptureSeal(Frozen):
         return digest(dict(session=str(self.session), generation=self.generation))
 
     def check(self):
-        if self.contract != "soc-continuous-seal:v1" or self.seal_sha256 != digest(
-            self.model_dump(mode="json", exclude={"seal_sha256"})
-        ):
+        payload = self.model_dump(mode="json", exclude={"seal_sha256"})
+        if self.capture_interval_ns is None:
+            payload.pop("capture_interval_ns", None)  # Preserve historical seal bytes/digests.
+        if self.contract != "soc-continuous-seal:v1" or self.seal_sha256 != digest(payload):
             raise ValueError("CONTINUOUS_CAPTURE_SEAL_DIGEST")
         count = len(self.cpu_windows) // 2
         if not 1 <= count <= 128 or len(self.cpu_windows) != count * 2:
@@ -72,6 +76,15 @@ class CaptureSeal(Frozen):
             raise ValueError("CONTINUOUS_CAPTURE_SESSION_EPOCH")
         if self.cpu_windows[-1]["after_ns"] - self.cpu_windows[0]["before_ns"] > 300_000_000_000:
             raise ValueError("CONTINUOUS_CAPTURE_WINDOW_BOUND")
+        if self.capture_interval_ns is not None:
+            start, end = self.capture_interval_ns
+            if (
+                not self.cpu_windows[0]["after_ns"]
+                <= start
+                < end
+                <= self.cpu_windows[-1]["before_ns"]
+            ):
+                raise ValueError("CONTINUOUS_ENABLED_INTERVAL_BOUND")
 
 
 def sealed_jobs(seal: CaptureSeal, events, *, origin="REAL_NATIVE", profiles=("quality", "edge")):
@@ -209,6 +222,8 @@ class CaptureWindows:
         self.last_window = None
         self.sealed = set()
         self.abandoned = 0
+        self.verified_capture_ns = 0
+        self.last_interval_end_ns = 0
 
     def accept(self, raw):
         from soc_agent.continuous.tcx_producer import decode
@@ -248,6 +263,13 @@ class CaptureWindows:
         if seal.generation in self.sealed or len(self.sealed) >= 10000:
             raise ValueError("CONTINUOUS_SEAL_REPLAY_OR_RETENTION_BOUND")
         jobs, capture = sealed_jobs(seal, self.events, profiles=self.profiles)
+        if seal.capture_interval_ns is not None:
+            start, end = seal.capture_interval_ns
+            if start < self.last_interval_end_ns:
+                raise ValueError("CONTINUOUS_CAPTURE_INTERVAL_OVERLAP")
+            self.last_interval_end_ns = end
+            if capture["status"] == "VERIFIED":
+                self.verified_capture_ns += end - start
         self.sealed.add(seal.generation)
         self.last_capture, self.last_window = capture, seal.identity
         self.events = []

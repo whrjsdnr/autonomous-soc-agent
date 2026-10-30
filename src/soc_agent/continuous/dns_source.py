@@ -354,10 +354,34 @@ class DNSProducer:
         return "REAL_NATIVE_DNS_METADATA" if self.capture.ready is not None else "UNVERIFIED"
 
     @property
+    def policy_duration_completed(self) -> bool:
+        """Allow a proved finite completion, without extending DNS authority.
+
+        stream_helper reserves its final second for socket closure. Early exits,
+        errors and missing durable owned-cleanup evidence remain failures.
+        """
+        terminal = self.capture.terminal
+        return bool(
+            terminal is not None
+            and terminal.elapsed_seconds is not None
+            and self.session.policy.seconds - 1
+            <= terminal.elapsed_seconds
+            <= self.session.policy.seconds + 2
+            and terminal.error is None
+            and self.capture.completion_verified()
+            and self.state == "STOPPED"
+            and self.cleanup == self.helper_cleanup == "VERIFIED"
+            and self.cleanup_evidence_sha256 is not None
+            and self.last_error is None
+            and self.cleanup_error is None
+        )
+
+    @property
     def snapshot(self):
         return dict(
             state=self.state,
             origin=self.origin,
+            policy_duration_completed=self.policy_duration_completed,
             namespace=self.session.namespace,
             session=str(self.session.session_id),
             packets=self.received,

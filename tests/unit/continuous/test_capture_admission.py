@@ -542,6 +542,9 @@ def test_root_serializer_and_finish_cleanup_are_real_functions(monkeypatch):
     calls = []
     provider = service.Provider.__new__(service.Provider)
     provider.generation, provider.initial, provider.samples = 7, ["initial"], ["clock-start"]
+    provider.capture_started_ns = provider.lease_until_ns = None
+    provider.capture_interval_ns = None
+    provider.coverage_gap = False
     provider.boundary = lambda *args: calls.append("detach-drain-snapshot") or ["final"]
     provider.close = lambda: calls.append("close-owned-maps")
     monkeypatch.setattr(service, "clock_samples", lambda *args: ["clock-end"])

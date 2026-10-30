@@ -197,6 +197,8 @@ class ContinuousRuntime:
                 assessment=self.capture_windows.last_capture,
                 pending_events=len(self.capture_windows.events),
                 abandoned_partial=self.capture_windows.abandoned,
+                verified_capture_ns=self.capture_windows.verified_capture_ns,
+                duration_basis="SEALED_ENABLED_INTERVALS_EXCLUDING_ATTACH_DRAIN_AND_GAPS",
             ),
             producer=getattr(self.source, "snapshot", {})
             | (
@@ -606,8 +608,15 @@ class ContinuousRuntime:
                         packet=packet.model_dump(mode="json"),
                     )
                 )
-            if not self.stop.is_set():
+            completed = getattr(self.dns_source, "policy_duration_completed", False)
+            if not self.stop.is_set() and not completed:
                 raise ValueError("CONTINUOUS_DNS_SOURCE_EARLY_EXIT")
+            if completed:
+                await self.storage(
+                    self.store.event_once,
+                    "CONTINUOUS_DNS_POLICY_DURATION_COMPLETED",
+                    self.dns_source.snapshot,
+                )
         except asyncio.CancelledError:
             raise
         except (OSError, ValueError, RuntimeError) as error:
@@ -980,7 +989,8 @@ class ContinuousRuntime:
                         raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
                     if dns_task and dns_task.done():
                         dns_task.result()
-                        raise ValueError("CONTINUOUS_DNS_TASK_EXITED")
+                        if not getattr(self.dns_source, "policy_duration_completed", False):
+                            raise ValueError("CONTINUOUS_DNS_TASK_EXITED")
                     size = sum(p.stat().st_size for p in self.directory.rglob("*") if p.is_file())
                     if size >= self.config.max_storage_bytes:
                         raise ValueError("CONTINUOUS_STORAGE_LIMIT_REQUIRES_ARCHIVAL")

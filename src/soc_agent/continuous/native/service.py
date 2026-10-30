@@ -177,7 +177,7 @@ def clock_samples(phase, generation):
     return result
 
 
-def seal_record(policy, policy_pin, generation, rows, samples, callbacks, dropped):
+def seal_record(policy, policy_pin, generation, rows, samples, callbacks, dropped, interval=None):
     import uuid
 
     seal = dict(
@@ -197,6 +197,8 @@ def seal_record(policy, policy_pin, generation, rows, samples, callbacks, droppe
         cleanup="VERIFIED",
         drain_result=0,
     )
+    if interval is not None:
+        seal["capture_interval_ns"] = interval
     encoded = json.dumps(seal, sort_keys=True, separators=(",", ":")).encode()
     seal["seal_sha256"] = hashlib.sha256(encoded).hexdigest()
     return seal
@@ -204,6 +206,9 @@ def seal_record(policy, policy_pin, generation, rows, samples, callbacks, droppe
 
 class Provider:
     def __init__(self, policy, receive, rates=None):
+        self.capture_started_ns = self.lease_until_ns = None
+        self.capture_interval_ns = None
+        self.coverage_gap = False
         self.lib = C.CDLL(str(INSTALL / "provider.so"), use_errno=True)
         self.callback = C.CFUNCTYPE(C.c_int, C.c_void_p, C.c_void_p, C.c_size_t)(
             lambda _, body, size: receive(C.string_at(body, size))
@@ -286,6 +291,11 @@ class Provider:
         ]
 
     def finish(self):
+        # Conservative enabled interval: after the first successful config update
+        # and before detach. Never count attach/setup, drain or an expired lease.
+        ended = time.monotonic_ns()
+        if self.capture_started_ns is not None and not self.coverage_gap:
+            self.capture_interval_ns = [self.capture_started_ns, min(ended, self.lease_until_ns)]
         try:
             rows = self.boundary("continuous_finish", "POST_DETACH")
         except BaseException as first:
@@ -299,8 +309,14 @@ class Provider:
         return self.initial + rows, samples
 
     def renew(self):
-        if self.lib.continuous_renew(self.handle, self.generation, time.monotonic_ns(), self.index):
+        before = time.monotonic_ns()
+        if self.lease_until_ns is not None and before > self.lease_until_ns:
+            self.coverage_gap = True
+        if self.lib.continuous_renew(self.handle, self.generation, before, self.index):
             raise ValueError("CONTINUOUS_TCX_ENABLE_FAILED")
+        if self.capture_started_ns is None:
+            self.capture_started_ns = time.monotonic_ns()
+        self.lease_until_ns = before + 5_000_000_000
 
     def poll(self):
         result = self.lib.continuous_poll(self.handle)
@@ -437,6 +453,7 @@ def run():
         generation = provider.generation
         rows, samples = provider.finish()
         carried_rates = provider.rates
+        interval = provider.capture_interval_ns
         provider = None
         pending_seal = seal_record(
             policy,
@@ -446,6 +463,7 @@ def run():
             samples,
             window_callbacks,
             state["transport_dropped"],
+            interval,
         )
         audit("CAPTURE_WINDOW_SEALED")
 

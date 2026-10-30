@@ -435,13 +435,12 @@ def checkpoint_view(tasks: InvestigationTasks, task: InvestigationTask) -> dict:
 
 async def consume(tasks, stop: asyncio.Event, progress: dict, *, client=None):
     provider = client or ScriptedCoordinationClient()
+    provider_mode = getattr(provider, "evidence_mode", "INJECTED_CLIENT" if client else "SCRIPTED")
     # Independent lifetime; GUI disconnection has no effect on this lock or task.
     with exclusive_runtime_lock(tasks.directory / "worker.lock"):
         tasks.recover()
         while not stop.is_set():
-            progress.update(
-                heartbeat_unix=time.time(), provider="INJECTED_CLIENT" if client else "SCRIPTED"
-            )
+            progress.update(heartbeat_unix=time.time(), provider=provider_mode)
             await asyncio.to_thread(tasks.schedule_retained)
             claim = await asyncio.to_thread(tasks.claim)
             if claim is None:
@@ -471,7 +470,7 @@ async def consume(tasks, stop: asyncio.Event, progress: dict, *, client=None):
                     task_id=str(task.task_id),
                     evidence_revision=task.revision,
                     state=state,
-                    provider="INJECTED_CLIENT" if client else "SCRIPTED",
+                    provider=provider_mode,
                     result=result.model_dump(mode="json") if result else None,
                     investigation=checkpoint_view(tasks, task) if result else None,
                 )

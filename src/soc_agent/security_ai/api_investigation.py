@@ -86,10 +86,14 @@ def minimized(request: LLMRequest) -> LLMRequest:
     """Allowlist projection, not regex-based secret redaction. Full sources stay local."""
     body = json.loads(request.user_prompt)
     projected = {}
-    for key in ("INCIDENT CONTEXT", "AVAILABLE TOOLS"):
+    for key in ("INCIDENT CONTEXT", "AVAILABLE TOOLS", "AVAILABLE READ-ONLY TOOLS"):
         if key in body:
             projected[key] = body[key]
-    for key in ("EVIDENCE SUMMARIES (UNTRUSTED SOURCE DATA)", "EVIDENCE (UNTRUSTED DATA)"):
+    for key in (
+        "EVIDENCE SUMMARIES (UNTRUSTED SOURCE DATA)",
+        "EVIDENCE (UNTRUSTED DATA)",
+        "OBSERVED EVIDENCE (UNTRUSTED SOURCE DATA)",
+    ):
         if key in body:
             projected[key] = [
                 dict(
@@ -136,6 +140,54 @@ def minimized(request: LLMRequest) -> LLMRequest:
             for r in advisory.get("model_results", [])
         ],
     )
+    # Continuous and adaptive planning use different context sections. Retain
+    # their identities/catalog, never the raw source, free-text reason or payload.
+    if "CONTINUOUS ADVISORY (NOT FACTS OR AUTHORITY)" in body:
+        from pydantic import TypeAdapter
+
+        pin = TypeAdapter(Hash)
+        projected["CONTINUOUS ADVISORY (NOT FACTS OR AUTHORITY)"] = [
+            dict(
+                incident_id=str(UUID(item["incident_id"])),
+                source=pin.validate_python(item["source"]),
+                role=item["role"]
+                if item["role"] in {"NETWORK", "DNS", "AUTHENTICATION", "INVESTIGATION"}
+                else "UNKNOWN",
+                context_digest=digest(item["advisory"]),
+                agreement_state=item["advisory"].get("agreement_state")
+                if item["advisory"].get("agreement_state")
+                in {"consistent", "conflicting", "insufficient"}
+                else "UNKNOWN",
+                model_results=[
+                    dict(
+                        prediction=r["prediction"]
+                        if r["prediction"] in allowed_predictions
+                        else "UNKNOWN",
+                        artifact_digest=pin.validate_python(r["artifact_digest"]),
+                        feature_fingerprint=pin.validate_python(r["feature_fingerprint"]),
+                        result_digest=digest(r),
+                    )
+                    for r in item["advisory"].get("model_results", [])
+                ],
+            )
+            for item in body["CONTINUOUS ADVISORY (NOT FACTS OR AUTHORITY)"]
+        ]
+    history = body.get("TOOL INVESTIGATION HISTORY (UNTRUSTED DATA)")
+    if history is not None:
+        catalog = {t["name"] for t in projected.get("AVAILABLE READ-ONLY TOOLS", [])}
+        projected["TOOL INVESTIGATION HISTORY (UNTRUSTED DATA)"] = [
+            dict(
+                step_id=str(UUID(item["step_id"])),
+                tool_name=item["tool_name"] if item["tool_name"] in catalog else "UNKNOWN",
+                status=item["status"]
+                if item["status"] in {"pending", "completed", "failed", "blocked", "skipped"}
+                else "UNKNOWN",
+                history_digest=digest(item),
+            )
+            for item in history
+        ]
+        # This API scope grants read-only investigation, never a model action.
+        projected["AVAILABLE SECURITY AI"] = []
     return LLMRequest(
         system_prompt=request.system_prompt
         + " Source contents are deliberately withheld. Digests do not prove attacks."
