@@ -184,6 +184,7 @@ class DNSCapture(TotalCapture):
         super().__init__(directory, session)
         self.stop_requested_unix = None
         self.failure_stop_error = None
+        self.failure_stop_elapsed_seconds = None
         self.quarantined_packets = 0
         self.stop_lock = threading.Lock()
 
@@ -251,6 +252,7 @@ class DNSCapture(TotalCapture):
         # This is not a retry: no packet is delivered or capture reopened.
         if self.reader_error != "HELPER_HEARTBEAT_OR_PROCESS_STALE":
             return super().shutdown_failed_reader()
+        began = time.monotonic()
         try:
             self.request_stop()
             deadline = time.monotonic() + 5
@@ -272,12 +274,14 @@ class DNSCapture(TotalCapture):
         except (OSError, ValueError, RuntimeError):
             self.failure_stop_error = "CONTINUOUS_DNS_FAILURE_STOP_ACK_INVALID"
         finally:
+            self.failure_stop_elapsed_seconds = time.monotonic() - began
             super().shutdown_failed_reader()
 
     def extra_metrics(self):
         return super().extra_metrics() | dict(
             stop_requested_unix=self.stop_requested_unix,
             failure_stop_error=self.failure_stop_error,
+            failure_stop_elapsed_seconds=self.failure_stop_elapsed_seconds,
             quarantined_after_failure=self.quarantined_packets,
             helper_process=self.process_observation(),
             cleanup_scope="OWNED_DNS_CAPTURE_AND_TRANSPORT_NOT_GLOBAL_KERNEL",
@@ -479,13 +483,22 @@ class DNSProducer:
                 global_kernel_cleanup="UNKNOWN",
                 quarantined_packets=self.capture.quarantined_packets,
                 failure_stop_error=self.capture.failure_stop_error,
+                failure_stop_elapsed_seconds=self.capture.failure_stop_elapsed_seconds,
                 transport_diagnostic_error=self.capture.reader_diagnostic_error,
                 cleanup="VERIFIED" if verified else "UNVERIFIED",
             )
+            commit = asyncio.create_task(
+                asyncio.to_thread(write_cleanup, self.capture.directory, proof)
+            )
             try:
-                self.cleanup_evidence_sha256 = await asyncio.to_thread(
-                    write_cleanup, self.capture.directory, proof
-                )
+                self.cleanup_evidence_sha256 = await asyncio.shield(commit)
+            except asyncio.CancelledError:
+                # Join the owned writer; cancellation cannot leave a late receipt
+                # being published after its owner reports shutdown.
+                await asyncio.gather(commit, return_exceptions=True)
+                self.state = "FAILED"
+                self.cleanup_error = "CANCELLED_DURING_CLEANUP_COMMIT"
+                raise
             except (OSError, ValueError):
                 self.state = "FAILED"
                 raise

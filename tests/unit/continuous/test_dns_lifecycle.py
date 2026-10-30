@@ -280,8 +280,10 @@ async def test_missing_ack_has_bounded_drain_and_no_receiver_process_kill(tmp_pa
         source.capture.last_heartbeat = time.monotonic() - 3
         began = time.monotonic()
         with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
-            await asyncio.wait_for(task, 8)
-        assert 4.9 <= time.monotonic() - began < 7
+            await asyncio.wait_for(task, 10)  # Existing owner shutdown includes durable Audit.
+        assert time.monotonic() - began >= 4.9
+        # Measure the unchanged five-second ACK phase, not Audit fsync latency.
+        assert 4.9 <= source.capture.failure_stop_elapsed_seconds < 6
         assert source.cleanup == "UNVERIFIED"
         assert source.capture.failure_stop_error == "CONTINUOUS_DNS_FAILURE_STOP_ACK_MISSING"
         assert child.poll() is None  # The receiver never signals a service-owned PID.
@@ -312,4 +314,40 @@ async def test_owner_stop_joins_in_progress_failure_ack_without_false_cleanup_fa
         assert source.capture.failure_stop_error is None
         assert not source.capture.completion_verified()
     finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+async def test_cancelled_cleanup_joins_owned_audit_writer_without_success_claim(
+    tmp_path, monkeypatch
+):
+    import threading
+
+    directory, source, child, task = await started(tmp_path, monkeypatch, "normal")
+    entered, release, completed = threading.Event(), threading.Event(), threading.Event()
+    original = dns_source.write_cleanup
+
+    def delayed(*args):
+        entered.set()
+        assert release.wait(3)
+        result = original(*args)
+        completed.set()
+        return result
+
+    monkeypatch.setattr(dns_source, "write_cleanup", delayed)
+    try:
+        await source.request_stop()
+        assert await asyncio.to_thread(entered.wait, 2)
+        task.cancel()
+        await asyncio.sleep(0.03)
+        assert not task.done() and not completed.is_set()
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await asyncio.wait_for(task, 3)
+        assert completed.is_set() and child.wait(timeout=2) == 0
+        assert source.cleanup == "UNVERIFIED" and source.state == "FAILED"
+        assert source.cleanup_evidence_sha256 is None
+        assert source.cleanup_error == "CANCELLED_DURING_CLEANUP_COMMIT"
+    finally:
+        release.set()
         await reap(source, child, task)
