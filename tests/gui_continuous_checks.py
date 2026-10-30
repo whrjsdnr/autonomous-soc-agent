@@ -230,3 +230,60 @@ async def test_stale_native_and_cleanup_failure_health_display(tmp_path):
         assert "Runtime cleanup UNVERIFIED" in app.system.get("1.0", "end")
     finally:
         await close(root, app)
+
+
+@pytest.mark.asyncio
+async def test_failed_tcx_stop_evidence_survives_gui_reconnect(tmp_path):
+    """Stored FIXTURE status, real Tk/backend; a cleanup ACK is never capture proof."""
+    import time
+
+    from tests.unit.continuous.test_runtime import config
+
+    directory = tmp_path / "tcx-cleanup-status-fixture"
+    store = Store.create(
+        directory, config(tmp_path).model_copy(update={"source": "NATIVE_SERVICE"})
+    )
+    store.update(
+        dict(
+            state="DEGRADED",
+            source="NATIVE_SERVICE",
+            collector="STOPPED",
+            worker="STOPPED",
+            collection_live=False,
+            cleanup="UNVERIFIED",
+            final_flush="VERIFIED",
+            collector_cleanup="VERIFIED",
+            heartbeat_unix=time.time(),
+            last_error="CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT",
+            capture_window=dict(assessment=dict(status="UNKNOWN", reasons=["WINDOW_NOT_SEALED"])),
+            producer=dict(
+                cleanup_evidence=dict(
+                    status="VERIFIED",
+                    stop_ack=True,
+                    seals=[dict(origin="FIXTURE")],
+                    admission="BLOCKED_FAILED_STREAM",
+                )
+            ),
+        )
+    )
+    for attempt in range(2):
+        root = tk.Tk()
+        app = Desktop(
+            root,
+            GUIConfig(
+                data_directory=tmp_path / f"gui-tcx-{attempt}",
+                continuous_directory=directory,
+            ),
+        )
+        try:
+            await idle(root, app)
+            app.navigate("Continuous")
+            await idle(root, app)
+            text = app.continuous_summary.cget("text")
+            assert "TCX STOP ACK: True" in text and "Diagnostic seals: 1" in text
+            assert "Capture: UNKNOWN" in text and "Native live: False" in text
+            assert "Runtime cleanup: UNVERIFIED" in text
+            assert "CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT" in text
+        finally:
+            await close(root, app)
+    assert store.state()["last_error"] == "CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT"

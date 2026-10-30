@@ -162,7 +162,9 @@ class ContinuousRuntime:
             mode="CONTINUOUS",
             source=self.config.source,
             state="DEGRADED"
-            if self.circuit or self.collector_state == "CIRCUIT_OPEN"
+            if self.circuit
+            or self.collector_state == "CIRCUIT_OPEN"
+            or getattr(self.source, "failure", None)
             else "RUNNING",
             service_pid=os.getpid(),
             collector=(
@@ -173,6 +175,7 @@ class ContinuousRuntime:
             worker=self.worker_state,
             collection_live=(
                 self.config.source == "NATIVE_SERVICE"
+                and not getattr(self.source, "failure", None)
                 and self.metrics["native_events"] > 0
                 and self.source.state in ("RUNNING", "DEGRADED")
             ),
@@ -193,6 +196,11 @@ class ContinuousRuntime:
                 dict(
                     receiver_queue_depth=getattr(self.source, "receiver_queue_depth", 0),
                     receiver_dropped_batches=getattr(self.source, "receiver_dropped_batches", 0),
+                    last_message_monotonic=getattr(self.source, "last_message_monotonic", None),
+                    last_validated_monotonic=getattr(self.source, "last_validated_monotonic", None),
+                    last_data_monotonic=getattr(self.source, "last_data_monotonic", None),
+                    last_root_clock=getattr(self.source, "last_root_clock", None),
+                    failure=getattr(self.source, "failure", None),
                 )
                 if self.config.source == "NATIVE_SERVICE"
                 else {}
@@ -229,7 +237,9 @@ class ContinuousRuntime:
             circuit_open=self.circuit,
             # DNS cleanup may still be draining after the first source failure.
             # Observers must see that failure before a later Collector STOP.
-            last_error=self.last_error or getattr(self.dns_source, "last_error", None),
+            last_error=self.last_error
+            or (getattr(self.source, "failure", None) or {}).get("code")
+            or getattr(self.dns_source, "last_error", None),
             stop_reason=self.stop_reason,
             analysis=analysis,
             recent_results=list(self.last_results),
@@ -349,7 +359,7 @@ class ContinuousRuntime:
             self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
             raise ValueError("CONTINUOUS_SOURCE_SEQUENCE_GAP")
         if not recovering:
-            self.store.retain(raw)
+            await self.storage(self.store.retain, raw)
         self.last_sequence = raw["sequence"]
         self.metrics["received"] += 1
         identity = str(UUID(raw["id"]))
@@ -399,7 +409,7 @@ class ContinuousRuntime:
                     await self.handoff(job)
             self.metrics["native_events"] += int(kind == "native_tcx")
             self.metrics["packets"] += int(kind == "native_tcx")
-            self.store.applied(raw["sequence"])
+            await self.storage(self.store.applied, raw["sequence"])
             return
         if kind in ("authentication", "auth_watermark"):
             from soc_agent.continuous.authentication import normalized
@@ -614,7 +624,11 @@ class ContinuousRuntime:
 
     async def collect(self):
         try:
-            for attempt in range(self.config.collector_restarts + 1):
+            # Replay restart configuration never grants Native reconnect/restart.
+            max_restarts = (
+                0 if self.config.source == "NATIVE_SERVICE" else self.config.collector_restarts
+            )
+            for attempt in range(max_restarts + 1):
                 self.last_sequence = 0
                 # Retained ingress rebuilt the pending flows before this first
                 # collector start. Duplicate source delivery must not erase its
@@ -664,7 +678,7 @@ class ContinuousRuntime:
                     )
                     self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
                     self.epoch = uuid4()
-                    if attempt == self.config.collector_restarts:
+                    if attempt == max_restarts:
                         self.collector_state = "CIRCUIT_OPEN"
                         self.last_error = self.last_error or "CONTINUOUS_COLLECTOR_CIRCUIT_OPEN"
                         break
@@ -895,7 +909,10 @@ class ContinuousRuntime:
                     if collector.done():
                         collector.result()
                         if self.config.source == "NATIVE_SERVICE" and not self.stop.is_set():
-                            raise ValueError("CONTINUOUS_NATIVE_COLLECTOR_EARLY_EXIT")
+                            raise ValueError(
+                                (getattr(self.source, "failure", None) or {}).get("code")
+                                or "CONTINUOUS_NATIVE_COLLECTOR_EARLY_EXIT"
+                            )
                     if journal and journal.done():
                         journal.result()
                         raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
@@ -995,8 +1012,8 @@ class ContinuousRuntime:
                     self.config.source == "NATIVE_SERVICE"
                     and getattr(self.source, "remote_cleanup", "UNKNOWN") != "VERIFIED"
                 ):
-                    # A collector that already failed will not enter request_stop
-                    # above. Local socket closure cannot replace its bound ACK.
+                    # The producer attempts its bounded failure STOP before it
+                    # closes. Local closure still cannot replace a bound ACK.
                     failures.append(ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED"))
                 flush_error = None
                 try:
@@ -1015,6 +1032,15 @@ class ContinuousRuntime:
                     cleanup = "UNVERIFIED" if failures else "VERIFIED"
                     if failures and self.last_error is None:
                         self.last_error = type(failures[0]).__name__ + ":" + str(failures[0])[:1000]
+                    if self.config.source == "NATIVE_SERVICE":
+                        self.store.event(
+                            "CONTINUOUS_TCX_CLEANUP_EVIDENCE",
+                            dict(
+                                first_error=self.last_error,
+                                collector_cleanup=getattr(self.source, "remote_cleanup", "UNKNOWN"),
+                                evidence=getattr(self.source, "cleanup_evidence", {}),
+                            ),
+                        )
                     self.store.event(
                         "CONTINUOUS_SERVICE_STOPPED",
                         dict(
@@ -1023,7 +1049,10 @@ class ContinuousRuntime:
                             first_error=self.last_error,
                             final_flush_error=flush_error,
                             cleanup=cleanup,
-                            secondary_errors=[type(e).__name__ for e in failures],
+                            secondary_errors=[
+                                dict(category=type(e).__name__, code=str(e)[:1000])
+                                for e in failures
+                            ],
                         ),
                     )
                     self.store.update(

@@ -328,7 +328,7 @@ async def test_tcx_receiver_scope_errors_and_owned_socket_cleanup(tmp_path, monk
             if opt == socket.SO_PEERCRED:
                 import struct
 
-                return struct.pack("3i", 123, 0, 0)  # Explicit mocked privilege boundary.
+                return struct.pack("3i", os.getpid(), 0, 0)  # Explicit mocked privilege boundary.
             return super().getsockopt(level, opt, *args)
 
     import os
@@ -568,7 +568,7 @@ async def test_owner_stop_protocol_is_bounded_and_bound(tmp_path, monkeypatch, c
 
         def getsockopt(self, level, opt, *args):
             if opt == socket.SO_PEERCRED:
-                return struct.pack("3i", 123, 0, 0)
+                return struct.pack("3i", os.getpid(), 0, 0)
             return super().getsockopt(level, opt, *args)
 
     cfg = config(tmp_path)

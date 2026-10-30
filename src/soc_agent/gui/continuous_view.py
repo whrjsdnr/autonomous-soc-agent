@@ -71,6 +71,7 @@ def render(app, value):
     dns_transport = value.get("dns_transport", {})
     helper_process = dns_transport.get("helper_process", {}).get("state", "NOT_RECORDED")
     heartbeat_status = dns_transport.get("heartbeat_status", "NOT_RECORDED")
+    tcx_cleanup = value.get("producer", {}).get("cleanup_evidence", {})
     app.continuous_summary.configure(
         text=(
             f"{value.get('state', 'NOT_ATTACHED')} · {value.get('source', 'NO_SOURCE')}\n"
@@ -79,6 +80,10 @@ def render(app, value):
             f"Native live: {value.get('collection_live', False)} · "
             f"Runtime cleanup: {value.get('cleanup', 'UNKNOWN')} · "
             f"Collector cleanup: {value.get('collector_cleanup', 'UNKNOWN')}\n"
+            f"TCX STOP ACK: {tcx_cleanup.get('stop_ack', 'NOT_RECORDED')} · "
+            f"TCX cleanup evidence: {tcx_cleanup.get('status', 'NOT_RECORDED')} · "
+            f"Diagnostic seals: {len(tcx_cleanup.get('seals', []))} "
+            "(failed-stream evidence does not authorize inference)\n"
             "Capture: "
             f"{value.get('capture_window', {}).get('assessment', {}).get('status', 'UNKNOWN')} · "
             f"Queue: {value.get('queue', {})} · "

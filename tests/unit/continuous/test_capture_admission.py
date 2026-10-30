@@ -357,7 +357,8 @@ async def test_actual_unix_seal_transport_and_epoch_rotation(tmp_path, monkeypat
 
         def getsockopt(self, level, opt, *args):
             if opt == socket.SO_PEERCRED:
-                return struct.pack("3i", 123, 0, 0)
+                # Mock only Root credentials; retain a real PID/start identity.
+                return struct.pack("3i", os.getpid(), 0, 0)
             return super().getsockopt(level, opt, *args)
 
     monkeypatch.setattr(
