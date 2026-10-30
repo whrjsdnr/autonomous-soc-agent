@@ -790,3 +790,106 @@ TCX/App/TCP 서비스 inactive/PID0, 새 DNS Helper/dnsmasq 서비스는 미설�
 현재 Native Packet/DNS Transaction/Window/Prediction/Incident/실제수집시간 신규 측정은0/미실행이며
 과거1053 Application DNS 성공을 Native raw Capture 성공으로 바꾸지 않았다.
 승인 후 기존 단일 `start --gui`와 TTY yes·직접 sudo로 최대1회 진행한다.
+
+## 2026-10-30 Packet·DNS 실제 시험 실패 및 Helper 복구 후보
+
+기존 요청497f0dad…/Session9030e7b9…의 승인·직접 TTY Scope/R1 확인·sudo 인증 후
+Root 시험을 **1회** 실행했다. 동일 실행을 자동 재실행하지 않았다.
+원시 증거는 `.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/`이다.
+과거 제한 Native 성공과 이번 실패를 구분하며 원본 FAILED/false/UNKNOWN을 변경하지 않았다.
+
+| 실제 관측 | 결과 |
+| --- | --- |
+| Root 전체 실행 | 31.055304792초, 실제 Root 종료 코드2 |
+| Collector 시작 이후 종료 정산까지 | 29.486722679초; 순수 수집시간과 다름 |
+| 봉인된 Kernel Window의 시작·종료 구간 | 25.924453006초, Window1개 |
+| Namespace 내부 check / Kernel Load / TCX / READY | 통과; Target net:[4026532232], lo/Ingress |
+| 실제 Packet / DNS Transaction / Flow / ELIGIBLE | 각각0; 트래픽 시작 전 실패 |
+| RF/LR Prediction / Incident / 실제 API | 각각0; 모델 Action 승인 발급0 |
+| Runtime 수신1건 | 패킷이 아닌 최종 Window Seal 제어 레코드 |
+| Counter / Queue Drop | 0 / 0; 빈 Window의 Counter/Clock 증거는 VERIFIED |
+| GUI | Backend 연결 시작만 관측; 이번 DNS·Prediction 결과 표시 E2E는 미검증 |
+| TCX 소유 Cleanup | VERIFIED; 종료 후 Target TCX 부착·소유 Map/Link 없음 |
+| DNS/App 전체 Cleanup | UNVERIFIED 유지; 정상 helper CLOSED counter/ACK 없음 |
+| 서비스 종료 | Stop 명령 모두0, 최종 PID 모두0. App failed/Exit2, DNS helper failed/Exit127 기록 보존 |
+
+빈 Window의 증거 검증을 실제 패킷 적격성이나 1시간 성공으로 승격하지 않는다.
+현재 통합 판정은 **PARTIALLY_VERIFIED / PACKET_DNS_E2E_FAILED**다.
+
+### 오류 목록과 RCA
+
+1. **최초 자식 오류:** `soc-continuous-dns.service`의 setpriv가
+   `setresuid failed: Operation not permitted`로 Exit127했다. 로그는
+   `soc-continuous-dns.service-journal.json`에 보존됐다. 실패 단계는 DNS_HELPER_START다.
+   당시 실제 프로세스의 CapPrm/CapEff 스냅샷이 없어 UID 전환 거부의 더 낮은 수준 원인은
+   **UNKNOWN**이다. BoundingSet이 설정됐다는 사실만으로 사용 가능한 자격 증명을 입증하지 않는다.
+2. **바깥 진단:** 실행기는 조기 service 실패를 확인하지 않아20초 후
+   `DNS_HELPER_READY_TIMEOUT`을 최초 Root 오류로 기록했다. 원본 first-error.json은 변경하지 않았다.
+3. **후속 오류:** App의 종료 중 listener.close와 blocking accept가 경합해
+   `OSError:[Errno 9] Bad file descriptor`가 발생했다. 최초 Helper 오류와 구분한다.
+4. **수정 후 소스 정합성:** 변경된 helper_transport SHA가 현재 calibrated Helper Manifest에
+   반영되지 않아 첫 회귀에서13건이 CALIBRATED_HELPER_BUNDLE_MISMATCH로 차단됐다.
+   당시385건 PASS/13건 FAIL 로그를 보존했다. 현재 소스 Manifest 한 항목만 갱신했고
+   과거 동결 Manifest·영수증·Historical Fixture는 변경하지 않았다.
+
+설치된 util-linux2.39.3의 원본에서 UID 전환은 BoundingSet 변경보다 먼저 수행된다.
+BoundingSet 축소가 먼저라서 실패했다고 단정하지 않았다.
+[setpriv2.39.3 원본](https://raw.githubusercontent.com/util-linux/util-linux/v2.39.3/sys-utils/setpriv.c),
+[systemd capability 설정](https://www.freedesktop.org/software/systemd/man/latest/systemd.exec.html).
+
+### 최소 수정과 검증
+
+- dns_review.py: 기존 Bootstrap BoundingSet4개 SETUID/SETGID/SETPCAP/NET_RAW를 Ambient에도
+  명시하고 읽기 전용 ExecStartPre setpriv --dump로 시작 자격 증명을 journal에 남긴다.
+  BoundingSet에 새 Capability를 추가하지 않았다. 이는 전달 보강 후보이며 실제 UID 전환 성공은 미검증이다.
+- 기존 UID/GID1000·supplementary groups 비움·NNP1·NET_RAW 단독 Helper 검증과
+  AF_PACKET open 후 Eff/Prm/Inh/Amb0 강제 드롭은 유지한다. App/GUI/Client 권한은 늘리지 않았다.
+- helper_transport.py: 소유자 close와 경합한 EBADF/EINVAL만 HELPER_LISTENER_CLOSED로 변환하고
+  원래 예외를 연결한다. 닫히지 않은 socket이나 다른 errno는 그대로 전파한다.
+- 새 고정 실행기 후보: READY 대기 중 Helper ActiveState/MainPID/ExecMainStatus/Result를 관측한다.
+  조기 실패면 dns-helper-first-child-failure.json에 실제 자식 상태를 보존하고 트래픽을 시작하지 않는다.
+  소비된 기존 실행기는 수정하지 않았다.
+- 현재 calibrated-helper-manifest.json만 새 transport SHA로 갱신했다. 승인 영수증 자동 재발급은 없다.
+
+최종 Workspace **397 PASS/1 deselected(137.47초)**, 독립 Export **83 PASS(13.16초)**,
+고정 실행기 권한 경계 Mock **11 PASS(0.54초)**, Manifest 관련 **28 PASS**다.
+5,000-event 내구성 테스트는 첫 회귀에서 통과했고 JSON Manifest만 후속 변경해 반복하지 않았다.
+Ruff check 전체·Format1512파일·git diff --check PASS, Native6개·Wheel 이중 빌드 SHA 일치다.
+기존 운영 Entry Point의 setup --native-review, doctor, start --preview, status도 PASS다.
+이는 비권한 검증이며 새 Root·DNS·TCX·모델·API 실행이나 Target 내부 실제 check는 아니다.
+
+### 최종 수정본과 재시험 승인 경계
+
+실행 Source Commit `e715aa0e35b7ebb13b6beb9d83953622f15e3baa`,
+Tree `8ce79acb08fb050ec9e9ae15fbc4cd14e01fb18a`,
+Source digest `6a993d35455efa43e34119bc82a302dd04834a1e932ae659aca4412d3a6bc068`.
+
+새 검토서: `.git/packet-dns-helper-recovery-20261030T003546Z/final/approval-review.md`.
+정확한 요청서와 전체 Artifact는 같은 폴더의 `review/approval-request-final-v2.json`,
+`final-artifact-identity.json`, `validation-summary.json`에 기록했다.
+
+| 항목 | SHA256 / Identity |
+| --- | --- |
+| 요청서 | 436994ffa217a0438a5fd270923e9a744707abb86b2b84194439f42313cdb03d |
+| 원본 패키지 | b6d1c5d311e6a3aa9788713e2a159e2acb040656c75a5a7b3d9888b4ddb4e120 |
+| Root Manifest | 0e8af0fc7d9e9ac842facebaa52ea4c8a85f6b96fde7e882ca2a4d96e8f61910 |
+| Wheel | 3e7d8f3bce3b70c3afb020e4d8c813e9fab264941365d9f68153fc0224a56570 |
+| Runtime Session | 86b85c1c-18b3-4db1-a797-1c493ddc0f27 |
+| DNS Session | 05debc2f-fe21-4048-b7d7-b4d994f60cf5 |
+
+기존 Git3cf1d3e·Sourcec9bbb0d의 승인은 이미 소비됐고 수정본 Binding과 다르다.
+따라서 새 정확한 Scope/R1 승인 전에는 영수증 발급·예약·재설치·재시험을 하지 않는다.
+같은6개 설정·Namespace·트래픽·전체3600초·자원 상한만 제안한다. 상위 만료는
+2026-10-30 17:36:32 KST, 입장 시65분 이상 남아야 한다. 모델은 봉인된 ELIGIBLE job별
+별도 Action 승인 후에만 수행하며 DNS9·API·외부 연결·자동 재실행은 제외한다.
+이전 Cleanup UNVERIFIED를 보존하고 새 Root preflight에서 PID/Tasks0·소유 socket0·
+TCX 부착 부재·정확한 Namespace가 확인되지 않으면 Capture를 시작하지 않는다.
+
+승인 후 단일 명령은 새 검토 폴더의 `start-integrated.sh`다. 기존 soc-agent start --gui를
+호출하고 사용자는 TTY Scope/R1 yes와 직접 sudo 인증만 수행한다. SHA 직접 입력은 없다.
+현재 상태는 **RETRY_PREPARED / PENDING_NEW_EXACT_APPROVAL / NOT_EXECUTED**다.
+
+Legacy Ledger81행/SHA07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae와
+Campaign Root12/Native4·Batch3 Root9/Native1 계측은 변경·초기화·환급하지 않았다.
+이번 실제 Root 실행은 별도 소유 Audit에29건 append됐으며 기존4026행 prefix를 보존했다.
+실행 증거 파일 전체의 보존 SHA도 재확인했다. 수정 후보는 설치하지 않았고 이전 설치·Rollback은 보존했다.
