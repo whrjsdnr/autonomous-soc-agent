@@ -183,6 +183,7 @@ class DNSCapture(TotalCapture):
     def __init__(self, directory, session):
         super().__init__(directory, session)
         self.stop_requested_unix = None
+        self.stop_send_error = None
         self.failure_stop_error = None
         self.failure_stop_elapsed_seconds = None
         self.quarantined_packets = 0
@@ -221,9 +222,17 @@ class DNSCapture(TotalCapture):
 
     def request_stop(self):
         with self.stop_lock:
+            if self.stop_send_error is not None:
+                raise CaptureUnavailable(self.stop_send_error)
             if self.stop_requested_unix is None and self.channel is not None:
-                super().request_stop()
+                # The reader can observe CLOSED before send() returns. Record
+                # intent first; a failed send remains an explicit failed attempt.
                 self.stop_requested_unix = time.time()
+                try:
+                    super().request_stop()
+                except CaptureUnavailable as error:
+                    self.stop_send_error = str(error)
+                    raise
 
     def cleanup_ack_verified(self):
         """Only owned capture closure; a failed stream remains inadmissible."""
@@ -280,6 +289,7 @@ class DNSCapture(TotalCapture):
     def extra_metrics(self):
         return super().extra_metrics() | dict(
             stop_requested_unix=self.stop_requested_unix,
+            stop_send_error=self.stop_send_error,
             failure_stop_error=self.failure_stop_error,
             failure_stop_elapsed_seconds=self.failure_stop_elapsed_seconds,
             quarantined_after_failure=self.quarantined_packets,
@@ -332,8 +342,12 @@ class DNSProducer:
         self.last_error_observed_unix = None
         self.cleanup_error = None
         self.cleanup_evidence_sha256 = None
+        self.cleanup_scope = "OWNED_DNS_CAPTURE_AND_TRANSPORT_NOT_GLOBAL_KERNEL"
+        self.helper_cleanup = "UNVERIFIED"
         self.sequence = 0
         self._close_lock = asyncio.Lock()
+        self._owner_stop_requested = False
+        self._handshake_task = None
 
     @property
     def origin(self):
@@ -362,10 +376,13 @@ class DNSProducer:
             names_retained=False,
             capture_quality="PEER_VERIFIED_AF_PACKET_METADATA_NOT_TCX_ATTESTATION",
             **self.capture.extra_metrics(),
-        )
+        ) | dict(cleanup_scope=self.cleanup_scope, helper_cleanup=self.helper_cleanup)
 
     async def events(self):
+        if self._owner_stop_requested:
+            return
         handshake = asyncio.create_task(asyncio.to_thread(self.capture.handshake))
+        self._handshake_task = handshake
         try:
             await asyncio.shield(handshake)
             self.capture.start_reader()
@@ -387,6 +404,8 @@ class DNSProducer:
                 else:
                     await asyncio.sleep(0.02)
         except (ValueError, OSError, RuntimeError) as error:
+            if self._cancelled_handshake(error):
+                return
             if self.last_error is None:
                 self.last_error = type(error).__name__ + ":" + str(error)
                 self.last_error_observed_unix = time.time()
@@ -404,6 +423,7 @@ class DNSProducer:
                 await asyncio.gather(handshake, return_exceptions=True)
 
     async def request_stop(self):
+        self._owner_stop_requested = True
         if self.capture.ready is None:
             await self.close()
             return
@@ -422,6 +442,15 @@ class DNSProducer:
                 raise ValueError("CONTINUOUS_DNS_STOP_ACK_MISSING")
             await asyncio.sleep(0.02)
 
+    def _cancelled_handshake(self, error):
+        return bool(
+            self._owner_stop_requested
+            and self.capture.closed.is_set()
+            and self.capture.ready is None
+            and isinstance(error, CaptureUnavailable)
+            and str(error) == "HELPER_LISTENER_CLOSED"
+        )
+
     async def close(self):
         async with self._close_lock:
             if self.capture.closed.is_set():
@@ -436,6 +465,23 @@ class DNSProducer:
             ) or self.capture.cleanup_ack_verified()
             self.cleanup = "UNVERIFIED"
             await asyncio.to_thread(self.capture.close, reason="CONTINUOUS_DNS_OWNER_STOP")
+            handshake_error = None
+            if self._handshake_task is not None:
+                # Closing the listener unblocks accept. Join that owned handshake
+                # before publishing cleanup, including a peer racing with Stop.
+                outcome = await asyncio.wait_for(
+                    asyncio.gather(self._handshake_task, return_exceptions=True), 2.1
+                )
+                if isinstance(outcome[0], BaseException):
+                    handshake_error = outcome[0]
+            cancelled_before_admission = bool(
+                self._owner_stop_requested
+                and self.capture.ready is None
+                and self.capture.channel is None
+                and self.capture.reader_error is None
+                and self.last_error is None
+                and (handshake_error is None or self._cancelled_handshake(handshake_error))
+            )
             process = self.capture.process_observation()
             # CLOSED proves capture.close() returned in the pinned helper. Its
             # process exit is independently observed, without sending any signal.
@@ -453,7 +499,11 @@ class DNSProducer:
                 and (self.capture.channel is None or self.capture.channel.fileno() == -1)
                 and (thread is None or not thread.is_alive())
             )
-            verified = bool(protocol_closed and stopped and local_closed)
+            verified = bool(
+                local_closed
+                and self.capture.stop_send_error is None
+                and ((protocol_closed and stopped) or cancelled_before_admission)
+            )
             if self.last_error is None and self.capture.reader_error:
                 self.last_error = "CaptureUnavailable:" + self.capture.reader_error
                 self.last_error_observed_unix = self.capture.reader_failure_observed_unix
@@ -468,6 +518,7 @@ class DNSProducer:
                 if self.capture.reader_error
                 else "UNCHANGED",
                 stop_requested_unix=self.capture.stop_requested_unix,
+                stop_send_error=self.capture.stop_send_error,
                 closed_observed_unix=self.capture.terminal_observed_unix,
                 authenticated_closed=bool(protocol_closed),
                 stream_completion_verified=self.capture.completion_verified(),
@@ -481,6 +532,15 @@ class DNSProducer:
                 channel_closed=self.capture.channel is None or self.capture.channel.fileno() == -1,
                 reader_joined=thread is None or not thread.is_alive(),
                 global_kernel_cleanup="UNKNOWN",
+                cleanup_scope="LOCAL_DNS_LISTENER_ONLY_NO_AUTHENTICATED_HELPER"
+                if cancelled_before_admission
+                else "OWNED_DNS_CAPTURE_AND_TRANSPORT_NOT_GLOBAL_KERNEL",
+                helper_cleanup="NOT_OBSERVED_NO_AUTHENTICATED_HELPER"
+                if cancelled_before_admission
+                else "VERIFIED"
+                if protocol_closed and stopped
+                else "UNVERIFIED",
+                handshake_joined=self._handshake_task is None or self._handshake_task.done(),
                 quarantined_packets=self.capture.quarantined_packets,
                 failure_stop_error=self.capture.failure_stop_error,
                 failure_stop_elapsed_seconds=self.capture.failure_stop_elapsed_seconds,
@@ -503,3 +563,5 @@ class DNSProducer:
                 self.state = "FAILED"
                 raise
             self.cleanup = proof["cleanup"]
+            self.cleanup_scope = proof["cleanup_scope"]
+            self.helper_cleanup = proof["helper_cleanup"]

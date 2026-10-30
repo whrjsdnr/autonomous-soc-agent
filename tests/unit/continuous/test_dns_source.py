@@ -251,12 +251,19 @@ async def test_stop_before_helper_ready_joins_listener_handshake(tmp_path, monke
     task = asyncio.create_task(anext(source.events()))
     await asyncio.sleep(0.02)
     await source.request_stop()
-    with pytest.raises(ValueError, match="^HELPER_LISTENER_CLOSED$"):
+    # Owner Stop ends iteration; it is not an unsolicited transport failure.
+    # Only our local listener is verified. No helper READY/CLOSED was observed.
+    with pytest.raises(StopAsyncIteration):
         await asyncio.wait_for(task, 1)
-    assert source.capture.closed.is_set() and source.cleanup != "VERIFIED"
-    assert source.last_error == "CaptureUnavailable:HELPER_LISTENER_CLOSED"
+    assert source.capture.closed.is_set() and source.cleanup == "VERIFIED"
+    assert source.last_error is None
     assert source.capture.listener.fileno() == -1
     assert source.capture.channel is None
+    proof = json.loads((path / "cleanup.json").read_text())
+    assert proof["cleanup_scope"] == "LOCAL_DNS_LISTENER_ONLY_NO_AUTHENTICATED_HELPER"
+    assert proof["helper_cleanup"] == "NOT_OBSERVED_NO_AUTHENTICATED_HELPER"
+    assert proof["handshake_joined"] and not proof["authenticated_closed"]
+    assert proof["global_kernel_cleanup"] == "UNKNOWN"
 
 
 @pytest.mark.asyncio

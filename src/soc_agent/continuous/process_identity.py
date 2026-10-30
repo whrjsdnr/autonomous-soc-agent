@@ -1,6 +1,96 @@
 """Observed identity of an ordinary service after exec; never execution authority."""
 
 
+def authenticated_producer_ready(value, *, policy_sha256, namespace, now):
+    """Compare READY with the caller's verified request, never a previous trial pin.
+
+    This fixed predicate can be embedded in the reviewed Root coordinator, like
+    observe_service_health. It neither grants authority nor refreshes timestamps.
+    """
+    if (
+        not isinstance(policy_sha256, str)
+        or len(policy_sha256) != 64
+        or any(c not in "0123456789abcdef" for c in policy_sha256)
+        or not isinstance(namespace, str)
+        or not namespace.startswith("net:[")
+        or not isinstance(value, dict)
+    ):
+        return False
+    producer = value.get("producer", {})
+    health = value.get("component_health", {})
+    if not isinstance(producer, dict) or not isinstance(health, dict):
+        return False
+    stamps = (health.get("collector_message_unix"), value.get("heartbeat_unix"))
+    return bool(
+        value.get("source") == "NATIVE_SERVICE"
+        and value.get("collector") == "RUNNING"
+        and value.get("state") == "RUNNING"
+        and producer.get("namespace") == namespace
+        and producer.get("policy_sha256") == policy_sha256
+        and type(producer.get("generation")) is int
+        and 0 < producer["generation"] < 2**64
+        and all(type(stamp) in (int, float) and 0 <= now - stamp < 5 for stamp in stamps)
+    )
+
+
+def read_service_journal(unit, since, *, run):
+    """Bound diagnostic log collection independently of service/resource cleanup.
+
+    A timeout preserves partial output and an unknown child exit code. The caller
+    must save this record without treating it as successful journal collection.
+    Only fixed trial units can be inspected; this never controls a service.
+    """
+    import subprocess
+
+    if unit not in {
+        "soc-continuous-collector.service",
+        "soc-operations-runtime.service",
+        "soc-continuous-tcp-trial.service",
+        "soc-continuous-dns.service",
+        "soc-continuous-dnsmasq.service",
+    }:
+        raise ValueError("TRIAL_JOURNAL_UNIT_SCOPE")
+    args = [
+        "/usr/bin/journalctl",
+        "--no-pager",
+        "--boot=0",
+        "--lines=200",
+        "-o",
+        "short-iso",
+        "-u",
+        unit,
+        "--since",
+        since,
+    ]
+    try:
+        result = run(args, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15)
+    except subprocess.TimeoutExpired as error:
+
+        def decode(value):
+            return (
+                value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value or ""
+            )
+
+        return dict(
+            command=args,
+            returncode=None,
+            stdout=decode(error.stdout),
+            stderr=decode(error.stderr),
+            timed_out=True,
+            error="JOURNAL_EVIDENCE_TIMEOUT",
+            timeout_seconds=15,
+            completeness="PARTIAL_OR_UNKNOWN",
+        )
+    return dict(
+        command=args,
+        returncode=result.returncode,
+        stdout=result.stdout,
+        stderr=result.stderr,
+        timed_out=False,
+        completeness="BOUNDED_TAIL" if result.returncode == 0 else "UNVERIFIED",
+    )
+
+
 def observe_service_health(properties, read_snapshot, clock):
     """Acquire fresh evidence AFTER blocking queries; keep the six-second bound.
 

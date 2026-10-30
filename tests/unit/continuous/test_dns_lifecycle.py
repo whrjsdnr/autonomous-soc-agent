@@ -16,6 +16,160 @@ from tests.unit.continuous.test_dns_source import prepared
 from soc_agent.continuous import dns_source
 from soc_agent.security_ai.operational.network_capture import helper_transport
 
+
+@pytest.mark.asyncio
+async def test_owner_stop_before_helper_admission_verifies_only_local_listener(
+    tmp_path, monkeypatch
+):
+    directory, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    source = dns_source.DNSProducer(directory, pin)
+
+    async def consume():
+        return [packet async for packet in source.events()]
+
+    task = asyncio.create_task(consume())
+    try:
+        while source._handshake_task is None:
+            await asyncio.sleep(0.01)
+        await source.request_stop()
+        assert await asyncio.wait_for(task, 3) == []
+        assert source.last_error is None and source.state == "STOPPED"
+        assert source.cleanup == "VERIFIED"
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["cleanup_scope"] == "LOCAL_DNS_LISTENER_ONLY_NO_AUTHENTICATED_HELPER"
+        assert proof["helper_cleanup"] == "NOT_OBSERVED_NO_AUTHENTICATED_HELPER"
+        assert proof["handshake_joined"] and proof["listener_closed"] and proof["channel_closed"]
+        assert not proof["authenticated_closed"] and not proof["stream_completion_verified"]
+        assert proof["closed_sha256"] is None and proof["global_kernel_cleanup"] == "UNKNOWN"
+        assert source.snapshot["cleanup_scope"] == proof["cleanup_scope"]
+        assert not (directory / "verified-ready.json").exists()
+        assert not (directory / "verified-closed.json").exists()
+        before = (directory / "cleanup.json").read_bytes()
+        await source.request_stop()
+        assert (directory / "cleanup.json").read_bytes() == before
+    finally:
+        await source.close()
+        await asyncio.gather(task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_unrequested_listener_close_is_not_successful_owner_stop(tmp_path, monkeypatch):
+    directory, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    source = dns_source.DNSProducer(directory, pin)
+    source.capture.close()  # Unexpected transport closure, no owner Stop intent.
+    with pytest.raises(ValueError, match="HELPER_LISTENER_CLOSED"):
+        await anext(source.events())
+    assert source.state == "FAILED" and source.cleanup != "VERIFIED"
+    assert source.last_error == "CaptureUnavailable:HELPER_LISTENER_CLOSED"
+
+
+@pytest.mark.asyncio
+async def test_owner_stop_does_not_hide_racing_peer_identity_failure(tmp_path, monkeypatch):
+    import threading
+
+    directory, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    source = dns_source.DNSProducer(directory, pin)
+    entered = threading.Event()
+
+    def rejected_peer():
+        entered.set()
+        assert source.capture.closed.wait(2)
+        raise dns_source.CaptureUnavailable("HELPER_PEER_IDENTITY_MISMATCH")
+
+    monkeypatch.setattr(source.capture, "handshake", rejected_peer)
+    task = asyncio.create_task(anext(source.events()))
+    try:
+        assert await asyncio.to_thread(entered.wait, 2)
+        await source.request_stop()
+        with pytest.raises(ValueError, match="HELPER_PEER_IDENTITY_MISMATCH"):
+            await asyncio.wait_for(task, 3)
+        assert source.last_error == "CaptureUnavailable:HELPER_PEER_IDENTITY_MISMATCH"
+        assert source.cleanup == "UNVERIFIED"
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["handshake_joined"] and proof["helper_cleanup"] == "UNVERIFIED"
+        assert proof["cleanup"] == "UNVERIFIED" and not proof["authenticated_closed"]
+    finally:
+        await source.close()
+        await asyncio.gather(task, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_runtime_stop_while_dns_helper_not_started_keeps_primary_error(tmp_path, monkeypatch):
+    from tests.unit.continuous.test_runtime import make
+
+    from soc_agent.continuous.service import ContinuousRuntime
+
+    directory, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    source = dns_source.DNSProducer(directory, pin)
+    runtime_path, _ = make(tmp_path)
+    runtime = ContinuousRuntime(runtime_path, dns_source=source)
+    task = asyncio.create_task(runtime.run())
+    try:
+        while source._handshake_task is None and not task.done():
+            await asyncio.sleep(0.01)
+        assert not task.done()
+        runtime.last_error = "PRESERVED_LAUNCHER_READY_FAILURE"
+        runtime.stop.set()
+        await asyncio.wait_for(task, 10)
+        state = runtime.store.state()
+        assert state["last_error"] == "PRESERVED_LAUNCHER_READY_FAILURE"
+        assert state["cleanup"] == "VERIFIED"
+        assert state["dns_transport"]["helper_cleanup"] == "NOT_OBSERVED_NO_AUTHENTICATED_HELPER"
+        assert state["orchestration"]["worker"]["state"] == "STOPPED"
+    finally:
+        runtime.stop.set()
+        await asyncio.gather(task, return_exceptions=True)
+
+
+def test_stop_intent_precedes_immediate_ack_and_is_sent_once(tmp_path, monkeypatch):
+    directory, session, _ = prepared(tmp_path)
+    capture = dns_source.DNSCapture(directory, session)
+    calls = []
+
+    def immediate_ack(self):
+        calls.append(self.stop_requested_unix)
+        self.terminal_observed_unix = time.time()
+
+    monkeypatch.setattr(dns_source.TotalCapture, "request_stop", immediate_ack)
+    capture.channel = object()  # Only the send boundary is mocked.
+    try:
+        capture.request_stop()
+        capture.request_stop()
+        assert len(calls) == 1
+        assert calls[0] <= capture.terminal_observed_unix
+        assert capture.stop_send_error is None
+    finally:
+        capture.channel = None
+        capture.close()
+
+
+def test_stop_send_failure_is_preserved_without_duplicate_attempt(tmp_path, monkeypatch):
+    directory, session, _ = prepared(tmp_path)
+    capture = dns_source.DNSCapture(directory, session)
+    calls = []
+
+    def disconnected(self):
+        calls.append(self.stop_requested_unix)
+        raise dns_source.CaptureUnavailable("STREAM_STOP_DISCONNECTED")
+
+    monkeypatch.setattr(dns_source.TotalCapture, "request_stop", disconnected)
+    capture.channel = object()
+    try:
+        for _ in range(2):
+            with pytest.raises(ValueError, match="STREAM_STOP_DISCONNECTED"):
+                capture.request_stop()
+        assert len(calls) == 1 and calls[0] is not None
+        assert capture.stop_send_error == "STREAM_STOP_DISCONNECTED"
+        assert capture.terminal is None
+    finally:
+        capture.channel = None
+        capture.close()
+
+
 CHILD = r"""
 import os,select,socket,sys,time
 from pathlib import Path
