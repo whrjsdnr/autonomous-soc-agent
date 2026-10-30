@@ -138,3 +138,10 @@ doctor의 Target 내부 검사는 BLOCKED이다. 후자는 승인된 실제 진�
 
 따라서 판정은 **비권한 통합·실행 준비 완료 / 새 Native+DNS Live 검증 대기**이다.
 기존 제한 Native 성공과 Offline 시연을 보존하며 OPERATIONS_VERIFIED로 승격하지 않는다.
+
+## 2026-10-30 공급원 보강
+
+위의 2026-10-29 후보는 passive DNS만 포함한 과거 미승인 후보다. 다음 통합시험에는
+[오픈소스 dnsmasq 공급원·최신 실행 명령](local-dns-source-integration.md)을 사용한다.
+실제 로컬1053 UDP2/TCP1 프로토콜 시험은 성공했지만 Target53 Capture 성공은 아직 아니다.
+과거 passive 후보의 시작 스크립트를 새 DNS 트래픽 승인으로 사용하지 않는다.

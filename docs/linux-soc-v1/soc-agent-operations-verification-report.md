@@ -718,3 +718,22 @@ DNS 질의 생성·모델 exact Action·Host 인증 수집·외부 API는 별도
 Host preview의 Source/Lease/Ledger/DNS Scope Binding은 PASS, Target 내부 검사는 실제
 승인 진입 전까지 BLOCKED다. Legacy Ledger81행과 기존 설치·Rollback 불변이다.
 최종 판정은 비권한 준비 완료이며 실제1시간 운영은 PARTIALLY_VERIFIED 상태를 유지한다.
+
+## 2026-10-30 오픈소스 로컬 DNS 공급원 및 Final Live 사전 검증
+
+사용자 요청에 따라 CoreDNS/dnslib/dnsmasq를 조사하고 설치된 dnsmasq2.91을 재사용했다.
+[로컬 DNS 공급원·실제 테스트·통합 승인 자료](local-dns-source-integration.md)에 코드/Artifact/명령을 기록했다.
+일반 사용자127.0.0.1:1053 실제 UDP2/TCP1은 모두 정상 응답, TCP close+35초/45초 관측,
+server exit0/잔류 Socket0/Cleanup VERIFIED다. 이는 Application DNS 검증이며 Native Capture가 아니다.
+Root/TCX/AF_PACKET/Namespace 진입/모델/API 실행은 이번 작업에서0회다.
+
+Workspace 기존216 PASS, OSS 관련115 PASS/집중40 PASS, 최종 Export210 PASS,
+권한 경계만 mock한 고정 coordinator10 PASS, Native6개/Wheel 이중 빌드 일치.
+보존된 실제 Native40/Prediction2/Incident1의 Tk5화면·종료·재연결은 PASS다.
+새 DNS 수집기/서버 서비스는 아직 미설치다. Ledger81행과 기존 설치/사용자 변경은 보존했다.
+
+다음 후보는 고정 Root 설정6개·Target lo/Ingress TCX·dnsmasq 로컬53/UDP2/TCP1·GUI를
+기존 단일 CLI에 연결한다. 정확한 새 Root/R1/R2 Scope 승인·직접 TTY/sudo 후에만 실행한다.
+RF/LR은 봉인된 실제 ELIGIBLE 입력의 exact Action 승인 이후 자동 소비한다. 미래 영수증은 발급하지 않는다.
+기존 전체3600초 상한은 순수 수집3600초를 보장하지 않는다. 실제1시간/반복 Native 모델/
+DNS Capture→Transaction→GUI는 여전히 미검증이며 기존 PARTIALLY_VERIFIED 판정을 유지한다.
