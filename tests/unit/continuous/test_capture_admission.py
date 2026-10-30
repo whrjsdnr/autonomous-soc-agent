@@ -329,6 +329,52 @@ async def test_native_window_waits_for_model_permission_without_starting_worker(
 
 
 @pytest.mark.asyncio
+async def test_native_worker_leaves_approval_wait_only_after_admission(tmp_path, monkeypatch):
+    import asyncio
+
+    from tests.unit.continuous.test_runtime import make
+
+    from soc_agent.continuous.service import ContinuousRuntime
+
+    directory, store = make(tmp_path)
+    job = sealed_jobs(*transcript())[0][0]
+    runtime = ContinuousRuntime(directory)
+    grants = tmp_path / "grants"
+    grants.mkdir()
+    runtime.config = runtime.config.model_copy(update={"native_model_approvals": grants})
+    admitted, release = asyncio.Event(), asyncio.Event()
+
+    async def admission_boundary(path, *, approvals):
+        # Mock the model admission/process boundary; no model permission is issued.
+        assert approvals == grants
+        admitted.set()
+        await release.wait()
+
+    monkeypatch.setattr(runtime.analysis, "start_retained_tcx", admission_boundary)
+    task = asyncio.create_task(
+        runtime.start_analysis(directory / "job.json", job.model_dump_json())
+    )
+    try:
+        async with asyncio.timeout(3):
+            while runtime.worker_state != "WAITING_EXACT_MODEL_ACTION_APPROVAL":
+                await asyncio.sleep(0.01)
+        assert not admitted.is_set()
+        (grants / (digest(job.model_dump(mode="json")) + ".json")).write_text("MOCK_BOUNDARY_ONLY")
+        await asyncio.wait_for(admitted.wait(), 3)
+        assert runtime.worker_state == "WAITING_EXACT_MODEL_ACTION_APPROVAL"
+        before = runtime.worker_observed_unix
+        release.set()
+        await asyncio.wait_for(task, 3)
+        assert runtime.worker_state == "ANALYZING"
+        assert runtime.worker_observed_unix >= before
+        assert runtime.analysis.process is None and runtime.metrics["predictions"] == 0
+    finally:
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+        await runtime.analysis.close()
+
+
+@pytest.mark.asyncio
 async def test_actual_unix_seal_transport_and_epoch_rotation(tmp_path, monkeypatch):
     """Actual Unix framing; Root credentials and installed authority are explicitly MOCK."""
     import asyncio

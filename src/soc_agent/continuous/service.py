@@ -764,6 +764,10 @@ class ContinuousRuntime:
             if self.stop.is_set():
                 raise asyncio.CancelledError
         await self.analysis.start_retained_tcx(path, approvals=self.config.native_model_approvals)
+        # The admission boundary above validates the receipt and starts the worker.
+        # A prior approval wait must not remain the published state during inference.
+        self.worker_state = "ANALYZING"
+        self.worker_observed_unix = time.time()
 
     async def consume(self):
         self.worker_state = "IDLE"
