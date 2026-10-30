@@ -1,5 +1,25 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: DNS Helper Lifecycle·Cleanup 비권한 안정화
+
+구현 `5b14a67` / 기준 `6026fa7`. **Workspace·독립 Export 각각537 PASS**,
+Native6개·Wheel 이중 빌드 일치, 고정124파일·Pydantic2.13.5 격리 Python import PASS.
+실제 일반 사용자 자식 프로세스/AF_UNIX로 정상 종료·Exit7·실제2초 침묵·5초 STOP ACK·
+격리 Packet·Counter/Replay 차단·Owner STOP 경합·Audit 실패/취소·Session 재시작 차단을 검증했다.
+기존 Native34/DNS3 보존 결과의 실제 Tk 5개 페이지·종료/재연결도 통과했다.
+
+기존 Helper는 서비스 정산상 Exit0이며 원 PID는 현재 없다. 그러나 원래 heartbeat 오류 시점의
+프로세스 생존·송신 timestamp·소켓 대기 상태는 UNKNOWN이다. 정상 종료를 전체 성공으로 바꾸지 않았다.
+확인된 Cleanup 결함은 heartbeat 오류 직후 수신 채널을 닫아 최종 CLOSED·Counter를 받을 수 없던 경로다.
+수정본은 입력을 차단한 채 기존5초 안에서 STOP/CLOSED만 수집하고, 데이터 처리 실패와 소유 자원 정리를 분리한다.
+ACK·프로세스 종료·로컬 FD·reader·durable Audit가 확인돼야 새 Cleanup 성공을 표시한다.
+
+**기존 전체 Cleanup UNVERIFIED와 전역 Kernel UNKNOWN을 유지하며 새 Root·Native 시험은 차단했다.**
+이번 작업의 Root·Capture·DNS 트래픽·모델 Action·외부 API·예약·Ledger 변경은0이다.
+원본 Runtime Audit22행·PENDING1/POISON1·설치·Rollback·Ledger81행의 정합성과 SHA를 보존했다.
+구현·RCA·자원별 증거·Artifact·다음 실행 조건은 [상세 보고서](dns-helper-lifecycle-cleanup-report.md)를 따른다.
+
+
 ## 2026-10-30 최신: 실제 재시험 정산·GUI 값/오류 구분
 
 최종 현재 판정은 **PARTIALLY_VERIFIED**다. 사용자의 자동 재시도 허용 후 새 정확한
