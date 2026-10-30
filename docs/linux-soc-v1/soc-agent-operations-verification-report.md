@@ -1,5 +1,24 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: 실제 Packet·DNS Cleanup 재시험 — PARTIALLY_VERIFIED
+
+승인 `142c69e`·운영 Source `5b14a67`·정확한 Runtime/DNS Session으로 실제1회 실행했다.
+Root93.187초·Collector 서비스89.152초에 TCX receive timeout으로 조기 종료됐다.
+Native24·DNS UDP2/TCP1 거래3개, Root 로컬 Seal1/Runtime 수신 Seal0, ELIGIBLE0,
+모델·Prediction·Incident·API0, Queue/transport/DNS Drop0이다.
+
+**이번 DNS Helper Cleanup VERIFIED**: CLOSED·최종 Counter·인증된 STOP 응답·원 PID 종료·
+FD/reader 정리·durable receipt SHA를 실제로 확인했다. Root의 소유 물리 자원 정리 증거도 있다.
+반면 TCX 프로토콜 STOP ACK 미수신으로 Runtime 전체 Cleanup은 **UNVERIFIED**다.
+과거 Cleanup·UNKNOWN·FAILED·false는 변경하지 않았다.
+
+최초 Runtime 오류 CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT과 후속 외부 RUNTIME_HEARTBEAT_STALE을
+분리했다. Root Audit에도5.253946초 heartbeat 간격이 있으나 syscall/스케줄링 원인은 UNKNOWN이다.
+기존5초 제한을 늘리지 않았고 자동 재실행·추가 Root 조회도 하지 않았다.
+Root Audit85행 Append·Runtime Audit19행·Ledger81행 보존, 승인된3개 설정만 변경됐다.
+집중 비권한 회귀 Workspace/Export 각각19 PASS, 실제 Tk5개 화면·재연결 PASS다.
+[실행 시간·증거·Cleanup별 판정·최초 오류·남은 작업](packet-dns-cleanup-final-retest-result.md)에 기록했다.
+
 ## 2026-10-30 최신: Packet·DNS·Helper 종료 재시험 통합 검토 준비
 
 완료된 Cleanup9개 증거를 재사용하고 추가 Root 조회 없이 새 통합 검토를 준비했다.

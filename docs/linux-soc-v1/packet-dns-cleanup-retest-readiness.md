@@ -100,3 +100,8 @@ DNS9·외부 API·Host 인증 수집도 이번 실행 후보에서 제외했다.
 최종 상태는 **재시험 준비 완료 / 명시적 실행 승인 대기**다.
 다음 실제 시험에서 Packet·DNS·Helper 종료·Root/Runtime Cleanup을 먼저 판정하고,
 실제 모델 Action 결과와 남은 운영 검증 범위를 구분해 릴리스 판정을 수행한다.
+
+후속: 이 승인 후보는 실제1회 실행되어 소비됐다.
+[실제 재시험 결과](packet-dns-cleanup-final-retest-result.md)는 PARTIALLY_VERIFIED이며,
+DNS Helper Cleanup은 검증됐지만 TCX 수신 timeout으로 Runtime 전체 Cleanup과 장시간 운영은 미검증이다.
+이 문서의 미시작/승인 대기 상태는 준비 시점의 기록이며 현재 실행 재사용 권한이 아니다.
