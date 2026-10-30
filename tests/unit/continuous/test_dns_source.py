@@ -248,9 +248,12 @@ async def test_stop_before_helper_ready_joins_listener_handshake(tmp_path, monke
     task = asyncio.create_task(anext(source.events()))
     await asyncio.sleep(0.02)
     await source.request_stop()
-    with pytest.raises((ValueError, OSError)):
+    with pytest.raises(ValueError, match="^HELPER_LISTENER_CLOSED$"):
         await asyncio.wait_for(task, 1)
     assert source.capture.closed.is_set() and source.cleanup != "VERIFIED"
+    assert source.last_error == "CaptureUnavailable:HELPER_LISTENER_CLOSED"
+    assert source.capture.listener.fileno() == -1
+    assert source.capture.channel is None
 
 
 @pytest.mark.asyncio
@@ -300,6 +303,14 @@ def test_fixed_unit_and_exact_scope_are_required(tmp_path):
     assert verify_review(cfg, review, request)["traffic_generated"] is False
     assert "Restart=no" in expected["body"] and "--no-new-privs" in expected["body"]
     assert "--reuid=1000" in expected["body"]
+    assert "ExecStartPre=/usr/bin/setpriv --dump\n" in expected["body"]
+    bootstrap = "CAP_SETUID CAP_SETGID CAP_SETPCAP CAP_NET_RAW"
+    assert f"CapabilityBoundingSet={bootstrap}\n" in expected["body"]
+    assert f"AmbientCapabilities={bootstrap}\n" in expected["body"]
+    assert "--clear-groups" in expected["body"]
+    assert "--bounding-set=-all,+net_raw" in expected["body"]
+    assert "--ambient-caps=-all,+net_raw" in expected["body"]
+    assert "NoNewPrivileges=yes\n" in expected["body"]
     with pytest.raises(ValueError, match="EXACT_SCOPE_REVIEW_REQUIRED"):
         verify_review(cfg, review, dict(files=request["files"]))
     (review / UNIT).write_text(expected["body"].replace("CAP_NET_RAW", "CAP_NET_ADMIN"))

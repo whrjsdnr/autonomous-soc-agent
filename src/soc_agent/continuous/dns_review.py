@@ -46,6 +46,10 @@ def candidate(directory: Path, namespace: str, pin: str) -> dict:
             canonical_pin,
         ]
     )
+    # Bound and explicitly carry the four bootstrap capabilities across exec.
+    # setpriv then clears groups, changes UID/GID and retains NET_RAW alone;
+    # the helper independently verifies every capability set before opening.
+    # A bounding set is an upper limit, not evidence of usable credentials.
     body = f"""[Unit]
 Description=SOC approved bounded DNS metadata helper
 After=soc-operations-runtime.service
@@ -54,9 +58,10 @@ Type=exec
 User=root
 Group=root
 NetworkNamespacePath=/run/netns/soc-native-b3
+ExecStartPre=/usr/bin/setpriv --dump
 ExecStart={command}
 CapabilityBoundingSet=CAP_SETUID CAP_SETGID CAP_SETPCAP CAP_NET_RAW
-AmbientCapabilities=
+AmbientCapabilities=CAP_SETUID CAP_SETGID CAP_SETPCAP CAP_NET_RAW
 NoNewPrivileges=yes
 RestrictAddressFamilies=AF_UNIX AF_PACKET AF_NETLINK
 MemoryMax=536870912

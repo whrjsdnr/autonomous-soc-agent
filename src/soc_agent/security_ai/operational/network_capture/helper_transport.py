@@ -1,5 +1,6 @@
 """Unprivileged PacketCapture-compatible metadata receiver, authenticated via Linux peer state."""
 
+import errno
 import hashlib
 import os
 import queue
@@ -348,6 +349,13 @@ class HelperCapture:
                 break
             except TimeoutError:
                 continue
+            except OSError as error:
+                # close() may race with the blocking accept(). Preserve an
+                # explicit owner-stop result, rather than an incidental EBADF.
+                # Unrelated accept failures must retain their original errno.
+                if self.closed.is_set() and error.errno in (errno.EBADF, errno.EINVAL):
+                    raise CaptureUnavailable("HELPER_LISTENER_CLOSED") from error
+                raise
         else:
             raise CaptureUnavailable("HELPER_LISTENER_CLOSED")
         with self.transport_lock:

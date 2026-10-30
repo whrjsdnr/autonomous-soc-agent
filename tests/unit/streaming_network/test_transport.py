@@ -1,6 +1,7 @@
 """No AF_PACKET socket. Synthetic metadata over a real ordinary-user UNIX socket."""
 
 import asyncio
+import errno
 import socket
 import threading
 from types import SimpleNamespace
@@ -16,6 +17,35 @@ from soc_agent.security_ai.operational.network_capture.stream_transport import (
     StreamMessage,
 )
 from soc_agent.security_ai.research.live_input import timestamp_ns
+
+
+@pytest.mark.parametrize(
+    ("number", "closed", "translated"),
+    [
+        (errno.EBADF, True, True),
+        (errno.EINVAL, True, True),
+        (errno.EACCES, True, False),
+        (errno.EBADF, False, False),
+    ],
+)
+def test_listener_shutdown_translates_only_owner_closed_socket(number, closed, translated):
+    stopped = threading.Event()
+    original = OSError(number, "accept failure")
+
+    def accept():
+        if closed:
+            stopped.set()
+        raise original
+
+    capture = SimpleNamespace(closed=stopped, listener=SimpleNamespace(accept=accept))
+    if translated:
+        with pytest.raises(CaptureUnavailable, match="^HELPER_LISTENER_CLOSED$") as result:
+            helper_transport.HelperCapture.handshake(capture)
+        assert result.value.__cause__ is original
+    else:
+        with pytest.raises(OSError) as result:
+            helper_transport.HelperCapture.handshake(capture)
+        assert result.value is original
 
 
 def stat(s, seq, count, *, kind="HEARTBEAT", **extra):
