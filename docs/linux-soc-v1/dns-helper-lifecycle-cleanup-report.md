@@ -167,3 +167,7 @@ DNS 질의가 더 없다는 사실만으로 Helper STALE를 정당화하지 않�
 
 **기존 전체 Cleanup이 실제 증거로 VERIFIED되기 전까지 신규 Root·Native 시험은 BLOCKED다.**
 이번 작업의 완료는 운영 코드와 비권한 검증의 안정화이며, Kernel 재시험·1시간 운영 검증 완료가 아니다.
+
+후속 읽기 전용 증거 재검증·새 미시작 Session·Root Manifest·종료 시험 요청서는
+[Cleanup 증거 검토 보고서](dns-helper-cleanup-evidence-review.md)에 정리했다.
+이 후속 준비도 기존 전체 Cleanup을 VERIFIED로 승격하거나 새 실행 권한을 발급하지 않았다.

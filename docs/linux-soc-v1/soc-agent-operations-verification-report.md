@@ -1,5 +1,21 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: Cleanup 증거 재검증·새 종료 시험 후보
+
+운영 Source `5b14a67`·기존 증거·설치를 보존했다. 새 운영 코드 변경이나 실제 실행은 없다.
+읽기 전용 재검증에서 Helper/Root-owned 전체/Runtime/Global Kernel Cleanup은 **UNVERIFIED**,
+해당 시험의 소유 TCX Collector Cleanup만 **VERIFIED**다. 원 heartbeat 지연 원인은 UNKNOWN이다.
+Audit22행·detail20개·Ledger81행과 기존99개 파일 SHA를 확인했다. 백업7개 내용은 Root 읽기 권한이
+없어 UNKNOWN으로 유지했다. 현재 서비스 종료 상태로 과거 누락 CLOSED·Counter를 대체하지 않았다.
+
+Workspace/Export 집중 회귀 각각53 PASS, 고정 coordinator11 PASS, 실제 Tk5개 화면·2회 재연결 PASS.
+동일 Source의 기존537/537 회귀·Native6개/Wheel 이중 빌드는 재사용하고 실제 bytes를 재대조했다.
+새 Runtime Session `f4147fc4-40e3-4a01-bc32-267f4f58ed88`, DNS Session
+`bf76008d-6899-48d7-a4bb-7563b816d1d6`의 Artifact·Root Manifest를 준비했다.
+CLI doctor·비소비 Preview는 통과했지만 내부 Target check·정식 승인·사용자 인증은 수행하지 않았다.
+새 권한 실행은 **BLOCKED**이며, 요청서·정확한 SHA·미확인 Cleanup·최소 승인 조건은
+[Cleanup 증거 검토 보고서](dns-helper-cleanup-evidence-review.md)에 기록했다.
+
 ## 2026-10-30 최신: DNS Helper Lifecycle·Cleanup 비권한 안정화
 
 구현 `5b14a67` / 기준 `6026fa7`. **Workspace·독립 Export 각각537 PASS**,
