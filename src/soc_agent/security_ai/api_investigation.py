@@ -243,11 +243,41 @@ class APIInvestigationClient:
         self.reserved = Decimal(0)
         self.stopped = False
         self.receipts: list[dict] = []
+        self.failures: list[dict] = []
+        self.failure_evidence_error: str | None = None
         self.last_started: float | None = None
         self.in_flight = False
         public = authorization.model_dump(mode="json")
         self.write("api-authorization.json", public)
         self.event("API_AUTHORIZATION_BOUND", public)
+
+    @property
+    def status(self) -> dict:
+        known = sum((Decimal(r["estimated_usd"]) for r in self.receipts), Decimal(0))
+        uncertain = self.calls != len(self.receipts)
+        return dict(
+            mode="EXTERNAL_API",
+            calls=self.calls,
+            retries=0,
+            reserved_usd=str(self.reserved),
+            confirmed_response_estimate_usd=str(known),
+            total_estimated_usd=None if uncertain else str(known),
+            billing_outcome="UNKNOWN_REQUIRES_REVIEW" if uncertain else "USAGE_REPORTED_ESTIMATE",
+            failure_evidence="UNVERIFIED" if self.failure_evidence_error else "NO_FAILED_WRITE",
+            failure_evidence_error=self.failure_evidence_error,
+            stopped=self.stopped,
+            in_flight=self.in_flight,
+            requests=[
+                dict(
+                    operation=r["intent"].get("operation", "UNKNOWN"),
+                    status=r["status"],
+                    latency_ms=r.get("latency_ms"),
+                    error_type=r.get("error_type"),
+                    usage=r.get("usage"),
+                )
+                for r in sorted(self.receipts + self.failures, key=lambda r: r["intent"]["call"])
+            ],
+        )
 
     async def generate_structured(self, *, request, response_model):
         if self.in_flight:
@@ -296,6 +326,10 @@ class APIInvestigationClient:
         a.active()
         intent = dict(
             call=self.calls,
+            operation="ASSESSMENT"
+            if response_model.__name__ == "SecurityAnalysisDraft"
+            else "PLAN",
+            timeout_seconds=a.timeout_seconds,
             model=a.model,
             authorization_digest=digest(a.model_dump(mode="json")),
             request_digest=digest(projected.model_dump()),
@@ -365,11 +399,24 @@ class APIInvestigationClient:
                 intent=intent,
                 status="FAILED_STOP_NO_RETRY",
                 error_type=type(exc).__name__,
+                completed_at=utc_now().isoformat(),
+                latency_ms=(time.perf_counter() - started) * 1000,
+                local_deadline_seconds=a.timeout_seconds,
+                transport_worker_alive=bool(
+                    self.provider._transport and self.provider._transport.is_alive()
+                ),
+                remote_outcome="UNKNOWN_NO_AUTOMATIC_RESUME",
                 usage=self.provider.last_usage,
                 billing_outcome="UNKNOWN_REQUIRES_REVIEW",
             )
-            self.write(f"api-failure-{self.calls - 1}.json", failure)
-            self.event("API_INVOCATION_FAILED", failure)
+            self.failures.append(failure)
+            try:
+                self.write(f"api-failure-{self.calls - 1}.json", failure)
+                self.event("API_INVOCATION_FAILED", failure)
+            except (OSError, ValueError, RuntimeError) as persistence:
+                self.failure_evidence_error = type(persistence).__name__
+                exc.add_note("API_FAILURE_EVIDENCE_UNVERIFIED:" + type(persistence).__name__)
+                raise exc from persistence
             raise
 
 

@@ -22,6 +22,108 @@ INSTALL = Path("/usr/lib/soc-agent/continuous")
 POLICY = Path("/etc/soc-agent/continuous-installation.json")
 
 
+class ControlTransport:
+    """One nonblocking control reader independent of policy/file/Kernel work.
+
+    This thread never renews a capture lease or produces data/seals. Its heartbeat
+    proves transport/process progress only; the receiver separately bounds worker
+    progress and capture eligibility still requires complete attestation.
+    """
+
+    def __init__(self, namespace, policy_pin, request_stop):
+        self.namespace, self.policy_pin = namespace, policy_pin
+        self.request_stop = request_stop
+        self.peer = None
+        self.lock = threading.Lock()
+        self.stopping = threading.Event()
+        self.failure = None
+        self.sequence = 0
+        self.advertised_generation = None
+        self.progress = dict(stage="STARTING", started_monotonic_ns=time.monotonic_ns())
+        self.thread = threading.Thread(target=self._run, daemon=True, name="soc-root-control")
+        self.thread.start()
+
+    def stage(self, name, generation=None):
+        with self.lock:
+            self.progress = dict(
+                stage=name, started_monotonic_ns=time.monotonic_ns(), generation=generation
+            )
+
+    def attach(self, peer):
+        with self.lock:
+            self.peer = peer
+
+    def check(self):
+        if self.failure is not None:
+            raise ValueError("CONTINUOUS_CONTROL_TRANSPORT_FAILED") from self.failure
+
+    def send(self, body):
+        with self.lock:
+            if self.peer is None:
+                raise BrokenPipeError("CONTINUOUS_CONTROL_PEER_CLOSED")
+            if len(body) > 262144 or self.peer.send(body) != len(body):
+                raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
+            self.advertised_generation = json.loads(body)["generation"]
+
+    def _run(self):
+        last = 0.0
+        try:
+            while not self.stopping.wait(0.02):
+                with self.lock:
+                    if self.peer is None:
+                        continue
+                    try:
+                        command = self.peer.recv(256)
+                    except BlockingIOError:
+                        command = None
+                    if command == b"":
+                        self.peer = None
+                        self.request_stop()
+                        return
+                    if command:
+                        if json.loads(command) != dict(
+                            operation="STOP_CAPTURE",
+                            generation=self.advertised_generation,
+                            policy_sha256=self.policy_pin,
+                        ):
+                            raise ValueError("CONTINUOUS_CONTROL_STOP_BINDING")
+                        self.request_stop()
+                        return
+                    if time.monotonic() - last < 1:
+                        continue
+                    before = time.monotonic_ns()
+                    wall = time.time_ns()
+                    after = time.monotonic_ns()
+                    packet = dict(
+                        contract="soc-continuous-tcx-control:v1",
+                        namespace=self.namespace,
+                        policy_sha256=self.policy_pin,
+                        sequence=self.sequence + 1,
+                        clock=[before, wall, after],
+                        worker=dict(self.progress),
+                    )
+                    body = json.dumps(packet).encode()
+                    try:
+                        if self.peer.send(body) != len(body):
+                            raise ValueError("CONTINUOUS_CONTROL_PARTIAL_SEND")
+                    except BlockingIOError:
+                        # No queue or blocking send. Unread control is bounded by
+                        # the receiver's unchanged five-second transport deadline.
+                        continue
+                    self.sequence += 1
+                    last = time.monotonic()
+        except (OSError, ValueError, TypeError) as error:
+            self.failure = error
+            self.request_stop()
+
+    def close(self):
+        self.stopping.set()
+        self.thread.join(2)
+        if self.thread.is_alive():
+            raise ValueError("CONTINUOUS_CONTROL_JOIN_UNVERIFIED")
+        self.check()
+
+
 class OrderedAudit:
     """One bounded writer; seal/attach/stop barriers still require durable COMMIT.
 
@@ -452,10 +554,17 @@ def run():
     pending_seal = None
     carried_rates = None
     owned = False
+    control_transport = ControlTransport(policy["namespace"], policy_pin, request_stop)
+
+    def stage(name):
+        generation = provider.generation if provider else (pending_seal or {}).get("generation")
+        control_transport.stage(name, generation)
+        state["worker_progress"] = dict(control_transport.progress)
 
     def finish_window():
         nonlocal provider, pending_seal, carried_rates
         generation = provider.generation
+        stage("WINDOW_FINISH")
         rows, samples = provider.finish()
         carried_rates = provider.rates
         interval = provider.capture_interval_ns
@@ -470,6 +579,7 @@ def run():
             state["transport_dropped"],
             interval,
         )
+        stage("WINDOW_AUDIT_COMMIT")
         audit("CAPTURE_WINDOW_SEALED")
 
     try:
@@ -489,14 +599,21 @@ def run():
         last_audit = 0.0
         sequence = 0
         while not stop:
+            control_transport.check()
             audit_writer.check()  # An asynchronous persistence failure stops capture.
+            stage("POLICY_VALIDATE")
             validate(root_file(POLICY))  # Expiry/revocation fails closed on every poll.
+            stage("INSTALLED_INTEGRITY")
             if installed() != policy:
                 raise ValueError("CONTINUOUS_POLICY_CHANGED")
             if provider is None:
                 time.sleep(0.01)
+            if stop:
+                break
             if provider is not None:
+                stage("LEASE_RENEW")
                 provider.renew()
+                stage("KERNEL_POLL")
                 provider.poll()
             # A bounded window is detached and drained before any seal is emitted.
             # New owned maps start only after the previous seal was delivered.
@@ -506,6 +623,7 @@ def run():
                 finish_window()
             if time.monotonic() - last_audit >= 1:
                 if provider is not None:
+                    stage("COUNTER_SNAPSHOT")
                     state["counters"] = provider.counters()
                 audit("HEARTBEAT")
                 last_audit = time.monotonic()
@@ -520,28 +638,10 @@ def run():
                         peer = None
                         continue
                     peer.setblocking(False)
+                    stage("TRANSPORT_READY")
+                    control_transport.attach(peer)
                 except BlockingIOError:
                     continue
-            try:
-                control = peer.recv(256)
-            except BlockingIOError:
-                control = None
-            if control == b"":
-                peer.close()
-                peer = None
-                continue
-            if control:
-                command = json.loads(control)
-                if command != dict(
-                    operation="STOP_CAPTURE",
-                    generation=provider.generation if provider else pending_seal["generation"],
-                    policy_sha256=policy_pin,
-                ):
-                    peer.close()
-                    peer = None
-                    continue
-                stop = True
-                continue
             if time.monotonic() - last >= 1:
                 # Bracketed monotonic/wall sample remains evidence, never a UTC relabel.
                 before = time.monotonic_ns()
@@ -561,8 +661,7 @@ def run():
                 )
                 try:
                     body = json.dumps(packet).encode()
-                    if len(body) > 262144 or peer.send(body) != len(body):
-                        raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
+                    control_transport.send(body)
                     sequence += 1
                     frames.clear()
                     if pending_seal is not None:
@@ -570,6 +669,7 @@ def run():
                         window_callbacks = 0
                         state["transport_dropped"] = 0
                         state["received"] = 0
+                        stage("WINDOW_ATTACH")
                         provider = Provider(policy, receive, carried_rates)
                         window_started = time.monotonic()
                     last = time.monotonic()
@@ -580,8 +680,16 @@ def run():
                     state["state"] = "DEGRADED"
         state["state"] = "STOPPING"
     finally:
+        first = sys_exception()
         try:
-            if provider and sys_exception() is None:
+            control_transport.close()
+        except (OSError, ValueError) as error:
+            state["control_cleanup_error"] = str(error)
+            state["cleanup"] = "UNVERIFIED"
+            if first is None:
+                first = error
+        try:
+            if provider and first is None:
                 finish_window()
             if pending_seal is not None and peer:
                 try:
@@ -617,8 +725,8 @@ def run():
                     raise
             import sys
 
-            pending = sys.exception()
-            if pending and cleanup_failed(pending):
+            pending = sys.exception() or first
+            if pending and (cleanup_failed(pending) or state.get("control_cleanup_error")):
                 state["cleanup"] = "UNVERIFIED"
                 audit("ATTACH_CLEANUP_UNVERIFIED")
                 raise pending

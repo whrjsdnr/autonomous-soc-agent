@@ -137,3 +137,62 @@ async def test_native_storage_yields_and_joins_cancelled_durable_write(tmp_path)
     with pytest.raises(asyncio.CancelledError):
         await pending
     assert completed == [True]  # No unjoined writer at cleanup.
+
+
+@pytest.mark.asyncio
+async def test_native_status_queue_read_delay_does_not_block_control_receiver(
+    tmp_path, monkeypatch
+):
+    from soc_agent.continuous.native.service import ControlTransport
+
+    directory = tmp_path / "runtime"
+    Store.create(directory, config(tmp_path))
+    runtime = ContinuousRuntime(directory)
+    runtime.config = runtime.config.model_copy(update={"source": "NATIVE_SERVICE"})
+    owner, peer = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    owner.setblocking(False)
+    peer.setblocking(False)
+    source = TCXProducer(SimpleNamespace(queue_capacity=32, input_sha256="b" * 64))
+    source.socket = owner
+    runtime.source = source
+    control = ControlTransport(NS, "b" * 64, lambda: None)
+    control.stage("FIXTURE_POLL", 42)
+    control.attach(peer)
+    loop = asyncio.get_running_loop()
+    messages = source.messages(loop, POLICY)
+    receiving = asyncio.create_task(anext(messages))
+    original = runtime.store.queue.counts
+    calls = []
+
+    def slow_counts():
+        calls.append(time.monotonic())
+        time.sleep(6.1)  # SQLite/stat observation takes longer than the receive bound.
+        return original()
+
+    monkeypatch.setattr(runtime.store.queue, "counts", slow_counts)
+
+    async def progress():
+        while True:
+            control.stage("FIXTURE_POLL", 42)
+            await asyncio.sleep(0.1)
+
+    advancing = asyncio.create_task(progress())
+    began = time.monotonic()
+    try:
+        await runtime.publish()
+        assert len(calls) == 1
+        assert time.monotonic() - began >= 6
+        assert source.last_control_sequence >= 5
+        assert source.control_snapshot["worker"]["stage"] == "FIXTURE_POLL"
+        assert source.failure is None and source.received == 0
+        assert source.receiver_queue_depth == source.receiver_dropped_batches == 0
+        assert not receiving.done()  # Control is not emitted as fake packet evidence.
+    finally:
+        advancing.cancel()
+        receiving.cancel()
+        await asyncio.gather(advancing, receiving, return_exceptions=True)
+        await messages.aclose()
+        control.close()
+        await source.close()
+        peer.close()
+        await runtime.analysis.close()

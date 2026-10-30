@@ -74,6 +74,7 @@ def investigation_view(result: AnalysisOutcome) -> dict:
         status=source.get("status", "NOT_REQUESTED"),
         llm_mode=result.llm_mode,
         external_provider_calls=result.external_provider_calls,
+        api_status=source.get("api_status"),
         assessment={"threat_assessment": assessment.get("threat_assessment", {})},
         plan={
             "goal": plan.get("goal"),

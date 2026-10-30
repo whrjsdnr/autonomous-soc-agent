@@ -6,6 +6,7 @@ planning, assessment, claims and recovery remain in the existing core runtime.
 
 import asyncio
 import json
+import threading
 import time
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
@@ -433,6 +434,129 @@ def checkpoint_view(tasks: InvestigationTasks, task: InvestigationTask) -> dict:
     )
 
 
+async def observed_task(tasks, task, provider, progress):
+    """Worker liveness is not LLM completion; keep both visible while awaiting I/O."""
+    operation = asyncio.create_task(advance_task(tasks, task, provider, progress))
+    started = time.monotonic()
+    try:
+        async with asyncio.timeout(120):
+            while not operation.done():
+                await asyncio.wait((operation,), timeout=1)
+                progress.update(
+                    heartbeat_unix=time.time(),
+                    heartbeat_scope="WORKER_SUPERVISOR_NOT_LLM_PROGRESS",
+                    task_elapsed_seconds=time.monotonic() - started,
+                )
+                if (status := getattr(provider, "api_status", None)) is not None:
+                    progress["api_status"] = status
+            return operation.result()
+    finally:
+        operation.cancel()
+        await asyncio.gather(operation, return_exceptions=True)
+
+
+async def isolated_consume(tasks, stop, progress, *, shutdown_seconds=10, client=None):
+    """Run existing core/SQLite work outside the Collector's asyncio loop.
+
+    No new scheduler or execution authority: consume still owns its exact same
+    claim, lock, checkpoints and bounded core steps. Unjoined I/O is UNVERIFIED.
+    """
+    owner = asyncio.get_running_loop()
+    completed = owner.create_future()
+    requested_stop, requested_cancel = threading.Event(), threading.Event()
+    control = {}
+    lock = threading.Lock()
+
+    def request(cancel=False):
+        requested_stop.set()
+        if cancel:
+            requested_cancel.set()
+        with lock:
+            if control:
+                loop = control["loop"]
+                try:
+                    loop.call_soon_threadsafe(control["stop"].set)
+                    if cancel:
+                        loop.call_soon_threadsafe(control["task"].cancel)
+                except RuntimeError:
+                    if not loop.is_closed():
+                        raise  # A closed owned loop is already completing, never restarted.
+
+    def deliver(error):
+        if not completed.done():
+            if error is None:
+                completed.set_result(None)
+            else:
+                completed.set_exception(error)
+
+    def worker():
+        async def run():
+            local_stop = asyncio.Event()
+            with lock:
+                control.update(
+                    loop=asyncio.get_running_loop(), stop=local_stop, task=asyncio.current_task()
+                )
+                if requested_stop.is_set():
+                    local_stop.set()
+                if requested_cancel.is_set():
+                    asyncio.current_task().cancel()
+            await consume(tasks, local_stop, progress, client=client)
+
+        error = None
+        try:
+            asyncio.run(run())
+        except BaseException as failure:
+            error = failure
+        finally:
+            with lock:
+                control.clear()
+            try:
+                owner.call_soon_threadsafe(deliver, error)
+            except RuntimeError:
+                if not owner.is_closed():
+                    raise
+                progress["late_worker_exit"] = "OWNER_CLOSED_REQUIRES_EVIDENCE_REVIEW"
+
+    thread = threading.Thread(target=worker, daemon=True, name="soc-investigation-worker")
+    progress["execution_scope"] = "DEDICATED_LOOP_NO_COLLECTOR_OR_ROOT_AUTHORITY"
+    thread.start()
+    cancel_deadline = None
+    try:
+        while not completed.done() and not stop.is_set():
+            await asyncio.wait((completed,), timeout=0.1)
+        if stop.is_set():
+            request()
+        await asyncio.shield(completed)
+    except asyncio.CancelledError:
+        cancel_deadline = time.monotonic() + min(2, shutdown_seconds)
+        request(cancel=True)
+        try:
+            await asyncio.wait_for(
+                asyncio.shield(completed), max(0, cancel_deadline - time.monotonic())
+            )
+        except asyncio.CancelledError:
+            pass  # Expected cancellation of the owned coroutine, not a cleanup grant.
+        except TimeoutError as error:
+            completed.add_done_callback(
+                lambda result: result.exception() if not result.cancelled() else None
+            )
+            progress["cleanup"] = "UNVERIFIED_THREAD_NOT_JOINED"
+            raise ValueError("CONTINUOUS_INVESTIGATION_JOIN_UNVERIFIED") from error
+        raise
+    finally:
+        join_seconds = (
+            shutdown_seconds
+            if cancel_deadline is None
+            else max(0, cancel_deadline - time.monotonic())
+        )
+        await asyncio.to_thread(thread.join, join_seconds)
+        if thread.is_alive():
+            progress["cleanup"] = "UNVERIFIED_THREAD_NOT_JOINED"
+            # Keep a waiter from being reported as a clean cancellation.
+            raise ValueError("CONTINUOUS_INVESTIGATION_JOIN_UNVERIFIED")
+        progress["cleanup"] = "VERIFIED_OWNED_WORKER_JOIN_ONLY"
+
+
 async def consume(tasks, stop: asyncio.Event, progress: dict, *, client=None):
     provider = client or ScriptedCoordinationClient()
     provider_mode = getattr(provider, "evidence_mode", "INJECTED_CLIENT" if client else "SCRIPTED")
@@ -452,9 +576,7 @@ async def consume(tasks, stop: asyncio.Event, progress: dict, *, client=None):
             try:
                 result = None
                 if tasks.latest(task):
-                    result = await asyncio.wait_for(
-                        advance_task(tasks, task, provider, progress), 120
-                    )
+                    result = await observed_task(tasks, task, provider, progress)
                 state = (
                     "SUPERSEDED"
                     if not tasks.latest(task)
@@ -466,13 +588,18 @@ async def consume(tasks, stop: asyncio.Event, progress: dict, *, client=None):
                         else "COMPLETED"
                     )
                 )
+                investigation = checkpoint_view(tasks, task) if result else None
+                api_status = getattr(provider, "api_status", None)
+                if investigation is not None and api_status is not None:
+                    investigation["api_status"] = api_status
+                    progress["api_status"] = api_status
                 details = dict(
                     task_id=str(task.task_id),
                     evidence_revision=task.revision,
                     state=state,
                     provider=provider_mode,
                     result=result.model_dump(mode="json") if result else None,
-                    investigation=checkpoint_view(tasks, task) if result else None,
+                    investigation=investigation,
                 )
                 tasks.service.event_once("CONTINUOUS_ORCHESTRATION_RESULT", details)
                 tasks.queue.finish(
@@ -512,4 +639,6 @@ async def consume(tasks, stop: asyncio.Event, progress: dict, *, client=None):
                     ),
                 )
                 progress.update(state="BLOCKED", error=type(error).__name__)
+                if (api_status := getattr(provider, "api_status", None)) is not None:
+                    progress["api_status"] = api_status
         progress.update(state="STOPPED", heartbeat_unix=time.time())

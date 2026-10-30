@@ -146,3 +146,83 @@ def test_adaptive_history_keeps_status_but_withholds_untrusted_text():
     body = json.loads(result.user_prompt)
     assert body["TOOL INVESTIGATION HISTORY (UNTRUSTED DATA)"][0]["status"] == "completed"
     assert body["AVAILABLE SECURITY AI"] == []
+
+
+@pytest.mark.asyncio
+async def test_assessment_timeout_keeps_plan_cost_uncertainty_checkpoint_and_gui(
+    tmp_path, monkeypatch
+):
+    import asyncio
+
+    from soc_agent.gui.backend import Backend, GUIConfig
+    from soc_agent.llm import LLMTimeoutError
+
+    tasks, task, item, api, records = setup_client(tmp_path)
+    original = OpenAICompatibleClient.generate_structured
+    seen = []
+
+    def post(self, body):
+        prompt = json.loads(json.loads(body)["messages"][1]["content"])
+        assert "AVAILABLE READ-ONLY TOOLS" in prompt
+        draft = dict(
+            decision="continue_with_tool",
+            reason="FAKE_HTTP inspect retained data",
+            tool=dict(
+                tool_name="read_local_source_report",
+                tool_input=dict(incident_id=str(task.incident_id)),
+                purpose="Check retained provenance",
+            ),
+        )
+        return json.dumps(
+            dict(
+                choices=[dict(finish_reason="stop", message=dict(content=json.dumps(draft)))],
+                usage=dict(prompt_tokens=400, completion_tokens=300),
+            )
+        ).encode()
+
+    async def generate(self, *, request, response_model):
+        seen.append(response_model.__name__)
+        if response_model.__name__ == "SecurityAnalysisDraft":
+            # Exercise actual outer API adapter and core checkpoint. No HTTP here.
+            self.last_usage = None
+            await asyncio.sleep(0.01)
+            raise LLMTimeoutError("FAKE_HTTP approved assessment deadline")
+        return await original(self, request=request, response_model=response_model)
+
+    monkeypatch.setattr(OpenAICompatibleClient, "_post", post)
+    monkeypatch.setattr(OpenAICompatibleClient, "generate_structured", generate)
+    client = RetainedAPIClient(api, task, [item])
+    await drained(tasks, client)
+    row = tasks.snapshot()["tasks"][0]
+    assert row["state"] == "FAILED"
+    assert row["investigation"]["plan"]["steps"][0]["status"] == "completed"
+    assert row["investigation"]["assessment"] is None
+    cost = row["investigation"]["api_status"]
+    assert cost["calls"] == 2 and cost["stopped"]
+    assert cost["billing_outcome"] == "UNKNOWN_REQUIRES_REVIEW"
+    assert cost["total_estimated_usd"] is None
+    assert cost["confirmed_response_estimate_usd"] == "0.001"
+    assert [r["operation"] for r in cost["requests"]] == ["PLAN", "ASSESSMENT"]
+    assert cost["requests"][1]["error_type"] == "LLMTimeoutError"
+    failure = records["api-failure-1.json"]
+    assert failure["latency_ms"] > 0 and failure["usage"] is None
+    assert failure["remote_outcome"] == "UNKNOWN_NO_AUTOMATIC_RESUME"
+    assert records["api-response-0.json"]["status"] == "SCHEMA_VALIDATED"
+    assert (
+        application(tasks, task, client).checkpoint(task.incident_id).artifacts.assessment is None
+    )
+    await drained(tasks, client)
+    assert len(seen) == 2  # Resume never duplicates plan/tool or uncertain API request.
+    tasks.service.update(
+        dict(state="STOPPED", source="JSONL_REPLAY", orchestration=tasks.snapshot())
+    )
+    backend = Backend(
+        GUIConfig(data_directory=tmp_path / "gui", continuous_directory=tasks.service.directory)
+    )
+    try:
+        view = (await backend.investigations())[0]
+        assert view["task_id"] == str(task.task_id)
+        assert view["investigation"]["api_status"] == cost
+        assert view["investigation"]["assessment"] is None
+    finally:
+        await backend.close()

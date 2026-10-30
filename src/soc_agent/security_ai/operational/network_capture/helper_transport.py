@@ -181,6 +181,7 @@ class HelperCapture:
         self.reader_failure_observed_unix: float | None = None
         self.last_heartbeat_unix: float | None = None
         self.terminal_observed_unix: float | None = None
+        self.terminal_observed_monotonic: float | None = None
         # At most 512 metadata records (4 MiB encoded upper bound), tied to the
         # already approved frame budget. This is not a second persistent queue.
         capacity = session.max_packets if queue_capacity is None else queue_capacity
@@ -232,8 +233,7 @@ class HelperCapture:
                 # silence; an empty socket still has the unchanged two-second bound.
                 readable, _, _ = select.select([self.channel], [], [], 0.05)
                 if not readable:
-                    if time.monotonic() - self.last_heartbeat > 2:
-                        raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
+                    self.check_reader_liveness()
                     continue
                 with self.reader_lock:
                     try:
@@ -291,6 +291,10 @@ class HelperCapture:
                 # Admission stays failed. Subclasses may collect a bounded STOP
                 # receipt, outside reader_lock, before the final disconnect.
                 self.shutdown_failed_reader()
+
+    def check_reader_liveness(self):
+        if time.monotonic() - self.last_heartbeat > 2:
+            raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
 
     def shutdown_failed_reader(self):
         try:
@@ -538,6 +542,7 @@ class HelperCapture:
             # Publish terminal readiness only after the evidence write succeeds.
             self.terminal = message
             self.terminal_observed_unix = time.time()
+            self.terminal_observed_monotonic = time.monotonic()
             self.alive = False
             if self.stop and self.reader_thread is None:
                 self.stop.set()

@@ -183,6 +183,8 @@ class DNSCapture(TotalCapture):
     def __init__(self, directory, session):
         super().__init__(directory, session)
         self.stop_requested_unix = None
+        self.stop_requested_monotonic = None
+        self.stop_deadline_monotonic = None
         self.stop_send_error = None
         self.failure_stop_error = None
         self.failure_stop_elapsed_seconds = None
@@ -228,11 +230,22 @@ class DNSCapture(TotalCapture):
                 # The reader can observe CLOSED before send() returns. Record
                 # intent first; a failed send remains an explicit failed attempt.
                 self.stop_requested_unix = time.time()
+                self.stop_requested_monotonic = time.monotonic()
+                self.stop_deadline_monotonic = self.stop_requested_monotonic + 5
                 try:
                     super().request_stop()
                 except CaptureUnavailable as error:
                     self.stop_send_error = str(error)
                     raise
+
+    def check_reader_liveness(self):
+        if self.stop_deadline_monotonic is None:
+            return super().check_reader_liveness()
+        # The Helper stops producing heartbeats while closing capture. During
+        # explicit STOP, require CLOSED by the existing five-second ACK bound;
+        # do not misclassify shutdown as a running-Collector heartbeat failure.
+        if time.monotonic() >= self.stop_deadline_monotonic:
+            raise CaptureUnavailable("CONTINUOUS_DNS_STOP_ACK_MISSING")
 
     def cleanup_ack_verified(self):
         """Only owned capture closure; a failed stream remains inadmissible."""
@@ -264,7 +277,7 @@ class DNSCapture(TotalCapture):
         began = time.monotonic()
         try:
             self.request_stop()
-            deadline = time.monotonic() + 5
+            deadline = self.stop_deadline_monotonic
             records = 0
             while records < 64 and time.monotonic() < deadline:
                 readable, _, _ = select.select([self.channel], [], [], 0.05)
@@ -300,6 +313,8 @@ class DNSCapture(TotalCapture):
                 if self.terminal is not None and self.reader_error
                 else "ENDED_AUTHENTICATED_CLOSED"
                 if self.terminal is not None
+                else "STOPPING_WAITING_AUTHENTICATED_CLOSED"
+                if self.stop_requested_unix is not None and self.reader_error is None
                 else "FAILED_ADMISSION_CLEANUP_PENDING"
                 if self.reader_error is not None
                 else "NOT_STARTED"
@@ -448,17 +463,18 @@ class DNSProducer:
 
     async def request_stop(self):
         self._owner_stop_requested = True
+        self.state = "STOPPING"
         if self.capture.ready is None:
             await self.close()
             return
         if self.capture.terminal is None:
             self.capture.request_stop()
-        deadline = time.monotonic() + 5
+        deadline = self.capture.stop_deadline_monotonic or time.monotonic() + 5
         while self.capture.terminal is None:
             if self.capture.reader_failed():
                 thread = self.capture.reader_thread
                 if self.capture.reader_error == "HELPER_HEARTBEAT_OR_PROCESS_STALE" and thread:
-                    await asyncio.to_thread(thread.join, max(0, deadline - time.monotonic()))
+                    await asyncio.to_thread(thread.join, max(0, deadline - time.monotonic()) + 0.1)
                 if self.capture.terminal is None:
                     raise ValueError("CONTINUOUS_DNS_STOP_ACK_MISSING")
                 return
@@ -479,11 +495,13 @@ class DNSProducer:
         async with self._close_lock:
             if self.capture.closed.is_set():
                 return
+            cleanup_started = time.monotonic()
+            deadline = self.capture.stop_deadline_monotonic or cleanup_started + 5
             thread = self.capture.reader_thread
             if thread is not None and self.capture.reader_error is not None:
                 # Do not destroy the transport while its bounded failure STOP is
                 # collecting the final receipt. Never hold the event loop here.
-                await asyncio.to_thread(thread.join, 5.1)
+                await asyncio.to_thread(thread.join, max(0, deadline - time.monotonic()) + 0.1)
             protocol_closed = (
                 self.capture.terminal is not None and self.capture.completion_verified()
             ) or self.capture.cleanup_ack_verified()
@@ -509,7 +527,6 @@ class DNSProducer:
             process = self.capture.process_observation()
             # CLOSED proves capture.close() returned in the pinned helper. Its
             # process exit is independently observed, without sending any signal.
-            deadline = time.monotonic() + 1
             while protocol_closed and process["state"] == "ALIVE" and time.monotonic() < deadline:
                 await asyncio.sleep(0.01)
                 process = self.capture.process_observation()
@@ -523,8 +540,18 @@ class DNSProducer:
                 and (self.capture.channel is None or self.capture.channel.fileno() == -1)
                 and (thread is None or not thread.is_alive())
             )
+            ack_order_verified = bool(
+                self.capture.stop_requested_monotonic is None
+                or (
+                    self.capture.terminal_observed_monotonic is not None
+                    and self.capture.stop_requested_monotonic
+                    <= self.capture.terminal_observed_monotonic
+                    <= deadline
+                )
+            )
             verified = bool(
                 local_closed
+                and (ack_order_verified or cancelled_before_admission)
                 and self.capture.stop_send_error is None
                 and ((protocol_closed and stopped) or cancelled_before_admission)
             )
@@ -542,6 +569,10 @@ class DNSProducer:
                 if self.capture.reader_error
                 else "UNCHANGED",
                 stop_requested_unix=self.capture.stop_requested_unix,
+                stop_requested_monotonic=self.capture.stop_requested_monotonic,
+                cleanup_deadline_monotonic=deadline,
+                cleanup_elapsed_seconds=time.monotonic() - cleanup_started,
+                ack_order_verified=ack_order_verified,
                 stop_send_error=self.capture.stop_send_error,
                 closed_observed_unix=self.capture.terminal_observed_unix,
                 authenticated_closed=bool(protocol_closed),
@@ -562,7 +593,7 @@ class DNSProducer:
                 helper_cleanup="NOT_OBSERVED_NO_AUTHENTICATED_HELPER"
                 if cancelled_before_admission
                 else "VERIFIED"
-                if protocol_closed and stopped
+                if protocol_closed and stopped and ack_order_verified
                 else "UNVERIFIED",
                 handshake_joined=self._handshake_task is None or self._handshake_task.done(),
                 quarantined_packets=self.capture.quarantined_packets,

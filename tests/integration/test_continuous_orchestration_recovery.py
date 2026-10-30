@@ -265,3 +265,148 @@ async def test_waiting_planner_does_not_block_collector_delivery(tmp_path, monke
         runtime.stop.set()
         await asyncio.wait_for(running, 15)
     assert retained.closed and store.state()["cleanup"] == "VERIFIED"
+
+
+@pytest.mark.asyncio
+async def test_investigation_heartbeat_during_llm_wait_is_not_completed_work(tmp_path):
+    import time
+
+    _, store = make(tmp_path)
+    tasks = InvestigationTasks(store)
+    original = tasks.submit(source())
+    entered = asyncio.Event()
+
+    class Waiting(Recorded):
+        async def generate_structured(self, **kwargs):
+            entered.set()
+            await asyncio.Event().wait()
+
+    progress = {}
+    running = asyncio.create_task(consume(tasks, asyncio.Event(), progress, client=Waiting()))
+    try:
+        await asyncio.wait_for(entered.wait(), 3)
+        observed = progress["heartbeat_unix"]
+        await asyncio.sleep(1.1)
+        assert progress["heartbeat_unix"] > observed
+        assert time.time() - progress["heartbeat_unix"] < 1
+        assert progress["heartbeat_scope"] == "WORKER_SUPERVISOR_NOT_LLM_PROGRESS"
+        assert progress["task_id"] == str(original.task_id)
+        assert tasks.queue.counts() == {"CLAIMED": 1}
+        assert not (tasks.snapshot()["tasks"][0].get("investigation") or {}).get("assessment")
+    finally:
+        running.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await running
+    replacement = Recorded()
+    await drained(tasks, replacement)
+    assert not replacement.calls
+
+
+@pytest.mark.asyncio
+async def test_synchronous_checkpoint_recovery_does_not_starve_collector_loop(
+    tmp_path, monkeypatch
+):
+    import threading
+
+    from soc_agent.continuous.investigation import isolated_consume
+
+    _, store = make(tmp_path)
+    tasks = InvestigationTasks(store)
+    entered, release = threading.Event(), threading.Event()
+    original = tasks.recover
+
+    def slow_recovery():
+        entered.set()
+        assert release.wait(3)
+        original()
+
+    monkeypatch.setattr(tasks, "recover", slow_recovery)
+    stop, progress = asyncio.Event(), {}
+    running = asyncio.create_task(isolated_consume(tasks, stop, progress))
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        ticks = 0
+        for _ in range(10):
+            await asyncio.sleep(0.02)
+            ticks += 1
+        assert ticks == 10 and not running.done()
+        assert progress["execution_scope"] == "DEDICATED_LOOP_NO_COLLECTOR_OR_ROOT_AUTHORITY"
+        release.set()
+        stop.set()
+        await asyncio.wait_for(running, 3)
+        assert progress["cleanup"] == "VERIFIED_OWNED_WORKER_JOIN_ONLY"
+        assert tasks.queue.counts() == {}
+    finally:
+        release.set()
+        stop.set()
+        await asyncio.gather(running, return_exceptions=True)
+
+
+@pytest.mark.asyncio
+async def test_isolated_worker_cancel_joins_and_keeps_uncertain_claim_for_review(tmp_path):
+    import threading
+
+    from soc_agent.continuous.investigation import isolated_consume
+
+    _, store = make(tmp_path)
+    tasks = InvestigationTasks(store)
+    tasks.submit(source())
+    entered = threading.Event()
+
+    class Waiting(Recorded):
+        async def generate_structured(self, **kwargs):
+            entered.set()
+            await asyncio.Event().wait()
+
+    progress = {}
+    running = asyncio.create_task(
+        isolated_consume(tasks, asyncio.Event(), progress, client=Waiting())
+    )
+    assert await asyncio.to_thread(entered.wait, 3)
+    running.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await asyncio.wait_for(running, 3)
+    assert progress["cleanup"] == "VERIFIED_OWNED_WORKER_JOIN_ONLY"
+    assert tasks.queue.counts() == {"CLAIMED": 1}
+    replacement = Recorded()
+    await drained(tasks, replacement)
+    assert not replacement.calls
+    assert tasks.snapshot()["tasks"][0]["state"] == "BLOCKED"
+
+
+@pytest.mark.asyncio
+async def test_unjoined_synchronous_worker_is_unverified_without_claim_replay(
+    tmp_path, monkeypatch
+):
+    import threading
+
+    from soc_agent.continuous.investigation import isolated_consume
+
+    _, store = make(tmp_path)
+    tasks = InvestigationTasks(store)
+    entered, release = threading.Event(), threading.Event()
+
+    def held_recovery():
+        entered.set()
+        assert release.wait(3)
+
+    monkeypatch.setattr(tasks, "recover", held_recovery)
+    progress = {}
+    running = asyncio.create_task(
+        isolated_consume(tasks, asyncio.Event(), progress, shutdown_seconds=0.1)
+    )
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        running.cancel()
+        with pytest.raises(ValueError, match="INVESTIGATION_JOIN_UNVERIFIED"):
+            await asyncio.wait_for(running, 1)
+        assert progress["cleanup"] == "UNVERIFIED_THREAD_NOT_JOINED"
+        assert tasks.queue.counts() == {}
+    finally:
+        release.set()
+        # Allow the owned ordinary thread to exit; never revise its earlier receipt.
+        for _ in range(100):
+            if not any(t.name == "soc-investigation-worker" for t in threading.enumerate()):
+                break
+            await asyncio.sleep(0.01)
+    assert progress["cleanup"] == "UNVERIFIED_THREAD_NOT_JOINED"

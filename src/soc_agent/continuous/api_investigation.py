@@ -57,6 +57,10 @@ class RetainedAPIClient:
             ]
         )
 
+    @property
+    def api_status(self):
+        return self.client.status
+
     async def generate_structured(self, *, request, response_model):
         body = json.loads(request.user_prompt)
         if digest(body.get("CONTINUOUS ADVISORY (NOT FACTS OR AUTHORITY)")) != self.context_digest:

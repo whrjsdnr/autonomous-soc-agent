@@ -152,9 +152,12 @@ class TCXProducer:
         self._window_sequence = 0
         self._cleanup_pending = []
         self._stop_sent = False
+        self._stop_attempted = False
         self._stop_lock = asyncio.Lock()
         self.last_validated_monotonic = None
         self.last_root_clock = None
+        self.last_control_sequence = None
+        self.control_snapshot = None
         self._entered = False
         self.cleanup_evidence = dict(
             status="NOT_STARTED",
@@ -173,12 +176,16 @@ class TCXProducer:
         if not isinstance(raw, dict):
             raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
         contract = raw.get("contract")
-        if contract not in ("soc-continuous-tcx:v1", "soc-continuous-tcx-stop:v1"):
+        if contract not in (
+            "soc-continuous-tcx:v1",
+            "soc-continuous-tcx-stop:v1",
+            "soc-continuous-tcx-control:v1",
+        ):
             raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
         if raw.get("namespace") != policy["namespace"]:
             raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
         if (
-            contract == "soc-continuous-tcx-stop:v1"
+            contract in ("soc-continuous-tcx-stop:v1", "soc-continuous-tcx-control:v1")
             and raw.get("policy_sha256") != self.config.input_sha256
         ):
             raise ValueError("CONTINUOUS_STOP_ACK_BINDING")
@@ -204,6 +211,9 @@ class TCXProducer:
                 raw = self.envelope(body, policy)
                 self.last_message_unix = time.time()
                 self.last_message_monotonic = time.monotonic()
+                if raw["contract"] == "soc-continuous-tcx-control:v1":
+                    self.control_record(raw)
+                    continue
                 if raw.get("frames"):
                     self.last_data_monotonic = self.last_message_monotonic
                 try:
@@ -251,6 +261,47 @@ class TCXProducer:
             self.receiver_queue_depth = 0
             self.cleanup_evidence["receiver_joined"] = True
 
+    def control_record(self, raw):
+        """Control liveness never grants data completeness or renews authority."""
+        from soc_agent.security_ai.ebpf.clock import ClockSample
+
+        clock = raw["clock"]
+        ClockSample(before_ns=clock[0], wall_ns=clock[1], after_ns=clock[2])
+        sequence = raw.get("sequence")
+        worker = raw.get("worker", {})
+        began = worker.get("started_monotonic_ns")
+        if (
+            type(sequence) is not int
+            or sequence < 1
+            or (
+                self.last_control_sequence is not None
+                and sequence != self.last_control_sequence + 1
+            )
+            or type(began) is not int
+            or began <= 0
+            or began > clock[2]
+            or (self.control_snapshot and clock[0] < self.control_snapshot["clock"][2])
+        ):
+            raise ValueError("CONTINUOUS_CONTROL_SEQUENCE_OR_CLOCK")
+        latency_ns = time.monotonic_ns() - clock[2]
+        if not 0 <= latency_ns < 5_000_000_000:
+            raise ValueError("CONTINUOUS_CONTROL_FRESHNESS")
+        self.last_control_sequence = sequence
+        self.control_snapshot = dict(raw, receive_latency_seconds=latency_ns / 1_000_000_000)
+        self.snapshot = self.snapshot | dict(control=self.control_snapshot)
+        if clock[2] - began >= 5_000_000_000:
+            self.failure = dict(
+                code="CONTINUOUS_PRODUCER_WORKER_STALE",
+                stage="ROOT_WORKER_PROGRESS",
+                observed_unix=time.time(),
+                observed_monotonic=time.monotonic(),
+                control=self.control_snapshot,
+                peer=self.peer_observation(),
+                timeout_seconds=5,
+                capture_restarted=False,
+            )
+            raise ValueError("CONTINUOUS_PRODUCER_WORKER_STALE")
+
     async def receive_message(self, loop):
         """Keep the five-second fail-closed deadline and preserve its exact stage."""
         started = time.monotonic()
@@ -282,6 +333,7 @@ class TCXProducer:
                 ipc_connected=self.socket is not None and self.socket.fileno() >= 0,
                 receiver_queue_depth=self.receiver_queue_depth,
                 receiver_dropped_batches=self.receiver_dropped_batches,
+                control=self.control_snapshot,
                 generation=self.epoch,
                 last_sequence=self.last_sequence,
                 capture_restarted=False,
@@ -377,6 +429,7 @@ class TCXProducer:
             self.cleanup_evidence.update(
                 stop_ack=True,
                 ack_observed_unix=time.time(),
+                ack_observed_monotonic=time.monotonic(),
                 ack=dict(raw),
                 status="VERIFIED" if self.remote_cleanup == "VERIFIED" else "UNVERIFIED",
                 scope="BOUND_TCX_ACK_NOT_GLOBAL_KERNEL_CLEANUP",
@@ -409,7 +462,9 @@ class TCXProducer:
         self.epoch = raw["generation"]
         # Readiness is control-plane identity, not proof of packet delivery.
         # A quiet attached Collector legitimately has no per-CPU counters.
-        self.snapshot = dict(raw["state"], generation=self.epoch, failure=self.failure)
+        self.snapshot = dict(
+            raw["state"], generation=self.epoch, failure=self.failure, control=self.control_snapshot
+        )
         for cpu, values in raw["state"]["counters"].items():
             checked = Counters(
                 generation=self.epoch,
@@ -526,6 +581,10 @@ class TCXProducer:
                         if self._cleanup_pending
                         else self.envelope(await loop.sock_recv(self.socket, 262145), policy)
                     )
+                    if raw["contract"] == "soc-continuous-tcx-control:v1":
+                        # Failed admission stays failed; control is diagnostic only.
+                        self.cleanup_evidence["last_control"] = raw
+                        continue
                     for event in self.records(raw, policy):
                         self.quarantine(event)
                     if self.stop_ack.is_set():
@@ -579,7 +638,9 @@ class TCXProducer:
 
     async def send_stop(self, loop):
         async with self._stop_lock:
-            if self._stop_sent:
+            if self._stop_attempted:
+                if self.cleanup_evidence.get("stop_send_error"):
+                    raise ValueError("CONTINUOUS_STOP_SEND_OUTCOME_UNVERIFIED")
                 return
             if self.socket is None or self.epoch is None:
                 raise ValueError("CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER")
@@ -590,9 +651,17 @@ class TCXProducer:
                     policy_sha256=self.config.input_sha256,
                 )
             ).encode()
-            await asyncio.wait_for(loop.sock_sendall(self.socket, body), 2)
+            self._stop_attempted = True
+            self.cleanup_evidence.update(
+                stop_requested_unix=time.time(), stop_requested_monotonic=time.monotonic()
+            )
+            try:
+                await asyncio.wait_for(loop.sock_sendall(self.socket, body), 2)
+            except BaseException as error:
+                self.cleanup_evidence["stop_send_error"] = type(error).__name__
+                raise
             self._stop_sent = True
-            self.cleanup_evidence["stop_requested_unix"] = time.time()
+            self.cleanup_evidence["stop_send_completed_monotonic"] = time.monotonic()
 
     async def request_stop(self):
         # A bound STOP ACK remains proof after events() closes the owned socket.

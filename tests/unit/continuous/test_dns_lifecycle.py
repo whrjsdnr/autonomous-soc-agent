@@ -192,6 +192,7 @@ while time.monotonic()-began<(15 if mode=="ignore_stop" else 7):
    if mode=="ignore_stop": continue
    if mode=="no_ack": os._exit(7)
    if mode=="delayed_ack": time.sleep(.2)
+   if mode=="slow_capture_close": time.sleep(2.2)
    if mode=="quarantine":
     from types import SimpleNamespace
     from tests.total_monitoring_support import dns_packet
@@ -202,6 +203,8 @@ while time.monotonic()-began<(15 if mode=="ignore_stop" else 7):
     sent=1;send("PACKET",sequence=1,packet=p)
    if mode!="bad_ack": seq+=1
    send("CLOSED",capabilities=caps,elapsed_seconds=time.monotonic()-began)
+   if mode in ("slow_process_exit", "process_exit_missing"):
+    time.sleep(1.3 if mode=="slow_process_exit" else 7)
    c.close();sys.exit(0)
  if mode=="normal":
   seq+=1;send("HEARTBEAT")
@@ -504,4 +507,48 @@ async def test_cancelled_cleanup_joins_owned_audit_writer_without_success_claim(
         assert source.cleanup_error == "CANCELLED_DURING_CLEANUP_COMMIT"
     finally:
         release.set()
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mode", ["slow_capture_close", "slow_process_exit"])
+async def test_stop_budget_covers_closed_and_exit_without_false_heartbeat_failure(
+    tmp_path, monkeypatch, mode
+):
+    directory, source, child, task = await started(tmp_path, monkeypatch, mode)
+    began = time.monotonic()
+    try:
+        await source.request_stop()
+        assert await asyncio.wait_for(task, 5.5) == []
+        assert child.wait(timeout=1) == 0
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["ack_order_verified"]
+        assert proof["cleanup"] == source.cleanup == "VERIFIED"
+        assert source.last_error is source.capture.reader_error is None
+        assert proof["stop_requested_monotonic"] <= proof["cleanup_deadline_monotonic"]
+        assert proof["cleanup_deadline_monotonic"] - proof["stop_requested_monotonic"] == 5
+        assert time.monotonic() - began < 5
+        assert proof["helper_process"]["state"] in {"EXITED", "EXITED_ZOMBIE"}
+    finally:
+        await reap(source, child, task)
+
+
+@pytest.mark.asyncio
+async def test_closed_without_process_exit_remains_unverified_at_shared_deadline(
+    tmp_path, monkeypatch
+):
+    directory, source, child, task = await started(tmp_path, monkeypatch, "process_exit_missing")
+    began = time.monotonic()
+    try:
+        await source.request_stop()
+        assert await asyncio.wait_for(task, 5.5) == []
+        proof = json.loads((directory / "cleanup.json").read_text())
+        assert proof["authenticated_closed"] and proof["ack_order_verified"]
+        assert proof["helper_process"]["state"] == "ALIVE"
+        assert proof["cleanup"] == "UNVERIFIED"
+        assert 4.5 <= time.monotonic() - began < 5.5
+        before = (directory / "cleanup.json").read_bytes()
+        await source.close()
+        assert (directory / "cleanup.json").read_bytes() == before
+    finally:
         await reap(source, child, task)

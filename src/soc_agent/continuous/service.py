@@ -155,10 +155,13 @@ class ContinuousRuntime:
         self.storage_lock = asyncio.Lock()
         self.storage_health = dict(pending=False, last_seconds=None, max_seconds=0.0)
 
-    def snapshot(self):
+    def snapshot(self, *, queue_counts=None, authentication=None):
         analysis = self.analysis.snapshot()
-        authentication = {"state": "NOT_ATTACHED", "events": None}
-        if self.config.authentication_runtime:
+        supplied_authentication = authentication is not None
+        authentication = (
+            authentication if supplied_authentication else {"state": "NOT_ATTACHED", "events": None}
+        )
+        if self.config.authentication_runtime and not supplied_authentication:
             from soc_agent.linux_runtime.operator import status
 
             authentication = status(self.config.authentication_runtime)
@@ -242,7 +245,7 @@ class ContinuousRuntime:
             uptime_seconds=time.monotonic() - self.started,
             clock_epoch=str(self.epoch),
             metrics=dict(self.metrics),
-            queue=self.store.queue.counts(),
+            queue=self.store.queue.counts() if queue_counts is None else queue_counts,
             circuit_open=self.circuit,
             # DNS cleanup may still be draining after the first source failure.
             # Observers must see that failure before a later Collector STOP.
@@ -300,8 +303,19 @@ class ContinuousRuntime:
                     max_seconds=max(elapsed, self.storage_health["max_seconds"]),
                 )
 
+    async def observed_snapshot(self):
+        # Evaluate SQLite/host status inside the storage boundary, not as Python
+        # arguments before to_thread(). Slow status I/O must not stop IPC reads.
+        counts = await self.storage(self.store.queue.counts)
+        authentication = {"state": "NOT_ATTACHED", "events": None}
+        if self.config.authentication_runtime:
+            from soc_agent.linux_runtime.operator import status
+
+            authentication = await self.storage(status, self.config.authentication_runtime)
+        return self.snapshot(queue_counts=counts, authentication=authentication)
+
     async def publish(self):
-        await self.storage(self.store.update, self.snapshot())
+        await self.storage(self.store.update, await self.observed_snapshot())
 
     async def handoff(self, job):
         self.metrics["flows"] += int(job.kind == "packet_window")
@@ -909,12 +923,17 @@ class ContinuousRuntime:
             collector = consumer = journal = dns_task = investigation_worker = None
             primary = None
             try:
-                from soc_agent.continuous.investigation import consume as investigate
+                from soc_agent.continuous.investigation import isolated_consume as investigate
                 from soc_agent.continuous.investigation_store import InvestigationTasks
 
                 self.investigations = await self.storage(InvestigationTasks, self.store)
                 investigation_worker = asyncio.create_task(
-                    investigate(self.investigations, self.stop, self.investigation_progress)
+                    investigate(
+                        self.investigations,
+                        self.stop,
+                        self.investigation_progress,
+                        shutdown_seconds=self.config.shutdown_seconds,
+                    )
                 )
                 if self.config.dns_session and self.dns_source is None:
                     from soc_agent.continuous.dns_source import DNSProducer
@@ -958,7 +977,8 @@ class ContinuousRuntime:
                     if current["stop_requested"]:
                         self.stop_reason = "OPERATOR_REQUEST"
                         await self.storage(
-                            self.store.update, self.snapshot() | dict(state="STOPPING")
+                            self.store.update,
+                            (await self.observed_snapshot()) | dict(state="STOPPING"),
                         )
                         if self.config.source == "NATIVE_SERVICE":
                             await self.source.request_stop()
@@ -1082,7 +1102,15 @@ class ContinuousRuntime:
                         )
                     except TimeoutError:
                         investigation_worker.cancel()
-                        await asyncio.gather(investigation_worker, return_exceptions=True)
+                        outcomes = await asyncio.gather(
+                            investigation_worker, return_exceptions=True
+                        )
+                        failures.extend(
+                            error
+                            for error in outcomes
+                            if isinstance(error, BaseException)
+                            and not isinstance(error, asyncio.CancelledError)
+                        )
                         self.investigation_progress.update(
                             state="CANCELLED_CHECKPOINT_REVIEW_REQUIRED"
                         )
@@ -1143,7 +1171,7 @@ class ContinuousRuntime:
                         ),
                     )
                     self.store.update(
-                        self.snapshot()
+                        (await self.observed_snapshot())
                         | dict(
                             state="STOPPED" if cleanup == "VERIFIED" else "DEGRADED",
                             collector="STOPPED",

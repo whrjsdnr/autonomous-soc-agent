@@ -99,6 +99,26 @@ def render(app, value):
     helper_process = dns_transport.get("helper_process", {}).get("state", "NOT_RECORDED")
     heartbeat_status = dns_transport.get("heartbeat_status", "NOT_RECORDED")
     tcx_cleanup = value.get("producer", {}).get("cleanup_evidence", {})
+    producer_control = value.get("producer", {}).get("control") or {}
+    api = value.get("orchestration", {}).get("worker", {}).get("api_status")
+    if api is None:
+        api = next(
+            (
+                (task.get("investigation") or {}).get("api_status")
+                for task in reversed(value.get("orchestration", {}).get("tasks", []))
+                if (task.get("investigation") or {}).get("api_status") is not None
+            ),
+            None,
+        )
+    api_text = "NO_API_RECEIPT_IN_THIS_RUNTIME"
+    if api is not None:
+        total = api.get("total_estimated_usd")
+        api_text = (
+            f"adapter requests={api.get('calls')} · total estimate="
+            f"{total if total is not None else 'UNKNOWN'} · "
+            f"reserved USD={api.get('reserved_usd')} · "
+            f"billing={api.get('billing_outcome')} · requests={api.get('requests', [])}"
+        )
     app.continuous_summary.configure(
         text=(
             f"{value.get('state', 'NOT_ATTACHED')} · {value.get('source', 'NO_SOURCE')}\n"
@@ -135,6 +155,9 @@ def render(app, value):
             f"Investigation: {availability(value, [])['investigation']}"
             f"\nInvestigation worker: {value.get('orchestration', {}).get('worker', {})}"
             f"\nSource roles: {value.get('orchestration', {}).get('agents', {})}"
+            f"\nProducer control: {producer_control.get('worker', 'NOT_RECORDED')} · "
+            f"receive latency seconds: {producer_control.get('receive_latency_seconds', 'UNKNOWN')}"
+            f"\nAPI: {api_text}"
         )
     )
     selected = app.continuous_incidents.selection()

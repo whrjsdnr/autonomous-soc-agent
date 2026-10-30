@@ -322,3 +322,86 @@ async def test_expired_authorization_blocks_request_before_transport(tmp_path, m
             response_model=APIInvestigationDraft,
         )
     assert c.calls == 0 and calls == []
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("cancel", [False, True])
+async def test_local_timeout_or_cancel_never_reissues_uncertain_http_request(
+    tmp_path, monkeypatch, cancel
+):
+    import asyncio
+    import threading
+
+    from soc_agent.llm import LLMTimeoutError
+
+    entered, release = threading.Event(), threading.Event()
+    posts = []
+
+    def blocked(self, body):
+        posts.append(body)
+        entered.set()
+        assert release.wait(3)
+        return b"{}"  # Late reply must never retroactively settle the cancelled request.
+
+    monkeypatch.setattr(OpenAICompatibleClient, "_post", blocked)
+    a = authorization(tmp_path, b"input").model_copy(update={"timeout_seconds": 0.1})
+    configured = settings(a).model_copy(update={"timeout_seconds": 0.1})
+    records = {}
+    api = APIInvestigationClient(a, configured, records.__setitem__, lambda *_: None)
+    req = LLMRequest(system_prompt="trusted", user_prompt="{}")
+    running = asyncio.create_task(
+        api.generate_structured(request=req, response_model=APIInvestigationDraft)
+    )
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        if cancel:
+            running.cancel()
+        with pytest.raises(asyncio.CancelledError if cancel else LLMTimeoutError):
+            await running
+        proof = records["api-failure-0.json"]
+        assert proof["transport_worker_alive"]
+        assert proof["usage"] is None and proof["latency_ms"] > 0
+        assert proof["billing_outcome"] == "UNKNOWN_REQUIRES_REVIEW"
+        assert api.status["total_estimated_usd"] is None
+        with pytest.raises(LLMError, match="LIMIT_OR_STOPPED"):
+            await api.generate_structured(request=req, response_model=APIInvestigationDraft)
+        release.set()
+        await asyncio.to_thread(api.provider._transport.join, 1)
+        assert not api.provider._transport.is_alive()
+        assert api.provider.last_usage is None
+        assert api.status["total_estimated_usd"] is None
+        with pytest.raises(LLMError, match="LIMIT_OR_STOPPED"):
+            await api.generate_structured(request=req, response_model=APIInvestigationDraft)
+        assert api.calls == len(posts) == 1
+    finally:
+        release.set()
+        await asyncio.to_thread(api.provider._transport.join, 1)
+
+
+@pytest.mark.asyncio
+async def test_failure_evidence_disk_error_does_not_replace_primary_api_timeout(
+    tmp_path, monkeypatch
+):
+    from soc_agent.llm import LLMTimeoutError
+
+    a = authorization(tmp_path, b"input")
+
+    async def failed(*_args, **_kwargs):
+        raise LLMTimeoutError("FAKE_PROVIDER_TIMEOUT")
+
+    monkeypatch.setattr(OpenAICompatibleClient, "generate_structured", failed)
+
+    def write(name, value):
+        if name.startswith("api-failure-"):
+            raise OSError(28, "fixture disk full")
+
+    api = APIInvestigationClient(a, settings(a), write, lambda *_: None)
+    with pytest.raises(LLMTimeoutError) as caught:
+        await api.generate_structured(
+            request=LLMRequest(system_prompt="trusted", user_prompt="{}"),
+            response_model=APIInvestigationDraft,
+        )
+    assert isinstance(caught.value.__cause__, OSError) and caught.value.__cause__.errno == 28
+    assert api.status["failure_evidence"] == "UNVERIFIED"
+    assert api.status["total_estimated_usd"] is None
+    assert api.calls == 1 and api.stopped

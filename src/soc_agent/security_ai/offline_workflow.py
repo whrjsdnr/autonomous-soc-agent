@@ -645,6 +645,7 @@ class OfflineWorkflow:
                 )
                 if api:
                     investigation["generated_draft"] = planner.last_draft.model_dump(mode="json")
+                    investigation["api_status"] = api.status
                     investigation["api_receipt_digests"] = [digest(r) for r in api.receipts]
                     investigation["evaluation_kind"] = "API_ADVISORY_NOT_INDEPENDENT_GROUND_TRUTH"
                 self.event("OFFLINE_INVESTIGATION_COMPLETED", investigation)
@@ -661,6 +662,8 @@ class OfflineWorkflow:
                     error_type=type(exc).__name__,
                     prompt_digests=client.requests,
                 )
+                if api:
+                    investigation["api_status"] = api.status
                 self.event("OFFLINE_INVESTIGATION_FAILED", investigation)
         retained()
         outcome = AnalysisOutcome(
