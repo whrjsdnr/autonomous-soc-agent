@@ -225,10 +225,17 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, default=str))
         return 0
     except (ValueError, OSError, RuntimeError) as error:
+        # A foreground run may fail after real capture and cleanup. Its exit
+        # alone cannot establish that nothing executed; retained service/Audit
+        # evidence remains authoritative, including when admission itself failed.
+        run_failed = args.command == "run"
         print(
             json.dumps(
                 dict(
-                    status="BLOCKED", error=type(error).__name__ + ":" + str(error), executed=False
+                    status="FAILED_OR_BLOCKED" if run_failed else "BLOCKED",
+                    error=type(error).__name__ + ":" + str(error),
+                    executed=None if run_failed else False,
+                    **({"execution_evidence_directory": str(directory)} if run_failed else {}),
                 )
             )
         )

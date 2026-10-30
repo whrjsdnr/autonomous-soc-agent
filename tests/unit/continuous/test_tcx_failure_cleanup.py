@@ -461,6 +461,9 @@ raise SystemExit(cli.main(['run', sys.argv[1]]))
         result = json.loads(stdout)
         assert child.returncode == 2 and stderr == b""
         assert result["error"] == "ValueError:CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT"
+        assert result["status"] == "FAILED_OR_BLOCKED"
+        assert result["executed"] is None  # Failure must not deny the observed capture.
+        assert result["execution_evidence_directory"] == str(directory)
         state = store.state()
         assert state["collector_cleanup"] == state["cleanup"] == "VERIFIED"
         assert state["capture_window"]["assessment"]["status"] != "VERIFIED"
