@@ -310,12 +310,17 @@ class Provider:
 
     def renew(self):
         before = time.monotonic_ns()
-        if self.lease_until_ns is not None and before > self.lease_until_ns:
-            self.coverage_gap = True
         if self.lib.continuous_renew(self.handle, self.generation, before, self.index):
             raise ValueError("CONTINUOUS_TCX_ENABLE_FAILED")
+        after = time.monotonic_ns()
+        # The config syscall may be descheduled across the old lease expiry.
+        # Its completion bounds the update; its start alone cannot prove coverage.
+        if (self.lease_until_ns is not None and after > self.lease_until_ns) or (
+            after >= before + 5_000_000_000
+        ):
+            self.coverage_gap = True
         if self.capture_started_ns is None:
-            self.capture_started_ns = time.monotonic_ns()
+            self.capture_started_ns = after
         self.lease_until_ns = before + 5_000_000_000
 
     def poll(self):

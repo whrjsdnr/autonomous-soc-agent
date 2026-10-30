@@ -45,7 +45,7 @@ def test_invalid_duration_rejected(interval):
         reseal(seal.model_dump(mode="json") | dict(capture_interval_ns=interval)).check()
 
 
-@pytest.mark.parametrize("gap", [False, True])
+@pytest.mark.parametrize("gap", [False, True, "during_update", "initial_update"])
 def test_provider_excludes_enable_setup_and_expired_lease(monkeypatch, gap):
     provider = service.Provider.__new__(service.Provider)
     provider.capture_started_ns = provider.lease_until_ns = None
@@ -54,7 +54,10 @@ def test_provider_excludes_enable_setup_and_expired_lease(monkeypatch, gap):
     provider.handle = provider.generation = provider.index = 1
     provider.lib = SimpleNamespace(continuous_renew=lambda *args: 0)
     before = 1_000_000_000
-    stamps = iter([before, before + 5, before + (6 if gap else 1) * 10**9, before + 12 * 10**9])
+    first_done = before + (5 * 10**9 if gap == "initial_update" else 5)
+    second_start = before + (6 if gap is True or gap == "initial_update" else 1) * 10**9
+    second_done = before + 6 * 10**9 if gap == "during_update" else second_start + 5
+    stamps = iter([before, first_done, second_start, second_done, before + 12 * 10**9])
     monkeypatch.setattr(service.time, "monotonic_ns", lambda: next(stamps))
     provider.renew()
     provider.renew()
