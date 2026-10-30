@@ -1,5 +1,25 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: Timeout 수정본 600초 서비스 제한 재시험 준비
+
+운영 Source68209cf와 보고/회귀 HEAD2674a90을 새 독립 Source/Artifact/Runtime·DNS Session으로 동결했다.
+새 검토 패키지는 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/tcx-short-native-review-20261030T055230Z/review/approval-package-final.md`다.
+비권한 CLI setup·doctor·start --preview·status 통과, 고정 coordinator11 PASS,
+Timeout/STOP/ACK/저장지연 회귀 Workspace·이번 HEAD 독립 Export 각각16 PASS다.
+기존 전체 고유1172건/환경 및 Native6개·Wheel 재현 결과를 재사용했다. 새 기능·승인 시스템 변경 없음.
+
+Target net:[4026532232]/lo/Ingress, 서비스600초/Owner STOP500초/Drain570초,
+TCP 최대4연결·DNS UDP2/TCP1의 새 Scope 후보이다. **서비스600초 제한과 전체 정리의 절대600초 보장은 다르다.**
+기존 coordinator에는 전체 강제 종료 timer가 없으므로 엄격한 전체600초 Scope로 실행하지 않는다.
+Root 고정7경로 중4개 설정 내용 변경, Root executable bytes는 동일하며 아직 설치하지 않았다.
+새 Root·Native·DNS·R1 결정은 PENDING, 모델 Action은 실제 봉인 후 별도 승인이다.
+상위 만료17:36:32 KST 및 기존65분 입장 여유 유지. Scope yes·sudo·Target 내부 check는 수행하지 않았다.
+
+Ledger81행·기존88개 SHA·설치/Rollback·과거 FAILED/UNKNOWN/Cleanup UNVERIFIED 보존.
+이번 작업 Root/Native/DNS/모델/API/예약/승인 발급·소비/기존 Ledger 변경0이다.
+[새 Binding·정확한 시간/자원/트래픽·필수 종료 증거·CLI 명령](tcx-short-native-retest-readiness.md)을 정리했다.
+짧은 시험의 실제 Runtime Window·TCX ACK·Helper/Root/Runtime Cleanup을 확인한 뒤1시간 시험을 준비한다.
+
 ## 2026-10-30 최신: TCX Timeout·종료 증거 비권한 복구
 
 운영 코드 `68209cf`에서 확인된 결함4개를 수정했다. Native ingress retain/applied의
