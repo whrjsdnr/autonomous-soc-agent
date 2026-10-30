@@ -22,8 +22,9 @@ def test_prepare_observes_changes_after_compile_before_image_hashing(
         roots.append(root)
         return SourceGuard(source)
 
-    def after_compile(_, *, deployment_directory=None):
+    def after_compile(_, *, deployment_directory=None, recovery=None, namespace_build=None):
         assert deployment_directory is None
+        assert recovery is None and namespace_build is None
         # Simulate a change during packaging, outside the nested compile guard.
         if mutation != "none":
             file.write_text("changed")
@@ -49,8 +50,9 @@ def test_prepare_preserves_first_build_error_and_closes_source_observer(tmp_path
         guards.append(item)
         return item
 
-    def failed(_, *, deployment_directory=None):
+    def failed(_, *, deployment_directory=None, recovery=None, namespace_build=None):
         assert deployment_directory is None
+        assert recovery is None and namespace_build is None
         (tmp_path / "mutated.py").write_text("concurrent write")
         raise RuntimeError("FIRST_BUILD_ERROR")
 

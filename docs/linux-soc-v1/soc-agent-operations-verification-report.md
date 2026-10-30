@@ -1,5 +1,30 @@
 # SOC Agent Operations Verification
 
+## 2026-10-30 최신: TCX Timeout·종료 증거 비권한 복구
+
+운영 코드 `68209cf`에서 확인된 결함4개를 수정했다. Native ingress retain/applied의
+동기 저장 경로를 기존 비동기 래퍼로 연결하고, Timeout 후 동일 인증 채널의 bounded STOP·
+ACK·진단 Seal 수집을 보존했다. Native 자동 재연결·Producer 재사용과 실패 후 배치 tail 입장을
+차단했다. 기존5초 생존 제한·Scope/SHA/sequence/epoch/counter/모델 Action 검증은 유지한다.
+
+과거 Root heartbeat5.253946초 공백의 정확한 syscall·스케줄링·I/O 원인은 **UNKNOWN**이다.
+당시 TCX ACK 미수신·Runtime Cleanup UNVERIFIED·Native24/DNS3 결과는 수정하지 않았다.
+이번 비권한 성공을 실제 Native 재시험 성공으로 보고하지 않는다.
+
+실제 Unix IPC·운영 Runtime·CLI 자식의 실패/STOP 회귀와 실제 Tk 재연결을 검증했다.
+최초 Timeout·자식 Exit2는 보존되며, 늦은 Seal은 진단 증거로만 저장되고 모델 입력이 되지 않는다.
+최종 Workspace·Export 회귀 및 재현 빌드 결과는
+[TCX Producer 안정화 보고서](tcx-producer-timeout-cleanup-report.md)에 기록한다.
+Native6개·Wheel 이중 build SHA 일치, Root 바이너리 내용은 기존과 같고 새 Wheel은 미설치 GUARDED다.
+Workspace/Export는 각각 전체1158 PASS 뒤 기존 Fixture14건을 수정하여 `--lf`14 PASS,
+고유1172건 검증 완료·미해결 실패0이다. 실제 Tk4 PASS, Native6개·Wheel 재현 일치,
+증거·Ledger·설치 설정88개 SHA 일치다. 초기 실패와 Fixture 보정 내역은 별도 보고서에 보존했다.
+
+Root·Native·DNS·sudo·모델 Action·API·예약·영수증 소비0, 기존 Ledger81행·설치·Rollback·
+과거 실행 SHA를 보존했다. 새 Source/Artifact/Session의 정확한 승인·유효기간·Scope yes·sudo·
+Namespace check가 있어야 다음 최대1회 제한 시험을 진행할 수 있다. 기존 승인은 재사용하지 않는다.
+
+
 ## 2026-10-30 최신: 실제 Packet·DNS Cleanup 재시험 — PARTIALLY_VERIFIED
 
 승인 `142c69e`·운영 Source `5b14a67`·정확한 Runtime/DNS Session으로 실제1회 실행했다.

@@ -80,7 +80,10 @@ int libbpf_num_possible_cpus(void) {return 1;}
 int bpf_map_lookup_elem(int fd,const void *key,void *value) {
  (void)fd;(void)key;
  if(scenario==13) {errno=EPERM;return -1;}
- uint64_t *rows=value;for(int n=0;n<7;n++)rows[n]=(uint64_t)(n+1);return 0;
+ /* A valid population is required before the intended drain/cleanup fault.
+    Keep every outcome nonzero; observed must equal their sum. */
+ uint64_t *rows=value;rows[0]=0;
+ for(int n=1;n<7;n++){rows[n]=(uint64_t)(n+1);rows[0]+=rows[n];}return 0;
 }
 int soc_final_drain_counters(struct soc_state *s) {
  drain_calls++;
@@ -95,6 +98,8 @@ int main(int argc,char **argv) {
  if(object<0 || audit<0)return 3;
  struct soc_state s={.ops=&soc_real_ops,.object_fd=object,.audit_fd=audit,.ipc_fd=-1,.data_fd=-1};
  s.generation=7;s.data_source=2;s.plan.version=SOC_TCX_VERSION;s.plan.hook=1;memset(s.plan.approval,0xaa,32);
+ /* The real broker initializes this before loading; this fixture skips it. */
+ s.started_ns=soc_now();
  if(argc==5) {
   char *end;errno=0;s.generation=strtoull(argv[4],&end,10);
   if(errno || *end || argv[4][0]=='-' || !s.generation)return 2;
