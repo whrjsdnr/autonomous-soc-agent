@@ -1,4 +1,114 @@
-# Native AI Orchestration E2E — failure recovery and exact retest preparation
+# Native AI Orchestration E2E — approved limited trial and preserved recovery history
+
+## Latest result: 2026-10-30 18:34–18:41 KST
+
+**NATIVE_ORCHESTRATION_VERIFIED for this limited Native input → RF/LR → SOCRuntime →
+read-only investigation → Assessment → Audit/GUI path, with SCRIPTED investigation.**
+This is not real LLM validation, one-hour stability verification or production promotion.
+The older failures and UNKNOWN/UNVERIFIED findings below remain unchanged.
+
+Executed frozen implementation: `c542398fcd5820f86b56743f65db6ce279dabaed`, report HEAD
+`7a1b6f3e71ac38fce6d3a6febf8b290f80979618`, Release `0.6.3`.
+Runtime Session `bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b`, DNS Session
+`0771bfdf-3f98-4181-b21e-3b15772e15c8`, Namespace `net:[4026532232]`, lo/Ingress.
+The exact request and Artifact hashes in the candidate section below identify the executed
+version. A subsequent four-line Worker status correction is separately tested; it was
+not installed into or retrospectively attributed to this Native trial.
+
+Evidence roots (repository shared Git directory):
+
+- Execution: `.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/execution/`
+- Independent verification: `.git/native-orchestration-approved-attempt-20261030T093317Z/`
+- Machine-readable result: `native-result-verified.json` in the verification directory.
+- GUI verification: `gui-current-native-verification.json`, six actual Tk screenshots.
+- Immutable execution evidence: `executed-evidence-pins.json` (178 file hashes).
+
+The user confirmed the new Scope/R1 in the real terminal and authenticated directly with
+sudo. Ten independent decision records reference the exact request. One Root/Collector
+attempt ran; no automatic retry. Eight fixed Root paths were verified/applied, with three
+changed configuration contents and existing backups preserved. Root first error is null,
+actual child exit is 0; the terminal entry's installed unsupported `--new-process` option
+failed before any Scope/Root admission and was corrected to Terminator's supported `-u`.
+
+| Actual measurement | Result |
+|---|---|
+| Whole bounded execution, including cleanup | 404.593137288 seconds; limit 600 seconds |
+| Sum of independently sealed capture intervals | 396.136964112 seconds; excludes detach/re-attach gaps |
+| TCX callbacks delivered to Runtime | 54 (34 + 20 + 0 across three epochs) |
+| Sealed Windows / Capture Attestation | 3 / all VERIFIED within owned-hook scope |
+| Flow candidates | 7: ELIGIBLE 5, INCOMPLETE 2 |
+| Actual local DNS | UDP2/TCP1; 3 query/response Transactions, RCODE0 |
+| DNS metadata | 14 records: 6 DNS messages + 8 TCP control records; semantic parse errors0 |
+| TCP source | Two helper starts / four connections; starts 180.61 seconds apart |
+| RF/LR | 8 predictions, four eligible flows in one separately approved sealed job |
+| Network workflow Incidents | 2: UNKNOWN_ANOMALY with8 predictions; DATA_QUALITY_FAILURE with0 |
+| Investigation tasks | 5 immutable revisions, each claimed once and Queue DONE |
+| Investigation result | Read-only source report completed, Assessment/checkpoint revision7, WAITING_HUMAN |
+| Runtime security audit | 58 records; chain VERIFIED; model result receipts independently verified |
+| Loss / errors | Queue drops0, source gaps0, model errors0, collector restarts0 |
+| STOP / Cleanup | Bound TCX ACK, DNS CLOSED/counter/ACK, owned Root and Runtime VERIFIED |
+
+The first sealed eligible job was `35480ca1733c9044da127d11e8aa36ea0dd145fcd78e6eef2afff05b49686937`.
+A separate existing model-review terminal displayed that exact job and received user `yes`
+at `2026-10-30T09:39:02.062479Z`. Its grant authorized exactly eight RF/LR invocations.
+No future jobs, external API or DNS9 authority was generated. The second eligible window
+was not approved: its retained Queue entry is POISON / INFERENCE_UNAVAILABLE after Stop,
+with attempts1 and no model execution. This is intentional non-replayable cancellation,
+not Collector failure; the original job and Queue record remain intact.
+
+Network and DNS source links reach the existing SOCRuntime. The predicted Native Incident
+has conflict=true from the actual model evidence; the scripted plan reads its retained
+source and escalates for independent human review. No successful conflict resolution or
+real LLM reasoning is claimed. DNS evidence revision changes produced distinct task IDs
+for the same Incident; all five task revisions have a single claim. Authentication was
+not attached. No synthetic events, external calls or new traffic were introduced.
+
+### Independent cleanup and GUI findings
+
+TCX STOP ACK binds generation694824034956530, the approved policy and target Namespace;
+receiver joined and socket closed. DNS cleanup retains authenticated CLOSED, final counter,
+STOP intent before CLOSED, joined reader/handshake and closed channel/listener. The transient
+process observation was EXITED_ZOMBIE; the later service snapshot confirms inactive/MainPID0
+and successful exit. All five owned services are inactive with MainPID0, owned Collector
+socket absent, target TCX empty, BPF Link/Map arrays empty. The DNS probe child exited0 with
+client FDs closed. Root audit preserves its previous prefix.
+
+Global BPF program IDs changed between snapshots; this is not proof of global cleanup.
+Global/past UNKNOWN and UNVERIFIED states are not promoted. Ledger remains81 rows with
+SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae` and a valid chain.
+All4,792 previously pinned evidence files are unchanged.
+
+The initial GUI was no longer running when inspected; its empty log does not establish
+whether the operator closed it. Cause remains UNKNOWN. Reopening `soc-agent gui` kept the
+same Runtime and did not restart Capture. Two real Tk attach/reconnect checks display
+8 REAL_NATIVE prediction records, 5 tasks, DNS3 and VERIFIED cleanup without callback
+errors or retained-file changes. Dashboard, Continuous, AI Analysis, Investigation and
+System screenshots were captured from that actual stored Native session.
+
+### Post-trial defect and nonprivileged verification
+
+Confirmed defect: after exact model admission, `worker_state` retained
+WAITING_EXACT_MODEL_ACTION_APPROVAL while `analysis.state` was RUNNING. In
+`continuous/service.py`, successful `start_retained_tcx` now changes Worker state to
+ANALYZING and refreshes its observation time. Permission validation still executes first.
+A new asynchronous regression proves no state advance before the admission boundary returns.
+No Root code, grant validation, resource limit or retention policy changed.
+
+Workspace and independent Export: each77 related tests passed across the final regression
+and isolated Unix transport recheck. Initial test invocation lacked the existing inference
+environment root; the configured rerun passed that case. The first export/Workspace test
+base path exceeded AF_UNIX's address limit; its one transport test passed with a short
+isolated `/tmp` path. Failures and correction logs are retained, assertions unchanged.
+Two current Native GUI attach/reconnect checks passed. Ruff all-repository check,
+format1534 files and diff check passed. Two Workspace Wheel builds and independent Export
+match SHA `f5542eb8aedf1cc55011c0bc739a5ae2b5b1a839959dff798a38cc40a9e50d34`.
+Native/Root artifacts were not changed or unnecessarily rebuilt; their existing pinned
+reproducibility evidence remains separate from this Python display correction.
+
+The completed attempt is consumed. A new Native execution of changed Source requires a
+fresh exact Binding and user Scope/sudo; this turn performed no second Native attempt.
+
+## Preserved pre-retest report (historical status)
 
 Date: 2026-10-30 (Asia/Seoul). **Native orchestration: PARTIALLY_VERIFIED; end-to-end NOT VERIFIED.**
 Implementation/nonprivileged orchestration remains integrated. New candidate: not installed,
