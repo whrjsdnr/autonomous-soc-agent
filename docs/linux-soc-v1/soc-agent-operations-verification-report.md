@@ -737,3 +737,56 @@ Workspace 기존216 PASS, OSS 관련115 PASS/집중40 PASS, 최종 Export210 PAS
 RF/LR은 봉인된 실제 ELIGIBLE 입력의 exact Action 승인 이후 자동 소비한다. 미래 영수증은 발급하지 않는다.
 기존 전체3600초 상한은 순수 수집3600초를 보장하지 않는다. 실제1시간/반복 Native 모델/
 DNS Capture→Transaction→GUI는 여전히 미검증이며 기존 PARTIALLY_VERIFIED 판정을 유지한다.
+
+## 2026-10-30 Packet·DNS 최종 통합시험 승인 전 재검증
+
+이번 요청은 실행 승인이 아니므로 Root·Namespace 진입·TCX·DNS 요청·모델·API·예약·
+영수증 발급은 모두0회다. 현재 작업은 비권한 사전 검증과 단일 검토 자료 확정까지 완료했다.
+기존 제한 Native VERIFIED/전체 운영 PARTIALLY_VERIFIED 증거는 보존한다.
+
+검토 자료: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-final-review-20261030T001504Z/approval-review.md`.
+정확한 원본 실행 검토서: `.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/approval-package-final.md`.
+수정된 Request SHA256 `497f0dad6a0192e178734ec5a7221afc65d8c8b379148e9fd6d0e17ba7ce46c9`.
+Root Manifest SHA256 `a3b3279ef431065aad5880765c9cd3dc411dc55f35b5e4e537e11cdd9efa3f56`.
+Session `9030e7b9-76d9-4e95-aa4f-7568878bc5bd`, Release0.6.3, Target net:[4026532232], lo/Ingress.
+실행 Source Freeze `c9bbb0d120eae5fcb333533f67f3f38e8285f30c`/Tree `3454516e5517d48aad7e295bc0f23b104baab76f`.
+현재 Git c06d191과 src/pyproject/lock 차이는0이며 문서 Commit을 Artifact Git으로 바꿔 적지 않았다.
+
+Source file map/모든 Artifact·실행 pins/설치 Runtime/Helper Python closure/dnsmasq binary와
+공유라이브러리/모델 Registry·Fingerprint/Namespace Lease·boot·inode/Queue·Storage/
+최신 Ledger chain/만료/one-shot 미소비를 실제 파일로 재검증했다. 기존 Entry Point의
+`doctor`, `start --preview`, `status` PASS. Target 내부 check는 승인된 진입 전 BLOCKED다.
+Window180초/Window당4096 events, Queue32/Runtime256MiB/DNS8MiB와 기존 CPU·메모리 한도를 유지한다.
+
+추가 대조에서 미승인 실행 요청서와 Scope Input의 레거시 모델 상한38이 통합 검토/
+봉인 job 검토 도구의 제안 상한96과 불일치함을 발견했다. 원본 요청/패키지/고정 실행파일/
+프로필/미실행 빈 Store를 SHA와 Audit 포함 별도 보존하고, 제안 상한96으로 통일했다.
+Scope Input→정책 후보→Config→Root Manifest→Request 결합을 재검증하고 기존 Store.create로
+새 Session을 준비했다. 실제 설치·기존 Runtime/Queue·Ledger·승인 영수증은 수정하지 않았다.
+고정 Root coordinator에 상한 메타데이터 일치 검사를 추가했고, 외부 권한 경계만 mock한
+집중 회귀10 PASS(0.49초)다. 운영 src/승인 정책/Collector/Worker/기존 exact Action 검증은 변경0이다.
+
+재사용한 완료 검증은 Export210 PASS/Workspace115 PASS/집중40 PASS, Native6/Wheel 이중 빌드,
+실제 Tk의 보존 Native40·Prediction2·Incident1 조회/종료·재연결이다. 동일 Source이므로
+전체 회귀나 과거 로컬1053 DNS 시험을 불필요하게 다시 실행하지 않았다. Ruff/Format/Diff PASS.
+
+다음 승인 Scope는 고정 Root 설정6개·Target TCX1회·dnsmasq 로컬53/UDP2·TCP1·
+기존 TCP 최대38연결·전체3600초·R1 위험 수용·STOP/Drain/Cleanup이다. DNS ID/Question/
+Client close+35초/45초 관측과 TCP 포트/페이로드는 검토서에 고정했다.
+RF/LR은 실제 봉인된 ELIGIBLE 입력의 개별 exact Action 승인 이후 Worker가 자동 소비한다.
+최대20job/각8ELIGIBLE/총96회는 제안 상한이며 미래 입력 승인·자동 영수증은 없다.
+
+상한은 시작·종료 포함 전체3600초,3500초까지 Stop 준비/3570초까지 Drain이다.
+순수 Capture3600초 성공으로 보고하지 않으며 그 목표가 필수면 별도 시간 Scope가 필요하다.
+현재 정책/요청 만료는2026-10-30 17:36:32 KST이며 입장 시65분 이상 남아야 한다.
+DNS9/실제 LLM API/Host Authentication/위험 대응/자동 재실행은 제외다.
+
+Ledger81행/SHA07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae,
+설치 정책 SHA401ecb1b5b8575916423f560d1befc7c16a30c91a5209284a48418c922e15f99 불변.
+Legacy Campaign Root12/Native4, Batch3 Root9/Native1 기록도 초기화·환급하지 않았다.
+TCX/App/TCP 서비스 inactive/PID0, 새 DNS Helper/dnsmasq 서비스는 미설치다.
+
+이번 시험 판정: **BLOCKED_PENDING_EXACT_EXECUTION_APPROVAL_AND_AUTHENTICATION**.
+현재 Native Packet/DNS Transaction/Window/Prediction/Incident/실제수집시간 신규 측정은0/미실행이며
+과거1053 Application DNS 성공을 Native raw Capture 성공으로 바꾸지 않았다.
+승인 후 기존 단일 `start --gui`와 TTY yes·직접 sudo로 최대1회 진행한다.

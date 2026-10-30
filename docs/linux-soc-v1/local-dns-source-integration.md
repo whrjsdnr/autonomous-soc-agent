@@ -122,3 +122,12 @@ Target 내부 check 필요 BLOCKED를 구분한다. 실제 내부 check를 Host 
 
 최종 판정: **LOCAL_DNS_SOURCE_PROTOCOL_VERIFIED / 통합 Live 시험 승인·인증 대기**.
 기존 전체 운영 판정 PARTIALLY_VERIFIED를 유지한다. OPERATIONS_VERIFIED 선언 없음.
+
+## 2026-10-30 승인 전 메타데이터 정정
+
+위 최초 요청서0fb9f709…의 미승인 모델 상한38/96 혼재를 바로잡았다.
+최신 통합 검토 자료는 `/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-final-review-20261030T001504Z/approval-review.md`다.
+최신 Request SHA256 `497f0dad6a0192e178734ec5a7221afc65d8c8b379148e9fd6d0e17ba7ce46c9`,
+Root Manifest `a3b3279ef431065aad5880765c9cd3dc411dc55f35b5e4e537e11cdd9efa3f56`, Session `9030e7b9-76d9-4e95-aa4f-7568878bc5bd`.
+원본 미승인 자료·빈 Store·Audit는 별도 보존했다. Source/Wheel/Collector 변경은 없다.
+운영 보고서의 마지막 절을 기준으로 하며 기존 SHA를 수정본 승인에 사용하지 않는다.
