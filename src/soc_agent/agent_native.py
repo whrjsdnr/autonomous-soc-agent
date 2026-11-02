@@ -4,6 +4,7 @@ No issuer, reservation, setns, service control, authentication or model permissi
 The registered terminal remains the sole privileged lifecycle entry point.
 """
 
+import ast
 import hashlib
 import json
 import os
@@ -13,6 +14,170 @@ from soc_agent.continuous.models import ContinuousConfig
 from soc_agent.security_ai.ebpf_tc.namespace_isolation import HOST_NAMESPACE, IsolatedScope
 from soc_agent.security_ai.research.environment import read_local
 from soc_agent.security_ai.research.models import digest
+
+ROOT_TARGETS = frozenset(
+    {
+        "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+        "/etc/systemd/system/soc-continuous-tcp-trial.service",
+        "/etc/soc-agent/continuous-installation.json",
+        "/etc/systemd/system/soc-operations-runtime.service",
+        "/etc/systemd/system/soc-continuous-dns.service",
+        "/etc/systemd/system/soc-continuous-dnsmasq.service",
+        "/usr/lib/soc-agent/continuous/service.py",
+        "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf",
+    }
+)
+
+
+def _installation_assertion() -> ast.Assert:
+    return ast.parse(
+        "assert len(rows) == 8 and {r['target'] for r in rows} == "
+        "set(INSTALL_FIXED_TARGETS) and "
+        "{r['target'] for r in rows if r['current_sha256'] != r['new_sha256'] "
+        "or r.get('repair_mode', False)} == set(INSTALL_WRITE_TARGETS), "
+        "'FIXED_INSTALLATION_WRITE_SCOPE'"
+    ).body[0]
+
+
+def bind_installation_scope(template: str, rows: list[dict]) -> str:
+    """Prepare a NEW Launcher artifact, never rewrite an approved/executed review.
+
+    The caller must publish new file pins and obtain its own human approval.
+    This pure source transformation issues no approval and performs no execution.
+    """
+    declared = tuple(
+        sorted(
+            r["target"]
+            for r in rows
+            if r["current_sha256"] != r["new_sha256"] or r.get("repair_mode", False)
+        )
+    )
+    installation_write_scope(rows, declared)
+    tree = ast.parse(template)
+    installers = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "install"]
+    if len(installers) != 1:
+        raise ValueError("AGENT_NATIVE_INSTALLER_FUNCTION_REQUIRED")
+    found = 0
+    for index, node in enumerate(installers[0].body):
+        if (
+            isinstance(node, ast.Assert)
+            and isinstance(node.msg, ast.Constant)
+            and node.msg.value == "FIXED_INSTALLATION_WRITE_SCOPE"
+        ):
+            installers[0].body[index] = _installation_assertion()
+            found += 1
+    if found != 1:
+        raise ValueError("AGENT_NATIVE_INSTALLER_SCOPE_ASSERTION_REQUIRED")
+    names = {"INSTALL_FIXED_TARGETS", "INSTALL_WRITE_TARGETS"}
+    tree.body = [
+        n
+        for n in tree.body
+        if not (
+            isinstance(n, ast.Assign)
+            and any(isinstance(t, ast.Name) and t.id in names for t in n.targets)
+        )
+    ]
+    declarations = ast.parse(
+        f"INSTALL_FIXED_TARGETS = {tuple(sorted(ROOT_TARGETS))!r}\n"
+        f"INSTALL_WRITE_TARGETS = {declared!r}\n"
+    ).body
+    insertion = 0
+    while insertion < len(tree.body) and (
+        isinstance(tree.body[insertion], (ast.Import, ast.ImportFrom))
+        or (
+            isinstance(tree.body[insertion], ast.Expr)
+            and isinstance(tree.body[insertion].value, ast.Constant)
+            and isinstance(tree.body[insertion].value.value, str)
+        )
+    ):
+        insertion += 1
+    tree.body[insertion:insertion] = declarations
+    ast.fix_missing_locations(tree)
+    return ast.unparse(tree) + "\n"
+
+
+def installation_write_scope(rows: list[dict], declared: tuple[str, ...]) -> tuple[str, ...]:
+    """Compare exact paths, not a stale count copied from an earlier installation."""
+    if not isinstance(rows, list) or any(
+        not isinstance(row, dict)
+        or not {"target", "current_sha256", "new_sha256"} <= row.keys()
+        or not all(isinstance(row[k], str) for k in ("target", "current_sha256", "new_sha256"))
+        or type(row.get("repair_mode", False)) is not bool
+        for row in rows
+    ):
+        raise ValueError("AGENT_NATIVE_INSTALLATION_SCOPE_SCHEMA")
+    targets = [row["target"] for row in rows]
+    changed = tuple(
+        sorted(
+            row["target"]
+            for row in rows
+            if row["current_sha256"] != row["new_sha256"] or row.get("repair_mode", False)
+        )
+    )
+    if (
+        len(targets) != len(ROOT_TARGETS)
+        or set(targets) != ROOT_TARGETS
+        or len(set(declared)) != len(declared)
+        or changed != tuple(sorted(declared))
+    ):
+        raise ValueError("AGENT_NATIVE_INSTALLATION_WRITE_SCOPE_MISMATCH")
+    return changed
+
+
+def installation_plan(review: Path, request: dict) -> dict:
+    """Read-only manifest/Launcher agreement; never execute the Root Python to preview it."""
+    manifest_path = review / "root-install-manifest-v3.json"
+    binding = request["files"].get(manifest_path.name)
+    if not binding or binding["path"] != str(manifest_path):
+        raise ValueError("AGENT_NATIVE_INSTALLATION_MANIFEST_REQUIRED")
+    manifest = json.loads(read_local(manifest_path, 131072))
+    tree = ast.parse(read_local(review / "execution/root-trial.py", 131072))
+    declarations = [
+        node.value
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "INSTALL_WRITE_TARGETS" for t in node.targets)
+    ]
+    if len(declarations) != 1:
+        raise ValueError("AGENT_NATIVE_INSTALLER_WRITE_DECLARATION_REQUIRED")
+    declared = ast.literal_eval(declarations[0])
+    if not isinstance(declared, tuple) or not all(isinstance(p, str) for p in declared):
+        raise ValueError("AGENT_NATIVE_INSTALLER_WRITE_DECLARATION_INVALID")
+    rows = manifest["replacements"]
+    changed = installation_write_scope(rows, declared)
+    installers = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == "install"]
+    if len(installers) != 1 or not any(
+        ast.dump(node) == ast.dump(_installation_assertion()) for node in installers[0].body
+    ):
+        raise ValueError("AGENT_NATIVE_INSTALLER_SCOPE_ASSERTION_MISMATCH")
+    fixed = [
+        ast.literal_eval(node.value)
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(isinstance(t, ast.Name) and t.id == "INSTALL_FIXED_TARGETS" for t in node.targets)
+    ]
+    if len(fixed) != 1 or tuple(sorted(ROOT_TARGETS)) != fixed[0]:
+        raise ValueError("AGENT_NATIVE_INSTALLER_FIXED_TARGETS_MISMATCH")
+    for row in rows:
+        source = Path(row["new_source"])
+        if hashlib.sha256(read_local(source, 2 * 1024**2)).hexdigest() != row["new_sha256"]:
+            raise ValueError("AGENT_NATIVE_INSTALLATION_SOURCE_CHANGED")
+        target = Path(row["target"])
+        if row.get("current_state") == "ABSENT":
+            if target.exists() or target.is_symlink():
+                raise ValueError("AGENT_NATIVE_INSTALLATION_TARGET_CHANGED")
+        elif (
+            target.is_symlink()
+            or hashlib.sha256(target.read_bytes()).hexdigest() != row["current_sha256"]
+        ):
+            raise ValueError("AGENT_NATIVE_INSTALLATION_TARGET_CHANGED")
+    return dict(
+        status="VERIFIED_READ_ONLY_NOT_INSTALLATION_AUTHORITY",
+        fixed_paths=len(rows),
+        write_targets=list(changed),
+        unchanged_paths=len(rows) - len(changed),
+        root_commands_executed=False,
+    )
 
 
 def evidence_directory(review: Path) -> Path:
@@ -110,6 +275,7 @@ def validate_plan(selected) -> dict:
         raise ValueError("AGENT_NATIVE_APPROVAL_REVIEW_REQUIRED_NO_ROOT_EXECUTION")
     review = selected.review
     request = verify_review(review, selected.review_sha256)
+    installation = installation_plan(review, request)
     cfg = ContinuousConfig.model_validate_json(read_local(review / "runtime-config-v2.json", 32768))
     if (
         cfg.source != "NATIVE_SERVICE"
@@ -160,6 +326,7 @@ def validate_plan(selected) -> dict:
         namespace=namespace,
         dns=dns,
         ledger=current,
+        installation=installation,
         runtime=str(selected.runtime),
         model_action="SEPARATE_EXACT_SEALED_WINDOW_APPROVAL_REQUIRED",
         capture_started=False,

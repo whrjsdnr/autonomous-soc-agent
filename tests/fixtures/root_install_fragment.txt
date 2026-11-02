@@ -1,0 +1,66 @@
+# Original failed Launcher filesystem installation fragment.
+# Service activation deliberately excluded; tests mock only Root ownership/path boundary.
+def install(manifest):
+    rows = manifest['replacements']
+    assert len(rows) == 8 and sum((row['current_sha256'] != row['new_sha256'] or row.get('repair_mode', False) for row in rows)) == 4, 'FIXED_INSTALLATION_WRITE_SCOPE'
+    unchanged = []
+    backup = Path(manifest['backup_directory'])
+    backup.mkdir(parents=True, mode=448, exist_ok=False)
+    changes = []
+    for index, row in enumerate(manifest['replacements'], 1):
+        target = Path(row['target'])
+        if row.get('create_fixed_parent'):
+            assert str(target) == '/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf'
+            for ancestor in target.parent.parents:
+                info = ancestor.lstat()
+                assert info.st_uid == 0 and (not info.st_mode & 18) and (not stat.S_ISLNK(info.st_mode)), 'UNTRUSTED_FIXED_DNS_PARENT'
+            target.parent.mkdir(mode=493, exist_ok=False)
+        for parent in target.parents:
+            info = parent.lstat()
+            assert info.st_uid == 0 and (not info.st_mode & 18) and (not stat.S_ISLNK(info.st_mode)), 'UNTRUSTED_TARGET_PARENT'
+        if row.get('current_state') == 'ABSENT':
+            assert not target.exists() and (not target.is_symlink())
+            saved = None
+        else:
+            info = target.lstat()
+            assert info.st_uid == 0 and (not info.st_mode & 18) and stat.S_ISREG(info.st_mode)
+            assert sha(target) == row['current_sha256']
+            saved = backup / (str(index) + '-' + target.name)
+            fd = os.open(saved, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 384)
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(target.read_bytes())
+                stream.flush()
+                os.fsync(stream.fileno())
+            assert sha(saved) == row['current_sha256']
+        body = Path(row['new_source']).read_bytes()
+        assert hashlib.sha256(body).hexdigest() == row['new_sha256']
+        if row['current_sha256'] == row['new_sha256'] and (not row.get('repair_mode', False)):
+            assert sha(target) == row['new_sha256']
+            verified = dict(target=str(target), backup=str(saved), new_sha256=row['new_sha256'], operation='VERIFIED_UNCHANGED_NO_REPLACEMENT')
+            unchanged.append(verified)
+            evidence('installed-' + str(index) + '.json', verified)
+            continue
+        temporary = target.with_name('.' + target.name + '.one-hour-fixed')
+        fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 420)
+        os.fchmod(fd, 420)
+        assert stat.S_IMODE(os.fstat(fd).st_mode) == 420, 'FIXED_INSTALLATION_PERMISSION'
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(body)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if row.get('current_state') == 'ABSENT':
+            os.link(temporary, target)
+            temporary.unlink()
+        else:
+            assert sha(target) == row['current_sha256']
+            os.replace(temporary, target)
+        assert sha(target) == row['new_sha256']
+        assert target.stat().st_uid == 0 and stat.S_IMODE(target.stat().st_mode) == 420, 'FIXED_TARGET_MODE'
+        dirfd = os.open(target.parent, os.O_DIRECTORY)
+        try:
+            os.fsync(dirfd)
+        finally:
+            os.close(dirfd)
+        changes.append(dict(target=str(target), backup=str(saved) if saved else 'PREVIOUSLY_ABSENT', new_sha256=row['new_sha256']))
+        evidence('installed-' + str(index) + '.json', changes[-1])
+    evidence('installed-files.json', dict(replaced=changes, verified_unchanged=unchanged, preserved=manifest['preserve_and_verify']))

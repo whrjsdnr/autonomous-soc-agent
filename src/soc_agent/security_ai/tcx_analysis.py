@@ -153,8 +153,21 @@ async def analyze(
     event("TCX_MODEL_EXECUTION_INTENT", action.model_dump(mode="json"))
     try:
         await executor.execute(action, approval_id=approval.approval_id)
-    except BaseException:
-        event("TCX_MODEL_EXECUTION_FAILED", action.model_dump(mode="json"))
+    except BaseException as error:
+        # Tool wrappers preserve their exception chain. Record bounded stage/type
+        # metadata, never exception text, stderr, credentials or packet contents.
+        detail = dict(
+            code="TCX_MODEL_EXECUTION_FAILED",
+            error_type=type(error).__name__,
+            cause_type=type(error.__cause__).__name__ if error.__cause__ else None,
+            adapter=getattr(adapter, "last_failure", None),
+        )
+        try:
+            write("tcx-model-failure.json", detail)
+            event("TCX_MODEL_FAILURE_DIAGNOSTIC", detail)
+            event("TCX_MODEL_EXECUTION_FAILED", action.model_dump(mode="json"))
+        except (OSError, ValueError, RuntimeError) as diagnostic_error:
+            error.add_note("TCX_FAILURE_DIAGNOSTIC_WRITE_FAILED:" + type(diagnostic_error).__name__)
         raise
     event("TCX_MODEL_EXECUTION_COMPLETED", action.model_dump(mode="json"))
     return True

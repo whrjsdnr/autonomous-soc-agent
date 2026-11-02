@@ -2,7 +2,7 @@
 
 import json
 import tkinter as tk
-from tkinter import filedialog, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from soc_agent.gui.continuous_projection import availability
 from soc_agent.gui.redaction import display_data
@@ -29,6 +29,71 @@ def build(app):
         ("Reset AI Circuit", lambda: app.call("continuous_reset", callback=app.continuous_updated)),
     ]:
         ttk.Button(controls, text=name, command=callback).pack(side="left", padx=4)
+    review_controls = ttk.Frame(app.content)
+    review_controls.pack(fill="x", pady=4)
+
+    def review_models(batch):
+        if not batch.get("jobs"):
+            messagebox.showinfo(
+                "RF/LR approval", batch.get("status", "NO_PENDING_JOBS"), parent=app.root
+            )
+            return
+        summary = [
+            "Approve only the displayed already sealed ELIGIBLE jobs?",
+            f"Session: {batch['runtime_session']}",
+            f"Operator: {batch['actor']}",
+            f"Prior calls: {batch['previous_invocations']} / {batch['maximum_invocations']}",
+            "No Root, capture, DNS or API authority. No future-input approval.",
+        ]
+        for job in batch["jobs"]:
+            summary.append(
+                f"Job {job['job']}: eligible={job['eligible']}, RF/LR calls={job['calls']}"
+            )
+        summary.append("Models / fingerprints: " + json.dumps(batch["models"], sort_keys=True))
+        if messagebox.askyesno("Exact RF/LR job approval", "\n".join(summary), parent=app.root):
+            app.call(
+                "model_review_approve",
+                batch["batch_digest"],
+                True,
+                callback=app.continuous_updated,
+            )
+
+    ttk.Button(
+        review_controls,
+        text="Review sealed RF/LR jobs",
+        command=lambda: app.call("model_review_prepare", callback=review_models),
+    ).pack(side="left", padx=4)
+
+    def review_api(summary):
+        if not summary.get("ready"):
+            messagebox.showinfo(
+                "LLM approval", summary.get("status", "WAITING_INPUT"), parent=app.root
+            )
+            return
+        details = "\n".join(
+            (
+                f"Incident: {summary['incident_id']}",
+                f"Evidence revision: {summary['evidence_revision']}",
+                f"Provider: {summary['base_url']} / {summary['model']}",
+                f"Requests <= {summary['max_calls']}; USD <= {summary['budget_usd']}",
+                f"Timeout {summary['timeout_seconds']}s; automatic retries=0",
+                "Plan + Assessment; read-only tools; no Root/Native/model authority.",
+                "Raw payloads, addresses, domains, accounts and credentials stay local.",
+            )
+        )
+        if messagebox.askyesno("Approve exact LLM investigation input", details, parent=app.root):
+            app.call(
+                "api_review_approve",
+                summary["review_digest"],
+                True,
+                callback=lambda value: app.status.set(value["status"]),
+            )
+
+    ttk.Button(
+        review_controls,
+        text="Review LLM Plan / Assessment",
+        command=lambda: app.call("api_review_prepare", callback=review_api),
+    ).pack(side="left", padx=4)
     ttk.Label(
         app.content,
         text=(
@@ -163,6 +228,8 @@ def render(app, value):
             f"{value.get('component_health', {}).get('data_progress', 'UNKNOWN')} · "
             f"Publication: {value.get('component_health', {}).get('publication', 'UNKNOWN')}"
             f"\nAPI: {api_text}"
+            "\nAPI source/cleanup: "
+            f"{display_data(value.get('api_investigation') or 'NOT_ATTACHED')}"
         )
     )
     selected = app.continuous_incidents.selection()

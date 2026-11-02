@@ -410,7 +410,14 @@ class OfflineWorkflow:
             kind = "DATA_QUALITY_FAILURE"
             eligible = "INVALID"
             reasons = [str(exc)]
-        except (ValueError, OSError, ImportError, SecurityAIError, ExecutionError) as exc:
+        except (
+            ValueError,
+            OSError,
+            ImportError,
+            SecurityAIError,
+            ExecutionError,
+            ToolError,
+        ) as exc:
             kind = "MODEL_ERROR"
             reasons = ["MODEL_OR_ARTIFACT_VALIDATION_FAILED", type(exc).__name__]
         if not envelopes:

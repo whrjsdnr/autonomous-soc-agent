@@ -342,3 +342,40 @@ def test_drain_failure_preserves_invalid_feature_state():
     t["processing"]["feature_tail"][0]["values_digest"] = "0" * 64
     t["drain_state"] = "UNVERIFIED"
     assert candidates(TCXAnalysisJob.model_validate(raw))[2][0]["input_state"] == "INVALID"
+
+
+@pytest.mark.asyncio
+async def test_native_mock_worker_failure_keeps_durable_result_and_safe_stage(
+    tmp_path, monkeypatch
+):
+    """Synthetic Native admission, mocked failing model boundary; never real Native inference."""
+    j = job(native=True)
+    out = tmp_path / "run"
+    action = analysis_action(j, out)
+    manager = ApprovalManager()
+    pending = manager.create(
+        incident_id=action.incident_id,
+        metadata=METADATA,
+        reason="SYNTHETIC_FAILURE_TEST_ONLY",
+        action_id=action.action_id,
+        action_input_json=action.tool_input,
+        expires_at=utc_now() + timedelta(minutes=3),
+    )
+    approval = manager.approve(pending.approval_id, actor="TEST_ONLY")
+    calls = []
+
+    async def failed(self, request):
+        calls.append(request)
+        self.last_failure = dict(stage="PROCESS_START", error_type="OSError", errno=11)
+        return {"status": "UNKNOWN", "error": "RESEARCH_VALIDATION_FAILED_NO_RETRY"}
+
+    monkeypatch.setattr(ResearchAdapter, "infer", failed)
+    result = await OfflineWorkflow(
+        out, paths=research_paths(), tcx_approval=approval, defer_investigation=True
+    ).run(j)
+    assert len(calls) == 1 and not result.inference
+    assert result.classification == "MODEL_ERROR" and result.external_provider_calls == 0
+    detail = json.loads((out / "tcx-model-failure.json").read_text())
+    assert detail["adapter"] == dict(stage="PROCESS_START", error_type="OSError", errno=11)
+    assert detail["error_type"] == "ToolExecutionError"
+    assert verify_result(out) == result

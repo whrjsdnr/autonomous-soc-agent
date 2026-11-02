@@ -452,6 +452,10 @@ def gui(home: Path) -> int:
     args = ["--continuous-runtime", str(selected.runtime), "--data-directory", str(home / "gui")]
     if selected.review:
         args += ["--continuous-execution-evidence", str(selected.review / "execution")]
+        args += [
+            "--continuous-api-runtime",
+            str(selected.review.parent / "llm-review/investigation-runtime"),
+        ]
     if selected.authentication_runtime:
         args += ["--runtime", str(selected.authentication_runtime)]
     return gui_main(args)

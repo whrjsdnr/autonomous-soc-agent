@@ -48,6 +48,7 @@ class GUIConfig(Snapshot):
     native_python: Path | None = None
     continuous_directory: Path | None = None
     continuous_execution_evidence: Path | None = None
+    continuous_api_directory: Path | None = None
     analysis_result: Path | None = None
     analysis_ml_root: Path | None = None
     refresh_seconds: int = Field(default=15, ge=10, le=300)
@@ -364,6 +365,21 @@ class Backend:
                     "collection_live": False,
                     "last_error": "CONTINUOUS_STATUS_UNVERIFIED",
                 }
+            if self.config.continuous_api_directory is not None:
+                from soc_agent.gui.api_attachment import attach_api_results
+
+                try:
+                    value["continuous"] = await asyncio.to_thread(
+                        attach_api_results,
+                        self.continuous_directory,
+                        self.config.continuous_api_directory,
+                        value["continuous"],
+                    )
+                except (ValueError, OSError, KeyError, StorageError):
+                    value["continuous"]["api_investigation"] = {
+                        "status": "UNVERIFIED_API_RESULT_BINDING",
+                        "capture_started": False,
+                    }
         if self.analysis_service is not None:
             value["analysis"] = self.analysis_service.snapshot()
         elif "continuous" in value:
@@ -421,6 +437,66 @@ class Backend:
             raise ValueError("NATIVE_START_REQUIRES_APPROVED_SERVICE_ENTRYPOINT")
         await asyncio.to_thread(start, self.continuous_directory)
         return await self.continuous_status()
+
+    def _model_review_directory(self) -> Path:
+        evidence = self.config.continuous_execution_evidence
+        if evidence is None or self.continuous_directory != evidence.parent / "future-runtime":
+            raise ValueError("MODEL_REVIEW_REQUIRES_EXACT_ATTACHED_NATIVE_REVIEW")
+        return evidence.parent
+
+    async def model_review_prepare(self):
+        """Display existing jobs, without issuing any approval or starting inference."""
+        from soc_agent.agent_review import pending_models
+        from soc_agent.security_ai.research.models import digest
+
+        current = await self.continuous_status()
+        if current.get("state") != "RUNNING":
+            return dict(status="WAITING_RUNNING_NATIVE_SESSION", jobs=[])
+        batch = await asyncio.to_thread(pending_models, self._model_review_directory())
+        body = batch.model_dump(mode="json")
+        return body | dict(
+            status="HUMAN_EXACT_JOB_REVIEW" if batch.jobs else "NO_PENDING_ELIGIBLE_MODEL_JOBS",
+            batch_digest=digest(body),
+            actor=f"local-uid:{os.getuid()}",
+            capture_started=False,
+        )
+
+    async def model_review_approve(self, batch_digest: str, confirmed: bool):
+        """Human GUI decision only. The existing exact Action manager creates each receipt."""
+        from soc_agent.agent_review import approve_models
+
+        result = await asyncio.to_thread(
+            approve_models,
+            self._model_review_directory(),
+            batch_digest,
+            actor=f"local-uid:{os.getuid()}",
+            confirmed=confirmed,
+        )
+        return (await self.continuous_status()) | dict(operator_model_review=result)
+
+    async def api_review_prepare(self):
+        from soc_agent.agent_api_review import prepared_api_review
+        from soc_agent.security_ai.research.models import digest
+
+        review = self._model_review_directory()
+        directory = review.parent / "llm-review"
+        if not (directory / "api-review-request.json").exists():
+            return dict(status="WAITING_EXACT_NATIVE_INCIDENT_API_REVIEW", ready=False)
+        if (directory / "authorization.json").exists() or (directory / "api-attempt").exists():
+            return dict(status="API_ALREADY_AUTHORIZED_OR_ATTEMPTED_NO_REPLAY", ready=False)
+        summary = await asyncio.to_thread(prepared_api_review, review)
+        return summary | dict(review_digest=digest(summary), ready=True)
+
+    async def api_review_approve(self, review_digest: str, confirmed: bool):
+        from soc_agent.agent_api_review import approve_api_review
+
+        return await asyncio.to_thread(
+            approve_api_review,
+            self._model_review_directory(),
+            review_digest,
+            actor=f"local-uid:{os.getuid()}",
+            confirmed=confirmed,
+        )
 
     async def continuous_stop(self):
         from soc_agent.continuous.cli import request_stop

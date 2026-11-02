@@ -38,6 +38,7 @@ class ResearchAdapter:
         self.authorize_zeek = None
         self.authorize_tcx = None
         self.transient_inputs = transient_inputs
+        self.last_failure = None
 
     def status(self, profile="quality") -> dict:
         try:
@@ -90,6 +91,8 @@ class ResearchAdapter:
             raise ValueError("RESEARCH_WORKER_ALREADY_RUNNING")
         self.busy = True
         self.cancelled = False
+        self.last_failure = None
+        phase = "ACTION_APPROVAL"
         work = source = result = None
         try:
             if tcx and request.job.origin == "REAL_NATIVE":
@@ -105,6 +108,7 @@ class ResearchAdapter:
                     return {"status": "UNKNOWN", "error": "NATIVE_CAPTURE_SOURCE_NOT_VERIFIED"}
                 await asyncio.to_thread(self.authorize_live, request)
             paths = self.paths or defaults()
+            phase = "DEPENDENCY_INTEGRITY"
             if request.profile == "dns":
                 from soc_agent.security_ai.research.dns import verify as check
             else:
@@ -116,11 +120,13 @@ class ResearchAdapter:
             if self.cancelled:
                 return {"status": "UNKNOWN", "error": "WORKER_CANCELLED_NO_RETRY"}
             work = self.directory / ("worker-" + str(uuid4()))
+            phase = "REQUEST_STORAGE"
             create_private_directory(work, exist_ok=False)
             source, result = work / "request.json", work / "result.json"
             with source.open("x") as stream:
                 stream.write(request.model_dump_json())
             source.chmod(0o600)
+            phase = "PROCESS_START"
             self.process = await asyncio.create_subprocess_exec(
                 str(paths.python),
                 "-m",
@@ -164,12 +170,20 @@ class ResearchAdapter:
                 await self.cancel()
                 return {"status": "UNKNOWN", "error": "WORKER_CANCELLED_NO_RETRY"}
             try:
+                phase = "PROCESS_WAIT"
                 await asyncio.wait_for(self.process.wait(), self.timeout)
             except TimeoutError:
                 await self.cancel()
+                self.last_failure = dict(stage=phase, code="WORKER_TIMEOUT_NO_RETRY")
                 return {"status": "UNKNOWN", "error": "WORKER_TIMEOUT_NO_RETRY"}
             if self.process.returncode != 0:
+                self.last_failure = dict(
+                    stage=phase,
+                    code="WORKER_FAILURE_OR_BUDGET_NO_RETRY",
+                    returncode=self.process.returncode,
+                )
                 return {"status": "UNKNOWN", "error": "WORKER_FAILURE_OR_BUDGET_NO_RETRY"}
+            phase = "RECEIPT_VALIDATION"
             raw = json.loads(read_local(result, 32 * 1024))
             if tcx:
                 receipt = VectorReceipt.model_validate(raw)
@@ -212,7 +226,13 @@ class ResearchAdapter:
         except asyncio.CancelledError:
             await self.cancel()
             raise
-        except (OSError, ValueError, KeyError, ImportError):
+        except (OSError, ValueError, KeyError, ImportError, RuntimeError) as error:
+            self.last_failure = dict(
+                stage=phase,
+                code="RESEARCH_VALIDATION_FAILED_NO_RETRY",
+                error_type=type(error).__name__,
+                errno=error.errno if isinstance(error, OSError) else None,
+            )
             return {"status": "UNKNOWN", "error": "RESEARCH_VALIDATION_FAILED_NO_RETRY"}
         finally:
             try:

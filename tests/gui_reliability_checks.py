@@ -96,3 +96,43 @@ async def test_gui_control_alive_data_stalled_and_reconnect(tmp_path):
         finally:
             await close(root, app)
         assert store.state()["last_error"] == "CONTINUOUS_DATA_PROGRESS_STALLED"
+
+
+@pytest.mark.asyncio
+async def test_gui_exact_approval_controls_and_waiting_do_not_issue_authority(tmp_path):
+    from tkinter import ttk
+
+    from tests.unit.continuous.test_runtime import make
+
+    directory, store = make(tmp_path)
+    before = store.state()
+    for index in (1, 2):
+        root = tk.Tk()
+        app = Desktop(
+            root,
+            GUIConfig(
+                data_directory=tmp_path / f"approval-gui-{index}",
+                continuous_directory=directory,
+            ),
+        )
+        try:
+            await idle(root, app)
+            app.navigate("Continuous")
+            await idle(root, app)
+
+            def buttons(widget):
+                result = []
+                for child in widget.winfo_children():
+                    if isinstance(child, ttk.Button):
+                        result.append(child.cget("text"))
+                    result.extend(buttons(child))
+                return result
+
+            names = buttons(root)
+            assert "Review sealed RF/LR jobs" in names
+            assert "Review LLM Plan / Assessment" in names
+            assert store.state() == before
+            capture(root, tmp_path / f"approval-controls-{index}.png")
+        finally:
+            await close(root, app)
+    assert not (directory / "native-model-approvals").exists()

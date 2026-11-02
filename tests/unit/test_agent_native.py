@@ -56,6 +56,11 @@ def review(tmp_path, monkeypatch):
     put(directory / "approval-request-final-v2.json", request)
     # Namespace mount/lease discovery is the external privileged environment boundary.
     monkeypatch.setattr(agent_native, "namespace_binding", lambda *args: dict(target=cfg.namespace))
+    # The Root filesystem/installer is a separate boundary from CLI lifecycle tests.
+    # Exact real manifest/Launcher agreement is exercised in test_agent_installation.
+    monkeypatch.setattr(
+        agent_native, "installation_plan", lambda *_: dict(status="MOCK_ROOT_FILESYSTEM_BOUNDARY")
+    )
     home = tmp_path / "application"
     agent_runtime.setup(home, review=directory)
     return home, directory, ledger
