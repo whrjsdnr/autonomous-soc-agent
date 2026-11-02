@@ -1,0 +1,31 @@
+{
+  "method": "tracked Python + notebook code cells static search; no execution; pattern absence is not universal nonexistence proof",
+  "files_examined": 113,
+  "hits": [
+    {
+      "path": "notebooks/dnn_top40_v4.ipynb",
+      "patterns": [
+        "dense"
+      ]
+    },
+    {
+      "path": "notebooks/model_diversity_v3.ipynb",
+      "patterns": [
+        "dense"
+      ]
+    },
+    {
+      "path": "notebooks/ondevice_benchmark_v4.ipynb",
+      "patterns": [
+        "dense"
+      ]
+    },
+    {
+      "path": "packages/network-security-ai/src/network_security_ai/predictors.py",
+      "patterns": [
+        "dense"
+      ]
+    }
+  ],
+  "scope": "ML current tracked working files; pre-existing modifications preserved"
+}

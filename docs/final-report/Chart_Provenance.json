@@ -1,0 +1,46 @@
+{
+  "method": "matplotlib Agg; stored validation CSV, no new evaluation",
+  "charts": [
+    {
+      "figure": "assets/top40-v3-validation.svg",
+      "sources": [
+        {
+          "path": "/home/geonug/kdt-linux/ML/results/lightgbm_top40_v3/validation_metrics.csv",
+          "sha256": "b8d350819436000f1e3627802ac88517c4a06a257404f626e772df0dbb4c10fe"
+        },
+        {
+          "path": "/home/geonug/kdt-linux/ML/results/xgboost_top40_v3/validation_metrics.csv",
+          "sha256": "d4269200d1f4294fc73b288d852f75f26e5973f369b2a07a403abfb38aa9d89e"
+        },
+        {
+          "path": "/home/geonug/kdt-linux/ML/results/random_forest_top40_v3/validation_metrics.csv",
+          "sha256": "f33a0cc251a2862d22b34c8513b09ea316aa47ca0ca007c89decf03b916f118e"
+        },
+        {
+          "path": "/home/geonug/kdt-linux/ML/results/logistic_regression_top40_v3/validation_metrics.csv",
+          "sha256": "0cf53d5e3d131b324d42c731e3161591c6e4451512e687b04304c76bd1da383c"
+        },
+        {
+          "path": "/home/geonug/kdt-linux/ML/results/mlp_top40_v3/validation_metrics.csv",
+          "sha256": "a69017f946aee358120e555ba22b0a4cf0ab2eb9be97af89f9a5d18b7d3ec602"
+        }
+      ]
+    },
+    {
+      "figure": "assets/network14-test-errors.svg",
+      "source": "/home/geonug/kdt-linux/ML/docs/network-research-training-evaluation.md",
+      "series": {
+        "RF": {
+          "FPR": 0.151886,
+          "FNR": 0.112251
+        },
+        "LR": {
+          "FPR": 0.011213,
+          "FNR": 0.27248
+        }
+      },
+      "note": "Rounded historical report rates; no new test inference"
+    }
+  ],
+  "serialization": "Trailing whitespace removed after matplotlib SVG output; XML paths/values unchanged"
+}
