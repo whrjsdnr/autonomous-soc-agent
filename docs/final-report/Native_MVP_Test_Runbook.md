@@ -1,5 +1,7 @@
 # 대상 저장소에서 실행하는 명령과 600초 제한 시험
 
+이전 bbaeccd 시험은ReceiveTimeout으로실패했고소비된Session은재실행금지다. 수정코드2cfcf7e의새검토패키지/profile을준비중이다. 아래새경로는최종검증/준비완료확인후사용한다. [실제실패와수정](Final_MVP_Native_Result.md)을먼저확인한다.
+
 현재 배치: 기존 루트 사용자 소스는 보존하고, 검증된 운영 코드는 `releases/research-mvp` Worktree에 있다. 루트의 오래된 `.venv`를 사용하지 않는다. 아래 명령은 모두 대상 루트에서 시작한다.
 
 ## 1. 터미널 준비
@@ -7,7 +9,7 @@
 ```bash
 cd ~/kdt-linux/autonomous-soc-agent
 source releases/research-mvp/.venv/bin/activate
-export SOC_AGENT_HOME='/home/geonug/kdt-linux/autonomous-soc-agent/.git/research-mvp-short-native-review-20261102T091500Z/native-cli-profile'
+export SOC_AGENT_HOME='/home/geonug/kdt-linux/autonomous-soc-agent/.git/research-mvp-control-validation-retest-20261102T100229Z/native-cli-profile'
 command -v soc-agent
 soc-agent --help
 ```
@@ -28,7 +30,7 @@ Preview는 Root 설치·Capture·트래픽·영수증 소비를 하지 않는다
 
 ## 3. 정확한 새 승인 이후에만 실제 시험
 
-검토 패키지: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/research-mvp-short-native-review-20261102T091500Z/native/approval-package-final.md`.
+검토 패키지: `/home/geonug/kdt-linux/autonomous-soc-agent/.git/research-mvp-control-validation-retest-20261102T100229Z/native/approval-package-final.md`.
 최신 Git/Source/Artifact/Manifest/Session/Namespace/Ledger 일치와 유효한 정책·R1·Root·Native·트래픽 승인 후 사용자의 실제 전경 터미널에서 실행한다.
 
 ```bash
