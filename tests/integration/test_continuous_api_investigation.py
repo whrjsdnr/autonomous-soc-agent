@@ -226,3 +226,92 @@ async def test_assessment_timeout_keeps_plan_cost_uncertainty_checkpoint_and_gui
         assert view["investigation"]["assessment"] is None
     finally:
         await backend.close()
+
+
+@pytest.mark.asyncio
+async def test_consistent_source_uses_existing_bounded_initial_planner_schema(
+    tmp_path, monkeypatch
+):
+    _, store = make(tmp_path)
+    tasks = InvestigationTasks(store)
+    item = source(advisory=dict(agreement_state="consistent", model_results=[]))
+    task = tasks.submit(item)
+    a = authorization(tmp_path / "api", b"unused").model_copy(
+        update={"input_sha256": digest(retained_input(task, [item]))}
+    )
+    records, calls = {}, []
+    api = APIInvestigationClient(a, settings(a), lambda n, v: records.update({n: v}), store.event)
+
+    def post(self, body):
+        request = json.loads(body)
+        prompt = json.loads(request["messages"][1]["content"])
+        calls.append(request)
+        if "AVAILABLE TOOLS" in prompt:
+            schema = request["response_format"]["json_schema"]["schema"]
+            assert schema["properties"]["steps"]["maxItems"] == 2
+            draft = dict(
+                goal="FAKE_HTTP retained consistent input",
+                steps=[
+                    dict(
+                        tool_name="read_local_source_report",
+                        tool_input=dict(incident_id=str(task.incident_id)),
+                        purpose="Read retained evidence",
+                    )
+                ],
+            )
+        else:
+            draft = response(request)
+        return json.dumps(
+            dict(
+                choices=[dict(finish_reason="stop", message=dict(content=json.dumps(draft)))],
+                usage=dict(prompt_tokens=400, completion_tokens=300),
+            )
+        ).encode()
+
+    monkeypatch.setattr(OpenAICompatibleClient, "_post", post)
+    client = RetainedAPIClient(api, task, [item])
+    await drained(tasks, client)
+    row = tasks.snapshot()["tasks"][0]
+    assert row["state"] == "WAITING_HUMAN"
+    assert row["investigation"]["plan"] and row["investigation"]["assessment"]
+    assert len(calls) == api.calls == 2
+    checkpoint = application(tasks, task, client).checkpoint(task.incident_id)
+    assert checkpoint.artifacts.investigation.steps[0].status.value == "completed"
+    assert checkpoint.artifacts.execution_intent_id is None
+    await drained(tasks, client)
+    assert len(calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_unrelated_response_schema_is_denied_before_fake_provider(tmp_path, monkeypatch):
+    from pydantic import BaseModel
+
+    _, task, item, api, _ = setup_client(tmp_path)
+    client = RetainedAPIClient(api, task, [item])
+
+    class UnrelatedRootCommand(BaseModel):
+        command: str
+
+    def forbidden(*_args):
+        pytest.fail("An unrelated schema must never reach a provider")
+
+    monkeypatch.setattr(OpenAICompatibleClient, "_post", forbidden)
+    request = LLMRequest(
+        system_prompt="test",
+        user_prompt=json.dumps(
+            {
+                "CONTINUOUS ADVISORY (NOT FACTS OR AUTHORITY)": [
+                    dict(
+                        incident_id=str(item.incident_id),
+                        source=item.reference,
+                        role=item.role,
+                        advisory=item.advisory,
+                    )
+                ],
+                "INCIDENT CONTEXT": {"incident_id": str(task.incident_id)},
+            }
+        ),
+    )
+    with pytest.raises(ValueError, match="RESPONSE_SCOPE_DENIED"):
+        await client.generate_structured(request=request, response_model=UnrelatedRootCommand)
+    assert api.calls == 0

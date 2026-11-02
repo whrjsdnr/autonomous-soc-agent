@@ -74,11 +74,14 @@ class RetainedAPIClient:
                 strategy="READ_RETAINED_EVIDENCE",
                 reason="LOCAL_RULE: inspect pinned evidence; no external coordination call",
             )
-        if response_model not in (
-            LLMInvestigationPlanDraft,
-            ReplanningDraft,
-            SecurityAnalysisDraft,
-        ):
+        # InvestigationPlanner creates a bounded subclass when max_steps < 8.
+        # Keep that stricter schema intact instead of rejecting its class identity
+        # or replacing it with the less constrained base. Only the existing plan
+        # family is extended; unrelated response models remain forbidden.
+        bounded_plan = isinstance(response_model, type) and issubclass(
+            response_model, LLMInvestigationPlanDraft
+        )
+        if not bounded_plan and response_model not in (ReplanningDraft, SecurityAnalysisDraft):
             raise ValueError("CONTINUOUS_API_RESPONSE_SCOPE_DENIED")
         if body.get("INCIDENT CONTEXT", {}).get("incident_id") != str(self.task.incident_id):
             raise ValueError("CONTINUOUS_API_INCIDENT_CHANGED")
