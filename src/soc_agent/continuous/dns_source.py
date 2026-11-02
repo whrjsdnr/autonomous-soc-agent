@@ -463,6 +463,8 @@ class DNSProducer:
 
     async def request_stop(self):
         self._owner_stop_requested = True
+        if self.capture.closed.is_set():
+            return  # Repeated Stop must not replace the durable terminal state.
         self.state = "STOPPING"
         if self.capture.ready is None:
             await self.close()

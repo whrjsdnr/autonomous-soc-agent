@@ -408,3 +408,24 @@ async def test_failed_helper_close_never_leaves_cleanup_not_started(tmp_path, mo
     assert source.capture.closed.is_set()
     proof = json.loads((path / "cleanup.json").read_text())
     assert not proof["authenticated_closed"] and proof["global_kernel_cleanup"] == "UNKNOWN"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("first_error", [None, "ORIGINAL_HELPER_FAILURE"])
+async def test_repeated_stop_preserves_terminal_state_and_cleanup_receipt(
+    tmp_path, monkeypatch, first_error
+):
+    path, session, pin = prepared(tmp_path)
+    monkeypatch.setattr(dns_source, "load", lambda _: session)
+    source = dns_source.DNSProducer(path, pin)
+    source.last_error = first_error
+    await source.request_stop()
+    expected = "FAILED" if first_error else "STOPPED"
+    assert source.state == expected
+    before = (path / "cleanup.json").read_bytes()
+    status = source.snapshot
+    await source.request_stop()
+    assert source.state == expected
+    assert source.last_error == first_error
+    assert source.snapshot["cleanup"] == status["cleanup"]
+    assert (path / "cleanup.json").read_bytes() == before
