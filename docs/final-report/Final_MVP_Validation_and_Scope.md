@@ -1,4 +1,8 @@
+> 2026-11-02 야간 복구 갱신: 이 문서의 시험 수치와 경로는 해당 시점의 기록이다. 현재 실행 안내와 미완료 항목은 [One Command Guide](One_Command_Operation_Guide.md), [Full E2E RCA](Full_E2E_Blocker_RCA.md), [Readiness](Full_E2E_Integration_Readiness.md)를 우선한다. 과거 패키지는 재실행하지 않는다.
+
 # 최종 MVP 배치·검증 및 통합시험 상태
+
+이문서는실행전배치/승인준비기록이다. 이후실제시험은실패했다. 최신결과는 [실제시험실패와수정](Final_MVP_Native_Result.md)을우선한다. 아래당시패키지/Session은소비됐으므로다시start하지않는다.
 
 작성일2026-11-02. 대상저장소 `/home/geonug/kdt-linux/autonomous-soc-agent`.
 

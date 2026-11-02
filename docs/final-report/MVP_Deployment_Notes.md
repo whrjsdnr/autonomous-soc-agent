@@ -1,3 +1,5 @@
+> 2026-11-02 야간 복구 갱신: 이 문서의 시험 수치와 경로는 해당 시점의 기록이다. 현재 실행 안내와 미완료 항목은 [One Command Guide](One_Command_Operation_Guide.md), [Full E2E RCA](Full_E2E_Blocker_RCA.md), [Readiness](Full_E2E_Integration_Readiness.md)를 우선한다. 과거 패키지는 재실행하지 않는다.
+
 # 연구·시연용 MVP 배치와 보존 경계
 
 두 경로는 같은 Git 저장소의 Worktree다. 개발 검증본4633e52/코드1fcbff2를 대상 저장소의 `releases/research-mvp` Worktree에 배치했다. 별도 로컬 `.venv`는 기존 uv.lock을 `uv sync --offline --frozen`으로 사용했다. Host 패키지·서비스·Root 설치를 변경하지 않았다.
@@ -11,3 +13,6 @@
 검증 범위는 제한Native Packet/DNS/RF-LR/Incident/SOCRuntime/SCRIPTED조사/GUI/Audit/소유Cleanup과별도실제LLMPlan/Read-onlyTool이다. 20분·1시간Native연속운영,Helper송신공백원인,실제LLMAssessment,HostAuthIF전체E2E,DNS9학습Feature계약,GlobalKernelCleanup,상용무인운영은미검증또는UNKNOWN/Timeout을유지한다.
 
 Native 실행 승인이 이 문서나 배치로 생성되지 않는다. 기존 소비 영수증·Session을 재사용하지 않고, 새 검토 패키지·정책/R1/Root/Native/DNS/트래픽 승인과 사용자 Scope·sudo 인증 뒤 최대1회만 실행한다. 모델Action·외부API·HostAuth·DNS9는 별도 계약 없이 실행하지 않는다.
+
+
+후속안정화: 실제bbaeccd 제한시험은ProducerReceiveTimeout으로실패했다. 소유Cleanup은VERIFIED이며원본증거는보존했다. 후보운영코드2cfcf7e는Control공유lock내데이터해석과검증전발행을수정했다. 실제원인과의인과는UNKNOWN이며Root재설치/재실행전새Binding검토가필요하다. [이번실제결과](Final_MVP_Native_Result.md)와새Runbook을우선한다.

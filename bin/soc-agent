@@ -1,0 +1,11 @@
+#!/bin/sh
+# Project-local entry into the fixed Research MVP worktree. Never invokes sudo.
+set -eu
+entry_path=$(/usr/bin/readlink -f -- "$0")
+project_dir=$(CDPATH= cd -- "$(dirname -- "$entry_path")/.." && pwd)
+entry="$project_dir/releases/research-mvp/.venv/bin/soc-agent"
+if [ ! -x "$entry" ]; then
+    printf '%s\n' 'Research MVP CLI is not installed. See docs/final-report/One_Command_Operation_Guide.md.' >&2
+    exit 2
+fi
+exec "$entry" "$@"

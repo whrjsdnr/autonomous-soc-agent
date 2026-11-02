@@ -87,3 +87,10 @@ RF/LR은실제봉인ELIGIBLE작업별Action승인후에만수행한다. APIAsses
 ## 대상 경로 배치 후 추가 검증 — 2026-11-02
 
 `releases/research-mvp` Worktree의 별도 잠금 venv에서 Workspace1453PASS/1SKIP(542.92초),독립Export1453PASS/1SKIP(538.95초). 두 실행 모두Source672개SHA변경0. 스킵1은명시적읽기전용retained-session옵트인필요사례다. Native/Supervisor/Wheel각Workspace2회+Export재현일치;보존실제Native GUI2회재연결에서Prediction8/RuntimeCleanupVERIFIED확인,원본66파일변경0. 이는새Live시험이아니다. 기존루트사용자파일164개·설치8개·증거2554개·Ledger81행을보존했다. 세부범위는 [최종배치검증](Final_MVP_Validation_and_Scope.md),명령은 [Runbook](Native_MVP_Test_Runbook.md).
+
+
+## 2026-11-02 야간 전체 통합 복구 갱신
+
+운영 코드9cd24ee에서 Workspace/Export 각각1507 PASS·1 SKIP, Native/legacy/Supervisor/Wheel 3회 SHA 일치를 확인했다. 실제 CLI 저장 PCAP,13개 미처리 작업 격리 복구, 실제 GUI 진입/재연결도 수행했다. 세부 수치·원인·실패·새Binding·미완료 UX는 [Readiness](Full_E2E_Integration_Readiness.md)와 [RCA](Full_E2E_Blocker_RCA.md)에 기록한다. 실제 Root/Native/DNS/API 호출은 야간 작업에서0회다.
+
+최종2064af1: Workspace/Export 각각1509 PASS·1 SKIP, 제한 Schema 정상/거부를 포함한 집중201 PASS, 3회 재현 빌드 일치. 현재 최종 패키지는v3이며 9cd24ee 수치는 이전 단계 기록이다. 실제 보존 PCAP/DNS 메타데이터의 FAKE_HTTP 조사와 GUI도 검증했다.
