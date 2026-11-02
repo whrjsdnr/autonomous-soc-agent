@@ -139,6 +139,10 @@ class TCXProducer:
         self.snapshot = {}
         self.cpus = {}
         self.stop_ack = asyncio.Event()
+        self.transport_stop_ack = asyncio.Event()
+        self.receiver_generation = None
+        self.receiver_observed = False
+        self._stop_generation = None
         self.remote_cleanup = "UNKNOWN"
         self.sealed_epoch = None
         self.last_message_unix = None
@@ -214,6 +218,12 @@ class TCXProducer:
                 if raw["contract"] == "soc-continuous-tcx-control:v1":
                     self.control_record(raw)
                     continue
+                generation = raw.get("generation")
+                if raw["contract"] == "soc-continuous-tcx:v1" and type(generation) is int:
+                    if not 0 < generation < 2**64:
+                        raise ValueError("CONTINUOUS_PRODUCER_IDENTITY")
+                    self.receiver_observed = True
+                    self.receiver_generation = None if raw.get("seal") is not None else generation
                 if raw.get("frames"):
                     self.last_data_monotonic = self.last_message_monotonic
                 try:
@@ -230,6 +240,18 @@ class TCXProducer:
                     raise ValueError("CONTINUOUS_PRODUCER_RECEIVER_QUEUE_FULL") from error
                 self.receiver_queue_depth = queue.qsize()
                 if raw["contract"] == "soc-continuous-tcx-stop:v1":
+                    # Control receipt is independent of projection. It cannot
+                    # grant capture completeness, stop_ack or remote_cleanup:
+                    # ordered records() must still validate the final seal/epoch.
+                    if self._stop_generation is not None:
+                        if raw.get("generation") != self._stop_generation:
+                            raise ValueError("CONTINUOUS_STOP_ACK_BINDING")
+                        self.cleanup_evidence["transport_ack"] = dict(
+                            ack=dict(raw),
+                            observed_monotonic=time.monotonic(),
+                            admission="PENDING_ORDERED_DATA_DRAIN_NOT_CLEANUP_VERIFICATION",
+                        )
+                        self.transport_stop_ack.set()
                     return
 
         reader = asyncio.create_task(receive())
@@ -642,12 +664,14 @@ class TCXProducer:
                 if self.cleanup_evidence.get("stop_send_error"):
                     raise ValueError("CONTINUOUS_STOP_SEND_OUTCOME_UNVERIFIED")
                 return
-            if self.socket is None or self.epoch is None:
+            generation = self.stop_generation
+            if self.socket is None or generation is None:
                 raise ValueError("CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER")
+            self._stop_generation = generation
             body = json.dumps(
                 dict(
                     operation="STOP_CAPTURE",
-                    generation=self.epoch,
+                    generation=generation,
                     policy_sha256=self.config.input_sha256,
                 )
             ).encode()
@@ -663,7 +687,16 @@ class TCXProducer:
             self._stop_sent = True
             self.cleanup_evidence["stop_send_completed_monotonic"] = time.monotonic()
 
-    async def request_stop(self):
+    async def request_control_stop(self):
+        await self.request_stop(transport_only=True)
+
+    @property
+    def stop_generation(self):
+        # A received seal closed the old epoch even if projection is still slow.
+        # Never fall back to that stale epoch during the attach rotation gap.
+        return self.receiver_generation if self.receiver_observed else self.epoch
+
+    async def request_stop(self, *, transport_only=False):
         # A bound STOP ACK remains proof after events() closes the owned socket.
         if self.stop_ack.is_set():
             if self.remote_cleanup != "VERIFIED":
@@ -678,12 +711,17 @@ class TCXProducer:
                 if self.remote_cleanup != "VERIFIED":
                     raise ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED")
                 return
-            if self.epoch is not None:
+            if self.stop_generation is not None:
                 break
             await asyncio.sleep(0.05)
-        if self.epoch is None:
+        if self.stop_generation is None:
             raise ValueError("CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER")
         await self.send_stop(asyncio.get_running_loop())
+        if transport_only:
+            await asyncio.wait_for(self.transport_stop_ack.wait(), 5)
+            if self.cleanup_evidence["transport_ack"]["ack"].get("cleanup") != "VERIFIED":
+                raise ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED")
+            return
         await asyncio.wait_for(self.stop_ack.wait(), 5)
         if self.remote_cleanup != "VERIFIED":
             raise ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED")

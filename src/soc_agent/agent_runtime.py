@@ -408,10 +408,7 @@ def stop(home: Path, timeout: float | None = None) -> dict:
         return stopped_result(current, already=True)
     if not selected.runtime.exists():
         raise ValueError("AGENT_RUNTIME_NOT_STARTED")
-    store = Store(selected.runtime)
-    if store.config != selected.configuration:
-        raise ValueError("AGENT_AUTHORITATIVE_CONFIG_CHANGED")
-    store.control(stop=True)
+    service.request_stop(selected.runtime, expected_config=selected.configuration)
     deadline = time.monotonic() + (
         timeout if timeout is not None else selected.configuration.shutdown_seconds + 35
     )

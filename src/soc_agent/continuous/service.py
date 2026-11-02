@@ -8,6 +8,7 @@ import asyncio
 import json
 import os
 import resource
+import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -108,6 +109,7 @@ class ContinuousRuntime:
         self.worker_state = "STOPPED"
         self.last_error = None
         self.stop_reason = None
+        self.signal_stop_request = None
         self.collector_failure = None
         self.circuit = False
         self.worker_failures = 0
@@ -154,6 +156,24 @@ class ContinuousRuntime:
         self.worker_observed_unix = None
         self.storage_lock = asyncio.Lock()
         self.storage_health = dict(pending=False, last_seconds=None, max_seconds=0.0)
+        self.cached_queue = {}
+        self.cached_authentication = {"state": "NOT_ATTACHED", "events": None}
+        self.control_sequence = 0
+        self.control_writer = None
+        self.control_health = dict(last_seconds=None, max_seconds=0.0, error=None)
+        self.data_progress = dict(active=False, operation=None, started_monotonic=None)
+        self.control_identity = None
+        self.data_stall_evidence = None
+        self.data_stalled = False
+        self.data_degradation_count = 0
+        self.data_recovery_count = 0
+        self.control_stop_error = None
+        self.control_stop_completed = False
+        self.observation_task = None
+        if sys.platform == "linux":
+            from soc_agent.continuous.process_identity import runtime_identity
+
+            self.control_identity = runtime_identity(os.getpid())
 
     def snapshot(self, *, queue_counts=None, authentication=None):
         analysis = self.analysis.snapshot()
@@ -173,6 +193,8 @@ class ContinuousRuntime:
             source=self.config.source,
             state="DEGRADED"
             if self.circuit
+            or self.data_stalled
+            or self.last_error
             or self.collector_state == "CIRCUIT_OPEN"
             or getattr(self.source, "failure", None)
             else "RUNNING",
@@ -185,6 +207,7 @@ class ContinuousRuntime:
             worker=self.worker_state,
             collection_live=(
                 self.config.source == "NATIVE_SERVICE"
+                and not self.last_error
                 and not getattr(self.source, "failure", None)
                 and self.metrics["native_events"] > 0
                 and self.source.state in ("RUNNING", "DEGRADED")
@@ -241,6 +264,8 @@ class ContinuousRuntime:
                 else "REPLAY_EVENT_NOT_LIVE_CAPTURE",
                 automatic_kernel_restart=False,
                 storage=dict(self.storage_health),
+                data_progress=dict(self.data_progress),
+                publication=dict(self.control_health),
             ),
             uptime_seconds=time.monotonic() - self.started,
             clock_epoch=str(self.epoch),
@@ -253,6 +278,7 @@ class ContinuousRuntime:
             or (getattr(self.source, "failure", None) or {}).get("code")
             or getattr(self.dns_source, "last_error", None),
             stop_reason=self.stop_reason,
+            runtime_stop_request=self.signal_stop_request,
             analysis=analysis,
             recent_results=list(self.last_results),
             dns=self.dns.snapshot(),
@@ -277,21 +303,33 @@ class ContinuousRuntime:
         )
 
     async def storage(self, operation: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
-        """Keep Native fsync/SQLite work off the authenticated receiver's event loop.
+        """Keep durable fsync/SQLite work off the live Runtime's event loop.
 
         Serialize writes and join them before declaring cancellation/cleanup. The
         durable operation and all of its validation remain unchanged.
         """
-        if self.config.source != "NATIVE_SERVICE":
+        if self.config.source != "NATIVE_SERVICE" and self.control_identity is None:
             return operation(*args, **kwargs)
+        observing = asyncio.current_task() is self.observation_task
+        if observing:
+            self.data_progress["stage_started_monotonic"] = time.monotonic()
         async with self.storage_lock:
             started = time.monotonic()
+            if observing:
+                # Acquiring the ordered storage slot starts a new bounded stage.
+                # Queue wait + active I/O are not one operation's stall interval.
+                self.data_progress["stage_started_monotonic"] = started
             self.storage_health.update(
-                pending=True, operation=getattr(operation, "__name__", type(operation).__name__)
+                pending=True,
+                operation=getattr(operation, "__name__", type(operation).__name__),
+                started_monotonic=started,
             )
             pending = asyncio.create_task(asyncio.to_thread(operation, *args, **kwargs))
             try:
-                return await asyncio.shield(pending)
+                result = await asyncio.shield(pending)
+                if asyncio.current_task() is self.observation_task:
+                    self.data_progress["advanced_monotonic"] = time.monotonic()
+                return result
             except asyncio.CancelledError:
                 await pending
                 raise
@@ -301,21 +339,149 @@ class ContinuousRuntime:
                     pending=False,
                     last_seconds=elapsed,
                     max_seconds=max(elapsed, self.storage_health["max_seconds"]),
+                    max_operation=(
+                        getattr(operation, "__name__", type(operation).__name__)
+                        if elapsed >= self.storage_health["max_seconds"]
+                        else self.storage_health.get("max_operation")
+                    ),
+                    completed_monotonic=time.monotonic(),
                 )
+
+    def storage_size(self):
+        return sum(p.stat().st_size for p in self.directory.rglob("*") if p.is_file())
 
     async def observed_snapshot(self):
         # Evaluate SQLite/host status inside the storage boundary, not as Python
         # arguments before to_thread(). Slow status I/O must not stop IPC reads.
         counts = await self.storage(self.store.queue.counts)
+        self.cached_queue = counts
         authentication = {"state": "NOT_ATTACHED", "events": None}
         if self.config.authentication_runtime:
             from soc_agent.linux_runtime.operator import status
 
             authentication = await self.storage(status, self.config.authentication_runtime)
+        self.cached_authentication = authentication
         return self.snapshot(queue_counts=counts, authentication=authentication)
 
     async def publish(self):
-        await self.storage(self.store.update, await self.observed_snapshot())
+        await self.storage(
+            self.store.update, await self.observed_snapshot(), publish=self.control_identity is None
+        )
+
+    async def control(self):
+        """Publish loop liveness independently of durable data/Queue/Audit writes.
+
+        A live loop with stalled work is DEGRADED, never evidence of data progress.
+        Atomic publication cannot guarantee a responsive filesystem; writer failure
+        stops admission and the observer's unchanged five-second lease fails closed.
+        """
+        stop_sender = asyncio.create_task(self.control_stop())
+        stalled = False
+        try:
+            while True:
+                stopping = self.stop.is_set()
+                stamp = time.monotonic()
+                storage = self.storage_health
+                progress = self.data_progress
+                stalled = bool(
+                    storage.get("pending")
+                    and stamp - storage["started_monotonic"] >= 5
+                    or progress.get("active")
+                    and stamp
+                    - max(
+                        progress["started_monotonic"],
+                        progress.get("advanced_monotonic", 0),
+                        progress.get("stage_started_monotonic", 0),
+                    )
+                    >= 5
+                )
+                if stalled and not self.data_stalled:
+                    self.data_degradation_count += 1
+                elif self.data_stalled and not stalled:
+                    self.data_recovery_count += 1
+                self.data_stalled = stalled
+                progress.update(
+                    stalled=stalled,
+                    reason="CONTINUOUS_DATA_PROGRESS_STALLED" if stalled else None,
+                    degradation_count=self.data_degradation_count,
+                    recovery_count=self.data_recovery_count,
+                )
+                if stalled:
+                    if self.data_stall_evidence is None:
+                        self.data_stall_evidence = dict(
+                            observed_monotonic=stamp,
+                            storage=dict(storage),
+                            data_progress=dict(progress),
+                        )
+                    # A slow in-flight durable write is not a failed write or
+                    # lost control heartbeat. Expose DEGRADED and retain evidence;
+                    # actual I/O errors, overflow and control failure still stop.
+                value = self.snapshot(
+                    queue_counts=dict(self.cached_queue),
+                    authentication=dict(self.cached_authentication),
+                )
+                if stopping and not self.last_error:
+                    value.update(state="STOPPING", collection_live=False)
+                self.control_sequence += 1
+                value["control"] = dict(
+                    contract="soc-runtime-control:v1",
+                    identity=self.control_identity,
+                    sequence=self.control_sequence,
+                    monotonic=stamp,
+                    lease_seconds=5,
+                    data_stalled=bool(stalled),
+                    queue_scope="LAST_COMPLETED_READ_NOT_LIVENESS",
+                )
+                started = time.monotonic()
+                self.control_writer = asyncio.create_task(
+                    asyncio.to_thread(self.store.publish_observation, value, durable=False)
+                )
+                try:
+                    await asyncio.wait_for(asyncio.shield(self.control_writer), 5)
+                except BaseException as error:
+                    if not isinstance(error, asyncio.CancelledError):
+                        self.control_health["error"] = type(error).__name__ + ":" + str(error)
+                        self.last_error = (
+                            self.last_error or "CONTINUOUS_HEARTBEAT_PUBLICATION_FAILED"
+                        )
+                    raise
+                elapsed = time.monotonic() - started
+                self.control_health.update(
+                    last_seconds=elapsed,
+                    max_seconds=max(elapsed, self.control_health["max_seconds"]),
+                    completed_monotonic=time.monotonic(),
+                )
+                if stopping:
+                    break
+                if not self.stop.is_set():
+                    try:
+                        await asyncio.wait_for(
+                            self.stop.wait(), min(1.0, self.config.heartbeat_seconds)
+                        )
+                    except TimeoutError:
+                        pass
+        except BaseException as error:
+            if not isinstance(error, asyncio.CancelledError) and not stalled:
+                self.control_health["error"] = type(error).__name__ + ":" + str(error)
+                self.last_error = self.last_error or "CONTINUOUS_HEARTBEAT_PUBLICATION_FAILED"
+            self.stop.set()
+            raise
+        finally:
+            self.stop.set()
+            await stop_sender
+
+    async def control_stop(self):
+        """Send/observe the STOP transport independently even if health writing stalls."""
+        await self.stop.wait()
+        if self.config.source == "NATIVE_SERVICE":
+            # Existing authenticated STOP, no reconnect or authority acquisition.
+            # Do not wait for SQLite or a durable observer snapshot to send it.
+            try:
+                request = getattr(self.source, "request_control_stop", self.source.request_stop)
+                await request()
+                self.control_stop_completed = True
+            except BaseException as error:
+                self.control_stop_error = error
 
     async def handoff(self, job):
         self.metrics["flows"] += int(job.kind == "packet_window")
@@ -332,7 +498,7 @@ class ContinuousRuntime:
 
             # Count independently validated vectors, not the sealed job envelope.
             # This is a display metric, never an inference or approval grant.
-            rows = candidates(job)[2]
+            rows = (await self.storage(candidates, job))[2]
             self.metrics["flows"] += len(rows)
             self.metrics["eligible"] += sum(row["eligible"] for row in rows)
             self.metrics["incomplete"] += sum(not row["eligible"] for row in rows)
@@ -372,6 +538,19 @@ class ContinuousRuntime:
             await self.handoff(job)
 
     async def observe(self, raw, *, recovering=False):
+        self.observation_task = asyncio.current_task()
+        self.data_progress.update(
+            active=True,
+            operation="observe:" + str(raw.get("kind") if isinstance(raw, dict) else "INVALID"),
+            started_monotonic=time.monotonic(),
+        )
+        try:
+            return await self._observe(raw, recovering=recovering)
+        finally:
+            self.data_progress.update(active=False, completed_monotonic=time.monotonic())
+            self.observation_task = None
+
+    async def _observe(self, raw, *, recovering=False):
         if (
             not isinstance(raw, dict)
             or type(raw.get("sequence")) is not int
@@ -410,8 +589,10 @@ class ContinuousRuntime:
             raise ValueError("CONTINUOUS_SOURCE_JOB_DOMAIN_NOT_ALLOWED")
         already_seen = False
         if kind not in ("native_tcx", "native_seal"):
-            already_seen = self.store.seen(
-                identity, {key: value for key, value in raw.items() if key != "sequence"}
+            already_seen = await self.storage(
+                self.store.seen,
+                identity,
+                {key: value for key, value in raw.items() if key != "sequence"},
             )
         if already_seen and not recovering:
             self.metrics["duplicates"] += 1
@@ -423,7 +604,7 @@ class ContinuousRuntime:
             # Restart replays it through the same decoder; no partial window becomes sealed.
             key = "native-window:" + raw["id"]
             if await self.storage(self.store.retain_auxiliary, key, raw):
-                jobs, capture = self.capture_windows.accept(raw)
+                jobs, capture = await self.storage(self.capture_windows.accept, raw)
                 if capture is not None:
                     await self.storage(
                         self.store.event, "CONTINUOUS_CAPTURE_WINDOW_REASSESSED", capture
@@ -445,7 +626,8 @@ class ContinuousRuntime:
                 cursor, record = normalized(raw["authentication"], self.config.input_sha256)
                 jobs = self.auth.observe(record, source_digest=self.config.input_sha256)
                 self.metrics["authentication_inputs"] += 1
-                self.store.event(
+                await self.storage(
+                    self.store.event,
                     "CONTINUOUS_AUTH_CURSOR_RETAINED",
                     dict(cursor_digest=digest(cursor), event=str(record.record_id)),
                 )
@@ -459,7 +641,7 @@ class ContinuousRuntime:
             for job in jobs:
                 self.metrics["auth_windows"] += 1
                 await self.handoff(job)
-            self.store.applied(raw["sequence"])
+            await self.storage(self.store.applied, raw["sequence"])
             return
         if kind == "packet":
             packet = PacketObservation.model_validate(raw["packet"])
@@ -498,13 +680,13 @@ class ContinuousRuntime:
             window = ns // (self.config.metadata_window_seconds * 10**9)
             if self.dns_window is not None and window != self.dns_window:
                 for item in self.dns.finish():
-                    self.store.event("CONTINUOUS_DNS_TRANSACTION", item)
+                    await self.storage(self.store.event, "CONTINUOUS_DNS_TRANSACTION", item)
                 from soc_agent.security_ai.research.isolated_dns import IsolatedDNS
 
                 self.dns = IsolatedDNS(str(self.epoch) + ":" + str(window))
             self.dns_window = window
             for item in self.dns.observe(packet, raw["sequence"]):
-                self.store.event("CONTINUOUS_DNS_TRANSACTION", item)
+                await self.storage(self.store.event, "CONTINUOUS_DNS_TRANSACTION", item)
             if self.last_event_ns is not None and ns < self.last_event_ns:
                 self.metrics["source_gaps"] += 1
                 await self.complete(self.aggregator.close("RESTART_GAP"), self.last_event_ns)
@@ -536,7 +718,7 @@ class ContinuousRuntime:
                 self.aggregator = StreamingFlows(max_flows=self.config.max_active_flows)
         else:
             raise ValueError("CONTINUOUS_SOURCE_RECORD_KIND")
-        self.store.applied(raw["sequence"])
+        await self.storage(self.store.applied, raw["sequence"])
 
     async def project_dns(self, raw, *, recovering=False):
         """Durable metadata only; never manufactures a Replay/model job from DNS."""
@@ -663,19 +845,21 @@ class ContinuousRuntime:
                         )
                         raise
                 except QueueFull:
-                    self.store.event("CONTINUOUS_JOURNAL_BACKPRESSURE", {})
+                    await self.storage(self.store.event, "CONTINUOUS_JOURNAL_BACKPRESSURE", {})
                 while not self.stop.is_set():
-                    held = self.journal.claim()
+                    held = await self.storage(self.journal.claim)
                     if held is None:
                         break
                     claim, message = held
                     try:
-                        fresh = self.store.retain_auxiliary(str(claim.event.event_id), message)
+                        fresh = await self.storage(
+                            self.store.retain_auxiliary, str(claim.event.event_id), message
+                        )
                         if fresh:
                             await self.project_journal(message)
-                        self.journal.acknowledge_retained(claim)
+                        await self.storage(self.journal.acknowledge_retained, claim)
                     except BaseException:
-                        self.journal.queue.fail(claim, "WORKER_FAILURE")
+                        await self.storage(self.journal.queue.fail, claim, "WORKER_FAILURE")
                         raise
                 await asyncio.sleep(self.config.heartbeat_seconds)
         finally:
@@ -759,13 +943,13 @@ class ContinuousRuntime:
             return
         from soc_agent.security_ai.tcx_input import candidates
 
-        receipts = candidates(job)[2]
+        receipts = (await self.storage(candidates, job))[2]
         if job.origin == "REAL_NATIVE" and any(r["eligible"] for r in receipts):
             from soc_agent.security_ai.tcx_analysis import analysis_action
 
             pin = digest(job.model_dump(mode="json"))
             output = self.analysis.directory / ("run-" + pin)
-            action = analysis_action(job, output)
+            action = await self.storage(analysis_action, job, output)
             await self.storage(
                 self.store.event,
                 "CONTINUOUS_MODEL_APPROVAL_WAIT",
@@ -807,8 +991,8 @@ class ContinuousRuntime:
                 continue
             try:
                 self.worker_state = "ANALYZING"
-                path = self.store.input_path(claim.event)
-                body = read_local(path, 1024 * 1024)
+                path = await self.storage(self.store.input_path, claim.event)
+                body = await self.storage(read_local, path, 1024 * 1024)
                 if digest(json.loads(body)) != dict(claim.event.normalized_fields)["job_digest"]:
                     raise ValueError("CONTINUOUS_INPUT_CHANGED")
                 await self.start_analysis(path, body)
@@ -826,26 +1010,6 @@ class ContinuousRuntime:
                     raise ValueError("CONTINUOUS_MODEL_WORKER_FAILURE")
                 if outcome["classification"] == "MODEL_ERROR":
                     raise ValueError("CONTINUOUS_MODEL_RESULT_FAILURE")
-                self.metrics["predictions"] += outcome["inference_count"]
-                self.metrics["incidents"] += 1
-                self.last_results = (
-                    self.last_results
-                    + [
-                        dict(
-                            incident_id=outcome["incident_id"],
-                            origins=outcome.get("input_origins", []),
-                            domains=outcome.get("evidence_domains", []),
-                            investigation=outcome.get("investigation_status", "UNKNOWN"),
-                            classification=outcome["classification"],
-                            eligibility=outcome["eligibility"],
-                            llm_mode=outcome["llm_mode"],
-                            output=value["output"],
-                            predictions=outcome["predictions"],
-                            response=outcome["response_status"],
-                            audit=outcome["audit"],
-                        )
-                    ]
-                )[-32:]
                 if self.investigations is not None:
                     from soc_agent.continuous.investigation import from_analysis
 
@@ -875,6 +1039,26 @@ class ContinuousRuntime:
                         human_boundary="WRITE_DENIED",
                     ),
                 )
+                self.metrics["predictions"] += outcome["inference_count"]
+                self.metrics["incidents"] += 1
+                self.last_results = (
+                    self.last_results
+                    + [
+                        dict(
+                            incident_id=outcome["incident_id"],
+                            origins=outcome.get("input_origins", []),
+                            domains=outcome.get("evidence_domains", []),
+                            investigation=outcome.get("investigation_status", "UNKNOWN"),
+                            classification=outcome["classification"],
+                            eligibility=outcome["eligibility"],
+                            llm_mode=outcome["llm_mode"],
+                            output=value["output"],
+                            predictions=outcome["predictions"],
+                            response=outcome["response_status"],
+                            audit=outcome["audit"],
+                        )
+                    ]
+                )[-32:]
                 self.worker_failures = 0
             except asyncio.CancelledError:
                 self.approval_wait_cancelled = (
@@ -912,7 +1096,7 @@ class ContinuousRuntime:
                 )
                 if self.worker_failures >= self.config.worker_circuit_failures:
                     self.circuit = True
-                    self.last_error = "CONTINUOUS_MODEL_CIRCUIT_OPEN"
+                    self.last_error = self.last_error or "CONTINUOUS_MODEL_CIRCUIT_OPEN"
             await self.publish()
 
     async def run(self):
@@ -920,9 +1104,13 @@ class ContinuousRuntime:
             raise ValueError("CONTINUOUS_AI_SERVICE_REQUIRES_ORDINARY_UID")
         require_source_authority(self.config)
         with exclusive_runtime_lock(self.directory / "service.lock"):
-            collector = consumer = journal = dns_task = investigation_worker = None
+            collector = consumer = journal = dns_task = investigation_worker = control = None
             primary = None
             try:
+                # Clear the prior invocation's flags before the first asynchronous
+                # initialization. A STOP arriving during that initialization must
+                # survive until the supervisor reads it.
+                self.store.control()
                 from soc_agent.continuous.investigation import isolated_consume as investigate
                 from soc_agent.continuous.investigation_store import InvestigationTasks
 
@@ -941,7 +1129,6 @@ class ContinuousRuntime:
                     self.dns_source = DNSProducer(
                         self.config.dns_session, self.config.dns_session_sha256
                     )
-                self.store.control()
                 self.store.queue.recover()
                 self.store.event(
                     "CONTINUOUS_SERVICE_STARTED",
@@ -957,7 +1144,7 @@ class ContinuousRuntime:
                 if self.config.source == "NATIVE_SERVICE":
                     for raw in self.store.auxiliary():
                         if raw.get("kind") in ("native_tcx", "native_seal"):
-                            jobs, _ = self.capture_windows.accept(raw)
+                            jobs, _ = await self.storage(self.capture_windows.accept, raw)
                             for job in jobs:
                                 await self.handoff(job)
                         elif raw.get("kind") == "native_dns":
@@ -972,23 +1159,27 @@ class ContinuousRuntime:
                     dns_task = asyncio.create_task(self.collect_dns())
                 collector = asyncio.create_task(self.collect())
                 consumer = asyncio.create_task(self.consume())
+                if self.control_identity is not None:
+                    control = asyncio.create_task(self.control())
                 while not self.stop.is_set():
+                    if control and control.done():
+                        control.result()
                     current = await self.storage(self.store.state)
                     if current["stop_requested"]:
-                        self.stop_reason = "OPERATOR_REQUEST"
+                        self.stop_reason = self.stop_reason or "OPERATOR_REQUEST"
                         await self.storage(
                             self.store.update,
                             (await self.observed_snapshot()) | dict(state="STOPPING"),
                         )
-                        if self.config.source == "NATIVE_SERVICE":
+                        if self.config.source == "NATIVE_SERVICE" and control is None:
                             await self.source.request_stop()
                         self.stop.set()
                         break
                     if current["reset_worker"]:
                         self.circuit = False
                         self.worker_failures = 0
-                        self.store.control()
-                        self.store.event("CONTINUOUS_WORKER_RESET", {})
+                        await self.storage(self.store.control)
+                        await self.storage(self.store.event, "CONTINUOUS_WORKER_RESET", {})
                     if investigation_worker.done():
                         investigation_worker.result()
                         if not self.stop.is_set():
@@ -996,7 +1187,8 @@ class ContinuousRuntime:
                     self.investigation_snapshot = await self.storage(self.investigations.snapshot)
                     if consumer.done():
                         consumer.result()
-                        raise ValueError("CONTINUOUS_WORKER_TASK_EXITED")
+                        if not self.stop.is_set():
+                            raise ValueError("CONTINUOUS_WORKER_TASK_EXITED")
                     if collector.done():
                         collector.result()
                         if self.config.source == "NATIVE_SERVICE" and not self.stop.is_set():
@@ -1009,13 +1201,17 @@ class ContinuousRuntime:
                         raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
                     if dns_task and dns_task.done():
                         dns_task.result()
-                        if not getattr(self.dns_source, "policy_duration_completed", False):
+                        if not self.stop.is_set() and not getattr(
+                            self.dns_source, "policy_duration_completed", False
+                        ):
                             raise ValueError("CONTINUOUS_DNS_TASK_EXITED")
-                    size = sum(p.stat().st_size for p in self.directory.rglob("*") if p.is_file())
+                    size = await self.storage(self.storage_size)
                     if size >= self.config.max_storage_bytes:
                         raise ValueError("CONTINUOUS_STORAGE_LIMIT_REQUIRES_ARCHIVAL")
                     await self.publish()
                     await asyncio.sleep(self.config.heartbeat_seconds)
+                if control and control.done():
+                    control.result()
             except BaseException as error:
                 primary = error
                 self.last_error = self.last_error or type(error).__name__
@@ -1025,6 +1221,26 @@ class ContinuousRuntime:
                 # Collect cleanup failures separately and preserve the first exception.
                 self.stop.set()
                 failures = []
+                if control:
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.shield(control), self.config.shutdown_seconds
+                        )
+                    except BaseException as error:
+                        if error is not primary and not isinstance(error, asyncio.CancelledError):
+                            failures.append(error)
+                if self.control_stop_error is not None:
+                    failures.append(self.control_stop_error)
+                writer_joined = True
+                if self.control_writer is not None:
+                    try:
+                        await asyncio.wait_for(
+                            asyncio.shield(self.control_writer), self.config.shutdown_seconds
+                        )
+                    except BaseException as error:
+                        writer_joined = self.control_writer.done()
+                        if error is not primary and error not in failures:
+                            failures.append(error)
                 if self.dns_source:
                     try:
                         await self.dns_source.request_stop()
@@ -1053,7 +1269,15 @@ class ContinuousRuntime:
                                 raise ValueError("CONTINUOUS_DNS_CLEANUP_UNVERIFIED")
                         except BaseException as error:
                             failures.append(error)
-                if self.config.source == "NATIVE_SERVICE" and collector and not collector.done():
+                if (
+                    self.config.source == "NATIVE_SERVICE"
+                    and collector
+                    and not collector.done()
+                    and not (
+                        self.control_stop_completed
+                        and not hasattr(self.source, "request_control_stop")
+                    )
+                ):
                     # SIGTERM sets stop directly, unlike the CLI control flag.
                     # Keep the receiver alive for the final seal and bound STOP ACK
                     # before cancelling it or closing the owner's socket.
@@ -1147,6 +1371,8 @@ class ContinuousRuntime:
                     cleanup = "UNVERIFIED" if failures else "VERIFIED"
                     if failures and self.last_error is None:
                         self.last_error = type(failures[0]).__name__ + ":" + str(failures[0])[:1000]
+                    if self.signal_stop_request is not None:
+                        self.store.event("CONTINUOUS_STOP_REQUEST", self.signal_stop_request)
                     if self.config.source == "NATIVE_SERVICE":
                         self.store.event(
                             "CONTINUOUS_TCX_CLEANUP_EVIDENCE",
@@ -1163,6 +1389,9 @@ class ContinuousRuntime:
                             metrics=dict(self.metrics),
                             first_error=self.last_error,
                             final_flush_error=flush_error,
+                            data_stall_evidence=self.data_stall_evidence,
+                            data_degradation_count=self.data_degradation_count,
+                            data_recovery_count=self.data_recovery_count,
                             cleanup=cleanup,
                             secondary_errors=[
                                 dict(category=type(e).__name__, code=str(e)[:1000])
@@ -1180,7 +1409,8 @@ class ContinuousRuntime:
                             final_flush="FAILED" if flush_error else "VERIFIED",
                             collection_live=False,
                             queue=self.store.queue.counts(),
-                        )
+                        ),
+                        publish=writer_joined,
                     )
                 except BaseException as error:
                     # Evidence cannot claim verified cleanup if its write failed;

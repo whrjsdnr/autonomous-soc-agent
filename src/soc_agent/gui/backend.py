@@ -423,11 +423,11 @@ class Backend:
         return await self.continuous_status()
 
     async def continuous_stop(self):
-        from soc_agent.continuous.store import Store
+        from soc_agent.continuous.cli import request_stop
 
         if self.continuous_directory is None:
             raise ValueError("CONTINUOUS_RUNTIME_NOT_ATTACHED")
-        await asyncio.to_thread(Store(self.continuous_directory).control, stop=True)
+        await asyncio.to_thread(request_stop, self.continuous_directory)
         return await self.continuous_status()
 
     async def continuous_reset(self):

@@ -53,3 +53,46 @@ async def test_gui_timeout_unknown_cost_failed_cleanup_and_reconnect(tmp_path, m
         finally:
             await close(root, app)
     assert store.state() == before  # GUI never rewrites cleanup or retries work.
+
+
+@pytest.mark.asyncio
+async def test_gui_control_alive_data_stalled_and_reconnect(tmp_path):
+    import time
+
+    from tests.unit.continuous.test_runtime import make
+    from tests.unit.continuous.test_storage_control_isolation import control_snapshot
+
+    directory, store = make(tmp_path)
+    for index in (1, 2):
+        value = control_snapshot(
+            state="DEGRADED",
+            last_error="CONTINUOUS_DATA_PROGRESS_STALLED",
+            component_health=dict(
+                storage=dict(
+                    pending=True, operation="audit_flush", started_monotonic=time.monotonic() - 6
+                ),
+                data_progress=dict(active=True, operation="window_seal"),
+                publication=dict(last_seconds=0.001, error=None),
+            ),
+        )
+        value["control"]["data_stalled"] = True
+        store.update(value)
+        root = tk.Tk()
+        app = Desktop(
+            root,
+            GUIConfig(
+                data_directory=tmp_path / f"control-gui-{index}", continuous_directory=directory
+            ),
+        )
+        try:
+            await idle(root, app)
+            app.navigate("Continuous")
+            await idle(root, app)
+            text = app.continuous_summary.cget("text")
+            assert "DEGRADED" in text and "DATA_PROGRESS_STALLED" in text
+            assert "soc-runtime-control:v1" in text and "window_seal" in text
+            assert "audit_flush" in text and "Publication:" in text
+            assert "Native live: False" in text
+        finally:
+            await close(root, app)
+        assert store.state()["last_error"] == "CONTINUOUS_DATA_PROGRESS_STALLED"

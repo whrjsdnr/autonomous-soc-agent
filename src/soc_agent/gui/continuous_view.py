@@ -157,6 +157,11 @@ def render(app, value):
             f"\nSource roles: {value.get('orchestration', {}).get('agents', {})}"
             f"\nProducer control: {producer_control.get('worker', 'NOT_RECORDED')} · "
             f"receive latency seconds: {producer_control.get('receive_latency_seconds', 'UNKNOWN')}"
+            f"\nRuntime control: {value.get('control', 'LEGACY_OBSERVATION')} · "
+            f"Storage: {value.get('component_health', {}).get('storage', 'UNKNOWN')}"
+            "\nData progress: "
+            f"{value.get('component_health', {}).get('data_progress', 'UNKNOWN')} · "
+            f"Publication: {value.get('component_health', {}).get('publication', 'UNKNOWN')}"
             f"\nAPI: {api_text}"
         )
     )

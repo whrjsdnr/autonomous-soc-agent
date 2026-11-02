@@ -29,6 +29,13 @@ def code_identity():
 
 
 def status(directory):
+    path = directory / "observation.json"
+    if path.exists() and "control" in json.loads(read_local(path, 262144)).get("snapshot", {}):
+        return observed_status(directory)
+    return stored_status(directory)
+
+
+def stored_status(directory):
     store = Store(directory)
     value = store.state()
     value["queue"] = store.queue.counts()
@@ -37,6 +44,15 @@ def status(directory):
 
 def observed_status(directory):
     """Atomic health/display view only. Never used for start/admission or approvals."""
+    record = observation(directory)
+    if record is None:
+        return stored_status(directory)
+    config = ContinuousConfig.model_validate(record["configuration"])
+    return _freshness(record["snapshot"], config.heartbeat_seconds)
+
+
+def observation(directory):
+    """Read one atomic, bound display record, without SQLite or a second read."""
     from uuid import UUID
 
     from soc_agent.review.persistence.secure_storage import validate_directory
@@ -44,7 +60,7 @@ def observed_status(directory):
     validate_directory(directory)
     path = directory / "observation.json"
     if not path.exists():
-        return status(directory)  # Read-only compatibility with prior Runtime versions.
+        return None  # Compatibility with prior Runtime versions.
     record = json.loads(read_local(path, 262144))
     if (
         not isinstance(record, dict)
@@ -58,13 +74,31 @@ def observed_status(directory):
     value = record["snapshot"]
     if not isinstance(value, dict) or value.get("source", config.source) != config.source:
         raise ValueError("CONTINUOUS_OBSERVATION_SOURCE")
-    return _freshness(value, config.heartbeat_seconds)
+    return record
 
 
 def _freshness(value, heartbeat_seconds):
-    value["heartbeat_stale"] = time.time() - value.get("heartbeat_unix", 0) > max(
-        10, heartbeat_seconds * 3
-    )
+    control = value.get("control")
+    if control is not None:
+        from soc_agent.continuous.process_identity import same_runtime
+
+        if (
+            not isinstance(control, dict)
+            or control.get("contract") != "soc-runtime-control:v1"
+            or type(control.get("monotonic")) not in (int, float)
+            or type(control.get("sequence")) is not int
+            or control["sequence"] <= 0
+            or control.get("lease_seconds") != 5
+            or not isinstance(control.get("identity"), dict)
+        ):
+            raise ValueError("CONTINUOUS_CONTROL_IDENTITY")
+        value["heartbeat_stale"] = not (
+            0 <= time.monotonic() - control["monotonic"] < 5 and same_runtime(control["identity"])
+        )
+    else:
+        value["heartbeat_stale"] = time.time() - value.get("heartbeat_unix", 0) > max(
+            10, heartbeat_seconds * 3
+        )
     terminal_failure = (
         value.get("state") == "DEGRADED"
         and value.get("collector") == value.get("worker") == "STOPPED"
@@ -87,6 +121,43 @@ def _freshness(value, heartbeat_seconds):
     return value
 
 
+def request_stop(directory: Path, *, expected_config=None):
+    """Signal only the bound ordinary CLI Runtime; no SQLite wait or Root control.
+
+    pidfd plus start/boot/UID and exact command binding prevent PID reuse. Old
+    Runtimes retain their original durable request path, never a guessed PID.
+    """
+    record = observation(directory)
+    control = record["snapshot"].get("control") if record else None
+    if control is None:
+        store = Store(directory)
+        if expected_config is not None and store.config != expected_config:
+            raise ValueError("AGENT_AUTHORITATIVE_CONFIG_CHANGED")
+        store.control(stop=True)
+        return
+    from soc_agent.continuous.process_identity import same_runtime
+
+    _freshness(
+        record["snapshot"],
+        ContinuousConfig.model_validate(record["configuration"]).heartbeat_seconds,
+    )
+    identity = control["identity"]
+    config = ContinuousConfig.model_validate(record["configuration"])
+    if expected_config is not None and config != expected_config:
+        raise ValueError("AGENT_AUTHORITATIVE_CONFIG_CHANGED")
+    fd = os.pidfd_open(identity["pid"])
+    try:
+        argv = Path(f"/proc/{identity['pid']}/cmdline").read_bytes().split(b"\0")
+        wanted = [b"-m", b"soc_agent.cli", b"continuous", b"run", os.fsencode(directory)]
+        if not same_runtime(identity) or not any(
+            argv[i : i + len(wanted)] == wanted for i in range(len(argv))
+        ):
+            raise ValueError("CONTINUOUS_STOP_PROCESS_BINDING")
+        signal.pidfd_send_signal(fd, signal.SIGTERM)
+    finally:
+        os.close(fd)
+
+
 def start(directory):
     store = Store(directory)
     require_source_authority(store.config)
@@ -97,7 +168,7 @@ def start(directory):
     with exclusive_runtime_lock(directory / "start.lock"):
         with exclusive_runtime_lock(directory / "service.lock"):
             pass
-        if status(directory).get("cleanup", "").startswith("UNVERIFIED"):
+        if stored_status(directory).get("cleanup", "").startswith("UNVERIFIED"):
             raise ValueError("CONTINUOUS_UNVERIFIED_CLEANUP_REVIEW_REQUIRED")
         log = os.open(
             directory / "service.log", os.O_WRONLY | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600
@@ -145,7 +216,20 @@ async def run(directory):
     service = ContinuousRuntime(directory)
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, service.stop.set)
+
+        def stop():
+            service.stop_reason = service.stop_reason or "OPERATOR_REQUEST"
+            if service.signal_stop_request is None:
+                service.signal_stop_request = dict(
+                    received_monotonic=time.monotonic(),
+                    received_unix=time.time(),
+                    identity=service.control_identity,
+                    origin="PROCESS_SIGNAL_NO_SENDER_ATTRIBUTION_OR_AUTHORITY_GRANT",
+                    audit="DEFERRED_UNTIL_DURABLE_STORAGE_AVAILABLE",
+                )
+            service.stop.set()
+
+        loop.add_signal_handler(sig, stop)
     await service.run()
 
 
@@ -202,9 +286,10 @@ def main(argv=None):
             asyncio.run(run(directory))
             result = status(directory)
         elif args.command in ("stop", "reset-worker"):
-            Store(directory).control(
-                stop=args.command == "stop", reset=args.command == "reset-worker"
-            )
+            if args.command == "stop":
+                request_stop(directory)
+            else:
+                Store(directory).control(reset=True)
             result = dict(status="REQUESTED_NOT_COMPLETED", action=args.command)
         else:
             # A real user-service unit for this ordinary runtime, not a Root

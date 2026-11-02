@@ -126,11 +126,20 @@ class Store:
             audit(c, code, binding_digest=pin)
             return True
 
-    def update(self, value):
+    def update(self, value, *, publish=True):
         with self.database.transaction() as c:
             c.execute(
                 "UPDATE continuous_state SET payload=?,digest=?", (json.dumps(value), digest(value))
             )
+        if publish:
+            self.publish_observation(value)
+
+    def publish_observation(self, value, *, durable=True):
+        """Atomic display only; live control publication never waits for SQLite.
+
+        Durable state, Queue and Audit still use their original transactions.
+        A live heartbeat is an ephemeral observation, not a commit receipt.
+        """
         # A committed display/health snapshot prevents GUI and external observers
         # from contending with ingestion writes. It is never admission authority.
         snapshot = dict(value)
@@ -156,14 +165,16 @@ class Store:
                 temporary = Path(stream.name)
                 stream.write(body)
                 stream.flush()
-                os.fsync(stream.fileno())
+                if durable:
+                    os.fsync(stream.fileno())
             os.replace(temporary, self.directory / "observation.json")
             temporary = None
-            descriptor = os.open(self.directory, os.O_DIRECTORY)
-            try:
-                os.fsync(descriptor)
-            finally:
-                os.close(descriptor)
+            if durable:
+                descriptor = os.open(self.directory, os.O_DIRECTORY)
+                try:
+                    os.fsync(descriptor)
+                finally:
+                    os.close(descriptor)
         finally:
             if temporary is not None:
                 temporary.unlink(missing_ok=True)

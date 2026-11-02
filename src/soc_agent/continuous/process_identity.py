@@ -1,5 +1,31 @@
 """Observed identity of an ordinary service after exec; never execution authority."""
 
+import os
+from pathlib import Path
+
+
+def runtime_identity(pid: int) -> dict:
+    """Same-boot PID/start identity; zombies are not running services."""
+    if type(pid) is not int or pid <= 0:
+        raise ValueError("CONTINUOUS_PROCESS_IDENTITY")
+    path = Path("/proc") / str(pid)
+    fields = (path / "stat").read_text().rsplit(")", 1)[1].split()
+    if fields[0] in {"Z", "X", "x"}:
+        raise ValueError("CONTINUOUS_PROCESS_EXITED")
+    return dict(
+        pid=pid,
+        start_ticks=fields[19],
+        uid=path.stat().st_uid,
+        boot_id=Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+    )
+
+
+def same_runtime(identity: dict) -> bool:
+    try:
+        return identity.get("uid") == os.getuid() and runtime_identity(identity["pid"]) == identity
+    except (OSError, ValueError, KeyError, TypeError):
+        return False
+
 
 def authenticated_producer_ready(value, *, policy_sha256, namespace, now):
     """Compare READY with the caller's verified request, never a previous trial pin.
