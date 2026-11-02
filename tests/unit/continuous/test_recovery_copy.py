@@ -130,3 +130,30 @@ def test_recovery_lineage_is_appended_not_an_execution_receipt(tmp_path):
     assert not lineage["native_authority"] and not lineage["dead_letters_requeued"]
     assert lineage["previous_code"] == lineage["current_code"] == code_identity()
     assert inspect_queue(target)["audit"] == "VERIFIED"
+
+
+@pytest.mark.asyncio
+async def test_completed_investigation_checkpoint_copy_keeps_every_parent_private(tmp_path):
+    import stat
+
+    from tests.integration.test_continuous_orchestration import Recorded, drained, source
+
+    from soc_agent.continuous.investigation import application
+    from soc_agent.continuous.investigation_store import InvestigationTasks
+
+    directory, store = baseline(tmp_path)
+    tasks = InvestigationTasks(store)
+    task = tasks.submit(source())
+    await drained(tasks, Recorded())
+    before = inventory(directory)
+    target = tmp_path / "recovered"
+    clone_replay(directory, target)
+    # Real SOCRuntime checkpoints create deep parent paths. A files-only copy
+    # must not accidentally recreate intermediate workflow directories as 0755.
+    copied = InvestigationTasks(Store(target))
+    assert all(stat.S_IMODE(p.stat().st_mode) == 0o700 for p in target.rglob("*") if p.is_dir())
+    client = Recorded()
+    await drained(copied, client)
+    assert client.calls == []  # Completed investigation cannot run again.
+    assert application(copied, task, client).checkpoint(task.incident_id)
+    assert inventory(directory) == before

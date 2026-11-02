@@ -111,7 +111,13 @@ def clone_replay(source: Path, target: Path) -> dict:
             ):
                 continue
             destination = target / relative
-            create_private_directory(destination.parent)
+            # pathlib parents=True only applies mode=0700 to the final leaf.
+            # Create each ancestor explicitly so copied SOCRuntime workflows
+            # retain the existing private-directory contract without chmod or
+            # changes to the original evidence tree.
+            for parent in reversed((destination.parent, *destination.parent.parents)):
+                if parent == target or parent.is_relative_to(target):
+                    create_private_directory(parent)
             if relative.suffix == ".sqlite":
                 fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
                 os.close(fd)
