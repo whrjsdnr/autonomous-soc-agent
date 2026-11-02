@@ -1,3 +1,5 @@
+> 2026-11-02 야간 복구 갱신: 이 문서의 시험 수치와 경로는 해당 시점의 기록이다. 현재 실행 안내와 미완료 항목은 [One Command Guide](One_Command_Operation_Guide.md), [Full E2E RCA](Full_E2E_Blocker_RCA.md), [Readiness](Full_E2E_Integration_Readiness.md)를 우선한다. 과거 패키지는 재실행하지 않는다.
+
 # Research MVP Native 통합시험 — 첫 시험 실패와 수정
 
 ## 실제 실행 결과 — 별도 시험과 합산 금지

@@ -1,3 +1,5 @@
+> 2026-11-02 야간 복구 갱신: 이 문서의 시험 수치와 경로는 해당 시점의 기록이다. 현재 실행 안내와 미완료 항목은 [One Command Guide](One_Command_Operation_Guide.md), [Full E2E RCA](Full_E2E_Blocker_RCA.md), [Readiness](Full_E2E_Integration_Readiness.md)를 우선한다. 과거 패키지는 재실행하지 않는다.
+
 # 연구·시연용 MVP 배치와 보존 경계
 
 두 경로는 같은 Git 저장소의 Worktree다. 개발 검증본4633e52/코드1fcbff2를 대상 저장소의 `releases/research-mvp` Worktree에 배치했다. 별도 로컬 `.venv`는 기존 uv.lock을 `uv sync --offline --frozen`으로 사용했다. Host 패키지·서비스·Root 설치를 변경하지 않았다.

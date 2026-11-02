@@ -1,3 +1,5 @@
+> 2026-11-02 야간 복구 갱신: 이 문서의 시험 수치와 경로는 해당 시점의 기록이다. 현재 실행 안내와 미완료 항목은 [One Command Guide](One_Command_Operation_Guide.md), [Full E2E RCA](Full_E2E_Blocker_RCA.md), [Readiness](Full_E2E_Integration_Readiness.md)를 우선한다. 과거 패키지는 재실행하지 않는다.
+
 # 대상 저장소에서 실행하는 명령과 600초 제한 시험
 
 이전 bbaeccd 시험은ReceiveTimeout으로실패했고소비된Session은재실행금지다. 수정코드2cfcf7e의새검토패키지/profile을준비중이다. 아래새경로는최종검증/준비완료확인후사용한다. [실제실패와수정](Final_MVP_Native_Result.md)을먼저확인한다.
