@@ -71,3 +71,37 @@ def test_regression_is_not_success_and_summary_never_fills_missing_assessment():
         dict(sections("Investigations", value))["Advisory assessment • not an observed fact"]
         == "SCRIPTED advisory; not attack fact"
     )
+
+
+def test_continuous_dns_counters_feed_real_dashboard_rate_series():
+    from soc_agent.gui.continuous_projection import project
+    from soc_agent.gui.visual_metrics import VisualHistory
+
+    history = VisualHistory()
+    for at, queries, responses in [(1, 2, 1), (3, 3, 3)]:
+        value = project(
+            dict(
+                continuous=dict(
+                    source="NATIVE_SERVICE",
+                    state="RUNNING",
+                    collection_live=True,
+                    clock_epoch="session-dns-test",
+                    metrics=dict(packets=12),
+                    dns=dict(counts=dict(QUERY=queries, MATCHED_RESPONSE=responses)),
+                )
+            )
+        )
+        assert value["network"]["dns_queries"] == queries
+        assert value["network"]["dns_responses"] == responses
+        assert history.observe(value, at=at)
+    assert history.samples[-1].values["queries"] == 0.5
+    assert history.samples[-1].values["responses"] == 1
+    assert value["runtime_observability"]["dns"]["dns9"] == "BLOCKED_TRAINING_EXTRACTION_CONTRACT"
+
+
+def test_missing_continuous_dns_counters_remain_unknown_not_zero():
+    from soc_agent.gui.continuous_projection import project
+
+    value = project(dict(continuous=dict(source="NATIVE_SERVICE", metrics={})))
+    assert value["network"]["dns_queries"] is None
+    assert value["network"]["dns_responses"] is None

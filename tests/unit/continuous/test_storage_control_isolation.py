@@ -716,3 +716,75 @@ async def test_real_runtime_slow_durable_input_recovers_without_collector_restar
     assert final["state"] == "STOPPED" and final["cleanup"] == "VERIFIED"
     assert final["last_error"] is None
     assert service.data_stall_evidence["storage"]["operation"] == "retain"
+
+
+@pytest.mark.asyncio
+async def test_dns_control_status_survives_six_second_durable_storage_stall(tmp_path):
+    directory, service = runtime(tmp_path)
+    entered, release = threading.Event(), threading.Event()
+    reads = []
+
+    class DNSStatus:
+        last_error = None
+
+        @property
+        def snapshot(self):
+            reads.append(time.monotonic())
+            return dict(state="RUNNING", cleanup="NOT_STARTED", origin="FIXTURE")
+
+    service.dns_source = DNSStatus()
+    await service.observed_snapshot()
+    control = asyncio.create_task(service.control())
+
+    def stalled_write():
+        entered.set()
+        assert release.wait(10)
+
+    writing = asyncio.create_task(service.storage(stalled_write))
+    assert await asyncio.to_thread(entered.wait, 1)
+    started = time.monotonic()
+    degraded = False
+    try:
+        while time.monotonic() - started < 6.1:
+            await asyncio.sleep(0.1)
+            value = shown(directory)
+            assert value["dns_transport"]["state"] == "RUNNING"
+            assert value["dns_transport"]["status_observation_age_seconds"] < 2
+            assert time.monotonic() - value["control"]["monotonic"] < 5
+            degraded |= value["control"]["data_stalled"]
+        assert degraded and len(reads) >= 6
+        service.stop.set()
+        await asyncio.wait_for(service.source.stop_sent.wait(), 1)
+        assert not writing.done()  # STOP does not wait for durable storage.
+    finally:
+        release.set()
+        service.stop.set()
+        await writing
+        await asyncio.wait_for(control, 2)
+
+
+@pytest.mark.asyncio
+async def test_slow_dns_status_read_does_not_renew_old_observation(tmp_path):
+    _, service = runtime(tmp_path)
+    entered, release = threading.Event(), threading.Event()
+
+    class DNSStatus:
+        @property
+        def snapshot(self):
+            entered.set()
+            assert release.wait(5)
+            return dict(state="RUNNING", cleanup="VERIFIED")
+
+    service.dns_source = DNSStatus()
+    reading = asyncio.create_task(service.refresh_dns_snapshot())
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        await asyncio.sleep(2.1)
+        release.set()
+        await reading
+        value = service.control_dns_snapshot()
+        assert value["state"] == "UNKNOWN_STALE_OBSERVATION"
+        assert value["cleanup"] == "UNVERIFIED_STATUS_OBSERVATION"
+    finally:
+        release.set()
+        await reading

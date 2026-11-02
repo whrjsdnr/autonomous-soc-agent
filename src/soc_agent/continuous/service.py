@@ -161,6 +161,8 @@ class ContinuousRuntime:
         self.cached_authentication = {"state": "NOT_ATTACHED", "events": None}
         self.cached_dns_transport = None
         self.cached_dns_observed_monotonic = None
+        self.cached_dns_completed_monotonic = None
+        self.dns_status_lock = asyncio.Lock()
         self.control_sequence = 0
         self.control_writer = None
         self.control_health = dict(last_seconds=None, max_seconds=0.0, error=None)
@@ -367,15 +369,42 @@ class ContinuousRuntime:
             authentication = await self.storage(status, self.config.authentication_runtime)
         self.cached_authentication = authentication
         if self.dns_source:
-            # DNS status takes the transport Reader lock and inspects /proc.
-            # It is display evidence, never a reason to block IPC/STOP on the loop.
-            self.cached_dns_transport = await self.storage(lambda: self.dns_source.snapshot)
-            self.cached_dns_observed_monotonic = time.monotonic()
+            await self.refresh_dns_snapshot()
         return self.snapshot(
             queue_counts=counts,
             authentication=authentication,
             dns_transport=self.cached_dns_transport,
         )
+
+    async def refresh_dns_snapshot(self):
+        # Reader status is control evidence. It must not queue behind durable
+        # SQLite writes, nor run synchronously on the event loop.
+        requested = time.monotonic()
+        async with self.dns_status_lock:
+            if (
+                self.cached_dns_completed_monotonic is not None
+                and self.cached_dns_completed_monotonic >= requested
+            ):
+                return  # Reuse the read that completed while this caller waited.
+            started = time.monotonic()
+            pending = asyncio.create_task(asyncio.to_thread(lambda: self.dns_source.snapshot))
+            try:
+                value = await asyncio.shield(pending)
+            except asyncio.CancelledError:
+                await pending
+                raise
+            self.cached_dns_transport = value
+            self.cached_dns_completed_monotonic = time.monotonic()
+            # A slow status read cannot renew an old observation's freshness.
+            self.cached_dns_observed_monotonic = started
+
+    async def observe_dns_status(self):
+        while not self.stop.is_set():
+            await self.refresh_dns_snapshot()
+            try:
+                await asyncio.wait_for(self.stop.wait(), 0.5)
+            except TimeoutError:
+                pass
 
     def control_dns_snapshot(self):
         """Cached display only; DNS admission still uses the live authenticated Reader."""
@@ -404,9 +433,18 @@ class ContinuousRuntime:
         stops admission and the observer's unchanged five-second lease fails closed.
         """
         stop_sender = asyncio.create_task(self.control_stop())
+        dns_observer = asyncio.create_task(self.observe_dns_status()) if self.dns_source else None
         stalled = False
         try:
             while True:
+                if dns_observer and dns_observer.done():
+                    try:
+                        dns_observer.result()
+                    except (OSError, ValueError, RuntimeError):
+                        self.last_error = (
+                            self.last_error or "CONTINUOUS_DNS_STATUS_OBSERVATION_FAILED"
+                        )
+                        raise
                 stopping = self.stop.is_set()
                 stamp = time.monotonic()
                 storage = self.storage_health
@@ -498,6 +536,14 @@ class ContinuousRuntime:
         finally:
             self.stop.set()
             await stop_sender
+            if dns_observer:
+                dns_observer.cancel()
+                outcomes = await asyncio.gather(dns_observer, return_exceptions=True)
+                for error in outcomes:
+                    if isinstance(error, BaseException) and not isinstance(
+                        error, asyncio.CancelledError
+                    ):
+                        raise error
 
     async def control_stop(self):
         """Send/observe the STOP transport independently even if health writing stalls."""

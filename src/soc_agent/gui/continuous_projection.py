@@ -258,6 +258,8 @@ def project(value: dict) -> dict:
         },
         network=dict(
             packets_collected=metrics.get("packets"),
+            dns_queries=current.get("dns", {}).get("counts", {}).get("QUERY"),
+            dns_responses=current.get("dns", {}).get("counts", {}).get("MATCHED_RESPONSE"),
             sent_packets=metrics.get("packets"),
             transport_delivered_packets=metrics.get("native_events")
             if native
