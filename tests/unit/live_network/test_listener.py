@@ -4,6 +4,7 @@ import asyncio
 import os
 import socket
 import struct
+import time
 import types
 
 import pytest
@@ -41,7 +42,11 @@ async def test_listener_wait_survives_authentication_clock_jump(tmp_path, monkey
     session = prepare(directory)
     capture = transport.HelperCapture(directory, session)
     now = [0]
-    monkeypatch.setattr(transport, "time", types.SimpleNamespace(monotonic=lambda: now[0]))
+    monkeypatch.setattr(
+        transport,
+        "time",
+        types.SimpleNamespace(monotonic=lambda: now[0], time=time.time, time_ns=time.time_ns),
+    )
     peers = []
 
     def ordinary_client(channel, ready, session, directory):

@@ -23,6 +23,7 @@ def main():
             session_loader=load,
             dns_metadata=True,
             packet_filter=lambda packet: 53 in (packet.source_port, packet.destination_port),
+            transport_diagnostics=True,
         )
 
 

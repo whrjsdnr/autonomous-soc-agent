@@ -10,6 +10,7 @@ import os
 import resource
 import sys
 import time
+import traceback
 from collections.abc import Callable
 from pathlib import Path
 from typing import ParamSpec, TypeVar
@@ -1394,7 +1395,18 @@ class ContinuousRuntime:
                             data_recovery_count=self.data_recovery_count,
                             cleanup=cleanup,
                             secondary_errors=[
-                                dict(category=type(e).__name__, code=str(e)[:1000])
+                                dict(
+                                    category=type(e).__name__,
+                                    code=str(e)[:1000],
+                                    origin=[
+                                        dict(
+                                            file=Path(frame.filename).name,
+                                            function=frame.name,
+                                            line=frame.lineno,
+                                        )
+                                        for frame in traceback.extract_tb(e.__traceback__)[-4:]
+                                    ],
+                                )
                                 for e in failures
                             ],
                         ),

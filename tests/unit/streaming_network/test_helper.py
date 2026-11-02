@@ -30,6 +30,7 @@ from soc_agent.security_ai.research.models import digest
         "loopback_regression",
         "raw_burst",
         "total_dns",
+        "dns_diagnostics",
     ],
 )
 def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
@@ -117,7 +118,12 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     monkeypatch.setattr(helper, "PacketCapture", Capture)
     monkeypatch.setattr(helper, "interface_identity", lambda _: "a" * 64)
     monkeypatch.setattr(helper.socket, "socket", Channel)
-    monkeypatch.setattr(helper.os, "readlink", lambda _: "socket:[12345]")
+    time_namespace = helper.os.readlink("/proc/self/ns/time")
+    monkeypatch.setattr(
+        helper.os,
+        "readlink",
+        lambda path: time_namespace if path == "/proc/self/ns/time" else "socket:[12345]",
+    )
     monkeypatch.setattr(helper.resource, "setrlimit", lambda *a: None)
     monkeypatch.setattr(helper.signal, "signal", lambda *a: None)
     monkeypatch.setattr(helper.signal, "setitimer", lambda *a: None)
@@ -150,8 +156,14 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         "closed_send_failure",
         "loopback_regression",
         "total_dns",
+        "dns_diagnostics",
     ):
-        helper.run(tmp_path, approval, dns_metadata=case == "total_dns")
+        helper.run(
+            tmp_path,
+            approval,
+            dns_metadata=case == "total_dns",
+            transport_diagnostics=case == "dns_diagnostics",
+        )
     else:
         with pytest.raises((ValueError, OSError)):
             helper.run(tmp_path, approval)
@@ -163,6 +175,18 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         assert messages[-1]["kind"] == "CLOSED"
     assert streams[0].raw.closed
     assert controls == ["CHECK_MOCK", "DROP_MOCK", "CHANNEL_CLOSED"]
+    if case == "dns_diagnostics":
+        from soc_agent.security_ai.operational.network_capture.stream_transport import StreamMessage
+
+        traces = [StreamMessage.model_validate(m).transport_trace for m in messages]
+        assert [t.sequence for t in traces] == list(range(1, len(traces) + 1))
+        assert traces[0].previous_send_started_ns is None
+        for previous, current in zip(traces[:-1], traces[1:], strict=True):
+            assert previous.generated_monotonic_ns <= current.previous_send_started_ns
+            assert current.previous_send_started_ns <= current.previous_send_completed_ns
+            assert current.previous_send_completed_ns <= current.generated_monotonic_ns
+            assert current.time_namespace == time_namespace
+        assert messages[-1]["kind"] == "CLOSED" and messages[-1]["error"] is None
     if case == "normal":
         assert [m["kind"] for m in messages] == ["READY", "HEARTBEAT", "PACKET", "CLOSED"]
         assert messages[2]["counter_sequence"] == 2

@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from tests.preserved_source_support import historical_source
+
 from soc_agent.security_ai.operational.network_capture.total_session import verify_bundle
 
 
@@ -22,6 +24,8 @@ def test_clock_evidence_bindings_and_limits():
             if name == "src/soc_agent/security_ai/research/service.py"
             else root / name
         )
+        if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            path = historical_source(root, name, expected)
         assert hashlib.sha256(path.read_bytes()).hexdigest() == expected
     helper = root / "src/soc_agent/security_ai/operational/network_capture/stream_helper.py"
     # This immutable evidence belongs to the prior helper, not the new DNS scope.

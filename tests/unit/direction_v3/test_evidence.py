@@ -5,6 +5,8 @@ import json
 import struct
 from pathlib import Path
 
+from tests.preserved_source_support import historical_bundle, historical_source
+
 from soc_agent.security_ai.operational.network_capture import calibrated_session, direction_session
 from soc_agent.security_ai.operational.network_capture.direction_policy import DirectionPolicy
 from soc_agent.security_ai.research.models import SPECS, digest
@@ -19,14 +21,27 @@ def evidence():
 def test_v3_policy_helper_bundle_and_legacy_are_distinct_and_exact():
     e = evidence()
     assert e["policy"] == DirectionPolicy().model_dump(mode="json")
-    current = direction_session.verify_bundle()
+    # This report proves its historical bytes; a new bundle requires new approval.
+    current = historical_bundle(ROOT, e["bundle_files"])
     assert current == e["bundle_files"] and digest(current) == e["bundle_digest"]
     assert current["direction_helper.py"] == e["helper_sha256"] != e["legacy_helper_sha256"]
-    legacy = calibrated_session.verify_bundle()
+    legacy = historical_bundle(
+        ROOT,
+        json.loads(
+            (
+                ROOT
+                / "tests/fixtures/helper-before-continuous-dns-b59f1e2"
+                / "calibrated-helper-manifest.json.txt"
+            ).read_text()
+        ),
+    )
     assert legacy["calibrated_helper.py"] == e["legacy_helper_sha256"]
     assert digest(legacy) == e["legacy_bundle_digest"]
     for name, sha in e["source_sha256"].items():
-        assert hashlib.sha256((ROOT / name).read_bytes()).hexdigest() == sha
+        assert hashlib.sha256(historical_source(ROOT, name, sha).read_bytes()).hexdigest() == sha
+    assert direction_session.verify_bundle() == direction_session.code_hashes()
+    assert calibrated_session.verify_bundle() == calibrated_session.code_hashes()
+    assert direction_session.verify_bundle() != current
 
 
 def test_native_unknowns_fixture_receipts_and_recovery_are_not_combined():

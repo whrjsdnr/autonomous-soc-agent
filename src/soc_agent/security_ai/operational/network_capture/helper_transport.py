@@ -1,15 +1,19 @@
 """Unprivileged PacketCapture-compatible metadata receiver, authenticated via Linux peer state."""
 
+import array
 import errno
+import fcntl
 import hashlib
 import os
 import queue
 import select
 import socket
 import struct
+import termios
 import threading
 import time
 from pathlib import Path
+from time import monotonic_ns
 from typing import Literal
 from uuid import UUID
 
@@ -198,6 +202,121 @@ class HelperCapture:
         self.rejected_closed_digest: str | None = None
         self.reader_last_poll = None
         self.reader_max_poll_gap = 0.0
+        self.last_receive_monotonic_ns = None
+        self.last_transport_trace = None
+        self.trace_sequence = 0
+        self.peer_cpu_at_ready = None
+        self.trace_clock_identity = None
+
+    def process_diagnostics(self):
+        """Bounded read-only local telemetry; unavailable counters stay UNKNOWN."""
+        pid = self.ready.pid if self.ready else None
+        value = dict(observed_monotonic_ns=monotonic_ns(), pid=pid, state="UNKNOWN")
+        if pid is None:
+            return value
+        try:
+            expected = self.ready.process_start
+            stat = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
+            if stat[19] != expected:
+                return value | dict(state="IDENTITY_CHANGED")
+            value.update(state=stat[0], start_ticks=stat[19], nice=int(stat[16]))
+            value["schedstat"] = Path(f"/proc/{pid}/schedstat").read_text().strip()
+            cgroup = Path(f"/proc/{pid}/cgroup").read_text().splitlines()
+            unified = next((line[3:] for line in cgroup if line.startswith("0::")), None)
+            if unified is not None and ".." not in Path(unified).parts:
+                base = Path("/sys/fs/cgroup") / unified.lstrip("/")
+                value["cpu_stat"] = {
+                    key: int(number)
+                    for key, number in (
+                        line.split() for line in (base / "cpu.stat").read_text().splitlines()
+                    )
+                }
+                value["cpu_max"] = (base / "cpu.max").read_text().strip()
+            # A process can disappear/reuse its PID during the reads.
+            if process_start(pid) != expected:
+                return dict(observed_monotonic_ns=monotonic_ns(), pid=pid, state="IDENTITY_CHANGED")
+        except FileNotFoundError:
+            value["state"] = "EXITED_OR_COUNTER_UNAVAILABLE"
+        except (OSError, ValueError):
+            value["counter_error"] = "UNAVAILABLE"
+        return value
+
+    def ipc_diagnostics(self):
+        value = dict(
+            observed_monotonic_ns=monotonic_ns(),
+            scope="LOCAL_AF_UNIX_KERNEL_FIONREAD_BYTES_NOT_RECORD_COUNT",
+        )
+        try:
+            pending = array.array("i", [0])
+            fcntl.ioctl(self.channel.fileno(), termios.FIONREAD, pending, True)
+            value.update(
+                available_bytes=pending[0],
+                receive_buffer=self.channel.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF),
+                send_buffer=self.channel.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF),
+            )
+        except (OSError, AttributeError):
+            value["status"] = "UNAVAILABLE"
+        return value
+
+    def record_transport_trace(self, message):
+        received = monotonic_ns()
+        self.last_receive_monotonic_ns = received
+        trace = getattr(message, "transport_trace", None)
+        if trace is None:
+            return
+        peer = self.ready or message
+        if self.trace_clock_identity is None:
+            self.trace_clock_identity = (
+                Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+                os.readlink("/proc/self/ns/time"),
+            )
+        same_boot = (trace.boot_id, trace.time_namespace) == self.trace_clock_identity
+        previous = self.last_transport_trace
+        if (
+            trace.pid != peer.pid
+            or trace.process_start != peer.process_start
+            or trace.sequence != self.trace_sequence + 1
+            or not same_boot
+            or trace.generated_monotonic_ns > received
+            or (previous and trace.generated_monotonic_ns < previous["generated_monotonic_ns"])
+            or (
+                (trace.previous_send_started_ns is None)
+                != (trace.previous_send_completed_ns is None)
+            )
+            or (
+                trace.previous_send_started_ns is not None
+                and not 0
+                <= trace.previous_send_started_ns
+                <= trace.previous_send_completed_ns
+                <= trace.generated_monotonic_ns
+            )
+        ):
+            raise CaptureUnavailable("HELPER_TRANSPORT_TRACE_INVALID")
+        self.trace_sequence = trace.sequence
+        self.last_transport_trace = trace.model_dump(mode="json") | dict(
+            received_monotonic_ns=received,
+            observed_wall_ns=time.time_ns(),
+            same_boot_clock=True,
+            generate_to_receive_ns=received - trace.generated_monotonic_ns,
+            send_completion_scope="PREVIOUS_RECORD_ONLY_CURRENT_SEND_COMPLETION_UNKNOWN",
+        )
+
+    def read_available_record(self):
+        """Serialize both readers; queued metadata is always validated/accounted."""
+        with self.reader_lock:
+            try:
+                message = self.message()
+            except BlockingIOError:
+                return False
+            self.records_read += 1
+            packet = self._receive_record(message)
+            if packet is not None:
+                try:
+                    self.packets.put_nowait(packet)
+                except queue.Full:
+                    raise CaptureUnavailable("HELPER_TRANSPORT_BACKPRESSURE") from None
+                self.queue_high_water = max(self.queue_high_water, self.packets.qsize())
+            return True
 
     def start_reader(self):
         """One bounded metadata reader, independent of SQLite/model/event-loop work."""
@@ -221,7 +340,7 @@ class HelperCapture:
 
     def _read_loop(self):
         try:
-            while not self.closed.is_set():
+            while not self.closed.is_set() and self.terminal is None:
                 polled = time.monotonic()
                 if self.reader_last_poll is not None:
                     self.reader_max_poll_gap = max(
@@ -236,18 +355,7 @@ class HelperCapture:
                     self.check_reader_liveness()
                     continue
                 with self.reader_lock:
-                    try:
-                        message = self.message()
-                    except BlockingIOError:
-                        continue
-                    self.records_read += 1
-                    packet = self._receive_record(message)
-                    if packet is not None:
-                        try:
-                            self.packets.put_nowait(packet)
-                        except queue.Full:
-                            raise CaptureUnavailable("HELPER_TRANSPORT_BACKPRESSURE") from None
-                        self.queue_high_water = max(self.queue_high_water, self.packets.qsize())
+                    self.read_available_record()
                     if self.terminal is not None:
                         return
         except (OSError, ValueError, RuntimeError, TypeError) as error:
@@ -281,6 +389,13 @@ class HelperCapture:
                                 "last_packet_sequence": self.sequence,
                                 "last_counter_sequence": self.counter_sequence,
                                 "counter_issue": self.counter_issue,
+                                "last_successful_receive_monotonic_ns": (
+                                    self.last_receive_monotonic_ns
+                                ),
+                                "transport_trace": self.last_transport_trace,
+                                "process_at_ready": self.peer_cpu_at_ready,
+                                "process_at_failure": self.process_diagnostics(),
+                                "ipc_at_failure": self.ipc_diagnostics(),
                                 "unadmitted_packets": self.sequence
                                 - self.delivered
                                 - self.packets.qsize(),
@@ -294,7 +409,20 @@ class HelperCapture:
 
     def check_reader_liveness(self):
         if time.monotonic() - self.last_heartbeat > 2:
-            raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
+            # select(timeout) may have returned empty before this thread was
+            # descheduled. Recheck IPC before declaring a cached heartbeat stale.
+            # Every queued record retains its original validation/accounting.
+            self.refresh_pending_control()
+            if self.terminal is None and time.monotonic() - self.last_heartbeat > 2:
+                raise CaptureUnavailable("HELPER_HEARTBEAT_OR_PROCESS_STALE")
+
+    def refresh_pending_control(self):
+        with self.reader_lock:
+            for _ in range(self.control_batch):
+                if not select.select([self.channel], [], [], 0)[0]:
+                    break
+                if not self.read_available_record() or self.terminal is not None:
+                    break
 
     def shutdown_failed_reader(self):
         try:
@@ -413,9 +541,11 @@ class HelperCapture:
                 raise CaptureUnavailable("HELPER_LISTENER_CLOSED")
             write_private(self.directory / "verified-ready.json", ready.model_dump(mode="json"))
             self.ready = ready
+            self.record_transport_trace(ready)
             self.alive = True
             self.last_heartbeat = time.monotonic()
             self.last_heartbeat_unix = time.time()
+        self.peer_cpu_at_ready = self.process_diagnostics()
         self.usage = {
             "helper_rss_peak_bytes": ready.rss_peak_bytes,
             "helper_cpu_seconds": ready.cpu_seconds,
@@ -495,6 +625,7 @@ class HelperCapture:
             )
 
     def _receive_record(self, message):
+        self.record_transport_trace(message)
         if message.kind == "PACKET":
             p = message.packet
             if (
@@ -582,6 +713,16 @@ class HelperCapture:
         with self.reader_lock:
             if self.reader_failed():
                 raise CaptureUnavailable(self.reader_error)
+            if (
+                self.reader_thread is not None
+                and self.alive
+                and self.last_heartbeat is not None
+                and time.monotonic() - self.last_heartbeat > 2
+            ):
+                # A descheduled reader can leave valid control waiting in IPC.
+                # Never declare stale from the consumer's cached view before
+                # bounded validated reception. Silence still fails at two seconds.
+                self.refresh_pending_control()
             return self._statistics()
 
     def _statistics(self):
@@ -632,6 +773,9 @@ class HelperCapture:
                 "transport_delivered_packets": self.delivered,
                 "transport_final_counter_verified": self.terminal is not None,
                 "rejected_closed_digest": self.rejected_closed_digest,
+                "last_successful_receive_monotonic_ns": self.last_receive_monotonic_ns,
+                "transport_trace": self.last_transport_trace,
+                "snapshot_observed_monotonic_ns": monotonic_ns(),
             }
 
     def close(self, *, reason="EXPLICIT_STOP_BEFORE_PERSISTENCE"):

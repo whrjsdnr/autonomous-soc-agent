@@ -37,6 +37,7 @@ def run(
     session_loader=None,
     dns_metadata=False,
     packet_filter=None,
+    transport_diagnostics=False,
 ):
     check_privileges()  # Reject before constructing/opening any AF_PACKET socket.
     session = (session_loader or load)(directory)
@@ -60,6 +61,19 @@ def run(
     dns_queries = dns_responses = dns_failures = 0
     stopped = False
     error = None
+    trace_sequence = 0
+    previous_send = (None, None)
+    # Fixed process/boot identity is diagnostic only, read once outside the loop.
+    trace_identity = (
+        dict(
+            pid=os.getpid(),
+            process_start=process_start(os.getpid()),
+            boot_id=Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+            time_namespace=os.readlink("/proc/self/ns/time"),
+        )
+        if transport_diagnostics
+        else None
+    )
 
     def stop(*_):
         nonlocal stopped
@@ -73,6 +87,8 @@ def run(
     signal.signal(signal.SIGALRM, watchdog)
 
     def send(kind, **fields):
+        nonlocal trace_sequence, previous_send
+        generated = time.monotonic_ns() if transport_diagnostics else None
         usage = resource.getrusage(resource.RUSAGE_SELF)
         fields.update(
             dns_queries=dns_queries, dns_responses=dns_responses, dns_parse_failures=dns_failures
@@ -80,10 +96,23 @@ def run(
         fields.update(
             rss_peak_bytes=usage.ru_maxrss * 1024, cpu_seconds=usage.ru_utime + usage.ru_stime
         )
+        if trace_identity is not None:
+            trace_sequence += 1
+            fields["transport_trace"] = dict(
+                **trace_identity,
+                sequence=trace_sequence,
+                generated_monotonic_ns=generated,
+                generated_wall_ns=time.time_ns(),
+                previous_send_started_ns=previous_send[0],
+                previous_send_completed_ns=previous_send[1],
+            )
         body = json.dumps({"kind": kind, "session_id": str(session.session_id), **fields}).encode()
         if len(body) > 8192:
             raise ValueError("HELPER_METADATA_RECORD_LIMIT")
+        send_started = time.monotonic_ns() if transport_diagnostics else None
         channel.sendall(body)
+        if transport_diagnostics:
+            previous_send = (send_started, time.monotonic_ns())
 
     try:
         channel.connect(session.socket_address)  # Explicit unprivileged controller must exist.

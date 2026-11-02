@@ -11,9 +11,25 @@ from soc_agent.security_ai.operational.network_capture.helper_transport import (
     Message,
 )
 from soc_agent.security_ai.operational.network_capture.stream_session import MODULE
+from soc_agent.security_ai.research.models import Frozen
+
+
+class TransportTrace(Frozen):
+    """Peer diagnostics only; never admission, counters or a cleanup receipt."""
+
+    sequence: int = Field(ge=1, strict=True)
+    pid: int = Field(gt=1, strict=True)
+    process_start: str = Field(pattern=r"^[0-9]{1,24}$")
+    boot_id: str = Field(pattern=r"^[0-9a-f-]{36}$")
+    time_namespace: str = Field(pattern=r"^time:\[[0-9]+\]$")
+    generated_monotonic_ns: int = Field(ge=0, strict=True)
+    generated_wall_ns: int = Field(ge=0, strict=True)
+    previous_send_started_ns: int | None = Field(default=None, ge=0, strict=True)
+    previous_send_completed_ns: int | None = Field(default=None, ge=0, strict=True)
 
 
 class StreamMessage(Message):
+    transport_trace: TransportTrace | None = None
     dns_queries: int = Field(default=0, ge=0, le=250000)
     dns_responses: int = Field(default=0, ge=0, le=250000)
     dns_parse_failures: int = Field(default=0, ge=0, le=250000)
