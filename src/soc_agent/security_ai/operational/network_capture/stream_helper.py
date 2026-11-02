@@ -62,6 +62,7 @@ def run(
     stopped = False
     error = None
     trace_sequence = 0
+    completed_loop = None
     previous_send = (None, None)
     # Fixed process/boot identity is diagnostic only, read once outside the loop.
     trace_identity = (
@@ -105,6 +106,7 @@ def run(
                 generated_wall_ns=time.time_ns(),
                 previous_send_started_ns=previous_send[0],
                 previous_send_completed_ns=previous_send[1],
+                completed_loop=completed_loop,
             )
         body = json.dumps({"kind": kind, "session_id": str(session.session_id), **fields}).encode()
         if len(body) > 8192:
@@ -138,9 +140,12 @@ def run(
             and time.monotonic() - opened < max(0.1, session.seconds - 1)
             and received < session.max_packets
         ):
+            loop_started = time.monotonic_ns() if transport_diagnostics else None
             if interface_identity(session.interface) != session.interface_id:
                 raise ValueError("HELPER_INTERFACE_REPLACED")
+            identity_checked = time.monotonic_ns() if transport_diagnostics else None
             readable, _, _ = select.select([capture.socket, channel], [], [], 0.2)
+            select_completed = time.monotonic_ns() if transport_diagnostics else None
             if channel in readable:
                 if channel.recv(64) != b"PING":
                     break  # STOP or parent disconnect, never an executable command.
@@ -181,7 +186,16 @@ def run(
                                 }
                             )
                         )
+            packet_processed = time.monotonic_ns() if transport_diagnostics else None
             stats = counters.sample()
+            if transport_diagnostics:
+                completed_loop = dict(
+                    started_ns=loop_started,
+                    identity_checked_ns=identity_checked,
+                    select_completed_ns=select_completed,
+                    packet_processed_ns=packet_processed,
+                    counters_sampled_ns=time.monotonic_ns(),
+                )
             send(
                 "HEARTBEAT",
                 **stats,

@@ -2,6 +2,7 @@
 
 import json
 import socket
+import time
 from datetime import UTC, datetime
 from types import SimpleNamespace
 from uuid import uuid4
@@ -31,6 +32,7 @@ from soc_agent.security_ai.research.models import digest
         "raw_burst",
         "total_dns",
         "dns_diagnostics",
+        "dns_diagnostics_slow_identity",
     ],
 )
 def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
@@ -116,7 +118,13 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
     monkeypatch.setattr(helper, "drop_privileges", lambda: controls.append("DROP_MOCK"))
     monkeypatch.setattr(helper, "load", lambda _: session)
     monkeypatch.setattr(helper, "PacketCapture", Capture)
-    monkeypatch.setattr(helper, "interface_identity", lambda _: "a" * 64)
+
+    def identity(_):
+        if case == "dns_diagnostics_slow_identity":
+            time.sleep(0.03)  # Elapsed operation time, not proof of CPU use.
+        return "a" * 64
+
+    monkeypatch.setattr(helper, "interface_identity", identity)
     monkeypatch.setattr(helper.socket, "socket", Channel)
     time_namespace = helper.os.readlink("/proc/self/ns/time")
     monkeypatch.setattr(
@@ -157,12 +165,13 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         "loopback_regression",
         "total_dns",
         "dns_diagnostics",
+        "dns_diagnostics_slow_identity",
     ):
         helper.run(
             tmp_path,
             approval,
             dns_metadata=case == "total_dns",
-            transport_diagnostics=case == "dns_diagnostics",
+            transport_diagnostics=case.startswith("dns_diagnostics"),
         )
     else:
         with pytest.raises((ValueError, OSError)):
@@ -175,7 +184,7 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
         assert messages[-1]["kind"] == "CLOSED"
     assert streams[0].raw.closed
     assert controls == ["CHECK_MOCK", "DROP_MOCK", "CHANNEL_CLOSED"]
-    if case == "dns_diagnostics":
+    if case.startswith("dns_diagnostics"):
         from soc_agent.security_ai.operational.network_capture.stream_transport import StreamMessage
 
         traces = [StreamMessage.model_validate(m).transport_trace for m in messages]
@@ -186,6 +195,15 @@ def test_mock_helper_lifecycle_fail_closed(monkeypatch, tmp_path, case):
             assert current.previous_send_started_ns <= current.previous_send_completed_ns
             assert current.previous_send_completed_ns <= current.generated_monotonic_ns
             assert current.time_namespace == time_namespace
+        assert traces[0].completed_loop is None
+        loop = traces[1].completed_loop
+        assert loop is not None
+        stamps = tuple(loop.model_dump().values())
+        assert list(stamps) == sorted(stamps)
+        assert stamps[-1] <= traces[1].generated_monotonic_ns
+        assert traces[-1].completed_loop == loop
+        if case == "dns_diagnostics_slow_identity":
+            assert loop.identity_checked_ns - loop.started_ns >= 30_000_000
         assert messages[-1]["kind"] == "CLOSED" and messages[-1]["error"] is None
     if case == "normal":
         assert [m["kind"] for m in messages] == ["READY", "HEARTBEAT", "PACKET", "CLOSED"]
@@ -239,3 +257,18 @@ def test_session_scope_digest_rejected_before_constructing_capture(monkeypatch, 
     with pytest.raises(ValueError, match="APPROVED_SESSION_DIGEST_MISMATCH"):
         helper.run(tmp_path, digest({"policy": {"seconds": 300}}))
     assert not calls
+
+
+def test_helper_loop_timing_rejects_reversed_clock():
+    from pydantic import ValidationError
+
+    from soc_agent.security_ai.operational.network_capture.stream_transport import HelperLoopTiming
+
+    with pytest.raises(ValidationError, match="HELPER_LOOP_CLOCK_REVERSED"):
+        HelperLoopTiming(
+            started_ns=10,
+            identity_checked_ns=9,
+            select_completed_ns=11,
+            packet_processed_ns=12,
+            counters_sampled_ns=13,
+        )

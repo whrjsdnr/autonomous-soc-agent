@@ -3,7 +3,7 @@
 import socket
 from collections import deque
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from soc_agent.security_ai.operational.network_capture.capture import CaptureUnavailable
 from soc_agent.security_ai.operational.network_capture.helper_transport import (
@@ -12,6 +12,23 @@ from soc_agent.security_ai.operational.network_capture.helper_transport import (
 )
 from soc_agent.security_ai.operational.network_capture.stream_session import MODULE
 from soc_agent.security_ai.research.models import Frozen
+
+
+class HelperLoopTiming(Frozen):
+    """Elapsed stage boundaries, including descheduling; never CPU attribution."""
+
+    started_ns: int = Field(ge=0, strict=True)
+    identity_checked_ns: int = Field(ge=0, strict=True)
+    select_completed_ns: int = Field(ge=0, strict=True)
+    packet_processed_ns: int = Field(ge=0, strict=True)
+    counters_sampled_ns: int = Field(ge=0, strict=True)
+
+    @model_validator(mode="after")
+    def ordered(self):
+        stamps = tuple(self.model_dump().values())
+        if any(a > b for a, b in zip(stamps, stamps[1:], strict=False)):
+            raise ValueError("HELPER_LOOP_CLOCK_REVERSED")
+        return self
 
 
 class TransportTrace(Frozen):
@@ -26,6 +43,7 @@ class TransportTrace(Frozen):
     generated_wall_ns: int = Field(ge=0, strict=True)
     previous_send_started_ns: int | None = Field(default=None, ge=0, strict=True)
     previous_send_completed_ns: int | None = Field(default=None, ge=0, strict=True)
+    completed_loop: HelperLoopTiming | None = None
 
 
 class StreamMessage(Message):
