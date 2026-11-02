@@ -18,15 +18,15 @@
 
 ## E04
 
-[Network14 연구 평가](../../../ML/docs/network-research-training-evaluation.md), [학습 소스](../../../ML/src/ml/network_research/training.py), [고정 학습 증거](../../../ML/docs/network-research-training-evidence.json), [Artifact Manifest](../../../ML/docs/network-research-artifact-manifest.json), SOC [research/environment.py](../../src/soc_agent/security_ai/research/environment.py)·[research/worker.py](../../src/soc_agent/security_ai/research/worker.py). CTU/IoT23 Network14 RF/LR와 신뢰 경계. ML 문서 당시의 “SOC 미연결”은 역사 기록이며 현재 연결 여부는 SOC 현재 코드로 판정한다.
+[Network14 연구 평가](../../../../../ML/docs/network-research-training-evaluation.md), [학습 소스](../../../../../ML/src/ml/network_research/training.py), [고정 학습 증거](../../../../../ML/docs/network-research-training-evidence.json), [Artifact Manifest](../../../../../ML/docs/network-research-artifact-manifest.json), SOC [research/environment.py](../../src/soc_agent/security_ai/research/environment.py)·[research/worker.py](../../src/soc_agent/security_ai/research/worker.py). CTU/IoT23 Network14 RF/LR와 신뢰 경계. ML 문서 당시의 “SOC 미연결”은 역사 기록이며 현재 연결 여부는 SOC 현재 코드로 판정한다.
 
 ## E05
 
-[ML 독립 Network 패키지](../../../ML/packages/network-security-ai/README.md), [DNN 구현](../../../ML/packages/network-security-ai/src/network_security_ai/predictors.py), [재현 순서](../../../ML/docs/network_security_ai/reproducibility.md), [DNN notebook](../../../ML/notebooks/dnn_top40_v4.ipynb), [V3 비교](../../../ML/results/model_comparison_v3/top40_model_comparison.csv), [V4 비교](../../../ML/results/v4_model_comparison/overall_metrics.csv), [DNN full validation](../../../ML/results/dnn_top40_v4/dnn_fp32_full_valid_metrics.csv). Top40 계열이며 E04 Network14와 호환 계약이 아니다. [Notebook 발췌](Notebook_Extracts.md)는 실행하지 않은 코드 발췌다.
+[ML 독립 Network 패키지](../../../../../ML/packages/network-security-ai/README.md), [DNN 구현](../../../../../ML/packages/network-security-ai/src/network_security_ai/predictors.py), [재현 순서](../../../../../ML/docs/network_security_ai/reproducibility.md), [DNN notebook](../../../../../ML/notebooks/dnn_top40_v4.ipynb), [V3 비교](../../../../../ML/results/model_comparison_v3/top40_model_comparison.csv), [V4 비교](../../../../../ML/results/v4_model_comparison/overall_metrics.csv), [DNN full validation](../../../../../ML/results/dnn_top40_v4/dnn_fp32_full_valid_metrics.csv). Top40 계열이며 E04 Network14와 호환 계약이 아니다. [Notebook 발췌](Notebook_Extracts.md)는 실행하지 않은 코드 발췌다.
 
 ## E06
 
-[DNS 패키지](../../../ML/packages/dns-security-ai/README.md), [DNS Manifest](../../../ML/packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json), [TFLite 검사 결과](../../../ML/reports/security_ai/dns_tflite_review.json), [SOC 학습 추출 계약](../../src/soc_agent/security_ai/dns9_training_contract.json), [Raw Transaction](../../src/soc_agent/security_ai/dns_transactions.py), [DNS Source](../../src/soc_agent/continuous/dns_source.py). Artifact 구조와 Raw 추출 계약 부재를 구분한다. ML의 untracked 공급 bundle을 새로운 정식 학습 소스로 승격하지 않았다.
+[DNS 패키지](../../../../../ML/packages/dns-security-ai/README.md), [DNS Manifest](../../../../../ML/packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json), [TFLite 검사 결과](../../../../../ML/reports/security_ai/dns_tflite_review.json), [SOC 학습 추출 계약](../../src/soc_agent/security_ai/dns9_training_contract.json), [Raw Transaction](../../src/soc_agent/security_ai/dns_transactions.py), [DNS Source](../../src/soc_agent/continuous/dns_source.py). Artifact 구조와 Raw 추출 계약 부재를 구분한다. ML의 untracked 공급 bundle을 새로운 정식 학습 소스로 승격하지 않았다.
 
 ## E07
 
