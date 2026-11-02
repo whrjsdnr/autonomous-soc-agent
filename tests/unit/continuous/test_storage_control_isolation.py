@@ -68,6 +68,61 @@ def shown(directory):
 
 
 @pytest.mark.asyncio
+async def test_dns_status_reader_lock_does_not_block_control_or_stop(tmp_path):
+    directory, service = runtime(tmp_path)
+    entered, release = threading.Event(), threading.Event()
+    loop_thread = threading.get_ident()
+    reader_threads = []
+
+    class SlowDNSStatus:
+        last_error = None
+
+        @property
+        def snapshot(self):
+            reader_threads.append(threading.get_ident())
+            assert threading.get_ident() != loop_thread, "DNS_STATUS_BLOCKED_EVENT_LOOP"
+            entered.set()
+            assert release.wait(3)
+            return {"state": "RUNNING", "cleanup": "NOT_STARTED"}
+
+    service.dns_source = SlowDNSStatus()
+    pending = asyncio.create_task(service.observed_snapshot())
+    control = asyncio.create_task(service.control())
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        await asyncio.sleep(0.4)
+        value = shown(directory)
+        assert value["control"]["sequence"] >= 2
+        assert value["dns_transport"]["state"] == "UNKNOWN_STALE_OBSERVATION"
+        assert time.monotonic() - value["control"]["monotonic"] < 2
+        assert not pending.done() and not control.done()
+        service.stop.set()
+        await asyncio.wait_for(service.source.stop_sent.wait(), 0.5)
+        assert not pending.done()  # STOP does not wait for DNS status lock release.
+    finally:
+        release.set()
+        await pending
+        service.stop.set()
+        await control
+    assert len(reader_threads) == 1 and reader_threads[0] != loop_thread
+
+
+def test_cached_dns_status_never_claims_stale_running_or_verified_cleanup(tmp_path):
+    _, service = runtime(tmp_path)
+    service.dns_source = SimpleNamespace(last_error="ORIGINAL_DNS_FAILURE")
+    service.cached_dns_transport = {"state": "RUNNING", "cleanup": "VERIFIED"}
+    service.cached_dns_observed_monotonic = time.monotonic() - 3
+    view = service.control_dns_snapshot()
+    assert view["state"] == "UNKNOWN_STALE_OBSERVATION"
+    assert view["cleanup"] == "UNVERIFIED_STATUS_OBSERVATION"
+    assert view["status_scope"] == "CACHED_DISPLAY_NOT_ADMISSION"
+    assert service.cached_dns_transport == {"state": "RUNNING", "cleanup": "VERIFIED"}
+    assert service.snapshot(dns_transport=view)["last_error"] == "ORIGINAL_DNS_FAILURE"
+    service.cached_dns_observed_monotonic = time.monotonic()
+    assert service.control_dns_snapshot()["state"] == "RUNNING"
+
+
+@pytest.mark.asyncio
 async def test_ten_second_write_does_not_block_heartbeat_or_stop(tmp_path):
     directory, service = runtime(tmp_path)
     entered = threading.Event()

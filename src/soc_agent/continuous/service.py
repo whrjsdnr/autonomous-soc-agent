@@ -159,6 +159,8 @@ class ContinuousRuntime:
         self.storage_health = dict(pending=False, last_seconds=None, max_seconds=0.0)
         self.cached_queue = {}
         self.cached_authentication = {"state": "NOT_ATTACHED", "events": None}
+        self.cached_dns_transport = None
+        self.cached_dns_observed_monotonic = None
         self.control_sequence = 0
         self.control_writer = None
         self.control_health = dict(last_seconds=None, max_seconds=0.0, error=None)
@@ -176,7 +178,7 @@ class ContinuousRuntime:
 
             self.control_identity = runtime_identity(os.getpid())
 
-    def snapshot(self, *, queue_counts=None, authentication=None):
+    def snapshot(self, *, queue_counts=None, authentication=None, dns_transport=None):
         analysis = self.analysis.snapshot()
         supplied_authentication = authentication is not None
         authentication = (
@@ -284,7 +286,9 @@ class ContinuousRuntime:
             recent_results=list(self.last_results),
             dns=self.dns.snapshot(),
             dns_transport=(
-                self.dns_source.snapshot
+                dns_transport
+                if dns_transport is not None
+                else self.dns_source.snapshot
                 if self.dns_source
                 else dict(
                     state="WAITING_APPROVED_START"
@@ -362,7 +366,30 @@ class ContinuousRuntime:
 
             authentication = await self.storage(status, self.config.authentication_runtime)
         self.cached_authentication = authentication
-        return self.snapshot(queue_counts=counts, authentication=authentication)
+        if self.dns_source:
+            # DNS status takes the transport Reader lock and inspects /proc.
+            # It is display evidence, never a reason to block IPC/STOP on the loop.
+            self.cached_dns_transport = await self.storage(lambda: self.dns_source.snapshot)
+            self.cached_dns_observed_monotonic = time.monotonic()
+        return self.snapshot(
+            queue_counts=counts,
+            authentication=authentication,
+            dns_transport=self.cached_dns_transport,
+        )
+
+    def control_dns_snapshot(self):
+        """Cached display only; DNS admission still uses the live authenticated Reader."""
+        if not self.dns_source:
+            return None
+        value = dict(self.cached_dns_transport or {})
+        observed = self.cached_dns_observed_monotonic
+        age = time.monotonic() - observed if observed is not None else None
+        value.update(
+            status_observation_age_seconds=age, status_scope="CACHED_DISPLAY_NOT_ADMISSION"
+        )
+        if age is None or not 0 <= age < 2:
+            value.update(state="UNKNOWN_STALE_OBSERVATION", cleanup="UNVERIFIED_STATUS_OBSERVATION")
+        return value
 
     async def publish(self):
         await self.storage(
@@ -420,6 +447,7 @@ class ContinuousRuntime:
                 value = self.snapshot(
                     queue_counts=dict(self.cached_queue),
                     authentication=dict(self.cached_authentication),
+                    dns_transport=self.control_dns_snapshot(),
                 )
                 if stopping and not self.last_error:
                     value.update(state="STOPPING", collection_live=False)
