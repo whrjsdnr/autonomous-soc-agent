@@ -1247,3 +1247,7 @@ Legacy Ledger81행/SHA07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f1
 Campaign Root12/Native4·Batch3 Root9/Native1 계측은 변경·초기화·환급하지 않았다.
 이번 실제 Root 실행은 별도 소유 Audit에29건 append됐으며 기존4026행 prefix를 보존했다.
 실행 증거 파일 전체의 보존 SHA도 재확인했다. 수정 후보는 설치하지 않았고 이전 설치·Rollback은 보존했다.
+
+## 2026-11-02 전체 통합 재시험 후속 결과
+
+최신 실제 Packet·DNS·모델·GUI 전체 통합 판정은 FAILED_FULL_INTEGRATION이다. 수정 후 재시험은 전체91.809초·봉인 수집85.896초, Packet24/DNS3/ELIGIBLE2에서 Helper2초 Heartbeat 계약 위반으로 중단됐다. 소유 범위 TCX·Helper·Root·Runtime Cleanup은 VERIFIED이며 모델/API는0회다. 실제 Helper 생성 공백의 연산 원인은 UNKNOWN으로 남아 있다. 확인된 저장 상태 결합·DNS 그래프 투영·반복STOP terminal-state 결함과 검증 범위는 [전체 재시험 보고서](native20-full-integration-retest-result.md)에 기록했다. 기존 성공/실패와 Ledger81행을 보존하며20분/1시간 전체 운영 VERIFIED로 판정하지 않는다.
