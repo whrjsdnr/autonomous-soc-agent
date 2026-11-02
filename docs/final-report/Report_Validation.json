@@ -1,0 +1,14 @@
+{
+  "broken_local_links": [],
+  "indexed_original_sha_mismatches": [],
+  "initial_pins_unchanged": {
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native20-full-integration-review-20261102T073720Z/full-integration-failed-result.json": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native20-full-integration-review-20261102T065604Z/full-integration-failed-result.json": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-stabilization-batch1/execution-v1/execution-ledger.jsonl": true
+  },
+  "ml_status_unchanged": true,
+  "code_commit": "1fcbff23cfe9844ee125774e11f9139cd293286b",
+  "mermaid": 10,
+  "slides": 29,
+  "qa": 49
+}

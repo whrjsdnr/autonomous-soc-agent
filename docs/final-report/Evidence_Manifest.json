@@ -1,0 +1,520 @@
+{
+  "baseline": "253dc0c",
+  "ml_head": "e1a01260f0463a38d4d778859bc2a86f8e9cfbde",
+  "items": [
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/AGENTS.md",
+      "bytes": 17367,
+      "sha256": "f913e22e7a04f892783abc550fd4e14a48eac797204845531f18bbc5a35560dd"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/pyproject.toml",
+      "bytes": 1039,
+      "sha256": "6fe7c70e5afaa25a24b4eaa1a01be04741f3d833cc2483b76cac1eb5c383d765"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/dns_review.py",
+      "bytes": 4252,
+      "sha256": "0bce3d0e4faf28c5ba1dddb43785fecd20449bc8aa0b698c4372e98426c246ea"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/dns_source.py",
+      "bytes": 27420,
+      "sha256": "887039153ac55110681fb5f106382d70f1aac702bc9568bc675fe05e37694aba"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/authentication.py",
+      "bytes": 5723,
+      "sha256": "45f04b7710be11664b0663615f6c0f4ce3fc720cb45799d337f1857b5a63827d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/store.py",
+      "bytes": 19684,
+      "sha256": "bf3a42f03290c46267142a5ce4dd6217c7d4f0e47a8edca2da1b9546b5c13cf5"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/cli.py",
+      "bytes": 13443,
+      "sha256": "1c748b910c050077e624332a7c7bb6c957a7f08fe3ac5f4ea4673c12ed5481b0"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/segments.py",
+      "bytes": 2421,
+      "sha256": "cbf6e7b7cb88639efad2a1f586e694b3c45559bd8153346801e8e0f3be829d69"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/process_identity.py",
+      "bytes": 7332,
+      "sha256": "d5ed619bde6920a5239ee55665d3a38e2759210ad08fce4313260b12c9076dc3"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/investigation_models.py",
+      "bytes": 3436,
+      "sha256": "dfbcb34ec30519dd2015cc8f070552eb6c884f556ffe8b32241e201e087d03e5"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/models.py",
+      "bytes": 4411,
+      "sha256": "e0e7e8f6126943309174885cce4eba964ec5a662d1e41edc8c176ff606718328"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/capture.py",
+      "bytes": 12189,
+      "sha256": "d8b53cd40b1d3f284c789bde92d6695998a9201776d1c979ec3a69b19926f6b6"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/source.py",
+      "bytes": 3853,
+      "sha256": "9126a06744c7b79ecb1bcc07cfd735832cc8b21362b6d907a561911feb4fd33d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/service.py",
+      "bytes": 72612,
+      "sha256": "0090c436429764a1cc91432738ee27e01d5e7d096d3a4ab9a36ff53ce1edd7c0"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/tcx_producer.py",
+      "bytes": 31680,
+      "sha256": "d459f006ff9b40c3d08757b64d95435356488f29f0a687c70b24e9bc72548718"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/dns_trial.py",
+      "bytes": 11450,
+      "sha256": "6c997dfea28643481980eabc7cc44a7c3063e0140efaa6ff9b10fb1035b4a676"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/journal_transport.py",
+      "bytes": 4415,
+      "sha256": "d9c6308aa77278004084ef721bb1bac837a4f826d071842b7cdb8d0ed29bbd3d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/__init__.py",
+      "bytes": 89,
+      "sha256": "780cdb400d36dfc9800d0fced56a22d63e61ae2cca80a79c6117274bb19468b9"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/retention.py",
+      "bytes": 7160,
+      "sha256": "07bfd29461d476d6d1d78ec7d717cdb7efdd696f0ba4f513672790c61b251d83"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/investigation.py",
+      "bytes": 27176,
+      "sha256": "19e7f36b6b708fe6d786d32a4b982a2e35f6917ff000d7b323f9315bbc149078"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/api_investigation.py",
+      "bytes": 3611,
+      "sha256": "5e72716a1fc5e1ec340caf0ff48fa6e864a1722c55ed2d3331ecc02ad698efec"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/native_windows.py",
+      "bytes": 4386,
+      "sha256": "14cf250c9d99606a3ba3022ea63b0279c8225d83efd01faa70b933b5bf976262"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/dns_helper.py",
+      "bytes": 1130,
+      "sha256": "de4f72ca564de53cc9d2eeb412574b58f622f3187a07cd3af973d9e8b505cfa3"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/investigation_store.py",
+      "bytes": 12842,
+      "sha256": "dda85708e6d523f5b67f2f804455ea75b3acd444a82db98000754f4b08a6a0ea"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/source_worker.py",
+      "bytes": 3428,
+      "sha256": "248937da5da9a8306696112989151f7209bb1c145d5f2adc4e1e60f0d418549a"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/continuous/recovery.py",
+      "bytes": 7656,
+      "sha256": "7520c9bf4985f370fd99a5043cc16ed320291104948b66df74afbd9e4786a570"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/total_session.py",
+      "bytes": 3535,
+      "sha256": "3c01e9fda1b96fd7211a74d1ed9816203ec2a7772d97b3d78a67e96bfb415f08"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/helper_transport.py",
+      "bytes": 36407,
+      "sha256": "52fb29c433e1d9986e26e52036aeb0c2e7fe8c6d0ac12712dda73de72f9bf314"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/direction_policy.py",
+      "bytes": 4680,
+      "sha256": "c0bc4a452dbb5a1177b9a4d3e23ef806a0d5d8fddf6161d27581ae6d3fed184f"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/total_transport.py",
+      "bytes": 953,
+      "sha256": "4aa8128ec24eae0a1acfdfee0e20bd8e4ce3abb27947f0884cf3f36b6f790ad4"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/calibrated_helper.py",
+      "bytes": 1608,
+      "sha256": "375c06dbeb4e14c881fa496459182677b4efaa293845ecfac0dab0da663c4703"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/models.py",
+      "bytes": 5910,
+      "sha256": "8a31514dc3bb7acf32ee2f9ff409e41a89c752349651c316d85c3ac15199ace5"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/capture.py",
+      "bytes": 5032,
+      "sha256": "c15ad82c1c8ca7dfc4433d81d2e6f4c6c5aebfe52e9cad395bd82f3b907c1245"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/streaming_flow.py",
+      "bytes": 6752,
+      "sha256": "58729dc5aee6aa77c070c19699739704ef980e84980716901e3d9870b69f5dea"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/total_helper.py",
+      "bytes": 908,
+      "sha256": "1c178e650e08f6c8da9957ee8020bd594cd71efff222dbfc8ac22739371d1e31"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/direction_helper.py",
+      "bytes": 10645,
+      "sha256": "aca215a347dfff3ada09e8605d0d490e4fcaa51c83c4f40318f5d916a45020a9"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/pipeline.py",
+      "bytes": 12360,
+      "sha256": "f31f264951a8c3b68554495017d68eb48ab2bf68ddddee608ed471dabd2c5310"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/native_probe.py",
+      "bytes": 7407,
+      "sha256": "59b67d8a7654eebbb7f05e3810b3d3e2da0aea5029872a09ca01ed1e9a12a50d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/manual_capture.py",
+      "bytes": 28081,
+      "sha256": "1f52fcd13c3eabd025bb7a810db4b9709b6c85ea065fed103e9eabd055fc17ba"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/parsing.py",
+      "bytes": 7484,
+      "sha256": "fe3d5db0c0d0bc30efddf74834ef06072a679b84661b4ffc4322b6bc0edc988a"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/stream_session.py",
+      "bytes": 6818,
+      "sha256": "3763da1ce40af8bc713562826c984334e64950dcaa9dbac53ba8517c3f21f0de"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/isolated_flow.py",
+      "bytes": 6965,
+      "sha256": "4e5b81cabae88fcdf8bd10ad6f8529e99258c4395f6777f5a098c9c6aca96ad8"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/calibrated_session.py",
+      "bytes": 4351,
+      "sha256": "a9b421443df9647f13db3938b6a75cc4b9cb94d1ae70f50bff4de09211c5e0b1"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/stream_transport.py",
+      "bytes": 6270,
+      "sha256": "d7ffda97343045d9f1c2d4f2430db09cef3271c13fe1970137de53cfb3d2a977",
+      "earlier_observed_sha256": "f240bbf1fc5c04e9e6996d4e8462fa7fd321e93f819e4ed435bae22ad2fa8f6d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/flows.py",
+      "bytes": 5280,
+      "sha256": "176af943285d92f1a22ead1fca88dd8daa33085317d05760013e9695d6a4c861"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/__init__.py",
+      "bytes": 94,
+      "sha256": "bb457e8ca95664a5c4d7e6500aeea4098f22cb57d0240e16352dd377cccfea4b"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/live_session.py",
+      "bytes": 5251,
+      "sha256": "f38463dbce234aa82f54807e64c513d31c5f56756be517197d814972c1489fe4"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/direction_peer.py",
+      "bytes": 3548,
+      "sha256": "7b8a32353ca50c2e93dc40694ddfc881cbb36fa1ecbb3e05f8ea709d2e5624df"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/direction_transport.py",
+      "bytes": 9886,
+      "sha256": "1edf871faee329612e7414b845cf382965196237f8b7df0ff858963bae6721e5"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/calibrated_policy.py",
+      "bytes": 2759,
+      "sha256": "ee9ee8b2dbde07db2d1c07046d5f857a43f982243fc52023ba6bbb7eee875b16"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/live_helper.py",
+      "bytes": 9973,
+      "sha256": "a8a0cafe7494922a0296a250129ab5695b681dbbec6febf512509b023ef44856"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/stream_helper.py",
+      "bytes": 10696,
+      "sha256": "1593febb4cbf4fa5a7cd45cc9699e0407813fd474b192c05a1e1e1d52202a57e"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/direction_session.py",
+      "bytes": 4522,
+      "sha256": "f39ef42a948a7f9e4dce0da157ee6264c761c5e80a19e6f043c32287cd06909a"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/permissions.py",
+      "bytes": 1986,
+      "sha256": "f45d5c76a9f880fa61be7af07350ac777a07dcc197100f431adf9911e2f7c5ea"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/docs/network-research-training-evaluation.md",
+      "bytes": 17885,
+      "sha256": "4f5d687aedf8aa29cceca53d8cf962cd9a6c4d8af84f34dbf8008c9ec86cfa22"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/docs/network-research-training-evidence.json",
+      "bytes": 82911,
+      "sha256": "f6094df29c7fbca5138d384ad4b2ebd3fe68fcdb35c60cbc1867c3880e0e9c8d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/docs/network-research-artifact-manifest.json",
+      "bytes": 1735,
+      "sha256": "186976dc3c20f87bb2facbf6445a80e47d28fb149093b7801dac3b65fa636abb"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/docs/network_security_ai/reproducibility.md",
+      "bytes": 6342,
+      "sha256": "e29c82256ec5c10fd121dcd18800050351dd5380ee940c62161bc9314a840b03"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/network-security-ai/README.md",
+      "bytes": 11783,
+      "sha256": "52868a8de9b73f3ef3e4160292188107d65d8bab2f5e4c42aa371263a69199bc"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/network-security-ai/src/network_security_ai/predictors.py",
+      "bytes": 8865,
+      "sha256": "1a834135a890d440dd53381a80e25d85217828d52ca575b4db2d83458795b5a3"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/network-security-ai/src/network_security_ai/artifact_manifest.json",
+      "bytes": 514,
+      "sha256": "4db00b19111638de47528ba6cf7da35f0777715b5eb514243112dc50987e6657"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/dns-security-ai/README.md",
+      "bytes": 6229,
+      "sha256": "98770ef565e7352452c251a655eb0e7722664b13ca0629395a8a4dc85e02c489"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json",
+      "bytes": 2081,
+      "sha256": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/notebooks/dnn_top40_v4.ipynb",
+      "bytes": 86992,
+      "sha256": "daaa733a1c8288974da79821c0378e8cf1c80ed6e9b716227580a23ac49d6b29"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/notebooks/preprocessing.ipynb",
+      "bytes": 995696,
+      "sha256": "4b362a680b71fbd5f192ce530680ff444dffd36a62e048c9512a6712d1ab21b9"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/notebooks/model_sample_v4.ipynb",
+      "bytes": 249275,
+      "sha256": "53e1b5624890bb11a1b84f7e215f09e254673cac61022e1f86953781b343c027"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/notebooks/model_diversity_v3.ipynb",
+      "bytes": 45544,
+      "sha256": "37dd22410bee0b2f7b88b76aaa1c37a9398da4c2ca45b4a284d89d29c650dccf"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/reports/CIC-Bell-DNS-EXF-2021_DNS_Security_ML.ipynb",
+      "bytes": 169901,
+      "sha256": "16585061430566be3ab70bba30b56872a296db07d1e8f5dbaba303f958c5ca1b"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/xgboost_top10_v3/validation_metrics.csv",
+      "bytes": 166,
+      "sha256": "59c496b4ad3ce97478f265dec44ac5d045fdc139a3be57f5ee52823642556f9a"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/random_forest_top40_v3/validation_metrics.csv",
+      "bytes": 179,
+      "sha256": "f33a0cc251a2862d22b34c8513b09ea316aa47ca0ca007c89decf03b916f118e"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/logistic_regression_top40_v3/validation_metrics.csv",
+      "bytes": 280,
+      "sha256": "0cf53d5e3d131b324d42c731e3161591c6e4451512e687b04304c76bd1da383c"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/xgboost_top20_v3/validation_metrics.csv",
+      "bytes": 166,
+      "sha256": "696b5b0b9a5293ab44c5e5953c78f8cca27df39bce0c50b25587f3022f8da99c"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/mlp_top40_v3/validation_metrics.csv",
+      "bytes": 266,
+      "sha256": "a69017f946aee358120e555ba22b0a4cf0ab2eb9be97af89f9a5d18b7d3ec602"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/lightgbm_top40_v3/validation_metrics.csv",
+      "bytes": 174,
+      "sha256": "b8d350819436000f1e3627802ac88517c4a06a257404f626e772df0dbb4c10fe"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/xgboost_v3/validation_metrics.csv",
+      "bytes": 153,
+      "sha256": "1a72215874e8c09a30c828a0641e290173c023295f487af34b42a240e2bc52ce"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/hist_gradient_boosting_top40_v3/validation_metrics.csv",
+      "bytes": 186,
+      "sha256": "e97d1b1d8fda33c7018aceffe52f01a46c57a2cf434b011ea7fb0feebc90935d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/xgboost_top40_v3/validation_metrics.csv",
+      "bytes": 166,
+      "sha256": "d4269200d1f4294fc73b288d852f75f26e5973f369b2a07a403abfb38aa9d89e"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/models/network/lightgbm_top40_v4b2.txt",
+      "bytes": 48637456,
+      "sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/models/network/dnn_top40_v4_best.pt",
+      "bytes": 398041,
+      "sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/models/network/dnn_top40_v4_scaler.joblib",
+      "bytes": 1543,
+      "sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/dns_security_package/dns_security_package/dns_security/model/dnn_int8.tflite",
+      "bytes": 9288,
+      "sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/packages/dns_security_package/dns_security_package/dns_security/preprocessor/scaler.joblib",
+      "bytes": 1135,
+      "sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native20-full-integration-review-20261102T073720Z/full-integration-failed-result.json",
+      "bytes": 4726,
+      "sha256": "21ea4554d28e793e58b60e882e3d548aedc3ee1dfe2c31c0683d8551e439171d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native20-full-integration-review-20261102T065604Z/full-integration-failed-result.json",
+      "bytes": 3122,
+      "sha256": "670191e12b7fe998e73716e9eed420bbd39aa9462d8bceb6a3ae05e06a0e113d"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-stabilization-batch1/execution-v1/execution-ledger.jsonl",
+      "bytes": 585448,
+      "sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native20-full-integration-review-20261102T073720Z/gui-live-witness/finished-dashboard.png",
+      "copy": "assets/native-failure-dashboard.png",
+      "sha256": "98ed3659d2e63eb6a6f32eb9da856de89310483fa3561d658033c76f76cc1d3c",
+      "scope": "Actual preserved Native failure; not current running GUI"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/models/network-research-v1-final/quality_rf/model.joblib",
+      "bytes": 117241,
+      "sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/models/network-research-v1-final/edge_lr/model.joblib",
+      "bytes": 1773,
+      "sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/runtime-storage-isolation-20261102T013653Z/soak20-recovery/verified-result.json",
+      "bytes": 37362,
+      "sha256": "bae9731a038f3c70e9706904054c246a237e1a1435ad3b495659b6109a338505"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-approved-attempt-20261030T093317Z/native-result-verified.json",
+      "bytes": 9366,
+      "sha256": "3e838d95d5d9bd9b3015df5440b233c8baf153e9a884f8063f94dc1b19c34a45"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/total-helper-manifest.json",
+      "bytes": 790,
+      "sha256": "20de957fb23ed79ff2bd209d8aea683e600e568c70497c57cfe64c11d58e3be3"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/direction-helper-manifest.json",
+      "bytes": 1808,
+      "sha256": "985130c8b244427734643892bb9506dfbdb093b0dbf99b80ddbedfa66719e0c8"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/soc-one-command-runtime/src/soc_agent/security_ai/operational/network_capture/calibrated-helper-manifest.json",
+      "bytes": 1345,
+      "sha256": "18ded4c640d2ac80e25b7e47a87b28f7574784f4af7f2b65bbed578a094303ee"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/reliability-live-validation-review-20261102T001146Z/llm-assessment/future-attempt/result.json",
+      "bytes": 1074,
+      "sha256": "cb4fcecde5f3f11fd3b1feb574effa767fb97586de3d5e9f0c997a6171b52290"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/reliability-live-validation-review-20261102T001146Z/llm-assessment/future-attempt/api-failure-0.json",
+      "bytes": 971,
+      "sha256": "9031195f161b3f6b806b5c96e8cbb9c1284c583eba6b2f82d3209049e2bda723"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native20-full-integration-review-20261102T073720Z/native/root-install-manifest-v3.json",
+      "bytes": 22566,
+      "sha256": "f58fd1210a419a0da96041380bcc479d963bc5423934d3e25dc3424ec8421d89"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/dnn_top40_v4/dnn_torchao_int8_full_valid_metrics.csv",
+      "bytes": 201,
+      "sha256": "cf515ea55139418889c7d12dfe58d802cc7c6649e1ec67bbcdd337ab298ecf31"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/data_quality/dataset_profile.csv",
+      "bytes": 264,
+      "sha256": "3e366c9cc00a9a7c65cc4a8b1f08aa523b2f094df4bc94926121d778476be86b"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/data_quality/outlier_report.csv",
+      "bytes": 7708,
+      "sha256": "b526d75a60e440e405b8e59b2bad012f3bc041da31f7b15a5a8a53853e8723ae"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/ML/results/model_sample_v4/full78_vs_top40_conflict.csv",
+      "bytes": 731,
+      "sha256": "b854968754225c0f883869e14871916d4ff1fafe1f5020d71a4de039a999f6da"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-approved-attempt-20261030T093317Z/gui-0-Investigation.png",
+      "copy": "assets/native-success-investigation.png",
+      "sha256": "b5608b6f8db427c5ebf71befb24cfb6619743e9bc87d6cdd8fed5ca2972e344e",
+      "scope": "Historical actual screenshot, no new live execution"
+    },
+    {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/reliability-live-validation-review-20261102T001146Z/llm-assessment/actual-assessment-timeout-1.png",
+      "copy": "assets/api-assessment-timeout.png",
+      "sha256": "00dc28c959d4d99d9f075af5824b56cf06a16c76a7fd65ac804bc9c09041b88b",
+      "scope": "Historical actual screenshot, no new live execution"
+    }
+  ]
+}

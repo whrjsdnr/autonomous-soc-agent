@@ -1,0 +1,68 @@
+{
+  "method": "READ_BYTES_SHA_ONLY_NO_DESERIALIZATION_OR_INFERENCE",
+  "artifacts": [
+    {
+      "model_family": "CIC_TOP40",
+      "path": "/home/geonug/kdt-linux/ML/packages/network-security-ai/src/network_security_ai/resources/top40_features.csv",
+      "expected_sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "actual_sha256": "feef58ff01b7d9a8b992fb4475ebaeb910b11ebdf23cd9ff5658c10e86865b3d",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "CIC_TOP40",
+      "path": "/home/geonug/kdt-linux/ML/packages/network-security-ai/src/network_security_ai/resources/label_mapping.json",
+      "expected_sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "actual_sha256": "1c2b006bca8d80d86670d2f133f9f53864294c541a0f805fc6ab8d794f2677fd",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "CIC_TOP40",
+      "path": "/home/geonug/kdt-linux/ML/models/network/lightgbm_top40_v4b2.txt",
+      "expected_sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "actual_sha256": "eb28cc855a65d336cd1b2720ec4fcc2958874444e33fae5b78c1cae4e4c62924",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "CIC_TOP40",
+      "path": "/home/geonug/kdt-linux/ML/models/network/dnn_top40_v4_best.pt",
+      "expected_sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "actual_sha256": "85cbc702d1b0a137c4f44b23be6911691cc89d5bfef0c388cf282e9500c49160",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "CIC_TOP40",
+      "path": "/home/geonug/kdt-linux/ML/models/network/dnn_top40_v4_scaler.joblib",
+      "expected_sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "actual_sha256": "528cfa770181bb61bdcc5d30b2cae8a171dfa63399f3fd33f9a15ab5fbc67d32",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "DNS9_SUPPLIED",
+      "path": "/home/geonug/kdt-linux/ML/packages/dns_security_package/dns_security_package/dns_security/model/dnn_int8.tflite",
+      "expected_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "actual_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "DNS9_SUPPLIED",
+      "path": "/home/geonug/kdt-linux/ML/packages/dns_security_package/dns_security_package/dns_security/preprocessor/scaler.joblib",
+      "expected_sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "actual_sha256": "2735f7650a7d7888ee68f2df870b4e29d83666962931ae2aecb9aa339f40266a",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "CTU_NETWORK14",
+      "path": "/home/geonug/kdt-linux/ML/models/network-research-v1-final/quality_rf/model.joblib",
+      "expected_sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "actual_sha256": "53c1029cc70b9d038bf46278818905c969dc3ddfb086c673466298ebdfa56603",
+      "status": "SHA_MATCH"
+    },
+    {
+      "model_family": "CTU_NETWORK14",
+      "path": "/home/geonug/kdt-linux/ML/models/network-research-v1-final/edge_lr/model.joblib",
+      "expected_sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "actual_sha256": "661322193df782f958e88eb9da23f0dc4d17be328cfa63635865ce63e0fd2882",
+      "status": "SHA_MATCH"
+    }
+  ]
+}
