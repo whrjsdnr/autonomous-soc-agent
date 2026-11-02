@@ -53,7 +53,7 @@ soc-agent stop
 soc-agent status
 ```
 
-모델 Action·외부 API·Host Authentication·DNS9는 이번 시험 범위에 포함하지 않는다. 별도 승인 전 Prediction0과 승인 대기는 정상적인 차단이다. 값이 없다는 이유로 Mock 결과를 채우지 않는다.
+최신 사용자 요청은 RF/LR과 실제 LLM Plan·Assessment까지 확인하는 통합 시험이다. RF/LR은 봉인된 ELIGIBLE 작업별 별도 승인 후 기존 Worker가 실행한다. 기존 SOCRuntime의 SCRIPTED 경로와 실제 API 경로를 구분한다. 실제 API는 기존 RetainedAPIClient를 통해 이번 Session에서 생성된 Network Incident의 Evidence Revision을 고정하고 독립 승인 후 최대2회/총$0.05/요청20초/출력4096토큰/재시도0으로 실행하는 승인안을 준비한다. 실제 LLM을 자동으로 호출하는 start 옵션은 현재 없으며, 이 단계를 단일 start만으로 모두 실행한다고 주장하지 않는다. 새 API 승인·입력 Binding 확정 전에는 호출하지 않는다. Host Authentication Live와 DNS9는 검증 계약 미완료로 차단/미검증 상태를 표시한다. 값이 없다는 이유로 Mock 결과를 채우지 않는다.
 
 ## 4. 종료 후 보존 결과 확인
 
@@ -73,3 +73,9 @@ Collector128MiB/CPU25%, Runtime512MiB/CPU50%, DNS Helper512MiB/CPU10%, TCP64MiB/
 성공에는 READY, 실제 이벤트, Window Seal/Attestation, DNS Transaction, 기존2초 Helper·5초 Control 계약, Queue/Drop/SourceGap, GUI 재연결, TCX STOP ACK, Helper CLOSED/최종Counter/ACK, Root 소유 Cleanup, Runtime Cleanup 증거가 각각 필요하다. Exit0만으로 성공 처리하지 않는다. 최초 오류와 후속 Cleanup 오류를 분리하고 실패 시 자동 재실행하지 않는다.
 
 과거 Program1145/Heartbeat 송신 공백 원인은 UNKNOWN, 과거 Runtime/Global Cleanup UNVERIFIED와 FAILED/false는 보존한다. 현재 시험이 성공해도 소급 변경하지 않는다. 실제20분·1시간 Native 연속 운영, 실제LLM Assessment, Host Authentication IF 전체E2E, DNS9 원본학습 계약과 상용 무인운영 안정성은 미완료다.
+
+## 통합 조사 API의 독립 계약
+
+기존 OpenAI gpt-5-mini, https://api.openai.com/v1/chat/completions를 유지한다. 공식 문서를2026-11-02에 조회했으며 입력$0.25/출력$2.00 per1M tokens, deprecated/2026-12-11 shutdown 예정이다. 계정 가용성은 미확인이고 자동 모델 변경은 금지한다. 최대2호출(Plan1/Assessment1), 출력4096토큰/호출,20초/호출,자동재시도0,총비용$0.05. 입력 예약 상한은 각요청60000토큰(기존Adapter의 최소화된UTF-8본문+schema+4096 overestimate)으로 제한하면 총예약 최대$0.046384다. 실제 요청 직전 계산값이 이를 넘으면 호출하지 않는다. Usage누락/Timeout은 결과·비용UNKNOWN으로 보존하며 재계획은 이번2호출 범위에서 제외한다. 비밀번호/API Key를 출력하지 않는다.
+
+가격 근거: [OpenAI 모델 문서](https://developers.openai.com/api/docs/models/gpt-5-mini). 수명 근거: [OpenAI Deprecations](https://developers.openai.com/api/docs/deprecations).
