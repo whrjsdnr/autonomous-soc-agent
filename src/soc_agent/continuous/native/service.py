@@ -58,12 +58,17 @@ class ControlTransport:
             raise ValueError("CONTINUOUS_CONTROL_TRANSPORT_FAILED") from self.failure
 
     def send(self, body):
+        # Preparing a data record must not hold the control heartbeat/STOP lock.
+        # Validate before publishing: a malformed record must never reach the peer.
+        if len(body) > 262144:
+            raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
+        generation = json.loads(body)["generation"]
         with self.lock:
             if self.peer is None:
                 raise BrokenPipeError("CONTINUOUS_CONTROL_PEER_CLOSED")
-            if len(body) > 262144 or self.peer.send(body) != len(body):
+            if self.peer.send(body) != len(body):
                 raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
-            self.advertised_generation = json.loads(body)["generation"]
+            self.advertised_generation = generation
 
     def _run(self):
         last = 0.0

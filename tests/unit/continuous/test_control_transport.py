@@ -175,3 +175,77 @@ def test_buffered_old_control_cannot_extend_liveness_or_claim_low_latency():
             )
         )
     assert source.last_control_sequence is None and source.control_snapshot is None
+
+
+@pytest.mark.asyncio
+async def test_slow_data_validation_does_not_block_control_heartbeat(monkeypatch):
+    """Data preparation must not hold the shared control critical section."""
+    from soc_agent.continuous.native import service
+
+    owner, peer = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    owner.setblocking(False)
+    peer.setblocking(False)
+    transport = ControlTransport("net:[4026532232]", "a" * 64, lambda: None)
+    transport.attach(peer)
+    loop = asyncio.get_running_loop()
+    entered, release = threading.Event(), threading.Event()
+    body = b'{"generation":42}'
+    original = json.loads
+    failures = []
+
+    def slow_decode(value, *args, **kwargs):
+        if value == body:
+            entered.set()
+            if not release.wait(4):
+                raise TimeoutError("DATA_VALIDATION_FIXTURE_BOUND")
+        return original(value, *args, **kwargs)
+
+    def send():
+        try:
+            transport.send(body)
+        except BaseException as error:
+            failures.append(error)
+
+    sender = threading.Thread(target=send)
+    try:
+        first = original(await asyncio.wait_for(loop.sock_recv(owner, 262145), 2))
+        assert first["contract"] == "soc-continuous-tcx-control:v1"
+        monkeypatch.setattr(service.json, "loads", slow_decode)
+        sender.start()
+        assert await asyncio.to_thread(entered.wait, 1)
+        next_record = original(await asyncio.wait_for(loop.sock_recv(owner, 262145), 2))
+        assert next_record["contract"] == "soc-continuous-tcx-control:v1"
+        assert next_record["sequence"] == first["sequence"] + 1
+        assert sender.is_alive() and transport.advertised_generation is None
+    finally:
+        release.set()
+        await asyncio.to_thread(sender.join, 2)
+        transport.close()
+        owner.close()
+        peer.close()
+    assert not sender.is_alive() and not failures
+    assert transport.advertised_generation == 42
+
+
+def test_invalid_data_is_rejected_before_socket_publication():
+    owner, peer = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    owner.setblocking(False)
+    peer.setblocking(False)
+    transport = ControlTransport("net:[4026532232]", "a" * 64, lambda: None)
+    transport.attach(peer)
+    try:
+        with pytest.raises(KeyError, match="generation"):
+            transport.send(b"{}")
+        transport.close()
+        records = []
+        while True:
+            try:
+                records.append(json.loads(owner.recv(262145)))
+            except BlockingIOError:
+                break
+        assert all(row.get("contract") == "soc-continuous-tcx-control:v1" for row in records)
+        assert transport.advertised_generation is None
+    finally:
+        transport.close()
+        owner.close()
+        peer.close()
