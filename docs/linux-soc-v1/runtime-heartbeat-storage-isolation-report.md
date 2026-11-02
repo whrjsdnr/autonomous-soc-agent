@@ -197,3 +197,16 @@ Native 성공/실패 증거는 Commit 대상이 아니다.
 Root Namespace/Artifact/R1/트래픽과 직접 Scope yes·sudo 인증은 실제 실행 전 필수다.
 봉인된 ELIGIBLE 작업의 RF/LR Action은 별도 승인, 실제 API/DNS9/HostAuth는 제외한다.
 이 문서의20분 PASS는 해당 Native 시험을 이미 수행했다는 뜻이 아니다.
+
+## 후속 실제 Native 단일 시험 결과
+
+2026-11-02 새 Binding의 명시적 승인·사용자 TTY Scope yes·직접 sudo 인증 후
+Native20분 시험1회를 실행했다. 전체66.986초에 DNS
+`HELPER_HEARTBEAT_OR_PROCESS_STALE`로 중단됐다. Runtime12건·격리2건의 Native
+이벤트와 완료 DNS Transaction2건을 확인했지만 Runtime Window0개, 목표시간 미달이다.
+TCX·Helper·기록된 Root 소유 Cleanup은 VERIFIED, **Runtime Cleanup은 UNVERIFIED**다.
+자동 재실행하지 않았다. 기존 Replay20분 PASS와948건 회귀 결과는 보존하되
+실제 Native 안정성 검증 완료로 해석하지 않는다.
+
+상세: [Native20분 실환경 시험 결과](native20-storage-recovery-result.md).
+최종 실환경 판정은 PARTIALLY_VERIFIED이며 1시간 시험 진행 조건을 충족하지 못했다.
