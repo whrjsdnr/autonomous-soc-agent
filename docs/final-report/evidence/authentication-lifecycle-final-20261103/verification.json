@@ -1,0 +1,177 @@
+{
+  "code_commit": "dd81305ee4754cfbb1b2f66682d642ec4b12abdd",
+  "baseline_commit": "ceaeb1c5b57a681c175797075fadb4d58c13d82f",
+  "production_source_sha256": "958f1ba8d1907d26ec513d69920bf5f55bd2d31435f26169dba838933a49a776",
+  "results": {
+    "workspace": {
+      "cases": 899,
+      "pytest_seconds": 175.39,
+      "fixture_storage": "tmpfs",
+      "source_unchanged": true,
+      "returncode": 0,
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      }
+    },
+    "supplement-workspace": {
+      "cases": 97,
+      "pytest_seconds": 42.0,
+      "fixture_storage": "tmpfs",
+      "source_unchanged": true,
+      "returncode": 0,
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      }
+    },
+    "export": {
+      "cases": 899,
+      "pytest_seconds": 177.3,
+      "fixture_storage": "tmpfs",
+      "source_unchanged": true,
+      "returncode": 0,
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      }
+    },
+    "supplement-export": {
+      "cases": 97,
+      "pytest_seconds": 44.54,
+      "fixture_storage": "tmpfs",
+      "source_unchanged": true,
+      "returncode": 0,
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      }
+    }
+  },
+  "reproducible_builds": {
+    "compile_only": true,
+    "legacy": {
+      "bootstrap": "a67e1e24e0b052deb9bf94dcf124631bbe081b453121039cb5924f637658cca2",
+      "broker": "5fa148e5d0d7b1f3c4b5b5854059140f414c7eabc3db6152364215310b8b0434",
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "libnative-tc.so": "d2bf58c38ed5a9cab92ed1ffa03f59951d3118b444170861568c482d38be05ea",
+      "source_bundle_digest": "f5202ab5f97a730d6745f221a5d474ddb10e2b28c6ba12e89a50c4a0a8c07669",
+      "tc-fixture": "32fd5478c736c536881bcaf9608db72b46585d33770f360f5f62be14a9c53758",
+      "tcx-dispatch-fixture": "6e1c9bb10e0efba52265e2a6f6008610f1a080202f6c8c25d0bfbe8fda3d1322",
+      "tcx.bpf.o": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
+    },
+    "live_execution": false,
+    "native": {
+      "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+      "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+      "service.py": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+    },
+    "supervisor": {
+      "supervisor.py": "5b7bbccc5cbd5df9aa95ff65d7f0179bda2fb17366ad4495beead56128c92619",
+      "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469"
+    },
+    "wheel_sha256": "2640b8772f44a7766773cc013f594afe9429eea69bd03cedbf605126c94b1f58",
+    "three_way_identical": true,
+    "export_import_forced_with_pythonpath": true,
+    "export_source": "export-final/src"
+  },
+  "preservation": {
+    "root_eight": [
+      {
+        "path": "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+        "sha256": "4b36f322ef409220bfd1c5bae7ef30b36022caf40f85a2f812b9c2a47f46a002",
+        "inode": 2451423,
+        "mtime_ns": 1793612680535955501,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-tcp-trial.service",
+        "sha256": "c78030d783a01e03cf3a2ab2df41df14889cb748bde1ed4d7d8068dc30cc4f4b",
+        "inode": 2084939,
+        "mtime_ns": 1793357834000244581,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/soc-agent/continuous-installation.json",
+        "sha256": "d2d56ba8b9b7185a365db763f75a7a20c0c6eea1794e0b25e40de4a57284a359",
+        "inode": 2722101,
+        "mtime_ns": 1793689596433375459,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-operations-runtime.service",
+        "sha256": "02d4644162cbadba5dabdfbf2b8daa5e52fa7c8b02b32a3efd9f731b308a4ec2",
+        "inode": 2722103,
+        "mtime_ns": 1793689596460969203,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dns.service",
+        "sha256": "1fa70b4c29e5b841fec12e9512d35aede2c810ef6675992255f34bfd272a7e5b",
+        "inode": 2722105,
+        "mtime_ns": 1793689596484502986,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dnsmasq.service",
+        "sha256": "1f7a36c1767089c38c4328324f74d4e68dc33a1804173adcc988657ecf5ec55f",
+        "inode": 2084947,
+        "mtime_ns": 1793357834080175596,
+        "unchanged": true
+      },
+      {
+        "path": "/usr/lib/soc-agent/continuous/service.py",
+        "sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+        "inode": 2722109,
+        "mtime_ns": 1793689596669204080,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf",
+        "sha256": "61257ee34448f64716b75b4e97f5e619a2d3866ed7461ca89919d966e259cad9",
+        "inode": 2084951,
+        "mtime_ns": 1793357834117147432,
+        "unchanged": true
+      }
+    ],
+    "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+    "ledger_rows": 81,
+    "failed_artifacts": 797,
+    "failed_artifacts_changed": [],
+    "root_native_dns_host_journal_inference_api_executions": 0,
+    "original_user_files": 164,
+    "original_user_files_changed": []
+  },
+  "raw_evidence_directory": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/authentication-lifecycle-final-20261103T090936Z",
+  "gui_fixture_screenshot": {
+    "path": "fixture-authentication-system-gui.png",
+    "sha256": "723faccb5e71bc9d0afac765b78575802ba3946db6f8bed3d8659d35bfbb43ee",
+    "scope": "REAL_TK_RENDER_OF_EXPLICIT_FIXTURE_STATE_NOT_HOST_OR_NATIVE_EXECUTION"
+  },
+  "ordinary_disk_regression_failures_preserved": [
+    "TCX missing ACK elapsed 7.624 seconds >=6.5; isolated unchanged PASS",
+    "Root audit release-to-seal >2s; isolated unchanged PASS",
+    "Existing monitor 1.5s fixture deadline retained PENDING 1; isolated unchanged PASS"
+  ],
+  "ordinary_disk_timing_root_cause": "UNKNOWN",
+  "validation_driver": {
+    "exitstatus": 143,
+    "stage": "AFTER_EXPORT_PYTEST_RESULTS_BEFORE_BUILD",
+    "cause": "UNKNOWN",
+    "pytest_result_files_complete": true,
+    "build_resumed_separately": true
+  },
+  "live_host_journal": "NOT_EXECUTED",
+  "if_native_training_parity": "UNVERIFIED",
+  "if_inference": "NOT_EXECUTED",
+  "live_root_native_dns_api_model_actions": 0,
+  "installed_release_updated": false,
+  "full_live_e2e": "NOT_EXECUTED_NOT_VERIFIED"
+}
