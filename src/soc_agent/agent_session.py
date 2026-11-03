@@ -21,6 +21,16 @@ from soc_agent.continuous.store import Store
 from soc_agent.security_ai.research.models import digest
 
 
+def draft_expiry(review_expiry: str, *, now: datetime) -> str:
+    """A fresh Session cannot extend the frozen review's validity or renew it."""
+    upper = datetime.fromisoformat(review_expiry)
+    if upper.tzinfo is None or now.tzinfo is None:
+        raise ValueError("AGENT_REVIEW_TIMEZONE_REQUIRED")
+    if upper <= now:
+        raise ValueError("AGENT_INSTALLED_RELEASE_EXPIRED_NEW_REVIEW_REQUIRED")
+    return min(now + timedelta(hours=24), upper).isoformat()
+
+
 def bind_api_limits(source: str, *, calls: int, budget_usd: str) -> str:
     """Narrow the existing exact-input request; never broaden the template scope."""
     tree = ast.parse(source)
@@ -55,11 +65,11 @@ def bind_api_limits(source: str, *, calls: int, budget_usd: str) -> str:
 
 def draft(template: Path, parent: Path) -> Path:
     old = verify_review(template, require_active=False)
+    expiry = draft_expiry(old["expires_at"], now=datetime.now(UTC))
     namespace_binding(old["namespace"]["target"], template, old)
     directory = parent / "native"
     directory.mkdir(mode=0o700)
     old_parent = template.parent
-    expiry = (datetime.now(UTC) + timedelta(hours=24)).isoformat()
     # Frozen Git and interpreter remain part of the installed Release, independent
     # of development HEAD. Never copy an editable Source tree or an old runtime.
     shared = (old["frozen_execution_source"], old["dns_runtime"]["directory"])
