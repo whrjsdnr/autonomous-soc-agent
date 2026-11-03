@@ -1,0 +1,9 @@
+{
+  "api_grants": 0,
+  "executed": false,
+  "final_prepared_session": "81660de4-5cb8-418a-ae46-520ba4b168c0",
+  "model_grants": 0,
+  "previous_candidate_files_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/before-model-scope-metadata-clarification",
+  "previous_prepared_session": "b94a7bd2-4a65-4072-bde4-5b2fc8434e86",
+  "status": "PASS_PENDING_EXACT_B_APPROVAL_NOT_EXCLUDED_NOT_GRANTED"
+}

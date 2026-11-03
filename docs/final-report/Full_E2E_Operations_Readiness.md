@@ -55,7 +55,7 @@ Network·DNS가 동일 Session에 존재한다는 사실만으로 서로 다른 
 - 실행 frozen Git: `74cbcb2ae9cf120d29d406c6e0126d07d304be58`
 - Git Tree: `ca12d4a54bf16fb75a72d2bd0e8789fe5c0c4534`
 - Source canonical digest: `75b0069502a7b5518bad29c0adf3623973dc2b5da0c3af7e713a4bfd2956418c` / Source677개
-- Runtime Session: `b94a7bd2-4a65-4072-bde4-5b2fc8434e86`
+- Runtime Session: `81660de4-5cb8-418a-ae46-520ba4b168c0`
 - DNS Session: `3743fc22-a959-4006-9907-4f22ffd55353`
 - Release:0.6.3 + 정확한 code_identity/설치파일맵 Identity. 이름0.6.3만으로 다른 Artifact에 승인 승계 금지
 - Root 변경4개/고정8경로. 나머지4개는 SHA/inode/mtime 검증
@@ -147,3 +147,5 @@ Workspace **880PASS/195.36초**, 독립Export **880PASS/197.46초**. 두Source �
 기존실행증거796파일, 설치8경로SHA/inode/mtime, Ledger81행보존 재확인. 실제Native/DNS/Model/API/Root실행·승인소비·예약0. GUI Fixture증거 PNG4개(실제Live아님). 이번준비결과만으로실환경9개판정을VERIFIED로바꾸지않는다.
 
 근거는 [validation-final.json](evidence/full-e2e-preparation-20261103/validation-final.json), [final-binding.json](evidence/full-e2e-preparation-20261103/final-binding.json), [보존 Native 점검](evidence/full-e2e-preparation-20261103/stored-evidence-proof.json), [PCAP 점검](evidence/full-e2e-preparation-20261103/stored-pcap-proof.json)을참조한다.
+
+최종 Scope 검수에서 남아 있던 과거 `EXCLUDED_FROM_DIAGNOSTIC` 문구는 `PENDING_EXACT_SEALED_ELIGIBLE_JOB_APPROVAL_NO_AUTOMATIC_GRANT`로 정리했다. 모델/API 후속 경로를 제외한 TCX-only 시험으로 바꾸지 않는다. 실제 실행·자동 승인 없이 새 정확한 후보 Session으로 재결합했고 Root 계약·Factory·API Session 검사·설치 CLI Preview를 다시 통과했다. 이전 미실행 후보 파일은 별도 보존했다.
