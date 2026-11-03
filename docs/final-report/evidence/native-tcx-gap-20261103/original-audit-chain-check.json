@@ -1,0 +1,8 @@
+{
+  "status": "VERIFIED_READ_ONLY",
+  "content_sha256": "5d17f527e785b2154da13dbb874cc1688d49ee12efb7276a75480864800b2ca7",
+  "last_record_sha256": "cd6d81953bd5324ab8141a91d0b66d8989973b2faeb81452428cfb02b6ac06f4",
+  "records": 8012,
+  "source": "root-audit-after.json",
+  "authority_issued": false
+}
