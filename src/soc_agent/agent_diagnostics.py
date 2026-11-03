@@ -11,8 +11,10 @@ from typing import Literal
 from pydantic import JsonValue
 
 from soc_agent.agent_native import namespace_binding, validate_plan
+from soc_agent.approval.errors import ApprovalError
 from soc_agent.continuous import cli as service
 from soc_agent.continuous.native import policy
+from soc_agent.execution.errors import ExecutionError
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.security_ai.research.models import Frozen
 
@@ -28,7 +30,14 @@ def checked(operation, *, scope="HOST_READ_ONLY", failure="FAIL") -> dict:
     try:
         result = operation()
         return Check(status="PASS", code="VERIFIED", scope=scope, details=result).model_dump()
-    except (OSError, ValueError, StorageError, importlib.metadata.PackageNotFoundError) as error:
+    except (
+        OSError,
+        ValueError,
+        StorageError,
+        ApprovalError,
+        ExecutionError,
+        importlib.metadata.PackageNotFoundError,
+    ) as error:
         message = str(error)
         code = message if re.fullmatch(r"[A-Z][A-Z0-9_]{1,127}", message) else type(error).__name__
         return Check(status=failure, code=code, scope=scope).model_dump()
@@ -192,6 +201,26 @@ def collect(selected, basic, artifact_error=None) -> dict:
         ),
     ).model_dump()
     checks["api_provider"] = checked(api_settings)
+    if selected.configuration.managed_authentication:
+        from soc_agent.continuous.authentication_lifecycle import preflight
+        from soc_agent.continuous.store import Store
+
+        def authentication_scope():
+            proposed, receipt = preflight(Store(selected.runtime))
+            return dict(
+                action_id=str(proposed.action_id),
+                approval_id=str(receipt.approval_id),
+                collection_started=False,
+                inference_granted=False,
+                scope=proposed.input_payload(),
+            )
+
+        checks["authentication_collection"] = checked(authentication_scope, failure="BLOCKED")
+    else:
+        checks["authentication_collection"] = Check(
+            status="WARN", code="AUTHENTICATION_ATTACH_ONLY_NO_HOST_COLLECTION_AUTHORITY"
+        ).model_dump()
+
     if selected.configuration.dns_session:
         from soc_agent.continuous.dns_source import inspect
 

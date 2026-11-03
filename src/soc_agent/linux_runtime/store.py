@@ -1,6 +1,7 @@
 """Private companion job ledger. Does not migrate or rewrite existing incident databases."""
 
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -134,6 +135,8 @@ class RuntimeStore:
                 raise ValueError("RUNTIME_STATE_INTEGRITY_REJECTED")
             body.update(fields)
             body["heartbeat"] = utc_now().isoformat()
+            if "runtime_identity" in body:
+                body["heartbeat_monotonic"] = time.monotonic()
             c.execute(
                 "UPDATE monitor_state SET payload=?,digest=? WHERE id=1",
                 (json.dumps(body), content_digest_payload(body)),

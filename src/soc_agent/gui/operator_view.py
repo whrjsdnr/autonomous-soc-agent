@@ -328,7 +328,9 @@ def render_dashboard(app, value, rows):
         f"GUI/controller CPU {cpu:.2f}s" if isinstance(cpu, (float, int)) else "CPU · UNKNOWN",
     )
     auth = value.get("authentication", {})
-    auth_events = auth.get("authentication_events", auth.get("processed_inputs", "UNKNOWN"))
+    auth_events = auth.get(
+        "host_events", auth.get("authentication_events", auth.get("processed_inputs", "UNKNOWN"))
+    )
     app.status_cards["Authentication"].update_value(
         value.get("state")
         if value.get("startup_phase")
@@ -337,7 +339,11 @@ def render_dashboard(app, value, rows):
         if value.get("startup_phase")
         else auth.get("reason")
         or f"{auth_events} auth events · "
-        + str(auth.get("collector_state", auth.get("input_origin", "UNVERIFIED"))),
+        + str(auth.get("collector_state", auth.get("input_origin", "UNVERIFIED")))
+        + " · IF "
+        + str(auth.get("if_admission", {}).get("state", "UNVERIFIED"))
+        + " · Cleanup "
+        + str(auth.get("managed_lifecycle", {}).get("cleanup", "UNVERIFIED")),
     )
     account = net.get("packet_accounting", {})
 
@@ -905,6 +911,12 @@ def render_system(app, value):
             + str(ebpf.get("dns_state"))
             + " / "
             + str(ebpf.get("correlation")),
+        ]
+    if value.get("authentication"):
+        lines += [
+            "",
+            "AUTHENTICATION · SOURCE / WINDOWS / IF ADMISSION / AUDIT / CLEANUP",
+            json.dumps(display_data(value["authentication"]), ensure_ascii=False, indent=2),
         ]
     lines += ["", "INDEPENDENT CONTINUOUS SERVICE", continuous_status_line(value)]
     app._text(app.system, "\n".join(lines))

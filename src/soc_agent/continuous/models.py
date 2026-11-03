@@ -16,6 +16,19 @@ class RuntimeMode(StrEnum):
     OFFLINE = "OFFLINE"
 
 
+class ManagedAuthentication(Frozen):
+    """Opt-in existing host reader; configuration alone grants no collection."""
+
+    approval_file: Path
+    duration_seconds: int = Field(ge=1, le=600, strict=True)
+
+    @model_validator(mode="after")
+    def absolute_receipt(self):
+        if not self.approval_file.is_absolute():
+            raise ValueError("AUTHENTICATION_ABSOLUTE_APPROVAL_PATH_REQUIRED")
+        return self
+
+
 class ContinuousConfig(Frozen):
     contract: Literal["soc-continuous-runtime:v1"] = "soc-continuous-runtime:v1"
     mode: Literal["CONTINUOUS"] = "CONTINUOUS"
@@ -24,6 +37,7 @@ class ContinuousConfig(Frozen):
     input_sha256: str = Field(pattern=r"^[a-f0-9]{64}$")
     ml_root: Path | None = None
     authentication_runtime: Path | None = None
+    managed_authentication: ManagedAuthentication | None = None
     native_model_approvals: Path | None = None
     dns_session: Path | None = None
     dns_session_sha256: str | None = Field(default=None, pattern=r"^[a-f0-9]{64}$")
@@ -57,6 +71,10 @@ class ContinuousConfig(Frozen):
             and (not self.dns_session.is_absolute() or self.source != "NATIVE_SERVICE")
         ):
             raise ValueError("CONTINUOUS_DNS_REQUIRES_NATIVE_SESSION_AND_PIN")
+        if self.managed_authentication and (
+            self.authentication_runtime is None or self.journal_replay_file is not None
+        ):
+            raise ValueError("MANAGED_AUTHENTICATION_REQUIRES_EXCLUSIVE_RUNTIME")
         if self.authentication_runtime and not self.authentication_runtime.is_absolute():
             raise ValueError("CONTINUOUS_ABSOLUTE_AUTH_RUNTIME_REQUIRED")
         if bool(self.journal_replay_file) != bool(self.journal_replay_sha256):

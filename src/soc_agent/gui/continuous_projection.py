@@ -211,9 +211,12 @@ def project(value: dict) -> dict:
         == capture.get("source_provenance", {}).get("approval_digest")
     )
     attached = value.get("authentication", {})
-    authentication = dict(
-        attached if attached.get("runtime_state") else current.get("authentication", {})
-    )
+    authentication = dict(current.get("authentication", {}))
+    if attached.get("runtime_state"):
+        authentication.update(attached)
+    managed = current.get("authentication", {}).get("managed_lifecycle")
+    if managed:
+        authentication["runtime_state"] = managed["state"]
     transport = current.get("authentication_transport", {})
     if authentication.get("state") == "NOT_ATTACHED":
         authentication.update(

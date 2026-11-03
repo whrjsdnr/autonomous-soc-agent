@@ -136,3 +136,65 @@ async def test_gui_exact_approval_controls_and_waiting_do_not_issue_authority(tm
         finally:
             await close(root, app)
     assert not (directory / "native-model-approvals").exists()
+
+
+@pytest.mark.asyncio
+async def test_gui_authentication_window_admission_audit_cleanup_and_reconnect(tmp_path):
+    from tests.unit.continuous.test_runtime import make
+
+    runtime, store = make(tmp_path)
+    authentication = dict(
+        runtime_state="STOPPED",
+        host_events=3,
+        input_origin="FIXTURE_RETAINED_STATE_NO_HOST_JOURNAL",
+        authentication_windows=dict(total=2, eligible=1, incomplete=1),
+        if_admission=dict(state="BLOCKED_NO_APPROVED_PACKAGE", predictions=0),
+        rule_incidents=dict(DONE_READ_ONLY=1, PENDING=1),
+        audit_store_health="VERIFIED_LOCAL",
+        managed_lifecycle=dict(
+            state="STOPPED", cleanup="VERIFIED", stop_ack=True, durable_cleanup=True
+        ),
+    )
+    store.update(
+        dict(
+            state="STOPPED",
+            source="JSONL_REPLAY",
+            cleanup="VERIFIED",
+            authentication=authentication,
+        )
+    )
+    before = store.state()
+    for index in (1, 2):
+        root = tk.Tk()
+        app = Desktop(
+            root,
+            GUIConfig(data_directory=tmp_path / f"auth-gui-{index}", continuous_directory=runtime),
+        )
+        try:
+            await idle(root, app)
+            app.navigate("System")
+            await idle(root, app)
+            text = app.system.get("1.0", "end")
+            for field in (
+                "host_events",
+                "authentication_windows",
+                "if_admission",
+                "predictions",
+                "rule_incidents",
+                "audit_store_health",
+                "stop_ack",
+                "durable_cleanup",
+            ):
+                assert field in text
+            assert "FIXTURE_RETAINED_STATE_NO_HOST_JOURNAL" in text
+            assert "BLOCKED_NO_APPROVED_PACKAGE" in text
+            app.canvas.yview_moveto(1)
+            if index == 1:
+                at = app.system.search("AUTHENTICATION · SOURCE", "1.0", "end")
+                app.system.yview(at)
+            else:
+                app.system.see("end")
+            capture(root, tmp_path / f"fixture-authentication-gui-{index}.png")
+        finally:
+            await close(root, app)
+    assert store.state() == before

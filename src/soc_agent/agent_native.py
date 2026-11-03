@@ -277,6 +277,16 @@ def validate_plan(selected) -> dict:
     request = verify_review(review, selected.review_sha256)
     installation = installation_plan(review, request)
     cfg = ContinuousConfig.model_validate_json(read_local(review / "runtime-config-v2.json", 32768))
+    if cfg.managed_authentication:
+        from soc_agent.approval.errors import ApprovalError
+        from soc_agent.continuous.authentication_lifecycle import preflight as auth_preflight
+        from soc_agent.execution.errors import ExecutionError
+
+        try:
+            auth_preflight(Store(selected.runtime))
+        except (ApprovalError, ExecutionError) as error:
+            raise ValueError("AUTHENTICATION_EXACT_HUMAN_APPROVAL_REQUIRED") from error
+
     if (
         cfg.source != "NATIVE_SERVICE"
         or cfg != selected.configuration

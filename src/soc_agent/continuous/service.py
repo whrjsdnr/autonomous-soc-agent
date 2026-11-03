@@ -47,6 +47,11 @@ class ContinuousRuntime:
         self.store = Store(directory)
         self.store.require_streaming_schema()
         self.config = self.store.config
+        self.auth_lifecycle = None
+        if self.config.managed_authentication:
+            from soc_agent.continuous.authentication_lifecycle import AuthenticationLifecycle
+
+            self.auth_lifecycle = AuthenticationLifecycle(self.store)
         from soc_agent.continuous.authentication import AuthenticationWindows
         from soc_agent.continuous.tcx_producer import TCXProducer
 
@@ -197,6 +202,8 @@ class ContinuousRuntime:
             from soc_agent.linux_runtime.__main__ import status
 
             authentication = status(self.config.authentication_runtime)
+        if self.auth_lifecycle:
+            authentication = dict(authentication) | self.auth_lifecycle.snapshot()
         return dict(
             orchestration=self.investigation_snapshot
             | dict(worker=dict(self.investigation_progress)),
@@ -384,6 +391,19 @@ class ContinuousRuntime:
             from soc_agent.linux_runtime.__main__ import status
 
             authentication = await self.storage(status, self.config.authentication_runtime)
+            from soc_agent.continuous.authentication_admission import (
+                observation as auth_observation,
+            )
+
+            authentication.update(
+                await self.storage(
+                    auth_observation,
+                    self.config.authentication_runtime,
+                    self.config.authentication_packages,
+                )
+            )
+            if self.auth_lifecycle:
+                authentication.update(self.auth_lifecycle.snapshot())
         self.cached_authentication = authentication
         if self.dns_source:
             await self.refresh_dns_snapshot()
@@ -1198,6 +1218,7 @@ class ContinuousRuntime:
         require_source_authority(self.config)
         with exclusive_runtime_lock(self.directory / "service.lock"):
             collector = consumer = journal = dns_task = investigation_worker = control = None
+            authentication_worker = None
             primary = None
             try:
                 # Clear the prior invocation's flags before the first asynchronous
@@ -1227,6 +1248,11 @@ class ContinuousRuntime:
                     "CONTINUOUS_SERVICE_STARTED",
                     dict(pid=os.getpid(), epoch=str(self.epoch), source=self.config.source),
                 )
+                if self.auth_lifecycle:
+                    await self.auth_lifecycle.start()
+                    authentication_worker = asyncio.create_task(
+                        self.auth_lifecycle.watch(self.stop)
+                    )
                 if self.config.source != "NATIVE_SERVICE":
                     for retained in self.store.retained():
                         await self.observe(retained, recovering=True)
@@ -1289,6 +1315,10 @@ class ContinuousRuntime:
                                 (getattr(self.source, "failure", None) or {}).get("code")
                                 or "CONTINUOUS_NATIVE_COLLECTOR_EARLY_EXIT"
                             )
+                    if authentication_worker and authentication_worker.done():
+                        authentication_worker.result()
+                        if not self.stop.is_set():
+                            raise ValueError("AUTHENTICATION_SUPERVISOR_EXITED")
                     if journal and journal.done():
                         journal.result()
                         raise ValueError("CONTINUOUS_JOURNAL_TASK_EXITED")
@@ -1447,6 +1477,24 @@ class ContinuousRuntime:
                     # The producer attempts its bounded failure STOP before it
                     # closes. Local closure still cannot replace a bound ACK.
                     failures.append(ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED"))
+                if authentication_worker:
+                    authentication_worker.cancel()
+                    outcomes = await asyncio.gather(authentication_worker, return_exceptions=True)
+                    failures.extend(
+                        error
+                        for error in outcomes
+                        if isinstance(error, BaseException)
+                        and not isinstance(error, asyncio.CancelledError)
+                        and error is not primary
+                    )
+                if self.auth_lifecycle:
+                    try:
+                        await self.auth_lifecycle.close()
+                        self.store.event(
+                            "CONTINUOUS_AUTHENTICATION_CLEANUP", self.auth_lifecycle.snapshot()
+                        )
+                    except BaseException as error:
+                        failures.append(error)
                 flush_error = None
                 try:
                     for event in self.dns.finish(aborted=True):

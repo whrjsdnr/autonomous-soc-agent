@@ -2,6 +2,7 @@
 
 import asyncio
 import math
+import os
 from datetime import timedelta
 from pathlib import Path
 from time import monotonic
@@ -356,7 +357,14 @@ class LinuxMonitor:
             self.store.recover()
             self.simulation.recover()
             self.store.request_stop(False)
-            self.store.update(state="RUNNING", started_at=utc_now().isoformat(), last_error=None)
+            from soc_agent.continuous.process_identity import runtime_identity
+
+            self.store.update(
+                state="RUNNING",
+                started_at=utc_now().isoformat(),
+                last_error=None,
+                runtime_identity=runtime_identity(os.getpid()),
+            )
             self.store.event("RUNTIME_STARTED", {"config": self.config.digest})
             start = monotonic()
             task = None
