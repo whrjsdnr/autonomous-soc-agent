@@ -6,28 +6,26 @@ Controller interpreter preparation and its existing runtime file manifest.
 
 import argparse
 import hashlib
-import importlib.util
 import json
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from soc_agent.security_ai.ebpf_tc.controller_python import prepare
 from soc_agent.security_ai.ebpf_tc.installation import canonical
-from soc_agent.security_ai.ebpf_tc.namespace_controller_engine import verify_python_runtime
 
 ENTRY = '''"""Verify the installed ordinary-user manager before importing its code."""
 import hashlib, json, os, stat, sys
 from pathlib import Path
 root = Path(__file__).resolve().parent
 config = json.loads((root / 'runtime-reference.json').read_bytes())
-manifest = Path(config['python_runtime']['file'])
-assert manifest == root / 'python/controller-python.json', 'MANAGER_MANIFEST_PATH'
+manifest = Path(config['application_runtime']['file'])
+assert manifest == root / 'application-files.json', 'MANAGER_MANIFEST_PATH'
 assert hashlib.sha256(manifest.read_bytes()).hexdigest() == config[
-    'python_runtime']['sha'], 'MANAGER_MANIFEST_CHANGED'
-value = json.loads(manifest.read_bytes())
-for name, pin in value['files'].items():
+    'application_runtime']['sha'], 'MANAGER_MANIFEST_CHANGED'
+for name, pin in json.loads(manifest.read_bytes()).items():
     path = Path(name)
     assert path.is_relative_to(root) and '..' not in path.parts, 'MANAGER_FILE_SCOPE'
     info = path.lstat()
@@ -35,7 +33,7 @@ for name, pin in value['files'].items():
             and not info.st_mode & 0o022), 'MANAGER_FILE_OWNER_MODE'
     assert hashlib.sha256(path.read_bytes()).hexdigest() == pin, 'MANAGER_FILE_CHANGED'
 python = root / 'python/bin/python'
-assert value['executable'] == str(python), 'MANAGER_INTERPRETER_SCOPE'
+assert config['executable'] == str(python), 'MANAGER_INTERPRETER_SCOPE'
 os.execv(str(python), [str(python), '-I', '-B', '-m', 'soc_agent.cli', *sys.argv[1:]])
 '''
 
@@ -71,7 +69,8 @@ def main() -> None:
     current = home / "current"
     if current.exists() and not args.update:
         raise ValueError("MANAGER_EXPLICIT_UPDATE_REQUIRED")
-    destination = home / pin
+    installer_pin = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    destination = home / (pin[:16] + "-" + installer_pin[:16])
     destination.mkdir(mode=0o700, exist_ok=False)
     project = evidence / "export-final"
     config = prepare(
@@ -79,19 +78,74 @@ def main() -> None:
         project=project,
         dependency_interpreter=Path(__file__).resolve().parents[1] / ".venv/bin/python",
     )
-    # The Controller closure deliberately excludes the external-LLM adapter.
-    # Copy its already installed settings parser, without reading credentials or
-    # resolving/downloading dependencies. Provider execution stays separately gated.
+    # The copied CPython executable uses $ORIGIN/../lib. Tcl/Tk must therefore
+    # accompany it; the minimal headless Controller probe never imports Tk.
+    base_library = Path(sys.base_prefix) / "lib"
+    for name in ("libtcl9.0.so", "libtcl9tk9.0.so", "tcl9.0", "tk9.0"):
+        source = base_library / name
+        target = destination / "python/lib" / name
+        if source.is_dir():
+            shutil.copytree(source, target)
+        elif source.is_file():
+            shutil.copyfile(source, target)
+        else:
+            raise ValueError("MANAGER_EXISTING_TK_RUNTIME_REQUIRED")
+    # Collect the application's real import closure, not the narrower Controller
+    # closure. Reading doctor/status imports does not authorize collection/inference.
+    # Keep the existing Controller pin/file-size bounds; do not copy whole ML
+    # distributions and their test data just to satisfy a runtime import.
     site = destination / "python/lib/python3.12/site-packages"
-    for name in ("pydantic_settings", "dotenv"):
-        spec = importlib.util.find_spec(name)
-        if spec is None or spec.origin is None:
-            raise ValueError("MANAGER_EXISTING_RUNTIME_DEPENDENCY_REQUIRED")
-        source = Path(spec.origin).parent
-        if not (site / name).exists():
-            shutil.copytree(
-                source, site / name, ignore=shutil.ignore_patterns("__pycache__", "*.pyc")
-            )
+    probe = (
+        "import sys,json,pathlib;sys.path.insert(0," + repr(str(project / "src")) + ");"
+        "import soc_agent.cli,soc_agent.agent_api_review;"
+        "from soc_agent.gui.production import Desktop;"
+        "from soc_agent.agent_runtime import doctor,home_path;h=home_path();"
+        "doctor(h) if (h/'agent.json').exists() else None;"
+        "print(json.dumps({'sites':[p for p in sys.path if p.endswith('site-packages')],"
+        "'files':[str(m.__file__) for m in sys.modules.values() "
+        "if getattr(m,'__file__',None)]}))"
+    )
+    result = subprocess.run(
+        [str(Path(__file__).resolve().parents[1] / ".venv/bin/python"), "-I", "-B", "-c", probe],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env=dict(os.environ, OPENBLAS_NUM_THREADS="1", OMP_NUM_THREADS="1", MKL_NUM_THREADS="1"),
+    )
+    closure = json.loads(result.stdout)
+    for location in map(Path, closure["sites"]):
+        paths = [Path(name) for name in closure["files"] if Path(name).is_relative_to(location)]
+        groups = {location / p.relative_to(location).parts[0] for p in paths}
+        # Import closures include module code, not importlib.resources assets.
+        # scikit-learn loads estimator CSS/Jinja resources during normal import.
+        for group in groups:
+            if group.is_dir():
+                paths += [
+                    p
+                    for p in group.rglob("*")
+                    if p.is_file()
+                    and p.suffix not in {".py", ".pyc", ".so"}
+                    and not {"tests", "test", "testing", "__pycache__"}.intersection(p.parts)
+                ]
+        # Wheel DSOs use sibling libraries through RPATH, outside sys.modules.
+        for libraries in (
+            "numpy.libs",
+            "scipy.libs",
+            "scikit_learn.libs",
+            "xgboost.libs",
+            "xgboost/lib",
+        ):
+            paths += [p for p in (location / libraries).rglob("*") if p.is_file()]
+        for source in sorted(set(paths)):
+            relative = source.relative_to(location)
+            if ".." in relative.parts or source.suffix == ".pyc":
+                raise ValueError("MANAGER_DEPENDENCY_PATH")
+            target = site / relative
+            if not target.exists():
+                target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+                target.chmod(0o600)
     subprocess.run(
         [
             "uv",
@@ -105,6 +159,9 @@ def main() -> None:
         ],
         check=True,
     )
+    # uv's installation lock is created 0666. It is private installation state,
+    # not a reason to relax the manager's owner/mode checks.
+    (destination / "python/.lock").chmod(0o600)
     subprocess.run(
         [
             str(destination / "python/bin/python"),
@@ -112,7 +169,8 @@ def main() -> None:
             "-B",
             "-c",
             "import soc_agent.agent_api_review; from soc_agent.gui.backend import GUIConfig; "
-            "import pydantic_settings; print('MANAGER_GUI_API_IMPORT_READY_NO_CALL')",
+            "import pydantic_settings,tkinter; tkinter.Tcl(); "
+            "print('MANAGER_GUI_API_IMPORT_READY_NO_CALL')",
         ],
         check=True,
     )
@@ -126,18 +184,24 @@ def main() -> None:
         and "__pycache__" not in path.parts
         and path.suffix != ".pyc"
     }
-    manifest = python_home / "controller-python.json"
-    manifest.write_bytes(
-        canonical(
-            dict(
-                contract="SOC_CONTROLLER_PYTHON_RUNTIME_V1",
-                executable=str(python_home / "bin/python"),
-                files=files,
-            )
-        )
+    # An ML-capable application is not the minimal privileged Controller runtime.
+    # Keep that Controller's 2048-file/64MiB bounds unchanged. Its preparation
+    # proof remains construction evidence; the ordinary application's existing
+    # Source-style file map includes scientific DSOs (e.g. libxgboost >64MiB).
+    original = python_home / "controller-python.json"
+    original.rename(python_home / "controller-preparation-only.json")
+    preparation = python_home / "controller-preparation-only.json"
+    files[str(preparation)] = hashlib.sha256(preparation.read_bytes()).hexdigest()
+    manifest = destination / "application-files.json"
+    manifest.write_bytes(canonical(files))
+    config = dict(
+        executable=str(python_home / "bin/python"),
+        application_runtime=dict(
+            file=str(manifest), sha=hashlib.sha256(manifest.read_bytes()).hexdigest()
+        ),
+        wheel_sha256=pin,
+        native_controller_qualification=False,
     )
-    config["python_runtime"]["sha"] = hashlib.sha256(manifest.read_bytes()).hexdigest()
-    verify_python_runtime(config, os.getuid())
     for name, body in (("runtime-reference.json", json.dumps(config)), ("entry.py", ENTRY)):
         target = destination / name
         target.write_text(body)
@@ -147,7 +211,7 @@ def main() -> None:
         ["/usr/bin/python3", "-I", "-S", str(destination / "entry.py"), "start", "--help"],
         check=True,
     )
-    pending = home / ("current-" + pin)
+    pending = home / ("current-" + destination.name)
     pending.symlink_to(destination.name, target_is_directory=True)
     os.replace(pending, current)
     fd = os.open(home, os.O_RDONLY | os.O_DIRECTORY)
