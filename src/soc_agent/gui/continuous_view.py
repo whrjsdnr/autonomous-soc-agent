@@ -8,6 +8,55 @@ from soc_agent.gui.continuous_projection import availability
 from soc_agent.gui.redaction import display_data
 
 
+def review_models(app, batch):
+    if not batch.get("jobs"):
+        messagebox.showinfo(
+            "RF/LR approval", batch.get("status", "NO_PENDING_JOBS"), parent=app.root
+        )
+        return
+    summary = [
+        "Approve only the displayed already sealed ELIGIBLE jobs?",
+        f"Session: {batch['runtime_session']}",
+        f"Operator: {batch['actor']}",
+        f"Prior calls: {batch['previous_invocations']} / {batch['maximum_invocations']}",
+        "No Root, capture, DNS or API authority. No future-input approval.",
+    ]
+    for job in batch["jobs"]:
+        summary.append(f"Job {job['job']}: eligible={job['eligible']}, RF/LR calls={job['calls']}")
+    summary.append("Models / fingerprints: " + json.dumps(batch["models"], sort_keys=True))
+    if messagebox.askyesno("Exact RF/LR job approval", "\n".join(summary), parent=app.root):
+        app.call(
+            "model_review_approve",
+            batch["batch_digest"],
+            True,
+            callback=app.continuous_updated,
+        )
+
+
+def review_api(app, summary):
+    if not summary.get("ready"):
+        messagebox.showinfo("LLM approval", summary.get("status", "WAITING_INPUT"), parent=app.root)
+        return
+    details = "\n".join(
+        (
+            f"Incident: {summary['incident_id']}",
+            f"Evidence revision: {summary['evidence_revision']}",
+            f"Provider: {summary['base_url']} / {summary['model']}",
+            f"Requests <= {summary['max_calls']}; USD <= {summary['budget_usd']}",
+            f"Timeout {summary['timeout_seconds']}s; automatic retries=0",
+            "Plan + Assessment; read-only tools; no Root/Native/model authority.",
+            "Raw payloads, addresses, domains, accounts and credentials stay local.",
+        )
+    )
+    if messagebox.askyesno("Approve exact LLM investigation input", details, parent=app.root):
+        app.call(
+            "api_review_approve",
+            summary["review_digest"],
+            True,
+            callback=lambda value: app.status.set(value["status"]),
+        )
+
+
 def build(app):
     ttk.Label(app.content, text="Continuous Runtime · independent service").pack(
         anchor="w", pady=10
@@ -59,67 +108,19 @@ def build(app):
     review_controls = ttk.Frame(app.content)
     review_controls.pack(fill="x", pady=4)
 
-    def review_models(batch):
-        if not batch.get("jobs"):
-            messagebox.showinfo(
-                "RF/LR approval", batch.get("status", "NO_PENDING_JOBS"), parent=app.root
-            )
-            return
-        summary = [
-            "Approve only the displayed already sealed ELIGIBLE jobs?",
-            f"Session: {batch['runtime_session']}",
-            f"Operator: {batch['actor']}",
-            f"Prior calls: {batch['previous_invocations']} / {batch['maximum_invocations']}",
-            "No Root, capture, DNS or API authority. No future-input approval.",
-        ]
-        for job in batch["jobs"]:
-            summary.append(
-                f"Job {job['job']}: eligible={job['eligible']}, RF/LR calls={job['calls']}"
-            )
-        summary.append("Models / fingerprints: " + json.dumps(batch["models"], sort_keys=True))
-        if messagebox.askyesno("Exact RF/LR job approval", "\n".join(summary), parent=app.root):
-            app.call(
-                "model_review_approve",
-                batch["batch_digest"],
-                True,
-                callback=app.continuous_updated,
-            )
-
     ttk.Button(
         review_controls,
         text="Review sealed RF/LR jobs",
-        command=lambda: app.call("model_review_prepare", callback=review_models),
+        command=lambda: app.call(
+            "model_review_prepare", callback=lambda batch: review_models(app, batch)
+        ),
     ).pack(side="left", padx=4)
-
-    def review_api(summary):
-        if not summary.get("ready"):
-            messagebox.showinfo(
-                "LLM approval", summary.get("status", "WAITING_INPUT"), parent=app.root
-            )
-            return
-        details = "\n".join(
-            (
-                f"Incident: {summary['incident_id']}",
-                f"Evidence revision: {summary['evidence_revision']}",
-                f"Provider: {summary['base_url']} / {summary['model']}",
-                f"Requests <= {summary['max_calls']}; USD <= {summary['budget_usd']}",
-                f"Timeout {summary['timeout_seconds']}s; automatic retries=0",
-                "Plan + Assessment; read-only tools; no Root/Native/model authority.",
-                "Raw payloads, addresses, domains, accounts and credentials stay local.",
-            )
-        )
-        if messagebox.askyesno("Approve exact LLM investigation input", details, parent=app.root):
-            app.call(
-                "api_review_approve",
-                summary["review_digest"],
-                True,
-                callback=lambda value: app.status.set(value["status"]),
-            )
-
     ttk.Button(
         review_controls,
         text="Review LLM Plan / Assessment",
-        command=lambda: app.call("api_review_prepare", callback=review_api),
+        command=lambda: app.call(
+            "api_review_prepare", callback=lambda summary: review_api(app, summary)
+        ),
     ).pack(side="left", padx=4)
     ttk.Label(
         app.content,

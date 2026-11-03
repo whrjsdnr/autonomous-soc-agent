@@ -334,7 +334,8 @@ class Desktop:
             # Navigation invalidates callbacks tied to destroyed page widgets.
             if callback and (
                 generation == self.generation
-                or getattr(callback, "__name__", "") in ("render", "prepared", "_started")
+                or getattr(callback, "__name__", "")
+                in ("render", "prepared", "prepared_api", "_started")
             ):
                 callback(result)
             elif isinstance(result, dict) and "observation_started_ns" in result:
@@ -398,6 +399,9 @@ class Desktop:
             + (safe_error(value["last_error"]) if value.get("last_error") else "No reported error")
         )
         self._render_current()
+        from soc_agent.gui.operator_review import prompt_pending
+
+        prompt_pending(self, value)
 
     @staticmethod
     def _text(widget, body):
