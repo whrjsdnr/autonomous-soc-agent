@@ -65,3 +65,69 @@ def test_no_request_when_busy_or_not_bound():
     app.config.continuous_execution_evidence = None
     operator_review.prompt_pending(app, live())
     assert app.calls == []
+
+
+@pytest.mark.parametrize("confirmed", [False, True])
+def test_model_dialog_requires_human_answer_and_passes_only_exact_batch(monkeypatch, confirmed):
+    from soc_agent.gui import continuous_view
+
+    calls = []
+    app = SimpleNamespace(
+        root=object(),
+        continuous_updated=lambda _: None,
+        call=lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+    shown = []
+
+    def answer(title, text, *, parent):
+        shown.append(text)
+        return confirmed
+
+    monkeypatch.setattr(continuous_view.messagebox, "askyesno", answer)
+    batch = dict(
+        jobs=[dict(job="exact-sealed-job", eligible=1, calls=2)],
+        runtime_session="fixture-session",
+        actor="fixture-human",
+        previous_invocations=0,
+        maximum_invocations=16,
+        models=dict(quality="fixture-rf", edge="fixture-lr"),
+        batch_digest="exact-batch-pin",
+    )
+    continuous_view.review_models(app, batch)
+    assert "No future-input approval" in shown[0]
+    assert "exact-sealed-job" in shown[0] and "fixture-session" in shown[0]
+    assert [c[0] for c in calls] == (
+        [("model_review_approve", "exact-batch-pin", True)] if confirmed else []
+    )
+
+
+@pytest.mark.parametrize("confirmed", [False, True])
+def test_api_dialog_requires_human_answer_for_exact_evidence_and_cost(monkeypatch, confirmed):
+    from soc_agent.gui import continuous_view
+
+    calls = []
+    app = SimpleNamespace(root=object(), call=lambda *args, **kwargs: calls.append((args, kwargs)))
+    shown = []
+
+    def answer(title, text, *, parent):
+        shown.append(text)
+        return confirmed
+
+    monkeypatch.setattr(continuous_view.messagebox, "askyesno", answer)
+    summary = dict(
+        ready=True,
+        incident_id="fixture-incident",
+        evidence_revision="fixture-revision",
+        base_url="https://example.invalid/v1",
+        model="fixture-model",
+        max_calls=2,
+        budget_usd="0.05",
+        timeout_seconds=20,
+        review_digest="exact-api-pin",
+    )
+    continuous_view.review_api(app, summary)
+    assert "fixture-revision" in shown[0] and "USD <= 0.05" in shown[0]
+    assert "automatic retries=0" in shown[0]
+    assert [c[0] for c in calls] == (
+        [("api_review_approve", "exact-api-pin", True)] if confirmed else []
+    )
