@@ -1,0 +1,14 @@
+{
+  "status": "BINDING_VERIFIED_EXECUTION_BLOCKED",
+  "runtime_session": "121cba1a-757a-4c0c-8d0e-db9c1b6317be",
+  "git_commit": "3046260c0dd4e99439809c6202c8092b06589a34",
+  "policy_expires_at": "2026-11-04T01:21:57.665314+00:00",
+  "root_changed": 3,
+  "source_integrity": "PASS",
+  "execution_authorized": false,
+  "execution_scheduled": false,
+  "privileged_cleanup_check": "NOT_EXECUTED",
+  "model_grants_issued": 0,
+  "api_calls": 0,
+  "approval_package_sha256": "1e5d9c936445b4466b599a43bec5ebd92884e1315d505ce86430fbd552c4a7b0"
+}
