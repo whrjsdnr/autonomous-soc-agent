@@ -194,7 +194,7 @@ class ContinuousRuntime:
             authentication if supplied_authentication else {"state": "NOT_ATTACHED", "events": None}
         )
         if self.config.authentication_runtime and not supplied_authentication:
-            from soc_agent.linux_runtime.operator import status
+            from soc_agent.linux_runtime.__main__ import status
 
             authentication = status(self.config.authentication_runtime)
         return dict(
@@ -381,7 +381,7 @@ class ContinuousRuntime:
         self.cached_queue = counts
         authentication = {"state": "NOT_ATTACHED", "events": None}
         if self.config.authentication_runtime:
-            from soc_agent.linux_runtime.operator import status
+            from soc_agent.linux_runtime.__main__ import status
 
             authentication = await self.storage(status, self.config.authentication_runtime)
         self.cached_authentication = authentication

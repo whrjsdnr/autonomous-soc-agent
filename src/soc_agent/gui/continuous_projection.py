@@ -35,7 +35,9 @@ def availability(current: dict, records: list) -> dict:
         assessment="RECORDED_RESULTS_AVAILABLE"
         if records
         else "NO_INCIDENT_NO_RESEARCH_ASSESSMENT",
-        authentication=current.get("authentication", {}).get("state", "NOT_ATTACHED"),
+        authentication=current.get("authentication", {}).get(
+            "runtime_state", current.get("authentication", {}).get("state", "NOT_ATTACHED")
+        ),
         dns=dict(
             state=transport.get("state", "NOT_ATTACHED"),
             queries=dns.get("counts", {}).get("QUERY", 0),
