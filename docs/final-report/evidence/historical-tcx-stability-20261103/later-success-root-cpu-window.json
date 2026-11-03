@@ -1,0 +1,15 @@
+{
+  "scope": "LATEST_SUCCESS_FINAL_ROOT_CPU_RING_DIFFERENT_WINDOW_FROM_FAILED_RUN_NOT_A_CAUSAL_COMPARISON",
+  "samples": 64,
+  "observed_seconds": 63.596255446,
+  "counters": {
+    "usage_usec": 7634891,
+    "nr_periods": 633,
+    "nr_throttled": 10,
+    "throttled_usec": 452631
+  },
+  "first_sample_started_monotonic": 1031472.43009618,
+  "first_sample_completed_monotonic": 1031472.430243459,
+  "last_sample_started_monotonic": 1031536.02634761,
+  "last_sample_completed_monotonic": 1031536.026498905
+}

@@ -1,0 +1,23 @@
+{
+  "clock": "SAME_BOOT_CLOCK_MONOTONIC_NS",
+  "counter_sample_first": {
+    "started": 1022967.041381507,
+    "completed": 1022967.0416525
+  },
+  "counter_sample_last": {
+    "started": 1022981.535528907,
+    "completed": 1022981.535609103
+  },
+  "sample_window_seconds": 14.493956602993421,
+  "root_no_normal_emit_interval": [
+    1022967.927104179,
+    1022981.526449017
+  ],
+  "root_no_normal_emit_seconds": 13.599344837944955,
+  "sample_starts_before_gap_seconds": 0.8854516790015623,
+  "sample_ends_after_gap_seconds": 0.009160086046904325,
+  "overlap_seconds": 13.599344837944955,
+  "counter_window_encloses_no_emit_interval": true,
+  "causal_attribution": "UNKNOWN_NO_PER_THREAD_SCHEDULER_WAIT_STACK",
+  "comparison_to_later_success": "DIFFERENT_DURATION_AND_EXECUTION_PHASE_NOT_MATCHED_AB_TEST"
+}

@@ -1,0 +1,63 @@
+{
+  "source": "7acd6c3",
+  "runtime_session": "54ea08d7-6773-4f42-b148-7a942d459452",
+  "scope": "PREVIOUSLY_COMPLETED_NATIVE_CAPTURE_NO_NEW_LIVE_EXECUTION_IN_COMPARISON",
+  "whole_seconds": 372.1815604050644,
+  "pure_capture_seconds": 361.187250402,
+  "packets": 54,
+  "dns_transactions": 3,
+  "predictions": 0,
+  "api_calls": 0,
+  "last_error": null,
+  "runtime_cleanup": "VERIFIED",
+  "tcx_cleanup": "VERIFIED",
+  "tcx_ack": true,
+  "queue": {
+    "PENDING": 2,
+    "POISON": 1
+  },
+  "root_new_audit_rows": 359,
+  "root_audit_prefix_and_sha_verified": true,
+  "storage_maximum": {
+    "pending": false,
+    "last_seconds": 0.0008922730339691043,
+    "max_seconds": 6.994570013950579,
+    "operation": "counts",
+    "started_monotonic": 1031536.499219661,
+    "max_operation": "update",
+    "max_started_monotonic": 1031329.760415578,
+    "max_completed_monotonic": 1031336.754985592,
+    "completed_monotonic": 1031536.500111934
+  },
+  "root_worker_heartbeat_records_inside_max_storage_interval": [
+    1031330.722877314,
+    1031331.770357435,
+    1031332.794194953,
+    1031334.23886223,
+    1031335.261095556,
+    1031336.418518772
+  ],
+  "root_send_totals": {
+    "SENT": 699,
+    "PARTIAL": 0,
+    "BACKPRESSURE": 0,
+    "ERROR": 0
+  },
+  "retained_trace_records": 64,
+  "trace_total": 699,
+  "truncated": 635,
+  "retained_consecutive_control_max_gap_seconds": 1.018925093,
+  "control_gap_scope": "ONLY_FINAL_RETAINED_ROOT_TRANSPORT_RING_NOT_FULL_RUN",
+  "max_retained_post_send_diagnostic_seconds": 0.000111468,
+  "unchanged_native_files": {
+    "src/soc_agent/continuous/native/provider.c": true,
+    "src/soc_agent/continuous/native/packet_parser.h": true,
+    "src/soc_agent/continuous/native/continuous.bpf.c": true,
+    "src/soc_agent/continuous/native/build.py": true,
+    "src/soc_agent/continuous/native/policy.py": true
+  },
+  "causal_regression_commit": "UNKNOWN",
+  "automatic_retry": false,
+  "root_audit_hash_chain_verified": true,
+  "root_audit_tail_sha256": "bec332060301e51609f655dc1087ff0397f301dd8eb9f92a2044e2d29d410a15"
+}

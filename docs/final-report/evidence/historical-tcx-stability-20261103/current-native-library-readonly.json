@@ -1,0 +1,17 @@
+{
+  "continuous.bpf.o": {
+    "sha256": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+    "declared_sha256": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+    "matches": true
+  },
+  "policy.py": {
+    "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+    "declared_sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+    "matches": true
+  },
+  "provider.so": {
+    "sha256": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+    "declared_sha256": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+    "matches": true
+  }
+}

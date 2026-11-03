@@ -1,0 +1,23 @@
+{
+  "nov2_396s": {
+    "soc-continuous-collector.service": {},
+    "soc-operations-runtime.service": {},
+    "soc-continuous-tcp-trial.service": {},
+    "soc-continuous-dns.service": {},
+    "soc-continuous-dnsmasq.service": {}
+  },
+  "nov2_361s": {
+    "soc-continuous-collector.service": {},
+    "soc-operations-runtime.service": {},
+    "soc-continuous-tcp-trial.service": {},
+    "soc-continuous-dns.service": {},
+    "soc-continuous-dnsmasq.service": {}
+  },
+  "nov3_361s": {
+    "soc-continuous-collector.service": {},
+    "soc-operations-runtime.service": {},
+    "soc-continuous-tcp-trial.service": {},
+    "soc-continuous-dns.service": {},
+    "soc-continuous-dnsmasq.service": {}
+  }
+}

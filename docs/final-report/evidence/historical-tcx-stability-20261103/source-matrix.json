@@ -1,0 +1,592 @@
+{
+  "608c03e": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "9a259bf55d1d8f1d88b86860fdc9ac9986fefea0958cc1435d8788f28e372119",
+      "bytes": 21766,
+      "functions": {
+        "run": [
+          236,
+          546
+        ],
+        "receive": [
+          285,
+          296
+        ]
+      },
+      "control_thread": false,
+      "socket_diagnostics": false,
+      "post_send_completed": false
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "75683b258a6d0df809c2eff178f295cee4faf7381f0af45dd03f952ba3add701",
+      "bytes": 12568,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "8aab25437a9070cfdea7433326bf4cc70b68e617665336921c8fad375e6a2d0d",
+      "bytes": 34816,
+      "functions": {
+        "collect": [
+          436,
+          477
+        ],
+        "run": [
+          613,
+          756
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  },
+  "c542398": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "afdf9c86e5098ead73bcd1e27311ee419b1eef5d393a449b1dd95c4abd315041",
+      "bytes": 24862,
+      "functions": {
+        "run": [
+          325,
+          630
+        ],
+        "receive": [
+          374,
+          385
+        ]
+      },
+      "control_thread": false,
+      "socket_diagnostics": false,
+      "post_send_completed": false
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "7335993b937187b6280bf6fea9ea598dd8dbcb77215b003e4d248522c79e0d46",
+      "bytes": 26372,
+      "functions": {
+        "messages": [
+          192,
+          252
+        ],
+        "receive_message": [
+          254,
+          289
+        ],
+        "receive": [
+          201,
+          223
+        ]
+      }
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "7fee4ddd002fbe66dda279152e90d8c103538c2e35ea8bcd23bb72b154df9ec2",
+      "bytes": 54860,
+      "functions": {
+        "storage": [
+          274,
+          299
+        ],
+        "collect": [
+          661,
+          729
+        ],
+        "run": [
+          891,
+          1148
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  },
+  "43b2042": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "3d129b8c7075067ebdb7cb9197c368f95812c364f0d9d13a41677679521178d9",
+      "bytes": 30600,
+      "functions": {
+        "run": [
+          448,
+          761
+        ],
+        "send": [
+          60,
+          66
+        ],
+        "_run": [
+          68,
+          117
+        ],
+        "receive": [
+          497,
+          508
+        ]
+      },
+      "control_thread": true,
+      "socket_diagnostics": false,
+      "post_send_completed": false
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "d4f385dd1ca75b1447640534b36a0aca84cbd9f6c6783cd4cdecaacf13598c29",
+      "bytes": 29499,
+      "functions": {
+        "messages": [
+          199,
+          262
+        ],
+        "receive_message": [
+          305,
+          341
+        ],
+        "receive": [
+          208,
+          233
+        ]
+      }
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "9f38035da5f002ce9a6aea9d1cc75b55af63a98325309a526265b2b309f2ae67",
+      "bytes": 57195,
+      "functions": {
+        "storage": [
+          279,
+          304
+        ],
+        "collect": [
+          684,
+          752
+        ],
+        "run": [
+          918,
+          1190
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  },
+  "a2914a0": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "3d129b8c7075067ebdb7cb9197c368f95812c364f0d9d13a41677679521178d9",
+      "bytes": 30600,
+      "functions": {
+        "run": [
+          448,
+          761
+        ],
+        "send": [
+          60,
+          66
+        ],
+        "_run": [
+          68,
+          117
+        ],
+        "receive": [
+          497,
+          508
+        ]
+      },
+      "control_thread": true,
+      "socket_diagnostics": false,
+      "post_send_completed": false
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "d459f006ff9b40c3d08757b64d95435356488f29f0a687c70b24e9bc72548718",
+      "bytes": 31680,
+      "functions": {
+        "messages": [
+          203,
+          284
+        ],
+        "receive_message": [
+          327,
+          363
+        ],
+        "receive": [
+          212,
+          255
+        ]
+      }
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "cdecfa36eaa1d75235da1963a7276347d7f3a5e27ca31317b7350221150fd474",
+      "bytes": 69261,
+      "functions": {
+        "storage": [
+          306,
+          349
+        ],
+        "control": [
+          372,
+          472
+        ],
+        "collect": [
+          869,
+          937
+        ],
+        "run": [
+          1103,
+          1432
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  },
+  "74cbcb2": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "79da822cba9dabe80de8f6274fa2af5909baa67fcf599aae0c9095b2a0a8f554",
+      "bytes": 40037,
+      "functions": {
+        "run": [
+          649,
+          969
+        ],
+        "emit": [
+          144,
+          173
+        ],
+        "send": [
+          196,
+          210
+        ],
+        "_run": [
+          212,
+          317
+        ],
+        "receive": [
+          698,
+          709
+        ]
+      },
+      "control_thread": true,
+      "socket_diagnostics": true,
+      "post_send_completed": false
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "8ba63bbf5c2aac1f8cffaf6616e61b5df72cf7a4abe3e5ecdaa9907d8d93c61d",
+      "bytes": 34277,
+      "functions": {
+        "messages": [
+          209,
+          304
+        ],
+        "receive_message": [
+          351,
+          395
+        ],
+        "receive": [
+          218,
+          275
+        ]
+      }
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "0090c436429764a1cc91432738ee27e01d5e7d096d3a4ab9a36ff53ce1edd7c0",
+      "bytes": 72612,
+      "functions": {
+        "storage": [
+          312,
+          355
+        ],
+        "control": [
+          428,
+          546
+        ],
+        "collect": [
+          943,
+          1011
+        ],
+        "run": [
+          1177,
+          1506
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  },
+  "7acd6c3": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "bytes": 40116,
+      "functions": {
+        "run": [
+          650,
+          970
+        ],
+        "emit": [
+          144,
+          174
+        ],
+        "send": [
+          197,
+          211
+        ],
+        "_run": [
+          213,
+          318
+        ],
+        "receive": [
+          699,
+          710
+        ]
+      },
+      "control_thread": true,
+      "socket_diagnostics": true,
+      "post_send_completed": true
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "8ba63bbf5c2aac1f8cffaf6616e61b5df72cf7a4abe3e5ecdaa9907d8d93c61d",
+      "bytes": 34277,
+      "functions": {
+        "messages": [
+          209,
+          304
+        ],
+        "receive_message": [
+          351,
+          395
+        ],
+        "receive": [
+          218,
+          275
+        ]
+      }
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "19f4dc6fdb68810c7571948f4b78df2519bfdab89aa6b62aad88d2952b15d10b",
+      "bytes": 73567,
+      "functions": {
+        "storage": [
+          319,
+          372
+        ],
+        "control": [
+          445,
+          563
+        ],
+        "collect": [
+          960,
+          1029
+        ],
+        "run": [
+          1195,
+          1524
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  },
+  "d4613b0": {
+    "src/soc_agent/continuous/native/service.py": {
+      "sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "bytes": 40116,
+      "functions": {
+        "run": [
+          650,
+          970
+        ],
+        "emit": [
+          144,
+          174
+        ],
+        "send": [
+          197,
+          211
+        ],
+        "_run": [
+          213,
+          318
+        ],
+        "receive": [
+          699,
+          710
+        ]
+      },
+      "control_thread": true,
+      "socket_diagnostics": true,
+      "post_send_completed": true
+    },
+    "src/soc_agent/continuous/tcx_producer.py": {
+      "sha256": "8ba63bbf5c2aac1f8cffaf6616e61b5df72cf7a4abe3e5ecdaa9907d8d93c61d",
+      "bytes": 34277,
+      "functions": {
+        "messages": [
+          209,
+          304
+        ],
+        "receive_message": [
+          351,
+          395
+        ],
+        "receive": [
+          218,
+          275
+        ]
+      }
+    },
+    "src/soc_agent/continuous/service.py": {
+      "sha256": "41bd654ab5a9110fb25240f854203525bdc0acc7c5d7e64e8ff1077b4b4ebca3",
+      "bytes": 73567,
+      "functions": {
+        "storage": [
+          319,
+          372
+        ],
+        "control": [
+          445,
+          563
+        ],
+        "collect": [
+          960,
+          1029
+        ],
+        "run": [
+          1195,
+          1524
+        ]
+      }
+    },
+    "src/soc_agent/continuous/native/policy.py": {
+      "sha256": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "bytes": 4120,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/build.py": {
+      "sha256": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "bytes": 4126,
+      "functions": {}
+    },
+    "src/soc_agent/continuous/native/continuous.bpf.c": {
+      "sha256": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "bytes": 2424
+    },
+    "src/soc_agent/continuous/native/provider.c": {
+      "sha256": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "bytes": 5558
+    },
+    "src/soc_agent/continuous/native/packet_parser.h": {
+      "sha256": "e0ccfcf4cd7a9c7fb4e78aa70f00645063500bd8bd695ff5daff905b86331444",
+      "bytes": 3293
+    }
+  }
+}

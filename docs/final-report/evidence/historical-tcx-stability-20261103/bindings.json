@@ -1,0 +1,42 @@
+{
+  "nov2_396s": {
+    "git_commit": "43b20421c76af298eb3fc5d4a90351794bea340f",
+    "runtime_session": "c9de6a9f-172e-40d5-b01e-132708c057eb",
+    "code_identity": "bdd04ff1bfc546473adfa7ab69c9b6cfd1cf5d02d2442e220e05f83897a1f9f7",
+    "source_sha256": "e34b255cb019a857a2c23676febb96cc7bf32fd0249c2614dcdac49ef222da87",
+    "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/reliability-install-scope-recovery-20261102T004100Z/native",
+    "request_sha256": "1c368936e38e22d5ab2aed8fe7bf135296f351c0b7f3eb2068f0dbaeed7c92a3",
+    "retained_export_files": 672,
+    "retained_export_mismatches": []
+  },
+  "nov2_361s": {
+    "git_commit": "a2914a053d96e120713e566e7d67c275c548834b",
+    "runtime_session": "62fab229-94ee-4fa4-a2f9-640fa23683b0",
+    "code_identity": "2fed24a75ae37ac5845d9f086ccf2aaf2235c7550eb2728a6ca229ea5b0a9fd2",
+    "source_sha256": "455bc16630f2d19a8c2a735b30087734d57d2d0d9a67abd48c7d679b79f65570",
+    "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-heartbeat-native-diagnostic-review-20261102T054245Z/native",
+    "request_sha256": "99dd2b746a9b2f9f2f43fc238efaf389f8fb44b36fbedab5247f6cf0cc98d4d5",
+    "retained_export_files": 672,
+    "retained_export_mismatches": []
+  },
+  "failure_74": {
+    "git_commit": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+    "runtime_session": "81660de4-5cb8-418a-ae46-520ba4b168c0",
+    "code_identity": "7f478b715af24697cd21c6f3e20c3936c039e782a54ceb6d2e769d6121ce7e02",
+    "source_sha256": "75b0069502a7b5518bad29c0adf3623973dc2b5da0c3af7e713a4bfd2956418c",
+    "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/candidate-final/native",
+    "request_sha256": "abf8f552825765f747d2caf9657d79e08dd4caed38b26346c2163b81981f6004",
+    "retained_export_files": 677,
+    "retained_export_mismatches": []
+  },
+  "nov3_361s": {
+    "git_commit": "7acd6c37a7b529dcec37846e3b36c6d65302714c",
+    "runtime_session": "54ea08d7-6773-4f42-b148-7a942d459452",
+    "code_identity": "848d910c5dd6af7abf1bc00e33f3d7a112a3cb932352dacc3d7195dd2f49dcaf",
+    "source_sha256": "86df0c0028a780ebab9dab575454e67ed360519a4db9ce729c8c9b236f43f9f9",
+    "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/tcx-timing-full-live-retest-20261103T070123Z/native",
+    "request_sha256": "0f41a9af9a57ad61d0a05a7f64ee6de84212459e783e52733690f7390c63c4b1",
+    "retained_export_files": 677,
+    "retained_export_mismatches": []
+  }
+}

@@ -121,3 +121,95 @@ Native6개/legacy/Supervisor/Wheel의 Workspace A/B 및 독립 Export **3방향 
 - 다음 전체 Live 시험을 안전하게 재개할 수 있다는 판정: **BLOCKED 유지**. 예상 원인을 고쳤다고 가정해 자동 재실행하지 않는다.
 
 향후 권한이 필요한 현재 소유 자원 검사와 정확한 Source/Artifact/Session 재검증이 필요하다. 필요한 실제 실행은 별도의 유효한 Root·Native·DNS·R1 승인, 사용자 Scope 확인/sudo, 봉인된 ELIGIBLE 작업별 모델 승인, 별도 API 호출·비용 승인 범위 안에서만 가능하다. 이번에는 새 승인 패키지/영수증/예약을 생성하지 않았다. 기존 2초·5초 계약, 자원 상한과 Audit 보존은 그대로다.
+
+
+## 10. 11월 2일 성공본을 포함한 TCX 안정성 재비교 (2026-11-03)
+
+이 절은 위 1~9절의 과거 분석을 보존한 후 추가한 재검증이다. 비교 작업에서는 Root·Native·DNS·모델·API를 새로 실행하지 않았다. 현재 연구 Release 소스 HEAD는 `d4613b0`이며, 이미 끝난 최신 Native 회차의 실행 소스는 `7acd6c3`이다. 개발 소스·설치본·과거 실행 소스를 혼동하지 않는다. 새 전체 Live E2E나 운영 안정성 성공을 선언하지 않는다.
+
+### 10.1 성공과 실패의 실제 실행 Identity
+
+|기록|실제 실행 소스|실제 범위·결과|
+|---|---|---|
+|`e3412e8` 보고|Capture `608c03e`|Native20 / Window2 / RF·LR2. 모델 분석은 Stop 후 보존 입력의 별도 승인 경로|
+|`71377c7` 기준 성공|실제 시험 `c542398`; `71377c7`은 이후 Worker 표시 보정|Packet54 / Window3 / RF·LR8 / Incident2 / Task5; 조사 SCRIPTED, API0|
+|11월2일 396.391초|실제 frozen `43b2042`, 운영 코드 `568e759` 포함|전체404.007010초 / 봉인 수집396.390560초 / Packet54 / DNS3 / Window3 / 모델0|
+|11월2일 361.04초|실제 frozen `a2914a0`, 운영 코드 `5e70da8` 포함|전체370.838988초 / 봉인 수집361.041374초 / Packet54 / DNS3 / Window3 / 모델0|
+|분석 대상 실패|frozen `74cbcb2`, Session `81660de4-5cb8-418a-ae46-520ba4b168c0`|Control1~9 / Data1~8 이후 Timeout; 전체41.595616초. 기존46.87초 실패와 별도 회차|
+|실패 이후 이미 완료된 제한 성공|frozen `7acd6c3`, Session `54ea08d7-6773-4f42-b148-7a942d459452`|전체372.181560초 / 봉인 수집361.187250초 / Packet54 / DNS3 / Window3 / ELIGIBLE5 / RF·LR0 / API0|
+
+마지막 회차는 이번 비교에서 재실행한 것이 아니라 기존 보존 증거를 읽은 것이다. 모델·API가0이므로 전체 E2E 성공으로 확대하지 않는다. 11월2일 두 성공과 마지막 회차의 PENDING2·POISON1도 보존한다. 첫 성공의396.136964초와 11월2일396.390560초는 다른 시험의 수치다.
+
+11월2일 두 성공, 실패, 마지막 성공의 실제 보존 Export를 Source Manifest와 비교해 각각 **672/672, 672/672, 677/677, 677/677 일치**를 확인했다. [실행 Binding](evidence/historical-tcx-stability-20261103/bindings.json). 과거 초기 성공의178/178·17/17 검증은 위2절 근거와 구분한다.
+
+### 10.2 서비스·Kernel 비교
+
+실제 `effective-service-contracts.json`에서 가변 PID/누적CPU/이전Result를 제외하고 고정 설정14항목을 비교했다. 11월2일 두 성공과 실패 및 마지막 성공의 서비스5개에서 비교한 고정 값의 차이는 **0개**다.
+
+|구성|성공·실패 공통 고정 계약|
+|---|---|
+|Collector|CPU25% (`250ms`/초), Memory128MiB, TasksMax4, Root의 제한된 capability|
+|Runtime|CPU50% (`500ms`/초), Memory512MiB, TasksMax32, UID1000, capability 없음|
+|DNS Helper|CPU10%, Memory512MiB, TasksMax4, 승인된 UID 전환 capability|
+|Namespace|기존 전용 `net:[4026532232]`, `/run/netns/soc-native-b3`, lo/Ingress|
+|종료|Restart=no, KillMode=control-group; Collector Stop10초, Runtime Stop35초|
+|프로토콜 상한|수신5초, STOP 송신2초, ACK5초. 변경하지 않음|
+
+[설정 원본에서 추출한 비교](evidence/historical-tcx-stability-20261103/effective-service-configurations.json), [설정 차이](evidence/historical-tcx-stability-20261103/service-config-differences.json).
+
+`c542398`, `43b2042`, `a2914a0`, `74cbcb2`, `7acd6c3`, `d4613b0`의 `continuous.bpf.c`, `provider.c`, `packet_parser.h`, `build.py`, `policy.py`는 각각 바이트 동일하다. 따라서 이 범위에서 Kernel 프로그램·C Provider 변경을 회귀 원인으로 지정할 근거가 없다. 단, 같은 코드가 다른 scheduling/Kernel 부하에서도 항상 안정적이라는 증명은 아니다. [소스 SHA와 함수 위치](evidence/historical-tcx-stability-20261103/source-matrix.json). 이와 별도로 실제 승인 policy에 기록된 `continuous.bpf.o`·`provider.so`·`policy.py`의 SHA도 10월30일 성공/11월2일 두 성공/실패/마지막 성공에서 모두 동일하다. 현재 설치된 이 세 파일을 일반 권한으로 읽은 SHA 역시 해당 값과 일치했다. 새 BPF load나 설치를 실행한 것이 아니다. [선언 Artifact](evidence/historical-tcx-stability-20261103/declared-native-artifacts.json), [현재 라이브러리 읽기 전용 비교](evidence/historical-tcx-stability-20261103/current-native-library-readonly.json).
+
+### 10.3 수신 안정성과 관련 있는 Python 변경
+
+|변경|실제 차이·의미|인과 판정|
+|---|---|---|
+|초기 Native → `c542398`|직접 receive에서 background receiver와 bounded queue를 거치는 경로로 변경; 저장·모델 소비 분리|이 구조로 실제 Native54/RF·LR8 성공. 단순 background thread 존재가 원인 아님|
+|`cd78b59`|Root Audit의 OrderedAudit writer 도입, durable barrier·remote ACK 유지|감사 queue와 fsync를 Control에서 분리. queue/barrier 정체 가능성은 별도 계측 필요|
+|`568e759`|Root ControlTransport thread, DATA/CONTROL의 shared threading.Lock; 무트래픽에도 Control v1 전송|11월2일 두 성공에도 이미 존재. 이 변경 전체를 되돌릴 근거 없음|
+|`c6405d7`|Runtime heartbeat 게시와 storage_lock/to_thread 저장 분리, Data Progress 정체 별도 표시|Runtime SQLite와 Root Control은 별도 PID/GIL/Lock. 저장 지연만으로 Root 송신 중단을 단정할 수 없음|
+|`2cfcf7e`|DATA JSON 검증을 공유 송신 Lock 획득 이전으로 이동|Lock 안 작업을 줄이며 invalid DATA 송신 차단 유지. 현재 장애 재현과의 연결 없음|
+|`183070f`|Control thread의 초기 accept, transport-only STOP ACK 전달|초기 수신·종료 경로 변화. 실제 Control1~9 인증이 성공해 초기 protocol/peer 불일치 증거 없음|
+|`62567c1`|송신/수신 Sequence·CPU·socket/lock trace 추가; emit finally에서 socket 진단 수행|기록이 send_completed 이후에도 이어지는 계측 구간이 생김. 실제 실패 당시 그 구간의 완료시각은 없음|
+|`30df74e` / `7acd6c3`|최초 오류 latch·trace 보존 / 최대 저장 작업 시작·끝 및 post-send 진단 완료시각 보강|실제 송신 중단 해결이라고 주장하지 않음. 계측·Cleanup 개선을 보존|
+
+현재 `d4613b0`의 Root TCX service 및 TCXProducer는 마지막 제한 성공 `7acd6c3`와 동일하다. 앞선 전체 통합 요청 중 수정한 GUI 승인 안내(`5c9be1e`)·Authentication 상태 import/projection(`d4613b0`)은 TCX wire/timeout/Kernel 변경이 아니다. 이 두 수정은 아직 새 Native에서 실행하지 않았다.
+
+### 10.4 실패 시간축과 저장 지연의 관계
+
+실패 첫 예외는 frozen `tcx_producer.py`의 `receive_message`: `wait_for(sock_recv(...), 5)`에서 발생한 Timeout을 `CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT`으로 변환한 것이다. 마지막 Control9 송신 mono1022967.927104179 → 수신1022969.020841079. 다음 receive 대기1022969.020898351 → 최초 오류1022975.332452720, 실측6.311554초다. Timeout을6.31초로 바꾼 코드가 아니라 스케줄링/복귀 지연까지 포함한 실측이다.
+
+Root trace는 정상 전송17개(Control9+Data8), backpressure/partial/error0, 누락0. VALIDATED_STOP까지 다음 정상 emit 시도가 없는 구간은13.599345초다. 기록된 최대 send약0.627ms / Lock 획득 대기0.016099ms, Timeout 당시 IPC 연결·동일 peer 유지 및 kernel/app queue0이다. **관측 분류는 PRODUCER_NOT_SENDING, 실제 원인과 원인 Commit은 UNKNOWN**이다. 짧게 측정된 send만 보고 post-send finally/Lock 해제/다음 loop까지 모두 빨랐다고 추론하지 않는다.
+
+Runtime update wrapper12.806181초의 구간은mono1022965.910004908~1022978.716185500(직렬화와 감사 Snapshot으로 유도)이며 receive 대기 전체와 겹친다. 이 시간에는 threadpool dispatch·SQLite/파일 작업·coroutine resume가 포함돼 순수 SQLite Lock/fsync 시간으로 볼 수 없다. Root CPU 표본14.493957초에서 periods145/throttled137·throttled_usec25.394701초 증가는 확인됐지만, 누적 counter를 wall 지연이나 GIL 원인으로 바꿔 설명하지 않는다. 당시 TID별 off-CPU/wait stack이 없어 scheduling/GIL/syscall 구분은 UNKNOWN이다.
+
+보존된 Root CPU 표본도 비교했다. 실패 창14.493957초는 usage1.746551초 / periods145 / throttled137 / 누적 throttled25.394701초 증가였다. 마지막 성공의 **끝부분**64개 표본 창63.596255초는 usage7.634891초 / periods633 / throttled10 / 누적 throttled0.452631초 증가였다. 실제 throttling 양상은 다르지만, 길이·시작 단계·관측 구간이 다른 표본이라 같은 부하의 A/B 실험으로 취급하지 않는다. 이 차이로 quota/GIL/특정 Commit을 원인 확정하지 않는다. DNS Helper의 CPU counter를 Root counter로 사용하지 않았다. 실패 CPU 창의 completed 시각은 mono1022967.041652500~1022981.535609103이다. 정상 emit 공백1022967.927104179~1022981.526449017을 전부 포함하며, 공백보다0.885452초 먼저 시작하고0.009160초 뒤 끝난다. 즉 **시간적 겹침은 확인**되지만 그 창의 누적137회 throttling을 공백 내부의 특정 시각/TID 대기와 연결할 기록은 없다. [실패 CPU와 송신 공백 정렬](evidence/historical-tcx-stability-20261103/failed-root-cpu-gap-alignment.json). [성공 Root CPU 창](evidence/historical-tcx-stability-20261103/later-success-root-cpu-window.json).
+
+
+**반례:** 마지막 `7acd6c3` 제한 성공에서도 Runtime update가 **6.994570초** 걸렸다(mono1031329.760415578~1031336.754985592). 그 구간 안 Root Data Worker heartbeat 감사 기록이6개 있었고 Timeout은 없었다. 따라서 “저장 작업이5초를 넘으면 Root TCX가 반드시 멈춘다”는 설명은 보존 실험과 맞지 않는다. 당시 최대 저장 구간을 별도의 마지막 `counts` 작업 시작시각과 연결하지 않았다.
+
+마지막 성공의 Root send 총계699개는 SENT699/그 외0이며, 보존 ring64개는 마지막 구간만 남는다(truncated635). 그 ring의 연속 Control 최대 간격1.018925초, post-send 진단 최대0.111468ms다. 이는 **전체 회차의 모든 Control 최대 간격이 아니다**. [후속 성공의 실제 반례](evidence/historical-tcx-stability-20261103/later-native-success-counterexample.json).
+
+### 10.5 장애 주입과 수정 범위
+
+현재 코드에서 socket_diagnostics를 인위적으로5초 이상 지연시키면, 공유 Lock을 잡은 emit finally에서 다음 Control과 STOP 처리가 지연될 수 있음을 비권한 AF_UNIX socketpair로 재현했다. 원래5초 receive 상한을 사용했으며 Timeout을 늘리지 않았다. 이 결과는 **계측 critical section의 지연 가능성·측정 사각지대**를 보여준다. 과거 Native의 실제 ioctl이5초 걸렸거나 `62567c1`이 원인이라는 증명은 아니다. 과거 실패에는 이 구간 완료시각이 없으며, 이후 성공의 마지막 ring에서는 진단이 빠르게 완료됐다.
+
+직접 원인이 확정되지 않아 이번 비교에서는 TCX 송신·Thread·Lock·Timeout을 추측으로 변경하거나 과거 코드를 되돌리지 않았다. `7acd6c3`의 완료시각 계측을 유지한다. 성공 확률을 높이기 위해 CPU 상한·승인·Capture Attestation·Model Admission을 완화하지 않는다. 실제 Native 구간과 연결되지 않은 장애 주입을 운영 복구 성공으로 보고하지 않는다.
+
+이전 전체 통합 요청에서 확인·수정한 별도 결함은 다음과 같다. 모델/API 승인 대기가 GUI 수동 버튼 뒤에 숨던 흐름을 exact-input 승인 창으로 표시하되 인간 결정은 유지했다. Authentication 상태 조회가 존재하지 않는 `linux_runtime.operator.status`를 import하던 오류를 실제 `linux_runtime.__main__.status`로 수정했고 GUI는 `runtime_state`를 반영한다. Host collector 자동 실행·IF Native 입력 생성·모델 자동 승인·실제 API 호출을 추가한 것이 아니다. Host Authentication의 실제 연결·완결된 입력·IF 추론 및 전체 E2E는 계속 별도 검증 항목이다.
+
+### 10.6 검증·보존·최종 판단
+
+현재 운영 Source의 관련 전체 회귀는 Workspace **894 PASS /205.87초**, 독립 Export **894 PASS /200.95초**다. 추가한 Authentication 수집 전 경로·GUI 독립 결정/재연결/오류 경로 보완 회귀는 Workspace **86 PASS /52.79초**, 독립 Export **86 PASS /48.92초**다. 두 묶음에는 중복이 있으므로 독립 테스트 수로 합산하지 않는다. 시간 증거·사설 socket 장애 주입은 **9 PASS /5.35초**다. GUI의 자동 안내·취소·반복 표시 억제·정확한 batch/Incident Revision 및 비용 전달을 확인했다. 자동 표시는 자동 승인이 아니다.
+
+Export 최초는893 PASS/1 FAIL이었다. DNS 테스트가 durable Cleanup commit을 기다리다 외부6초 테스트 상한에 도달한 원본 예외와 로그를 보존했다. 같은Source 단독 재검증2.28초 통과 후 전체Export를 한 번 재검증해894 PASS를 확인했다. 기존2초/5초 계약이나6초 테스트 상한·Assertion을 변경하지 않았다. 이 간헐 지연의 원인은UNKNOWN이며 TCX 원인 또는 수정 완료로 주장하지 않는다.
+
+인증 보완 시험은 journald 가용성·고정 명령 출력만Mock하고 나머지는 실제 `LinuxAuthenticationCollector.poll → project_journal → AuthenticationPipeline/EventQueue → Source/Runtime Store → Continuous observed_snapshot / GUI Backend`를 사용했다. Fixture 이벤트3건의 내구 저장, cursor 보존, 별도 규칙 가설2개, read-only 조사, GUI 종료/재연결 후 외부Runtime 유지, 정상Stop 및 권한 거부FAILED 표시를 확인했다. 입력은Fixture이므로 실제Host 인증·IF Native 검증이라고 하지 않는다. Host 인증 자동 시작·IF Native 입력 승인·인증 이벤트 합성을 추가한 것이 아니다.
+
+Native6개/legacy/Supervisor/Wheel은 Workspace A/B와 새Git Export에서3방향 byte-identical이다. Export 빌드는 해당Export의src에서 명시적으로 import했다. WheelSHA `4e4fb2c90c3a9467b1042aa471d89c0fc367a57c794bab43f3d9b811b5e011c7`. Ruff check/format1605파일 및diff check PASS. 추가 테스트Commit `43ee3d8`은 운영Source/의존성(`d4613b0`)을 바꾸지 않았다. 원본 실패 증거797개 SHA/mtime·기존 사용자 파일164개·Ledger81행 보존을 확인했다. 설치8경로 SHA/inode/mtime도 분석 전후 동일하다. Root 백업/Rollback에 변경 명령을 실행하지 않았으며 권한 없이 읽지 못한 백업을 재검증했다고 주장하지 않는다.
+
+[최종 검증](evidence/historical-tcx-stability-20261103/validation-final.json), [보존 검사](evidence/historical-tcx-stability-20261103/preservation-final.json), [보완 Workspace](evidence/historical-tcx-stability-20261103/supplement-workspace.log), [보완 Export](evidence/historical-tcx-stability-20261103/supplement-export.log), [최초 Export 실패](evidence/historical-tcx-stability-20261103/first-failed-export-tests.log).
+
+다음 전체Live 전에는 최신Source/설치Release/새Session Binding과 유효Root·Native·DNS·R1 승인/Scope/sudo, 실제 봉인ELIGIBLE 작업의 독립RF/LR 결정, 같은Incident/Revision의 API 횟수·비용·Timeout 결정이 필요하다. 기존 Authentication Runtime의 시작·정지 소유권과Host 읽기 전용Scope도 실행 프로파일에 명확히 구성해야 한다. CLI의 초기화된Runtime 첨부를 실제 수집/IF 완료로 간주하지 않는다. 실제 인증 이벤트가 부족하면 입력 부족을 유지하고 로그인 이벤트를 합성하지 않는다. 필수 모든 단계·GUI·Cleanup이 동일 Capture Provenance로 연결된 후에만 FULL_E2E_OPERATIONS_VERIFIED가 가능하다. 현재 전체 준비는 **PARTIALLY_READY**이며 전체Live 성공이 아니다.
+
+
+원인 판정은 **UNKNOWN 유지**, 현재 제한 TCX 성공 기록은 유효하지만 전체 E2E·장시간 안정성 복구 판정은 **PARTIALLY_VERIFIED**다. 과거 실패의 TCX STOP ACK/Runtime Cleanup UNVERIFIED를 마지막 회차의 VERIFIED로 소급하지 않는다. Global Kernel Cleanup도 확대 판정하지 않는다. 추가 권한 시험은 유효한 새 Binding·명시적 Scope/인증·작업별 모델/API 조건을 충족하기 전 시작하지 않는다. 이번 비교에서는 새로운 실행 승인 패키지·영수증을 발급하거나 소비하지 않았다. 앞선 요청에서 생성한 미승인 준비 후보도 실행하지 않았다.
