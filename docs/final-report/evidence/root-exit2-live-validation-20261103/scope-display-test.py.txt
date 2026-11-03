@@ -1,0 +1,44 @@
+"""Execute only two extracted print statements, never the launcher or sudo."""
+import ast
+import copy
+import json
+from pathlib import Path
+
+import pytest
+
+D = Path(__file__).parent
+SOURCE = D / 'native/execution/terminal.py'
+TREE = ast.parse(SOURCE.read_text())
+CALLS = []
+for node in ast.walk(TREE):
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'print' and node.args and isinstance(node.args[0], ast.JoinedStr):
+        prefix = ''.join(x.value for x in node.args[0].values if isinstance(x, ast.Constant) and isinstance(x.value, str))
+        if prefix.startswith('Namespace ') or prefix.startswith('RECOVERY RISK:'):
+            CALLS.append(node)
+assert len(CALLS) == 2
+
+
+def render(tmp_path, capsys, changed, previous):
+    manifest = {'replacements': [{'current_sha256': 'a', 'new_sha256': 'b' if i < changed else 'a'} for i in range(8)]}
+    (tmp_path / 'root-install-manifest-v3.json').write_text(json.dumps(manifest))
+    request = {'namespace': {'target': 'net:[4026532232]'}, 'latest_failed_trial': previous}
+    before = copy.deepcopy(request)
+    module = ast.fix_missing_locations(ast.Module(body=[ast.Expr(value=copy.deepcopy(c)) for c in CALLS], type_ignores=[]))
+    exec(compile(module, '<print-only-no-launcher>', 'exec'), {'V': tmp_path, 'json': json, 'request': request})
+    assert request == before
+    return capsys.readouterr().out
+
+
+@pytest.mark.parametrize('changed', [0, 3, 4, 8])
+def test_root_count_comes_from_current_manifest(tmp_path, capsys, changed):
+    out = render(tmp_path, capsys, changed, {'tcx_cleanup': 'UNVERIFIED', 'runtime_cleanup': 'UNVERIFIED'})
+    assert f'Root8 fixed paths,only{changed} changes' in out
+    assert 'latest trial TCX ACK=UNVERIFIED, Runtime Cleanup=UNVERIFIED' in out
+    assert 'latest owned-scope Cleanup was VERIFIED' not in out
+
+
+@pytest.mark.parametrize('previous, expected', [({}, 'TCX ACK=UNKNOWN, Runtime Cleanup=UNKNOWN'), ({'tcx_cleanup': 'VERIFIED', 'runtime_cleanup': 'UNVERIFIED'}, 'TCX ACK=VERIFIED, Runtime Cleanup=UNVERIFIED'), ({'owned_cleanup': 'VERIFIED'}, 'TCX ACK=UNKNOWN, Runtime Cleanup=UNKNOWN')])
+def test_no_cleanup_scope_upgrade(tmp_path, capsys, previous, expected):
+    out = render(tmp_path, capsys, 3, previous)
+    assert expected in out
+    assert 'does not retroactively verify prior Cleanup' in out

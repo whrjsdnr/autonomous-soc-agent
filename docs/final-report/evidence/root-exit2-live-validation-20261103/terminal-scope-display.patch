@@ -1,0 +1,15 @@
+--- NEW_DRAFT_BEFORE_CORRECTION
++++ UNAPPROVED_CORRECTED_TERMINAL
+@@ -39,10 +39,10 @@
+     assert (datetime.fromisoformat(request['expires_at']) - datetime.now(UTC)).total_seconds() >= 4500, 'APPROVAL_VALIDITY_BELOW_75_MINUTES'
+     print('FULL LIVE INTEGRATION: Native Packet + local DNS -> sealed ELIGIBLE RF/LR -> Incident -> REAL OpenAI LLM Plan/Assessment -> GUI -> STOP/Cleanup.', flush=True)
+     print('A Scope confirmation authorizes only Native/Root/DNS/R1; exact GUI B/C decisions follow. RF/LR <=16 calls; API candidate limit2 calls/$0.05; Plan+Assessment,20s each,no retries. Review already sealed jobs together in the GUI; no future-input authorization.', flush=True)
+-    print('Namespace net:[4026532232],lo/Ingress. Whole Native limit600s; pure target360s. TCP<=4 connections; DNS UDP2/TCP1. Root8 fixed paths,only4 changes including Collector service.py,with backup. No external Namespace traffic.', flush=True)
++    print(f"Namespace {request['namespace']['target']},lo/Ingress. Whole Native limit600s; pure target360s. TCP<=4 connections; DNS UDP2/TCP1. Root{len(json.loads((V / 'root-install-manifest-v3.json').read_text())['replacements'])} fixed paths,only{sum((row['current_sha256'] != row['new_sha256'] for row in json.loads((V / 'root-install-manifest-v3.json').read_text())['replacements']))} changes,with backup. No external Namespace traffic.", flush=True)
+     print('Collector128MiB/CPU25%,Runtime512MiB/CPU50%,Queue32. Existing limits/Source checks/ELIGIBLE admission remain. Native and actual API evidence are distinguished in the GUI. No simulated result substitutes for a missing live result.', flush=True)
+     print('Fresh R1 risk acceptance: historical UNKNOWN/FAILED/UNVERIFIED remain. Previous service model failure cause UNKNOWN; new trial must verify actual inference. No automatic Root/Native/API retry.', flush=True)
+-    print('RECOVERY RISK: the latest owned-scope Cleanup was VERIFIED; historical Cleanup UNVERIFIED and TCX root cause UNKNOWN remain. This NEW exact Scope/R1 confirmation explicitly accepts that residual risk for ONE diagnostic retest. Past failure is not changed, and any residual resource detected by the fixed preflight blocks capture.', flush=True)
++    print(f"RECOVERY RISK: latest trial TCX ACK={request.get('latest_failed_trial', {}).get('tcx_cleanup', 'UNKNOWN')}, Runtime Cleanup={request.get('latest_failed_trial', {}).get('runtime_cleanup', 'UNKNOWN')}. Historical UNKNOWN/UNVERIFIED remain; current read-only snapshot does not retroactively verify prior Cleanup. Fresh exact R1 and current residual checks are required. No automatic Native retry.", flush=True)
+     print('Type yes ONCE below,then enter sudo password directly. Model jobs and exact API input require independent explicit GUI review. Keep this terminal open until final results.', flush=True)
+     print('Exact Scope:', V / 'approval-package-final.md', flush=True)
+     print('Proposed NEW policy validity expiry:', request['expires_at'], 'A Scope includes explicit policy validity renewal and fresh R1; B/C remain separate.', flush=True)
