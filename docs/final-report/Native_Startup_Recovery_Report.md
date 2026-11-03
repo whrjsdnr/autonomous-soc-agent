@@ -95,3 +95,54 @@ service.py다. 나머지 4개는 SHA·inode·mtime 검증만 한다. 전체 상�
 
 이전 사용자 파일 164개, 실패 실행 파일 SHA, Ledger 81행과 SHA를 재검증했다.
 실제 DNS·모델·API 재호출이나 Root 변경은 이번 복구 작업에서 수행하지 않았다.
+
+## 직접 인증 후 실제 재시험 — 2026-11-03 10:33 KST
+
+첫 재확인 창은 yes 입력 대기에서 KeyboardInterrupt로 종료됐다. 그 창에서는 Scope 승인,
+sudo 인증, Root 실행이 없었고 오류 원본을 보존했다. 사용자의 재시작 요청에 따라 별도
+새 Session과 창을 마련했으며, 사용자가 직접 yes·sudo 인증을 완료한 뒤 최대1회 실행했다.
+
+실제 실행 증거는 복구 디렉터리의
+`retest-after-interrupted-confirmation/native/execution/`에 있다.
+요약은 `actual-retest-result.json`, SHA 목록은 `actual-retest-evidence-pins.json`이다.
+
+| 항목 | 실제 재시험 결과 |
+|---|---|
+| 실행 코드 | 183070f, Source Identity 3f2593526ede65efc209cd5c6c9f92de359353550849667919609d9bcb19a0a2 |
+| 전체 Root driver | 46.873초, 실제 자식 종료 2 |
+| 최초 연결 | 인증된 Producer READY 통과; 실제 이벤트 수신 확인 |
+| Packet | 12 |
+| DNS Transaction | MATCHED_RESPONSE 2: UDP 1·TCP 1 |
+| 나머지 DNS | TCP 종료 후35초 대기 중 시험 중단; 두 번째 UDP 요청 전이므로 Scope 전체 완료 아님 |
+| TCP 공급 Helper | 시작0회; 추가 트래픽 임의 생성 없음 |
+| Runtime Window·ELIGIBLE | 0; 실패 정리의 TCX 진단 Seal을 Runtime 완전 Window로 계산하지 않음 |
+| RF/LR·LLM·Incident | Prediction0·API0·Incident0; 미검증 |
+| Drop·Source Gap | 0·0; 이 숫자만으로 Window 완전성을 주장하지 않음 |
+| Runtime 최초 오류 | CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT; 마지막 메시지 이후5.001초 |
+| Root Observer 표시 | COLLECTOR_EARLY_EXIT: Runtime 실패 STOP의 후속 종료를 먼저 검사함 |
+| 종료 | TCX STOP ACK·Helper CLOSED·최종 Counter·Root 소유 정리·Runtime Cleanup VERIFIED |
+| Global Kernel | UNKNOWN 유지 |
+| GUI | 실행 종료2에서 기존 CLI가 GUI도 닫음. 이후 동일 실제 결과를 읽는 GUI를 별도로 재개함 |
+| 최종 판정 | PARTIALLY_VERIFIED; 전체 Native AI E2E 실패, 장시간 운영 미검증 |
+
+새 Control accept 경로 덕분에 최초 연결은 통과했고, 동시 STOP 대기 문제 수정 후 이번
+Runtime Cleanup은 VERIFIED다. 이를 이전 UNVERIFIED에 소급하지 않는다. 그러나 수집 중
+Root Control 메시지에도 공백이 재발했으므로 전달 경로 전체가 안정화됐다고 주장하지 않는다.
+마지막 Control Sequence24의 Worker Stage는 INSTALLED_INTEGRITY였고, Peer는 SAME_PROCESS,
+수신 Queue Depth·Dropped Batch는0이었다. 특정 파일 I/O·GIL·Scheduling·Root CPU Throttling이
+원인이라는 확정 증거는 없다. 이번 CPU 샘플은 DNS Helper용이며 Root Collector의
+동일 구간 CPU delta를 대신하지 않는다. 원인은 **UNKNOWN**으로 유지한다.
+
+후속 비권한 수정 `e2876d9`: `observe_service_health()`가 Snapshot에 기록된 Runtime 오류를
+확인한 뒤 서비스 종료를 검사하도록 순서를 고쳤다. 성공한 실패 정리를 최초 Collector
+장애로 잘못 보고하지 않게 했다. 오류가 없는 Collector/Runtime 조기 종료는 여전히 차단한다.
+이 함수는 검토된 Coordinator에 삽입되므로 다음 시험에서는 새 Source·Launcher Binding이
+필요하다. 이번 실제 실행의 Coordinator나 증거는 수정하지 않았다.
+
+후속 수정 집중 Workspace20 PASS·독립 Export20 PASS, Ruff·Format·Diff 통과.
+Native·Supervisor·Wheel의 Workspace2회/Export1회 재현 빌드 일치. 후속 Wheel SHA는
+`9fc0c15955b569ddfb4ad23534d260e8fd4414db063b5f19a0c2710e0c94fd39`다.
+앞의 확대380 PASS는 실행 코드183070f에 대한 결과이며 후속 전체 회귀로 바꿔 서술하지 않는다.
+
+새 자동 권한 재실행은 수행하지 않았다. 추가 실환경 시험은 원인 진단을 보강한 새로운
+정확한 검토 Binding과 새 인간 Scope/R1·직접 sudo 인증을 필요로 한다.
