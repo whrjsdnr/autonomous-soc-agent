@@ -43,3 +43,32 @@ def test_operator_stop_breadcrumb_wins_over_already_stopped_service():
         lambda: 100,
     )
     assert value["stop_reason"] == "OPERATOR_REQUEST"
+
+
+def test_runtime_timeout_is_preserved_after_collector_cleanup():
+    with pytest.raises(
+        ValueError, match="RUNTIME_FIRST_ERROR:ValueError:CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT"
+    ):
+        observe_service_health(
+            lambda _: dict(ActiveState="inactive"),
+            lambda: dict(
+                last_error="ValueError:CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT", cleanup="VERIFIED"
+            ),
+            lambda: 100,
+        )
+
+
+@pytest.mark.parametrize(
+    "unit,code",
+    [
+        ("soc-continuous-collector.service", "COLLECTOR_EARLY_EXIT"),
+        ("soc-operations-runtime.service", "ORDINARY_RUNTIME_EARLY_EXIT"),
+    ],
+)
+def test_unexplained_exit_remains_blocked(unit, code):
+    with pytest.raises(ValueError, match=code):
+        observe_service_health(
+            lambda name: dict(ActiveState="inactive" if name == unit else "active"),
+            lambda: dict(last_error=None),
+            lambda: 100,
+        )

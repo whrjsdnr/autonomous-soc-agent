@@ -139,12 +139,15 @@ def observe_service_health(properties, read_snapshot, clock):
     )
     if value.get("stop_reason") == "OPERATOR_REQUEST":
         return value, observation
+    # An owned failure STOP can already have terminated the Collector by the
+    # time these blocking queries finish. Preserve the recorded Runtime failure
+    # instead of relabelling its successful cleanup as the primary cause.
+    if value.get("last_error") or value.get("circuit_open"):
+        raise ValueError("RUNTIME_FIRST_ERROR:" + str(value.get("last_error")))
     if collector.get("ActiveState") != "active":
         raise ValueError("COLLECTOR_EARLY_EXIT")
     if application.get("ActiveState") != "active":
         raise ValueError("ORDINARY_RUNTIME_EARLY_EXIT")
-    if value.get("last_error") or value.get("circuit_open"):
-        raise ValueError("RUNTIME_FIRST_ERROR:" + str(value.get("last_error")))
     if value.get("collector") in ("FAILED", "STOPPED", "DEGRADED"):
         raise ValueError("COLLECTOR_STATE:" + str(value.get("collector")))
     heartbeat = value.get("heartbeat_unix")
