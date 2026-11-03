@@ -34,6 +34,11 @@ for name, pin in json.loads(manifest.read_bytes()).items():
     assert hashlib.sha256(path.read_bytes()).hexdigest() == pin, 'MANAGER_FILE_CHANGED'
 python = root / 'python/bin/python'
 assert config['executable'] == str(python), 'MANAGER_INTERPRETER_SCOPE'
+assert python.is_symlink(), 'MANAGER_PINNED_BASE_INTERPRETER_REQUIRED'
+base = python.resolve(strict=True)
+assert str(base) == config['executable_resolved'], 'MANAGER_BASE_INTERPRETER_CHANGED'
+assert hashlib.sha256(base.read_bytes()).hexdigest() == config[
+    'executable_sha256'], 'MANAGER_BASE_INTERPRETER_DIGEST'
 os.execv(str(python), [str(python), '-I', '-B', '-m', 'soc_agent.cli', *sys.argv[1:]])
 '''
 
@@ -78,6 +83,12 @@ def main() -> None:
         project=project,
         dependency_interpreter=Path(__file__).resolve().parents[1] / ".venv/bin/python",
     )
+    # This ordinary application uses the same pinned base interpreter as the
+    # existing inference backend. Native Controllers keep their separate copied,
+    # canonical interpreter contract; this environment is never qualified as one.
+    executable = destination / "python/bin/python"
+    executable.unlink()
+    executable.symlink_to(Path(sys._base_executable).resolve())
     # The copied CPython executable uses $ORIGIN/../lib. Tcl/Tk must therefore
     # accompany it; the minimal headless Controller probe never imports Tk.
     base_library = Path(sys.base_prefix) / "lib"
@@ -115,6 +126,25 @@ def main() -> None:
     )
     closure = json.loads(result.stdout)
     for location in map(Path, closure["sites"]):
+        runtime_metadata = {
+            "pydantic",
+            "pydantic_core",
+            "annotated_types",
+            "typing_extensions",
+            "typing_inspection",
+            "pydantic_settings",
+            "python_dotenv",
+            "numpy",
+            "scipy",
+            "scikit_learn",
+            "joblib",
+            "threadpoolctl",
+            "xgboost",
+        }
+        for metadata in location.glob("*.dist-info"):
+            if metadata.name.split("-", 1)[0].lower() in runtime_metadata:
+                if not (site / metadata.name).exists():
+                    shutil.copytree(metadata, site / metadata.name)
         paths = [Path(name) for name in closure["files"] if Path(name).is_relative_to(location)]
         groups = {location / p.relative_to(location).parts[0] for p in paths}
         # Import closures include module code, not importlib.resources assets.
@@ -196,6 +226,8 @@ def main() -> None:
     manifest.write_bytes(canonical(files))
     config = dict(
         executable=str(python_home / "bin/python"),
+        executable_resolved=str(Path(sys._base_executable).resolve()),
+        executable_sha256=hashlib.sha256(Path(sys._base_executable).read_bytes()).hexdigest(),
         application_runtime=dict(
             file=str(manifest), sha=hashlib.sha256(manifest.read_bytes()).hexdigest()
         ),
@@ -211,6 +243,18 @@ def main() -> None:
         ["/usr/bin/python3", "-I", "-S", str(destination / "entry.py"), "start", "--help"],
         check=True,
     )
+    if (Path.home() / ".local/state/soc-agent/agent.json").exists():
+        verified = subprocess.run(
+            ["/usr/bin/python3", "-I", "-S", str(destination / "entry.py"), "doctor"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        report = json.loads(verified.stdout)
+        for name in ("artifact_integrity", "runtime_dependency", "model_registry"):
+            if report["diagnostics"][name]["status"] != "PASS":
+                raise ValueError("MANAGER_PREFLIGHT_NOT_READY_" + name.upper())
     pending = home / ("current-" + destination.name)
     pending.symlink_to(destination.name, target_is_directory=True)
     os.replace(pending, current)
