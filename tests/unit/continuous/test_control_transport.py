@@ -249,3 +249,74 @@ def test_invalid_data_is_rejected_before_socket_publication():
         transport.close()
         owner.close()
         peer.close()
+
+
+@pytest.mark.asyncio
+async def test_initial_accept_does_not_wait_for_data_worker(tmp_path):
+    """Exercise a real listening socket while the data worker makes no progress."""
+    import os
+
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    client = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    server.bind(str(tmp_path / "control.sock"))
+    server.listen(1)
+    server.setblocking(False)
+    client.setblocking(False)
+    stopped = threading.Event()
+    transport = ControlTransport("net:[4026532232]", "a" * 64, stopped.set)
+    transport.stage("INSTALLED_INTEGRITY", 42)
+    transport.listen(server, os.getuid())
+    loop = asyncio.get_running_loop()
+    try:
+        await loop.sock_connect(client, str(tmp_path / "control.sock"))
+        for sequence in range(1, 4):
+            raw = json.loads(await asyncio.wait_for(loop.sock_recv(client, 262145), 2))
+            assert raw["sequence"] == sequence
+            assert raw["worker"]["stage"] == "INSTALLED_INTEGRITY"
+            assert raw["peer_identity"]["uid"] == os.getuid()
+            assert raw["peer_identity"]["pid"] == os.getpid()
+            assert "frames" not in raw and "seal" not in raw
+        await loop.sock_sendall(
+            client,
+            json.dumps(
+                dict(
+                    operation="STOP_CAPTURE",
+                    generation=None,
+                    policy_sha256="a" * 64,
+                )
+            ).encode(),
+        )
+        assert await asyncio.to_thread(stopped.wait, 1)
+        assert transport.connected_peer() is not None
+        assert transport.advertised_generation is None
+    finally:
+        transport.close()
+        if transport.connected_peer() is not None:
+            transport.connected_peer().close()
+        client.close()
+        server.close()
+
+
+@pytest.mark.asyncio
+async def test_initial_accept_rejects_other_uid_without_heartbeat(tmp_path):
+    import os
+
+    server = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    client = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+    server.bind(str(tmp_path / "rejected.sock"))
+    server.listen(1)
+    server.setblocking(False)
+    client.setblocking(False)
+    transport = ControlTransport("net:[4026532232]", "a" * 64, lambda: None)
+    transport.listen(server, os.getuid() + 1)
+    loop = asyncio.get_running_loop()
+    try:
+        await loop.sock_connect(client, str(tmp_path / "rejected.sock"))
+        assert await asyncio.wait_for(loop.sock_recv(client, 262145), 2) == b""
+        assert transport.connected_peer() is None
+        assert transport.accepted_identity is None
+        assert transport.sequence == 0
+    finally:
+        transport.close()
+        client.close()
+        server.close()

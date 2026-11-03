@@ -447,6 +447,15 @@ class TCXProducer:
             ):
                 raise ValueError("CONTINUOUS_STOP_ACK_BINDING")
             self.remote_cleanup = raw.get("cleanup", "UNKNOWN")
+            # Failure drain uses this same validator directly after joining the
+            # normal receiver. Wake concurrent control STOP waiters only after
+            # the stronger epoch/policy validation, never fabricate a second ACK.
+            self.cleanup_evidence["transport_ack"] = dict(
+                ack=dict(raw),
+                observed_monotonic=time.monotonic(),
+                admission="VALIDATED_ORDERED_STOP_ACK",
+            )
+            self.transport_stop_ack.set()
             self.stop_ack.set()
             self.cleanup_evidence.update(
                 stop_ack=True,

@@ -34,6 +34,9 @@ class ControlTransport:
         self.namespace, self.policy_pin = namespace, policy_pin
         self.request_stop = request_stop
         self.peer = None
+        self.listener = None
+        self.allowed_uid = None
+        self.accepted_identity = None
         self.lock = threading.Lock()
         self.stopping = threading.Event()
         self.failure = None
@@ -52,6 +55,19 @@ class ControlTransport:
     def attach(self, peer):
         with self.lock:
             self.peer = peer
+
+    def listen(self, server, uid):
+        """Accept only the installed UID without waiting for the data worker.
+
+        The server is already bound after owned Kernel attach. This grants only
+        transport liveness; READY still requires an authenticated data record.
+        """
+        with self.lock:
+            self.listener, self.allowed_uid = server, uid
+
+    def connected_peer(self):
+        with self.lock:
+            return self.peer
 
     def check(self):
         if self.failure is not None:
@@ -76,7 +92,31 @@ class ControlTransport:
             while not self.stopping.wait(0.02):
                 with self.lock:
                     if self.peer is None:
-                        continue
+                        if self.listener is None:
+                            continue
+                        try:
+                            candidate, _ = self.listener.accept()
+                        except BlockingIOError:
+                            continue
+                        try:
+                            identity = struct.unpack(
+                                "3i",
+                                candidate.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12),
+                            )
+                            if identity[1] != self.allowed_uid:
+                                candidate.close()
+                                continue
+                            candidate.setblocking(False)
+                        except BaseException:
+                            candidate.close()
+                            raise
+                        self.peer = candidate
+                        self.accepted_identity = dict(
+                            pid=identity[0],
+                            uid=identity[1],
+                            gid=identity[2],
+                            accepted_monotonic_ns=time.monotonic_ns(),
+                        )
                     try:
                         command = self.peer.recv(256)
                     except BlockingIOError:
@@ -106,6 +146,7 @@ class ControlTransport:
                         sequence=self.sequence + 1,
                         clock=[before, wall, after],
                         worker=dict(self.progress),
+                        peer_identity=self.accepted_identity,
                     )
                     body = json.dumps(packet).encode()
                     try:
@@ -597,6 +638,7 @@ def run():
         os.chown(path, policy["uid"], -1)
         server.listen(1)
         server.setblocking(False)
+        control_transport.listen(server, policy["uid"])
         state["state"] = "RUNNING"
         audit("ATTACH_OWNED")
         window_started = time.monotonic()
@@ -633,20 +675,10 @@ def run():
                 audit("HEARTBEAT")
                 last_audit = time.monotonic()
             if peer is None:
-                try:
-                    peer, _ = server.accept()
-                    credentials = struct.unpack(
-                        "3i", peer.getsockopt(socket.SOL_SOCKET, socket.SO_PEERCRED, 12)
-                    )
-                    if credentials[1] != policy["uid"]:
-                        peer.close()
-                        peer = None
-                        continue
-                    peer.setblocking(False)
-                    stage("TRANSPORT_READY")
-                    control_transport.attach(peer)
-                except BlockingIOError:
+                peer = control_transport.connected_peer()
+                if peer is None:
                     continue
+                stage("TRANSPORT_READY")
             if time.monotonic() - last >= 1:
                 # Bracketed monotonic/wall sample remains evidence, never a UTC relabel.
                 before = time.monotonic_ns()
@@ -693,6 +725,10 @@ def run():
             state["cleanup"] = "UNVERIFIED"
             if first is None:
                 first = error
+        # A STOP can arrive before the data worker observes the accepted peer.
+        # The control reader is joined above, so ownership cannot change now.
+        if peer is None:
+            peer = control_transport.connected_peer()
         try:
             if provider and first is None:
                 finish_window()

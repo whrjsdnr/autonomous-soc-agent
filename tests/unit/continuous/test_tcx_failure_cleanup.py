@@ -484,3 +484,29 @@ raise SystemExit(cli.main(['run', sys.argv[1]]))
         if child.returncode is None:
             child.terminate()
             await asyncio.wait_for(child.wait(), 15)
+
+
+@pytest.mark.asyncio
+async def test_failure_drain_ack_wakes_concurrent_control_stop(monkeypatch):
+    source, peer = await setup(monkeypatch)
+    await source.connect(asyncio.get_running_loop())
+    # An authenticated data envelope establishes the current epoch. The failed
+    # stream's direct drain later validates its seal/ACK via records(), while a
+    # control STOP waiter is already waiting on transport completion.
+    list(source.records(message(1), POLICY))
+    waiter = asyncio.create_task(source.request_control_stop())
+    try:
+        await asyncio.wait_for(command(peer), 1)
+        list(source.records(message(2, sealed=True), POLICY))
+        list(source.records(ack(), POLICY))
+        await asyncio.wait_for(waiter, 1)
+        assert source.transport_stop_ack.is_set()
+        assert source.stop_ack.is_set()
+        assert source.remote_cleanup == "VERIFIED"
+        assert source.cleanup_evidence["transport_ack"]["ack"] == ack()
+        assert source.cleanup_evidence["transport_ack"]["admission"] == "VALIDATED_ORDERED_STOP_ACK"
+    finally:
+        waiter.cancel()
+        await asyncio.gather(waiter, return_exceptions=True)
+        await source.close()
+        peer.close()
