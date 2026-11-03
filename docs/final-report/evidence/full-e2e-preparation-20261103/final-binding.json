@@ -15,9 +15,9 @@
     "unresolved_root_reservations": []
   },
   "policy_expires_at": "2026-11-04T01:21:57.665314+00:00",
-  "request_sha256": "835f79900583c6b490407aa1d43487540ae29892e2fa7f92fd53a78a4f14aea1",
+  "request_sha256": "abf8f552825765f747d2caf9657d79e08dd4caed38b26346c2163b81981f6004",
   "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/candidate-final/native/approval-package-final.md",
-  "review_sha256": "9235ac01f68597d96810627820afd2b48db0d40b77563610f467e64849731975",
+  "review_sha256": "4811e34ca0b3e6f228fc592e90363017bd09af5e4dfae725ed653c0fa5c1d1f9",
   "root_changes": [
     "/etc/soc-agent/continuous-installation.json",
     "/etc/systemd/system/soc-operations-runtime.service",
@@ -25,7 +25,7 @@
     "/usr/lib/soc-agent/continuous/service.py"
   ],
   "root_native_dns_model_api_executions": 0,
-  "runtime_session": "b94a7bd2-4a65-4072-bde4-5b2fc8434e86",
+  "runtime_session": "81660de4-5cb8-418a-ae46-520ba4b168c0",
   "source": "75b0069502a7b5518bad29c0adf3623973dc2b5da0c3af7e713a4bfd2956418c",
   "source_files": 677,
   "tree": "ca12d4a54bf16fb75a72d2bd0e8789fe5c0c4534"
