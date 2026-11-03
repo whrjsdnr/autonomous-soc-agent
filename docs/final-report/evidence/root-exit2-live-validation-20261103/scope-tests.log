@@ -1,0 +1,249 @@
+.......                                                                  [100%]
+=============================== warnings summary ===============================
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-7c85a37e-0b45-43b1-a145-47b74803cdf6/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-7c85a37e-0b45-43b1-a145-47b74803cdf6/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-7c85a37e-0b45-43b1-a145-47b74803cdf6/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-7c85a37e-0b45-43b1-a145-47b74803cdf6/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-7c85a37e-0b45-43b1-a145-47b74803cdf6
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-7c85a37e-0b45-43b1-a145-47b74803cdf6'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-7a081dde-1eb1-4653-843a-7f607f2cca7c/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-7a081dde-1eb1-4653-843a-7f607f2cca7c/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-7a081dde-1eb1-4653-843a-7f607f2cca7c/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-7a081dde-1eb1-4653-843a-7f607f2cca7c/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-7a081dde-1eb1-4653-843a-7f607f2cca7c
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-7a081dde-1eb1-4653-843a-7f607f2cca7c'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-0bc26e6d-0157-41cc-a791-6a7d694b8f14/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-0bc26e6d-0157-41cc-a791-6a7d694b8f14/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-0bc26e6d-0157-41cc-a791-6a7d694b8f14/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-0bc26e6d-0157-41cc-a791-6a7d694b8f14/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-0bc26e6d-0157-41cc-a791-6a7d694b8f14
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-0bc26e6d-0157-41cc-a791-6a7d694b8f14'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-3eedfae9-9fd9-452e-8b99-5d5afdeb9943/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-3eedfae9-9fd9-452e-8b99-5d5afdeb9943/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-3eedfae9-9fd9-452e-8b99-5d5afdeb9943/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-3eedfae9-9fd9-452e-8b99-5d5afdeb9943/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-3eedfae9-9fd9-452e-8b99-5d5afdeb9943
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-3eedfae9-9fd9-452e-8b99-5d5afdeb9943'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-c4e449a1-c2ed-48aa-93c6-a5ebd51c23b3/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-c4e449a1-c2ed-48aa-93c6-a5ebd51c23b3/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-c4e449a1-c2ed-48aa-93c6-a5ebd51c23b3/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-c4e449a1-c2ed-48aa-93c6-a5ebd51c23b3/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-c4e449a1-c2ed-48aa-93c6-a5ebd51c23b3
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-c4e449a1-c2ed-48aa-93c6-a5ebd51c23b3'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-10dac516-08cf-4c17-9455-be74d887ebf9/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-10dac516-08cf-4c17-9455-be74d887ebf9/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-10dac516-08cf-4c17-9455-be74d887ebf9/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-10dac516-08cf-4c17-9455-be74d887ebf9/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-10dac516-08cf-4c17-9455-be74d887ebf9
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-10dac516-08cf-4c17-9455-be74d887ebf9'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816/test_package_boundary_failure_2/package/support
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816/test_package_boundary_failure_2/package/support'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816/test_package_boundary_failure_2/package
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816/test_package_boundary_failure_2/package'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816/test_package_boundary_failure_2
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816/test_package_boundary_failure_2'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-124d92e5-66d2-4660-81a2-344952d89816'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-ffbb510a-0db9-4369-9783-d19c3384b488/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-ffbb510a-0db9-4369-9783-d19c3384b488/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-ffbb510a-0db9-4369-9783-d19c3384b488/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-ffbb510a-0db9-4369-9783-d19c3384b488/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-ffbb510a-0db9-4369-9783-d19c3384b488
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-ffbb510a-0db9-4369-9783-d19c3384b488'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-0609c023-9250-438f-9afe-66e3482759e0/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-0609c023-9250-438f-9afe-66e3482759e0/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-0609c023-9250-438f-9afe-66e3482759e0/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-0609c023-9250-438f-9afe-66e3482759e0/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-0609c023-9250-438f-9afe-66e3482759e0
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-0609c023-9250-438f-9afe-66e3482759e0'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-936bb577-68ed-4bf7-8539-1b2d121fe15e/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-936bb577-68ed-4bf7-8539-1b2d121fe15e/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-936bb577-68ed-4bf7-8539-1b2d121fe15e/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-936bb577-68ed-4bf7-8539-1b2d121fe15e/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-936bb577-68ed-4bf7-8539-1b2d121fe15e
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-936bb577-68ed-4bf7-8539-1b2d121fe15e'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-8f1f468d-d142-40ff-896d-ae4afe57b734/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-8f1f468d-d142-40ff-896d-ae4afe57b734/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-8f1f468d-d142-40ff-896d-ae4afe57b734/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-8f1f468d-d142-40ff-896d-ae4afe57b734/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-8f1f468d-d142-40ff-896d-ae4afe57b734
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-8f1f468d-d142-40ff-896d-ae4afe57b734'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-f5ea275d-4f35-4d22-875f-24d6e80b9355/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-f5ea275d-4f35-4d22-875f-24d6e80b9355/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-f5ea275d-4f35-4d22-875f-24d6e80b9355/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-f5ea275d-4f35-4d22-875f-24d6e80b9355/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-f5ea275d-4f35-4d22-875f-24d6e80b9355
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-f5ea275d-4f35-4d22-875f-24d6e80b9355'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-e075d39c-29f4-4159-8d83-a0eb03952b9d/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-e075d39c-29f4-4159-8d83-a0eb03952b9d/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-e075d39c-29f4-4159-8d83-a0eb03952b9d/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-e075d39c-29f4-4159-8d83-a0eb03952b9d/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-e075d39c-29f4-4159-8d83-a0eb03952b9d
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-e075d39c-29f4-4159-8d83-a0eb03952b9d'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-edfbb307-224f-41e9-9678-be831845face/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-edfbb307-224f-41e9-9678-be831845face/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-edfbb307-224f-41e9-9678-be831845face/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-edfbb307-224f-41e9-9678-be831845face/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-edfbb307-224f-41e9-9678-be831845face
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-edfbb307-224f-41e9-9678-be831845face'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-87137c64-06ba-49c6-8f08-e73de90e15c2/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-87137c64-06ba-49c6-8f08-e73de90e15c2/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-87137c64-06ba-49c6-8f08-e73de90e15c2/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-87137c64-06ba-49c6-8f08-e73de90e15c2/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-87137c64-06ba-49c6-8f08-e73de90e15c2
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-87137c64-06ba-49c6-8f08-e73de90e15c2'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-2e8fe179-9459-438c-8e93-d649d62de9a9/test_inventory_identity_and_li1/runtime
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-2e8fe179-9459-438c-8e93-d649d62de9a9/test_inventory_identity_and_li1/runtime'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-2e8fe179-9459-438c-8e93-d649d62de9a9/test_inventory_identity_and_li1
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-2e8fe179-9459-438c-8e93-d649d62de9a9/test_inventory_identity_and_li1'
+    warnings.warn(
+
+releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95
+  /home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/lib/python3.12/site-packages/_pytest/pathlib.py:95: PytestWarning: (rm_rf) error removing /tmp/pytest-of-geonug/garbage-2e8fe179-9459-438c-8e93-d649d62de9a9
+  <class 'OSError'>: [Errno 39] Directory not empty: '/tmp/pytest-of-geonug/garbage-2e8fe179-9459-438c-8e93-d649d62de9a9'
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+7 passed, 49 warnings in 0.37s

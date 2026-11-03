@@ -1,0 +1,31 @@
+{
+  "current_snapshot": "NO_SCOPED_RESIDUAL_RESOURCE_OBSERVED",
+  "privileged_readonly_completed": true,
+  "namespace": "net:[4026532232]",
+  "root_installed8": "SHA_INODE_MTIME_MATCH",
+  "root_backups8": "SHA_MATCH",
+  "root_audit_rows": 8029,
+  "root_audit_prefix_unchanged": true,
+  "target_native_attachments": [],
+  "global_links": [],
+  "global_maps": [],
+  "global_programs": "11 systemd-named cgroup programs observed; not altered; no global cleanup promotion",
+  "past_tcx_ack": "UNVERIFIED",
+  "past_runtime_cleanup": "UNVERIFIED",
+  "native_starts": 0,
+  "model_calls": 0,
+  "api_calls": 0,
+  "initial_inspection_tool_failure": "DISTRO_BPFT_WRAPPER_KERNEL_DISPATCH_MISMATCH",
+  "completion_tool": "EXACT_EXECUTABLE_FROM_APPROVED_READONLY_PINS",
+  "initial_non_tty_completion_auth": "REJECTED_NO_ROOT_EXECUTION",
+  "evidence": {
+    "root-readonly-output.json": "661bdb9d135d47858c3c6a1b3544154181d431a61e1f319182b8000e9de3aab3",
+    "authentication-completed.json": "051a118369b7afcf67d81cb1094120f3529048c1641142a1314faad66e87751c",
+    "inputs.json": "6fde08dfa185603403159042a2ca2a7c86507fc91603f95d31943b263b6e3c17",
+    "pinned-bpf-completion.json": "7855530fd870c9790da710c00a05ed776e6a13b90ae53681f2efee6e9606b877",
+    "pinned-bpf-tty-confirmed.json": "be7dcdc693c293e10042c87f06db45439b7319f5ea659e6eaa4b750be56ec2ee",
+    "result.json": "bd2868880a30124f517c1fa770b19e0097167b5b791bf52e320f7bc19d77c29a",
+    "pinned-bpf-tty-completion.json": "176bfe7c39e8f2b7b0b6241ec450277fd731c8993e46dc970f9091c772373b25",
+    "scope-confirmed.json": "901fc0899f21c1d4ee0f9d7209efcb30d2441f26ca6d92a568b21a71a50ed1a4"
+  }
+}

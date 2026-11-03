@@ -1,0 +1,14 @@
+{
+  "status": "CORRECTED_BINDING_REQUIRES_NEW_EXACT_EXECUTION_CONFIRMATION",
+  "runtime_session": "9018e290-ce23-4874-89fc-4f03cf878320",
+  "code_commit": "30df74e",
+  "frozen_git": "3046260c0dd4e99439809c6202c8092b06589a34",
+  "root_changed": 3,
+  "package_sha256": "6fc8ad7663fd02ba4181da570e593fce762e2cd1c169606cfa05a5b5f07cc83b",
+  "old_approval_reused": false,
+  "root_install_performed": false,
+  "native_starts": 0,
+  "model_calls": 0,
+  "api_calls": 0,
+  "source_implementation_unchanged": true
+}

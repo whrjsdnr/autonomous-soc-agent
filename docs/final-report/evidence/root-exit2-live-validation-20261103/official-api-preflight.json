@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-11-03T05:54:57.220753+00:00",
+  "model": "gpt-5-mini",
+  "official_sources": [
+    "https://developers.openai.com/api/docs/models/gpt-5-mini",
+    "https://developers.openai.com/api/docs/deprecations"
+  ],
+  "input_usd_per_million": "0.25",
+  "output_usd_per_million": "2.00",
+  "structured_outputs": "SUPPORTED",
+  "deprecated": true,
+  "announced_shutdown": "2026-12-11",
+  "account_specific_availability": "UNKNOWN_NO_AUTHENTICATION_PROBE",
+  "automatic_replacement": false,
+  "max_calls": 2,
+  "timeout_seconds": 20,
+  "max_completion_tokens": 4096,
+  "input_reservation_tokens_per_request": 60000,
+  "conservative_total_usd": "0.046384",
+  "budget_usd": "0.05",
+  "actual_inference_api_calls_by_preflight": 0
+}
