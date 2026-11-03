@@ -1,0 +1,126 @@
+{
+  "api_calls": 0,
+  "classification": "IPC_RECEIVE_FAILURE",
+  "cleanup": {
+    "diagnostic_seal": "ROOT_LOCAL_SEAL_NOT_DELIVERED",
+    "dns": "VERIFIED_OWNED_DNS_ONLY",
+    "global_kernel": "UNKNOWN_PROGRAM_IDS_DIFFERENT",
+    "root_owned": "VERIFIED_IN_SAVED_ROOT_AUDIT_AND_LINK_MAP_SNAPSHOTS_ONLY",
+    "runtime": "UNVERIFIED",
+    "tcx_ack": "UNVERIFIED_TIMEOUT"
+  },
+  "dns_pid": 2079360,
+  "failure_origin": [
+    {
+      "file": "tcx_producer.py",
+      "function": "events",
+      "line": 445
+    },
+    {
+      "file": "tcx_producer.py",
+      "function": "messages",
+      "line": 288
+    },
+    {
+      "file": "tcx_producer.py",
+      "function": "receive",
+      "line": 220
+    },
+    {
+      "file": "tcx_producer.py",
+      "function": "receive_message",
+      "line": 395
+    }
+  ],
+  "last_control_delay_ms": 1093.7369,
+  "last_control_sequence": 9,
+  "late_dns_probe_seconds_after_primary": 3.6726808547973633,
+  "maximum_lock_wait_ms": 0.016099,
+  "maximum_send_ms": 0.627009,
+  "message_gap_subclassification": "PRODUCER_NOT_SENDING",
+  "metrics": {
+    "auth_windows": 0,
+    "authentication_inputs": 0,
+    "collector_restarts": 0,
+    "dns_inputs": 0,
+    "dns_metadata_bytes": 0,
+    "dns_rejected": 0,
+    "duplicates": 0,
+    "eligible": 0,
+    "excluded": 0,
+    "flows": 0,
+    "incidents": 0,
+    "incomplete": 0,
+    "invalid": 1,
+    "model_errors": 0,
+    "native_events": 0,
+    "packets": 0,
+    "predictions": 0,
+    "queue_dropped": 0,
+    "received": 0,
+    "recovered_events": 0,
+    "source_gaps": 0
+  },
+  "model_calls": 0,
+  "new_live_executions": 0,
+  "no_send_attempt_until_validated_stop_seconds": 13.599344838,
+  "primary_error": "CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT",
+  "published_error_lost": true,
+  "receive_wait_seconds": 6.311554447049275,
+  "recorded_outer_cli_exit_timestamp": "UNKNOWN_NOT_RECORDED",
+  "root_actual_exit": {
+    "actual_root_exit": 2,
+    "cleanup_requires_separate_proof": true,
+    "deadline_exit": false,
+    "driver_returncode": 2,
+    "elapsed": 41.59561581898015,
+    "root_reported_exit": {
+      "cleanup_requires_independent_proof": true,
+      "observed_monotonic": 1022985.842532385,
+      "planned_returncode": 2,
+      "status": "BEFORE_SYS_EXIT_NOT_WAITPID"
+    }
+  },
+  "root_collector_pid": 2079245,
+  "root_cpu_interval": {
+    "delta": {
+      "nr_periods": 145,
+      "nr_throttled": 137,
+      "throttled_usec": 25394701,
+      "usage_usec": 1746551
+    },
+    "not_exact_gap_causal_proof": true,
+    "seconds": 14.493956603
+  },
+  "root_observer_origin": {
+    "at": "2026-11-03T04:50:03.132732+00:00",
+    "errno": null,
+    "error": "ValueError",
+    "message": "RUNTIME_FIRST_ERROR:CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT",
+    "stage": "CAPTURE",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/candidate-final/native/execution/root-trial.py\", line 519, in run\n    value, observation = observe_service_health(properties, state, time.time)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/candidate-final/native/execution/root-trial.py\", line 375, in observe_service_health\n    raise ValueError('RUNTIME_FIRST_ERROR:' + str(value.get('last_error')))\nValueError: RUNTIME_FIRST_ERROR:CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT\n"
+  },
+  "root_trial_coordinator_pid": "UNKNOWN_NOT_RECORDED",
+  "runtime_final_error": "CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE",
+  "runtime_pid": 2079255,
+  "same_boot_and_time_namespace": true,
+  "session": "81660de4-5cb8-418a-ae46-520ba4b168c0",
+  "source_git": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+  "timeout_socket": {
+    "fionread_bytes": 0,
+    "nonblocking": true,
+    "observed_monotonic_ns": 1022975332713062,
+    "receive_buffer": 212992,
+    "send_buffer": 212992,
+    "send_queue_bytes": 0
+  },
+  "trace_truncated": 0,
+  "tx_attempts": 17,
+  "tx_outcomes": {
+    "BACKPRESSURE": 0,
+    "ERROR": 0,
+    "PARTIAL": 0,
+    "SENT": 17
+  },
+  "underlying_scheduler_or_GIL_or_host_cause": "UNKNOWN"
+}

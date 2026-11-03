@@ -1,0 +1,12 @@
+{
+  "status": "PASS_NONPRIVILEGED_AST_GUARD",
+  "root_script_executed": false,
+  "root_service_and_socket_boundaries": "FIXTURE",
+  "negative_cases": [
+    "SOURCE_TIMEOUT",
+    "CURRENT_AUTHENTICATION_NOT_READY"
+  ],
+  "positive_case": "READY_ONLY_CONTINUES_TO_SPY_NO_TRAFFIC",
+  "original_artifact_unchanged": true,
+  "repaired_copy_not_bound_or_approved": true
+}

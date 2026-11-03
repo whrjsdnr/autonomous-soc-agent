@@ -1,0 +1,7 @@
+62567c1 diagnostics: trace TCX send receive lock and cgroup progress without changing deadlines
+183070f fix: accept native control independently and propagate validated stop acknowledgements
+2cfcf7e fix: validate producer data before control transport publication
+c6405d7 fix(runtime): isolate control heartbeat and recover from slow storage
+568e759 Isolate control and investigation work and preserve shutdown uncertainty
+66814fc Exclude lease expiry during configuration update from capture duration
+33778d0 Prepare bounded API orchestration and attest enabled Native duration

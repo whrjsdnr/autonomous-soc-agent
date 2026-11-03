@@ -1,0 +1,42 @@
+{
+  "native_20261030": {
+    "pin_file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-approved-attempt-20261030T093317Z/executed-evidence-pins.json",
+    "pin_file_sha256": "056a67a89a2a145874426f76392356596ba981a1e77e4ddd1577be6eba61cb62",
+    "total": 178,
+    "matching": 178,
+    "missing": [],
+    "mismatch": []
+  },
+  "native_20261029": {
+    "pin_file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/execution-pins.json",
+    "pin_file_sha256": "f0d2f172f1645cc1b9411cb897da1667ebaddc7bdb19204bcf429456dd7ae626",
+    "total": 17,
+    "matching": 17,
+    "missing": [],
+    "mismatch": []
+  },
+  "api_source": {
+    "pin_file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/ai-pipeline-integration-20261027-1/actual-api-source-pins.json",
+    "pin_file_sha256": "8ed02dea872789f672f8eab42dec1a8797925b3bb97c836962c3228d803da863",
+    "total": 1241,
+    "matching": 1237,
+    "missing": [],
+    "mismatch": [
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/ai-pipeline-integration-20261027-1/source-export/src/soc_agent/security_ai/api_investigation.py",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/ai-pipeline-integration-20261027-1/source-export/src/soc_agent/security_ai/offline_workflow.py",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/ai-pipeline-integration-20261027-1/source-export/src/soc_agent/security_ai/workflow_models.py",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/ai-pipeline-integration-20261027-1/source-export/tests/integration/test_api_investigation.py"
+    ]
+  },
+  "native_source_c542398": {
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/native/service.py": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/native/policy.py": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/native/build.py": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/native/provider.c": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/native/continuous.bpf.c": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/tcx_producer.py": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/service.py": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/dns_source.py": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/frozen-source/src/soc_agent/continuous/cli.py": true
+  }
+}

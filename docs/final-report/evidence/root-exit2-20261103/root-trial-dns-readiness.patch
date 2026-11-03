@@ -1,0 +1,11 @@
+--- ORIGINAL_CONSUMED_ROOT_TRIAL_DO_NOT_EDIT
++++ UNAPPROVED_REPAIRED_COPY_DO_NOT_EXECUTE
+@@ -508,6 +508,8 @@
+             time.sleep(0.05)
+         evidence('dnsmasq-ready.json', dict(at=now(), sockets=listeners))
+         dns_probe = local_dns_probe()
++        value, acquisition = observe_service_health(properties, state, time.time)
++        assert ready(value, r), 'DNS_TRAFFIC_REQUIRES_CURRENT_AUTHENTICATED_PRODUCER'
+         dns_probe.start()
+         evidence('local-dns-traffic-start.json', dict(at=now(), fixed_r2=True, source='EXISTING_DIAGNOSTIC_WORKER_AFTER_AUTHENTICATED_READY'))
+         stage = 'CAPTURE'

@@ -1,0 +1,258 @@
+[
+  {
+    "kst": "2026-11-03T13:49:24.566426+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "USER_SCOPE_CONFIRMED",
+    "utc": "2026-11-03T04:49:24.566426+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:28.451931+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "SUDO_AUTH_COMPLETED",
+    "utc": "2026-11-03T04:49:28.451931+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:28.516440+09:00",
+    "monotonic_ns": 1022944434981107,
+    "note": "before Root preflight; not root-trial-started.at",
+    "pid": null,
+    "stage": "LAUNCHER_EXECUTION_CLOCK_START",
+    "utc": "2026-11-03T04:49:28.516440+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:36.870395+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "ROOT_ADMISSION",
+    "utc": "2026-11-03T04:49:36.870395+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:36.874613+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "ROOT_BINDING_VERIFIED_BASELINE_PHASE_STARTED",
+    "utc": "2026-11-03T04:49:36.874613+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:37.616327+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "COLLECTOR_START_REQUEST",
+    "utc": "2026-11-03T04:49:37.616327+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:38.414441+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_AUDIT_ATTACH_OWNED",
+    "utc": "2026-11-03T04:49:38.414441+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:38.497810+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "ROOT_SOCKET_READY",
+    "utc": "2026-11-03T04:49:38.497810+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:41.921290+09:00",
+    "monotonic_ns": 1022957839831300,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_FIRST_CONTROL_GENERATED",
+    "utc": "2026-11-03T04:49:41.921290+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:41.921858+09:00",
+    "monotonic_ns": 1022957840399127,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_FIRST_CONTROL_SEND_COMPLETE",
+    "utc": "2026-11-03T04:49:41.921858+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:41.921910+09:00",
+    "monotonic_ns": 1022957840450915,
+    "note": null,
+    "pid": 2079255,
+    "stage": "RUNTIME_FIRST_CONTROL_RECEIVE",
+    "utc": "2026-11-03T04:49:41.921910+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:43.013744+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "AUTHENTICATED_PRODUCER_READY",
+    "utc": "2026-11-03T04:49:43.013744+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:51.126506+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "DNS_HELPER_READY",
+    "utc": "2026-11-03T04:49:51.126506+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:52.008563+09:00",
+    "monotonic_ns": 1022967927104179,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_LAST_CONTROL_SEND_SEQ9",
+    "utc": "2026-11-03T04:49:52.008563+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:53.102300+09:00",
+    "monotonic_ns": 1022969020841079,
+    "note": null,
+    "pid": 2079255,
+    "stage": "RUNTIME_LAST_CONTROL_RECEIVE_SEQ9",
+    "utc": "2026-11-03T04:49:53.102300+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:59.413934+09:00",
+    "monotonic_ns": 1022975332452720,
+    "note": null,
+    "pid": 2079255,
+    "stage": "FIRST_TCX_RECEIVE_TIMEOUT",
+    "utc": "2026-11-03T04:49:59.413934+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:49:59.415887+09:00",
+    "monotonic_ns": 1022975334428749,
+    "note": null,
+    "pid": 2079255,
+    "stage": "TCX_STOP_REQUEST",
+    "utc": "2026-11-03T04:49:59.415887+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:02.416862+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": 2079255,
+    "stage": "DNS_READER_STALE",
+    "utc": "2026-11-03T04:50:02.416862+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:02.789758+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "DNS_STOP_REQUEST",
+    "utc": "2026-11-03T04:50:02.789758+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:02.807535+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": 2079360,
+    "stage": "DNS_CLOSED_RECEIVED",
+    "utc": "2026-11-03T04:50:02.807535+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:03.061937+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "DNSMASQ_SOCKET_READY",
+    "utc": "2026-11-03T04:50:03.061937+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:03.086615+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "DNS_PROBE_START_REQUEST",
+    "utc": "2026-11-03T04:50:03.086615+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:03.132732+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "ROOT_OBSERVER_ERROR",
+    "utc": "2026-11-03T04:50:03.132732+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:04.419026+09:00",
+    "monotonic_ns": null,
+    "note": "CONTINUOUS_STOP_ACK_TIMEOUT",
+    "pid": null,
+    "stage": "TCX_STOP_ACK_TIMEOUT",
+    "utc": "2026-11-03T04:50:04.419026+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:05.607908+09:00",
+    "monotonic_ns": 1022981526449017,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_RECEIVES_VALIDATED_STOP",
+    "utc": "2026-11-03T04:50:05.607908+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:05.808065+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_AUDIT_CAPTURE_WINDOW_SEALED",
+    "utc": "2026-11-03T04:50:05.808065+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:05.819121+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_AUDIT_CAPTURE_FINAL_SEAL_NOT_DELIVERED",
+    "utc": "2026-11-03T04:50:05.819121+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:05.826584+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": 2079245,
+    "stage": "ROOT_AUDIT_SERVICE_STOPPED",
+    "utc": "2026-11-03T04:50:05.826584+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:09.916132+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "ROOT_FINISHED",
+    "utc": "2026-11-03T04:50:09.916132+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:09.923991+09:00",
+    "monotonic_ns": 1022985842532385,
+    "note": "planned code2 before sys.exit, actual waitpid code2 separately in root-deadline-result",
+    "pid": null,
+    "stage": "ROOT_CHILD_PLANNED_EXIT2",
+    "utc": "2026-11-03T04:50:09.923991+00:00"
+  },
+  {
+    "kst": "2026-11-03T13:50:10.119309+09:00",
+    "monotonic_ns": null,
+    "note": null,
+    "pid": null,
+    "stage": "CLI_ROOT_WAIT_RETURNED2",
+    "utc": "2026-11-03T04:50:10.119309+00:00"
+  },
+  {
+    "kst": null,
+    "monotonic_ns": null,
+    "note": "Bounded child exit2 saved; outer GUI/management process exact exit timestamp not recorded",
+    "pid": null,
+    "stage": "CLI_FINAL_EXIT",
+    "utc": null
+  }
+]

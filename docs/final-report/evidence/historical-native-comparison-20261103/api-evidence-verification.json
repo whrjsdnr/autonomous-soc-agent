@@ -1,0 +1,29 @@
+{
+  "audit_chain": "PASS_READ_ONLY",
+  "audit_rows": 13,
+  "result_audit_binding": "PASS",
+  "api_receipts": "PASS_EXISTING_VERIFIER_READ_ONLY",
+  "original_files_unchanged": true,
+  "live_calls": 0,
+  "guard_violations": [],
+  "responses": [
+    {
+      "status": "SCHEMA_VALIDATED",
+      "latency_ms": 17166.339571005665,
+      "usage": {
+        "completion_tokens": 1919,
+        "prompt_tokens": 1335
+      },
+      "estimated_usd": "0.00417175"
+    },
+    {
+      "status": "SCHEMA_VALIDATED",
+      "latency_ms": 13392.354073992465,
+      "usage": {
+        "completion_tokens": 1686,
+        "prompt_tokens": 1429
+      },
+      "estimated_usd": "0.00372925"
+    }
+  ]
+}
