@@ -348,17 +348,27 @@ class ContinuousRuntime:
                 await pending
                 raise
             finally:
-                elapsed = time.monotonic() - started
+                completed = time.monotonic()
+                elapsed = completed - started
+                is_maximum = elapsed >= self.storage_health["max_seconds"]
                 self.storage_health.update(
                     pending=False,
                     last_seconds=elapsed,
                     max_seconds=max(elapsed, self.storage_health["max_seconds"]),
                     max_operation=(
                         getattr(operation, "__name__", type(operation).__name__)
-                        if elapsed >= self.storage_health["max_seconds"]
+                        if is_maximum
                         else self.storage_health.get("max_operation")
                     ),
-                    completed_monotonic=time.monotonic(),
+                    max_started_monotonic=(
+                        started if is_maximum else self.storage_health.get("max_started_monotonic")
+                    ),
+                    max_completed_monotonic=(
+                        completed
+                        if is_maximum
+                        else self.storage_health.get("max_completed_monotonic")
+                    ),
+                    completed_monotonic=completed,
                 )
 
     def storage_size(self):

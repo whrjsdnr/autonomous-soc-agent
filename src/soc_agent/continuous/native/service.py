@@ -166,6 +166,7 @@ class ControlTransport:
         finally:
             record["send_completed_ns"] = time.monotonic_ns()
             record["socket"] = socket_diagnostics(self.peer)
+            record["post_send_diagnostics_completed_ns"] = time.monotonic_ns()
             self.trace.append(record)
             self.trace_total += 1
             self.send_totals[record["outcome"]] += 1
