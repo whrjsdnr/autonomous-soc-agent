@@ -1,0 +1,24 @@
+{
+  "past_cleanup_not_promoted": true,
+  "privileged_inspection_executed": false,
+  "processes": [
+    {
+      "expected_start": "102295355",
+      "pid": 2079245,
+      "status": "CURRENT_PID_ABSENT_NOT_RETROACTIVE_CLEANUP_PROOF"
+    },
+    {
+      "expected_start": "102295443",
+      "pid": 2079255,
+      "status": "CURRENT_PID_ABSENT_NOT_RETROACTIVE_CLEANUP_PROOF"
+    },
+    {
+      "expected_start": "102295896",
+      "pid": 2079360,
+      "status": "CURRENT_PID_ABSENT_NOT_RETROACTIVE_CLEANUP_PROOF"
+    }
+  ],
+  "snapshot_evidence_file_mtime_ns": 1793681874307299829,
+  "socket_exists": false,
+  "socket_path": "/run/soc-agent-continuous/1000.sock"
+}

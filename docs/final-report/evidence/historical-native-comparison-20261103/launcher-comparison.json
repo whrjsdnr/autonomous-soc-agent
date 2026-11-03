@@ -1,0 +1,446 @@
+{
+  "native_20261029": {
+    "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/root-trial.py",
+    "sha256": "123d27b6a19adaa9b6eb30de3a1ec708ed76f5359c68190a5f0128bf72332e6d",
+    "functions": {
+      "sha": [
+        12,
+        12
+      ],
+      "evidence": [
+        13,
+        17
+      ],
+      "command": [
+        18,
+        21
+      ],
+      "system": [
+        22,
+        22
+      ],
+      "kernel": [
+        23,
+        25
+      ],
+      "install": [
+        26,
+        34
+      ]
+    },
+    "calls": [
+      {
+        "line": 70,
+        "name": "(E / 'installation-policy.json').read_bytes"
+      },
+      {
+        "line": 111,
+        "name": "(E / 'producer-ready.json').exists"
+      },
+      {
+        "line": 115,
+        "name": "(E / 'producer-ready.json').read_text"
+      },
+      {
+        "line": 132,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 133,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 137,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 140,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 144,
+        "name": "cleanup.append"
+      }
+    ]
+  },
+  "native_20261030": {
+    "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/execution/root-trial.py",
+    "sha256": "1ccf710b3bfb3331c8f2aa5de36e5dcbf7ccb5ae37ac7ca92749f610118f2e16",
+    "functions": {
+      "authenticated_producer_ready": [
+        9,
+        38
+      ],
+      "read_service_journal": [
+        41,
+        96
+      ],
+      "sha": [
+        133,
+        134
+      ],
+      "canonical": [
+        137,
+        140
+      ],
+      "now": [
+        143,
+        144
+      ],
+      "evidence": [
+        147,
+        154
+      ],
+      "command": [
+        157,
+        164
+      ],
+      "system": [
+        167,
+        171
+      ],
+      "properties": [
+        174,
+        243
+      ],
+      "kernel": [
+        246,
+        251
+      ],
+      "read_observation": [
+        254,
+        297
+      ],
+      "state": [
+        300,
+        306
+      ],
+      "ready": [
+        309,
+        317
+      ],
+      "namespace": [
+        323,
+        342
+      ],
+      "verify_contract": [
+        345,
+        484
+      ],
+      "install": [
+        487,
+        620
+      ],
+      "validate_ordinary_process": [
+        626,
+        650
+      ],
+      "observe_service_health": [
+        653,
+        689
+      ],
+      "check_process": [
+        692,
+        730
+      ],
+      "local_dns_probe": [
+        733,
+        742
+      ],
+      "run": [
+        745,
+        1115
+      ]
+    },
+    "calls": [
+      {
+        "line": 20,
+        "name": "namespace.startswith"
+      },
+      {
+        "line": 28,
+        "name": "health.get"
+      },
+      {
+        "line": 312,
+        "name": "authenticated_producer_ready"
+      },
+      {
+        "line": 409,
+        "name": "(V / 'root-install-manifest-v3.json').read_text"
+      },
+      {
+        "line": 434,
+        "name": "(V / 'continuous-installation-v2.json').read_text"
+      },
+      {
+        "line": 684,
+        "name": "value.get('component_health', {}).get"
+      },
+      {
+        "line": 712,
+        "name": "(V / 'dns-session/verified-ready.json').read_text"
+      },
+      {
+        "line": 794,
+        "name": "install"
+      },
+      {
+        "line": 799,
+        "name": "check_process"
+      },
+      {
+        "line": 819,
+        "name": "check_process"
+      },
+      {
+        "line": 828,
+        "name": "ready"
+      },
+      {
+        "line": 867,
+        "name": "check_process"
+      },
+      {
+        "line": 872,
+        "name": "check_process"
+      },
+      {
+        "line": 899,
+        "name": "dns_probe.start"
+      },
+      {
+        "line": 914,
+        "name": "observe_service_health"
+      },
+      {
+        "line": 955,
+        "name": "ready"
+      },
+      {
+        "line": 1019,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1030,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1032,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1038,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1047,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1056,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1072,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 1077,
+        "name": "body.startswith"
+      }
+    ]
+  },
+  "failed_20261103": {
+    "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/candidate-final/native/execution/root-trial.py",
+    "sha256": "740c4aea9a127423bd7337351224cfe5d9895ec5a41ff60b0a026822091d5c2e",
+    "functions": {
+      "authenticated_producer_ready": [
+        9,
+        22
+      ],
+      "read_service_journal": [
+        24,
+        42
+      ],
+      "sha": [
+        69,
+        70
+      ],
+      "canonical": [
+        72,
+        73
+      ],
+      "now": [
+        75,
+        76
+      ],
+      "evidence": [
+        78,
+        85
+      ],
+      "command": [
+        87,
+        92
+      ],
+      "system": [
+        94,
+        98
+      ],
+      "properties": [
+        100,
+        102
+      ],
+      "kernel": [
+        104,
+        109
+      ],
+      "read_observation": [
+        111,
+        138
+      ],
+      "state": [
+        140,
+        146
+      ],
+      "ready": [
+        148,
+        151
+      ],
+      "namespace": [
+        154,
+        158
+      ],
+      "verify_contract": [
+        160,
+        233
+      ],
+      "install": [
+        235,
+        325
+      ],
+      "validate_ordinary_process": [
+        328,
+        352
+      ],
+      "observe_service_health": [
+        354,
+        384
+      ],
+      "check_process": [
+        386,
+        411
+      ],
+      "local_dns_probe": [
+        413,
+        419
+      ],
+      "run": [
+        421,
+        618
+      ]
+    },
+    "calls": [
+      {
+        "line": 15,
+        "name": "namespace.startswith"
+      },
+      {
+        "line": 21,
+        "name": "health.get"
+      },
+      {
+        "line": 151,
+        "name": "authenticated_producer_ready"
+      },
+      {
+        "line": 194,
+        "name": "(V / 'root-install-manifest-v3.json').read_text"
+      },
+      {
+        "line": 207,
+        "name": "(V / 'continuous-installation-v2.json').read_text"
+      },
+      {
+        "line": 379,
+        "name": "value.get('component_health', {}).get"
+      },
+      {
+        "line": 399,
+        "name": "(V / 'dns-session/verified-ready.json').read_text"
+      },
+      {
+        "line": 450,
+        "name": "install"
+      },
+      {
+        "line": 455,
+        "name": "check_process"
+      },
+      {
+        "line": 468,
+        "name": "check_process"
+      },
+      {
+        "line": 475,
+        "name": "ready"
+      },
+      {
+        "line": 496,
+        "name": "check_process"
+      },
+      {
+        "line": 500,
+        "name": "check_process"
+      },
+      {
+        "line": 511,
+        "name": "dns_probe.start"
+      },
+      {
+        "line": 519,
+        "name": "observe_service_health"
+      },
+      {
+        "line": 549,
+        "name": "ready"
+      },
+      {
+        "line": 568,
+        "name": "(E / 'operator-stop-observed.json').exists"
+      },
+      {
+        "line": 579,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 584,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 586,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 592,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 594,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 600,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 607,
+        "name": "cleanup.append"
+      },
+      {
+        "line": 612,
+        "name": "body.startswith"
+      }
+    ]
+  }
+}

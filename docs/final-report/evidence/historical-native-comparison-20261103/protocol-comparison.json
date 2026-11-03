@@ -1,0 +1,132 @@
+{
+  "608c03e": {
+    "sock_recv_waits": [
+      {
+        "line": 309,
+        "call": "asyncio.wait_for(asyncio.get_running_loop().sock_sendall(self.socket, body), 2)"
+      },
+      {
+        "line": 310,
+        "call": "asyncio.wait_for(self.stop_ack.wait(), 5)"
+      },
+      {
+        "line": 156,
+        "call": "asyncio.wait_for(\n                loop.sock_connect(self.socket, f\"/run/soc-agent-continuous/{os.getuid()}.sock\"), 5\n            )"
+      },
+      {
+        "line": 174,
+        "call": "asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)"
+      }
+    ],
+    "contract_literals": [
+      "soc-continuous-tcx-stop:v1",
+      "soc-continuous-tcx:v1"
+    ]
+  },
+  "c542398": {
+    "sock_recv_waits": [
+      {
+        "line": 618,
+        "call": "asyncio.wait_for(self.stop_ack.wait(), 5)"
+      },
+      {
+        "line": 258,
+        "call": "asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)"
+      },
+      {
+        "line": 296,
+        "call": "asyncio.wait_for(\n                loop.sock_connect(self.socket, f\"/run/soc-agent-continuous/{os.getuid()}.sock\"), 5\n            )"
+      },
+      {
+        "line": 593,
+        "call": "asyncio.wait_for(loop.sock_sendall(self.socket, body), 2)"
+      }
+    ],
+    "contract_literals": [
+      "soc-continuous-tcx-stop:v1",
+      "soc-continuous-tcx:v1"
+    ]
+  },
+  "71377c7": {
+    "sock_recv_waits": [
+      {
+        "line": 618,
+        "call": "asyncio.wait_for(self.stop_ack.wait(), 5)"
+      },
+      {
+        "line": 258,
+        "call": "asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)"
+      },
+      {
+        "line": 296,
+        "call": "asyncio.wait_for(\n                loop.sock_connect(self.socket, f\"/run/soc-agent-continuous/{os.getuid()}.sock\"), 5\n            )"
+      },
+      {
+        "line": 593,
+        "call": "asyncio.wait_for(loop.sock_sendall(self.socket, body), 2)"
+      }
+    ],
+    "contract_literals": [
+      "soc-continuous-tcx-stop:v1",
+      "soc-continuous-tcx:v1"
+    ]
+  },
+  "74cbcb2": {
+    "sock_recv_waits": [
+      {
+        "line": 778,
+        "call": "asyncio.wait_for(self.stop_ack.wait(), 5)"
+      },
+      {
+        "line": 357,
+        "call": "asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)"
+      },
+      {
+        "line": 413,
+        "call": "asyncio.wait_for(\n                loop.sock_connect(self.socket, f\"/run/soc-agent-continuous/{os.getuid()}.sock\"), 5\n            )"
+      },
+      {
+        "line": 774,
+        "call": "asyncio.wait_for(self.transport_stop_ack.wait(), 5)"
+      },
+      {
+        "line": 736,
+        "call": "asyncio.wait_for(loop.sock_sendall(self.socket, body), 2)"
+      }
+    ],
+    "contract_literals": [
+      "soc-continuous-tcx-control:v1",
+      "soc-continuous-tcx-stop:v1",
+      "soc-continuous-tcx:v1"
+    ]
+  },
+  "30df74e": {
+    "sock_recv_waits": [
+      {
+        "line": 778,
+        "call": "asyncio.wait_for(self.stop_ack.wait(), 5)"
+      },
+      {
+        "line": 357,
+        "call": "asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)"
+      },
+      {
+        "line": 413,
+        "call": "asyncio.wait_for(\n                loop.sock_connect(self.socket, f\"/run/soc-agent-continuous/{os.getuid()}.sock\"), 5\n            )"
+      },
+      {
+        "line": 774,
+        "call": "asyncio.wait_for(self.transport_stop_ack.wait(), 5)"
+      },
+      {
+        "line": 736,
+        "call": "asyncio.wait_for(loop.sock_sendall(self.socket, body), 2)"
+      }
+    ],
+    "contract_literals": [
+      "soc-continuous-tcx-control:v1",
+      "soc-continuous-tcx-stop:v1",
+      "soc-continuous-tcx:v1"
+    ]
+  }
+}

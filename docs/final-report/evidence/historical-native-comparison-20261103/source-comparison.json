@@ -1,0 +1,1711 @@
+{
+  "608c03e": {
+    "commit": "608c03e71bf7f4f99a34d2230476c1249be864ec",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": "9a259bf55d1d8f1d88b86860fdc9ac9986fefea0958cc1435d8788f28e372119",
+      "src/soc_agent/continuous/native/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "src/soc_agent/continuous/native/build.py": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "src/soc_agent/continuous/native/provider.c": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "src/soc_agent/continuous/native/continuous.bpf.c": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "src/soc_agent/continuous/tcx_producer.py": "75683b258a6d0df809c2eff178f295cee4faf7381f0af45dd03f952ba3add701",
+      "src/soc_agent/continuous/service.py": "8aab25437a9070cfdea7433326bf4cc70b68e617665336921c8fad375e6a2d0d",
+      "src/soc_agent/continuous/dns_source.py": null,
+      "src/soc_agent/continuous/cli.py": "5086c9ca7aeeb60892082e48d978d12e6943606a07c40134fba850a5f410e0e9",
+      "src/soc_agent/security_ai/offline_workflow.py": "55317c0f2c3a81fd799f04c6f48479891debf4367bab7ec892084bcbaf8c562b",
+      "src/soc_agent/security_ai/api_investigation.py": "66604907f8f3e7d1be6f14956071c93cfaa849acbf43a7a213a793d36d5d099a"
+    },
+    "symbols": {
+      "src/soc_agent/continuous/native/service.py": {
+        "audit_tail": {
+          "line": 23,
+          "end_line": 34,
+          "ast_sha256": "b6d971410614e3d31d3bce85f75abec2cec51d501b02381baa03337d0a4638e3"
+        },
+        "resource_scope": {
+          "line": 37,
+          "end_line": 65,
+          "ast_sha256": "ad80e00af455f6ebd968dbcbf66726672fe57ba56fcf3436bab42b5ee3033b8f"
+        },
+        "cleanup_failed": {
+          "line": 68,
+          "end_line": 76,
+          "ast_sha256": "73e46ac599076f7ef614946a9853552842aafd08ea6298b9bade4f9755af55fe"
+        },
+        "clock_samples": {
+          "line": 79,
+          "end_line": 88,
+          "ast_sha256": "1cff7ec4ecf0244a41f4f5e8e7613e785106e8f6534f4f57404c2df1ae9e3a85"
+        },
+        "seal_record": {
+          "line": 91,
+          "end_line": 113,
+          "ast_sha256": "b007b16ee4771a691305bfa4c301e48c92f18e90e19023b5349195f0f6376471"
+        },
+        "Provider": {
+          "line": 116,
+          "end_line": 233,
+          "ast_sha256": "ea48ccf70c9489aeefe9797623506a6a08909fb4ab2ff036fc74deec3c5a4afa"
+        },
+        "run": {
+          "line": 236,
+          "end_line": 546,
+          "ast_sha256": "c342accecc11cede54ec4b394c6239a98d40faec537751d7056308ba3bc35f4a"
+        }
+      },
+      "src/soc_agent/continuous/native/policy.py": {
+        "root_file": {
+          "line": 25,
+          "end_line": 37,
+          "ast_sha256": "6d4725b60e503717612ffedea5d99dd48d76e4d4bec6ef276d17c761b8754d72"
+        },
+        "validate": {
+          "line": 40,
+          "end_line": 97,
+          "ast_sha256": "77107e32f1d6f8147f3cef799865977d68967e7969c9806874069b5e1b20ce55"
+        },
+        "installed": {
+          "line": 100,
+          "end_line": 108,
+          "ast_sha256": "9dbecce181e5748ddf3038dc6b8b53c3a85891b797d4db22987ac36dc5e14e5f"
+        }
+      },
+      "src/soc_agent/continuous/native/build.py": {
+        "verify_object": {
+          "line": 8,
+          "end_line": 25,
+          "ast_sha256": "5bdaff3683540b3f6213ac9e16f4a958f05c5e1f8e8478e1457e3873853527bd"
+        },
+        "build": {
+          "line": 28,
+          "end_line": 102,
+          "ast_sha256": "3daadb9930d47b3a0977991d034218c0a0d15893efd2bbca85d94ae634195e24"
+        }
+      },
+      "src/soc_agent/continuous/tcx_producer.py": {
+        "ContinuousEvent": {
+          "line": 20,
+          "end_line": 23,
+          "ast_sha256": "8a8d56ef911c85d4bb0d59d24812cb70b50c269b5692b7fa365c1af0db247f9f"
+        },
+        "decode": {
+          "line": 26,
+          "end_line": 77,
+          "ast_sha256": "5ef14c9a58b3914d37305b021a576283bd2a4439adf697961524f8356e7794b8"
+        },
+        "replay_wire": {
+          "line": 80,
+          "end_line": 99,
+          "ast_sha256": "9a0f4b6da1e7d12793c64a42c900244fe654c9cda3b96204b8a8469feb0d5c3d"
+        },
+        "replay_packet": {
+          "line": 102,
+          "end_line": 124,
+          "ast_sha256": "0620a3a1904ac6e4b2477a1fcf5dc429c45b8f50fd4b3069f2b7cd001022977b"
+        },
+        "TCXProducer": {
+          "line": 127,
+          "end_line": 319,
+          "ast_sha256": "7c9cc513bb4cc877aaaa1a8111f88ba4a961551d9da281423496ca201794c256"
+        }
+      },
+      "src/soc_agent/continuous/service.py": {
+        "ContinuousRuntime": {
+          "line": 29,
+          "end_line": 756,
+          "ast_sha256": "8a069f780d66572862ea33b93119e093a48db23b33b1ec256857f1b5658e90c6"
+        }
+      },
+      "src/soc_agent/continuous/cli.py": {
+        "code_identity": {
+          "line": 21,
+          "end_line": 28,
+          "ast_sha256": "9ab361ed6c5429d6aa0fae567f2d92528b03cb69d1e86c20b46c4cd0e6b7bedb"
+        },
+        "status": {
+          "line": 31,
+          "end_line": 41,
+          "ast_sha256": "1aad77137979437fac20e29053a39cec04a7fa8518a38441d89f907a0193c7d3"
+        },
+        "start": {
+          "line": 44,
+          "end_line": 76,
+          "ast_sha256": "b5834866b950a2efa635e63dbda3dcc2eaa3c1f0b78e76ee122cc9a90e2cca66"
+        },
+        "run": {
+          "line": 79,
+          "end_line": 86,
+          "ast_sha256": "12c357a6582de2a328ef693b186bed8ed5899b9f5f532b8b434b906161fda23c"
+        },
+        "main": {
+          "line": 89,
+          "end_line": 169,
+          "ast_sha256": "23269e2a2b9601268b3e3aaf6363e102b1f0981a51586e6c23258cb64d97e935"
+        }
+      },
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 76,
+          "end_line": 81,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 84,
+          "end_line": 113,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 116,
+          "end_line": 126,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 129,
+          "end_line": 646,
+          "ast_sha256": "710919de21fb8d324216c313def75c75a4e0503d471d1b75d81869feb71f8912"
+        },
+        "verify_result": {
+          "line": 649,
+          "end_line": 776,
+          "ast_sha256": "25ff1d3ce97b4fac44c969a61d8030751bb1db7f67f6e385fadee1134fcfc835"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 147,
+          "ast_sha256": "2526138bfa6d9237a9efda7088efe93f7fdd840ffff67b7af6e1ecbdddc4f61e"
+        },
+        "_read_result": {
+          "line": 150,
+          "end_line": 161,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 164,
+          "end_line": 321,
+          "ast_sha256": "6b14dcc0dae74eda1848fe9d45009ce289ca7131b4822bb99985bea4d79f0bc0"
+        },
+        "settings_from_env_file": {
+          "line": 324,
+          "end_line": 332,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 335,
+          "end_line": 388,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  },
+  "e3412e8": {
+    "commit": "e3412e88d12a221a778b3ff633dd0e1460984745",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": "9a259bf55d1d8f1d88b86860fdc9ac9986fefea0958cc1435d8788f28e372119",
+      "src/soc_agent/continuous/native/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "src/soc_agent/continuous/native/build.py": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "src/soc_agent/continuous/native/provider.c": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "src/soc_agent/continuous/native/continuous.bpf.c": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "src/soc_agent/continuous/tcx_producer.py": "75683b258a6d0df809c2eff178f295cee4faf7381f0af45dd03f952ba3add701",
+      "src/soc_agent/continuous/service.py": "1bdc2c2afb81531b587aaadd69d4da59fa5928a0ae0c3abe2d71cfa2ddbc11be",
+      "src/soc_agent/continuous/dns_source.py": null,
+      "src/soc_agent/continuous/cli.py": "5086c9ca7aeeb60892082e48d978d12e6943606a07c40134fba850a5f410e0e9",
+      "src/soc_agent/security_ai/offline_workflow.py": "55317c0f2c3a81fd799f04c6f48479891debf4367bab7ec892084bcbaf8c562b",
+      "src/soc_agent/security_ai/api_investigation.py": "66604907f8f3e7d1be6f14956071c93cfaa849acbf43a7a213a793d36d5d099a"
+    },
+    "symbols": {
+      "src/soc_agent/continuous/native/service.py": {
+        "audit_tail": {
+          "line": 23,
+          "end_line": 34,
+          "ast_sha256": "b6d971410614e3d31d3bce85f75abec2cec51d501b02381baa03337d0a4638e3"
+        },
+        "resource_scope": {
+          "line": 37,
+          "end_line": 65,
+          "ast_sha256": "ad80e00af455f6ebd968dbcbf66726672fe57ba56fcf3436bab42b5ee3033b8f"
+        },
+        "cleanup_failed": {
+          "line": 68,
+          "end_line": 76,
+          "ast_sha256": "73e46ac599076f7ef614946a9853552842aafd08ea6298b9bade4f9755af55fe"
+        },
+        "clock_samples": {
+          "line": 79,
+          "end_line": 88,
+          "ast_sha256": "1cff7ec4ecf0244a41f4f5e8e7613e785106e8f6534f4f57404c2df1ae9e3a85"
+        },
+        "seal_record": {
+          "line": 91,
+          "end_line": 113,
+          "ast_sha256": "b007b16ee4771a691305bfa4c301e48c92f18e90e19023b5349195f0f6376471"
+        },
+        "Provider": {
+          "line": 116,
+          "end_line": 233,
+          "ast_sha256": "ea48ccf70c9489aeefe9797623506a6a08909fb4ab2ff036fc74deec3c5a4afa"
+        },
+        "run": {
+          "line": 236,
+          "end_line": 546,
+          "ast_sha256": "c342accecc11cede54ec4b394c6239a98d40faec537751d7056308ba3bc35f4a"
+        }
+      },
+      "src/soc_agent/continuous/native/policy.py": {
+        "root_file": {
+          "line": 25,
+          "end_line": 37,
+          "ast_sha256": "6d4725b60e503717612ffedea5d99dd48d76e4d4bec6ef276d17c761b8754d72"
+        },
+        "validate": {
+          "line": 40,
+          "end_line": 97,
+          "ast_sha256": "77107e32f1d6f8147f3cef799865977d68967e7969c9806874069b5e1b20ce55"
+        },
+        "installed": {
+          "line": 100,
+          "end_line": 108,
+          "ast_sha256": "9dbecce181e5748ddf3038dc6b8b53c3a85891b797d4db22987ac36dc5e14e5f"
+        }
+      },
+      "src/soc_agent/continuous/native/build.py": {
+        "verify_object": {
+          "line": 8,
+          "end_line": 25,
+          "ast_sha256": "5bdaff3683540b3f6213ac9e16f4a958f05c5e1f8e8478e1457e3873853527bd"
+        },
+        "build": {
+          "line": 28,
+          "end_line": 102,
+          "ast_sha256": "3daadb9930d47b3a0977991d034218c0a0d15893efd2bbca85d94ae634195e24"
+        }
+      },
+      "src/soc_agent/continuous/tcx_producer.py": {
+        "ContinuousEvent": {
+          "line": 20,
+          "end_line": 23,
+          "ast_sha256": "8a8d56ef911c85d4bb0d59d24812cb70b50c269b5692b7fa365c1af0db247f9f"
+        },
+        "decode": {
+          "line": 26,
+          "end_line": 77,
+          "ast_sha256": "5ef14c9a58b3914d37305b021a576283bd2a4439adf697961524f8356e7794b8"
+        },
+        "replay_wire": {
+          "line": 80,
+          "end_line": 99,
+          "ast_sha256": "9a0f4b6da1e7d12793c64a42c900244fe654c9cda3b96204b8a8469feb0d5c3d"
+        },
+        "replay_packet": {
+          "line": 102,
+          "end_line": 124,
+          "ast_sha256": "0620a3a1904ac6e4b2477a1fcf5dc429c45b8f50fd4b3069f2b7cd001022977b"
+        },
+        "TCXProducer": {
+          "line": 127,
+          "end_line": 319,
+          "ast_sha256": "7c9cc513bb4cc877aaaa1a8111f88ba4a961551d9da281423496ca201794c256"
+        }
+      },
+      "src/soc_agent/continuous/service.py": {
+        "ContinuousRuntime": {
+          "line": 29,
+          "end_line": 766,
+          "ast_sha256": "e9d8c494235d9ebffa757ed673f2cdd99545d528c0b1be87d537b08ef7e254a3"
+        }
+      },
+      "src/soc_agent/continuous/cli.py": {
+        "code_identity": {
+          "line": 21,
+          "end_line": 28,
+          "ast_sha256": "9ab361ed6c5429d6aa0fae567f2d92528b03cb69d1e86c20b46c4cd0e6b7bedb"
+        },
+        "status": {
+          "line": 31,
+          "end_line": 41,
+          "ast_sha256": "1aad77137979437fac20e29053a39cec04a7fa8518a38441d89f907a0193c7d3"
+        },
+        "start": {
+          "line": 44,
+          "end_line": 76,
+          "ast_sha256": "b5834866b950a2efa635e63dbda3dcc2eaa3c1f0b78e76ee122cc9a90e2cca66"
+        },
+        "run": {
+          "line": 79,
+          "end_line": 86,
+          "ast_sha256": "12c357a6582de2a328ef693b186bed8ed5899b9f5f532b8b434b906161fda23c"
+        },
+        "main": {
+          "line": 89,
+          "end_line": 169,
+          "ast_sha256": "23269e2a2b9601268b3e3aaf6363e102b1f0981a51586e6c23258cb64d97e935"
+        }
+      },
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 76,
+          "end_line": 81,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 84,
+          "end_line": 113,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 116,
+          "end_line": 126,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 129,
+          "end_line": 646,
+          "ast_sha256": "710919de21fb8d324216c313def75c75a4e0503d471d1b75d81869feb71f8912"
+        },
+        "verify_result": {
+          "line": 649,
+          "end_line": 776,
+          "ast_sha256": "25ff1d3ce97b4fac44c969a61d8030751bb1db7f67f6e385fadee1134fcfc835"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 147,
+          "ast_sha256": "2526138bfa6d9237a9efda7088efe93f7fdd840ffff67b7af6e1ecbdddc4f61e"
+        },
+        "_read_result": {
+          "line": 150,
+          "end_line": 161,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 164,
+          "end_line": 321,
+          "ast_sha256": "6b14dcc0dae74eda1848fe9d45009ce289ca7131b4822bb99985bea4d79f0bc0"
+        },
+        "settings_from_env_file": {
+          "line": 324,
+          "end_line": 332,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 335,
+          "end_line": 388,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  },
+  "82b1dc1": {
+    "commit": "82b1dc1666fde2869df2c037c36bf006cd43ce16",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": null,
+      "src/soc_agent/continuous/native/policy.py": null,
+      "src/soc_agent/continuous/native/build.py": null,
+      "src/soc_agent/continuous/native/provider.c": null,
+      "src/soc_agent/continuous/native/continuous.bpf.c": null,
+      "src/soc_agent/continuous/tcx_producer.py": null,
+      "src/soc_agent/continuous/service.py": null,
+      "src/soc_agent/continuous/dns_source.py": null,
+      "src/soc_agent/continuous/cli.py": null,
+      "src/soc_agent/security_ai/offline_workflow.py": "ec45f12c6fcb12fdc8f1094ef6b19b0e6157f2016b3eab0a11354fc8d78101d6",
+      "src/soc_agent/security_ai/api_investigation.py": "66604907f8f3e7d1be6f14956071c93cfaa849acbf43a7a213a793d36d5d099a"
+    },
+    "symbols": {
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 70,
+          "end_line": 75,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 78,
+          "end_line": 107,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 110,
+          "end_line": 120,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 123,
+          "end_line": 528,
+          "ast_sha256": "e145ea7b191421f35e65c9bd44d93554ccf5215535d2f1a3b20aab8f5f18f664"
+        },
+        "verify_result": {
+          "line": 531,
+          "end_line": 589,
+          "ast_sha256": "77873a3c9632add7e3dd364524d65aacc390771680f7fa6866ac2855839ee781"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 147,
+          "ast_sha256": "2526138bfa6d9237a9efda7088efe93f7fdd840ffff67b7af6e1ecbdddc4f61e"
+        },
+        "_read_result": {
+          "line": 150,
+          "end_line": 161,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 164,
+          "end_line": 321,
+          "ast_sha256": "6b14dcc0dae74eda1848fe9d45009ce289ca7131b4822bb99985bea4d79f0bc0"
+        },
+        "settings_from_env_file": {
+          "line": 324,
+          "end_line": 332,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 335,
+          "end_line": 388,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  },
+  "c542398": {
+    "commit": "c542398fcd5820f86b56743f65db6ce279dabaed",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": "afdf9c86e5098ead73bcd1e27311ee419b1eef5d393a449b1dd95c4abd315041",
+      "src/soc_agent/continuous/native/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "src/soc_agent/continuous/native/build.py": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "src/soc_agent/continuous/native/provider.c": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "src/soc_agent/continuous/native/continuous.bpf.c": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "src/soc_agent/continuous/tcx_producer.py": "7335993b937187b6280bf6fea9ea598dd8dbcb77215b003e4d248522c79e0d46",
+      "src/soc_agent/continuous/service.py": "7fee4ddd002fbe66dda279152e90d8c103538c2e35ea8bcd23bb72b154df9ec2",
+      "src/soc_agent/continuous/dns_source.py": "8a51dcbb2fae656125171e327ad1b312660de801424da47d18af257709c269eb",
+      "src/soc_agent/continuous/cli.py": "9e59315b9f7e64da15a77409cf543d0dd631d71582a3173c52fc7a31ddca573a",
+      "src/soc_agent/security_ai/offline_workflow.py": "4fcdd09340fe4a074f4c6474cc6901e9365c588d9c5df10fa46e9881e29d385c",
+      "src/soc_agent/security_ai/api_investigation.py": "66604907f8f3e7d1be6f14956071c93cfaa849acbf43a7a213a793d36d5d099a"
+    },
+    "symbols": {
+      "src/soc_agent/continuous/native/service.py": {
+        "OrderedAudit": {
+          "line": 25,
+          "end_line": 109,
+          "ast_sha256": "50a58e04afa8f4ee30b9beab5177907a7dbbcf8225c5515621e807e855b12b4a"
+        },
+        "audit_tail": {
+          "line": 112,
+          "end_line": 123,
+          "ast_sha256": "b6d971410614e3d31d3bce85f75abec2cec51d501b02381baa03337d0a4638e3"
+        },
+        "resource_scope": {
+          "line": 126,
+          "end_line": 154,
+          "ast_sha256": "ad80e00af455f6ebd968dbcbf66726672fe57ba56fcf3436bab42b5ee3033b8f"
+        },
+        "cleanup_failed": {
+          "line": 157,
+          "end_line": 165,
+          "ast_sha256": "73e46ac599076f7ef614946a9853552842aafd08ea6298b9bade4f9755af55fe"
+        },
+        "clock_samples": {
+          "line": 168,
+          "end_line": 177,
+          "ast_sha256": "1cff7ec4ecf0244a41f4f5e8e7613e785106e8f6534f4f57404c2df1ae9e3a85"
+        },
+        "seal_record": {
+          "line": 180,
+          "end_line": 202,
+          "ast_sha256": "b007b16ee4771a691305bfa4c301e48c92f18e90e19023b5349195f0f6376471"
+        },
+        "Provider": {
+          "line": 205,
+          "end_line": 322,
+          "ast_sha256": "ea48ccf70c9489aeefe9797623506a6a08909fb4ab2ff036fc74deec3c5a4afa"
+        },
+        "run": {
+          "line": 325,
+          "end_line": 630,
+          "ast_sha256": "ea3dad740a65010bdf4b10dce6a135e2e23d1607bef6cc735c11547a05440417"
+        }
+      },
+      "src/soc_agent/continuous/native/policy.py": {
+        "root_file": {
+          "line": 25,
+          "end_line": 37,
+          "ast_sha256": "6d4725b60e503717612ffedea5d99dd48d76e4d4bec6ef276d17c761b8754d72"
+        },
+        "validate": {
+          "line": 40,
+          "end_line": 97,
+          "ast_sha256": "77107e32f1d6f8147f3cef799865977d68967e7969c9806874069b5e1b20ce55"
+        },
+        "installed": {
+          "line": 100,
+          "end_line": 108,
+          "ast_sha256": "9dbecce181e5748ddf3038dc6b8b53c3a85891b797d4db22987ac36dc5e14e5f"
+        }
+      },
+      "src/soc_agent/continuous/native/build.py": {
+        "verify_object": {
+          "line": 8,
+          "end_line": 25,
+          "ast_sha256": "5bdaff3683540b3f6213ac9e16f4a958f05c5e1f8e8478e1457e3873853527bd"
+        },
+        "build": {
+          "line": 28,
+          "end_line": 102,
+          "ast_sha256": "3daadb9930d47b3a0977991d034218c0a0d15893efd2bbca85d94ae634195e24"
+        }
+      },
+      "src/soc_agent/continuous/tcx_producer.py": {
+        "ContinuousEvent": {
+          "line": 22,
+          "end_line": 25,
+          "ast_sha256": "8a8d56ef911c85d4bb0d59d24812cb70b50c269b5692b7fa365c1af0db247f9f"
+        },
+        "decode": {
+          "line": 28,
+          "end_line": 79,
+          "ast_sha256": "5ef14c9a58b3914d37305b021a576283bd2a4439adf697961524f8356e7794b8"
+        },
+        "replay_wire": {
+          "line": 82,
+          "end_line": 101,
+          "ast_sha256": "9a0f4b6da1e7d12793c64a42c900244fe654c9cda3b96204b8a8469feb0d5c3d"
+        },
+        "replay_packet": {
+          "line": 104,
+          "end_line": 126,
+          "ast_sha256": "0620a3a1904ac6e4b2477a1fcf5dc429c45b8f50fd4b3069f2b7cd001022977b"
+        },
+        "TCXProducer": {
+          "line": 129,
+          "end_line": 636,
+          "ast_sha256": "44fc7b889c2c1070162bf0e23fc2baaade644c0005b686f380843cbfe4d47c61"
+        }
+      },
+      "src/soc_agent/continuous/service.py": {
+        "ContinuousRuntime": {
+          "line": 34,
+          "end_line": 1148,
+          "ast_sha256": "359640b9a730b9b78866437cd11c7478fbe413562b842913170b0a1b8b39d40d"
+        }
+      },
+      "src/soc_agent/continuous/dns_source.py": {
+        "DNSPolicy": {
+          "line": 46,
+          "end_line": 55,
+          "ast_sha256": "72cda4ec182e1f4b52bcb37972e18b1c809bda6b398cabb552de5505c30f62db"
+        },
+        "DNSSession": {
+          "line": 58,
+          "end_line": 61,
+          "ast_sha256": "414fe982e30e9d74be1580ddf8ef456f617b3447ebfcc3a58171f9d7cc4681a9"
+        },
+        "bundle": {
+          "line": 64,
+          "end_line": 85,
+          "ast_sha256": "af5cf6712307ac8e1dac8275fffe85c3a37d185ca5f291cc0e1767c6ff3838f0"
+        },
+        "expected_interface": {
+          "line": 88,
+          "end_line": 102,
+          "ast_sha256": "abbc617c537b7e646776c6b9297afdd22a76ab14dd96b66f6dcf4537ba1f8995"
+        },
+        "prepare": {
+          "line": 105,
+          "end_line": 123,
+          "ast_sha256": "b3fbd079b9fdbca62e180030dc254cbfd8fa4729844b71cfbb2d8c51c58ce9f2"
+        },
+        "inspect": {
+          "line": 126,
+          "end_line": 142,
+          "ast_sha256": "27fd796bc78bf1fe84498b34a7ad2dcb44ed42832167580cc99eefbd3bc6b1cc"
+        },
+        "load": {
+          "line": 145,
+          "end_line": 153,
+          "ast_sha256": "2d54187fe6d1de3039b7e81e514770403e4eb2e0bcf66d8e08972b405cb22aa8"
+        },
+        "DNSMessage": {
+          "line": 156,
+          "end_line": 157,
+          "ast_sha256": "43bad994ab501e54b9f45884057615f825eb8ee8fa17de5237457849f8c3b958"
+        },
+        "write_cleanup": {
+          "line": 160,
+          "end_line": 177,
+          "ast_sha256": "bc4b9070e6f678462c59bac124cb3e0b8dbeff24816257db886b6d2786864341"
+        },
+        "DNSCapture": {
+          "line": 180,
+          "end_line": 320,
+          "ast_sha256": "38169011e7b05842b3c96e87f21dfe6579f60db81b3cb31b5f00bfb888e0096f"
+        },
+        "DNSProducer": {
+          "line": 323,
+          "end_line": 567,
+          "ast_sha256": "7ccb2d84760318ea0c601c8e7e3fabe7410bf25e82365c162903daa27380ae86"
+        }
+      },
+      "src/soc_agent/continuous/cli.py": {
+        "code_identity": {
+          "line": 21,
+          "end_line": 28,
+          "ast_sha256": "9ab361ed6c5429d6aa0fae567f2d92528b03cb69d1e86c20b46c4cd0e6b7bedb"
+        },
+        "status": {
+          "line": 31,
+          "end_line": 35,
+          "ast_sha256": "d6c225e4c30c77deabc0889985573acf66d56ebcecb3f3d64c904681134bcd1f"
+        },
+        "observed_status": {
+          "line": 38,
+          "end_line": 61,
+          "ast_sha256": "661749b5a160ca9197717140e2373247ba4a738029a7cf4398fd7e96fd5add5e"
+        },
+        "_freshness": {
+          "line": 64,
+          "end_line": 87,
+          "ast_sha256": "bf30c294d4e847ab2a0ab535e83360adf81139dcc13faa30a9121cab71693969"
+        },
+        "start": {
+          "line": 90,
+          "end_line": 139,
+          "ast_sha256": "aebf70029841cee6231a4ae77253136cbb0e3a2f9c7170a865654afa9b28a546"
+        },
+        "run": {
+          "line": 142,
+          "end_line": 149,
+          "ast_sha256": "12c357a6582de2a328ef693b186bed8ed5899b9f5f532b8b434b906161fda23c"
+        },
+        "main": {
+          "line": 152,
+          "end_line": 235,
+          "ast_sha256": "50f950dc4479d0a0002811d8d68d3198e285362a019d28c50589526a58bea992"
+        }
+      },
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 76,
+          "end_line": 81,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 84,
+          "end_line": 113,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 116,
+          "end_line": 126,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 129,
+          "end_line": 681,
+          "ast_sha256": "a388214b221429b2725d2d032075c19bc36beb31326b5190333b455bc434e65b"
+        },
+        "verify_result": {
+          "line": 684,
+          "end_line": 820,
+          "ast_sha256": "0af57ef7b83c4b631d3aa595582a6b1f3a94911c3bb9c128ab2e32dc8e796edb"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 147,
+          "ast_sha256": "2526138bfa6d9237a9efda7088efe93f7fdd840ffff67b7af6e1ecbdddc4f61e"
+        },
+        "_read_result": {
+          "line": 150,
+          "end_line": 161,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 164,
+          "end_line": 321,
+          "ast_sha256": "6b14dcc0dae74eda1848fe9d45009ce289ca7131b4822bb99985bea4d79f0bc0"
+        },
+        "settings_from_env_file": {
+          "line": 324,
+          "end_line": 332,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 335,
+          "end_line": 388,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  },
+  "71377c7": {
+    "commit": "71377c782bc101733b1f28fa3520355ecbb89f3a",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": "afdf9c86e5098ead73bcd1e27311ee419b1eef5d393a449b1dd95c4abd315041",
+      "src/soc_agent/continuous/native/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "src/soc_agent/continuous/native/build.py": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "src/soc_agent/continuous/native/provider.c": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "src/soc_agent/continuous/native/continuous.bpf.c": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "src/soc_agent/continuous/tcx_producer.py": "7335993b937187b6280bf6fea9ea598dd8dbcb77215b003e4d248522c79e0d46",
+      "src/soc_agent/continuous/service.py": "31c8093881e30728f17a5f100baf7218e2a04ec7ae6bcfc541125f126ddcaf8b",
+      "src/soc_agent/continuous/dns_source.py": "8a51dcbb2fae656125171e327ad1b312660de801424da47d18af257709c269eb",
+      "src/soc_agent/continuous/cli.py": "9e59315b9f7e64da15a77409cf543d0dd631d71582a3173c52fc7a31ddca573a",
+      "src/soc_agent/security_ai/offline_workflow.py": "4fcdd09340fe4a074f4c6474cc6901e9365c588d9c5df10fa46e9881e29d385c",
+      "src/soc_agent/security_ai/api_investigation.py": "66604907f8f3e7d1be6f14956071c93cfaa849acbf43a7a213a793d36d5d099a"
+    },
+    "symbols": {
+      "src/soc_agent/continuous/native/service.py": {
+        "OrderedAudit": {
+          "line": 25,
+          "end_line": 109,
+          "ast_sha256": "50a58e04afa8f4ee30b9beab5177907a7dbbcf8225c5515621e807e855b12b4a"
+        },
+        "audit_tail": {
+          "line": 112,
+          "end_line": 123,
+          "ast_sha256": "b6d971410614e3d31d3bce85f75abec2cec51d501b02381baa03337d0a4638e3"
+        },
+        "resource_scope": {
+          "line": 126,
+          "end_line": 154,
+          "ast_sha256": "ad80e00af455f6ebd968dbcbf66726672fe57ba56fcf3436bab42b5ee3033b8f"
+        },
+        "cleanup_failed": {
+          "line": 157,
+          "end_line": 165,
+          "ast_sha256": "73e46ac599076f7ef614946a9853552842aafd08ea6298b9bade4f9755af55fe"
+        },
+        "clock_samples": {
+          "line": 168,
+          "end_line": 177,
+          "ast_sha256": "1cff7ec4ecf0244a41f4f5e8e7613e785106e8f6534f4f57404c2df1ae9e3a85"
+        },
+        "seal_record": {
+          "line": 180,
+          "end_line": 202,
+          "ast_sha256": "b007b16ee4771a691305bfa4c301e48c92f18e90e19023b5349195f0f6376471"
+        },
+        "Provider": {
+          "line": 205,
+          "end_line": 322,
+          "ast_sha256": "ea48ccf70c9489aeefe9797623506a6a08909fb4ab2ff036fc74deec3c5a4afa"
+        },
+        "run": {
+          "line": 325,
+          "end_line": 630,
+          "ast_sha256": "ea3dad740a65010bdf4b10dce6a135e2e23d1607bef6cc735c11547a05440417"
+        }
+      },
+      "src/soc_agent/continuous/native/policy.py": {
+        "root_file": {
+          "line": 25,
+          "end_line": 37,
+          "ast_sha256": "6d4725b60e503717612ffedea5d99dd48d76e4d4bec6ef276d17c761b8754d72"
+        },
+        "validate": {
+          "line": 40,
+          "end_line": 97,
+          "ast_sha256": "77107e32f1d6f8147f3cef799865977d68967e7969c9806874069b5e1b20ce55"
+        },
+        "installed": {
+          "line": 100,
+          "end_line": 108,
+          "ast_sha256": "9dbecce181e5748ddf3038dc6b8b53c3a85891b797d4db22987ac36dc5e14e5f"
+        }
+      },
+      "src/soc_agent/continuous/native/build.py": {
+        "verify_object": {
+          "line": 8,
+          "end_line": 25,
+          "ast_sha256": "5bdaff3683540b3f6213ac9e16f4a958f05c5e1f8e8478e1457e3873853527bd"
+        },
+        "build": {
+          "line": 28,
+          "end_line": 102,
+          "ast_sha256": "3daadb9930d47b3a0977991d034218c0a0d15893efd2bbca85d94ae634195e24"
+        }
+      },
+      "src/soc_agent/continuous/tcx_producer.py": {
+        "ContinuousEvent": {
+          "line": 22,
+          "end_line": 25,
+          "ast_sha256": "8a8d56ef911c85d4bb0d59d24812cb70b50c269b5692b7fa365c1af0db247f9f"
+        },
+        "decode": {
+          "line": 28,
+          "end_line": 79,
+          "ast_sha256": "5ef14c9a58b3914d37305b021a576283bd2a4439adf697961524f8356e7794b8"
+        },
+        "replay_wire": {
+          "line": 82,
+          "end_line": 101,
+          "ast_sha256": "9a0f4b6da1e7d12793c64a42c900244fe654c9cda3b96204b8a8469feb0d5c3d"
+        },
+        "replay_packet": {
+          "line": 104,
+          "end_line": 126,
+          "ast_sha256": "0620a3a1904ac6e4b2477a1fcf5dc429c45b8f50fd4b3069f2b7cd001022977b"
+        },
+        "TCXProducer": {
+          "line": 129,
+          "end_line": 636,
+          "ast_sha256": "44fc7b889c2c1070162bf0e23fc2baaade644c0005b686f380843cbfe4d47c61"
+        }
+      },
+      "src/soc_agent/continuous/service.py": {
+        "ContinuousRuntime": {
+          "line": 34,
+          "end_line": 1152,
+          "ast_sha256": "36c4f3d8a368a2b33b761a1ab86588f8ad5afd680669cf4de39dbe7b265764f4"
+        }
+      },
+      "src/soc_agent/continuous/dns_source.py": {
+        "DNSPolicy": {
+          "line": 46,
+          "end_line": 55,
+          "ast_sha256": "72cda4ec182e1f4b52bcb37972e18b1c809bda6b398cabb552de5505c30f62db"
+        },
+        "DNSSession": {
+          "line": 58,
+          "end_line": 61,
+          "ast_sha256": "414fe982e30e9d74be1580ddf8ef456f617b3447ebfcc3a58171f9d7cc4681a9"
+        },
+        "bundle": {
+          "line": 64,
+          "end_line": 85,
+          "ast_sha256": "af5cf6712307ac8e1dac8275fffe85c3a37d185ca5f291cc0e1767c6ff3838f0"
+        },
+        "expected_interface": {
+          "line": 88,
+          "end_line": 102,
+          "ast_sha256": "abbc617c537b7e646776c6b9297afdd22a76ab14dd96b66f6dcf4537ba1f8995"
+        },
+        "prepare": {
+          "line": 105,
+          "end_line": 123,
+          "ast_sha256": "b3fbd079b9fdbca62e180030dc254cbfd8fa4729844b71cfbb2d8c51c58ce9f2"
+        },
+        "inspect": {
+          "line": 126,
+          "end_line": 142,
+          "ast_sha256": "27fd796bc78bf1fe84498b34a7ad2dcb44ed42832167580cc99eefbd3bc6b1cc"
+        },
+        "load": {
+          "line": 145,
+          "end_line": 153,
+          "ast_sha256": "2d54187fe6d1de3039b7e81e514770403e4eb2e0bcf66d8e08972b405cb22aa8"
+        },
+        "DNSMessage": {
+          "line": 156,
+          "end_line": 157,
+          "ast_sha256": "43bad994ab501e54b9f45884057615f825eb8ee8fa17de5237457849f8c3b958"
+        },
+        "write_cleanup": {
+          "line": 160,
+          "end_line": 177,
+          "ast_sha256": "bc4b9070e6f678462c59bac124cb3e0b8dbeff24816257db886b6d2786864341"
+        },
+        "DNSCapture": {
+          "line": 180,
+          "end_line": 320,
+          "ast_sha256": "38169011e7b05842b3c96e87f21dfe6579f60db81b3cb31b5f00bfb888e0096f"
+        },
+        "DNSProducer": {
+          "line": 323,
+          "end_line": 567,
+          "ast_sha256": "7ccb2d84760318ea0c601c8e7e3fabe7410bf25e82365c162903daa27380ae86"
+        }
+      },
+      "src/soc_agent/continuous/cli.py": {
+        "code_identity": {
+          "line": 21,
+          "end_line": 28,
+          "ast_sha256": "9ab361ed6c5429d6aa0fae567f2d92528b03cb69d1e86c20b46c4cd0e6b7bedb"
+        },
+        "status": {
+          "line": 31,
+          "end_line": 35,
+          "ast_sha256": "d6c225e4c30c77deabc0889985573acf66d56ebcecb3f3d64c904681134bcd1f"
+        },
+        "observed_status": {
+          "line": 38,
+          "end_line": 61,
+          "ast_sha256": "661749b5a160ca9197717140e2373247ba4a738029a7cf4398fd7e96fd5add5e"
+        },
+        "_freshness": {
+          "line": 64,
+          "end_line": 87,
+          "ast_sha256": "bf30c294d4e847ab2a0ab535e83360adf81139dcc13faa30a9121cab71693969"
+        },
+        "start": {
+          "line": 90,
+          "end_line": 139,
+          "ast_sha256": "aebf70029841cee6231a4ae77253136cbb0e3a2f9c7170a865654afa9b28a546"
+        },
+        "run": {
+          "line": 142,
+          "end_line": 149,
+          "ast_sha256": "12c357a6582de2a328ef693b186bed8ed5899b9f5f532b8b434b906161fda23c"
+        },
+        "main": {
+          "line": 152,
+          "end_line": 235,
+          "ast_sha256": "50f950dc4479d0a0002811d8d68d3198e285362a019d28c50589526a58bea992"
+        }
+      },
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 76,
+          "end_line": 81,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 84,
+          "end_line": 113,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 116,
+          "end_line": 126,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 129,
+          "end_line": 681,
+          "ast_sha256": "a388214b221429b2725d2d032075c19bc36beb31326b5190333b455bc434e65b"
+        },
+        "verify_result": {
+          "line": 684,
+          "end_line": 820,
+          "ast_sha256": "0af57ef7b83c4b631d3aa595582a6b1f3a94911c3bb9c128ab2e32dc8e796edb"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 147,
+          "ast_sha256": "2526138bfa6d9237a9efda7088efe93f7fdd840ffff67b7af6e1ecbdddc4f61e"
+        },
+        "_read_result": {
+          "line": 150,
+          "end_line": 161,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 164,
+          "end_line": 321,
+          "ast_sha256": "6b14dcc0dae74eda1848fe9d45009ce289ca7131b4822bb99985bea4d79f0bc0"
+        },
+        "settings_from_env_file": {
+          "line": 324,
+          "end_line": 332,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 335,
+          "end_line": 388,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  },
+  "74cbcb2": {
+    "commit": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": "79da822cba9dabe80de8f6274fa2af5909baa67fcf599aae0c9095b2a0a8f554",
+      "src/soc_agent/continuous/native/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "src/soc_agent/continuous/native/build.py": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "src/soc_agent/continuous/native/provider.c": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "src/soc_agent/continuous/native/continuous.bpf.c": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "src/soc_agent/continuous/tcx_producer.py": "8ba63bbf5c2aac1f8cffaf6616e61b5df72cf7a4abe3e5ecdaa9907d8d93c61d",
+      "src/soc_agent/continuous/service.py": "0090c436429764a1cc91432738ee27e01d5e7d096d3a4ab9a36ff53ce1edd7c0",
+      "src/soc_agent/continuous/dns_source.py": "887039153ac55110681fb5f106382d70f1aac702bc9568bc675fe05e37694aba",
+      "src/soc_agent/continuous/cli.py": "1c748b910c050077e624332a7c7bb6c957a7f08fe3ac5f4ea4673c12ed5481b0",
+      "src/soc_agent/security_ai/offline_workflow.py": "3e3026b0d424e31759ac754ca0c2ed92dd25292ae7f88575cd252dfe8af3ddd8",
+      "src/soc_agent/security_ai/api_investigation.py": "5e4a376fbfa5e10042abb8de27a46908fa3b472a9c41e110a8b610f56b134394"
+    },
+    "symbols": {
+      "src/soc_agent/continuous/native/service.py": {
+        "socket_diagnostics": {
+          "line": 32,
+          "end_line": 54,
+          "ast_sha256": "b8affdd0e0789e8d1de151bf879c4c7f5af5faebd34e65994e2b48eb76bb4d38"
+        },
+        "ControlTransport": {
+          "line": 57,
+          "end_line": 324,
+          "ast_sha256": "44764d08696f2914d7803c2bbd19226b98a7b36494cd405c3d9abb431fb78d9b"
+        },
+        "OrderedAudit": {
+          "line": 327,
+          "end_line": 411,
+          "ast_sha256": "50a58e04afa8f4ee30b9beab5177907a7dbbcf8225c5515621e807e855b12b4a"
+        },
+        "audit_tail": {
+          "line": 414,
+          "end_line": 425,
+          "ast_sha256": "b6d971410614e3d31d3bce85f75abec2cec51d501b02381baa03337d0a4638e3"
+        },
+        "resource_scope": {
+          "line": 428,
+          "end_line": 457,
+          "ast_sha256": "457ba437cce87df44e7e233fe250368daff0c2b117661425714f7af5f8f1277e"
+        },
+        "cleanup_failed": {
+          "line": 460,
+          "end_line": 468,
+          "ast_sha256": "73e46ac599076f7ef614946a9853552842aafd08ea6298b9bade4f9755af55fe"
+        },
+        "clock_samples": {
+          "line": 471,
+          "end_line": 480,
+          "ast_sha256": "1cff7ec4ecf0244a41f4f5e8e7613e785106e8f6534f4f57404c2df1ae9e3a85"
+        },
+        "seal_record": {
+          "line": 483,
+          "end_line": 507,
+          "ast_sha256": "9cbf7dc5742c2e1a74da75d5c2a63e404af191a9d7bd8af1971a9d13c7a15cf5"
+        },
+        "Provider": {
+          "line": 510,
+          "end_line": 646,
+          "ast_sha256": "8b1d07dde7627274e84248d540b021adb3cd9a5011132117500bc179a34a1add"
+        },
+        "run": {
+          "line": 649,
+          "end_line": 969,
+          "ast_sha256": "fbf654e00f7eac8ca3668ac0a5e9c398ba27088ce654e344acc31b31c173f13f"
+        }
+      },
+      "src/soc_agent/continuous/native/policy.py": {
+        "root_file": {
+          "line": 25,
+          "end_line": 37,
+          "ast_sha256": "6d4725b60e503717612ffedea5d99dd48d76e4d4bec6ef276d17c761b8754d72"
+        },
+        "validate": {
+          "line": 40,
+          "end_line": 97,
+          "ast_sha256": "77107e32f1d6f8147f3cef799865977d68967e7969c9806874069b5e1b20ce55"
+        },
+        "installed": {
+          "line": 100,
+          "end_line": 108,
+          "ast_sha256": "9dbecce181e5748ddf3038dc6b8b53c3a85891b797d4db22987ac36dc5e14e5f"
+        }
+      },
+      "src/soc_agent/continuous/native/build.py": {
+        "verify_object": {
+          "line": 8,
+          "end_line": 25,
+          "ast_sha256": "5bdaff3683540b3f6213ac9e16f4a958f05c5e1f8e8478e1457e3873853527bd"
+        },
+        "build": {
+          "line": 28,
+          "end_line": 102,
+          "ast_sha256": "3daadb9930d47b3a0977991d034218c0a0d15893efd2bbca85d94ae634195e24"
+        }
+      },
+      "src/soc_agent/continuous/tcx_producer.py": {
+        "ContinuousEvent": {
+          "line": 26,
+          "end_line": 29,
+          "ast_sha256": "8a8d56ef911c85d4bb0d59d24812cb70b50c269b5692b7fa365c1af0db247f9f"
+        },
+        "decode": {
+          "line": 32,
+          "end_line": 83,
+          "ast_sha256": "5ef14c9a58b3914d37305b021a576283bd2a4439adf697961524f8356e7794b8"
+        },
+        "replay_wire": {
+          "line": 86,
+          "end_line": 105,
+          "ast_sha256": "9a0f4b6da1e7d12793c64a42c900244fe654c9cda3b96204b8a8469feb0d5c3d"
+        },
+        "replay_packet": {
+          "line": 108,
+          "end_line": 130,
+          "ast_sha256": "0620a3a1904ac6e4b2477a1fcf5dc429c45b8f50fd4b3069f2b7cd001022977b"
+        },
+        "TCXProducer": {
+          "line": 133,
+          "end_line": 797,
+          "ast_sha256": "25593f7f3a8505e8a4b0463f13685ecef3ca0e0acffe554731e8604da51d5eeb"
+        }
+      },
+      "src/soc_agent/continuous/service.py": {
+        "ContinuousRuntime": {
+          "line": 36,
+          "end_line": 1506,
+          "ast_sha256": "aacf7100ab809edbe0d8d6a139fdad2b011df6c9dadc71dcf301aec15dbead66"
+        }
+      },
+      "src/soc_agent/continuous/dns_source.py": {
+        "DNSPolicy": {
+          "line": 46,
+          "end_line": 55,
+          "ast_sha256": "72cda4ec182e1f4b52bcb37972e18b1c809bda6b398cabb552de5505c30f62db"
+        },
+        "DNSSession": {
+          "line": 58,
+          "end_line": 61,
+          "ast_sha256": "414fe982e30e9d74be1580ddf8ef456f617b3447ebfcc3a58171f9d7cc4681a9"
+        },
+        "bundle": {
+          "line": 64,
+          "end_line": 85,
+          "ast_sha256": "af5cf6712307ac8e1dac8275fffe85c3a37d185ca5f291cc0e1767c6ff3838f0"
+        },
+        "expected_interface": {
+          "line": 88,
+          "end_line": 102,
+          "ast_sha256": "abbc617c537b7e646776c6b9297afdd22a76ab14dd96b66f6dcf4537ba1f8995"
+        },
+        "prepare": {
+          "line": 105,
+          "end_line": 123,
+          "ast_sha256": "b3fbd079b9fdbca62e180030dc254cbfd8fa4729844b71cfbb2d8c51c58ce9f2"
+        },
+        "inspect": {
+          "line": 126,
+          "end_line": 142,
+          "ast_sha256": "27fd796bc78bf1fe84498b34a7ad2dcb44ed42832167580cc99eefbd3bc6b1cc"
+        },
+        "load": {
+          "line": 145,
+          "end_line": 153,
+          "ast_sha256": "2d54187fe6d1de3039b7e81e514770403e4eb2e0bcf66d8e08972b405cb22aa8"
+        },
+        "DNSMessage": {
+          "line": 156,
+          "end_line": 157,
+          "ast_sha256": "43bad994ab501e54b9f45884057615f825eb8ee8fa17de5237457849f8c3b958"
+        },
+        "write_cleanup": {
+          "line": 160,
+          "end_line": 177,
+          "ast_sha256": "bc4b9070e6f678462c59bac124cb3e0b8dbeff24816257db886b6d2786864341"
+        },
+        "DNSCapture": {
+          "line": 180,
+          "end_line": 335,
+          "ast_sha256": "28295775114445663093c6918893155204514f0fef5727a3eb08d612ec5913d8"
+        },
+        "DNSProducer": {
+          "line": 338,
+          "end_line": 624,
+          "ast_sha256": "bb54b3fb14c2f32ac1594a651b8993b432bbccb24ab608151861148d4063afe4"
+        }
+      },
+      "src/soc_agent/continuous/cli.py": {
+        "code_identity": {
+          "line": 21,
+          "end_line": 28,
+          "ast_sha256": "9ab361ed6c5429d6aa0fae567f2d92528b03cb69d1e86c20b46c4cd0e6b7bedb"
+        },
+        "status": {
+          "line": 31,
+          "end_line": 35,
+          "ast_sha256": "87f08ba0bec4926ad187f43d983f61beab3cfa7588cca5210dedc699974d45bf"
+        },
+        "stored_status": {
+          "line": 38,
+          "end_line": 42,
+          "ast_sha256": "4f85e4c388c1cb2e3d73fc99d24ab7a207b00e54ea971ad2680877afa0d810f7"
+        },
+        "observed_status": {
+          "line": 45,
+          "end_line": 51,
+          "ast_sha256": "4f0954381355c599a0834d660a6d6464efc40490cdc09b9baa43f56dad2c5b48"
+        },
+        "observation": {
+          "line": 54,
+          "end_line": 77,
+          "ast_sha256": "252b2d0195bf2b60a6809b8b50c23c0ca02c63d0c34bd0aaaddf169e3fe8d7e5"
+        },
+        "_freshness": {
+          "line": 80,
+          "end_line": 121,
+          "ast_sha256": "28d2fe488547e3aaea1aa626d69fb2e28110edc1edbc1df7eb337683598955d0"
+        },
+        "request_stop": {
+          "line": 124,
+          "end_line": 158,
+          "ast_sha256": "9e79e06f45daf2127df413c73b3318e97acbcdb9d8c7fd866074920350892212"
+        },
+        "start": {
+          "line": 161,
+          "end_line": 210,
+          "ast_sha256": "77e2dde2682824469e1a37a88b542d8c616ebe03db8dba851e1a57e69e69db16"
+        },
+        "run": {
+          "line": 213,
+          "end_line": 233,
+          "ast_sha256": "216b650a0405e087b903def468e5fca0b66d88e613ccc119e2a39871933428a6"
+        },
+        "main": {
+          "line": 236,
+          "end_line": 327,
+          "ast_sha256": "6e0c87825ca912f746ab120967ada378e37f9cf5e1fd057ee40c189fcc1f329a"
+        }
+      },
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 76,
+          "end_line": 81,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 84,
+          "end_line": 113,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 116,
+          "end_line": 126,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 129,
+          "end_line": 691,
+          "ast_sha256": "0ad926852df34e428ea85e06c9762fdad6e97c0cf5c9d42c4d1033545ca27908"
+        },
+        "verify_result": {
+          "line": 694,
+          "end_line": 830,
+          "ast_sha256": "0af57ef7b83c4b631d3aa595582a6b1f3a94911c3bb9c128ab2e32dc8e796edb"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 199,
+          "ast_sha256": "efc4f50e9187496bb70dc370e4abcfdd09f5a971d0e7c25697ad6a80c3843160"
+        },
+        "_read_result": {
+          "line": 202,
+          "end_line": 213,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 216,
+          "end_line": 420,
+          "ast_sha256": "f68f3168c3c81b26f727408a5e3b919d07ebae9565afdfe2e66340c6e6a76aa6"
+        },
+        "settings_from_env_file": {
+          "line": 423,
+          "end_line": 431,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 434,
+          "end_line": 487,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  },
+  "30df74e": {
+    "commit": "30df74e68955022924df94f8e644ae2ffdf596ce",
+    "files": {
+      "src/soc_agent/continuous/native/service.py": "79da822cba9dabe80de8f6274fa2af5909baa67fcf599aae0c9095b2a0a8f554",
+      "src/soc_agent/continuous/native/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "src/soc_agent/continuous/native/build.py": "7df79d203cf5798563afe7b0ee7d908a6cfd5b558add7571f0276206e1d7bfe8",
+      "src/soc_agent/continuous/native/provider.c": "0456456cfacb77c21fe84f27e30875618f950069a2355f7917d78d0a52d63925",
+      "src/soc_agent/continuous/native/continuous.bpf.c": "2498db3350c98f7f3bb08a4c8aa7f069bb2a495fb9fb1a67514e43b09a2745dc",
+      "src/soc_agent/continuous/tcx_producer.py": "8ba63bbf5c2aac1f8cffaf6616e61b5df72cf7a4abe3e5ecdaa9907d8d93c61d",
+      "src/soc_agent/continuous/service.py": "6712bae641b441b37e9524e62c879d392d7c8a820c025f800c090d95b4ffdbb7",
+      "src/soc_agent/continuous/dns_source.py": "887039153ac55110681fb5f106382d70f1aac702bc9568bc675fe05e37694aba",
+      "src/soc_agent/continuous/cli.py": "1c748b910c050077e624332a7c7bb6c957a7f08fe3ac5f4ea4673c12ed5481b0",
+      "src/soc_agent/security_ai/offline_workflow.py": "3e3026b0d424e31759ac754ca0c2ed92dd25292ae7f88575cd252dfe8af3ddd8",
+      "src/soc_agent/security_ai/api_investigation.py": "5e4a376fbfa5e10042abb8de27a46908fa3b472a9c41e110a8b610f56b134394"
+    },
+    "symbols": {
+      "src/soc_agent/continuous/native/service.py": {
+        "socket_diagnostics": {
+          "line": 32,
+          "end_line": 54,
+          "ast_sha256": "b8affdd0e0789e8d1de151bf879c4c7f5af5faebd34e65994e2b48eb76bb4d38"
+        },
+        "ControlTransport": {
+          "line": 57,
+          "end_line": 324,
+          "ast_sha256": "44764d08696f2914d7803c2bbd19226b98a7b36494cd405c3d9abb431fb78d9b"
+        },
+        "OrderedAudit": {
+          "line": 327,
+          "end_line": 411,
+          "ast_sha256": "50a58e04afa8f4ee30b9beab5177907a7dbbcf8225c5515621e807e855b12b4a"
+        },
+        "audit_tail": {
+          "line": 414,
+          "end_line": 425,
+          "ast_sha256": "b6d971410614e3d31d3bce85f75abec2cec51d501b02381baa03337d0a4638e3"
+        },
+        "resource_scope": {
+          "line": 428,
+          "end_line": 457,
+          "ast_sha256": "457ba437cce87df44e7e233fe250368daff0c2b117661425714f7af5f8f1277e"
+        },
+        "cleanup_failed": {
+          "line": 460,
+          "end_line": 468,
+          "ast_sha256": "73e46ac599076f7ef614946a9853552842aafd08ea6298b9bade4f9755af55fe"
+        },
+        "clock_samples": {
+          "line": 471,
+          "end_line": 480,
+          "ast_sha256": "1cff7ec4ecf0244a41f4f5e8e7613e785106e8f6534f4f57404c2df1ae9e3a85"
+        },
+        "seal_record": {
+          "line": 483,
+          "end_line": 507,
+          "ast_sha256": "9cbf7dc5742c2e1a74da75d5c2a63e404af191a9d7bd8af1971a9d13c7a15cf5"
+        },
+        "Provider": {
+          "line": 510,
+          "end_line": 646,
+          "ast_sha256": "8b1d07dde7627274e84248d540b021adb3cd9a5011132117500bc179a34a1add"
+        },
+        "run": {
+          "line": 649,
+          "end_line": 969,
+          "ast_sha256": "fbf654e00f7eac8ca3668ac0a5e9c398ba27088ce654e344acc31b31c173f13f"
+        }
+      },
+      "src/soc_agent/continuous/native/policy.py": {
+        "root_file": {
+          "line": 25,
+          "end_line": 37,
+          "ast_sha256": "6d4725b60e503717612ffedea5d99dd48d76e4d4bec6ef276d17c761b8754d72"
+        },
+        "validate": {
+          "line": 40,
+          "end_line": 97,
+          "ast_sha256": "77107e32f1d6f8147f3cef799865977d68967e7969c9806874069b5e1b20ce55"
+        },
+        "installed": {
+          "line": 100,
+          "end_line": 108,
+          "ast_sha256": "9dbecce181e5748ddf3038dc6b8b53c3a85891b797d4db22987ac36dc5e14e5f"
+        }
+      },
+      "src/soc_agent/continuous/native/build.py": {
+        "verify_object": {
+          "line": 8,
+          "end_line": 25,
+          "ast_sha256": "5bdaff3683540b3f6213ac9e16f4a958f05c5e1f8e8478e1457e3873853527bd"
+        },
+        "build": {
+          "line": 28,
+          "end_line": 102,
+          "ast_sha256": "3daadb9930d47b3a0977991d034218c0a0d15893efd2bbca85d94ae634195e24"
+        }
+      },
+      "src/soc_agent/continuous/tcx_producer.py": {
+        "ContinuousEvent": {
+          "line": 26,
+          "end_line": 29,
+          "ast_sha256": "8a8d56ef911c85d4bb0d59d24812cb70b50c269b5692b7fa365c1af0db247f9f"
+        },
+        "decode": {
+          "line": 32,
+          "end_line": 83,
+          "ast_sha256": "5ef14c9a58b3914d37305b021a576283bd2a4439adf697961524f8356e7794b8"
+        },
+        "replay_wire": {
+          "line": 86,
+          "end_line": 105,
+          "ast_sha256": "9a0f4b6da1e7d12793c64a42c900244fe654c9cda3b96204b8a8469feb0d5c3d"
+        },
+        "replay_packet": {
+          "line": 108,
+          "end_line": 130,
+          "ast_sha256": "0620a3a1904ac6e4b2477a1fcf5dc429c45b8f50fd4b3069f2b7cd001022977b"
+        },
+        "TCXProducer": {
+          "line": 133,
+          "end_line": 797,
+          "ast_sha256": "25593f7f3a8505e8a4b0463f13685ecef3ca0e0acffe554731e8604da51d5eeb"
+        }
+      },
+      "src/soc_agent/continuous/service.py": {
+        "ContinuousRuntime": {
+          "line": 36,
+          "end_line": 1514,
+          "ast_sha256": "897e0d53c3a857a683ab8dd7d45af828341a4f42fe5f7691485bb2219c941d2a"
+        }
+      },
+      "src/soc_agent/continuous/dns_source.py": {
+        "DNSPolicy": {
+          "line": 46,
+          "end_line": 55,
+          "ast_sha256": "72cda4ec182e1f4b52bcb37972e18b1c809bda6b398cabb552de5505c30f62db"
+        },
+        "DNSSession": {
+          "line": 58,
+          "end_line": 61,
+          "ast_sha256": "414fe982e30e9d74be1580ddf8ef456f617b3447ebfcc3a58171f9d7cc4681a9"
+        },
+        "bundle": {
+          "line": 64,
+          "end_line": 85,
+          "ast_sha256": "af5cf6712307ac8e1dac8275fffe85c3a37d185ca5f291cc0e1767c6ff3838f0"
+        },
+        "expected_interface": {
+          "line": 88,
+          "end_line": 102,
+          "ast_sha256": "abbc617c537b7e646776c6b9297afdd22a76ab14dd96b66f6dcf4537ba1f8995"
+        },
+        "prepare": {
+          "line": 105,
+          "end_line": 123,
+          "ast_sha256": "b3fbd079b9fdbca62e180030dc254cbfd8fa4729844b71cfbb2d8c51c58ce9f2"
+        },
+        "inspect": {
+          "line": 126,
+          "end_line": 142,
+          "ast_sha256": "27fd796bc78bf1fe84498b34a7ad2dcb44ed42832167580cc99eefbd3bc6b1cc"
+        },
+        "load": {
+          "line": 145,
+          "end_line": 153,
+          "ast_sha256": "2d54187fe6d1de3039b7e81e514770403e4eb2e0bcf66d8e08972b405cb22aa8"
+        },
+        "DNSMessage": {
+          "line": 156,
+          "end_line": 157,
+          "ast_sha256": "43bad994ab501e54b9f45884057615f825eb8ee8fa17de5237457849f8c3b958"
+        },
+        "write_cleanup": {
+          "line": 160,
+          "end_line": 177,
+          "ast_sha256": "bc4b9070e6f678462c59bac124cb3e0b8dbeff24816257db886b6d2786864341"
+        },
+        "DNSCapture": {
+          "line": 180,
+          "end_line": 335,
+          "ast_sha256": "28295775114445663093c6918893155204514f0fef5727a3eb08d612ec5913d8"
+        },
+        "DNSProducer": {
+          "line": 338,
+          "end_line": 624,
+          "ast_sha256": "bb54b3fb14c2f32ac1594a651b8993b432bbccb24ab608151861148d4063afe4"
+        }
+      },
+      "src/soc_agent/continuous/cli.py": {
+        "code_identity": {
+          "line": 21,
+          "end_line": 28,
+          "ast_sha256": "9ab361ed6c5429d6aa0fae567f2d92528b03cb69d1e86c20b46c4cd0e6b7bedb"
+        },
+        "status": {
+          "line": 31,
+          "end_line": 35,
+          "ast_sha256": "87f08ba0bec4926ad187f43d983f61beab3cfa7588cca5210dedc699974d45bf"
+        },
+        "stored_status": {
+          "line": 38,
+          "end_line": 42,
+          "ast_sha256": "4f85e4c388c1cb2e3d73fc99d24ab7a207b00e54ea971ad2680877afa0d810f7"
+        },
+        "observed_status": {
+          "line": 45,
+          "end_line": 51,
+          "ast_sha256": "4f0954381355c599a0834d660a6d6464efc40490cdc09b9baa43f56dad2c5b48"
+        },
+        "observation": {
+          "line": 54,
+          "end_line": 77,
+          "ast_sha256": "252b2d0195bf2b60a6809b8b50c23c0ca02c63d0c34bd0aaaddf169e3fe8d7e5"
+        },
+        "_freshness": {
+          "line": 80,
+          "end_line": 121,
+          "ast_sha256": "28d2fe488547e3aaea1aa626d69fb2e28110edc1edbc1df7eb337683598955d0"
+        },
+        "request_stop": {
+          "line": 124,
+          "end_line": 158,
+          "ast_sha256": "9e79e06f45daf2127df413c73b3318e97acbcdb9d8c7fd866074920350892212"
+        },
+        "start": {
+          "line": 161,
+          "end_line": 210,
+          "ast_sha256": "77e2dde2682824469e1a37a88b542d8c616ebe03db8dba851e1a57e69e69db16"
+        },
+        "run": {
+          "line": 213,
+          "end_line": 233,
+          "ast_sha256": "216b650a0405e087b903def468e5fca0b66d88e613ccc119e2a39871933428a6"
+        },
+        "main": {
+          "line": 236,
+          "end_line": 327,
+          "ast_sha256": "6e0c87825ca912f746ab120967ada378e37f9cf5e1fd057ee40c189fcc1f329a"
+        }
+      },
+      "src/soc_agent/security_ai/offline_workflow.py": {
+        "SourceView": {
+          "line": 76,
+          "end_line": 81,
+          "ast_sha256": "d107c8fbb77123d1858d5f2959a44dd9237ac7cd4cd103f5769f4191b59c6bd6"
+        },
+        "AdvisoryClient": {
+          "line": 84,
+          "end_line": 113,
+          "ast_sha256": "77815ed1de4606539d11e63738ba739cd9e30eae3de5f91f4c618b503944bcd1"
+        },
+        "classification": {
+          "line": 116,
+          "end_line": 126,
+          "ast_sha256": "331ca717e5488aae79bbd7735d3524b9d98fb054010dd393e58dfebc6a79f36a"
+        },
+        "OfflineWorkflow": {
+          "line": 129,
+          "end_line": 691,
+          "ast_sha256": "0ad926852df34e428ea85e06c9762fdad6e97c0cf5c9d42c4d1033545ca27908"
+        },
+        "verify_result": {
+          "line": 694,
+          "end_line": 830,
+          "ast_sha256": "0af57ef7b83c4b631d3aa595582a6b1f3a94911c3bb9c128ab2e32dc8e796edb"
+        }
+      },
+      "src/soc_agent/security_ai/api_investigation.py": {
+        "InvestigationHypothesis": {
+          "line": 28,
+          "end_line": 34,
+          "ast_sha256": "d5d8e357c09aa7e438b35c76b01f7c5df2bcd77f044f61ac50a23a3285d432d8"
+        },
+        "APIInvestigationDraft": {
+          "line": 37,
+          "end_line": 46,
+          "ast_sha256": "ec1bae6838eab09a24d96ea34b68c4708ae31f232b95330aef32df772c1fed82"
+        },
+        "APIRunAuthorization": {
+          "line": 49,
+          "end_line": 82,
+          "ast_sha256": "c180e0345f7c88a35180a8d4a56b809df94ee6317ae7460bc56dfb08ee5a604f"
+        },
+        "minimized": {
+          "line": 85,
+          "end_line": 199,
+          "ast_sha256": "efc4f50e9187496bb70dc370e4abcfdd09f5a971d0e7c25697ad6a80c3843160"
+        },
+        "_read_result": {
+          "line": 202,
+          "end_line": 213,
+          "ast_sha256": "2181b1ddb9a1b02c6a222b32e802256e30b6aea12ed681300010284bd23c1474"
+        },
+        "APIInvestigationClient": {
+          "line": 216,
+          "end_line": 420,
+          "ast_sha256": "f68f3168c3c81b26f727408a5e3b919d07ebae9565afdfe2e66340c6e6a76aa6"
+        },
+        "settings_from_env_file": {
+          "line": 423,
+          "end_line": 431,
+          "ast_sha256": "d18696b3aadc28ed1f2183dc611c684fc7b83b790999655669d51ff81ad0e5a4"
+        },
+        "verify_api_receipts": {
+          "line": 434,
+          "end_line": 487,
+          "ast_sha256": "6351a22e545e59e122cbeb60444088aaa8ba492de2975401fdf4723d90addc36"
+        }
+      }
+    }
+  }
+}
