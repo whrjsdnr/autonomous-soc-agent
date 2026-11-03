@@ -1,34 +1,39 @@
-# Research MVP Release 무결성
+# 설치 Release·Session 무결성 설계
 
-## 현재 배치
+## 개발과 설치 실행의 분리
 
-주 저장소와 `releases/research-mvp`는 동일 Git의 다른 Worktree다. 주 저장소의 기존 사용자 변경 164개는 보존하며, 운영 코드 수정은 `release/research-demo-mvp`에서 수행한다. 주 저장소의 옛 `.venv/bin/soc-agent`와 운영 Worktree의 CLI는 버전이 다르다.
+Development/Diagnostic 모드는 기존 editable Worktree와 일회성 `--native-review`를 사용한다. Source 변경, 임시 Session, Root 후보 변경은 기존 exact Binding을 다시 검토한다.
 
-주 저장소 `bin/soc-agent`는 고정된 `releases/research-mvp/.venv/bin/soc-agent`로만 전달한다. 다른 설치로 fallback하지 않으며 sudo를 호출하지 않는다. 이것은 편의 진입점이지 승인 또는 무결성 검증의 대체물이 아니다.
+Installed Research MVP는 `installed-release.json`에 **이미 동결한 기존 review**의 Code/Git·Artifact·Launcher 참조를 등록한다. 실제 Native 실행 Source는 해당 Release의 frozen Git와 검증한 export이며 개발 HEAD를 새 실행에 자동 사용하지 않는다. 현재 등록된 Native backend는 검증된 코드2064af1이다. 새로운 관리 CLI 기능과 이 Native backend의 코드 identity는 별도로 기록한다.
 
-## 기존 검증 재사용
+관리 CLI도 검증된 Wheel을 사용자 전용 `~/.local/share/soc-agent/management/<wheel-prefix>-<installer-prefix>/`에 설치한다. 기존 Controller Python 준비기로 기본 Python을 구성한 뒤 실제 CLI·GUI·API 검토 import closure와 Tcl/Tk·과학 라이브러리 DSO·패키지 리소스를 격리한다. 전체 애플리케이션은 기존 Source-style 파일 SHA map으로 고정한다. 최소 Controller의 2048파일/64MiB 검증 한도는 변경하지 않으며 관리 애플리케이션 환경을 Native Controller qualification으로 취급하지 않는다. 표준 라이브러리 entry는 파일 SHA·소유자·권한을 확인한 뒤 고정 Python의 설치 패키지를 실행한다. 개발 Source import와 옛 venv fallback은 설치된 관리 Release가 존재하면 사용하지 않는다. 이 사용자 소유 설치는 Root 신뢰 승인이나 관리자로부터의 변조 방지 서명을 의미하지 않는다.
 
-- `AgentProfile`: Runtime configuration, backend code identity, Native review 및 entry SHA.
-- `verify_review`: 요청·Source 파일 목록·실행 pins 자동 비교, 만료 검사.
-- `validate_plan`: Git/Source/Namespace/Lease/Ledger/실행 흔적/정확한 Scope 검사.
-- `installation_plan`: 고정 Root 8경로·후보 SHA·현재 설치 SHA·Launcher의 정확한 변경 집합 검사.
-- 모델 Worker: Feature Schema, Fingerprint, Attestation, Action 승인 검증.
-- API: 정확한 retained input과 Revision, Provider/모델, 호출/비용/Timeout 상한.
+## 기존 검증 경로
 
-문서 Commit이 새 코드의 성공을 증명하지 않는다. 코드 Commit, Source identity, 재현 Wheel 및 Native Artifact의 실제 SHA를 별도로 기록한다.
+| 대상 | 기존 검사 |
+|---|---|
+| 등록된 review/실행 pins | verify_review, installed reference 파일 비교 |
+| Source/Controller identity | source-files + frozen execution Git + validate_plan |
+| Root 고정8경로·실제 변경 집합 | installation_plan / bind_installation_scope / Root verify_contract |
+| Namespace/Lease/Boot/Host 분리 | namespace_binding 및 승인 후 내부 검사 |
+| Ledger chain·현재 head | ledger_snapshot; 변경 시 별도 검토 필요 |
+| Model/Feature/입력 | 기존 Registry·Fingerprint·Attestation·ELIGIBLE·Action 승인 |
+| API | 정확한 Incident/Revision·입력 SHA·Provider·횟수·비용·Timeout |
 
-## 고정 Release와 실행별 설정의 구분
+Release 등록에는 실행 유효기간을 활성화하지 않는다. 만료된 review를 설치 참조로 읽을 수 있지만 `verify_review`의 실행 기본 경로는 여전히 만료를 차단한다. 새 Session은 새 만료 제안을 만들고 새 직접 인간 결정을 요구한다. 소비된 영수증은 복사하지 않는다.
 
-운영 Worktree는 주 저장소의 개발 Source로 자동 대체되지 않는다. 그러나 현재 venv는 editable 설치이므로 **완성된 불변 설치 Release 제품으로 판정하지 않는다**. 운영 Worktree를 바꾸면 다음 실행의 기존 Manifest 검증이 실패해야 한다.
+## Session 자동 준비
 
-Root 설정에는 Session 경로가 포함되므로 매 실행 Root Manifest가 달라질 수 있다. 이 사실을 숨기거나 과거 Root 승인을 재사용할 수 없다. 고정된 코드 Artifact와 실행별 설정은 서로 다른 무결성 대상이다.
+새 UUID와 DNS Session은 기존 `Store.create`, `dns_source.prepare`를 사용한다. Queue/Incident/Audit은 새 디렉터리로 분리한다. DNS Python과 Native Source는 검증된 Release를 재사용한다. 고정 TCP/DNS 포트·페이로드·횟수·Deadline·자원은 확대하지 않는다.
 
-## Update / Rollback
+Root 후보에 Session 경로가 들어가므로 실행별 Root Manifest SHA는 달라진다. 이 변경을 숨기지 않으며 기존 Root 승인을 재사용하지 않는다. Source/Wheel 안정성과 실행별 설정의 정확성은 별도 대상이다. 초안 생성은 프로세스/Socket/Capture/API를 시작하지 않는다.
 
-명시적 Update에서만 검증된 코드·의존성·모델을 교체한다. 새 Source/Wheel/Root 후보의 pins와 새 승인 패키지를 준비하고, 변경 경로를 대조한다. 변경 없는 파일은 inode/mtime/SHA를 유지한다. 기존 백업과 Rollback은 삭제하지 않는다.
+## 갱신·복구
 
-고정 Release에서 새 Native Session을 안전하게 생성하고 새 독립 승인 조건에 결합하는 등록된 factory는 아직 미완료다. 따라서 새 Session UUID를 CLI 사용자가 직접 입력할 필요는 없지만, 현재는 검토 패키지 준비 단계가 필요하다. 소비된 Session을 새 것으로 가장하지 않는다.
+`setup --installed-release NEW_REVIEW --update`만 참조를 교체한다. 새 후보 검증·새 Session 준비 이전에는 현재 참조를 바꾸지 않는다. 이전 참조와 profile을 보관한다. 게시 도중 중단해 profile/Release가 다르면 identity 검사로 실행을 차단한다. Root 설치/백업/rollback은 기존 직접 인증 Launcher가 담당한다.
 
-운영 코드 Commit: `ed24479`(설치/GUI/진단), `9cd24ee`(Replay 복구 부모 권한). ed24479에서 준비만 한 미승인 draft는 Source 변경으로 폐기 대상으로 표시하고 보존했다. 새 실행 Session을 별도로 준비하며 이전 draft의 승인·Artifact를 승계하지 않는다.
+자동 재시도는 없다. 이전 실행의 최초 오류·Cleanup 누락 시 새 Session 생성을 차단한다. 현재 Session을 GUI에서 닫거나 조회하는 행위는 Collector 생명주기를 변경하지 않는다. historical Session은 기존 GUI에 별도 attach하며 Source와 Session 표시는 유지한다.
 
-최종 코드2064af1은 제한된 초기 Planner Schema를 보존해 API에 전달하는 수정을 포함한다. 최종 Wheel SHA는 `61393470e58e3298a510540f7141243b8733bf02ee391a1b9507f321d3e93461`이다. Source675개, 새v3 Session/Root Manifest를 자동 대조했고 초기/변경 이전 profile은 미실행 상태로 보존 후 재결합했다. 이는 실행 승인 발급이나 Root 설치가 아니다.
+## 증거
+
+이번 비권한 실행 자료: `.git/operator-ux-validation-20261103/`. 기존 Root verify_contract를 실제 새 draft 파일에 적용하되 인간 결정/Root 서비스 조회만 메모리 fixture로 사용했다. 실제 Root 설치·서비스·Namespace 진입·Native·DNS·모델 Action·API·영수증 소비는 수행하지 않았다.

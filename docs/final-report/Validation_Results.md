@@ -94,3 +94,16 @@ RF/LR은실제봉인ELIGIBLE작업별Action승인후에만수행한다. APIAsses
 운영 코드9cd24ee에서 Workspace/Export 각각1507 PASS·1 SKIP, Native/legacy/Supervisor/Wheel 3회 SHA 일치를 확인했다. 실제 CLI 저장 PCAP,13개 미처리 작업 격리 복구, 실제 GUI 진입/재연결도 수행했다. 세부 수치·원인·실패·새Binding·미완료 UX는 [Readiness](Full_E2E_Integration_Readiness.md)와 [RCA](Full_E2E_Blocker_RCA.md)에 기록한다. 실제 Root/Native/DNS/API 호출은 야간 작업에서0회다.
 
 최종2064af1: Workspace/Export 각각1509 PASS·1 SKIP, 제한 Schema 정상/거부를 포함한 집중201 PASS, 3회 재현 빌드 일치. 현재 최종 패키지는v3이며 9cd24ee 수치는 이전 단계 기록이다. 실제 보존 PCAP/DNS 메타데이터의 FAKE_HTTP 조사와 GUI도 검증했다.
+
+
+## 2026-11-03 operator UX 준비
+
+- Workspace:1545 PASS,1 SKIP,655.63초. Skip은 기존 보존 Live-session opt-in 검사.
+- 독립 Export:296 PASS,78.50초. 변경 CLI/Release/Session/Approval/GUI와 retained E2E 관련 범위이며 전체 Workspace와 테스트 수가 같다고 주장하지 않는다.
+- 집중 회귀:71 PASS.
+- Native6개·legacy·Supervisor·Wheel: Workspace2회+Export1회 모두 일치. Wheel2d3b2d6076b423af01048e857ab009797ba67b7609ca57de9b742724ea2f0b97.
+- 설치된 고정 CLI: setup/doctor/status/session-list/preview PASS. 격리 JSONL Replay 실제 Start→Status→Stop/Cleanup PASS.
+- 설치된 CLI GUI Entry Point 2회 실제 Tk 재연결, Backend state 불변.
+- 새 Native draft: 실제 파일·frozen Git·Root verify_contract PASS, 문서SHA/만료/Session/Git mismatch 4개 거절. 인간 결정과 Root 서비스 경계만 메모리 fixture.
+- 증거: `.git/operator-ux-validation-20261103/`, 최종 결과 하위 `final/`.
+- 신규 Root/Native/DNS/API 실행과 실제 승인 영수증 발급·소비는 이 비권한 준비 범위에서0회. 실환경 사용자 승인은 별도다.
