@@ -1,0 +1,32 @@
+{
+  "authority": "PENDING_NOT_ISSUED",
+  "dns_session": "3743fc22-a959-4006-9907-4f22ffd55353",
+  "execution_scheduled": false,
+  "git": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+  "ledger": {
+    "batch3_native": 1,
+    "batch3_root": 9,
+    "campaign_native": 4,
+    "campaign_root": 12,
+    "chain": "VERIFIED",
+    "rows": 81,
+    "sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+    "unresolved_native_reservations": [],
+    "unresolved_root_reservations": []
+  },
+  "policy_expires_at": "2026-11-04T01:21:57.665314+00:00",
+  "request_sha256": "835f79900583c6b490407aa1d43487540ae29892e2fa7f92fd53a78a4f14aea1",
+  "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/candidate-final/native/approval-package-final.md",
+  "review_sha256": "9235ac01f68597d96810627820afd2b48db0d40b77563610f467e64849731975",
+  "root_changes": [
+    "/etc/soc-agent/continuous-installation.json",
+    "/etc/systemd/system/soc-operations-runtime.service",
+    "/etc/systemd/system/soc-continuous-dns.service",
+    "/usr/lib/soc-agent/continuous/service.py"
+  ],
+  "root_native_dns_model_api_executions": 0,
+  "runtime_session": "b94a7bd2-4a65-4072-bde4-5b2fc8434e86",
+  "source": "75b0069502a7b5518bad29c0adf3623973dc2b5da0c3af7e713a4bfd2956418c",
+  "source_files": 677,
+  "tree": "ca12d4a54bf16fb75a72d2bd0e8789fe5c0c4534"
+}

@@ -1,0 +1,24 @@
+{
+  "status": "PASS_FRESH_UNAPPROVED_FACTORY_NOT_REPEAT_EXECUTION_AUTHORITY",
+  "frozen_git": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+  "same_release": true,
+  "distinct_sessions": [
+    {
+      "session": "b5e99726-ac0b-45cc-839d-b0d650a8d336",
+      "dns_session": "509e6c61-e570-487d-aa51-1dcfda0865d1",
+      "expires_at": "2026-11-04T01:21:57.665314+00:00",
+      "preview": "PREVIEW_ONLY_REQUIRES_DIRECT_SCOPE_R1_AND_SUDO",
+      "execution_authority": false,
+      "model_or_api_authorizations": 0
+    },
+    {
+      "session": "559c359d-2637-44f1-915b-34b0815ca66f",
+      "dns_session": "07aa6af5-d5d7-4663-bc77-89fcf4fa5592",
+      "expires_at": "2026-11-04T01:21:57.665314+00:00",
+      "preview": "PREVIEW_ONLY_REQUIRES_DIRECT_SCOPE_R1_AND_SUDO",
+      "execution_authority": false,
+      "model_or_api_authorizations": 0
+    }
+  ],
+  "root_native_dns_model_api_executions": 0
+}

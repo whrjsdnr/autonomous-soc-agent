@@ -1,0 +1,28 @@
+{
+  "actual_api": false,
+  "backend_reconnect": true,
+  "images": [
+    {
+      "file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/gui-fixture-proof/approval-controls-2.png",
+      "mode": "TK_FAKE_HTTP_FIXTURE_JSONL_REPLAY_NOT_NATIVE_API",
+      "sha256": "27bda949cb6f53173751d6576432a325831e277593c193cbe949bacbbbe8241d"
+    },
+    {
+      "file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/gui-fixture-proof/approval-controls-1.png",
+      "mode": "TK_FAKE_HTTP_FIXTURE_JSONL_REPLAY_NOT_NATIVE_API",
+      "sha256": "27bda949cb6f53173751d6576432a325831e277593c193cbe949bacbbbe8241d"
+    },
+    {
+      "file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/gui-fixture-proof/fake-http-timeout-gui-2.png",
+      "mode": "TK_FAKE_HTTP_FIXTURE_JSONL_REPLAY_NOT_NATIVE_API",
+      "sha256": "92991b2857f9301a3209bf1ea65a659a0305e88ed11986a95f2ac6452b781429"
+    },
+    {
+      "file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-operations-readiness-20261103T035500Z/gui-fixture-proof/fake-http-timeout-gui-1.png",
+      "mode": "TK_FAKE_HTTP_FIXTURE_JSONL_REPLAY_NOT_NATIVE_API",
+      "sha256": "92991b2857f9301a3209bf1ea65a659a0305e88ed11986a95f2ac6452b781429"
+    }
+  ],
+  "native_live": false,
+  "tests": "PASSED_IN_BOTH_880_TEST_SERIAL_RUNS"
+}
