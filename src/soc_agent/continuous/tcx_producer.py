@@ -7,12 +7,16 @@ import os
 import socket
 import struct
 import time
+from collections import deque
 from datetime import UTC, datetime
+from pathlib import Path
+from time import monotonic_ns
 from uuid import NAMESPACE_URL, uuid5
 
 from pydantic import Field
 
 from soc_agent.continuous.native.policy import installed
+from soc_agent.continuous.native.service import socket_diagnostics
 from soc_agent.security_ai.ebpf.models import Counters, Event
 from soc_agent.security_ai.ebpf.ring import ABI
 from soc_agent.security_ai.operational.network_capture.models import PacketObservation
@@ -163,6 +167,8 @@ class TCXProducer:
         self.last_control_sequence = None
         self.control_snapshot = None
         self._entered = False
+        self.receive_trace = deque(maxlen=64)
+        self.receiver_identity = None
         self.cleanup_evidence = dict(
             status="NOT_STARTED",
             stop_ack=False,
@@ -213,6 +219,20 @@ class TCXProducer:
             while True:
                 body = await self.receive_message(loop)
                 raw = self.envelope(body, policy)
+                if self.receive_trace:
+                    clock = raw.get("clock")
+                    self.receive_trace[-1].update(
+                        contract=raw["contract"],
+                        sequence=raw.get("sequence") if type(raw.get("sequence")) is int else None,
+                        root_clock=clock
+                        if isinstance(clock, list)
+                        and len(clock) == 3
+                        and all(type(part) is int for part in clock)
+                        else None,
+                        generation=raw.get("generation")
+                        if type(raw.get("generation")) is int
+                        else None,
+                    )
                 self.last_message_unix = time.time()
                 self.last_message_monotonic = time.monotonic()
                 if raw["contract"] == "soc-continuous-tcx-control:v1":
@@ -309,7 +329,11 @@ class TCXProducer:
         if not 0 <= latency_ns < 5_000_000_000:
             raise ValueError("CONTINUOUS_CONTROL_FRESHNESS")
         self.last_control_sequence = sequence
-        self.control_snapshot = dict(raw, receive_latency_seconds=latency_ns / 1_000_000_000)
+        self.control_snapshot = dict(
+            raw,
+            receive_latency_seconds=latency_ns / 1_000_000_000,
+            validated_monotonic_ns=monotonic_ns(),
+        )
         self.snapshot = self.snapshot | dict(control=self.control_snapshot)
         if clock[2] - began >= 5_000_000_000:
             self.failure = dict(
@@ -327,10 +351,15 @@ class TCXProducer:
     async def receive_message(self, loop):
         """Keep the five-second fail-closed deadline and preserve its exact stage."""
         started = time.monotonic()
+        trace = dict(started_monotonic_ns=monotonic_ns(), outcome="WAITING")
+        self.receive_trace.append(trace)
         try:
-            return await asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)
+            body = await asyncio.wait_for(loop.sock_recv(self.socket, 262145), 5)
+            trace.update(completed_monotonic_ns=monotonic_ns(), outcome="RECEIVED", bytes=len(body))
+            return body
         except TimeoutError as error:
             now = time.monotonic()
+            trace.update(completed_monotonic_ns=monotonic_ns(), outcome="TIMEOUT")
             self.failure = self.failure or dict(
                 code="CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT",
                 stage="AUTHENTICATED_ROOT_RECEIVE",
@@ -359,8 +388,22 @@ class TCXProducer:
                 generation=self.epoch,
                 last_sequence=self.last_sequence,
                 capture_restarted=False,
+                receive_trace=[dict(row) for row in self.receive_trace],
+                socket_at_timeout=socket_diagnostics(self.socket),
+                observer_clock=self.receiver_identity,
             )
             raise ValueError("CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT") from error
+
+    def clock_identity(self):
+        """Startup observation only; no file I/O is added to receive/STOP."""
+        try:
+            return dict(
+                pid=os.getpid(),
+                boot_id=Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+                time_namespace=os.readlink("/proc/self/ns/time"),
+            )
+        except OSError:
+            return dict(status="UNKNOWN")
 
     async def connect(self, loop):
         """Fixed installed Root endpoint; the only privileged transport boundary."""
@@ -390,6 +433,7 @@ class TCXProducer:
         if policy["uid"] != os.getuid() or policy["namespace"] != self.config.namespace:
             raise ValueError("CONTINUOUS_PRODUCER_POLICY_SCOPE")
         self.state = "STARTING"
+        self.receiver_identity = self.clock_identity()
         self.last_message_unix = None
         self.stop_ack.clear()
         self.remote_cleanup = "UNKNOWN"
@@ -742,6 +786,7 @@ class TCXProducer:
             self.socket = None
         self.state = "STOPPED"
         self.cleanup_evidence["socket_closed"] = self.socket is None
+        self.cleanup_evidence["receive_trace"] = [dict(row) for row in self.receive_trace]
         self.snapshot = self.snapshot | dict(
             state="STOPPED",
             failure=self.failure,

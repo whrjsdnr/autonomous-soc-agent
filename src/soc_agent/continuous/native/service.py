@@ -4,6 +4,7 @@ Installed by an administrator, started in the pre-approved Namespace by the serv
 manager. Default checkout execution is rejected before any BPF operation.
 """
 
+import array
 import ctypes as C
 import hashlib
 import json
@@ -18,8 +19,39 @@ from collections import deque
 from pathlib import Path
 from sys import exception as sys_exception
 
+try:
+    import fcntl
+    import termios
+except ImportError:  # Offline CLI import on platforms without the Linux collector.
+    fcntl = termios = None
+
 INSTALL = Path("/usr/lib/soc-agent/continuous")
 POLICY = Path("/etc/soc-agent/continuous-installation.json")
+
+
+def socket_diagnostics(peer):
+    """Non-consuming kernel observations; FIONREAD is a kernel byte value, never a record count."""
+    value = dict(observed_monotonic_ns=time.monotonic_ns())
+    if peer is None:
+        return value | dict(status="NO_OWNED_SOCKET")
+    if fcntl is None or termios is None:
+        return value | dict(status="UNAVAILABLE_PLATFORM")
+    try:
+        value.update(
+            nonblocking=not os.get_blocking(peer.fileno()),
+            receive_buffer=peer.getsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF),
+            send_buffer=peer.getsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF),
+        )
+        for key, operation in (
+            ("fionread_bytes", termios.FIONREAD),
+            ("send_queue_bytes", termios.TIOCOUTQ),
+        ):
+            number = array.array("i", [0])
+            fcntl.ioctl(peer.fileno(), operation, number, True)
+            value[key] = number[0]
+    except (OSError, ValueError, AttributeError) as error:
+        value.update(status="UNAVAILABLE", error=type(error).__name__)
+    return value
 
 
 class ControlTransport:
@@ -42,6 +74,24 @@ class ControlTransport:
         self.failure = None
         self.sequence = 0
         self.advertised_generation = None
+        self.trace = deque(maxlen=64)
+        self.trace_total = 0
+        self.send_totals = dict(SENT=0, PARTIAL=0, BACKPRESSURE=0, ERROR=0)
+        self.previous_control_send = None
+        self.lock_requested_ns = None
+        self.previous_loop_ns = None
+        self.last_loop = None
+        self.termination = None
+        self.cpu_samples = deque(maxlen=64)
+        self.identity = dict(pid=os.getpid(), uid=os.getuid())
+        try:
+            self.identity.update(
+                start_ticks=Path("/proc/self/stat").read_text().rsplit(")", 1)[1].split()[19],
+                boot_id=Path("/proc/sys/kernel/random/boot_id").read_text().strip(),
+                time_namespace=os.readlink("/proc/self/ns/time"),
+            )
+        except (OSError, ValueError, IndexError):
+            self.identity["clock_identity"] = "UNKNOWN"
         self.progress = dict(stage="STARTING", started_monotonic_ns=time.monotonic_ns())
         self.thread = threading.Thread(target=self._run, daemon=True, name="soc-root-control")
         self.thread.start()
@@ -73,16 +123,89 @@ class ControlTransport:
         if self.failure is not None:
             raise ValueError("CONTINUOUS_CONTROL_TRANSPORT_FAILED") from self.failure
 
+    def sample_cpu(self, cgroup):
+        """Data-worker telemetry only: never perform file I/O in control _run()."""
+        sample = dict(started_monotonic_ns=time.monotonic_ns())
+        try:
+            if cgroup is None:
+                raise ValueError("NO_VALIDATED_CGROUP")
+            with (cgroup / "cpu.stat").open() as stream:
+                body = stream.read(4097)
+            if len(body) > 4096:
+                raise ValueError("COUNTER_BOUND")
+            sample["cpu_stat"] = {
+                key: int(value) for key, value in (s.split() for s in body.splitlines())
+            }
+        except (OSError, ValueError) as error:
+            sample.update(status="UNKNOWN", error=type(error).__name__)
+        sample["completed_monotonic_ns"] = time.monotonic_ns()
+        self.cpu_samples.append(sample)
+
+    def emit(self, body, channel, sequence, requested, acquired):
+        """Bounded memory trace. No payload, fsync, retry or authority is added."""
+        record = dict(
+            outcome="ERROR",
+            channel=channel,
+            sequence=sequence,
+            lock_requested_ns=requested,
+            lock_acquired_ns=acquired,
+            send_started_ns=time.monotonic_ns(),
+            process_cpu_ns=time.process_time_ns(),
+            thread_cpu_ns=time.thread_time_ns(),
+        )
+        try:
+            result = self.peer.send(body)
+            record.update(outcome="SENT" if result == len(body) else "PARTIAL", bytes_sent=result)
+            return result
+        except OSError as error:
+            record.update(
+                outcome="BACKPRESSURE" if isinstance(error, BlockingIOError) else "ERROR",
+                errno=error.errno,
+            )
+            raise
+        finally:
+            record["send_completed_ns"] = time.monotonic_ns()
+            record["socket"] = socket_diagnostics(self.peer)
+            self.trace.append(record)
+            self.trace_total += 1
+            self.send_totals[record["outcome"]] += 1
+            if channel == "CONTROL":
+                self.previous_control_send = record
+
+    def diagnostics(self):
+        # Called after close/join. Diagnostics never become a seal or receipt.
+        return dict(
+            contract="soc-tcx-transport-diagnostics:v1",
+            namespace=self.namespace,
+            policy_sha256=self.policy_pin,
+            last_advertised_generation=self.advertised_generation,
+            identity=self.identity,
+            observed_monotonic_ns=time.monotonic_ns(),
+            thread_alive=self.thread.is_alive(),
+            trace=list(self.trace),
+            trace_total=self.trace_total,
+            send_totals=dict(self.send_totals),
+            truncated=max(0, self.trace_total - len(self.trace)),
+            lock_requested_ns=self.lock_requested_ns,
+            last_loop=self.last_loop,
+            termination=self.termination,
+            cpu_samples=list(self.cpu_samples),
+            permission="DIAGNOSTIC_ONLY_NOT_CAPTURE_OR_CLEANUP_AUTHORITY",
+        )
+
     def send(self, body):
         # Preparing a data record must not hold the control heartbeat/STOP lock.
         # Validate before publishing: a malformed record must never reach the peer.
         if len(body) > 262144:
             raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
-        generation = json.loads(body)["generation"]
+        packet = json.loads(body)
+        generation = packet["generation"]
+        requested = time.monotonic_ns()
         with self.lock:
+            acquired = time.monotonic_ns()
             if self.peer is None:
                 raise BrokenPipeError("CONTINUOUS_CONTROL_PEER_CLOSED")
-            if self.peer.send(body) != len(body):
+            if self.emit(body, "DATA", packet.get("sequence"), requested, acquired) != len(body):
                 raise ValueError("CONTINUOUS_TRANSPORT_BOUND")
             self.advertised_generation = generation
 
@@ -90,7 +213,16 @@ class ControlTransport:
         last = 0.0
         try:
             while not self.stopping.wait(0.02):
+                requested = time.monotonic_ns()
+                self.lock_requested_ns = requested
                 with self.lock:
+                    acquired = time.monotonic_ns()
+                    self.last_loop = dict(
+                        lock_requested_ns=requested,
+                        lock_acquired_ns=acquired,
+                        process_cpu_ns=time.process_time_ns(),
+                        thread_cpu_ns=time.thread_time_ns(),
+                    )
                     if self.peer is None:
                         if self.listener is None:
                             continue
@@ -122,6 +254,7 @@ class ControlTransport:
                     except BlockingIOError:
                         command = None
                     if command == b"":
+                        self.termination = dict(reason="PEER_CLOSED")
                         self.peer = None
                         self.request_stop()
                         return
@@ -132,6 +265,7 @@ class ControlTransport:
                             policy_sha256=self.policy_pin,
                         ):
                             raise ValueError("CONTINUOUS_CONTROL_STOP_BINDING")
+                        self.termination = dict(reason="VALIDATED_STOP")
                         self.request_stop()
                         return
                     if time.monotonic() - last < 1:
@@ -147,10 +281,20 @@ class ControlTransport:
                         clock=[before, wall, after],
                         worker=dict(self.progress),
                         peer_identity=self.accepted_identity,
+                        transport_identity=self.identity,
+                        transport_trace=dict(
+                            previous_send=self.previous_control_send,
+                            loop_started_ns=requested,
+                            previous_loop_ns=self.previous_loop_ns,
+                            lock_acquired_ns=acquired,
+                        ),
                     )
+                    self.previous_loop_ns = requested
                     body = json.dumps(packet).encode()
                     try:
-                        if self.peer.send(body) != len(body):
+                        if self.emit(
+                            body, "CONTROL", self.sequence + 1, requested, acquired
+                        ) != len(body):
                             raise ValueError("CONTINUOUS_CONTROL_PARTIAL_SEND")
                     except BlockingIOError:
                         # No queue or blocking send. Unread control is bounded by
@@ -159,8 +303,18 @@ class ControlTransport:
                     self.sequence += 1
                     last = time.monotonic()
         except (OSError, ValueError, TypeError) as error:
+            self.termination = dict(reason="CONTROL_ERROR", error=type(error).__name__)
             self.failure = error
             self.request_stop()
+        finally:
+            if self.termination is None:
+                self.termination = dict(reason="LOCAL_SHUTDOWN")
+            self.termination.update(
+                completed_monotonic_ns=time.monotonic_ns(),
+                last_loop=self.last_loop,
+                process_cpu_ns=time.process_time_ns(),
+                thread_cpu_ns=time.thread_time_ns(),
+            )
 
     def close(self):
         self.stopping.set()
@@ -300,6 +454,7 @@ def resource_scope(proc=Path("/proc/self"), cgroups=Path("/sys/fs/cgroup")):
         or not 0 < int(cpu[0]) <= int(cpu[1]) // 4
     ):
         raise ValueError("CONTINUOUS_SERVICE_RESOURCE_SCOPE")
+    return root
 
 
 def cleanup_failed(error):
@@ -515,7 +670,7 @@ def run():
     ):
         raise ValueError("CONTINUOUS_ISOLATED_INSTALLED_ENTRY_REQUIRED")
     policy = installed()
-    resource_scope()
+    cgroup = resource_scope()
     if os.readlink("/proc/self/ns/net") != policy["namespace"] or (
         {name for _, name in socket.if_nameindex()} != {"lo"}
     ):
@@ -601,6 +756,7 @@ def run():
     carried_rates = None
     owned = False
     control_transport = ControlTransport(policy["namespace"], policy_pin, request_stop)
+    control_transport.sample_cpu(cgroup)
 
     def stage(name):
         generation = provider.generation if provider else (pending_seal or {}).get("generation")
@@ -672,6 +828,7 @@ def run():
                 if provider is not None:
                     stage("COUNTER_SNAPSHOT")
                     state["counters"] = provider.counters()
+                control_transport.sample_cpu(cgroup)
                 audit("HEARTBEAT")
                 last_audit = time.monotonic()
             if peer is None:
@@ -729,6 +886,16 @@ def run():
         # The control reader is joined above, so ownership cannot change now.
         if peer is None:
             peer = control_transport.connected_peer()
+        # Persist bounded control evidence even when the following seal/cleanup
+        # fails. The existing audit barrier still decides durability, not this row.
+        try:
+            control_transport.sample_cpu(cgroup)
+            if control_transport.trace_total or control_transport.accepted_identity is not None:
+                audit_writer.record(
+                    "CONTROL_TRANSPORT_DIAGNOSTICS", control_transport.diagnostics(), wait=False
+                )
+        except (OSError, ValueError, RuntimeError) as error:
+            state["transport_diagnostic_error"] = type(error).__name__
         try:
             if provider and first is None:
                 finish_window()
