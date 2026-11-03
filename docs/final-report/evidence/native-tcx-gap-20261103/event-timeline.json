@@ -1,0 +1,766 @@
+[
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "root-trial-started.json",
+    "monotonic_ns": 1011175626790417,
+    "source": "root-trial-started.json",
+    "wall_unix": 1793669602.018549
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011179484550025
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011179484550025,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669603.566119
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011180508081583
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011180508081583,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669604.5896432
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011181542357692
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011181542357692,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669605.6238766
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011182560367442
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011182560367442,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669606.641889
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011184281053553
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011184281053553,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669608.3625786
+  },
+  {
+    "channel": "TCX_CONTROL",
+    "detail": {
+      "channel": "TCX_CONTROL",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": 1011184475399010,
+      "generate_to_receive_ms": null,
+      "generate_to_validation_ms": 0.24797799999999998,
+      "generated_monotonic_ns": 1011184475150317,
+      "pid": 1880296,
+      "previous_record_send_completed_ns": null,
+      "previous_record_send_started_ns": null,
+      "received_monotonic_ns": null,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 1,
+      "sources": [
+        "execution/authenticated-producer-ready.json.runtime.producer.control"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_1",
+    "monotonic_ns": 1011184475150317,
+    "source": "execution/authenticated-producer-ready.json.runtime.producer.control",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011185580269995
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011185580269995,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669609.6618056
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011186686677463
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011186686677463,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669610.7681797
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011187778258495
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011187778258495,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669611.8597655
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011190178844644
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011190178844644,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669614.261146
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011191205986364
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011191205986364,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669615.2875152
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011193889428786
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011193889428786,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669617.970932
+  },
+  {
+    "channel": "TCX_CONTROL",
+    "detail": {
+      "channel": "TCX_CONTROL",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": 1011194876114374,
+      "generate_to_receive_ms": null,
+      "generate_to_validation_ms": 0.7877179999999999,
+      "generated_monotonic_ns": 1011194875325372,
+      "pid": 1880296,
+      "previous_record_send_completed_ns": null,
+      "previous_record_send_started_ns": null,
+      "received_monotonic_ns": null,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 9,
+      "sources": [
+        "execution/terminal-status-history.jsonl:1.state.producer.control"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_9",
+    "monotonic_ns": 1011194875325372,
+    "source": "execution/terminal-status-history.jsonl:1.state.producer.control",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011194984623735
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011194984623735,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669619.0661237
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011196488105828
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011196488105828,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669620.5696201
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011197588266583
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011197588266583,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669621.670013
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011198678476764
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011198678476764,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669622.7599819
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011199752870720
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011199752870720,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669623.8344717
+  },
+  {
+    "channel": "DNS_HELPER",
+    "detail": {
+      "channel": "DNS_HELPER",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": null,
+      "generate_to_receive_ms": null,
+      "generate_to_validation_ms": null,
+      "generated_monotonic_ns": 1011200422696202,
+      "pid": 1880520,
+      "previous_record_send_completed_ns": null,
+      "previous_record_send_started_ns": null,
+      "received_monotonic_ns": null,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 1,
+      "sources": [
+        "dns-session/verified-ready.json.transport_trace"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_1",
+    "monotonic_ns": 1011200422696202,
+    "source": "dns-session/verified-ready.json.transport_trace",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_CONTROL",
+    "detail": {
+      "channel": "TCX_CONTROL",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": 1011200527658851,
+      "generate_to_receive_ms": null,
+      "generate_to_validation_ms": 0.30636800000000003,
+      "generated_monotonic_ns": 1011200527351108,
+      "pid": 1880296,
+      "previous_record_send_completed_ns": null,
+      "previous_record_send_started_ns": null,
+      "received_monotonic_ns": null,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 14,
+      "sources": [
+        "execution/observation-0023.json.state.producer.control"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_14",
+    "monotonic_ns": 1011200527351108,
+    "source": "execution/observation-0023.json.state.producer.control",
+    "wall_unix": null
+  },
+  {
+    "channel": "DNS_HELPER",
+    "detail": {
+      "channel": "DNS_HELPER",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": null,
+      "generate_to_receive_ms": 0.482687,
+      "generate_to_validation_ms": null,
+      "generated_monotonic_ns": 1011201230246224,
+      "pid": 1880520,
+      "previous_record_send_completed_ns": 1011201029623526,
+      "previous_record_send_started_ns": 1011201029595949,
+      "received_monotonic_ns": 1011201230728911,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 5,
+      "sources": [
+        "execution/observation-0023.json.state.dns_transport.transport_trace",
+        "execution/dns-helper-ready.json.transport.transport_trace"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_5",
+    "monotonic_ns": 1011201230246224,
+    "source": "execution/observation-0023.json.state.dns_transport.transport_trace",
+    "wall_unix": null
+  },
+  {
+    "channel": "RUNTIME_CONTROL",
+    "detail": {
+      "acquisition": {
+        "acquired_unix": 1793669625.9580283,
+        "query_finished": 1793669625.9570677,
+        "query_seconds": 0.013560295104980469,
+        "query_started": 1793669625.9435074,
+        "read_seconds": 0.0009605884552001953,
+        "runtime_age": 0.3273279666900635,
+        "source_age": 1.3489735126495361
+      },
+      "identity": {
+        "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb",
+        "pid": 1880324,
+        "start_ticks": "101117933",
+        "uid": 1000
+      },
+      "storage": {
+        "completed_monotonic": 1011201.506757501,
+        "last_seconds": 0.0012340550310909748,
+        "max_operation": "claim",
+        "max_seconds": 0.7443097089417279,
+        "operation": "claim",
+        "pending": false,
+        "started_monotonic": 1011201.505521855
+      }
+    },
+    "event": "SEQUENCE_18",
+    "monotonic_ns": 1011201549052030,
+    "source": "observation-0023.json",
+    "wall_unix": 1793669625.6307003
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011202085166133
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011202085166133,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669626.166749
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011203186897289
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011203186897289,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669627.2684011
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011204228789226
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011204228789226,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669628.3102963
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011205979719820
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011205979719820,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669630.061223
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011207076693001
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011207076693001,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669631.1582062
+  },
+  {
+    "channel": "DNS_HELPER",
+    "detail": {
+      "channel": "DNS_HELPER",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": null,
+      "generate_to_receive_ms": 0.276222,
+      "generate_to_validation_ms": null,
+      "generated_monotonic_ns": 1011207961954171,
+      "pid": 1880520,
+      "previous_record_send_completed_ns": 1011207761377388,
+      "previous_record_send_started_ns": 1011207761346262,
+      "received_monotonic_ns": 1011207962230393,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 74,
+      "sources": [
+        "execution/terminal-status-history.jsonl:2.state.dns_transport.transport_trace"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_74",
+    "monotonic_ns": 1011207961954171,
+    "source": "execution/terminal-status-history.jsonl:2.state.dns_transport.transport_trace",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_CONTROL",
+    "detail": {
+      "channel": "TCX_CONTROL",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": 1011208123877049,
+      "generate_to_receive_ms": null,
+      "generate_to_validation_ms": 0.334183,
+      "generated_monotonic_ns": 1011208123541292,
+      "pid": 1880296,
+      "previous_record_send_completed_ns": null,
+      "previous_record_send_started_ns": null,
+      "received_monotonic_ns": null,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 21,
+      "sources": [
+        "execution/terminal-status-history.jsonl:2.state.producer.control"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_21",
+    "monotonic_ns": 1011208123541292,
+    "source": "execution/terminal-status-history.jsonl:2.state.producer.control",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011208143342629
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011208143342629,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669632.2248502
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011209184386987
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011209184386987,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669633.2659013
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "COUNTER_SNAPSHOT",
+      "started_monotonic_ns": 1011211123613571
+    },
+    "event": "HEARTBEAT",
+    "monotonic_ns": 1011211123613571,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669635.2052004
+  },
+  {
+    "channel": "TCX_CONTROL",
+    "detail": {
+      "channel": "TCX_CONTROL",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": 1011211937552901,
+      "generate_to_receive_ms": null,
+      "generate_to_validation_ms": 33.412682,
+      "generated_monotonic_ns": 1011211904138053,
+      "pid": 1880296,
+      "previous_record_send_completed_ns": null,
+      "previous_record_send_started_ns": null,
+      "received_monotonic_ns": null,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 24,
+      "sources": [
+        "execution/terminal-status-history.jsonl:3.state.producer.failure.control",
+        "execution/terminal-status-history.jsonl:3.state.producer.control",
+        "execution/terminal-status-history.jsonl:3.state.producer.cleanup_evidence.first_error.control",
+        "execution/runtime-final.json.producer.failure.control",
+        "execution/runtime-final.json.producer.control",
+        "execution/runtime-final.json.producer.cleanup_evidence.first_error.control",
+        "execution/observation-0038.json.state.producer.control",
+        "future-runtime/observation.json.snapshot.producer.failure.control",
+        "future-runtime/observation.json.snapshot.producer.control",
+        "future-runtime/observation.json.snapshot.producer.cleanup_evidence.first_error.control",
+        "service.sqlite:continuous_details:25.evidence.first_error.control",
+        "service.sqlite:continuous_state:1.producer.failure.control",
+        "service.sqlite:continuous_state:1.producer.control",
+        "service.sqlite:continuous_state:1.producer.cleanup_evidence.first_error.control"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_24",
+    "monotonic_ns": 1011211904138053,
+    "source": "execution/terminal-status-history.jsonl:3.state.producer.failure.control",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_RECEIVER",
+    "detail": null,
+    "event": "last_message_monotonic",
+    "monotonic_ns": 1011211937523958,
+    "source": "runtime-final.json:producer.failure",
+    "wall_unix": 1793669636.0189822
+  },
+  {
+    "channel": "DNS_HELPER",
+    "detail": {
+      "channel": "DNS_HELPER",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": null,
+      "generate_to_receive_ms": 1.193992,
+      "generate_to_validation_ms": null,
+      "generated_monotonic_ns": 1011215782149313,
+      "pid": 1880520,
+      "previous_record_send_completed_ns": 1011215331978701,
+      "previous_record_send_started_ns": 1011215331951320,
+      "received_monotonic_ns": 1011215783343305,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 96,
+      "sources": [
+        "execution/observation-0038.json.state.dns_transport.transport_trace"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_96",
+    "monotonic_ns": 1011215782149313,
+    "source": "execution/observation-0038.json.state.dns_transport.transport_trace",
+    "wall_unix": null
+  },
+  {
+    "channel": "RUNTIME_CONTROL",
+    "detail": {
+      "acquisition": {
+        "acquired_unix": 1793669641.1496587,
+        "query_finished": 1793669641.1490614,
+        "query_seconds": 0.013075828552246094,
+        "query_started": 1793669641.1359856,
+        "read_seconds": 0.0005972385406494141,
+        "runtime_age": 1.019716739654541,
+        "source_age": 5.130676507949829
+      },
+      "identity": {
+        "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb",
+        "pid": 1880324,
+        "start_ticks": "101117933",
+        "uid": 1000
+      },
+      "storage": {
+        "completed_monotonic": 1011211.217606324,
+        "last_seconds": 0.0009133910061791539,
+        "max_operation": "claim",
+        "max_seconds": 0.7443097089417279,
+        "operation": "update",
+        "pending": true,
+        "started_monotonic": 1011211.218039393
+      }
+    },
+    "event": "SEQUENCE_31",
+    "monotonic_ns": 1011216048379377,
+    "source": "observation-0038.json",
+    "wall_unix": 1793669640.129942
+  },
+  {
+    "channel": "TCX_RECEIVER",
+    "detail": null,
+    "event": "observed_monotonic",
+    "monotonic_ns": 1011216938786786,
+    "source": "runtime-final.json:producer.failure",
+    "wall_unix": 1793669641.0202537
+  },
+  {
+    "channel": "TCX_STOP",
+    "detail": null,
+    "event": "stop_requested_monotonic",
+    "monotonic_ns": 1011216939828186,
+    "source": "runtime-final.json:producer.cleanup_evidence",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_STOP",
+    "detail": null,
+    "event": "stop_send_completed_monotonic",
+    "monotonic_ns": 1011216939863203,
+    "source": "runtime-final.json:producer.cleanup_evidence",
+    "wall_unix": null
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "WINDOW_AUDIT_COMMIT",
+      "started_monotonic_ns": 1011217175586857
+    },
+    "event": "CAPTURE_WINDOW_SEALED",
+    "monotonic_ns": 1011217175586857,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669641.2570584
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": {
+      "generation": 1011179290588628,
+      "stage": "WINDOW_AUDIT_COMMIT",
+      "started_monotonic_ns": 1011217175586857
+    },
+    "event": "SERVICE_STOPPED",
+    "monotonic_ns": 1011217175586857,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669641.2647827
+  },
+  {
+    "channel": "TCX_STOP",
+    "detail": null,
+    "event": "ack_observed_monotonic",
+    "monotonic_ns": 1011217239862052,
+    "source": "runtime-final.json:producer.cleanup_evidence",
+    "wall_unix": null
+  },
+  {
+    "channel": "DNS_HELPER",
+    "detail": {
+      "channel": "DNS_HELPER",
+      "current_record_send_completed_ns": null,
+      "derived_validation_monotonic_ns": null,
+      "generate_to_receive_ms": 0.464209,
+      "generate_to_validation_ms": null,
+      "generated_monotonic_ns": 1011217656452506,
+      "pid": 1880520,
+      "previous_record_send_completed_ns": 1011217608879509,
+      "previous_record_send_started_ns": 1011217608851012,
+      "received_monotonic_ns": 1011217656916715,
+      "send_status": "UNKNOWN_CURRENT_RECORD",
+      "sequence": 105,
+      "sources": [
+        "execution/terminal-status-history.jsonl:3.state.dns_transport.transport_trace",
+        "execution/runtime-final.json.dns_transport.transport_trace",
+        "dns-session/verified-closed.json.transport_trace",
+        "future-runtime/observation.json.snapshot.dns_transport.transport_trace",
+        "service.sqlite:continuous_state:1.dns_transport.transport_trace"
+      ]
+    },
+    "event": "RETAINED_SEQUENCE_105",
+    "monotonic_ns": 1011217656452506,
+    "source": "execution/terminal-status-history.jsonl:3.state.dns_transport.transport_trace",
+    "wall_unix": null
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "root-socket-ready.json",
+    "monotonic_ns": null,
+    "source": "root-socket-ready.json",
+    "wall_unix": 1793669603.399194
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "authenticated-producer-ready.json",
+    "monotonic_ns": null,
+    "source": "authenticated-producer-ready.json",
+    "wall_unix": 1793669609.678939
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "dns-helper-ready.json",
+    "monotonic_ns": null,
+    "source": "dns-helper-ready.json",
+    "wall_unix": 1793669625.698866
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "local-dns-traffic-start.json",
+    "monotonic_ns": null,
+    "source": "local-dns-traffic-start.json",
+    "wall_unix": 1793669625.932446
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "local-dns-worker-ready.json",
+    "monotonic_ns": null,
+    "source": "local-dns-worker-ready.json",
+    "wall_unix": 1793669627.081616
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "first-error.json",
+    "monotonic_ns": null,
+    "source": "first-error.json",
+    "wall_unix": 1793669642.218388
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "root-finished.json",
+    "monotonic_ns": null,
+    "source": "root-finished.json",
+    "wall_unix": 1793669644.05364
+  },
+  {
+    "channel": "COORDINATOR",
+    "detail": null,
+    "event": "root-terminal-exit.json",
+    "monotonic_ns": null,
+    "source": "root-terminal-exit.json",
+    "wall_unix": 1793669646.5866756
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": null,
+    "event": "ATTACH_REQUESTED",
+    "monotonic_ns": null,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669603.3682678
+  },
+  {
+    "channel": "TCX_DATA_WORKER",
+    "detail": null,
+    "event": "ATTACH_OWNED",
+    "monotonic_ns": null,
+    "source": "root-audit-after.json",
+    "wall_unix": 1793669603.3949661
+  }
+]

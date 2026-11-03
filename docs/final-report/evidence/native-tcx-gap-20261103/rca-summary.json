@@ -1,0 +1,114 @@
+{
+  "cleanup": {
+    "dns": "VERIFIED",
+    "dns_final_counter": true,
+    "global_kernel": "UNKNOWN",
+    "runtime": "VERIFIED",
+    "stop_ack": true,
+    "tcx": "VERIFIED"
+  },
+  "clock": {
+    "dns_boot": "67d54395-bd0f-4e00-867b-58b7f20342fb",
+    "dns_clock_identity": "time:[4026531834]",
+    "observed_offset_difference_ns": 7683,
+    "root_boot_time_namespace": "UNKNOWN_NOT_RECORDED_IN_OLD_TRACE",
+    "root_mono_wall_offset_ns": 1792658424081459227,
+    "runtime_mono_wall_offset_ns": 1792658424081466910,
+    "scope": "Root/Runtime bracket offsets agree; exact Root boot/time identity was not captured"
+  },
+  "conclusion": "CONFIRMED_5S_NO_AUTHENTICATED_TCX_RECEIVE; DNS_CONTINUED; SENDER_VS_IPC_VS_RECEIVER_ROOT_CAUSE_UNKNOWN",
+  "first_error": {
+    "code": "CONTINUOUS_PRODUCER_RECEIVE_TIMEOUT",
+    "code_file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-receive-startup-recovery-20261103/retest-after-interrupted-confirmation/native/export/src/soc_agent/continuous/tcx_producer.py",
+    "code_sha256": "029128d958d652877ea3624a9fc57ca0e809ac27b5057087610aa18351989777",
+    "function": "TCXProducer.receive_message",
+    "line": 363,
+    "observed_monotonic": 1011216.938786786,
+    "observed_unix": 1793669641.0202537,
+    "pid": 1880324,
+    "process": "soc-operations-runtime.service",
+    "wait_seconds": 5.001229196088389
+  },
+  "no_live_execution": true,
+  "processes": {
+    "collector": {
+      "cpu_throttling_gap": "UNKNOWN_NO_ROOT_CGROUP_COUNTERS",
+      "exit_code": "0",
+      "pid": 1880296,
+      "start_ticks": "101117866",
+      "state_at_failure": "SAME_PROCESS"
+    },
+    "dns": {
+      "cpu_samples": [
+        {
+          "cpu_max": "10000 100000",
+          "cpu_stat": {
+            "burst_usec": 0,
+            "nice_usec": 0,
+            "nr_bursts": 0,
+            "nr_periods": 191,
+            "nr_throttled": 147,
+            "system_usec": 925957,
+            "throttled_usec": 12145908,
+            "usage_usec": 1499199,
+            "user_usec": 573242
+          },
+          "nice": 0,
+          "observed_monotonic_ns": 1011208932104286,
+          "pid": 1880520,
+          "schedstat": "1407840053 12405982831 422",
+          "scope": "ORDINARY_READ_ONLY_EXISTING_DIAGNOSTICS",
+          "source_trace_sequence": 74,
+          "start_ticks": "101118654",
+          "state": "S"
+        },
+        {
+          "observed_monotonic_ns": 1011221999768537,
+          "pid": 1880520,
+          "scope": "ORDINARY_READ_ONLY_EXISTING_DIAGNOSTICS",
+          "source_trace_sequence": 105,
+          "state": "EXITED_OR_COUNTER_UNAVAILABLE"
+        }
+      ],
+      "pid": 1880520,
+      "runtime_waitpid_exit": null,
+      "service_exit": "0",
+      "start_ticks": "101118654"
+    },
+    "runtime": {
+      "exit_code": "2",
+      "pid": 1880324,
+      "start_ticks": "101117933"
+    }
+  },
+  "root_observer": {
+    "at": "2026-11-03T01:34:02.218388+00:00",
+    "errno": null,
+    "error": "ValueError",
+    "message": "COLLECTOR_EARLY_EXIT",
+    "stage": "CAPTURE",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-receive-startup-recovery-20261103/retest-after-interrupted-confirmation/native/execution/root-trial.py\", line 519, in run\n    value, observation = observe_service_health(properties, state, time.time)\n                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-receive-startup-recovery-20261103/retest-after-interrupted-confirmation/native/execution/root-trial.py\", line 371, in observe_service_health\n    raise ValueError('COLLECTOR_EARLY_EXIT')\nValueError: COLLECTOR_EARLY_EXIT\n"
+  },
+  "runtime_storage": {
+    "completed_monotonic": 1011218.225474222,
+    "last_seconds": 0.0011600250145420432,
+    "max_operation": "update",
+    "max_seconds": 5.416646084049717,
+    "operation": "counts",
+    "pending": false,
+    "started_monotonic": 1011218.224311955
+  },
+  "transport": {
+    "dropped_batches": 0,
+    "ipc_connected": true,
+    "last_control_generation_ns": 1011211904138053,
+    "last_control_sequence": 24,
+    "last_receive_ns": 1011211937523958,
+    "last_validation_delay_ms": 33.412682,
+    "lock_wait": "UNKNOWN_NOT_CAPTURED",
+    "receiver_queue_depth": 0,
+    "sender_attempts_after_24": "UNKNOWN_NOT_CAPTURED",
+    "socket_backlog": "UNKNOWN_NOT_CAPTURED",
+    "timeout_ns": 1011216938786786
+  }
+}

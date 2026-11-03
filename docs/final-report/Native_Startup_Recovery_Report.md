@@ -146,3 +146,11 @@ Native·Supervisor·Wheel의 Workspace2회/Export1회 재현 빌드 일치. 후�
 
 새 자동 권한 재실행은 수행하지 않았다. 추가 실환경 시험은 원인 진단을 보강한 새로운
 정확한 검토 Binding과 새 인간 Scope/R1·직접 sudo 인증을 필요로 한다.
+
+## 2026-11-03 후속 읽기 전용 심층 RCA
+
+[TCX 5초 메시지 공백 RCA](Native_TCX_Message_Gap_RCA.md)에 프로세스·Sequence·Clock·CPU·
+IPC 판정을 분리해 기록했다. 기존5초 공백은 **TCX 수신 완료 부재**이며 송신 중단으로
+확정되지 않았다. 공백 중 DNS Record96과 Runtime Control31은 계속 갱신됐다. Root 송신
+시도/커널 큐/Lock·해당 구간 CPU delta가 없어 근본 원인은 UNKNOWN이다. 이 후속 작업은
+Native·DNS·모델·외부 API를 재실행하지 않았고 새 승인 영수증도 발급하지 않았다.

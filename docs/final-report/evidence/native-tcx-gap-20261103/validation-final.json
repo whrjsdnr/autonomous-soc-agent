@@ -1,0 +1,81 @@
+{
+  "code_commit": "62567c1905650492f230be47960d2992c37d3158",
+  "source_sha256": "9f68b8242c4aa47f5ad2fdef550e32227bea003ee8a989d9760ed873cb4adeea",
+  "workspace": {
+    "passed": 838,
+    "seconds": 194.7,
+    "source_unchanged": true,
+    "prohibited_operations": []
+  },
+  "independent_export": {
+    "passed": 838,
+    "seconds": 188.42,
+    "source_unchanged": true,
+    "prohibited_operations": []
+  },
+  "real_model_test_files_excluded": [
+    "test_capture_admission.py",
+    "test_runtime.py",
+    "test_stream_integration.py"
+  ],
+  "gui": {
+    "input": "FIXTURE_REPLAY_FAKE_HTTP",
+    "reconnect": true,
+    "png_count": 4,
+    "native_live": false,
+    "real_api": false
+  },
+  "reproducible_builds": {
+    "native": {
+      "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+      "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+      "service.py": "79da822cba9dabe80de8f6274fa2af5909baa67fcf599aae0c9095b2a0a8f554",
+      "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+    },
+    "native_identical_three": true,
+    "legacy_compilation": {
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "bootstrap": "a67e1e24e0b052deb9bf94dcf124631bbe081b453121039cb5924f637658cca2",
+      "broker": "5fa148e5d0d7b1f3c4b5b5854059140f414c7eabc3db6152364215310b8b0434",
+      "libnative-tc.so": "d2bf58c38ed5a9cab92ed1ffa03f59951d3118b444170861568c482d38be05ea",
+      "tc-fixture": "32fd5478c736c536881bcaf9608db72b46585d33770f360f5f62be14a9c53758",
+      "tcx-dispatch-fixture": "6e1c9bb10e0efba52265e2a6f6008610f1a080202f6c8c25d0bfbe8fda3d1322",
+      "tcx.bpf.o": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06",
+      "source_bundle_digest": "f5202ab5f97a730d6745f221a5d474ddb10e2b28c6ba12e89a50c4a0a8c07669"
+    },
+    "legacy_identical_three": true,
+    "supervisor": {
+      "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469",
+      "supervisor.py": "35b19a1a5f7a07685a0ad7ca0d715837e44bb796f7c3de5d10280168706e8c6d"
+    },
+    "supervisor_identical_three": true,
+    "supervisor_execution": "GUARDED_PREVIEW_ONLY_NOT_ACTIVATED",
+    "wheel_sha256": "ddcf130ac403bb501a265f28c9c5233cb91c27ac8234eafc3ba48c5bd29f1548",
+    "wheel_identical_three": true,
+    "live_execution": false
+  },
+  "preservation": {
+    "original_execution_files": 796,
+    "original_execution_unchanged": true,
+    "installed_paths": 8,
+    "installed_sha_inode_mtime_unchanged": true,
+    "ledger": {
+      "rows": 81,
+      "sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+      "chain": "VERIFIED"
+    },
+    "original_user_files": 164,
+    "original_user_files_unchanged": true,
+    "older_artifacts": 2554,
+    "older_artifacts_unchanged": true,
+    "live_executions": 0,
+    "model_inference": 0,
+    "external_api": 0,
+    "new_authority_or_reservations": 0,
+    "rollback": "NO_WRITES; ROOT_ONLY_BACKUP_BYTES_NOT_REINSPECTED"
+  },
+  "root_cause": "UNKNOWN_SENDER_IPC_RECEIVER_SPLIT_NOT_PROVABLE_FROM_OLD_TRACE",
+  "diagnostics": "VERIFIED_OFFLINE_NOT_VERIFIED_NATIVE"
+}
