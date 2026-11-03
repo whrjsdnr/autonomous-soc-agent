@@ -1,0 +1,524 @@
+{
+  "bound_code": "dd81305ee4754cfbb1b2f66682d642ec4b12abdd",
+  "frozen_git": "fdfb15cddf281fef0b061f980ed0d5c25806ff2e",
+  "source_sha256": "958f1ba8d1907d26ec513d69920bf5f55bd2d31435f26169dba838933a49a776",
+  "runtime_session": "ce6aeeeb-940f-4600-a107-92155e2b05b1",
+  "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-full-live-validation-prep-20261103T095545Z/candidate/native/approval-package-final.md",
+  "review_sha256": "8d8ff205973f52ea5218bffcb6e151638477059807ff63776c2fe9e4c9a1814d",
+  "runtime_config_sha256": "4b13f1daf2c333863f1ef6d9e3389c292e0ed3e93855de1c8d8e264fef98807f",
+  "root_manifest_sha256": "78a490033212ec2f64a37fa00f0d0533982581a4cb3722c7aa380daf33f5b876",
+  "root_changed": [
+    "/etc/soc-agent/continuous-installation.json",
+    "/etc/systemd/system/soc-operations-runtime.service",
+    "/etc/systemd/system/soc-continuous-dns.service"
+  ],
+  "root_verify_only": [
+    "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+    "/etc/systemd/system/soc-continuous-tcp-trial.service",
+    "/etc/systemd/system/soc-continuous-dnsmasq.service",
+    "/usr/lib/soc-agent/continuous/service.py",
+    "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf"
+  ],
+  "backup_directory_proposed": "/var/lib/soc-agent/continuous/backups/final-full-live-validation-prep-20261103T095545Z",
+  "new_disk_results": {
+    "workspace": {
+      "returncode": 0,
+      "cases": 899,
+      "pytest_seconds": 201.98,
+      "storage": "ORDINARY_DISK_FRESH_RUN",
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      },
+      "source_unchanged": true
+    },
+    "supplement-workspace": {
+      "returncode": 0,
+      "cases": 97,
+      "pytest_seconds": 69.44,
+      "storage": "ORDINARY_DISK_FRESH_RUN",
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      },
+      "source_unchanged": true
+    },
+    "export": {
+      "returncode": 0,
+      "cases": 899,
+      "pytest_seconds": 225.93,
+      "storage": "ORDINARY_DISK_FRESH_RUN",
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      },
+      "source_unchanged": true
+    },
+    "supplement-export": {
+      "returncode": 0,
+      "cases": 97,
+      "pytest_seconds": 76.18,
+      "storage": "ORDINARY_DISK_FRESH_RUN",
+      "guard": {
+        "exitstatus": 0,
+        "violations": [],
+        "external_native_model_execution_allowed": false
+      },
+      "source_unchanged": true
+    }
+  },
+  "reused_tmpfs_results": {
+    "reference": "authentication-lifecycle-final-20261103/verification.json",
+    "same_source_sha256": "958f1ba8d1907d26ec513d69920bf5f55bd2d31435f26169dba838933a49a776",
+    "results": {
+      "workspace": {
+        "cases": 899,
+        "pytest_seconds": 175.39,
+        "fixture_storage": "tmpfs",
+        "source_unchanged": true,
+        "returncode": 0,
+        "guard": {
+          "exitstatus": 0,
+          "violations": [],
+          "external_native_model_execution_allowed": false
+        }
+      },
+      "supplement-workspace": {
+        "cases": 97,
+        "pytest_seconds": 42.0,
+        "fixture_storage": "tmpfs",
+        "source_unchanged": true,
+        "returncode": 0,
+        "guard": {
+          "exitstatus": 0,
+          "violations": [],
+          "external_native_model_execution_allowed": false
+        }
+      },
+      "export": {
+        "cases": 899,
+        "pytest_seconds": 177.3,
+        "fixture_storage": "tmpfs",
+        "source_unchanged": true,
+        "returncode": 0,
+        "guard": {
+          "exitstatus": 0,
+          "violations": [],
+          "external_native_model_execution_allowed": false
+        }
+      },
+      "supplement-export": {
+        "cases": 97,
+        "pytest_seconds": 44.54,
+        "fixture_storage": "tmpfs",
+        "source_unchanged": true,
+        "returncode": 0,
+        "guard": {
+          "exitstatus": 0,
+          "violations": [],
+          "external_native_model_execution_allowed": false
+        }
+      }
+    },
+    "new_full_tmpfs_runs": false
+  },
+  "timing": {
+    "disk": {
+      "probe": {
+        "returncode": 1,
+        "seconds": 92.88934890693054,
+        "command": [
+          "/usr/bin/strace",
+          "-ff",
+          "-ttt",
+          "-T",
+          "-yy",
+          "-e",
+          "trace=fsync,fdatasync,fcntl,flock,futex,clock_nanosleep,nanosleep,poll,ppoll,select,pselect6,epoll_wait,epoll_pwait",
+          "-o",
+          "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-full-live-validation-prep-20261103T095545Z/disk-syscall",
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "disk_probe",
+          "tests/unit/continuous/test_tcx_failure_cleanup.py::test_missing_ack_is_bounded_and_partial_window_stays_unverified",
+          "tests/unit/continuous/test_root_audit_transport.py::test_delayed_fsync_does_not_starve_authenticated_transport_and_seal_waits",
+          "tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard",
+          "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py",
+          "tests/unit/continuous/test_authentication_runtime_attachment.py",
+          "-q",
+          "--basetemp=/tmp/soc-final-disk-probe"
+        ],
+        "scope": "FIXTURE_ONLY_STRACE_OWN_PROCESS_NO_HOST_LOGS_OR_NATIVE_OR_INFERENCE_OR_API",
+        "instrumentation_can_affect_timing": true
+      },
+      "untraced_control": {
+        "returncode": 0,
+        "seconds": 33.24724142393097,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "tests/unit/continuous/test_tcx_failure_cleanup.py::test_missing_ack_is_bounded_and_partial_window_stays_unverified",
+          "tests/unit/continuous/test_root_audit_transport.py::test_delayed_fsync_does_not_starve_authenticated_transport_and_seal_waits",
+          "tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard",
+          "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py",
+          "tests/unit/continuous/test_authentication_runtime_attachment.py",
+          "-q",
+          "--basetemp=/tmp/soc-final-disk-control"
+        ],
+        "scope": "FIXTURE_MATCHED_NO_STRACE_NO_PROBE_OWN_PROCESS_NO_HOST_LOGS_OR_NATIVE_OR_INFERENCE_OR_API",
+        "instrumentation_can_affect_timing": false
+      },
+      "cases": [
+        {
+          "test": "tests/unit/continuous/test_tcx_failure_cleanup.py::test_missing_ack_is_bounded_and_partial_window_stays_unverified",
+          "elapsed": 5.024759490042925,
+          "monotonic_finished": 1041375.423635951,
+          "wall_epoch_finished": 1793699799.5050936,
+          "commit_samples_above_5ms": 0,
+          "commit_max_seconds": 0,
+          "python_fsync_max_seconds": 0,
+          "sampler_gap_max": 0.10922968201339245,
+          "cpu_max": "max 100000\n",
+          "first_cpu_stat": "usage_usec 234135620372\nuser_usec 148515850749\nsystem_usec 85619769622\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+          "last_cpu_stat": "usage_usec 234137382781\nuser_usec 148516687876\nsystem_usec 85620694905\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        {
+          "test": "tests/unit/continuous/test_root_audit_transport.py::test_delayed_fsync_does_not_starve_authenticated_transport_and_seal_waits",
+          "elapsed": 6.55095472605899,
+          "monotonic_finished": 1041381.977442166,
+          "wall_epoch_finished": 1793699806.0589,
+          "commit_samples_above_5ms": 0,
+          "commit_max_seconds": 0,
+          "python_fsync_max_seconds": 0.0037210670998319983,
+          "sampler_gap_max": 0.10958501801360399,
+          "cpu_max": "max 100000\n",
+          "first_cpu_stat": "usage_usec 234137458393\nuser_usec 148516756492\nsystem_usec 85620701900\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+          "last_cpu_stat": "usage_usec 234139749608\nuser_usec 148517997113\nsystem_usec 85621752495\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        {
+          "test": "tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard",
+          "elapsed": 4.0820787120610476,
+          "monotonic_finished": 1041386.064115467,
+          "wall_epoch_finished": 1793699810.1455736,
+          "commit_samples_above_5ms": 37,
+          "commit_max_seconds": 0.017560884938575327,
+          "python_fsync_max_seconds": 0,
+          "sampler_gap_max": 0.14262944599613547,
+          "cpu_max": "max 100000\n",
+          "first_cpu_stat": "usage_usec 234139925616\nuser_usec 148518080894\nsystem_usec 85621844721\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+          "last_cpu_stat": "usage_usec 234144418738\nuser_usec 148519625097\nsystem_usec 85624793641\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        }
+      ],
+      "kernel_sync_syscalls_measured": 1565,
+      "kernel_sync_max_seconds": 0.054852
+    },
+    "tmpfs": {
+      "probe": {
+        "returncode": 1,
+        "seconds": 89.38202667597216,
+        "command": [
+          "/usr/bin/strace",
+          "-ff",
+          "-ttt",
+          "-T",
+          "-yy",
+          "-e",
+          "trace=fsync,fdatasync,fcntl,flock,futex,clock_nanosleep,nanosleep,poll,ppoll,select,pselect6,epoll_wait,epoll_pwait",
+          "-o",
+          "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-full-live-validation-prep-20261103T095545Z/tmpfs-syscall",
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "disk_probe",
+          "tests/unit/continuous/test_tcx_failure_cleanup.py::test_missing_ack_is_bounded_and_partial_window_stays_unverified",
+          "tests/unit/continuous/test_root_audit_transport.py::test_delayed_fsync_does_not_starve_authenticated_transport_and_seal_waits",
+          "tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard",
+          "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py",
+          "tests/unit/continuous/test_authentication_runtime_attachment.py",
+          "-q",
+          "--basetemp=/dev/shm/soc-final-tmpfs-probe"
+        ],
+        "scope": "FIXTURE_ONLY_STRACE_OWN_PROCESS_NO_HOST_LOGS_OR_NATIVE_OR_INFERENCE_OR_API",
+        "instrumentation_can_affect_timing": true
+      },
+      "untraced_control": {
+        "returncode": 0,
+        "seconds": 30.639345215982758,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "tests/unit/continuous/test_tcx_failure_cleanup.py::test_missing_ack_is_bounded_and_partial_window_stays_unverified",
+          "tests/unit/continuous/test_root_audit_transport.py::test_delayed_fsync_does_not_starve_authenticated_transport_and_seal_waits",
+          "tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard",
+          "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py",
+          "tests/unit/continuous/test_authentication_runtime_attachment.py",
+          "-q",
+          "--basetemp=/dev/shm/soc-final-tmpfs-control"
+        ],
+        "scope": "FIXTURE_MATCHED_NO_STRACE_NO_PROBE_OWN_PROCESS_NO_HOST_LOGS_OR_NATIVE_OR_INFERENCE_OR_API",
+        "instrumentation_can_affect_timing": false
+      },
+      "cases": [
+        {
+          "test": "tests/unit/continuous/test_tcx_failure_cleanup.py::test_missing_ack_is_bounded_and_partial_window_stays_unverified",
+          "elapsed": 5.027905717957765,
+          "monotonic_finished": 1041547.214785907,
+          "wall_epoch_finished": 1793699971.2962441,
+          "commit_samples_above_5ms": 0,
+          "commit_max_seconds": 0,
+          "python_fsync_max_seconds": 0,
+          "sampler_gap_max": 0.11364642693661153,
+          "cpu_max": "max 100000\n",
+          "first_cpu_stat": "usage_usec 234287149251\nuser_usec 148587107576\nsystem_usec 85700041674\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+          "last_cpu_stat": "usage_usec 234289384966\nuser_usec 148588312046\nsystem_usec 85701072919\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        {
+          "test": "tests/unit/continuous/test_root_audit_transport.py::test_delayed_fsync_does_not_starve_authenticated_transport_and_seal_waits",
+          "elapsed": 6.770054765976965,
+          "monotonic_finished": 1041553.988399298,
+          "wall_epoch_finished": 1793699978.0698576,
+          "commit_samples_above_5ms": 0,
+          "commit_max_seconds": 0,
+          "python_fsync_max_seconds": 0.00021783995907753706,
+          "sampler_gap_max": 0.22287646494805813,
+          "cpu_max": "max 100000\n",
+          "first_cpu_stat": "usage_usec 234290101886\nuser_usec 148588744909\nsystem_usec 85701356977\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+          "last_cpu_stat": "usage_usec 234292400295\nuser_usec 148589870642\nsystem_usec 85702529653\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        {
+          "test": "tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard",
+          "elapsed": 3.7891334089217708,
+          "monotonic_finished": 1041557.783212862,
+          "wall_epoch_finished": 1793699981.864671,
+          "commit_samples_above_5ms": 0,
+          "commit_max_seconds": 0,
+          "python_fsync_max_seconds": 0,
+          "sampler_gap_max": 0.13795284007210284,
+          "cpu_max": "max 100000\n",
+          "first_cpu_stat": "usage_usec 234292628561\nuser_usec 148589937304\nsystem_usec 85702691256\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+          "last_cpu_stat": "usage_usec 234296785614\nuser_usec 148591470431\nsystem_usec 85705315183\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        }
+      ],
+      "kernel_sync_syscalls_measured": 1573,
+      "kernel_sync_max_seconds": 0.000424
+    },
+    "historical_three_failures_direct_cause": "UNKNOWN",
+    "current_monitor_instrumented_failure": "1.5s run deadline reached with one READ_ONLY job PENDING; reproduced on BOTH disk/tmpfs only in traced/probed comparison; no assertion weakened",
+    "native_root_cpu_throttling": "NOT_MEASURED_THIS_TURN; own fixture init.scope max/unthrottled is not Native Root service cgroup",
+    "product_code_changes": 0,
+    "timeout_contract_changed": false
+  },
+  "reproducible_builds": {
+    "compile_only": true,
+    "legacy": {
+      "bootstrap": "a67e1e24e0b052deb9bf94dcf124631bbe081b453121039cb5924f637658cca2",
+      "broker": "5fa148e5d0d7b1f3c4b5b5854059140f414c7eabc3db6152364215310b8b0434",
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "libnative-tc.so": "d2bf58c38ed5a9cab92ed1ffa03f59951d3118b444170861568c482d38be05ea",
+      "source_bundle_digest": "f5202ab5f97a730d6745f221a5d474ddb10e2b28c6ba12e89a50c4a0a8c07669",
+      "tc-fixture": "32fd5478c736c536881bcaf9608db72b46585d33770f360f5f62be14a9c53758",
+      "tcx-dispatch-fixture": "6e1c9bb10e0efba52265e2a6f6008610f1a080202f6c8c25d0bfbe8fda3d1322",
+      "tcx.bpf.o": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
+    },
+    "live_execution": false,
+    "native": {
+      "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+      "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+      "service.py": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+    },
+    "supervisor": {
+      "supervisor.py": "5b7bbccc5cbd5df9aa95ff65d7f0179bda2fb17366ad4495beead56128c92619",
+      "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469"
+    },
+    "wheel_sha256": "2640b8772f44a7766773cc013f594afe9429eea69bd03cedbf605126c94b1f58",
+    "three_way_identical": true,
+    "export_import_forced_with_pythonpath": true
+  },
+  "installed_release": {
+    "git_head": "fdfb15cddf281fef0b061f980ed0d5c25806ff2e",
+    "remote_tracking_head": "fdfb15cddf281fef0b061f980ed0d5c25806ff2e",
+    "management_current": "/home/geonug/.local/share/soc-agent/management/4e4fb2c90c3a9467-57f8c396184bc1f8",
+    "management_site": "/home/geonug/.local/share/soc-agent/management/4e4fb2c90c3a9467-57f8c396184bc1f8/python/lib/python3.12/site-packages",
+    "management_python": "/home/geonug/.local/share/soc-agent/management/4e4fb2c90c3a9467-57f8c396184bc1f8/python/bin/python",
+    "default_home": "/home/geonug/.local/state/soc-agent",
+    "soc_agent_home_environment": "UNSET",
+    "frozen_review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/release-session-alignment-20261103T083037Z/live/native",
+    "files": [
+      {
+        "name": "gui/operator_review.py",
+        "installed_exists": true,
+        "installed_sha256": "2b437609db5d683de22a8f489e59e1f5f08f4d6ea65144df8a3ae94b6003dc6f",
+        "candidate_sha256": "2b437609db5d683de22a8f489e59e1f5f08f4d6ea65144df8a3ae94b6003dc6f",
+        "same": true
+      },
+      {
+        "name": "gui/operator_view.py",
+        "installed_exists": true,
+        "installed_sha256": "0d10e5be0d2b8fd806dc1c366acb137458d7c6f746c3bc111034a270a0eda9a1",
+        "candidate_sha256": "3a1495d3eaf313bfc7b30a3ce99d8f804d15b1d013743b7314e1bdeaa57e14ca",
+        "same": false
+      },
+      {
+        "name": "continuous/authentication_lifecycle.py",
+        "installed_exists": false,
+        "installed_sha256": null,
+        "candidate_sha256": "c180dcd2dc277cbafb17c67591b4006c44185e5c895ca5ba838612d8ef9552fe",
+        "same": false
+      },
+      {
+        "name": "continuous/authentication_admission.py",
+        "installed_exists": false,
+        "installed_sha256": null,
+        "candidate_sha256": "bcefad5a6fb944131f5dde52b2f7a9ac7b321889104f235043c1e9ef65f4fb61",
+        "same": false
+      },
+      {
+        "name": "continuous/service.py",
+        "installed_exists": true,
+        "installed_sha256": "41bd654ab5a9110fb25240f854203525bdc0acc7c5d7e64e8ff1077b4b4ebca3",
+        "candidate_sha256": "a1c4697f268673e508217947a621a6f1ca9f58778779478ce3e64a73422d6c0e",
+        "same": false
+      },
+      {
+        "name": "linux_runtime/service.py",
+        "installed_exists": true,
+        "installed_sha256": "64f0adb907d48fcf44b053459ffb63d8676756f1678a96e504db2e2fd9be910e",
+        "candidate_sha256": "68a302401da4b34b9dd397b60034e0698e73412dd857b269682be5d64b57634e",
+        "same": false
+      },
+      {
+        "name": "agent_diagnostics.py",
+        "installed_exists": true,
+        "installed_sha256": "90826aa9ee6df82a1eb2468a8f10f0e2915c5c088985a7e3ac0176af1c56e1ad",
+        "candidate_sha256": "72c607306a6c4e6d471e91652dd79b978f83dbd6b35242e3bf31cf9102f1d413",
+        "same": false
+      }
+    ],
+    "old_review_binding": {
+      "git_commit": "ceaeb1c5b57a681c175797075fadb4d58c13d82f",
+      "runtime_session": "08274ad5-38ff-4e2c-a314-fa7cce1816c8",
+      "wheel_sha256": "4e4fb2c90c3a9467b1042aa471d89c0fc367a57c794bab43f3d9b811b5e011c7",
+      "expires_at": "2026-11-04T01:21:57.665314+00:00",
+      "source_sha256": "1e9f3c57db16ed36e77f8bb95efc0ad274974012f00ad9c40f9bedaaba8ca6b8",
+      "managed_authentication": null,
+      "authentication_packages": [],
+      "authentication_runtime": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/release-session-alignment-20261103T083037Z/live/native/future-runtime/authentication"
+    },
+    "candidate_wheel_sha256": "2640b8772f44a7766773cc013f594afe9429eea69bd03cedbf605126c94b1f58"
+  },
+  "preservation": {
+    "root_eight": [
+      {
+        "path": "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+        "sha256": "4b36f322ef409220bfd1c5bae7ef30b36022caf40f85a2f812b9c2a47f46a002",
+        "inode": 2451423,
+        "mtime_ns": 1793612680535955501,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-tcp-trial.service",
+        "sha256": "c78030d783a01e03cf3a2ab2df41df14889cb748bde1ed4d7d8068dc30cc4f4b",
+        "inode": 2084939,
+        "mtime_ns": 1793357834000244581,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/soc-agent/continuous-installation.json",
+        "sha256": "d2d56ba8b9b7185a365db763f75a7a20c0c6eea1794e0b25e40de4a57284a359",
+        "inode": 2722101,
+        "mtime_ns": 1793689596433375459,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-operations-runtime.service",
+        "sha256": "02d4644162cbadba5dabdfbf2b8daa5e52fa7c8b02b32a3efd9f731b308a4ec2",
+        "inode": 2722103,
+        "mtime_ns": 1793689596460969203,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dns.service",
+        "sha256": "1fa70b4c29e5b841fec12e9512d35aede2c810ef6675992255f34bfd272a7e5b",
+        "inode": 2722105,
+        "mtime_ns": 1793689596484502986,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dnsmasq.service",
+        "sha256": "1f7a36c1767089c38c4328324f74d4e68dc33a1804173adcc988657ecf5ec55f",
+        "inode": 2084947,
+        "mtime_ns": 1793357834080175596,
+        "unchanged": true
+      },
+      {
+        "path": "/usr/lib/soc-agent/continuous/service.py",
+        "sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+        "inode": 2722109,
+        "mtime_ns": 1793689596669204080,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf",
+        "sha256": "61257ee34448f64716b75b4e97f5e619a2d3866ed7461ca89919d966e259cad9",
+        "inode": 2084951,
+        "mtime_ns": 1793357834117147432,
+        "unchanged": true
+      }
+    ],
+    "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+    "ledger_rows": 81,
+    "failed_artifacts": 797,
+    "failed_artifacts_changed": [],
+    "root_native_dns_host_journal_inference_api_executions": 0,
+    "original_user_files": 164,
+    "original_user_files_changed": [],
+    "checked_after_preparation": true,
+    "old_manager_current_unchanged": true
+  },
+  "update_plan": {
+    "status": "PREPARED_NOT_AUTHORIZED_NOT_EXECUTED",
+    "ordinary_user_manager_update_command": [
+      "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/scripts/install_research_manager.py",
+      "--build-evidence",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-full-live-validation-prep-20261103T095545Z/manager-update-proof",
+      "--update"
+    ],
+    "existing_manager": "/home/geonug/.local/share/soc-agent/management/4e4fb2c90c3a9467-57f8c396184bc1f8",
+    "candidate_wheel_sha256": "2640b8772f44a7766773cc013f594afe9429eea69bd03cedbf605126c94b1f58",
+    "rollback": "Existing version directory retained by existing installer; no update performed here",
+    "root_update": "SEPARATE_EXACT_ROOT8_MANIFEST_APPROVAL; 3 proposed changes/5 verify-only; no new service",
+    "activation_allowed": false,
+    "blockers": [
+      "HOST_IF_DISPATCH_NOT_CONNECTED",
+      "IF_GUI_APPROVAL_UNSUPPORTED",
+      "IF_NATIVE_TRAINING_CONTRACT_UNVERIFIED",
+      "EXPLICIT_RELEASE_UPDATE_AND_LIVE_PERMISSIONS_MISSING"
+    ]
+  },
+  "permissions_issued": 0,
+  "live_executions": 0,
+  "product_code_changes": 0,
+  "root_native_dns_host_model_api_executions": 0,
+  "full_live_status": "BLOCKED_AUTH_IF_ROUTE_CONTRACT_GUI_MISSING_AND_NO_NEW_LIVE_APPROVAL",
+  "raw_evidence_directory": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-full-live-validation-prep-20261103T095545Z"
+}
