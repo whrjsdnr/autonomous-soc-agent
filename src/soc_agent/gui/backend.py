@@ -49,6 +49,7 @@ class GUIConfig(Snapshot):
     continuous_directory: Path | None = None
     continuous_execution_evidence: Path | None = None
     continuous_api_directory: Path | None = None
+    operator_home: Path | None = None
     analysis_result: Path | None = None
     analysis_ml_root: Path | None = None
     refresh_seconds: int = Field(default=15, ge=10, le=300)
@@ -404,6 +405,12 @@ class Backend:
                 value["continuous"]["controller_error"] = {
                     "error": "CONTROLLER_DIAGNOSTIC_UNVERIFIED"
                 }
+        if self.config.operator_home and "continuous" in value:
+            from soc_agent.agent_release import operator_context
+
+            value["operation"] = await asyncio.to_thread(
+                operator_context, self.config.operator_home, self.continuous_directory
+            )
         from soc_agent.gui.continuous_projection import project
 
         return project(value)
@@ -415,6 +422,39 @@ class Backend:
         value = await asyncio.to_thread(status, path)
         self.continuous_directory = path
         return value
+
+    async def operator_sessions(self):
+        from soc_agent.agent_release import session_profiles
+
+        if self.config.operator_home is None:
+            return dict(sessions=[])
+        return dict(sessions=await asyncio.to_thread(session_profiles, self.config.operator_home))
+
+    async def operator_session_attach(self, index: int):
+        from soc_agent.agent_runtime import AgentProfile
+        from soc_agent.security_ai.research.environment import read_local
+
+        rows = (await self.operator_sessions())["sessions"]
+        if type(index) is not int or not 0 <= index < len(rows):
+            raise ValueError("AGENT_SESSION_INDEX_UNKNOWN")
+        selected = AgentProfile.model_validate(
+            json.loads(await asyncio.to_thread(read_local, Path(rows[index]["profile"]), 65536))[
+                "profile"
+            ]
+        )
+        result = await self.continuous_attach(str(selected.runtime))
+        self.config = self.config.model_copy(
+            update={
+                "continuous_execution_evidence": selected.review / "execution"
+                if selected.review
+                else None,
+                "continuous_api_directory": selected.review.parent
+                / "llm-review/investigation-runtime"
+                if selected.review
+                else None,
+            }
+        )
+        return result
 
     async def continuous_status(self):
         from soc_agent.continuous.cli import observed_status

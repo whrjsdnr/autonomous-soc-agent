@@ -29,6 +29,33 @@ def build(app):
         ("Reset AI Circuit", lambda: app.call("continuous_reset", callback=app.continuous_updated)),
     ]:
         ttk.Button(controls, text=name, command=callback).pack(side="left", padx=4)
+    if getattr(app.config, "operator_home", None):
+
+        def sessions_ready(value):
+            window = tk.Toplevel(app.root)
+            window.title("Preserved Sessions · attach only, no execution")
+            choices = tk.Listbox(window, width=105, height=10)
+            choices.pack(fill="both", expand=True)
+            for row in value["sessions"]:
+                choices.insert("end", f"{row['index']} · {row['source']} · {row['runtime']}")
+
+            def selected():
+                indices = choices.curselection()
+                if indices:
+                    app.call(
+                        "operator_session_attach",
+                        value["sessions"][indices[0]]["index"],
+                        callback=app.continuous_updated,
+                    )
+                    window.destroy()
+
+            ttk.Button(window, text="Attach selected Session", command=selected).pack()
+
+        ttk.Button(
+            controls,
+            text="Sessions",
+            command=lambda: app.call("operator_sessions", callback=sessions_ready),
+        ).pack(side="left", padx=4)
     review_controls = ttk.Frame(app.content)
     review_controls.pack(fill="x", pady=4)
 

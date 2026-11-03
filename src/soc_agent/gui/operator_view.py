@@ -24,7 +24,19 @@ from soc_agent.gui.redaction import display_data
 def continuous_status_line(value):
     current = value.get("continuous") or {}
     counts = current.get("metrics") or {}
-    return (
+    operation = value.get("operation", {})
+    release_line = (
+        (
+            f"Release {operation.get('release', 'UNKNOWN')} · "
+            f"Session {operation.get('session', 'UNKNOWN')} · "
+            f"Integrity {operation.get('integrity', 'UNKNOWN')}\n"
+            f"RF/LR {operation.get('model_authority', 'UNKNOWN')} · "
+            f"LLM {operation.get('api_authority', 'UNKNOWN')}\n"
+        )
+        if operation
+        else ""
+    )
+    return release_line + (
         f"Continuous {current.get('source', 'NOT_ATTACHED')} · "
         f"{current.get('state', 'UNKNOWN')} · Collector {current.get('collector', 'UNKNOWN')} · "
         f"Native live {current.get('collection_live', False)}\n"

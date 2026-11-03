@@ -23,38 +23,77 @@ def main(argv=None) -> int:
             source.add_argument("--config", type=Path)
             source.add_argument("--native-review", type=Path)
             source.add_argument(
+                "--installed-release",
+                type=Path,
+                help="Register a frozen Native review; fresh sessions still need human approval",
+            )
+            source.add_argument(
                 "--recover-from", type=Path, help="Create an isolated Replay recovery copy"
             )
             item.add_argument("--runtime", type=Path, help="Attach an existing initialized service")
             item.add_argument("--ml-root", type=Path)
             item.add_argument("--authentication-runtime", type=Path)
+            item.add_argument(
+                "--update", action="store_true", help="Explicit installed Release update"
+            )
         if command == "start":
             item.add_argument("--gui", action="store_true")
             item.add_argument(
                 "--preview", action="store_true", help="Non-consuming preflight; never execute"
             )
+        if command == "status":
+            item.add_argument("--sessions", action="store_true", help="List preserved sessions")
+        if command == "gui":
+            item.add_argument("--session", type=int, default=0, help="Preserved session index")
     args = parser.parse_args(argv)
     try:
         if os.geteuid() == 0:
             raise ValueError("SOC_APPLICATION_REQUIRES_ORDINARY_USER")
         home = runtime.home_path(args.home)
         if args.command == "setup":
-            result = runtime.setup(
-                home,
-                replay=args.replay,
-                config=args.config,
-                runtime=args.runtime,
-                review=args.native_review,
-                ml_root=args.ml_root,
-                authentication_runtime=args.authentication_runtime,
-                recover_from=args.recover_from,
-            )
+            if args.update and not args.installed_release:
+                raise ValueError("AGENT_UPDATE_REQUIRES_INSTALLED_RELEASE")
+            if args.installed_release:
+                from soc_agent.agent_release import prepare, register, update
+
+                if args.update:
+                    result = update(home, args.installed_release)
+                else:
+                    result = register(home, args.installed_release)
+                    result |= prepare(home)
+            elif (home / "agent.json").exists() and not any(
+                (
+                    args.replay,
+                    args.config,
+                    args.runtime,
+                    args.native_review,
+                    args.recover_from,
+                    args.authentication_runtime,
+                )
+            ):
+                result = dict(status="ALREADY_CONFIGURED_NOT_STARTED", doctor=runtime.doctor(home))
+            else:
+                result = runtime.setup(
+                    home,
+                    replay=args.replay,
+                    config=args.config,
+                    runtime=args.runtime,
+                    review=args.native_review,
+                    ml_root=args.ml_root,
+                    authentication_runtime=args.authentication_runtime,
+                    recover_from=args.recover_from,
+                )
         elif args.command == "gui":
-            return runtime.gui(home)
+            return runtime.gui(home, session=args.session)
         elif args.command == "start":
             result = runtime.start(home, preview=args.preview, gui=args.gui)
         else:
-            result = getattr(runtime, args.command)(home)
+            if args.command == "status" and args.sessions:
+                from soc_agent.agent_release import session_profiles
+
+                result = dict(sessions=session_profiles(home))
+            else:
+                result = getattr(runtime, args.command)(home)
         print(json.dumps(result, indent=2, default=str))
         if (
             args.command == "start"

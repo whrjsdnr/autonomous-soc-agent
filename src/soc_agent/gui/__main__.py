@@ -58,6 +58,7 @@ def main(argv=None, *, prepared=None) -> int:
     parser.add_argument("--zeek-pcap-sha256")
     parser.add_argument("--developer", action="store_true", help="Open research/replay tools")
     parser.add_argument("--continuous-api-runtime", type=Path)
+    parser.add_argument("--operator-home", type=Path)
     args = parser.parse_args(argv)
     if hasattr(os, "geteuid") and os.geteuid() == 0:
         print("SOC_GUI_REQUIRES_UNPRIVILEGED_USER", file=sys.stderr)
@@ -74,6 +75,7 @@ def main(argv=None, *, prepared=None) -> int:
             from soc_agent.gui.production import Desktop
 
         config = GUIConfig(
+            operator_home=args.operator_home,
             continuous_directory=args.continuous_runtime,
             continuous_execution_evidence=args.continuous_execution_evidence,
             continuous_api_directory=args.continuous_api_runtime,

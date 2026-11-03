@@ -54,7 +54,9 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def verify_review(directory: Path, expected: str | None = None) -> dict:
+def verify_review(
+    directory: Path, expected: str | None = None, *, require_active: bool = True
+) -> dict:
     """Integrity of an existing review, not approval of its commands or future actions."""
     request_path = directory / "approval-request-final-v2.json"
     request_bytes = read_local(request_path, 131072)
@@ -65,7 +67,7 @@ def verify_review(directory: Path, expected: str | None = None) -> dict:
         raise ValueError("AGENT_NATIVE_REVIEW_CONTRACT")
     from datetime import UTC, datetime
 
-    if datetime.fromisoformat(request["expires_at"]) <= datetime.now(UTC):
+    if require_active and datetime.fromisoformat(request["expires_at"]) <= datetime.now(UTC):
         raise ValueError("AGENT_NATIVE_REVIEW_EXPIRED")
     for row in request["files"].values():
         if sha(Path(row["path"])) != row["sha256"]:
@@ -200,14 +202,33 @@ def status(home: Path) -> dict:
     current = service.observed_status(selected.runtime)
     if current.get("source", selected.configuration.source) != selected.configuration.source:
         raise ValueError("AGENT_RUNTIME_SOURCE_CHANGED")
-    return current | dict(
-        runtime=str(selected.runtime),
-        dns_collection=current.get("dns_transport", {}).get(
-            "state", "NOT_COLLECTED_IN_NATIVE_TCP_TRIAL"
+    release = {}
+    if (home / "installed-release.json").exists():
+        from soc_agent.agent_release import installed
+
+        fixed = installed(home)
+        if selected.backend_code_identity != fixed["release"]:
+            raise ValueError("AGENT_SESSION_RELEASE_MISMATCH")
+        release = dict(
+            operation_mode="INSTALLED_RESEARCH_MVP",
+            release=fixed["release"],
+            release_commit=fixed["git_commit"],
+            integrity="PASS",
+            model_authority="EXACT_SEALED_ELIGIBLE_REVIEW_REQUIRED",
+            api_authority="EXACT_INCIDENT_REVISION_REVIEW_REQUIRED",
         )
-        if selected.configuration.source == "NATIVE_SERVICE"
-        else "INPUT_DEPENDENT",
-        dns9="INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
+    return (
+        current
+        | release
+        | dict(
+            runtime=str(selected.runtime),
+            dns_collection=current.get("dns_transport", {}).get(
+                "state", "NOT_COLLECTED_IN_NATIVE_TCP_TRIAL"
+            )
+            if selected.configuration.source == "NATIVE_SERVICE"
+            else "INPUT_DEPENDENT",
+            dns9="INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
+        )
     )
 
 
@@ -317,10 +338,18 @@ def start_preview(home: Path) -> dict:
 
 
 def start(home: Path, *, preview: bool = False, gui: bool = False) -> dict:
-    selected = profile(home)
     if preview:
+        if (home / "installed-release.json").exists():
+            from soc_agent.agent_release import installed
+
+            installed(home)
         return start_preview(home)
     with exclusive_runtime_lock(home / "application-start.lock"):
+        if (home / "installed-release.json").exists():
+            from soc_agent.agent_release import prepare
+
+            prepare(home)
+        selected = profile(home)
         preflight = doctor(home)
         artifact = preflight.get("diagnostics", {}).get("artifact_integrity", {})
         if artifact.get("status") == "FAIL":
@@ -376,6 +405,13 @@ def start(home: Path, *, preview: bool = False, gui: bool = False) -> dict:
             if child.returncode and display is not None and display.poll() is None:
                 display.terminate()
                 display.wait(timeout=30)
+            if (home / "installed-release.json").exists():
+                from soc_agent.agent_release import save
+
+                save(
+                    selected.review / "execution/operator-terminal-result.json",
+                    dict(returncode=child.returncode, automatic_retry=False),
+                )
             return dict(
                 status="NATIVE_REVIEW_ENTRY_EXITED",
                 returncode=child.returncode,
@@ -445,11 +481,21 @@ def stopped_result(current: dict, *, already: bool = False) -> dict:
     )
 
 
-def gui(home: Path) -> int:
+def gui(home: Path, *, session: int = 0) -> int:
     from soc_agent.gui.__main__ import main as gui_main
 
     selected = profile(home)
+    if session:
+        from soc_agent.agent_release import session_profiles
+
+        profiles = session_profiles(home)
+        if session < 0 or session >= len(profiles):
+            raise ValueError("AGENT_SESSION_INDEX_UNKNOWN")
+        doc = json.loads(read_local(Path(profiles[session]["profile"]), 65536))
+        selected = AgentProfile.model_validate(doc["profile"])
     args = ["--continuous-runtime", str(selected.runtime), "--data-directory", str(home / "gui")]
+    if (home / "installed-release.json").exists():
+        args += ["--operator-home", str(home)]
     if selected.review:
         args += ["--continuous-execution-evidence", str(selected.review / "execution")]
         args += [
