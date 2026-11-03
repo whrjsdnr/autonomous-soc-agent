@@ -1,0 +1,168 @@
+{
+  "authority_issued_or_consumed": 0,
+  "builds": {
+    "compile_only": true,
+    "legacy": {
+      "bootstrap": "a67e1e24e0b052deb9bf94dcf124631bbe081b453121039cb5924f637658cca2",
+      "broker": "5fa148e5d0d7b1f3c4b5b5854059140f414c7eabc3db6152364215310b8b0434",
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "libnative-tc.so": "d2bf58c38ed5a9cab92ed1ffa03f59951d3118b444170861568c482d38be05ea",
+      "source_bundle_digest": "f5202ab5f97a730d6745f221a5d474ddb10e2b28c6ba12e89a50c4a0a8c07669",
+      "tc-fixture": "32fd5478c736c536881bcaf9608db72b46585d33770f360f5f62be14a9c53758",
+      "tcx-dispatch-fixture": "6e1c9bb10e0efba52265e2a6f6008610f1a080202f6c8c25d0bfbe8fda3d1322",
+      "tcx.bpf.o": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
+    },
+    "legacy_identical_three": true,
+    "live_execution": false,
+    "native": {
+      "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+      "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+      "service.py": "79da822cba9dabe80de8f6274fa2af5909baa67fcf599aae0c9095b2a0a8f554",
+      "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+    },
+    "native_identical_three": true,
+    "supervisor": {
+      "supervisor.py": "5c7b908b3ec20db9dd35a220be1d9d9da9bcd28914210aaf5e8d6f89c6560e47",
+      "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469"
+    },
+    "supervisor_execution": "BYTES_ONLY_NOT_ACTIVATED",
+    "supervisor_identical_three": true,
+    "wheel_identical_three": true,
+    "wheel_sha256": "c35f3f49fd4e5413c68504f97f936b0f38d137b6842ccea471a55c818bf6000d"
+  },
+  "code_commit": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+  "execution_scheduled": false,
+  "focused_integration": "46 PASS; stored Native prediction verification8; new inference0; FAKE_HTTP2 only",
+  "known_limitations": [
+    "TCX gap root cause UNKNOWN; no new Native observation",
+    "Live API Assessment not run; account availability UNKNOWN",
+    "Three initial parallel regression failures; unchanged serial focused3/full880+880 passed; intermittent cause UNKNOWN",
+    "Global default manager/profile unchanged; ordinary management update after live validation",
+    "No repeat operation policy activated"
+  ],
+  "new_session_validity": "41 PASS including5 new tests",
+  "preservation": {
+    "installed_files_unchanged": 8,
+    "ledger": {
+      "chain": "VERIFIED",
+      "rows": 81,
+      "sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae"
+    },
+    "original_execution_files_unchanged": 796,
+    "original_user_changes": "PRESERVED_NOT_STAGED",
+    "rollback": "NO_WRITES_ROOT_ONLY_BACKUP_BYTES_NOT_REINSPECTED"
+  },
+  "provenance_artifact_check": {
+    "actual_api_calls": 0,
+    "corrected": [
+      "API_CAPTURE_SESSION_LITERAL",
+      "API_PROPOSAL_SOURCE_COMMIT_AND_SESSION",
+      "API_COST_TEXT_AND_ASSERTIONS"
+    ],
+    "credential_reads": 0,
+    "fixture_scope": "ISOLATED_COPY_OF_RETAINED_NATIVE_ONLY_NOT_PREPARED_LIVE_RUNTIME",
+    "negative_session_and_path": [
+      "API_CAPTURE_SESSION_MISMATCH",
+      "API_NATIVE_ANALYSIS_SESSION_PATH"
+    ],
+    "new_model_invocations": 0,
+    "production_authorizations": 0,
+    "same_session_source_selected": true,
+    "status": "PASS_ACTUAL_NEW_ARTIFACT_CHECK_AND_SELECTOR_NONPRIVILEGED"
+  },
+  "readiness": "PARTIALLY_READY",
+  "regressions": {
+    "export": {
+      "guard": {
+        "exitstatus": 0,
+        "external_native_model_execution_allowed": false,
+        "violations": []
+      },
+      "passed": 880,
+      "seconds": 197.4639405600028,
+      "source_unchanged": true
+    },
+    "workspace": {
+      "guard": {
+        "exitstatus": 0,
+        "external_native_model_execution_allowed": false,
+        "violations": []
+      },
+      "passed": 880,
+      "seconds": 195.36497196101118,
+      "source_unchanged": true
+    }
+  },
+  "root_native_dns_model_api_executions": 0,
+  "session_factory": {
+    "distinct_sessions": [
+      {
+        "dns_session": "509e6c61-e570-487d-aa51-1dcfda0865d1",
+        "execution_authority": false,
+        "expires_at": "2026-11-04T01:21:57.665314+00:00",
+        "model_or_api_authorizations": 0,
+        "preview": "PREVIEW_ONLY_REQUIRES_DIRECT_SCOPE_R1_AND_SUDO",
+        "session": "b5e99726-ac0b-45cc-839d-b0d650a8d336"
+      },
+      {
+        "dns_session": "07aa6af5-d5d7-4663-bc77-89fcf4fa5592",
+        "execution_authority": false,
+        "expires_at": "2026-11-04T01:21:57.665314+00:00",
+        "model_or_api_authorizations": 0,
+        "preview": "PREVIEW_ONLY_REQUIRES_DIRECT_SCOPE_R1_AND_SUDO",
+        "session": "559c359d-2637-44f1-915b-34b0815ca66f"
+      }
+    ],
+    "frozen_git": "74cbcb2ae9cf120d29d406c6e0126d07d304be58",
+    "root_native_dns_model_api_executions": 0,
+    "same_release": true,
+    "status": "PASS_FRESH_UNAPPROVED_FACTORY_NOT_REPEAT_EXECUTION_AUTHORITY"
+  },
+  "source_files": 677,
+  "status": "OFFLINE_PREPARATION_VERIFIED_LIVE_E2E_NOT_RUN",
+  "stored_pcap": {
+    "accepted_packets": 70,
+    "api_calls": 0,
+    "excluded": 58,
+    "harness_recovery": "Used actual SHUTDOWN close reason and existing source_worker non-IP exclusion mapping. Earlier isolated harness attempts preserved; no product parser or security assertion changed.",
+    "independent_reference": "REJECTED_UNCHANGED_SNAPLEN262144_EXCEEDS_65535_SCOPE; NO_HEADER_REWRITE_OR_VALIDATION_RELAXATION",
+    "input_sha256": "b76b8bf99528f764854d33915b6c52e277353eafcca12c9cdd8fafeaf030cc0b",
+    "intentional_consumer_disabled": true,
+    "metrics": {
+      "auth_windows": 0,
+      "authentication_inputs": 0,
+      "collector_restarts": 0,
+      "dns_inputs": 0,
+      "dns_metadata_bytes": 0,
+      "dns_rejected": 0,
+      "duplicates": 0,
+      "eligible": 34,
+      "excluded": 58,
+      "flows": 36,
+      "incidents": 0,
+      "incomplete": 2,
+      "invalid": 0,
+      "model_errors": 0,
+      "native_events": 0,
+      "packets": 70,
+      "predictions": 0,
+      "queue_dropped": 4,
+      "received": 128,
+      "recovered_events": 0,
+      "source_gaps": 0
+    },
+    "models_started": 0,
+    "native_capture": 0,
+    "not_full_processing_complete": true,
+    "origin": "PCAP_REPLAY_NOT_NATIVE_ATTESTATION",
+    "pcap": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-e2e-overnight-recovery-20261102T111600Z/operator-cli/retained-128.pcap",
+    "pending_queue_policy": "PRESERVED_NO_MODEL_CONSUMPTION_NOT_FULL_PROCESSING_COMPLETE",
+    "queue_pressure_observed_drops": 4,
+    "reader": "EXISTING_ml.ctu13.pcap.PcapReader_AND_ContinuousRuntime.observe",
+    "records": 128,
+    "source_unchanged": true,
+    "status": "VERIFIED_OFFLINE_PCAP_INGESTION_AND_QUEUE_PRESSURE_NOT_FULL_ANALYSIS"
+  }
+}

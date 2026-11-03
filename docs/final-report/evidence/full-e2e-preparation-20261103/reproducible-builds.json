@@ -1,0 +1,32 @@
+{
+  "compile_only": true,
+  "legacy": {
+    "bootstrap": "a67e1e24e0b052deb9bf94dcf124631bbe081b453121039cb5924f637658cca2",
+    "broker": "5fa148e5d0d7b1f3c4b5b5854059140f414c7eabc3db6152364215310b8b0434",
+    "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+    "libnative-tc.so": "d2bf58c38ed5a9cab92ed1ffa03f59951d3118b444170861568c482d38be05ea",
+    "source_bundle_digest": "f5202ab5f97a730d6745f221a5d474ddb10e2b28c6ba12e89a50c4a0a8c07669",
+    "tc-fixture": "32fd5478c736c536881bcaf9608db72b46585d33770f360f5f62be14a9c53758",
+    "tcx-dispatch-fixture": "6e1c9bb10e0efba52265e2a6f6008610f1a080202f6c8c25d0bfbe8fda3d1322",
+    "tcx.bpf.o": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
+  },
+  "legacy_identical_three": true,
+  "live_execution": false,
+  "native": {
+    "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+    "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+    "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+    "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+    "service.py": "79da822cba9dabe80de8f6274fa2af5909baa67fcf599aae0c9095b2a0a8f554",
+    "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+  },
+  "native_identical_three": true,
+  "supervisor": {
+    "supervisor.py": "5c7b908b3ec20db9dd35a220be1d9d9da9bcd28914210aaf5e8d6f89c6560e47",
+    "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469"
+  },
+  "supervisor_execution": "BYTES_ONLY_NOT_ACTIVATED",
+  "supervisor_identical_three": true,
+  "wheel_identical_three": true,
+  "wheel_sha256": "c35f3f49fd4e5413c68504f97f936b0f38d137b6842ccea471a55c818bf6000d"
+}
