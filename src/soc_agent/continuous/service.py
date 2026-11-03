@@ -181,6 +181,13 @@ class ContinuousRuntime:
             self.control_identity = runtime_identity(os.getpid())
 
     def snapshot(self, *, queue_counts=None, authentication=None, dns_transport=None):
+        # A source can fail before its async generator finishes failure cleanup.
+        # Latch the error we publish now, so a later DNS/cleanup failure cannot
+        # replace the primary error already seen by the operator and supervisor.
+        if self.last_error is None:
+            code = (getattr(self.source, "failure", None) or {}).get("code")
+            if isinstance(code, str) and code:
+                self.last_error = code
         analysis = self.analysis.snapshot()
         supplied_authentication = authentication is not None
         authentication = (
@@ -969,6 +976,7 @@ class ContinuousRuntime:
 
                     if self.last_error is None:
                         self.last_error = type(error).__name__ + ":" + str(error)
+                    if self.collector_failure is None:
                         self.collector_failure = dict(
                             code=str(error),
                             category=type(error).__name__,
