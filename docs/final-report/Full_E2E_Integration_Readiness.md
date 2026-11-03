@@ -95,3 +95,14 @@ GUI 검토는 인간 결정 없이 권한을 만들지 않는다. API 결과 pro
 실행 제안 만료는 2026-11-03T23:06:23.432868+09:00이다. 이는 인간 승인 없이 활성화된 정책이 아니다. 최종v3에 대한 자동 Preview/Root contract 검증이 통과했고 기본 profile은 이 v3를 가리킨다. GUI 초기 모델/API 대기 상태가 오류가 아닌 정상 대기로 반환됨도 확인했다.
 
 코드2064af1, 문서는 별도 Commit. 설치 Root8경로·Ledger81행·기존 사용자164파일·역사 증거2554개 SHA를 마지막으로 재검증해 유지됨을 확인했다. Unit Test의 격리 TEST_ONLY 승인은 실제 R1/Root/Native/API 실행 영수증 발급으로 계산하지 않는다. Native 모델 Worker 원인은 실환경 재검증 전까지 UNKNOWN이며 Source/API 전체 Live 성공을 주장하지 않는다.
+
+
+## 2026-11-03 — Installed operator UX 후속 준비
+
+이 절은 이전 일회성 profile의 PARTIAL 판정을 덮어쓰지 않는 후속 개발 결과다. 코드1825442에서 기존 frozen Native Release의 Session 초안 자동 준비·소비/실패 차단·명시적 Update·GUI Session 조회를 연결했다. 관리 Wheel SHA는 `2d3b2d6076b423af01048e857ab009797ba67b7609ca57de9b742724ea2f0b97`이며 실제 Native backend의 frozen Code2064af1과 분리했다. API request 비용의 오래된 $1 literal은 새 제안 $0.05에 맞게 축소 결합했다.
+
+최종 Workspace1545 PASS/1 SKIP, Export296 PASS(변경 CLI/GUI/승인/Session 및 보존 E2E), 집중71 PASS. 두 Source tree identity 일치, Native·legacy·Supervisor·Wheel 3-way 빌드 일치. Root verify_contract의 실제 새 draft/파일 검사는 통과했으며 인간 결정·서비스 조회만 fixture였다. 실제 설치 관리 CLI의 Read-only doctor/status/preview, 격리 Replay Start→Status→Stop/Cleanup, GUI 재연결도 검사했다. Native/API 실행은 별도다.
+
+관리 설치 추가 결함: Controller-only 의존성에는 NumPy/scikit-learn/XGBoost·패키지 리소스가 없었고, copied CPython에는 Tcl/Tk shared libraries가 빠졌다. 실제 import/GUI 검사로 발견하여 기존 설치본에서 가져왔다. uv .lock0666은0600으로 강화했다. 기존 Root Controller의 파일/크기/권한 검사는 완화하지 않았다. 실패한 미게시 설치와 로그를 보존했다.
+
+실제 시험 제안: `.git/operator-ux-validation-20261103/live-approval-package.md`. 전체600초/순수목표360초, 기존 lo/Ingress·TCP4·DNS UDP2/TCP1, Root8 중3변경, 기존 자원 상한. B는 실제 봉인 작업별, C는 실제 Incident/Revision별 독립 GUI 승인이다. 실제 운영 판정과 현재 관리 준비 판정은 구분한다.

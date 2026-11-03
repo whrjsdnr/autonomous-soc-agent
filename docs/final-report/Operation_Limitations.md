@@ -1,29 +1,32 @@
-# 운영 한계와 남은 검증
+# 운영 한계와 남은 실제 검증
 
-현재 Research MVP는 제한된 실환경 성공과 실패가 함께 존재한다. 상용 무인 SOC로 판정하지 않는다.
+## 이번 변경의 범위
 
-| 항목 | 현재 판정 |
+고정된 기존 Native Release의 자동 검증, 새 Session 초안 준비, 명시적 Update와 이전 profile 보관, GUI Session 선택, 정확한 모델/API 검토 UI를 비권한으로 통합한다. 관리 CLI는 별도 재현 Wheel에 고정한다. 사용자 SHA/UUID 입력은 필요하지 않다.
+
+이는 새 Native 전체 E2E, 실제 외부 API, 장시간 운영 성공을 의미하지 않는다. 실제 실행에는 새 Scope/R1·정책·Root/Native/DNS 승인과 직접 sudo가 필요하다. 모델은 봉인된 ELIGIBLE 작업별 승인, API는 정확한 Incident/Revision 승인이 별도로 필요하다.
+
+| 항목 | 판정/제한 |
 |---|---|
-| 제한 Native Packet/DNS 수집, Window·Attestation | 과거 제한 Scope VERIFIED_NATIVE |
-| Native RF/LR/Incident/Orchestration | 과거 제한 Scope 성공. 최근 서비스 Worker 실패와 구분 |
-| 최근 약6분 수집 | 최종 seal 기준361.395650895초. 전체 GUI/모델은 실패 |
-| 최근 설치 실패 | 8경로 중3변경을4로 검사한 코드 결함. 설치 전 차단, 수정본 비권한 회귀 |
-| 모델 서비스 실패의 정확한 원인 | UNKNOWN. 호스트 보존 입력 성공은 서비스 해결 증거 아님 |
-| Heartbeat 송신 공백의 근본 원인 | UNKNOWN. 과거 증거 보존 |
+| 제한 Native Packet/DNS·Window·Attestation | 과거 제한 Scope VERIFIED_NATIVE 유지 |
+| Native RF/LR·Incident·Orchestration | 과거 제한 성공 보존. 최근 서비스 Worker 원인은 UNKNOWN |
+| 최근 약6분 수집 | 최종 seal 기준361.395650895초; 전체 GUI/모델 성공과 다름 |
+| Heartbeat 송신 공백 | 근본 원인 UNKNOWN. 과거 실패 증거 유지 |
 | 실제 LLM Plan | 과거 VERIFIED_API |
-| 실제 LLM Assessment | 과거20초 Timeout, 성공 미검증. Usage 미수신 비용 UNKNOWN |
-| Native 20분/1시간 안정성 | 미완료 |
-| 글로벌 Kernel Cleanup | UNKNOWN/UNVERIFIED. 소유 범위 결과로 확대 금지 |
+| 실제 LLM Assessment | 과거20초 Timeout. Usage 미수신 비용 UNKNOWN; 새 API 성공 미검증 |
+| Native20분·1시간 | 미완료 |
+| Global Kernel Cleanup | UNKNOWN/UNVERIFIED. 소유 자원 결과로 확대 금지 |
 | 실제 Host Authentication IF 전체 E2E | 미검증 |
-| DNS9 원본 학습 추출 계약 | 미완성, 추론 차단 |
-| 새 Native Session 자동 준비/회전 | 미완료. 기존 일회성 review 등록 필요 |
-| 설치 Release 완전 분리 | 별도 운영 Worktree 사용. editable 환경이므로 불변 설치 배포는 미완료 |
-| 단일 GUI exact 모델/API 검토 | 비권한 구현/회귀. 실제 새 Native 실행은 별도 |
+| DNS9 원본 학습 계약 | 미완성, 실제 추론 차단 |
+| 새 Session 준비·일회성 보호 | 비권한 검증. 실패/증거 누락 후 자동 재시도 금지 |
+| GUI 재연결·이전 Session 조회 | Backend 조회; 실행·모델/API 권한을 부여하지 않음 |
 
-이전 Session의 PENDING·POISON은 삭제·재처리하지 않는다. 기존 Ledger 81행, 과거 FAILED/false/UNKNOWN/UNVERIFIED, 설치본·Rollback·원본 Audit는 유지한다. 신규 테스트는 격리된 저장소에 쓴다.
+현재 Installed mode는 검증된 **기존 고정 계약**을 재사용한다. 새 Namespace/Interface/Root 경로·트래픽·Deadline·추론/API 상한을 임의로 바꿀 수 있는 일반 배포 도구가 아니다. 기존 Ledger anchor가 바뀌면 새 검토가 필요하다. 상용 무인 운영이나 무제한 반복 실행을 지원한다고 주장하지 않는다.
 
-실패를 가리기 위한 Timeout 증가, 승인 범위 확대, 자동 모델 교체, API 반복 요청, Root Helper 우회 실행을 하지 않았다.
+기존 PENDING2·POISON1 및 다른 과거 Session의 미처리 작업은 삭제·재처리하지 않는다. 정상 Stop 후에도 현재 Queue의 미처리 수와 실패 수를 표시한다. Queue가 남으면 전체 작업 처리 완료가 아니다.
 
-이번 비권한 실제 CLI Replay에서 Runtime 오류 없이120초 정상 Stop/PENDING13 보존, 후속 격리 복구75.809초/DONE36/새 Prediction22/소유 Runtime Cleanup VERIFIED와 실제 GUI 재연결을 확인했다. 복구 대상의 중간 디렉터리0755 결함은 최소 수정했다. 이를 Native 20분 성공으로 표시하지 않는다.
+지난 비권한 PCAP Replay 결과는 Packet70·격리 복구DONE36/새Prediction22·소유 Runtime Cleanup VERIFIED다. 보존 Native DNS 메타데이터·모델 결과와 FAKE_HTTP 조사 E2E를 실제 신규 Native/API 성공으로 바꾸지 않는다.
 
-추가 발견한 제한 Planner Schema identity 결함은2064af1로 수정했다. 실제 보존 모델 결과·Native DNS 메타데이터와 FAKE_HTTP 조사 E2E가 통과했으나, 실제 Provider의 Plan/Assessment 성공은 여전히 별도다. 현재 범위는 Native20분·1시간이나 반복 Session 자동 준비의 완료가 아니다.
+현재 새 초안은 전체600초·순수 수집 목표360초·TCP<=4·DNS UDP2/TCP1·Queue32를 유지한다. B는 최대2개 봉인 작업/16회, C는 Plan/Assessment 최대2회/$0.05/20초/재시도0회다. API Key는 기존 안전한 설정에서 실제 승인 이후 읽는다. 모델 자동 교체와 임의 Timeout 증가는 없다.
+
+기존 Ledger81행, Audit, 설치8경로, Rollback, 사용자 변경164개와 보존 증거2554개를 유지한다. 파일/권한 검사 실패는 BLOCKED이며 사용 편의를 이유로 무시하지 않는다.
