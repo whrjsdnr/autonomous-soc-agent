@@ -32,8 +32,8 @@ def packages():
     )
 
 
-async def retained(tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361)):
-    store = prepare(tmp_path, packages=packages())
+async def retained(tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361), scope_sha256=None):
+    store = prepare(tmp_path, packages=packages(), scope_sha256=scope_sha256)
     approve_fixture(store)
     mock_journal_child(monkeypatch, seconds=seconds)
     child = AuthenticationLifecycle(store)
@@ -103,7 +103,11 @@ async def test_incomplete_host_window_never_becomes_model_job(tmp_path, monkeypa
 
 @pytest.mark.asyncio
 async def test_exact_if_action_mock_prediction_and_existing_orchestration(tmp_path, monkeypatch):
-    store = await retained(tmp_path, monkeypatch)
+    await exact_if_e2e(tmp_path, monkeypatch)
+
+
+async def exact_if_e2e(tmp_path, monkeypatch, *, scope_sha256=None):
+    store = await retained(tmp_path, monkeypatch, scope_sha256=scope_sha256)
     (job,) = sealed_jobs(store)
     from soc_agent.security_ai.anomaly_common import AnomalyPrediction
     from soc_agent.security_ai.packaging.package import ModelPackage
@@ -187,6 +191,9 @@ async def test_gui_exact_if_review_does_not_authorize_future_windows(tmp_path, m
     assert len(batch.jobs) == 1 and batch.jobs[0].family == "AUTHENTICATION_IF"
     assert batch.jobs[0].calls == 1 and batch.authentication_maximum_invocations == 1
     assert batch.jobs[0].model_details["threshold"] == 0.95
+    assert batch.jobs[0].model_details["window"]["accepted_records"] == 3
+    assert batch.jobs[0].model_details["window"]["feature_values"]["failed_login_count"] == 3
+    assert agent_review.pending_models(review) == batch
     with pytest.raises(ValueError, match="EXPLICIT_HUMAN"):
         agent_review.approve_models(
             review, digest(batch.model_dump(mode="json")), actor="FIXTURE", confirmed=False
@@ -273,3 +280,69 @@ async def test_main_runtime_handoffs_once_and_stop_preserves_unapproved_job(tmp_
     assert runtime.auth_lifecycle.evidence["cleanup"] == "VERIFIED"
     assert len(list((store.directory / "inputs").glob("*.json"))) == 1
     assert runtime.metrics["predictions"] == 0
+
+
+@pytest.mark.asyncio
+async def test_composed_packet_dns_authentication_mock_e2e_one_parent_session(
+    tmp_path, monkeypatch
+):
+    """Synthetic TCX shape + saved journal + wire fixture; NOT a Live success."""
+    from tests.integration import test_tcx_ai_workflow as network_fixture
+    from tests.integration.test_continuous_orchestration import Recorded, drained
+    from tests.integration.test_raw_dns_workflow import job as dns_job
+    from tests.integration.test_raw_dns_workflow import message
+
+    from soc_agent.continuous.investigation import from_analysis
+    from soc_agent.continuous.investigation_store import InvestigationTasks
+    from soc_agent.continuous.store import Store
+    from soc_agent.gui.analysis_service import project_result
+
+    # Includes real child lifecycle/queue/parser, exact IF gate, numeric mock,
+    # original Fusion validation, Incident, SOCRuntime, scripted Plan/Assessment.
+    synthetic_scope = network_fixture.job(native=True).result["tcx"]["data_plane"]["processing"][
+        "plan"
+    ]["source_digest"]
+    # Same synthetic policy scope; this retained-evidence fixture never reads
+    # the placeholder primary input or asserts real Source/Kernel integrity.
+    await exact_if_e2e(tmp_path, monkeypatch, scope_sha256=synthetic_scope)
+    store = Store(tmp_path / "continuous")
+    monkeypatch.setattr(network_fixture, "SESSION", store.database.store_id)
+    root = store.directory / "retained-network-fixture"
+    root.mkdir()
+    # Existing exact Native-shaped Action regression replaces only RF/LR scoring;
+    # no Kernel input, provider.so, real model action or API is invoked.
+    await network_fixture.test_exact_existing_governance_native_path_uses_mock_models_only(
+        root, monkeypatch
+    )
+    network_output = root / "mock-native"
+    dns_output = store.directory / "retained-dns-fixture"
+    dns = await OfflineWorkflow(dns_output, defer_investigation=True).run(
+        dns_job(message(), message(True, at=120))
+    )
+    assert not dns.inference  # No DNS9 permission or invented feature parity.
+    receipt = json.loads((dns_output / "dns-transactions.json").read_text())
+    assert receipt["matched_transactions"] == 1
+    auth = verify_result(tmp_path / "approved")
+    network = verify_result(network_output)
+    assert len(auth.inference) == 1 and len(network.inference) == 2
+    assert auth.evidence[0].session == network.evidence[0].session == str(store.database.store_id)
+    tasks = InvestigationTasks(store)
+    for output in (network_output, dns_output):
+        source = from_analysis(
+            output, scope=store.config.input_sha256, namespace=store.config.namespace
+        )
+        tasks.submit(source)
+        assert tasks.submit(source).incident_id == source.incident_id
+    client = Recorded()
+    await drained(tasks, client)
+    roles = {role for task in tasks.tasks() for role in task.roles}
+    assert {"NETWORK", "DNS", "AUTHENTICATION"} <= roles
+    assert client.calls
+    projections = [project_result(result) for result in (auth, network, dns)]
+    assert sum(p["inference_count"] for p in projections) == 3
+    assert all(p["audit"] == "VERIFIED" and p["external_provider_calls"] == 0 for p in projections)
+    assert all(p["llm_mode"] != "REAL_API" for p in projections)
+    assert (
+        json.loads((store.directory / "authentication-cleanup.json").read_text())["cleanup"]
+        == "VERIFIED"
+    )

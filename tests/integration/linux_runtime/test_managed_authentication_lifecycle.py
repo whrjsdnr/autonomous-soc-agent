@@ -24,7 +24,7 @@ from soc_agent.linux_runtime.service import initialize
 from soc_agent.state.evidence import utc_now
 
 
-def prepare(tmp_path, *, packages=()):
+def prepare(tmp_path, *, packages=(), scope_sha256=None):
     directory = tmp_path / "continuous"
     source = tmp_path / "empty.jsonl"
     source.write_bytes(b"")
@@ -35,7 +35,7 @@ def prepare(tmp_path, *, packages=()):
             authentication_packages=packages,
             native_model_approvals=tmp_path / "model-approvals" if packages else None,
             input_file=source,
-            input_sha256=hashlib.sha256(b"").hexdigest(),
+            input_sha256=scope_sha256 or hashlib.sha256(b"").hexdigest(),
             authentication_runtime=directory / "authentication",
             managed_authentication=ManagedAuthentication(
                 approval_file=tmp_path / "approval.json",
@@ -323,3 +323,33 @@ async def test_cleanup_evidence_write_failure_does_not_publish_verified(tmp_path
     assert value["cleanup"] == "UNVERIFIED" and not value["durable_cleanup"]
     assert value["state"] == "FAILED"
     assert not (store.directory / "authentication-cleanup.json").exists()
+
+
+@pytest.mark.asyncio
+async def test_stop_during_status_read_is_not_a_new_stale_failure(tmp_path, monkeypatch):
+    import threading
+    from types import SimpleNamespace
+
+    child = AuthenticationLifecycle(prepare(tmp_path))
+    child.process = SimpleNamespace(returncode=None)
+    child.state = "RUNNING"
+    entered, release = threading.Event(), threading.Event()
+    stopped = asyncio.Event()
+
+    def read():
+        entered.set()
+        assert release.wait(2)
+        return dict(heartbeat_monotonic=0, runtime_identity={}, state="STOPPED")
+
+    monkeypatch.setattr(child, "_read", read)
+    watching = asyncio.create_task(child.watch(stopped))
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        stopped.set()
+        release.set()
+        await asyncio.wait_for(watching, 1)
+    finally:
+        release.set()
+        await asyncio.gather(watching, return_exceptions=True)
+    assert child.state != "FAILED"
+    assert child.evidence.get("cleanup") != "VERIFIED"  # STOP is not cleanup proof.

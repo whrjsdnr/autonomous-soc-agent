@@ -106,6 +106,18 @@ def pending_models(review: Path) -> ModelReviewBatch:
             ):
                 raise ValueError("IF_MODEL_REVIEW_SESSION_SCOPE_MISMATCH")
             contract = validate_job(job)
+            from soc_agent.security_ai.authentication import AuthenticationWindowExtractor
+
+            (window,) = AuthenticationWindowExtractor().extract(job.records)
+            contract["window"] = dict(
+                started_at=window.started_at.isoformat(),
+                ended_at=window.ended_at.isoformat(),
+                witness=job.witness.isoformat(),
+                accepted_records=len(job.records),
+                feature_values=window.features.input_payload(),
+                coverage="SUPPORTED_PAM_FAILURE_EVENTS_ONLY_NOT_ALL_HOST_LOGINS",
+                lateness_seconds=60,
+            )
             out = runtime / "analysis" / ("run-" + pin)
             proposed = if_action(job, out)
             grant = cfg.native_model_approvals / (pin + ".json")

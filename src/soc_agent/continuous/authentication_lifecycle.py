@@ -256,6 +256,11 @@ class AuthenticationLifecycle:
                     state = await asyncio.wait_for(asyncio.to_thread(self._read), 5)
                 except TimeoutError as error:
                     raise ValueError("AUTHENTICATION_STATE_OBSERVATION_TIMEOUT") from error
+                # STOP can arrive while the read is in flight. Liveness applies
+                # to active collection, not a snapshot read before requested STOP.
+                # close() still independently requires exit/ACK/durable evidence.
+                if stopped.is_set():
+                    return
                 if state.get("runtime_identity") != self.identity or not same_runtime(
                     self.identity
                 ):
