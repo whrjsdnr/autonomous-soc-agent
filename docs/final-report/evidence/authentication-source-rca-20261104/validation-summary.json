@@ -1,0 +1,36 @@
+{
+  "code_commit": "a5441a9c480f62bba0c4f83c128be7cfb7fa20f2",
+  "classification": "BLOCKED_FOR_FULL_LIVE_E2E",
+  "source_direct_cause": "UNKNOWN",
+  "workspace": {
+    "passed": 1066,
+    "pytest_seconds": 300.11
+  },
+  "export": {
+    "passed": 1066,
+    "pytest_seconds": 293.83
+  },
+  "focused_passed": 34,
+  "guard_violations": 0,
+  "preserved_initial_regression": {
+    "passed": 1065,
+    "failed": 1,
+    "classification": "TEST_FIXTURE_RACE"
+  },
+  "ruff_check": "PASS",
+  "ruff_format_files": 1626,
+  "diff_check": "PASS",
+  "reproducible": {
+    "native": true,
+    "legacy": true,
+    "supervisor": true,
+    "wheel_sha256": true
+  },
+  "wheel_sha256": "59479b3738d71060823f57bb550bf75e488cc4a3a1d3a9afee180a9e7c2cc45e",
+  "source_files": 682,
+  "source_manifest_sha256": "3066aacdb5f0b6ee7c69089d4629d18a728bb8bf30dc815f3b2a30f5fcf38515",
+  "historical_runtime_cleanup": "UNVERIFIED",
+  "host_collection_executed": false,
+  "root_native_dns_models_api_executed": false,
+  "installed_release_updated": false
+}

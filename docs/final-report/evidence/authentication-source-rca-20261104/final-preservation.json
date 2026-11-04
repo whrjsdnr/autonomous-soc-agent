@@ -1,0 +1,65 @@
+{
+  "evidence_unchanged": {
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime/authentication/monitor.sqlite": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime/authentication/collection-audit.sqlite": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime/service.sqlite": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime/authentication-child.log": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime/authentication-cleanup.json": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/first-error.json": true,
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/root-finished.json": true
+  },
+  "ledger_rows": 81,
+  "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+  "workspace_export_source_equal": true,
+  "source_file_count": 682,
+  "root8": [
+    {
+      "path": "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-tcp-trial.service",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/etc/soc-agent/continuous-installation.json",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-operations-runtime.service",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-dns.service",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-dnsmasq.service",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/usr/lib/soc-agent/continuous/service.py",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf",
+      "unchanged_sha256": true,
+      "unchanged_inode": true,
+      "unchanged_mtime": true
+    }
+  ]
+}

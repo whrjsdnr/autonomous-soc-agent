@@ -275,3 +275,186 @@ RF/LR/IF 봉인 작업 및 LLM 입력·비용 GUI 확인은 별도 유지한다.
 - 전체 E2E 재실행은 아직 차단된다. SOURCE_UNAVAILABLE의 실제 하위 원인은 새 계측이 없던 회차에서는 UNKNOWN이며,
   Runtime Cleanup UNVERIFIED와 소비된 Session/승인 기록을 임의로 초기화할 수 없다.
 - 이 수정은 진단 유실 보완의 검증이지 Host 원인 해결 또는 FULL_LIVE_E2E_VERIFIED가 아니다.
+
+
+---
+
+# Authentication SOURCE_UNAVAILABLE RCA — 2026-11-04
+
+## 판정
+
+**실제 SOURCE_UNAVAILABLE의 직접 원인: UNKNOWN. Full Live E2E 재개: BLOCKED.**
+`c4f5d4d`/`a9c3a7c`를 기준으로 기존 증거만 읽고 비권한 검증을 수행했다.
+현재 설치 Release ec9c913 및 기존 Source/Launcher/Pin/Session/Root 설치는 변경하지 않았다.
+개발 변경은 `fix/authentication-startup-evidence-20261104` Worktree에 분리했다.
+이 보고서는 과거 Runtime Cleanup UNVERIFIED를 변경하지 않는다.
+
+## 1. 최초 오류와 발생 순서
+
+실제 실행은 067d36a 소스와 Runtime Session `c1f2c795-642b-4c38-b60a-6217922f9db6`를 사용했다.
+Root Trial driver29.887157684초 뒤 exit2. 내부 최초 예외는
+`AuthenticationLifecycle._start_owned()`의 `AUTHENTICATION_READY_TIMEOUT`이다.
+실행 당시 `continuous/authentication_lifecycle.py:257`, 바깥 관측은 `root-trial.py:477`의
+`RUNTIME_FIRST_ERROR:ValueError`다. Runtime는 auth READY 이전에 TCX 수신을 시작하지 않았다.
+
+| 기록 | 시각 |
+|---|---|
+| Authentication child |PID3261118/start_ticks111207070/UID1000|
+| child RUNTIME_STARTED |UTC05:34:55.404128|
+| COLLECTION_START |UTC05:34:55.463048|
+| parent의 auth STOP 요청 |monotonic1112076.070955167|
+| Root가 Runtime 오류 관측 |UTC05:35:00.208689|
+| Runtime PROCESS_SIGNAL 수신 |mono1112076.147092812 / UTC05:35:00.228552|
+| COLLECTION_RESULT SOURCE_UNAVAILABLE |UTC05:35:00.353349|
+| COLLECTION_RETRY counter1 |UTC05:35:00.467756|
+| auth RUNTIME_STOPPING → STOPPED |UTC05:35:00.818420 → 05:35:02.265584|
+| auth ACK/reap/reader join 관측 |mono1112078.709390848|
+
+Runtime의 저장된 wall/monotonic 한 쌍으로 환산한 auth STOP 요청은 약UTC05:35:00.152415이다.
+이는 단일 시계 상관 표본이며 전체 구간의 clock 동기성을 증명하지 않는다.
+boot ID는 저장된 child Identity와 이번 metadata 조회에서 일치한다.
+**SOURCE_UNAVAILABLE 결과의 기록이 Timeout/STOP보다 늦다는 사실과,
+그 예외가 내부에서 실제 발생한 시각은 구분해야 한다.** SQL/audit 지연 때문에 앞선 실패가
+늦게 기록됐을 수도 있고 STOP 중 명령 종료가 후속 실패로 분류됐을 수도 있다.
+COLLECTION_START→RESULT4.890301초를 journalctl 실행시간으로 해석하지 않는다.
+
+### 이전 보고서 시간 필드 해석 정정
+
+이전 result.md의 "Authentication 단계 시작 = mono1112067.771317040" 표기는 정확하지 않다.
+실행 소스의 `ContinuousRuntime.run`은 `startup.started_monotonic`을 CONTROL_FLAGS 단계에서
+한 번 기록하고 이후 stage 문자열만 갱신한다. 최종 stage=AUTHENTICATION_READY와 그 시각을
+결합해 해당 단계 시작 시각이라고 해석하면 안 된다.
+2.325608672초의 저장 관측(1112067.771359212→1112070.096967884)은 초기 control I/O이며
+자식 생성/READY 대기 이전 구간이다. 이것만으로 자식 생성 후 설정되는5초 deadline 초과를
+설명할 수 없다. 실제 단계별 시작시각과 명령/상태 read 지연이 없던 회차의 원인은 UNKNOWN으로 유지한다.
+원본 로그/과거 파일은 보존하고 이 문서에서 해석을 정정한다.
+
+## 2. 실제 호출 경로 및 READY
+
+`ContinuousRuntime.run → AuthenticationLifecycle.start/_start_owned → linux_runtime CLI
+→ LinuxMonitor.run/tick → collect_with_health → AuthenticationPipeline.collect
+→ LinuxAuthenticationCollector.poll → bounded_command(journalctl) → project_journal
+→ Queue → Source Store/Correlation → collector=INITIAL_READ 게시` 순서다.
+
+부모는 `AuthenticationLifecycle._observe → asyncio.to_thread(RuntimeStore.observation)`으로
+**SQLite 상태와 Audit 무결성**을 읽는다. Authentication READY 전용 Unix Socket 메시지 경로는 없다.
+Root TCX socket READY는 Authentication READY가 아니며 Producer 인증 완료도 아니다.
+
+| 분류 | 증거 기반 판정 |
+|---|---|
+| Collector/child 시작 실패 |child RUNTIME_STARTED 및 COLLECTION_START가 있어 전면 시작 실패로 설명할 수 없음|
+| Journal 연결/명령 실패 |실제 command PID·returncode·errno·stderr 부재, UNKNOWN|
+| Parser/Queue 입력 오류 |SOURCE_UNAVAILABLE은 CollectorUnavailable 또는 ValueError에서 가능; 실제 하위 예외 부재|
+| READY 게시 |첫 healthy COLLECTION_RESULT 없음. 정상 READY 조건 충족 증거 없음|
+| READY Socket 전달 |해당 READY 경로는 SQLite observation; TCX IPC 장애로 분류하면 안 됨|
+| Runtime READY 관측 실패 |기존5초 안에 일치 identity/RUNNING/정상 collector 상태를 관측하지 못함|
+| Startup scheduling/storage |command/SQLite/fsync/throttle 단계별 측정 부재, UNKNOWN|
+| WSL2 미지원 |현재 WSL2에서 journald active/socket/journalctl 존재. WSL2 자체를 직접 원인으로 단정 불가|
+| 빈 Source |비권한 빈 stdout fixture에서 INITIAL_READ/READY/STOP ACK 검증; 단순0건은 장애가 아님|
+
+저장된 queue cursor0, events0이며 초기 collection은 cursor=None 경로다.
+기존 Cursor 재개를 시도한 회차로 해석하지 않는다. Pipeline binding의 collector는
+`linux:journal:authentication:pam-failure:v1`이며 현재/실행 소스의 생성 계약과 일치한다.
+
+## 3. Host Scope 및 현재 확인 범위
+
+승인 Source는 `SYSLOG_FACILITY=4 SYSLOG_FACILITY=10 + _COMM=sshd` 필터다.
+별도의 `-u` Unit 필터는 없다. 임의의 sshd.service/auth.log 등으로 변경하지 않았다.
+호출은 `--no-pager --quiet --output=json --output-fields=<고정 FIELDS> --lines=+16`이다.
+Parser는 Cursor/기기 ID/시간 metadata, scalar 및 길이 제한, OpenSSH/PAM 신뢰 필드를 검증한다.
+미확인 형식은 추론하지 않는다. 원본 메시지는 downstream 영구 증거에 보존하지 않는다.
+
+현재 일반 사용자 metadata 검사: UID1000, adm supplementary group, journald active MainPID53,
+journal socket 존재, journal 디렉터리 두 곳 존재, journalctl executable/systemd255 확인.
+실행 당시 Runtime의 UID1000/Groups에 adm4가 있었다. **디렉터리 접근 가능은 개별 Journal
+파일의 ACL·해당 Source 읽기·이벤트 존재·파싱 성공 증명이 아니다.**
+실제 Journal 이벤트 조회는 수행하지 않았다. Source 이벤트 유무·현재 Cursor·실제 읽기 성공은 UNKNOWN.
+
+## 4. 종료 중 명령 실패 가설과 최소 보강
+
+저장된 Runtime unit은 KillMode=control-group이다. READY Timeout 후 부모의 child STOP과
+Root의 Runtime service STOP이 이어졌다. 따라서 Journal subprocess가 종료 신호를 받고
+비정상 종료한 것을 SOURCE_UNAVAILABLE로 기록했을 가능성이 있다.
+**당시 명령 종료 코드가 없으므로 이 가설을 직접 원인으로 확정하지 않는다.**
+
+확인된 진단 결함: c4f5d4d는 COMMAND_EXIT_NONZERO까지 분리하지만 returncode -15와1,
+OS errno 및 command 전후시각을 보존하지 않아 위 가설을 구분할 수 없다.
+다음 최소 보강을 수행했다.
+
+- `CommandObservation`: 고정 숫자 필드(returncode, os_errno, monotonic start/end), 추가 필드 금지,
+  NaN/시간 역전 거부. command/argv/stdout/stderr/Host payload는 저장하지 않는다.
+- `bounded_command` 오류에 해당 관측값을 첨부하고 Health→Runtime 상태/Audit→GUI projection에 전달한다.
+- 신호 종료를 자동으로 정상 종료/READY/권한 성공으로 변환하지 않는다. 상태는 기존 SOURCE_UNAVAILABLE 유지.
+- 실제 Host 대신 자기 자신에게 SIGTERM을 보내는 무해한 Python 자식으로 -15 보존을 검증했다.
+  이것은 실제 Journal이나 과거 systemd 종료 신호 전달의 증명이 아니다.
+- 기존15초 명령 Timeout,5초 auth READY 및2/5/8초 제어 계약·승인·Model Admission은 그대로다.
+
+## 5. 추가로 확인된 테스트 결함
+
+전체 회귀 첫 회차는1065 PASS/1 FAIL이었다. GUI 연결 테스트가 `last_collection`만 기다린 뒤
+처리 중인3건 중2건을 읽었다. 수집 완료 timestamp는 Queue ingest 이후, Source Store/상관분석
+완료보다 먼저 게시되므로 READY 신호가 아니다. `TEST_FIXTURE_RACE`로 분류한다.
+기존 Event 차단 회귀에 last_collection 존재와 collector NOT_STARTED의 동시 성립 Assertion을
+추가해 잘못된 전제를 확인했다. GUI 테스트는 기존40×0.05초 상한 안에서 INITIAL_READ를 기다린다.
+3건·Queue DONE3·조사2건·GUI 재연결·Cleanup의 기존 Assertion은 모두 유지한다.
+빈 Journal fixture도 실제 빈 출력처럼 개행을 추가하지 않도록 보완했다. 기존 비어 있지 않은 fixture는 동일하다.
+
+## 6. Cleanup 및 보존
+
+Authentication child: ordered STOPPING/STOPPED, 동일 Identity, exit0, 강제 종료 없음,
+reader join/child reap/queue drain/durable 기록으로 **VERIFIED(소유 child 범위)**.
+Root: 기존 이번 회차 SERVICE_STOPPED/Audit·socket 없음·target tc/xdp 없음·link/map 없음으로
+소유 범위 VERIFIED. 현재 일반 사용자 systemctl metadata도 Collector/DNS inactive, Runtime failed,
+모두 MainPID0이며 저장된 세 PID는 부재다. 새 privileged 검사는 하지 않았다.
+
+Runtime Cleanup은 **UNVERIFIED** 유지. TCX 연결 전 실패하여
+`CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER`, `CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED`가 후속 기록됐다.
+TCX STOP ACK는 없으며 exit0나 PID 부재로 이를 만들어내지 않는다. Global Kernel Cleanup UNKNOWN.
+기존 Ledger81행·Root8경로·Rollback·과거 실패 DB/로그는 변경하지 않았다.
+
+## 7. 남은 검사와 재개 조건
+
+`host-read-review.json`은 실행 영수증이 아닌 승인 요청 초안이다.
+기존 Auth 필터·UID1000·첫16건·명령1회·15초·재시도0, 원본 영구 저장/출력 없이
+명령 결과와 Parser 계약만 진단하도록 제안한다. Root/Native/DNS/모델/API 권한은 포함하지 않는다.
+일반 사용자 단독 진단은 systemd cgroup/namespace 환경의 재현으로 주장하지 않는다.
+필요한 TCX/BPF/owned FD 권한 검사는 별도 Scope로만 수행한다.
+
+소스와 Wheel이 바뀌므로 새 Release/Source Binding이 필요하다. 기존 소비 Session·승인 영수증을
+승계하지 않는다. Source 원인 확인/필요한 최소 수정, 검증된 새 Binding, 잔류 자원 확인,
+정확한 독립 권한과 직접 Scope·sudo, 봉인 모델/LLM 입력 GUI 확인 뒤에만 Full Live E2E를 재개한다.
+
+## 증거
+
+- `.git/authentication-source-rca-20261104/evidence-analysis.json`
+- `environment-metadata.json`, `preservation.json`, `host-read-review.json`
+- `before-fixture-fix-workspace.log` 및 수정 후 Workspace/Export/빌드 결과
+- 원본 `.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/`
+  및 `future-runtime/authentication/`/`authentication-cleanup.json`/`service.sqlite`
+
+
+
+## 8. 최종 비권한 검증
+
+- 코드 Commit: `a5441a9c480f62bba0c4f83c128be7cfb7fa20f2`. 기존 설치 Release/Root/Launcher/Pin/Session 변경 없음.
+- 집중 회귀34 PASS. 관련 전체 Workspace1066 PASS(300.11초), 독립 Export1066 PASS(293.83초).
+- 최초 전체 회귀1065 PASS/1 FAIL은 보존했다. 확인된 TEST_FIXTURE_RACE 수정 후 위 결과를 얻었다.
+- Guard 위반0. 실제 Root·Native·DNS·Host Journal 기록·모델·API 실행 없음.
+- Ruff check PASS, format1626 files PASS, diff check PASS.
+- Native/legacy/Supervisor/Wheel: Workspace 두 빌드와 독립 Export 해시 일치(compile only).
+  Supervisor 검증은 기존 보존 package의 prepare_supervisor_image 경로다. 새 Root 설치 검증을 의미하지 않는다.
+- Wheel SHA-256: `59479b3738d71060823f57bb550bf75e488cc4a3a1d3a9afee180a9e7c2cc45e`.
+- Source682개 Workspace/Export 일치. Ledger81행 SHA와 원본 실패 DB/로그 해시 보존 확인.
+- Root8개 SHA·inode·mtime은 직전 읽기 전용 기준과 모두 일치. 백업/설치/증거 수정 없음.
+- 현재 코드 위치: `realtime/collectors.py:30,80`, `security_ai/operational/journal_health.py:41,82`,
+  `linux_runtime/service.py:389`. READY Timeout의 현 코드 위치는
+  `continuous/authentication_lifecycle.py:268`이며 실패 당시 소스의257행과 구분한다.
+
+**결론:** 진단 유실 보강과 비권한 회귀 완료. 실제 Host Source 장애 원인 UNKNOWN,
+Runtime Cleanup UNVERIFIED, 전체 Live 재개 BLOCKED. 새로운 Source/Wheel Binding과
+독립 Host 읽기 진단 승인, 필요한 잔류 검사 및 새 Live 승인이 필요하다.
+`host-read-review.json`은 승인되지 않은 검토 초안이며 실행 영수증이 아니다.
+
+원본 상세 로그는 `.git/authentication-source-rca-20261104/`에 보존한다.
+원격으로 보존할 안전한 요약은 이 문서 인접
+`evidence/authentication-source-rca-20261104/`에 저장했다.

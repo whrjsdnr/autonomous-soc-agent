@@ -1,0 +1,76 @@
+{
+  "status": "PENDING_HUMAN_APPROVAL_NOT_AN_EXECUTION_RECEIPT",
+  "purpose": "Separate an authentication source/parse failure from a command terminated during shutdown; no Full Live E2E retry",
+  "scope": {
+    "uid": 1000,
+    "root": false,
+    "source_filters": [
+      "SYSLOG_FACILITY=4",
+      "SYSLOG_FACILITY=10",
+      "+",
+      "_COMM=sshd"
+    ],
+    "unit_selector": null,
+    "command": "/usr/bin/journalctl",
+    "options": [
+      "--no-pager",
+      "--quiet",
+      "--output=json",
+      "--output-fields=__CURSOR,__REALTIME_TIMESTAMP,_MACHINE_ID,_COMM,_EXE,_UID,SYSLOG_IDENTIFIER,PRIORITY,MESSAGE",
+      "--lines=+16"
+    ],
+    "max_commands": 1,
+    "command_timeout_seconds": 15,
+    "max_output_bytes": 4194304,
+    "cursor": null,
+    "include_pam_failures": true,
+    "automatic_retry": false,
+    "scope_expansion": false
+  },
+  "implementation": "Existing LinuxAuthenticationCollector.poll(cursor=None, limit=16), bounded_command and project_journal; no Live authority",
+  "outputs": [
+    "command returncode/errno",
+    "command monotonic start/end",
+    "fixed failure category",
+    "accepted/rejected record counts and schema checks"
+  ],
+  "privacy": "Existing temporary stdout/stderr files close after command; do not retain raw MESSAGE, user names, source addresses, cursors, argv secrets or stderr in audit/report. No external transmission.",
+  "environment_limit": "Ordinary user diagnostic does not reproduce the privileged service network namespace/cgroup scheduling environment; no success extrapolation",
+  "forbidden": [
+    "sudo",
+    "Root install/change",
+    "Native capture",
+    "DNS traffic",
+    "model inference",
+    "LLM API",
+    "Host source beyond stated filters",
+    "future input approvals",
+    "reuse consumed approval or session"
+  ],
+  "authorization": "Explicit new Host-read approval required by current user instruction. No authorization generated or consumed in this task.",
+  "root_residual_review_separate": {
+    "status": "NOT_EXECUTED_REQUIRES_SEPARATE_SCOPE",
+    "namespace": "net:[4026532232]",
+    "commands_scope": [
+      "read namespace identity and lease",
+      "read scoped TCX/BPF links/maps",
+      "read only owned process identities and sockets/FDs"
+    ],
+    "mutations": false
+  },
+  "full_e2e_resume_conditions": [
+    "Establish source failure category; do not interpret SOURCE_UNAVAILABLE after STOP as proven original cause",
+    "Verify new Source/Wheel/Release/Root installation plan and new Session",
+    "Current scoped residual resource check, historical Runtime Cleanup UNVERIFIED preserved",
+    "Fresh exact independent Root/Native/DNS/R1/R2, Host, RF/LR, IF and API approvals",
+    "Direct Scope confirmation and sudo, actual sealed job/input GUI approvals"
+  ],
+  "candidate_binding": {
+    "code_commit": "a5441a9c480f62bba0c4f83c128be7cfb7fa20f2",
+    "source_manifest_sha256": "3066aacdb5f0b6ee7c69089d4629d18a728bb8bf30dc815f3b2a30f5fcf38515",
+    "source_files": 682,
+    "wheel_sha256": "59479b3738d71060823f57bb550bf75e488cc4a3a1d3a9afee180a9e7c2cc45e",
+    "installed_release_updated": false,
+    "execution_authority": false
+  }
+}

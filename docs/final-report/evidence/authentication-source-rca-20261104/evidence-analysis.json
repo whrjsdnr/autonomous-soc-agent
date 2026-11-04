@@ -1,0 +1,194 @@
+{
+  "first_error": {
+    "stage": "AUTHENTICATED_PRODUCER_READY",
+    "error": "AssertionError",
+    "message": "RUNTIME_FIRST_ERROR:ValueError",
+    "errno": null,
+    "traceback": "Traceback (most recent call last):\n  File \"/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/root-trial.py\", line 477, in run\n    assert not value.get('last_error'), 'RUNTIME_FIRST_ERROR:' + str(value.get('last_error'))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: RUNTIME_FIRST_ERROR:ValueError\n",
+    "at": "2026-11-04T05:35:00.208689+00:00"
+  },
+  "host_audit": [
+    {
+      "sequence": 1,
+      "previous": "0000000000000000000000000000000000000000000000000000000000000000",
+      "kind": "INITIALIZED",
+      "details": {
+        "config_digest": "de95b6023d05a76ab2242803fb2cc79b54f8a7b8190713cbf594eceba0d0b8f3"
+      },
+      "at": "2026-11-04T04:10:35.740388+00:00"
+    },
+    {
+      "sequence": 2,
+      "previous": "348f1241b5f9cb339afb1db45c2351d023c9e22b21fe4ce0dcf43d2dc23174d1",
+      "kind": "START_REQUEST",
+      "details": {},
+      "at": "2026-11-04T05:34:55.387352+00:00"
+    },
+    {
+      "sequence": 3,
+      "previous": "3e1b9d3cf9b119fa16c022a486b964903a8e8741a7b4a764346d4da82590df2c",
+      "kind": "RUNTIME_STARTED",
+      "details": {
+        "config": "de95b6023d05a76ab2242803fb2cc79b54f8a7b8190713cbf594eceba0d0b8f3"
+      },
+      "at": "2026-11-04T05:34:55.404128+00:00"
+    },
+    {
+      "sequence": 4,
+      "previous": "e8d3a8fbf5ecd2e3fedd0e70d723ecc4f72b694475a60391923b80a13461d7fa",
+      "kind": "COLLECTION_RETRY",
+      "details": {
+        "status": "SOURCE_UNAVAILABLE",
+        "attempt": 1
+      },
+      "at": "2026-11-04T05:35:00.467756+00:00"
+    },
+    {
+      "sequence": 5,
+      "previous": "4752d7bd232e872426b5a86695a87325b8c325ee1546f38fb95968906a507f41",
+      "kind": "RUNTIME_STOPPING",
+      "details": {},
+      "at": "2026-11-04T05:35:00.818420+00:00"
+    },
+    {
+      "sequence": 6,
+      "previous": "2607fa3eff996b8a4d197ebffd7992d2af58e761aca55bc95ec27b17351e3db5",
+      "kind": "RUNTIME_STOPPED",
+      "details": {},
+      "at": "2026-11-04T05:35:02.265584+00:00"
+    }
+  ],
+  "collection_health": [
+    {
+      "binding": "9c9e3506ffbfe6f69e6114e6e929ba01fc30bd3641fe96ac0ec7785afceeee09",
+      "operation": "COLLECTION_START",
+      "previous": "0000000000000000000000000000000000000000000000000000000000000000",
+      "recorded_at": "2026-11-04T05:34:55.463048Z",
+      "sequence": 1,
+      "status": "STARTED",
+      "summary_digest": "9c9e3506ffbfe6f69e6114e6e929ba01fc30bd3641fe96ac0ec7785afceeee09"
+    },
+    {
+      "binding": "9c9e3506ffbfe6f69e6114e6e929ba01fc30bd3641fe96ac0ec7785afceeee09",
+      "operation": "COLLECTION_RESULT",
+      "previous": "088dc61779edc0760ebbf32ec1781dec03693f799b6c69010a0ceedbfbe235c4",
+      "recorded_at": "2026-11-04T05:35:00.353349Z",
+      "sequence": 2,
+      "status": "SOURCE_UNAVAILABLE",
+      "summary_digest": "47692560a8a4c1f185f293cf1def12731db8a91ccb606bb4f7008688a6718db4"
+    }
+  ],
+  "host_state": {
+    "state": "STOPPED",
+    "heartbeat": "2026-11-04T05:35:01.866060+00:00",
+    "last_error": null,
+    "collector": "SOURCE_UNAVAILABLE",
+    "cursor_health": "SOURCE_UNAVAILABLE",
+    "llm": "NOT_CONFIGURED",
+    "started_at": "2026-11-04T05:34:55.395184+00:00",
+    "last_collection": null,
+    "last_investigation": null,
+    "circuit_open": false,
+    "llm_failures": 0,
+    "collection_failures": 0,
+    "runtime_identity": {
+      "pid": 3261118,
+      "start_ticks": "111207070",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    },
+    "heartbeat_monotonic": 1112077.784614494
+  },
+  "host_cleanup": {
+    "cleanup": "VERIFIED",
+    "stop_ack": true,
+    "stop_requested_monotonic": 1112076.070955167,
+    "observed_monotonic": 1112078.709390848,
+    "returncode": 0,
+    "forced": false,
+    "child_reaped": true,
+    "state_reader_joined": true,
+    "queue_counts": {},
+    "queue_drained": true,
+    "investigation_jobs": {},
+    "pending_jobs_preserved": true,
+    "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+  },
+  "runtime_secondary": [
+    {
+      "epoch": "e09bfa74-32a1-56b4-99cc-f0eaeda06736",
+      "metrics": {
+        "received": 0,
+        "packets": 0,
+        "native_events": 0,
+        "auth_windows": 0,
+        "recovered_events": 0,
+        "dns_inputs": 0,
+        "dns_metadata_bytes": 0,
+        "dns_rejected": 0,
+        "authentication_inputs": 0,
+        "authentication_predictions": 0,
+        "authentication_incidents": 0,
+        "duplicates": 0,
+        "excluded": 0,
+        "source_gaps": 0,
+        "invalid": 0,
+        "flows": 0,
+        "eligible": 0,
+        "incomplete": 0,
+        "queue_dropped": 0,
+        "predictions": 0,
+        "incidents": 0,
+        "model_errors": 0,
+        "collector_restarts": 0
+      },
+      "first_error": "ValueError",
+      "final_flush_error": null,
+      "data_stall_evidence": null,
+      "data_degradation_count": 0,
+      "data_recovery_count": 0,
+      "cleanup": "UNVERIFIED",
+      "secondary_errors": [
+        {
+          "category": "ValueError",
+          "code": "CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER",
+          "origin": [
+            {
+              "file": "service.py",
+              "function": "control_stop",
+              "line": 610
+            },
+            {
+              "file": "tcx_producer.py",
+              "function": "request_control_stop",
+              "line": 744
+            },
+            {
+              "file": "tcx_producer.py",
+              "function": "request_stop",
+              "line": 759
+            }
+          ]
+        },
+        {
+          "category": "ValueError",
+          "code": "CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED",
+          "origin": []
+        }
+      ]
+    }
+  ],
+  "source_cause": "UNKNOWN",
+  "source_failure_recorded_after_timeout": true,
+  "source_failure_may_be_shutdown_consequence": "HYPOTHESIS_NOT_PROVEN",
+  "current_boot_matches_recorded": true,
+  "retained_queue_counts": {
+    "realtime_events": 0,
+    "realtime_cursors": 0
+  },
+  "clock_correlation": {
+    "offset_sample_seconds": 1792658424.0814593,
+    "host_stop_utc_estimate": "2026-11-04T05:35:00.152415+00:00",
+    "caveat": "Single paired clock sample, not proof of continuous wall/monotonic clock synchronization"
+  }
+}
