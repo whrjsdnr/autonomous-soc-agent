@@ -1,0 +1,47 @@
+{
+  "view": "replay",
+  "round": 6,
+  "code": 0,
+  "checks": {
+    "state": "STOPPED",
+    "historical_cleanup": "VERIFIED",
+    "metrics": {
+      "received": 1035,
+      "packets": 619,
+      "native_events": 0,
+      "auth_windows": 0,
+      "recovered_events": 0,
+      "dns_inputs": 0,
+      "dns_metadata_bytes": 0,
+      "dns_rejected": 0,
+      "authentication_inputs": 0,
+      "duplicates": 0,
+      "excluded": 416,
+      "source_gaps": 0,
+      "invalid": 0,
+      "flows": 207,
+      "eligible": 206,
+      "incomplete": 1,
+      "queue_dropped": 0,
+      "predictions": 406,
+      "incidents": 203,
+      "model_errors": 0,
+      "collector_restarts": 0
+    },
+    "shown_prediction_rows": 64,
+    "shown_tasks": 8,
+    "queue": {
+      "DONE": 203,
+      "PENDING": 4
+    },
+    "gui_ready": true,
+    "normal_close_requested": true
+  },
+  "errors": [],
+  "remaining_non_daemon_threads": [],
+  "desktop_os_lock_released": true,
+  "elapsed_seconds": 5.5950354870874435,
+  "new_native_host_model_api_calls": 0,
+  "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+  "status": "PASS"
+}

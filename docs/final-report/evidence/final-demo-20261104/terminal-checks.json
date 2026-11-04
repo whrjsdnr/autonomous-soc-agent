@@ -1,0 +1,24 @@
+[
+  {
+    "round": 1,
+    "command": "./releases/evidence-demo-20261104/show-demo",
+    "gui_window_observed": true,
+    "stop": "SIGINT equivalent Ctrl+C",
+    "returncode": 0,
+    "pid_absent": true,
+    "os_lock_released": true,
+    "mapped_seconds": 3.5537384289782494,
+    "total_seconds": 4.924545777961612
+  },
+  {
+    "round": 2,
+    "command": "./releases/evidence-demo-20261104/show-demo",
+    "gui_window_observed": true,
+    "stop": "SIGINT equivalent Ctrl+C",
+    "returncode": 0,
+    "pid_absent": true,
+    "os_lock_released": true,
+    "mapped_seconds": 3.1407084020320326,
+    "total_seconds": 4.31093707610853
+  }
+]

@@ -1,0 +1,538 @@
+{
+  "status": "DEMO_READY_PRESERVED_EVIDENCE",
+  "live_e2e": "NOT_VERIFIED",
+  "freeze_at": "2026-11-04T07:38:22.504554+00:00",
+  "production_source": "a5441a9",
+  "viewer_commit": "ab514b63c384afc1f50adcbccc2abfd6b25e38e1",
+  "release": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/evidence-demo-20261104",
+  "release_manifest_sha256": "d299aa7f49a3aade2b4e6fa5d85473074f03185f5262f105721137cf7304f933",
+  "wheel_sha256": "59479b3738d71060823f57bb550bf75e488cc4a3a1d3a9afee180a9e7c2cc45e",
+  "pinned_files": 7181,
+  "source_files_unchanged": 682,
+  "evidence_files_unchanged": 3265,
+  "root_8_sha_inode_mtime_unchanged": true,
+  "ledger_rows": 81,
+  "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+  "two_gui_rounds": [
+    [
+      {
+        "view": "native",
+        "round": 5,
+        "code": 0,
+        "checks": {
+          "state": "STOPPED",
+          "historical_cleanup": "VERIFIED",
+          "metrics": {
+            "received": 57,
+            "packets": 54,
+            "native_events": 54,
+            "auth_windows": 0,
+            "recovered_events": 0,
+            "dns_inputs": 14,
+            "dns_metadata_bytes": 12830,
+            "dns_rejected": 0,
+            "authentication_inputs": 0,
+            "duplicates": 0,
+            "excluded": 0,
+            "source_gaps": 0,
+            "invalid": 0,
+            "flows": 7,
+            "eligible": 5,
+            "incomplete": 2,
+            "queue_dropped": 0,
+            "predictions": 8,
+            "incidents": 2,
+            "model_errors": 0,
+            "collector_restarts": 0
+          },
+          "shown_prediction_rows": 8,
+          "shown_tasks": 5,
+          "queue": {
+            "DONE": 2,
+            "POISON": 1
+          },
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 6.061071400996298,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      },
+      {
+        "view": "replay",
+        "round": 5,
+        "code": 0,
+        "checks": {
+          "state": "STOPPED",
+          "historical_cleanup": "VERIFIED",
+          "metrics": {
+            "received": 1035,
+            "packets": 619,
+            "native_events": 0,
+            "auth_windows": 0,
+            "recovered_events": 0,
+            "dns_inputs": 0,
+            "dns_metadata_bytes": 0,
+            "dns_rejected": 0,
+            "authentication_inputs": 0,
+            "duplicates": 0,
+            "excluded": 416,
+            "source_gaps": 0,
+            "invalid": 0,
+            "flows": 207,
+            "eligible": 206,
+            "incomplete": 1,
+            "queue_dropped": 0,
+            "predictions": 406,
+            "incidents": 203,
+            "model_errors": 0,
+            "collector_restarts": 0
+          },
+          "shown_prediction_rows": 64,
+          "shown_tasks": 8,
+          "queue": {
+            "DONE": 203,
+            "PENDING": 4
+          },
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 4.844222253886983,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      },
+      {
+        "view": "api",
+        "round": 5,
+        "code": 0,
+        "checks": {
+          "incident": "a79cecb6-9b8e-4c21-a55a-5caf7b150400",
+          "historical_calls": 2,
+          "historical_inferences": 2,
+          "audit": "VERIFIED",
+          "mode": "REAL_API",
+          "detail_keys": [
+            "incident_id",
+            "status",
+            "llm_mode",
+            "external_provider_calls",
+            "api_status",
+            "assessment",
+            "plan",
+            "timeline",
+            "unresolved"
+          ],
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 3.830996735021472,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      },
+      {
+        "view": "authentication",
+        "round": 5,
+        "code": 0,
+        "checks": {
+          "authentication": {
+            "network": {
+              "state": "DISABLED",
+              "readiness": "NOT_READY",
+              "packets_per_second": null,
+              "dns_queries_per_minute": null,
+              "flows_per_minute": null,
+              "capture_drops": null,
+              "inference_count": null,
+              "gates": {
+                "network-quality": {
+                  "operational_input": "NOT_INFERABLE",
+                  "inference": "BLOCKED",
+                  "finding_promotion": "BLOCKED",
+                  "feature_generation": "DIAGNOSTIC_ONLY",
+                  "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+                },
+                "network-edge": {
+                  "operational_input": "NOT_INFERABLE",
+                  "inference": "BLOCKED",
+                  "finding_promotion": "BLOCKED",
+                  "feature_generation": "DIAGNOSTIC_ONLY",
+                  "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+                },
+                "dns": {
+                  "operational_input": "NOT_INFERABLE",
+                  "inference": "BLOCKED",
+                  "finding_promotion": "BLOCKED",
+                  "feature_generation": "DIAGNOSTIC_ONLY",
+                  "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+                }
+              }
+            },
+            "runtime_state": "STOPPED",
+            "health": "DEGRADED",
+            "readiness": "NOT_READY",
+            "uptime_seconds": 6879.574793,
+            "collector_state": "SOURCE_UNAVAILABLE",
+            "last_collection_time": null,
+            "journal_cursor_health": "SOURCE_UNAVAILABLE",
+            "collection_diagnostic": null,
+            "queue_backlog": 0,
+            "pending_investigations": 0,
+            "running_investigations": 0,
+            "failed_investigations": 0,
+            "completed_read_only": 0,
+            "completed_llm": 0,
+            "completed_scripted": 0,
+            "blocked_investigations": 0,
+            "assessment_mode": "READ_ONLY",
+            "real_llm_enabled": false,
+            "response_execution": "DISABLED",
+            "response_simulation": "DISABLED",
+            "automatic_human_approval": "DISABLED",
+            "pending_response_reviews": 0,
+            "completed_simulations": 0,
+            "uncertain_simulations": 0,
+            "restricted_response": {
+              "state": "DISABLED",
+              "unknown": 0,
+              "started": 0
+            },
+            "last_investigation_time": null,
+            "llm_availability": "NOT_CONFIGURED",
+            "last_error": null,
+            "audit_store_health": "VERIFIED_LOCAL",
+            "heartbeat_age_seconds": 6873.082294,
+            "inference_status": "NOT_INFERABLE",
+            "write_disposition": "WRITE_DENIED",
+            "real_os_handler_calls": 0,
+            "authentication_events": 0,
+            "findings_total": 0,
+            "collected_events": 0,
+            "active_findings": 0,
+            "pending_approvals": 0,
+            "investigation_distribution": {},
+            "recent_activity": [],
+            "findings": [],
+            "scope": "SEPARATE_READ_ONLY_AUTHENTICATION_RUNTIME",
+            "recent_events": []
+          },
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 5.36704663396813,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      }
+    ],
+    [
+      {
+        "view": "native",
+        "round": 6,
+        "code": 0,
+        "checks": {
+          "state": "STOPPED",
+          "historical_cleanup": "VERIFIED",
+          "metrics": {
+            "received": 57,
+            "packets": 54,
+            "native_events": 54,
+            "auth_windows": 0,
+            "recovered_events": 0,
+            "dns_inputs": 14,
+            "dns_metadata_bytes": 12830,
+            "dns_rejected": 0,
+            "authentication_inputs": 0,
+            "duplicates": 0,
+            "excluded": 0,
+            "source_gaps": 0,
+            "invalid": 0,
+            "flows": 7,
+            "eligible": 5,
+            "incomplete": 2,
+            "queue_dropped": 0,
+            "predictions": 8,
+            "incidents": 2,
+            "model_errors": 0,
+            "collector_restarts": 0
+          },
+          "shown_prediction_rows": 8,
+          "shown_tasks": 5,
+          "queue": {
+            "DONE": 2,
+            "POISON": 1
+          },
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 6.355309406993911,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      },
+      {
+        "view": "replay",
+        "round": 6,
+        "code": 0,
+        "checks": {
+          "state": "STOPPED",
+          "historical_cleanup": "VERIFIED",
+          "metrics": {
+            "received": 1035,
+            "packets": 619,
+            "native_events": 0,
+            "auth_windows": 0,
+            "recovered_events": 0,
+            "dns_inputs": 0,
+            "dns_metadata_bytes": 0,
+            "dns_rejected": 0,
+            "authentication_inputs": 0,
+            "duplicates": 0,
+            "excluded": 416,
+            "source_gaps": 0,
+            "invalid": 0,
+            "flows": 207,
+            "eligible": 206,
+            "incomplete": 1,
+            "queue_dropped": 0,
+            "predictions": 406,
+            "incidents": 203,
+            "model_errors": 0,
+            "collector_restarts": 0
+          },
+          "shown_prediction_rows": 64,
+          "shown_tasks": 8,
+          "queue": {
+            "DONE": 203,
+            "PENDING": 4
+          },
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 5.5950354870874435,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      },
+      {
+        "view": "api",
+        "round": 6,
+        "code": 0,
+        "checks": {
+          "incident": "a79cecb6-9b8e-4c21-a55a-5caf7b150400",
+          "historical_calls": 2,
+          "historical_inferences": 2,
+          "audit": "VERIFIED",
+          "mode": "REAL_API",
+          "detail_keys": [
+            "incident_id",
+            "status",
+            "llm_mode",
+            "external_provider_calls",
+            "api_status",
+            "assessment",
+            "plan",
+            "timeline",
+            "unresolved"
+          ],
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 3.976571633014828,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      },
+      {
+        "view": "authentication",
+        "round": 6,
+        "code": 0,
+        "checks": {
+          "authentication": {
+            "network": {
+              "state": "DISABLED",
+              "readiness": "NOT_READY",
+              "packets_per_second": null,
+              "dns_queries_per_minute": null,
+              "flows_per_minute": null,
+              "capture_drops": null,
+              "inference_count": null,
+              "gates": {
+                "network-quality": {
+                  "operational_input": "NOT_INFERABLE",
+                  "inference": "BLOCKED",
+                  "finding_promotion": "BLOCKED",
+                  "feature_generation": "DIAGNOSTIC_ONLY",
+                  "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+                },
+                "network-edge": {
+                  "operational_input": "NOT_INFERABLE",
+                  "inference": "BLOCKED",
+                  "finding_promotion": "BLOCKED",
+                  "feature_generation": "DIAGNOSTIC_ONLY",
+                  "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+                },
+                "dns": {
+                  "operational_input": "NOT_INFERABLE",
+                  "inference": "BLOCKED",
+                  "finding_promotion": "BLOCKED",
+                  "feature_generation": "DIAGNOSTIC_ONLY",
+                  "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+                }
+              }
+            },
+            "runtime_state": "STOPPED",
+            "health": "DEGRADED",
+            "readiness": "NOT_READY",
+            "uptime_seconds": 6902.186645,
+            "collector_state": "SOURCE_UNAVAILABLE",
+            "last_collection_time": null,
+            "journal_cursor_health": "SOURCE_UNAVAILABLE",
+            "collection_diagnostic": null,
+            "queue_backlog": 0,
+            "pending_investigations": 0,
+            "running_investigations": 0,
+            "failed_investigations": 0,
+            "completed_read_only": 0,
+            "completed_llm": 0,
+            "completed_scripted": 0,
+            "blocked_investigations": 0,
+            "assessment_mode": "READ_ONLY",
+            "real_llm_enabled": false,
+            "response_execution": "DISABLED",
+            "response_simulation": "DISABLED",
+            "automatic_human_approval": "DISABLED",
+            "pending_response_reviews": 0,
+            "completed_simulations": 0,
+            "uncertain_simulations": 0,
+            "restricted_response": {
+              "state": "DISABLED",
+              "unknown": 0,
+              "started": 0
+            },
+            "last_investigation_time": null,
+            "llm_availability": "NOT_CONFIGURED",
+            "last_error": null,
+            "audit_store_health": "VERIFIED_LOCAL",
+            "heartbeat_age_seconds": 6895.686248,
+            "inference_status": "NOT_INFERABLE",
+            "write_disposition": "WRITE_DENIED",
+            "real_os_handler_calls": 0,
+            "authentication_events": 0,
+            "findings_total": 0,
+            "collected_events": 0,
+            "active_findings": 0,
+            "pending_approvals": 0,
+            "investigation_distribution": {},
+            "recent_activity": [],
+            "findings": [],
+            "scope": "SEPARATE_READ_ONLY_AUTHENTICATION_RUNTIME",
+            "recent_events": []
+          },
+          "gui_ready": true,
+          "normal_close_requested": true
+        },
+        "errors": [],
+        "remaining_non_daemon_threads": [],
+        "desktop_os_lock_released": true,
+        "elapsed_seconds": 4.635505641112104,
+        "new_native_host_model_api_calls": 0,
+        "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+        "status": "PASS"
+      }
+    ]
+  ],
+  "two_terminal_checks": [
+    {
+      "round": 1,
+      "command": "./releases/evidence-demo-20261104/show-demo",
+      "gui_window_observed": true,
+      "stop": "SIGINT equivalent Ctrl+C",
+      "returncode": 0,
+      "pid_absent": true,
+      "os_lock_released": true,
+      "mapped_seconds": 3.5537384289782494,
+      "total_seconds": 4.924545777961612
+    },
+    {
+      "round": 2,
+      "command": "./releases/evidence-demo-20261104/show-demo",
+      "gui_window_observed": true,
+      "stop": "SIGINT equivalent Ctrl+C",
+      "returncode": 0,
+      "pid_absent": true,
+      "os_lock_released": true,
+      "mapped_seconds": 3.1407084020320326,
+      "total_seconds": 4.31093707610853
+    }
+  ],
+  "pcap_read_checks": {
+    "source": "/home/geonug/kdt-linux/ML/data/raw/acquisition/iot23-network14-3sessions-v1/CTU-IoT-Malware-Capture-8-1/2018-07-31-15-15-09-192.168.100.113.pcap",
+    "checks": [
+      {
+        "round": 1,
+        "pcap_records": 23623,
+        "parsed_packets": 16677,
+        "seconds": 0.1854529941920191,
+        "sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+        "new_feature_model_execution": 0
+      },
+      {
+        "round": 2,
+        "pcap_records": 23623,
+        "parsed_packets": 16677,
+        "seconds": 0.17554968409240246,
+        "sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+        "new_feature_model_execution": 0
+      }
+    ],
+    "scope": "READ_AND_PARSE_ONLY_NOT_NEW_REPLAY"
+  },
+  "workspace_tests": 58,
+  "export_tests": 58,
+  "new_native_host_model_api_calls": 0,
+  "builds": "REUSED_BYTE_IDENTICAL_PRIOR_NATIVE_SUPERVISOR_WHEEL_NO_PRODUCTION_SOURCE_CHANGE",
+  "historical_runtime_cleanup": "UNVERIFIED_NOT_RETROACTIVELY_CHANGED",
+  "current_cleanup": "VERIFIED_GUI_OWNED_THREADS_PROCESS_AND_OS_LOCK_ONLY",
+  "initial_demo_harness_failures": [
+    "ldconfig GUI library cache denied by overly broad new demo guard; exact read-only query now allowed",
+    "PCAP check script omitted required source_identity; fixed diagnostic invocation only",
+    "Export pytest invoked from parent directory: no tests collected; corrected cwd",
+    "Native report investigation is deferred to separate Continuous Task, not inline analysis report; corrected demonstration navigation, no source mutation"
+  ],
+  "screenshots": [
+    "native-6-Dashboard.png",
+    "native-6-Continuous.png",
+    "native-8-AI-Analysis.png",
+    "native-6-Investigation.png",
+    "native-6-System.png",
+    "replay-6-Continuous.png",
+    "api-8-AI-Analysis.png",
+    "api-8-Investigation.png",
+    "api-8-Evidence-Audit.png",
+    "authentication-6-System.png"
+  ]
+}

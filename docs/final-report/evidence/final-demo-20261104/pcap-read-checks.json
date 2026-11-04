@@ -1,0 +1,22 @@
+{
+  "source": "/home/geonug/kdt-linux/ML/data/raw/acquisition/iot23-network14-3sessions-v1/CTU-IoT-Malware-Capture-8-1/2018-07-31-15-15-09-192.168.100.113.pcap",
+  "checks": [
+    {
+      "round": 1,
+      "pcap_records": 23623,
+      "parsed_packets": 16677,
+      "seconds": 0.1854529941920191,
+      "sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+      "new_feature_model_execution": 0
+    },
+    {
+      "round": 2,
+      "pcap_records": 23623,
+      "parsed_packets": 16677,
+      "seconds": 0.17554968409240246,
+      "sha256": "80dcc2602519479ddcde889fa902fee19a76696630811452f8df38888af894f2",
+      "new_feature_model_execution": 0
+    }
+  ],
+  "scope": "READ_AND_PARSE_ONLY_NOT_NEW_REPLAY"
+}

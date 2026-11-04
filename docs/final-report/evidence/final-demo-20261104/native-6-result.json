@@ -1,0 +1,47 @@
+{
+  "view": "native",
+  "round": 6,
+  "code": 0,
+  "checks": {
+    "state": "STOPPED",
+    "historical_cleanup": "VERIFIED",
+    "metrics": {
+      "received": 57,
+      "packets": 54,
+      "native_events": 54,
+      "auth_windows": 0,
+      "recovered_events": 0,
+      "dns_inputs": 14,
+      "dns_metadata_bytes": 12830,
+      "dns_rejected": 0,
+      "authentication_inputs": 0,
+      "duplicates": 0,
+      "excluded": 0,
+      "source_gaps": 0,
+      "invalid": 0,
+      "flows": 7,
+      "eligible": 5,
+      "incomplete": 2,
+      "queue_dropped": 0,
+      "predictions": 8,
+      "incidents": 2,
+      "model_errors": 0,
+      "collector_restarts": 0
+    },
+    "shown_prediction_rows": 8,
+    "shown_tasks": 5,
+    "queue": {
+      "DONE": 2,
+      "POISON": 1
+    },
+    "gui_ready": true,
+    "normal_close_requested": true
+  },
+  "errors": [],
+  "remaining_non_daemon_threads": [],
+  "desktop_os_lock_released": true,
+  "elapsed_seconds": 6.355309406993911,
+  "new_native_host_model_api_calls": 0,
+  "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+  "status": "PASS"
+}

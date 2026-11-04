@@ -1,0 +1,97 @@
+{
+  "view": "authentication",
+  "round": 5,
+  "code": 0,
+  "checks": {
+    "authentication": {
+      "network": {
+        "state": "DISABLED",
+        "readiness": "NOT_READY",
+        "packets_per_second": null,
+        "dns_queries_per_minute": null,
+        "flows_per_minute": null,
+        "capture_drops": null,
+        "inference_count": null,
+        "gates": {
+          "network-quality": {
+            "operational_input": "NOT_INFERABLE",
+            "inference": "BLOCKED",
+            "finding_promotion": "BLOCKED",
+            "feature_generation": "DIAGNOSTIC_ONLY",
+            "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+          },
+          "network-edge": {
+            "operational_input": "NOT_INFERABLE",
+            "inference": "BLOCKED",
+            "finding_promotion": "BLOCKED",
+            "feature_generation": "DIAGNOSTIC_ONLY",
+            "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+          },
+          "dns": {
+            "operational_input": "NOT_INFERABLE",
+            "inference": "BLOCKED",
+            "finding_promotion": "BLOCKED",
+            "feature_generation": "DIAGNOSTIC_ONLY",
+            "reason": "ORIGINAL_PRODUCER_REVISION_CONFIG_AND_GOLDEN_PAIR_MISSING"
+          }
+        }
+      },
+      "runtime_state": "STOPPED",
+      "health": "DEGRADED",
+      "readiness": "NOT_READY",
+      "uptime_seconds": 6879.574793,
+      "collector_state": "SOURCE_UNAVAILABLE",
+      "last_collection_time": null,
+      "journal_cursor_health": "SOURCE_UNAVAILABLE",
+      "collection_diagnostic": null,
+      "queue_backlog": 0,
+      "pending_investigations": 0,
+      "running_investigations": 0,
+      "failed_investigations": 0,
+      "completed_read_only": 0,
+      "completed_llm": 0,
+      "completed_scripted": 0,
+      "blocked_investigations": 0,
+      "assessment_mode": "READ_ONLY",
+      "real_llm_enabled": false,
+      "response_execution": "DISABLED",
+      "response_simulation": "DISABLED",
+      "automatic_human_approval": "DISABLED",
+      "pending_response_reviews": 0,
+      "completed_simulations": 0,
+      "uncertain_simulations": 0,
+      "restricted_response": {
+        "state": "DISABLED",
+        "unknown": 0,
+        "started": 0
+      },
+      "last_investigation_time": null,
+      "llm_availability": "NOT_CONFIGURED",
+      "last_error": null,
+      "audit_store_health": "VERIFIED_LOCAL",
+      "heartbeat_age_seconds": 6873.082294,
+      "inference_status": "NOT_INFERABLE",
+      "write_disposition": "WRITE_DENIED",
+      "real_os_handler_calls": 0,
+      "authentication_events": 0,
+      "findings_total": 0,
+      "collected_events": 0,
+      "active_findings": 0,
+      "pending_approvals": 0,
+      "investigation_distribution": {},
+      "recent_activity": [],
+      "findings": [],
+      "scope": "SEPARATE_READ_ONLY_AUTHENTICATION_RUNTIME",
+      "recent_events": []
+    },
+    "gui_ready": true,
+    "normal_close_requested": true
+  },
+  "errors": [],
+  "remaining_non_daemon_threads": [],
+  "desktop_os_lock_released": true,
+  "elapsed_seconds": 5.36704663396813,
+  "new_native_host_model_api_calls": 0,
+  "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+  "status": "PASS"
+}

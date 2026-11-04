@@ -1,0 +1,32 @@
+{
+  "view": "api",
+  "round": 6,
+  "code": 0,
+  "checks": {
+    "incident": "a79cecb6-9b8e-4c21-a55a-5caf7b150400",
+    "historical_calls": 2,
+    "historical_inferences": 2,
+    "audit": "VERIFIED",
+    "mode": "REAL_API",
+    "detail_keys": [
+      "incident_id",
+      "status",
+      "llm_mode",
+      "external_provider_calls",
+      "api_status",
+      "assessment",
+      "plan",
+      "timeline",
+      "unresolved"
+    ],
+    "gui_ready": true,
+    "normal_close_requested": true
+  },
+  "errors": [],
+  "remaining_non_daemon_threads": [],
+  "desktop_os_lock_released": true,
+  "elapsed_seconds": 3.976571633014828,
+  "new_native_host_model_api_calls": 0,
+  "scope": "PRESERVED_EVIDENCE_GUI_NOT_NEW_REPLAY_OR_LIVE",
+  "status": "PASS"
+}
