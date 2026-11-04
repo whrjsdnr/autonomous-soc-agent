@@ -154,3 +154,124 @@ IPC 판정을 분리해 기록했다. 기존5초 공백은 **TCX 수신 완료 �
 확정되지 않았다. 공백 중 DNS Record96과 Runtime Control31은 계속 갱신됐다. Root 송신
 시도/커널 큐/Lock·해당 구간 CPU delta가 없어 근본 원인은 UNKNOWN이다. 이 후속 작업은
 Native·DNS·모델·외부 API를 재실행하지 않았고 새 승인 영수증도 발급하지 않았다.
+
+
+---
+
+# Full Live E2E — 2026-11-04 실제 실행 및 Authentication 시작 실패
+
+판정: **BLOCKED**. 이전 성공 회차와 합산하지 않는다. 재실행·모델·API 성공이 아니다.
+
+## 실제 실행
+
+- 운영 소스 067d36a, Release ec9c913, expiry-cap-recovery 최종 Binding을 사용했다.
+- 사용자의 새 실행 승인, 직접 Scope 확인 및 sudo 인증 뒤 최대 1회 실행했다.
+- 기록된 승인 만료는 `2026-11-05T00:09:00+00:00`(KST09:09:00)다. 기존35.912778초 초과값을 사용하지 않았다.
+- Runtime Session: `c1f2c795-642b-4c38-b60a-6217922f9db6`.
+- Root Trial driver29.887157684초, Root 내부29.478746839초. Collector 시작 이후25.957979697초는 검증된 순수 수집 시간이 아니다.
+- Root 고정8경로 중3개 교체·5개 검증을 수행했다. 기존8개 백업·Rollback은 보존했다.
+- BPF attach 및 Root socket 준비 증거는 있으나 Runtime의 authenticated producer READY에 도달하지 못했다.
+- Runtime Packet0, DNS0, Host Event0, Window0, RF/LR0, IF0, Incident0, LLM 요청0.
+- Root Audit의 종료 봉인 기록은 빈 수집 종료 증거다. Runtime VERIFIED Window/ELIGIBLE 성공으로 세지 않는다.
+
+## 최초 오류와 바깥 종료 코드
+
+직접 예외는 `ValueError:AUTHENTICATION_READY_TIMEOUT`이다.
+`continuous/authentication_lifecycle.py:257`, `AuthenticationLifecycle._start_owned()`의
+기존5초 READY 루프에서 발생했다(실행 소스067d36a 기준).
+필요한 조건은 동일 PID/Start Identity, RUNNING, `INITIAL_READ/RESUMED_EXACT/RESUMED_WITH_REPLAY`다.
+`continuous/service.py:1361`의 Authentication 시작이 완료되지 않아 TCX Producer 연결 단계에 진입하지 못했다.
+Root는 `root-trial.py:477`에서 Runtime의 `last_error=ValueError`를 보고
+`RUNTIME_FIRST_ERROR:ValueError`로 중단했다. Root Exit2 자체가 근본 원인은 아니다.
+
+## 시각 및 인과관계
+
+| 관측 | UTC / monotonic |
+|---|---|
+| 인간 승인 기록 |05:34:43.265811Z|
+| Runtime systemd active |monotonic1112066.834396|
+| Authentication 단계 시작 |monotonic1112067.771317040|
+| 가장 느린 Runtime 저장 작업(control) |1112067.771359212→1112070.096967884, 2.325608672초|
+| Authentication 자식 identity |PID3261118, start_ticks111207070, UID1000|
+| Authentication RUNTIME_STARTED |05:34:55.404128Z|
+| COLLECTION_START |05:34:55.463048Z|
+| Root가 최초 Runtime 오류 관측 |05:35:00.208689Z|
+| Authentication STOP 요청 |monotonic1112076.070955167|
+| COLLECTION_RESULT SOURCE_UNAVAILABLE |05:35:00.353349Z|
+| COLLECTION_RETRY #1 |05:35:00.467756Z|
+| Authentication RUNTIME_STOPPING |05:35:00.818420Z|
+| Authentication RUNTIME_STOPPED |05:35:02.265584Z|
+| Authentication 자식 ACK·reap 관측 |monotonic1112078.709390848|
+| Runtime 프로세스 exit2 |UTC05:35:05(서비스 Journal 표시KST14:35:05)|
+| Root 완료 |05:35:15.995756Z|
+
+COLLECTION_START→RESULT는4.890301초이나 명령 실행·SQLite·파싱 각각의 지연은 기록되지 않았다.
+SOURCE_UNAVAILABLE 결과 기록은 Root의 최초 오류 관측보다 늦다. 따라서 SOURCE_UNAVAILABLE가
+5초 전체를 차지했다거나 CPU/권한/파싱이 직접 원인이라고 확정하지 않는다.
+Root Audit Heartbeat 최대 간격은3.786731720초(벽시계 기록 차이)다. Runtime/TCX 수신 Heartbeat와 동일 지표가 아니다.
+수집 직전 cgroup/프로세스 snapshot은 있으나 실패 경계의 CPU Throttling delta는 없다: **UNKNOWN**.
+이번 실패를 과거 TCX 메시지 공백 재현으로 분류하지 않는다.
+
+## Cleanup
+
+- Root Audit는 기존8388행 prefix를 보존하고19행 append했다. 이번 SERVICE_STOPPED는 cleanup VERIFIED.
+- Collector MainPID0/inactive, Root socket 없음, 대상 namespace의 tc/xdp 없음, BPF link/map 전후없음.
+  이 증거에 한정하여 Root 소유 범위 Cleanup VERIFIED. 전역 Kernel 프로그램 ID 변화의 소유권은 UNKNOWN.
+- Authentication: STOP ACK, 비강제 exit0, identity 일치, child reap, state reader join,
+  ordered RUNTIME_STOPPING→RUNTIME_STOPPED, Queue drain, durable 기록에 의해 VERIFIED.
+- DNS Helper는 시작되지 않았다. 실제 CLOSED/Counter 검증 성공으로 보고하지 않는다.
+- TCX STOP ACK는 미확보. Runtime Cleanup은 **UNVERIFIED** 유지.
+- Runtime 후속 오류: `CONTINUOUS_STOP_REQUIRES_CONNECTED_OWNER`, `CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED`.
+  최초 Authentication READY 오류와 구분한다. Runtime PID3261026, Auth3261118, Collector3261002는 후속 일반사용자 /proc 조회에서 부재.
+  프로세스 부재로 과거 ACK/Runtime Cleanup 판정을 소급 변경하지 않는다.
+- 기존 Ledger81행 SHA `07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae` 동일.
+
+## 수정 요청 이후의 비권한 작업
+
+사용자의 "오류 다 해결하고 다시 시도해" 요청 후 설치 Release/실행 증거와 분리된
+`fix/authentication-startup-evidence-20261104` Worktree에서 확인된 진단 유실만 수정한다.
+현재 증거로 하위 원인을 확정할 수 없으므로 권한 확대·입력 무시·Timeout 증가를 적용하지 않는다.
+
+1. bounded_command의 OS 오류/명령 Timeout/비정상 종료/권한 거절/출력 상한을 고정 코드로 분리한다.
+2. Authentication 파서에서 CollectorUnavailable이 JSON 오류로 다시 포장되는 문제를 수정한다.
+3. Health→Runtime 상태→Audit→GUI projection에 안전한 오류 코드와 monotonic 관측 구간을 전달한다.
+4. Authentication start snapshot에 spawn/deadline/observation/identity/collector 상태를 보존한다.
+5. 원본 stderr·MESSAGE·명령 인자·인증 정보는 진단 필드에 기록하지 않는다.
+6. 기존5초 READY,2/5초 Heartbeat,8초 Control Identity,15초 bounded command 및 승인 계약은 유지한다.
+
+하위 실제 Source 실패의 원인은 여전히 UNKNOWN이다. **모든 운영 오류가 해결됐다고 선언하지 않는다.**
+수정된 소스를 기존 Launcher/Pin/영수증에 넣어 실행하지 않았다.
+
+## 재시험 입장 조건
+
+사용자의 재시도 의사는 확인했다. 그러나 소비된 Session/1회 영수증의 재사용은 불가하다.
+다음 Live 전에 Source 실패의 구체적 코드 확인, 새 코드의 검증 Release/Source/Wheel Binding,
+새 Session 및 기존 설치3개 변경 결과를 반영한 Root 설치 계획, Cleanup 미검증 항목의 읽기 전용 확인,
+유효기간 검증과 직접 Scope·sudo 인증이 필요하다.
+RF/LR/IF 봉인 작업 및 LLM 입력·비용 GUI 확인은 별도 유지한다.
+불확실한 Source에 READY를 부여하거나 Authentication을 빼고 전체 성공을 주장하지 않는다.
+
+## 증거 위치
+
+- `.git/full-live-final-approval-readiness-20261104/live-attempt-result.json`
+- 같은 디렉터리 `execution-evidence-sha256.json`, `fresh-human-authorization-context.json`
+- `.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/`
+- 같은 native 경로 `future-runtime/authentication-child.log`, `authentication-cleanup.json`,
+  `authentication/monitor.sqlite`, `authentication/collection-audit.sqlite`, `service.sqlite`
+- 후속 검증: `.git/full-live-final-approval-readiness-20261104/recovery/`
+
+검증 결과 및 Commit은 완료 후 별도 추가한다. 기존 실패 로그는 보존한다.
+
+## 최종 비권한 검증 및 한계
+
+- 코드 Commit: `c4f5d4d98b808ebfc691fb0739a9a0c26ad1f24b`. 설치 Release 및 기존 Launcher/Pin은 교체하지 않았다.
+- 집중 회귀79 PASS. pytest 공유 임시디렉터리 정리 경고49건은 로그에 보존했다.
+- Workspace 관련 전체1058 PASS(294.84초), 독립 Export 1058 passed in 293.09s (0:04:53). 실제 Driver 경과는 validation-summary.json을 참조한다.
+- 테스트 Guard 위반0. 실제 Root·Native·Host Journal·모델·외부 API 재실행 없음.
+- 초기 검증 harness의 AF_UNIX 긴 임시경로로2 FAIL/234 PASS에서 중단된 결과를 보존했다.
+  짧은 임시경로로 고친 것은 운영 소켓/Timeout/Assertion 변경이 아니다.
+- Ruff check PASS, format1626 files PASS, git diff --check PASS.
+- Workspace2회·독립 Export의 Native/legacy/Supervisor/Wheel 해시 일치. 빌드만 수행했다.
+- 전체 E2E 재실행은 아직 차단된다. SOURCE_UNAVAILABLE의 실제 하위 원인은 새 계측이 없던 회차에서는 UNKNOWN이며,
+  Runtime Cleanup UNVERIFIED와 소비된 Session/승인 기록을 임의로 초기화할 수 없다.
+- 이 수정은 진단 유실 보완의 검증이지 Host 원인 해결 또는 FULL_LIVE_E2E_VERIFIED가 아니다.

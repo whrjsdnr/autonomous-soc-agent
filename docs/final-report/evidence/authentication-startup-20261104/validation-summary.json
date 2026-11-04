@@ -1,0 +1,53 @@
+{
+  "workspace": {
+    "returncode": 0,
+    "driver_seconds": 296.9213678610977,
+    "summary": "1058 passed in 294.84s (0:04:54)",
+    "guard": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    }
+  },
+  "export": {
+    "returncode": 0,
+    "driver_seconds": 294.9433002450969,
+    "summary": "1058 passed in 293.09s (0:04:53)",
+    "guard": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    }
+  },
+  "focused": "79 passed, 49 warnings in 29.77s; pytest shared-temp cleanup warnings retained",
+  "build": {
+    "reproducible": true,
+    "variants": [
+      "a",
+      "b",
+      "export"
+    ],
+    "native": {
+      "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+      "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+      "service.py": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+    },
+    "supervisor": {
+      "supervisor.py": "5b7bbccc5cbd5df9aa95ff65d7f0179bda2fb17366ad4495beead56128c92619",
+      "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469"
+    },
+    "wheel_sha256": "33c3170f30d7297ba46fea3121775d3cd3c3d69e6ec32eeccf88c413a53a8c19",
+    "compile_only": true
+  },
+  "ruff": "All checks passed!",
+  "format": "1626 files already formatted",
+  "code_commit": "c4f5d4d98b808ebfc691fb0739a9a0c26ad1f24b",
+  "status": "PARTIALLY_VERIFIED_SOURCE_FAILURE_UNKNOWN_LIVE_RETRY_BLOCKED",
+  "live_retry_executed": false,
+  "preparation_harness_failure": "2 AF_UNIX path too long failures; 234 passed; interrupted run, retained raw logs; only basetemp shortened",
+  "ledger_rows": 81,
+  "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae"
+}
