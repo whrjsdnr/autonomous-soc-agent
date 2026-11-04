@@ -194,11 +194,8 @@ while time.monotonic()-began<(15 if mode=="ignore_stop" else 7):
    if mode=="delayed_ack": time.sleep(.2)
    if mode=="slow_capture_close": time.sleep(2.2)
    if mode=="quarantine":
-    from types import SimpleNamespace
-    from tests.total_monitoring_support import dns_packet
-    from soc_agent.security_ai.research.live_input import timestamp_ns
-    p=dns_packet(SimpleNamespace(session=s),1)
-    p=p.model_copy(update=dict(timestamp_origin="KERNEL_SO_TIMESTAMPNS",capture_timestamp_ns=timestamp_ns(p)))
+    from soc_agent.security_ai.operational.network_capture.models import PacketObservation
+    p=PacketObservation.model_validate_json(sys.argv[3])
     seq+=1;total=1;send("HEARTBEAT",interval=1)
     sent=1;send("PACKET",sequence=1,packet=p)
    if mode!="bad_ack": seq+=1
@@ -217,8 +214,25 @@ async def started(tmp_path, monkeypatch, mode):
     monkeypatch.setattr(dns_source, "load", lambda _: session)
     monkeypatch.setattr(helper_transport, "validate_peer", lambda *a, **kw: None)
     source = dns_source.DNSProducer(directory, pin)
+    packet = "null"
+    if mode == "quarantine":
+        # Fixture construction must not cold-import the test/ML graph after
+        # STOP, inside the helper's unchanged five-second ACK budget.
+        from types import SimpleNamespace
+
+        from tests.total_monitoring_support import dns_packet
+
+        from soc_agent.security_ai.research.live_input import timestamp_ns
+
+        value = dns_packet(SimpleNamespace(session=session), 1)
+        value = value.model_copy(
+            update=dict(
+                timestamp_origin="KERNEL_SO_TIMESTAMPNS", capture_timestamp_ns=timestamp_ns(value)
+            )
+        )
+        packet = value.model_dump_json()
     child = subprocess.Popen(
-        [sys.executable, "-c", CHILD, str(directory / "session.json"), mode],
+        [sys.executable, "-c", CHILD, str(directory / "session.json"), mode, packet],
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
