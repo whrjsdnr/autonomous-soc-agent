@@ -1,0 +1,73 @@
+{
+  "authority_source": "Current user message: Authentication Host 읽기 전용 진단 조건부 승인",
+  "human_instruction_excerpt": "이번 승인은 Host Journal 읽기 전용 진단 1회에 한정한다. 기존 소비 Session·영수증을 재사용하거나 승인 범위를 확대하지 마라.",
+  "recorded_at": "2026-11-04T07:05:43.345518+00:00",
+  "admission_expires_at": "2026-11-04T09:00:00+00:00",
+  "diagnostic_id": "565ba1a1-03a2-4d71-a585-8c270ac8d174",
+  "review_path": "/home/geonug/kdt-linux/soc-auth-startup-recovery-20261104/docs/final-report/evidence/authentication-source-rca-20261104/host-read-review.json",
+  "review_sha256": "6fdc0a40d8640bdbe1949c4e904173d1cd47608c7f34f8efd369999248ae054e",
+  "candidate_binding": {
+    "code_commit": "a5441a9c480f62bba0c4f83c128be7cfb7fa20f2",
+    "source_manifest_sha256": "3066aacdb5f0b6ee7c69089d4629d18a728bb8bf30dc815f3b2a30f5fcf38515",
+    "source_files": 682,
+    "wheel_sha256": "59479b3738d71060823f57bb550bf75e488cc4a3a1d3a9afee180a9e7c2cc45e",
+    "installed_release_updated": false,
+    "execution_authority": false
+  },
+  "head": "fd1fc87a542bcad189e5bf1853f3e1ece828e7bb",
+  "standalone_diagnostic_not_native_session": true,
+  "old_live_authority_reused": false,
+  "effective_scope": {
+    "uid": 1000,
+    "root": false,
+    "source_filters": [
+      "SYSLOG_FACILITY=4",
+      "SYSLOG_FACILITY=10",
+      "+",
+      "_COMM=sshd"
+    ],
+    "unit_selector": null,
+    "command": "/usr/bin/journalctl",
+    "options": [
+      "--no-pager",
+      "--quiet",
+      "--output=json",
+      "--output-fields=__CURSOR,__REALTIME_TIMESTAMP,_MACHINE_ID,_COMM,_EXE,_UID,SYSLOG_IDENTIFIER,PRIORITY,MESSAGE",
+      "--lines=+16"
+    ],
+    "max_commands": 1,
+    "command_timeout_seconds": 15,
+    "max_output_bytes": 4194304,
+    "cursor": null,
+    "include_pam_failures": true,
+    "automatic_retry": false,
+    "scope_expansion": false,
+    "overall_diagnostic_seconds": 15
+  },
+  "stderr_policy": "Record empty/nonempty, byte count and SHA; classify only safe fixed tokens, do not expose raw journal text or credentials",
+  "preflight": {
+    "source": true,
+    "wheel": true,
+    "root8_unchanged": true,
+    "ledger81_unchanged": true,
+    "old_failure_evidence_unchanged": true,
+    "uid": 1000,
+    "gids": [
+      4,
+      20,
+      24,
+      25,
+      27,
+      29,
+      30,
+      44,
+      46,
+      100,
+      107,
+      108,
+      1000
+    ]
+  },
+  "native_host_runtime_started": false,
+  "root_native_dns_model_api_authority": false
+}

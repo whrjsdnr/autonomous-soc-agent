@@ -1,0 +1,41 @@
+{
+  "test_commit": "e1d7a57a05db19a7b1a9ae2e6632af3a679907ab",
+  "production_code": "a5441a9",
+  "production_source_or_wheel_changed": false,
+  "new_host_diagnostic_calls": 1,
+  "new_live_e2e_calls": 0,
+  "matrix": {
+    "workspace-disk": {
+      "passed": 19,
+      "elapsed_seconds": 20.98048359900713,
+      "guard_violations": []
+    },
+    "workspace-tmpfs": {
+      "passed": 19,
+      "elapsed_seconds": 16.09148477902636,
+      "guard_violations": []
+    },
+    "export-disk": {
+      "passed": 19,
+      "elapsed_seconds": 20.49150713090785,
+      "guard_violations": []
+    },
+    "export-tmpfs": {
+      "passed": 19,
+      "elapsed_seconds": 16.374797609169036,
+      "guard_violations": []
+    }
+  },
+  "preserved_test_authoring_failure": {
+    "test": "test_source_unavailable_can_be_a_stop_consequence_after_ready_timeout",
+    "error": "KeyError: collector",
+    "line": 165,
+    "cause": "New test referenced status projection with internal store key; corrected assertion to child._read()[collector]",
+    "elapsed_seconds": 12.01,
+    "evidence_preserved_at": "/tmp/asr-causal-20261104T0711",
+    "production_changed": false
+  },
+  "ruff": "PASS",
+  "format": "PASS",
+  "diff": "PASS"
+}

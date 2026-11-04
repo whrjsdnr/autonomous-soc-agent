@@ -1,0 +1,10 @@
+{
+  "original_failure_evidence_unchanged": true,
+  "source682_unchanged": true,
+  "root8_sha_inode_mtime_unchanged": true,
+  "ledger_rows": 81,
+  "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+  "installed_release_unchanged": true,
+  "rollback_mutations": 0,
+  "host_attempts": 1
+}
