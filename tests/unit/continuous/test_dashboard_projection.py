@@ -192,3 +192,37 @@ def test_native_empty_charts_explain_action_gate_and_keep_dns_counters_separate(
     assert safe_error(shown["last_error"]) == "HELPER_HEARTBEAT_OR_PROCESS_STALE"
     assert safe_error("CaptureUnavailable:secret=never show") == "UNKNOWN"
     assert state["cleanup"] == "UNVERIFIED"
+
+
+def test_authentication_if_result_does_not_count_as_network_rf_lr():
+    body = current() | dict(
+        native_model="EXACT_RETAINED_WINDOW_ACTION_APPROVAL_REQUIRED",
+        metrics=current()["metrics"] | dict(predictions=1, authentication_predictions=1),
+        authentication=dict(runtime_state="RUNNING", if_admission=dict(predictions=1)),
+        recent_results=[
+            dict(
+                incident_id="fixture-auth",
+                origins=["DECLARED_HOST_JOURNAL"],
+                audit="VERIFIED",
+                classification="UNKNOWN_ANOMALY",
+                predictions=[
+                    dict(
+                        model="authentication_anomaly_iforest",
+                        prediction="anomaly",
+                        inference_latency_ms=1,
+                    )
+                ],
+            )
+        ],
+    )
+    shown = project(dict(continuous=body))
+    assert shown["network"]["inference_count"] == 0
+    assert shown["authentication"]["if_admission"]["predictions"] == 1
+    models = shown["research"]["model_metrics"]
+    assert models["authentication_anomaly_iforest"]["successful"] == 1
+    for name in ("quality", "edge"):
+        assert models[name]["successful"] == 0
+        assert models[name]["state"] == "BLOCKED_SEALED_JOB_ACTION_APPROVAL"
+        from soc_agent.gui.continuous_projection import measurement_reason
+
+        assert measurement_reason(shown, name) == "BLOCKED_SEALED_JOB_ACTION_APPROVAL"

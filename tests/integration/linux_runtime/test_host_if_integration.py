@@ -32,10 +32,12 @@ def packages():
     )
 
 
-async def retained(tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361), scope_sha256=None):
+async def retained(
+    tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361), scope_sha256=None, messages=None
+):
     store = prepare(tmp_path, packages=packages(), scope_sha256=scope_sha256)
     approve_fixture(store)
-    mock_journal_child(monkeypatch, seconds=seconds)
+    mock_journal_child(monkeypatch, seconds=seconds, messages=messages)
     child = AuthenticationLifecycle(store)
     try:
         await child.start()
@@ -267,6 +269,7 @@ async def test_main_runtime_handoffs_once_and_stop_preserves_unapproved_job(tmp_
         assert runtime.worker_state == "WAITING_EXACT_MODEL_ACTION_APPROVAL"
         assert runtime.analysis.process is None
         assert runtime.metrics["auth_windows"] == 1
+        assert runtime.metrics["authentication_inputs"] == 3
         snapshot = await runtime.observed_snapshot()
         assert snapshot["authentication"]["if_admission"]["predictions"] == 0
         assert (
@@ -346,3 +349,27 @@ async def test_composed_packet_dns_authentication_mock_e2e_one_parent_session(
         json.loads((store.directory / "authentication-cleanup.json").read_text())["cleanup"]
         == "VERIFIED"
     )
+
+
+@pytest.mark.asyncio
+async def test_existing_sshd_success_and_failure_share_training_feature_contract(
+    tmp_path, monkeypatch
+):
+    failed = "Failed password for fixture-user from 192.0.2.5 port 34567 ssh2"
+    accepted = "Accepted password for fixture-user from 192.0.2.5 port 34567 ssh2"
+    store = await retained(
+        tmp_path,
+        monkeypatch,
+        seconds=(1, 2, 3, 4, 361),
+        messages=(failed, accepted, failed, accepted, failed),
+    )
+    (job,) = sealed_jobs(store)
+    validate_job(job)
+    from soc_agent.security_ai.authentication import AuthenticationWindowExtractor
+
+    (window,) = AuthenticationWindowExtractor().extract(job.records)
+    values = window.features.input_payload()
+    assert values["failed_login_count"] == 2 and values["successful_login_count"] == 2
+    assert values["total_login_count"] == 4 and values["failure_rate"] == 0.5
+    assert values["login_attempt_rate"] == pytest.approx(4 / 300)
+    assert "fixture-user" not in job.model_dump_json()

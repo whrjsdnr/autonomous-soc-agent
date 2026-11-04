@@ -73,17 +73,19 @@ def approve_fixture(store, *, reject=False):
     store.config.managed_authentication.approval_file.write_text(decision.model_dump_json())
 
 
-def mock_journal_child(monkeypatch, *, denied=False, seconds=(1, 2, 3)):
+def mock_journal_child(monkeypatch, *, denied=False, seconds=(1, 2, 3), messages=None):
     original = asyncio.create_subprocess_exec
     # Keep the real CLI, monitor, parser, queue, stores, signal handlers and audit.
     # The child patches only the unavailable Host Journal command boundary.
-    bootstrap = """
+    bootstrap = (
+        """
 import json, runpy, sys
 from soc_agent.realtime.collectors import LinuxJournalCollector, CollectorUnavailable
 from soc_agent.security_ai.operational import native_authentication
 from tests.unit.operational_features.test_native_authentication import row
 message = "Failed password for fixture-user from 192.0.2.5 port 34567 ssh2"
-rows = [row(i + 1, second, message) for i, second in enumerate(SECONDS)]
+rows = [row(i + 1, second, MESSAGES[i] if MESSAGES else message)
+        for i, second in enumerate(SECONDS)]
 def available(self): self.command = "/fixture/journalctl"
 def command(arguments):
     if DENIED: raise CollectorUnavailable("PERMISSION_DENIED:fixture")
@@ -97,7 +99,10 @@ LinuxJournalCollector.__init__ = available
 native_authentication.bounded_command = command
 sys.argv = ["soc_agent.linux_runtime"] + sys.argv[1:]
 runpy.run_module("soc_agent.linux_runtime", run_name="__main__")
-""".replace("if DENIED:", f"if {denied}:").replace("SECONDS", repr(seconds))
+""".replace("if DENIED:", f"if {denied}:")
+        .replace("SECONDS", repr(seconds))
+        .replace("MESSAGES", repr(messages))
+    )
 
     async def spawn(*args, **kwargs):
         assert args[1:4] == ("-B", "-m", "soc_agent.linux_runtime")

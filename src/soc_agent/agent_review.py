@@ -115,7 +115,7 @@ def pending_models(review: Path) -> ModelReviewBatch:
                 witness=job.witness.isoformat(),
                 accepted_records=len(job.records),
                 feature_values=window.features.input_payload(),
-                coverage="SUPPORTED_PAM_FAILURE_EVENTS_ONLY_NOT_ALL_HOST_LOGINS",
+                coverage="SUPPORTED_SSHD_ACCEPTED_FAILED_AND_SUDO_PAM_FAILURE_NOT_ALL_HOST_AUTH",
                 lateness_seconds=60,
             )
             out = runtime / "analysis" / ("run-" + pin)

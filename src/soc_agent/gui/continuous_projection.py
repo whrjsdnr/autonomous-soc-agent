@@ -59,6 +59,9 @@ def availability(current: dict, records: list) -> dict:
 
 
 def measurement_reason(snapshot: dict, metric: str) -> str:
+    model = snapshot.get("research", {}).get("model_metrics", {}).get(metric)
+    if metric in ("quality", "edge") and model and model.get("successful") == 0:
+        return str(model["state"])
     states = snapshot.get("runtime_observability", {})
     if not states:
         return "NOT OBSERVED · no measured values"
@@ -189,10 +192,24 @@ def project(value: dict) -> dict:
                 )
             )
     observability = availability(current, records)
+    network_count = metrics.get("predictions")
+    auth_count = metrics.get("authentication_predictions", 0)
+    if type(network_count) is int and type(auth_count) is int and 0 <= auth_count <= network_count:
+        network_count -= auth_count
+    else:
+        network_count = None
+    network_observability = availability(
+        current | dict(metrics=metrics | dict(predictions=network_count or 0)),
+        [r for r in records if r["receipt"]["profile"] in ("quality", "edge")],
+    )
     for name in ("quality", "edge"):
         models.setdefault(
             name,
-            dict(state=observability["inference"], successful=0, reason=observability["inference"]),
+            dict(
+                state=network_observability["inference"],
+                successful=0,
+                reason=network_observability["inference"],
+            ),
         )
     resources = current.get("resources", {})
     error = current.get("last_error")
@@ -269,7 +286,7 @@ def project(value: dict) -> dict:
             transport_delivered_packets=metrics.get("native_events")
             if native
             else metrics.get("received"),
-            inference_count=metrics.get("predictions"),
+            inference_count=network_count,
             capture_uptime_seconds=current.get("uptime_seconds"),
             capture_drops=ring_loss,
             gap_count=metrics.get("source_gaps"),

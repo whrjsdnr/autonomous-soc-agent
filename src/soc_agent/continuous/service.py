@@ -1081,6 +1081,7 @@ class ContinuousRuntime:
                 await self.handoff(job)
                 revisions.add(revision)
                 self.metrics["auth_windows"] += 1
+                self.metrics["authentication_inputs"] += len(job.records)
                 await self.storage(
                     self.store.event_once,
                     "CONTINUOUS_HOST_AUTH_WINDOW_SEALED",
