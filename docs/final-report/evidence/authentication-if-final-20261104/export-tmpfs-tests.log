@@ -1,0 +1,308 @@
+....................F................................................... [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 23%]
+..........F.....................................F....................... [ 31%]
+........................................................................ [ 39%]
+........................................................................ [ 47%]
+........................................................................ [ 55%]
+........................................................................ [ 63%]
+........................................................................ [ 71%]
+........................................................................ [ 79%]
+........................................................................ [ 87%]
+........................................................................ [ 95%]
+......................................                                   [100%]
+=================================== FAILURES ===================================
+______________ test_initial_accept_does_not_wait_for_data_worker _______________
+
+fut = <coroutine object BaseSelectorEventLoop.sock_recv at 0x76b69e0a3340>
+timeout = 2
+
+    async def wait_for(fut, timeout):
+        """Wait for the single Future or coroutine to complete, with timeout.
+    
+        Coroutine will be wrapped in Task.
+    
+        Returns result of the Future or coroutine.  When a timeout occurs,
+        it cancels the task and raises TimeoutError.  To avoid the task
+        cancellation, wrap it in shield().
+    
+        If the wait is cancelled, the task is also cancelled.
+    
+        If the task suppresses the cancellation and returns a value instead,
+        that value is returned.
+    
+        This function is a coroutine.
+        """
+        # The special case for timeout <= 0 is for the following case:
+        #
+        # async def test_waitfor():
+        #     func_started = False
+        #
+        #     async def func():
+        #         nonlocal func_started
+        #         func_started = True
+        #
+        #     try:
+        #         await asyncio.wait_for(func(), 0)
+        #     except asyncio.TimeoutError:
+        #         assert not func_started
+        #     else:
+        #         assert False
+        #
+        # asyncio.run(test_waitfor())
+    
+    
+        if timeout is not None and timeout <= 0:
+            fut = ensure_future(fut)
+    
+            if fut.done():
+                return fut.result()
+    
+            await _cancel_and_wait(fut)
+            try:
+                return fut.result()
+            except exceptions.CancelledError as exc:
+                raise TimeoutError from exc
+    
+        async with timeouts.timeout(timeout):
+>           return await fut
+                   ^^^^^^^^^
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:520: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+sock = <socket.socket [closed] fd=-1, family=1, type=5, proto=0>, n = 262145
+
+    async def sock_recv(self, sock, n):
+        """Receive data from the socket.
+    
+        The return value is a bytes object representing the data received.
+        The maximum amount of data to be received at once is specified by
+        nbytes.
+        """
+        base_events._check_ssl_socket(sock)
+        if self._debug and sock.gettimeout() != 0:
+            raise ValueError("the socket must be non-blocking")
+        try:
+            return sock.recv(n)
+        except (BlockingIOError, InterruptedError):
+            pass
+        fut = self.create_future()
+        fd = sock.fileno()
+        self._ensure_fd_no_transport(fd)
+        handle = self._add_reader(fd, self._sock_recv, fut, sock, n)
+        fut.add_done_callback(
+            functools.partial(self._sock_read_done, fd, handle=handle))
+>       return await fut
+               ^^^^^^^^^
+E       asyncio.exceptions.CancelledError
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/selector_events.py:394: CancelledError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/dev/shm/soc-auth-if-final-v2-full-export/test_initial_accept_does_not_w0')
+
+    @pytest.mark.asyncio
+    async def test_initial_accept_does_not_wait_for_data_worker(tmp_path):
+        """Exercise a real listening socket while the data worker makes no progress."""
+        import os
+    
+        server = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+        client = socket.socket(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+        server.bind(str(tmp_path / "control.sock"))
+        server.listen(1)
+        server.setblocking(False)
+        client.setblocking(False)
+        stopped = threading.Event()
+        transport = ControlTransport("net:[4026532232]", "a" * 64, stopped.set)
+        transport.stage("INSTALLED_INTEGRITY", 42)
+        transport.listen(server, os.getuid())
+        loop = asyncio.get_running_loop()
+        try:
+            await loop.sock_connect(client, str(tmp_path / "control.sock"))
+            for sequence in range(1, 4):
+>               raw = json.loads(await asyncio.wait_for(loop.sock_recv(client, 262145), 2))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/continuous/test_control_transport.py:273: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Timeout [expired]>
+exc_type = <class 'asyncio.exceptions.CancelledError'>
+exc_val = CancelledError(), exc_tb = <traceback object at 0x76b69fa69e00>
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        assert self._state in (_State.ENTERED, _State.EXPIRING)
+    
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
+    
+        if self._state is _State.EXPIRING:
+            self._state = _State.EXPIRED
+    
+            if self._task.uncancel() <= self._cancelling and exc_type is exceptions.CancelledError:
+                # Since there are no new cancel requests, we're
+                # handling this.
+>               raise TimeoutError from exc_val
+E               TimeoutError
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py:115: TimeoutError
+______________ test_sqlite_exclusive_lock_does_not_block_control _______________
+
+tmp_path = PosixPath('/dev/shm/soc-auth-if-final-v2-full-export/test_sqlite_exclusive_lock_doe0')
+
+    @pytest.mark.asyncio
+    async def test_sqlite_exclusive_lock_does_not_block_control(tmp_path):
+        directory, service = runtime(tmp_path)
+        control = asyncio.create_task(service.control())
+        try:
+            with sqlite3.connect(directory / "queue.sqlite") as held:
+                held.execute("BEGIN EXCLUSIVE")
+                pending = asyncio.create_task(service.storage(service.store.queue.counts))
+                await asyncio.sleep(0.7)
+                value = shown(directory)
+>               assert value["control"]["sequence"] >= 4 and not pending.done()
+E               assert (3 >= 4)
+
+tests/unit/continuous/test_storage_control_isolation.py:196: AssertionError
+______________ test_operating_cli_child_exit_and_failure_evidence ______________
+
+peer = <socket.socket [closed] fd=-1, family=1, type=5, proto=0>
+
+    async def command(peer):
+>       raw = json.loads(await asyncio.get_running_loop().sock_recv(peer, 4096))
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/continuous/test_tcx_failure_cleanup.py:109: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_UnixSelectorEventLoop running=False closed=False debug=False>
+sock = <socket.socket [closed] fd=-1, family=1, type=5, proto=0>, n = 4096
+
+    async def sock_recv(self, sock, n):
+        """Receive data from the socket.
+    
+        The return value is a bytes object representing the data received.
+        The maximum amount of data to be received at once is specified by
+        nbytes.
+        """
+        base_events._check_ssl_socket(sock)
+        if self._debug and sock.gettimeout() != 0:
+            raise ValueError("the socket must be non-blocking")
+        try:
+            return sock.recv(n)
+        except (BlockingIOError, InterruptedError):
+            pass
+        fut = self.create_future()
+        fd = sock.fileno()
+        self._ensure_fd_no_transport(fd)
+        handle = self._add_reader(fd, self._sock_recv, fut, sock, n)
+        fut.add_done_callback(
+            functools.partial(self._sock_read_done, fd, handle=handle))
+>       return await fut
+               ^^^^^^^^^
+E       asyncio.exceptions.CancelledError
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/selector_events.py:394: CancelledError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/dev/shm/soc-auth-if-final-v2-full-export/test_operating_cli_child_exit_0')
+
+    @pytest.mark.asyncio
+    async def test_operating_cli_child_exit_and_failure_evidence(tmp_path):
+        """Actual CLI child and persistence; only Root authority/endpoint is a fixture."""
+        from tests.unit.continuous.test_runtime import config
+    
+        from soc_agent.continuous.cli import code_identity
+    
+        directory = tmp_path / "cli-child"
+        store = Store.create(
+            directory,
+            config(tmp_path).model_copy(
+                update=dict(
+                    source="NATIVE_SERVICE",
+                    input_sha256="b" * 64,
+                )
+            ),
+        )
+        (directory / "code-identity").write_text(code_identity())
+        owner, peer = socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
+        peer.setblocking(False)
+        script = """
+    import os, socket, sys
+    from soc_agent.continuous import cli, service, tcx_producer
+    policy = dict(uid=os.getuid(), namespace='net:[4026532232]', files={'continuous.bpf.o': 'a'*64})
+    service.require_source_authority = lambda config: None  # Root authority fixture only
+    tcx_producer.installed = lambda: policy
+    async def connect(self, loop):
+        self.socket = socket.socket(fileno=int(sys.argv[2]))
+        self.socket.setblocking(False)  # Root endpoint fixture only
+    tcx_producer.TCXProducer.connect = connect
+    raise SystemExit(cli.main(['run', sys.argv[1]]))
+    """
+        child = await asyncio.create_subprocess_exec(
+            sys.executable,
+            "-c",
+            script,
+            str(directory),
+            str(owner.fileno()),
+            pass_fds=(owner.fileno(),),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        owner.close()
+        try:
+            await send(peer, message(1, frames=[fixture_wire()]))
+>           await asyncio.wait_for(command(peer), 12)
+
+tests/unit/continuous/test_tcx_failure_cleanup.py:457: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Timeout [expired]>
+exc_type = <class 'asyncio.exceptions.CancelledError'>
+exc_val = CancelledError(), exc_tb = <traceback object at 0x76b69ec76200>
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        assert self._state in (_State.ENTERED, _State.EXPIRING)
+    
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
+    
+        if self._state is _State.EXPIRING:
+            self._state = _State.EXPIRED
+    
+            if self._task.uncancel() <= self._cancelling and exc_type is exceptions.CancelledError:
+                # Since there are no new cancel requests, we're
+                # handling this.
+>               raise TimeoutError from exc_val
+E               TimeoutError
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py:115: TimeoutError
+=========================== short test summary info ============================
+FAILED tests/unit/continuous/test_control_transport.py::test_initial_accept_does_not_wait_for_data_worker
+FAILED tests/unit/continuous/test_storage_control_isolation.py::test_sqlite_exclusive_lock_does_not_block_control
+FAILED tests/unit/continuous/test_tcx_failure_cleanup.py::test_operating_cli_child_exit_and_failure_evidence
+3 failed, 899 passed in 203.56s (0:03:23)

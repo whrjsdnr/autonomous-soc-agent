@@ -1,3 +1,5 @@
+> 이 문서는 `7efcf8f` 기준의 과거 검토 기록입니다. 2026-11-04 IF 연결 보완과 남은 시간 경계 문제는 [최신 통합 결과](Authentication_IF_Final_Integration.md) 및 [새 검토서](Authentication_IF_Full_Live_E2E_Review.md)를 따릅니다. 과거 수치·미검증 판정은 소급 변경하지 않습니다.
+
 # Final Full Live E2E validation — BLOCKED
 
 ## 결론

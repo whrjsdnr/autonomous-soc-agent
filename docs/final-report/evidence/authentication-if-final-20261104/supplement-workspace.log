@@ -1,0 +1,28 @@
+...............................................F........................ [ 65%]
+......................................                                   [100%]
+=================================== FAILURES ===================================
+________ test_continuous_fixture_lifecycle_dedup_resume_and_read_guard _________
+
+tmp_path = PosixPath('/tmp/soc-auth-if-final-v2-suppw/test_continuous_fixture_lifecy0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x77792bb06450>
+
+    @pytest.mark.asyncio
+    async def test_continuous_fixture_lifecycle_dedup_resume_and_read_guard(tmp_path, monkeypatch):
+        root, monitor = setup(tmp_path, monkeypatch)
+        await monitor.run(duration_seconds=1.5)
+        assert monitor.pipeline.queue.counts() == {"DONE": 3}
+        jobs = monitor.store.jobs()
+>       assert jobs == {"DONE_READ_ONLY": 2}  # Source and account rules, immutable separate hypotheses.
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AssertionError: assert {'DONE_READ_O... 'PENDING': 1} == {'DONE_READ_ONLY': 2}
+E         
+E         Differing items:
+E         {'DONE_READ_ONLY': 1} != {'DONE_READ_ONLY': 2}
+E         Left contains 1 more item:
+E         {'PENDING': 1}
+E         Use -v to get more diff
+
+tests/integration/linux_runtime/test_monitor.py:57: AssertionError
+=========================== short test summary info ============================
+FAILED tests/integration/linux_runtime/test_monitor.py::test_continuous_fixture_lifecycle_dedup_resume_and_read_guard
+1 failed, 109 passed in 161.59s (0:02:41)

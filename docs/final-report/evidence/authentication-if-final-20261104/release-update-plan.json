@@ -1,0 +1,15 @@
+{
+  "status": "BLOCKED_REGRESSION_GATE_NOT_EXECUTED",
+  "old_manager_unchanged": true,
+  "candidate_wheel_sha256": "6a3551706d46455d11ff9c760e194851b8c4aae5189e524dff21db396e4d048f",
+  "command": [
+    "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+    "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/scripts/install_research_manager.py",
+    "--build-evidence",
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/authentication-if-final-20261104T000307Z/final-validation/manager-update-proof",
+    "--update"
+  ],
+  "must_not_execute_before_green_and_explicit_review": true,
+  "reason": "Export whole regression 901 PASS / 1 FAIL; do not forge a passing installer proof",
+  "root_installation_included": false
+}

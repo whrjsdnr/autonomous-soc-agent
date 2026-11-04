@@ -1,0 +1,84 @@
+{
+  "disk": {
+    "result": {
+      "returncode": 0,
+      "seconds": 11.56849198997952,
+      "command": [
+        "/usr/bin/strace",
+        "-ff",
+        "-ttt",
+        "-T",
+        "-e",
+        "trace=fsync,fdatasync,futex,clock_nanosleep,epoll_wait,clone,execve,exit_group",
+        "-o",
+        "/home/geonug/kdt-linux/autonomous-soc-agent/.git/authentication-if-final-20261104T000307Z/final-validation/disk-startup-syscall",
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "-p",
+        "disk_probe",
+        "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+        "-q",
+        "--tb=short",
+        "--basetemp=/tmp/soc-if-startup-probe"
+      ],
+      "instrumented": true,
+      "instrumentation_can_affect_timing": true,
+      "scope": "OWNED_EXPORTED_FIXTURE_CLI_NOT_NATIVE_ROOT_OR_HOST_AUTHENTICATION"
+    },
+    "kernel_sync_count": 82,
+    "kernel_sync_max_seconds": 0.056859,
+    "sqlite_commit_max_recorded_seconds": 0.015284202061593533,
+    "sample_gap_max_seconds": 0.16255302308127284,
+    "cpu_max": [
+      "max 100000"
+    ],
+    "cpu_groups": [
+      "/init.scope"
+    ],
+    "scope": "OWN_FIXTURE_PROCESS_NOT_NATIVE_ROOT_CGROUP"
+  },
+  "tmpfs": {
+    "result": {
+      "returncode": 0,
+      "seconds": 11.43036872590892,
+      "command": [
+        "/usr/bin/strace",
+        "-ff",
+        "-ttt",
+        "-T",
+        "-e",
+        "trace=fsync,fdatasync,futex,clock_nanosleep,epoll_wait,clone,execve,exit_group",
+        "-o",
+        "/home/geonug/kdt-linux/autonomous-soc-agent/.git/authentication-if-final-20261104T000307Z/final-validation/tmpfs-startup-syscall",
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "-p",
+        "disk_probe",
+        "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+        "-q",
+        "--tb=short",
+        "--basetemp=/dev/shm/soc-if-startup-probe"
+      ],
+      "instrumented": true,
+      "instrumentation_can_affect_timing": true,
+      "scope": "OWNED_EXPORTED_FIXTURE_CLI_NOT_NATIVE_ROOT_OR_HOST_AUTHENTICATION"
+    },
+    "kernel_sync_count": 82,
+    "kernel_sync_max_seconds": 0.000226,
+    "sqlite_commit_max_recorded_seconds": 0,
+    "sample_gap_max_seconds": 0.11551201110705733,
+    "cpu_max": [
+      "max 100000"
+    ],
+    "cpu_groups": [
+      "/init.scope"
+    ],
+    "scope": "OWN_FIXTURE_PROCESS_NOT_NATIVE_ROOT_CGROUP"
+  }
+}
