@@ -1,0 +1,28 @@
+{
+  "provenance": "STRUCTURED_RECONSTRUCTION_FROM_TOOL_READ_OF_TEMPORARY_FIXTURE_NOT_BYTE_IDENTICAL_ORIGINAL",
+  "original_temporary_fixture": "pytest basetemp reused in later whole regression; original temporary file no longer available",
+  "original_log_preserved": true,
+  "first_error": "CaptureUnavailable:HELPER_HEARTBEAT_OR_PROCESS_STALE",
+  "stop_requested_monotonic": 1102949.504397072,
+  "cleanup_deadline_monotonic": 1102954.504397072,
+  "cleanup_elapsed_seconds": 6.184300479944795,
+  "failure_stop_elapsed_seconds": 6.192440144019201,
+  "failure_stop_error": "CONTINUOUS_DNS_FAILURE_STOP_ACK_MISSING",
+  "helper_process": {
+    "pid": 3130414,
+    "state": "ALIVE",
+    "expected_start": "110294910",
+    "observed_start": "110294910",
+    "namespace": "net:[4026531833]",
+    "observed_at_unix": 1793761379.7807317,
+    "exit_code": null
+  },
+  "ack_order_verified": false,
+  "authenticated_closed": false,
+  "quarantined_packets": 0,
+  "listener_closed": true,
+  "channel_closed": true,
+  "reader_joined": true,
+  "cleanup": "UNVERIFIED",
+  "global_kernel_cleanup": "UNKNOWN"
+}

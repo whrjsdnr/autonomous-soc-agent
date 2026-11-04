@@ -1,0 +1,20 @@
+[
+  {
+    "path": "tests/unit/continuous/test_storage_control_isolation.py",
+    "old_assertions": 109,
+    "current_assertions": 109,
+    "identical": true
+  },
+  {
+    "path": "tests/unit/continuous/test_dns_lifecycle.py",
+    "old_assertions": 125,
+    "current_assertions": 125,
+    "identical": true
+  },
+  {
+    "path": "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py",
+    "old_assertions": 42,
+    "current_assertions": 42,
+    "identical": true
+  }
+]

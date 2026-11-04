@@ -1,0 +1,291 @@
+{
+  "status": "PREFLIGHT_ONLY_NO_INFERENCE",
+  "checks": {
+    "python": "3.12.14",
+    "gui_available": true,
+    "source": "NATIVE_SERVICE",
+    "runtime": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime",
+    "model_action": "EXACT_SEALED_NATIVE_JOB_APPROVAL_REQUIRED",
+    "dns9": "INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
+    "root_commands_executed": false,
+    "artifact_integrity": "VERIFIED_EXISTING_REVIEW_NOT_EXECUTION_AUTHORITY",
+    "native_scope": "ONE_SHOT_REVIEW_NOT_PERMANENT_SERVICE_AUTHORITY",
+    "models": {
+      "quality": "VERIFIED_SHA",
+      "edge": "VERIFIED_SHA"
+    },
+    "inference_interpreter": {
+      "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.security-ai-demo/inference/bin/python",
+      "executable": true,
+      "scope": "AVAILABILITY_ONLY_WORKER_VALIDATES_PINNED_DEPENDENCIES"
+    },
+    "model_preflight": {
+      "status": "READY",
+      "meaning": "PREFLIGHT_ONLY_NO_INFERENCE",
+      "models": [
+        {
+          "profile": "quality",
+          "artifact": "VERIFIED",
+          "model_id": "linux-network14-research-v1-quality_rf",
+          "threshold": 0.35,
+          "status": "RESEARCH_ONLY",
+          "operational": "BLOCKED"
+        },
+        {
+          "profile": "edge",
+          "artifact": "VERIFIED",
+          "model_id": "linux-network14-research-v1-edge_lr",
+          "threshold": 0.8,
+          "status": "RESEARCH_ONLY",
+          "operational": "BLOCKED"
+        }
+      ],
+      "producer": "1.1.0 / Network14 / OFFLINE_PCAP",
+      "operational_inference": "BLOCKED",
+      "write_policy": "WRITE_DENIED"
+    },
+    "dns9_training_contract": {
+      "status": "INCOMPLETE",
+      "operational_inference": "BLOCKED",
+      "schema_version": "cic-bell-dns-stateless9-v1",
+      "feature_names": [
+        "FQDN_count",
+        "subdomain_length",
+        "numeric",
+        "entropy",
+        "special",
+        "labels",
+        "labels_max",
+        "labels_average",
+        "len"
+      ],
+      "model_sha256": "28e089af363dd565a4fb3d3f202de9e9f9804bd14a164de4fd7b61adb1201e33",
+      "feature_contract_digest": "3276c1b595ec566677bce530f2839247b7fa1320dc5e3549f85c0c17c959edd0",
+      "source_files": {
+        "packages/dns-security-ai/src/dns_security_ai/feature_contract.json": "0533cc503ef5af33d3083c87fb5252e1c89c3fcf6f8f7ca0f3f05940ac0fb51a",
+        "packages/dns-security-ai/src/dns_security_ai/artifact_manifest.json": "e67debb2fbd2ecce96403f4f27db63bfe2b993e26847caff4479268572748740",
+        "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_ML.ipynb": "16585061430566be3ab70bba30b56872a296db07d1e8f5dbaba303f958c5ca1b",
+        "reports/CIC-Bell-DNS-EXF-2021_DNS_Security_EDA.ipynb": "c767afd549cf0f383338b0d33c2845752c7e09ba4a38fd9de1c4a62fef223225"
+      },
+      "source_validation": "VERIFIED_HASHES",
+      "missing": [
+        "ORIGINAL_QUERY_CANONICALIZATION_AND_SUBDOMAIN_RULES",
+        "EXACT_NINE_FEATURE_COMPUTATION_AND_UNITS",
+        "TRAINING_SCALER_MODEL_EXPORT_LINKAGE",
+        "INDEPENDENT_RAW_DNS_TO_NINE_FEATURE_GOLDEN_PAIRS",
+        "CLASS_MAPPING_AND_THRESHOLD_VALIDATION"
+      ],
+      "upstream_reference": "https://www.unb.ca/cic/datasets/dns-exf-2021.html",
+      "contract_digest": "2b10cc3b9098a73a3b557853ee5a77adbbe91cb09739c2304627ada57ada60a2",
+      "raw_dns_collection": "INDEPENDENT_OF_DNS9_MODEL_ELIGIBILITY",
+      "model_action_granted": false
+    }
+  },
+  "runtime": {
+    "state": "STOPPED",
+    "cleanup": "NOT_STARTED",
+    "collection_live": false,
+    "stop_requested": false,
+    "reset_worker": false,
+    "queue": {},
+    "heartbeat_stale": true,
+    "runtime": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime",
+    "dns_collection": "NOT_COLLECTED_IN_NATIVE_TCP_TRIAL",
+    "dns9": "INCOMPLETE_TRAINING_EXTRACTION_CONTRACT"
+  },
+  "readiness": "BLOCKED",
+  "diagnostics": {
+    "python": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "executable": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "version": "3.12.14"
+      }
+    },
+    "runtime_dependency": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "pydantic": "2.13.5",
+        "numpy": "2.5.3",
+        "scikit-learn": "1.9.1"
+      }
+    },
+    "artifact_integrity": {
+      "status": "PASS",
+      "code": "SOURCE_AND_EXECUTABLE_CHECKED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "result": "VERIFIED_EXISTING_REVIEW_NOT_EXECUTION_AUTHORITY"
+      }
+    },
+    "model_registry": {
+      "status": "PASS",
+      "code": "PINNED_MODEL_FILES",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "models": {
+          "quality": "VERIFIED_SHA",
+          "edge": "VERIFIED_SHA"
+        },
+        "fingerprint": {
+          "status": "READY",
+          "meaning": "PREFLIGHT_ONLY_NO_INFERENCE",
+          "models": [
+            {
+              "profile": "quality",
+              "artifact": "VERIFIED",
+              "model_id": "linux-network14-research-v1-quality_rf",
+              "threshold": 0.35,
+              "status": "RESEARCH_ONLY",
+              "operational": "BLOCKED"
+            },
+            {
+              "profile": "edge",
+              "artifact": "VERIFIED",
+              "model_id": "linux-network14-research-v1-edge_lr",
+              "threshold": 0.8,
+              "status": "RESEARCH_ONLY",
+              "operational": "BLOCKED"
+            }
+          ],
+          "producer": "1.1.0 / Network14 / OFFLINE_PCAP",
+          "operational_inference": "BLOCKED",
+          "write_policy": "WRITE_DENIED"
+        }
+      }
+    },
+    "namespace_lease": {
+      "status": "WARN",
+      "code": "MOUNT_OBSERVED_REVIEW_BOUND_LEASE_REQUIRED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "target": "net:[4026532232]",
+        "current": "net:[4026531833]",
+        "inode": 4026532232,
+        "dev": 4,
+        "lease": "NOT_BOUND_WITHOUT_REVIEW",
+        "entered": false,
+        "internal_check": "REQUIRED_IN_APPROVED_TARGET"
+      }
+    },
+    "namespace_internal": {
+      "status": "BLOCKED",
+      "code": "AGENT_APPROVED_TARGET_ENTRY_REQUIRED_FOR_INTERNAL_CHECK",
+      "scope": "TARGET_READ_ONLY",
+      "details": {}
+    },
+    "root_installation": {
+      "status": "BLOCKED",
+      "code": "CONTINUOUS_INSTALLATION_EXPIRED_OR_UNBOUNDED",
+      "scope": "HOST_READ_ONLY",
+      "details": {}
+    },
+    "root_service": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "MainPID": "0",
+        "CPUQuotaPerSecUSec": "250ms",
+        "MemoryMax": "134217728",
+        "TasksMax": "4",
+        "CapabilityBoundingSet": "cap_chown cap_net_admin cap_bpf",
+        "User": "root",
+        "NoNewPrivileges": "yes",
+        "NetworkNamespacePath": "/run/netns/soc-native-b3",
+        "LoadState": "loaded",
+        "ActiveState": "inactive",
+        "SubState": "dead",
+        "FragmentPath": "/etc/systemd/system/soc-continuous-collector.service"
+      }
+    },
+    "collector_runtime": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "state": "STOPPED",
+        "cleanup": "NOT_STARTED",
+        "collection_live": false,
+        "stop_requested": false,
+        "reset_worker": false,
+        "queue": {},
+        "heartbeat_stale": true
+      }
+    },
+    "queue_storage": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "state": "STOPPED",
+        "cleanup": "NOT_STARTED",
+        "counts": {},
+        "kinds": {},
+        "pending": 0,
+        "in_flight": 0,
+        "acknowledged": 0,
+        "dead_letter": 0,
+        "failed": 0,
+        "observed_duplicates": 0,
+        "store_id": "c1f2c795-642b-4c38-b60a-6217922f9db6",
+        "cursor_sources": 0,
+        "audit": "VERIFIED",
+        "checkpoint": "NATIVE_SEPARATE",
+        "used_bytes": 999488,
+        "quota_bytes": 268435456,
+        "free_bytes": 849793744896
+      }
+    },
+    "gui_backend": {
+      "status": "PASS",
+      "code": "UNPRIVILEGED_ATTACHED_STATUS_BACKEND",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "display_available": true,
+        "root_commands": false,
+        "runtime": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime"
+      }
+    },
+    "api_provider": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "configured": false,
+        "credential_disclosed": false,
+        "network_requests": 0,
+        "usage_authority": "SEPARATE_APPROVAL_REQUIRED",
+        "runtime_provider": "SCRIPTED"
+      }
+    },
+    "authentication_collection": {
+      "status": "BLOCKED",
+      "code": "AUTHENTICATION_EXACT_HUMAN_APPROVAL_REQUIRED",
+      "scope": "HOST_READ_ONLY",
+      "details": {}
+    },
+    "dns_metadata": {
+      "status": "PASS",
+      "code": "VERIFIED",
+      "scope": "HOST_READ_ONLY",
+      "details": {
+        "session": "0287dd84-1075-4b52-9fe0-a17608488073",
+        "capture_started": false,
+        "helper_authority": "SEPARATE_REVIEWED_ROOT_LAUNCH_REQUIRED",
+        "dns9": "INCOMPLETE"
+      }
+    },
+    "native_plan": {
+      "status": "BLOCKED",
+      "code": "AUTHENTICATION_EXACT_HUMAN_APPROVAL_REQUIRED",
+      "scope": "HOST_READ_ONLY",
+      "details": {}
+    }
+  },
+  "scope": "READ_ONLY_NO_ACTIVATION_NO_AUTHORITY"
+}

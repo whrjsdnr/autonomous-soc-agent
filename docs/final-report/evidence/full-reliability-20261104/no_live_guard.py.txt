@@ -1,0 +1,21 @@
+"""Out-of-tree regression guard; never changes application policy or assertions."""
+import json,os,sys
+from pathlib import Path
+violations=[]
+def deny(code):
+ violations.append(code)
+ raise RuntimeError('LIVE_OPERATION_FORBIDDEN_IN_RCA_TEST:'+code)
+def audit(event,args):
+ if event=='subprocess.Popen':
+  command=args[1];parts=command if isinstance(command,(tuple,list)) else [command]
+  for part in parts:
+   token=os.fsdecode(part)
+   if Path(token).name in ('sudo','nsenter','bpftool') or token=='soc_agent.security_ai.research.worker':deny('PRIVILEGED_OR_MODEL_PROCESS')
+   if Path(token).name=='systemctl' and not (parts[0]=='/usr/bin/systemctl' and len(parts)==5 and parts[1:4]==['show','soc-continuous-collector.service','--no-pager'] and str(parts[4]).startswith('--property=')):deny('SERVICE_CONTROL')
+ if event=='pickle.find_class' and str(args[0]).startswith(('sklearn.','xgboost.')):deny('REAL_MODEL_UNPICKLE')
+ if event=='ctypes.dlopen' and args[0] and any(n in str(args[0]) for n in ('provider.so','libnative-tc.so')):deny('NATIVE_PROVIDER_LOAD')
+ if event=='socket.connect' and isinstance(args[1],tuple) and args[1][0] not in ('127.0.0.1','::1','localhost'):deny('EXTERNAL_CONNECT')
+ if event=='socket.sendto' and isinstance(args[-1],tuple) and args[-1][1] in (53,1053):deny('DNS_TRAFFIC')
+def pytest_configure(config):sys.addaudithook(audit)
+def pytest_sessionfinish(session,exitstatus):
+ Path(os.environ['SOC_RCA_GUARD_REPORT']).write_text(json.dumps(dict(exitstatus=int(exitstatus),violations=violations,external_native_model_execution_allowed=False),indent=2)+'\n')

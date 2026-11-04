@@ -1,0 +1,3021 @@
+{
+  "scope": "NONPRIVILEGED_FIXTURE_RESULTS_NOT_LIVE_SUCCESS",
+  "files": [
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-disk/events.jsonl",
+      "portable": "after-1-export-disk/events.jsonl.gz",
+      "original_sha256": "8b37b0177bb06b880fe87b1ad9869ec7863f389cc7c12b35c8fa2962d23732ed",
+      "portable_sha256": "4e668d918acd967a90f7a5ed82f5a12625e1bbebf23c5f6aed68d35ab9f96563",
+      "original_bytes": 126883,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-disk/guard.json",
+      "portable": "after-1-export-disk/guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-disk/result.json",
+      "portable": "after-1-export-disk/result.json",
+      "original_sha256": "85464604ee41c8c5feb19e2c2df02041cef56d99da92463f256b11613b0deef1",
+      "portable_sha256": "85464604ee41c8c5feb19e2c2df02041cef56d99da92463f256b11613b0deef1",
+      "original_bytes": 2018,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-disk/tests.log",
+      "portable": "after-1-export-disk/tests.log.gz",
+      "original_sha256": "db912863049cfa8de16d0594fd2d675f610d4fce0631411acf46cb04f8e186ad",
+      "portable_sha256": "776f3b47494d0baf59f3b6638642629cc683efeb689c77c2a56f94d627937c07",
+      "original_bytes": 6282,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-tmpfs/events.jsonl",
+      "portable": "after-1-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "6aec103037b7e70525bbd16ddd896aebb3408a69b8625857721dbc21e89595d0",
+      "portable_sha256": "184743cc52d18acdab1226829486a702688de10490877c71015f6b10a513480c",
+      "original_bytes": 109302,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-tmpfs/guard.json",
+      "portable": "after-1-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-tmpfs/result.json",
+      "portable": "after-1-export-tmpfs/result.json",
+      "original_sha256": "eed2fb628c17260401c3a0d173d0aa934942c63a53d783ba6a86fadad02d20eb",
+      "portable_sha256": "eed2fb628c17260401c3a0d173d0aa934942c63a53d783ba6a86fadad02d20eb",
+      "original_bytes": 2023,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-export-tmpfs/tests.log",
+      "portable": "after-1-export-tmpfs/tests.log.gz",
+      "original_sha256": "e0a8e6d9ccbe989d452863e73bdbfeb8a776868819d63d5c0f6cb0171ec5d244",
+      "portable_sha256": "670f80f8f88fcfa138b4c11863a03aac886b2736169e6a9bd4270d2d6c0f1351",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-disk/events.jsonl",
+      "portable": "after-1-workspace-disk/events.jsonl.gz",
+      "original_sha256": "54f9250a4a19bf496a41139718f9d2a97070c6eb046b96af4fc035f3d907c563",
+      "portable_sha256": "a8c94757b8b1292088aac6c195acf90cea17bba7fa504e9f5ca10ab461991d51",
+      "original_bytes": 121317,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-disk/guard.json",
+      "portable": "after-1-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-disk/result.json",
+      "portable": "after-1-workspace-disk/result.json",
+      "original_sha256": "9bc5f22b2d0078a69088d264393b451b2c36967f7afebecc88cb8cc23a1c3d40",
+      "portable_sha256": "9bc5f22b2d0078a69088d264393b451b2c36967f7afebecc88cb8cc23a1c3d40",
+      "original_bytes": 2021,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-disk/tests.log",
+      "portable": "after-1-workspace-disk/tests.log.gz",
+      "original_sha256": "a80341077c5e461969b6fa968cbd9375ad31548d45e73dcb4396c64cd8d9176f",
+      "portable_sha256": "7fd8d116583721b44d3182b2ff4759b94968842187ca5f8804d639e7a02e1c3b",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-tmpfs/events.jsonl",
+      "portable": "after-1-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "1cbca80232bf7721c1e1fd3f09c8af5a7572eb58792c6c5a6d88b25d534b4dd4",
+      "portable_sha256": "a61199a24604c9bdb9743e90d06afa6bf4891976bb866c44b6ff5964bbf82a59",
+      "original_bytes": 104376,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-tmpfs/guard.json",
+      "portable": "after-1-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-tmpfs/result.json",
+      "portable": "after-1-workspace-tmpfs/result.json",
+      "original_sha256": "3aed7d6224a7164292b4a6e0ae64177d94e9c9484d709c6252c4c2aff51a2e61",
+      "portable_sha256": "3aed7d6224a7164292b4a6e0ae64177d94e9c9484d709c6252c4c2aff51a2e61",
+      "original_bytes": 2025,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1-workspace-tmpfs/tests.log",
+      "portable": "after-1-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "d524950a8da71d8529d248a97f8b71f72d66bdee3395008db066489c98925276",
+      "portable_sha256": "85a71e61db1f42c0fca69a5eadf628ba57d7297159ef78322b67e78be23f1121",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-1.log",
+      "portable": "after-1.log.gz",
+      "original_sha256": "6ff31bc5efe6c4ef68a74bd3f65b9ccbc7c03de924938732a8f2338aaabb8dee",
+      "portable_sha256": "ad65f3bddacf2a61852cf813d1583af10d0d83d69349a377a4352e8771154b49",
+      "original_bytes": 7747,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-disk/events.jsonl",
+      "portable": "after-2-export-disk/events.jsonl.gz",
+      "original_sha256": "377c73d2980218a86921d68efe49d0388ef2e833b65e66dd8050ffe45de56933",
+      "portable_sha256": "70e749ab3004ea72e050870b91e5823ad7ad8bd9ec74582ab5bd01c71dd87315",
+      "original_bytes": 109774,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-disk/guard.json",
+      "portable": "after-2-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-disk/result.json",
+      "portable": "after-2-export-disk/result.json",
+      "original_sha256": "4dfc0bf5d7b28219bb6f8612962abdfe1ad78584cd811006ab43faca06927a81",
+      "portable_sha256": "4dfc0bf5d7b28219bb6f8612962abdfe1ad78584cd811006ab43faca06927a81",
+      "original_bytes": 2018,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-disk/tests.log",
+      "portable": "after-2-export-disk/tests.log.gz",
+      "original_sha256": "466ec029ef820ec79b4971b4cf351dd291ca5a55e428b491ffc005177d5a9a23",
+      "portable_sha256": "a1df11444b77e53529bb62e99748300a622d63588bfdd0f30358e83f63b82e1d",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-tmpfs/events.jsonl",
+      "portable": "after-2-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "145f4f9ddf2e3c44887ac869bd54a1f45feef7832094bb3c8a647688c9b0fe3a",
+      "portable_sha256": "3b764b7aaa8fa62ab7a9886ac95372b4ce2e9db685aebbab0286ae72e9d72dee",
+      "original_bytes": 92981,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-tmpfs/guard.json",
+      "portable": "after-2-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-tmpfs/result.json",
+      "portable": "after-2-export-tmpfs/result.json",
+      "original_sha256": "928afe933d018d88854db43a4afd8b55494b7c6b78b7850b8fa95b40cc18f8ef",
+      "portable_sha256": "928afe933d018d88854db43a4afd8b55494b7c6b78b7850b8fa95b40cc18f8ef",
+      "original_bytes": 2024,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-export-tmpfs/tests.log",
+      "portable": "after-2-export-tmpfs/tests.log.gz",
+      "original_sha256": "7863e2f916f7e1ea29c2e07e7e53d61f77c9483bc7b5d2314af58fe14392b6a1",
+      "portable_sha256": "27438dee302b4714f181b89af21df4da6487f9c365925523bbea95caed1318bc",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-disk/events.jsonl",
+      "portable": "after-2-workspace-disk/events.jsonl.gz",
+      "original_sha256": "9140b50b8f4538da20899642e9a6fa17b2f2db603cd4390cd120906c76788bea",
+      "portable_sha256": "ddaf3c6c844511da7e327e53e64cb56a20cd8be89453725ff305a60d3d03be52",
+      "original_bytes": 110095,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-disk/guard.json",
+      "portable": "after-2-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-disk/result.json",
+      "portable": "after-2-workspace-disk/result.json",
+      "original_sha256": "560008f17ddec2b6f0dc89bd24b3d5bc2aacfc45e93f0d1840c9a6fb9c154fe0",
+      "portable_sha256": "560008f17ddec2b6f0dc89bd24b3d5bc2aacfc45e93f0d1840c9a6fb9c154fe0",
+      "original_bytes": 2021,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-disk/tests.log",
+      "portable": "after-2-workspace-disk/tests.log.gz",
+      "original_sha256": "57b8f5a6df3b926d9d5e29b4c6e44d628aa6731522cb038e61fbaba0718b718f",
+      "portable_sha256": "c0c587da9489f0e1ab7355e53ca4ba5e137dc9c6dbce3152e0a4585845677653",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-tmpfs/events.jsonl",
+      "portable": "after-2-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "a54f3139ae05153f9b965b1f6214858fddb98c6fef7c7345a698b58d9d3a9c20",
+      "portable_sha256": "2b3a443dac7ff6a4b3dee309bec74550f5e5e79e4bb16c6ab09f600c7eec7b3f",
+      "original_bytes": 89308,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-tmpfs/guard.json",
+      "portable": "after-2-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-tmpfs/result.json",
+      "portable": "after-2-workspace-tmpfs/result.json",
+      "original_sha256": "2f450885016be6f6b2b075e1b803407a7c968d1ee9b00ad1c4adc43747d6c984",
+      "portable_sha256": "2f450885016be6f6b2b075e1b803407a7c968d1ee9b00ad1c4adc43747d6c984",
+      "original_bytes": 2027,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-2-workspace-tmpfs/tests.log",
+      "portable": "after-2-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "9dee930f88156a22f9a82561f9bd55f6947221e3df8be8a8bc87d13c9383f140",
+      "portable_sha256": "5980b48e507a0827d99f47d192f3b380933810a0339b8c70b2a151e29ada6910",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-disk/events.jsonl",
+      "portable": "after-3-export-disk/events.jsonl.gz",
+      "original_sha256": "2f962d76dc5c859d81e2289e239eecea5e524d09a77d8b6f0ea0a76e7f4c899f",
+      "portable_sha256": "86341fbc271744dfecf8ab0205ee07fb4097e57a592967c5f6606ed0367d2cd6",
+      "original_bytes": 101409,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-disk/guard.json",
+      "portable": "after-3-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-disk/result.json",
+      "portable": "after-3-export-disk/result.json",
+      "original_sha256": "cc0340bd6cfa5b34be4584c915591c3f43276209fac34ba95eb2c1fca0ef95ef",
+      "portable_sha256": "cc0340bd6cfa5b34be4584c915591c3f43276209fac34ba95eb2c1fca0ef95ef",
+      "original_bytes": 2018,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-disk/tests.log",
+      "portable": "after-3-export-disk/tests.log.gz",
+      "original_sha256": "1e4fe0a8ebe74c06ffe3d4c5c34c61248f8fa3a356cd7fe1763d63acbacb059f",
+      "portable_sha256": "37ca4c89b3d9d45da31c1c931edb91ea3b1d136ac606ab1d296b5efa2ae71424",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-tmpfs/events.jsonl",
+      "portable": "after-3-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "bc9cd8cfb96e019380ca80a240e936523a1f4923fd6f2b521d8749adde0ec115",
+      "portable_sha256": "db2de4c4bf48c4531ee4612fc0d6de884e954b105438d889f124025e1d9d9db3",
+      "original_bytes": 113238,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-tmpfs/guard.json",
+      "portable": "after-3-export-tmpfs/guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-tmpfs/result.json",
+      "portable": "after-3-export-tmpfs/result.json",
+      "original_sha256": "2c461cf02de63b2d67f09b4f107c31fa0b483328fd7289557eda3e075351d4ea",
+      "portable_sha256": "2c461cf02de63b2d67f09b4f107c31fa0b483328fd7289557eda3e075351d4ea",
+      "original_bytes": 2024,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-export-tmpfs/tests.log",
+      "portable": "after-3-export-tmpfs/tests.log.gz",
+      "original_sha256": "930a91ac10a0697e31bb6852073a95b5daa4cc57732e0b15a4d35afd03607ac5",
+      "portable_sha256": "b41a441363a1c5d729c470b23440d261a218b5995a55032430b82a8fd86829a7",
+      "original_bytes": 8385,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-ready-failure-events.json",
+      "portable": "after-3-ready-failure-events.json",
+      "original_sha256": "d6500a45f35dd9d953128f3f282857f89771050005bae1a36f240c0bcd39bf86",
+      "portable_sha256": "d6500a45f35dd9d953128f3f282857f89771050005bae1a36f240c0bcd39bf86",
+      "original_bytes": 35858,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-disk/events.jsonl",
+      "portable": "after-3-workspace-disk/events.jsonl.gz",
+      "original_sha256": "590d8f8a75dbf49f82fa1e1956bee17eabbc98065445e070d74e83a8dae8f6bf",
+      "portable_sha256": "2edf22f67193192f47e718e6f72b105496a9718974daec5fbdf928521a8264e1",
+      "original_bytes": 112798,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-disk/guard.json",
+      "portable": "after-3-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-disk/result.json",
+      "portable": "after-3-workspace-disk/result.json",
+      "original_sha256": "2f1aaeb96b1c8ab2f721248209ae1f0d537adb8cc356fad734635b80fd49445e",
+      "portable_sha256": "2f1aaeb96b1c8ab2f721248209ae1f0d537adb8cc356fad734635b80fd49445e",
+      "original_bytes": 2021,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-disk/tests.log",
+      "portable": "after-3-workspace-disk/tests.log.gz",
+      "original_sha256": "b476ec63ba730d2a4e085889bbb368f057d49628b7165e1fac97a2cfa23d37d5",
+      "portable_sha256": "18d8b27c0b40fe0a12d932feffa1fa22a2f5af0729ae5f1d7fa6a03a5ebcd292",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-tmpfs/events.jsonl",
+      "portable": "after-3-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "45c5e343352f7ddf0ee6770e81e24423a9e8db48d4fc70a510a96019ec9f4786",
+      "portable_sha256": "0f1a4f8fa7336e07e402c04e0e9bd1943679e098dc10355288bdf39520dae86b",
+      "original_bytes": 109930,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-tmpfs/guard.json",
+      "portable": "after-3-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-tmpfs/result.json",
+      "portable": "after-3-workspace-tmpfs/result.json",
+      "original_sha256": "ab62016de8015c61a7bce16f0286594955bdf00c4f1001784430ac3ac8020720",
+      "portable_sha256": "ab62016de8015c61a7bce16f0286594955bdf00c4f1001784430ac3ac8020720",
+      "original_bytes": 2026,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-3-workspace-tmpfs/tests.log",
+      "portable": "after-3-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "8138110ea5bf79b2ed093e0ff2fd32f303004d74f329920cacb822ef77b61755",
+      "portable_sha256": "76ec385fe7db1731c92fd71be076a6d0533ab1de4a32add766162ff58bf21692",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-4-workspace-disk/INVALID_FIXTURE.json",
+      "portable": "after-4-workspace-disk/INVALID_FIXTURE.json",
+      "original_sha256": "84dfb4ae773b1a86b738109ac17a49a856c0cd5487530f54b41ae72e24b421e1",
+      "portable_sha256": "84dfb4ae773b1a86b738109ac17a49a856c0cd5487530f54b41ae72e24b421e1",
+      "original_bytes": 196,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-4-workspace-disk/events.jsonl",
+      "portable": "after-4-workspace-disk/events.jsonl.gz",
+      "original_sha256": "bf202cd6001544ee745ee395d9ee0c0e3687f1b070e9238cd86795a0806d85c2",
+      "portable_sha256": "5e854123e59b038ffcf979c002c7c037e2765830a9cef1e69ad17cd0d3761e68",
+      "original_bytes": 109103,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-4-workspace-disk/guard.json",
+      "portable": "after-4-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-4-workspace-disk/result.json",
+      "portable": "after-4-workspace-disk/result.json",
+      "original_sha256": "4418f0d78bdb4d3e099de502dd4fcf24a26a3a2a535f6f8d3f3a6b32059766e3",
+      "portable_sha256": "4418f0d78bdb4d3e099de502dd4fcf24a26a3a2a535f6f8d3f3a6b32059766e3",
+      "original_bytes": 2022,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-4-workspace-disk/tests.log",
+      "portable": "after-4-workspace-disk/tests.log.gz",
+      "original_sha256": "8feb0f286d65e686939bc6a81a385066f98608342fb087b349d6566e72478a09",
+      "portable_sha256": "17fb3840ec1b30b1e6952ad65bd3092135c0ee41d505b22117ebc77310f8845b",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-disk/events.jsonl",
+      "portable": "after-6-export-disk/events.jsonl.gz",
+      "original_sha256": "bc311c9db53df497f3fbf1fb36460047c121c1c2b72ecc02f8527336d7067829",
+      "portable_sha256": "5cb922b629b659e6e6d8be8b1e855c881658c9584eacc81926d8b55b7e2ecca8",
+      "original_bytes": 102178,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-disk/guard.json",
+      "portable": "after-6-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-disk/result.json",
+      "portable": "after-6-export-disk/result.json",
+      "original_sha256": "b9b5ebf4a97964d0d977545d703b46080b59a922d2796123babf4f6e7e3cdc00",
+      "portable_sha256": "b9b5ebf4a97964d0d977545d703b46080b59a922d2796123babf4f6e7e3cdc00",
+      "original_bytes": 2018,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-disk/tests.log",
+      "portable": "after-6-export-disk/tests.log.gz",
+      "original_sha256": "212f2a5f86fd1fc8146728790775dd135982047f5825307586bd6cbc574b3630",
+      "portable_sha256": "6616d30fee3d5303b3e88b6adfe555b6c9ef4629833b2cf06d37fe17afbbabb2",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-tmpfs/events.jsonl",
+      "portable": "after-6-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "00f7741dcb93856762c94a45c97dbaf7a4cc0ef55ac0915d7bb5807eeed5c99e",
+      "portable_sha256": "3017d69f0ef7ed46d3e9de24465c1ce285304a1ff0ac1211dd9c148a2ab349c6",
+      "original_bytes": 88094,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-tmpfs/guard.json",
+      "portable": "after-6-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-tmpfs/result.json",
+      "portable": "after-6-export-tmpfs/result.json",
+      "original_sha256": "259966c9d780b109fe320d59c981caba1452f4863cba92547f3e74b5c6697f23",
+      "portable_sha256": "259966c9d780b109fe320d59c981caba1452f4863cba92547f3e74b5c6697f23",
+      "original_bytes": 2024,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-export-tmpfs/tests.log",
+      "portable": "after-6-export-tmpfs/tests.log.gz",
+      "original_sha256": "afbc1df22c798b76be2051661f7a44709606b6fdbb8ead3b8e316e76f0df4c07",
+      "portable_sha256": "38f8648d95e5e6119ebfb9b7fc46453ddc5b5ccad39aef2927d0d3faebcf40bc",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-disk/events.jsonl",
+      "portable": "after-6-workspace-disk/events.jsonl.gz",
+      "original_sha256": "fb594b9ef9fa7ba08bfe935e7d171085dff890f4804928ae74fabab356cc31c1",
+      "portable_sha256": "c5c1dbb0e1ee1fdceb3310c2b7b70fdc11383a5c790c0638a99cda5dc5996814",
+      "original_bytes": 100829,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-disk/guard.json",
+      "portable": "after-6-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-disk/result.json",
+      "portable": "after-6-workspace-disk/result.json",
+      "original_sha256": "3624fffc5d446b5902690f357af7edba36be9bce44351e02010f24d9b84804fe",
+      "portable_sha256": "3624fffc5d446b5902690f357af7edba36be9bce44351e02010f24d9b84804fe",
+      "original_bytes": 2021,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-disk/tests.log",
+      "portable": "after-6-workspace-disk/tests.log.gz",
+      "original_sha256": "47daaf346d0dcca4849c81f19f35e4d15b3174f8ab1d613e2d5c6ad677da6a06",
+      "portable_sha256": "c6ed239e75906dfaf7297b776876040d2cd0eff4c91008d4c582ac14c75bbb50",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-tmpfs/events.jsonl",
+      "portable": "after-6-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "20c971607204474b1cf47254dad21d044005193ddc91ed69822196b0939dedda",
+      "portable_sha256": "57fe9de774eb65be7540a12aaa3701f4d4563a4be26ad600d7868b13189b7a40",
+      "original_bytes": 87361,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-tmpfs/guard.json",
+      "portable": "after-6-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-tmpfs/result.json",
+      "portable": "after-6-workspace-tmpfs/result.json",
+      "original_sha256": "31c3f4af4985d5137fef02e24041cd89c8e989b37bd6c390cc2e569f0e7eddfe",
+      "portable_sha256": "31c3f4af4985d5137fef02e24041cd89c8e989b37bd6c390cc2e569f0e7eddfe",
+      "original_bytes": 2027,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-6-workspace-tmpfs/tests.log",
+      "portable": "after-6-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "1e123789c319698fcd94ffcf5639126865dfe73434737b5a8ae9d32d3e807975",
+      "portable_sha256": "bbf3e9be15fc69a022625e59d3e5290734e9a9169b132e3db3d9bc2d93c7e36d",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-disk/events.jsonl",
+      "portable": "after-7-export-disk/events.jsonl.gz",
+      "original_sha256": "7add2d29e0f0a6707220229162d190e6c021fbcc473527afe2d96c7e6671cdfe",
+      "portable_sha256": "2fd95b0711b43bfa6a26b01f12b6118493b020a121372d566c47ab7caed74249",
+      "original_bytes": 102905,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-disk/guard.json",
+      "portable": "after-7-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-disk/result.json",
+      "portable": "after-7-export-disk/result.json",
+      "original_sha256": "bd972bde01854960916c9317eaae0a3666e1a90b32907f15064a3ebb79774e7a",
+      "portable_sha256": "bd972bde01854960916c9317eaae0a3666e1a90b32907f15064a3ebb79774e7a",
+      "original_bytes": 2017,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-disk/tests.log",
+      "portable": "after-7-export-disk/tests.log.gz",
+      "original_sha256": "e02d3ce3568ef044c20ab943017791d6991e36766b041b57cc3649af6b566143",
+      "portable_sha256": "ba5b8a9c3024a6becd2599b83267032000dce1a2f74da873ce56070c19c7d0db",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-tmpfs/events.jsonl",
+      "portable": "after-7-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "03966e99072b22837100dea550340da2a11b393f9e8d3febb6bc6968d724711e",
+      "portable_sha256": "08c206823c225b4a45a447f6e337039b7f78d90f0c260fdf508d445a163a93d9",
+      "original_bytes": 89648,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-tmpfs/guard.json",
+      "portable": "after-7-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-tmpfs/result.json",
+      "portable": "after-7-export-tmpfs/result.json",
+      "original_sha256": "59b452a8e60eeec067ad74a8456ba53609123327d385c5f84e2fb06d8bd71f65",
+      "portable_sha256": "59b452a8e60eeec067ad74a8456ba53609123327d385c5f84e2fb06d8bd71f65",
+      "original_bytes": 2023,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-export-tmpfs/tests.log",
+      "portable": "after-7-export-tmpfs/tests.log.gz",
+      "original_sha256": "336cc4637e94adeca6825ca49281db85eec60221457d0f927f0b01ef81253729",
+      "portable_sha256": "251d0ec31475dfa58a219095e647715bcfbc02c75e179c0955cfe78a716a4869",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-disk/events.jsonl",
+      "portable": "after-7-workspace-disk/events.jsonl.gz",
+      "original_sha256": "476b6a54a243d43e28b933da75c36ff74033c75daaba0b7d35f3f3d0f635f336",
+      "portable_sha256": "484e9a049419f8f4485d220413e7e46162669e0f2e4ad1c597bd79341c32dd1d",
+      "original_bytes": 103966,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-disk/guard.json",
+      "portable": "after-7-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-disk/result.json",
+      "portable": "after-7-workspace-disk/result.json",
+      "original_sha256": "6182dc16e88def688d751e4e6a62fe441d5fab364d04a9f36b9220d091876d72",
+      "portable_sha256": "6182dc16e88def688d751e4e6a62fe441d5fab364d04a9f36b9220d091876d72",
+      "original_bytes": 2021,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-disk/tests.log",
+      "portable": "after-7-workspace-disk/tests.log.gz",
+      "original_sha256": "da33a703f6a981ab18caa148fbe45570f48d44abcd85bf3987bd52e8fd26c8e2",
+      "portable_sha256": "dfb0e0885b538f7e3190c0c0e866e18099b467330c1a37d8dfcb68afd125fb87",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-tmpfs/events.jsonl",
+      "portable": "after-7-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "4952b93c74c1b0e55f060481839e46b3001e62fe18ac2b78f01e154d9f0880de",
+      "portable_sha256": "bc783b1418b757be69c219602f514700c7c9dc66c3a9e221f8f9923d26c6b016",
+      "original_bytes": 87893,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-tmpfs/guard.json",
+      "portable": "after-7-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-tmpfs/result.json",
+      "portable": "after-7-workspace-tmpfs/result.json",
+      "original_sha256": "e529fe76e7ddd5cf2a5e1b106d295d32a6cbe9359b49f7b2e00f0594a5dc3602",
+      "portable_sha256": "e529fe76e7ddd5cf2a5e1b106d295d32a6cbe9359b49f7b2e00f0594a5dc3602",
+      "original_bytes": 2026,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/after-7-workspace-tmpfs/tests.log",
+      "portable": "after-7-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "9189f92a8b117bd9efe31621ffe1c3a038458f38fe6a7acc54c8eb9bae5289bc",
+      "portable_sha256": "2845331d34d9bd73d3b0b6265632223aa0303f8fc8290270bb2b3a3d1b6816a8",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/all-checks.log",
+      "portable": "all-checks.log.gz",
+      "original_sha256": "eb6d6a2f404f2fe0c27c4b5e7207e6b12cd57549939d893db3a95e87f7366db8",
+      "portable_sha256": "4cabc9c0b201691a26ddd215bd4ef1c91626c40e2d5b673a364f0072b7ab88ae",
+      "original_bytes": 2984,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/all-observed-failure-phases.json",
+      "portable": "all-observed-failure-phases.json.gz",
+      "original_sha256": "32e58233e95ee7886ecdc42fcdeb31b8b882b396ca08f6d43af8a30676639591",
+      "portable_sha256": "856e196fa20f2c465a8b9c52e712abf87e992166ee1c00196a5fe03de8168293",
+      "original_bytes": 121580,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/assertion-preservation.json",
+      "portable": "assertion-preservation.json",
+      "original_sha256": "03c1082f8b1be1b8ab5b9a6e731084cc841104642d867c63e892bc83c4fac020",
+      "portable_sha256": "03c1082f8b1be1b8ab5b9a6e731084cc841104642d867c63e892bc83c4fac020",
+      "original_bytes": 485,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/auth-import-fixed.log",
+      "portable": "auth-import-fixed.log.gz",
+      "original_sha256": "b336bfbb42d8a55315e2f7350d4a6528e0fd95453f81c1e21f96f9ae7c5d2932",
+      "portable_sha256": "4e7eed94d3b698ed1d2f2205818901ebfb848b002dfc33443369efb6e9a531d1",
+      "original_bytes": 98,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/auth-importtime-after.log",
+      "portable": "auth-importtime-after.log.gz",
+      "original_sha256": "abe8b0d899b8875f0ae6e5541bf9ae1f4266ce4e31571860534487bf359730e9",
+      "portable_sha256": "4e7b65a156f247842a3a871d9b009b342c10012f4fdbb4c2cab682374dcc9c43",
+      "original_bytes": 144974,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/auth-importtime.log",
+      "portable": "auth-importtime.log.gz",
+      "original_sha256": "1dd5fac66b2dd22f4e9fb371218b7dc1cb03e4c83f42f264bc1f514dc664661e",
+      "portable_sha256": "264c8078d615da08bef9bfaaab13eb84e09206c1c59e8fbf128ff810ddb7b16c",
+      "original_bytes": 145394,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/baseline.log",
+      "portable": "baseline.log.gz",
+      "original_sha256": "412f90eb5478284d615e3d4e02a5ae219b0ce39be2ffd5ffbca71b396aa320fd",
+      "portable_sha256": "cf924f0ffeb5ecde471c5cf2443687f27238d6c5b255442f9175293c02362164",
+      "original_bytes": 7194,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-auth-import.log",
+      "portable": "before-auth-import.log.gz",
+      "original_sha256": "95584db71f4256acdde0c856949344a93fe05b7b41dd1c152ff4e968afd89c52",
+      "portable_sha256": "0fa03630990cd60f91cdac921c0c348bc0f66daccc51cb3df7e4c6ed41cf2310",
+      "original_bytes": 1079,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-boundaries.log",
+      "portable": "before-boundaries.log.gz",
+      "original_sha256": "250565170b66e42f85838ce1acf708ba20d1349b4878b478d62afa05288c717b",
+      "portable_sha256": "cd2b88d81bc5a22b0d4c204e5baf5c209cc0741986495300409f049024928109",
+      "original_bytes": 2164,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-disk/events.jsonl",
+      "portable": "before-export-disk/events.jsonl.gz",
+      "original_sha256": "686c397408ec2bffebb4bc8a9c276327ca9442e514b847b97afff62c376241fe",
+      "portable_sha256": "a7e9d6b3eb79ebf834983f615b029b71b94a2d126543de68d64efd04125f52e9",
+      "original_bytes": 12356,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-disk/guard.json",
+      "portable": "before-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-disk/result.json",
+      "portable": "before-export-disk/result.json",
+      "original_sha256": "922b0ccabf2e1ab8019ec787fc7fa60bac2e2c653d9d3af33d924b2c837a088e",
+      "portable_sha256": "922b0ccabf2e1ab8019ec787fc7fa60bac2e2c653d9d3af33d924b2c837a088e",
+      "original_bytes": 1872,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-disk/tests.log",
+      "portable": "before-export-disk/tests.log.gz",
+      "original_sha256": "843064b91e5080b2b9fbddc0c4503d7d4b3c8893d7f5b4a92303184ef65b98ee",
+      "portable_sha256": "bf339169596d5e129a0f0257e96bcb05ff8450cd4d5510c06cba739f332b0d2c",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-tmpfs/events.jsonl",
+      "portable": "before-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "a1666608cff3bc4fdbca48d549f3cabe4b0e461c58c98ab054dc4c11bc391c6f",
+      "portable_sha256": "45492740c29f0c9181d1ff2bc684421c6b48d273a2b46839e52d9389624b0c3e",
+      "original_bytes": 12368,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-tmpfs/guard.json",
+      "portable": "before-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-tmpfs/result.json",
+      "portable": "before-export-tmpfs/result.json",
+      "original_sha256": "0f5412b83e9772d5806ebdcdb543afe91e95766026d3fc1795bba87323fd4d0c",
+      "portable_sha256": "0f5412b83e9772d5806ebdcdb543afe91e95766026d3fc1795bba87323fd4d0c",
+      "original_bytes": 1878,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-export-tmpfs/tests.log",
+      "portable": "before-export-tmpfs/tests.log.gz",
+      "original_sha256": "a6d2fdca97c5b3982bda9f6c2d9596e5d884032a01c73055fd03d96579b5f790",
+      "portable_sha256": "1150419963e09d01a88f4e30e090e2504f5efec114223a112ad5fce191c1de4a",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-order.log",
+      "portable": "before-order.log.gz",
+      "original_sha256": "e87686d358bbe484758cdc1a581d17648e0f26a05c35cd9449920633b7363b5f",
+      "portable_sha256": "46e3b09babeccd9da05bb227edc493857cb358ed51e625827ac069f17ded8096",
+      "original_bytes": 2103,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-disk/events.jsonl",
+      "portable": "before-workspace-disk/events.jsonl.gz",
+      "original_sha256": "fc6df3fe67cf02e447b32857014a4a033b0ea6d8e98a37aeddf6a6353143da9e",
+      "portable_sha256": "a3d304eb6f8be801529792b21a67aa69f0e2677cf16be945644666f1ea5f587b",
+      "original_bytes": 12356,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-disk/guard.json",
+      "portable": "before-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-disk/result.json",
+      "portable": "before-workspace-disk/result.json",
+      "original_sha256": "3cecd4e75affb50826930bb5ad40390b586615e7b7630506debdbada54b14a54",
+      "portable_sha256": "3cecd4e75affb50826930bb5ad40390b586615e7b7630506debdbada54b14a54",
+      "original_bytes": 1876,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-disk/tests.log",
+      "portable": "before-workspace-disk/tests.log.gz",
+      "original_sha256": "b86c6214585eb81987402f2a8fa1e488a93b2f4af8cb831b7578a9f892d14d6c",
+      "portable_sha256": "1693351bf73439c2cc94fd9fccaf5a4efed17691cb94b137b529787385b1d248",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-tmpfs/events.jsonl",
+      "portable": "before-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "ebbdfd99ffcb4b4cb198cad070a55ef79115ed5e9c662055ce87fec0962bbb8d",
+      "portable_sha256": "fd597a48006d6d8eaf8c59f685b9d53736282745f22331997f436b64b8c252ab",
+      "original_bytes": 12370,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-tmpfs/guard.json",
+      "portable": "before-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-tmpfs/result.json",
+      "portable": "before-workspace-tmpfs/result.json",
+      "original_sha256": "fcfef7b40a731389f4bfdfed1f44ac5f4b1addd2a6c25e42398b890f4be8a29c",
+      "portable_sha256": "fcfef7b40a731389f4bfdfed1f44ac5f4b1addd2a6c25e42398b890f4be8a29c",
+      "original_bytes": 1880,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/before-workspace-tmpfs/tests.log",
+      "portable": "before-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "c6a4cfeb7e011c05200bdf0c43dd2591c803bb7a116c3811f48757249ce6ad47",
+      "portable_sha256": "60c6701ad26fa2e672803b124729d062126ff8a834257f9235e4c1c7f45f8dc1",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-disk/events.jsonl",
+      "portable": "commit-fixed-1-export-disk/events.jsonl.gz",
+      "original_sha256": "6e37bbe1ace2b706b930eef1d48c744c2053f4b18dcb9d8f99c7b3378b5c8b53",
+      "portable_sha256": "f5b2f795e1e47d8df8eb13b498535e5411cf5c133c3a19b5c9140567f4168e5e",
+      "original_bytes": 151270,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-disk/guard.json",
+      "portable": "commit-fixed-1-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-disk/result.json",
+      "portable": "commit-fixed-1-export-disk/result.json",
+      "original_sha256": "50d93a3aec83b1d9439cea3dc08a02e7583ead359bf53eef0b92e767b8fb6e10",
+      "portable_sha256": "50d93a3aec83b1d9439cea3dc08a02e7583ead359bf53eef0b92e767b8fb6e10",
+      "original_bytes": 2730,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-disk/tests.log",
+      "portable": "commit-fixed-1-export-disk/tests.log.gz",
+      "original_sha256": "ebd81e4be96debb7b09c37d6046c4dbc13bb6215ae36702d4bb74c4cee58261e",
+      "portable_sha256": "3b7a3ecae5094c9fff3eaaf28f2a6023f52514f98eebf8be30ac9734a2a61340",
+      "original_bytes": 110,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-tmpfs/events.jsonl",
+      "portable": "commit-fixed-1-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "c0b52044a24fe15a8933bc63b2089c003407b24578713a981a3b40a042eab014",
+      "portable_sha256": "eb8be61b2719cb67c4790fc32fd4dfeaddc8ed0242552b8617a23e58d12d7e7a",
+      "original_bytes": 123911,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-tmpfs/guard.json",
+      "portable": "commit-fixed-1-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-tmpfs/result.json",
+      "portable": "commit-fixed-1-export-tmpfs/result.json",
+      "original_sha256": "b4d6d7a1742e9b117dd1b7aaa82ba450fd10883a46c69ca154eebd537b54b90b",
+      "portable_sha256": "b4d6d7a1742e9b117dd1b7aaa82ba450fd10883a46c69ca154eebd537b54b90b",
+      "original_bytes": 2735,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-export-tmpfs/tests.log",
+      "portable": "commit-fixed-1-export-tmpfs/tests.log.gz",
+      "original_sha256": "37d1f8dcb5dff1a2d17f21adf3f0e53154b84160ba27c911085c966d76996425",
+      "portable_sha256": "bdce898a60cc21199ae3fc437270c6d061bc3523f7c31b00cdc4429101c399e1",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-disk/events.jsonl",
+      "portable": "commit-fixed-1-workspace-disk/events.jsonl.gz",
+      "original_sha256": "734e5a100f8c65b2a2a7b9636a68f8950e547a869b445578a36ece1475267ba5",
+      "portable_sha256": "81e54ddcbe773c5edbeba5e0b3495cd43f22059e538a447a2386021cd5f63f6b",
+      "original_bytes": 299114,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-disk/failure-classification.json",
+      "portable": "commit-fixed-1-workspace-disk/failure-classification.json",
+      "original_sha256": "7bd9651a663204847ffaedf1f8743fead9eb8407a7623e921d4332e622d85152",
+      "portable_sha256": "7bd9651a663204847ffaedf1f8743fead9eb8407a7623e921d4332e622d85152",
+      "original_bytes": 60428,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-disk/guard.json",
+      "portable": "commit-fixed-1-workspace-disk/guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-disk/result.json",
+      "portable": "commit-fixed-1-workspace-disk/result.json",
+      "original_sha256": "1f7bf5a7389743ea940f895a5767189aa09489fc8643d61405798631c7fd5590",
+      "portable_sha256": "1f7bf5a7389743ea940f895a5767189aa09489fc8643d61405798631c7fd5590",
+      "original_bytes": 2733,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-disk/tests.log",
+      "portable": "commit-fixed-1-workspace-disk/tests.log.gz",
+      "original_sha256": "fce7cb6388986d705c5a0245b736af890a1a2b33cd96cac9c2776c547dba0b08",
+      "portable_sha256": "d37e2e15dd6ff33d9bf6506121c0622d34a908d6d798baf7280b37c5cb54557a",
+      "original_bytes": 57331,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-tmpfs/events.jsonl",
+      "portable": "commit-fixed-1-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "894ee775eb56b4dd1c3d7fc7f03a70c7778ad600715b6fd514dfca92f4de5b20",
+      "portable_sha256": "5e217745398b9125f369d7ea9060a952d139662bc7d0b84f0195c8d731d4e4e9",
+      "original_bytes": 119610,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-tmpfs/guard.json",
+      "portable": "commit-fixed-1-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-tmpfs/result.json",
+      "portable": "commit-fixed-1-workspace-tmpfs/result.json",
+      "original_sha256": "d155388c4d2cd388692d0216c55a46b45018bbb2d9a8b30da2b90246605c1b45",
+      "portable_sha256": "d155388c4d2cd388692d0216c55a46b45018bbb2d9a8b30da2b90246605c1b45",
+      "original_bytes": 2738,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-1-workspace-tmpfs/tests.log",
+      "portable": "commit-fixed-1-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "d828be07696c17383b4dc711945c0ee036ae342daa9c56ef99c1dca2682cbdf3",
+      "portable_sha256": "a4806113b82c3150b5c94308ffceae5b83bcbae681d459b057ad68b025423cd2",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-disk/events.jsonl",
+      "portable": "commit-fixed-2-export-disk/events.jsonl.gz",
+      "original_sha256": "ee787be7e32096369c0b2dbf0c7c6a01c261bef1f880caaf8c3a43ec3dc24454",
+      "portable_sha256": "8b772726270b1b7f343284b682f1057d6552359d4b7747c2e646e9f4b6d8d160",
+      "original_bytes": 141380,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-disk/guard.json",
+      "portable": "commit-fixed-2-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-disk/result.json",
+      "portable": "commit-fixed-2-export-disk/result.json",
+      "original_sha256": "c8fe3770a2cb7c50be65a135f746d7b513c3c1f0939017c7dc3df58884a27465",
+      "portable_sha256": "c8fe3770a2cb7c50be65a135f746d7b513c3c1f0939017c7dc3df58884a27465",
+      "original_bytes": 2730,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-disk/tests.log",
+      "portable": "commit-fixed-2-export-disk/tests.log.gz",
+      "original_sha256": "8c6b7c221d02ecdf23ced703ce0e07e119896351ab933a6618727cf8ecd61728",
+      "portable_sha256": "f9b205ac1948fa18004be1729afa78bcafa7ed1f1b2e4bb3d85e1054669eca66",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-tmpfs/events.jsonl",
+      "portable": "commit-fixed-2-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "622bbc6761a2953d1ec72b6fdc7946779f7073819e18d50c7a599ac1b3a17395",
+      "portable_sha256": "13db093fc5a73105b9c0b166e339964f4ce7455a52819d884b0fa5b16dc93f47",
+      "original_bytes": 120216,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-tmpfs/guard.json",
+      "portable": "commit-fixed-2-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-tmpfs/result.json",
+      "portable": "commit-fixed-2-export-tmpfs/result.json",
+      "original_sha256": "354cb9872afd5991bbc588900236211fd2e87c707913d4d282907cc04486de28",
+      "portable_sha256": "354cb9872afd5991bbc588900236211fd2e87c707913d4d282907cc04486de28",
+      "original_bytes": 2735,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-export-tmpfs/tests.log",
+      "portable": "commit-fixed-2-export-tmpfs/tests.log.gz",
+      "original_sha256": "4b6ed4ddff8ddcaa7187c6e5dd971b7daebb68f450e222d7cd698d35f42fa2be",
+      "portable_sha256": "f01f3de9a7b57f5d221cec28caa4b1aedd6348e48499717366b41cb13d7dacd1",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-disk/events.jsonl",
+      "portable": "commit-fixed-2-workspace-disk/events.jsonl.gz",
+      "original_sha256": "18592725899d54bbb4875827d42c14bf0decb030a562f6da7279063f3cf3d316",
+      "portable_sha256": "e7aba593560c9a47e72f66c315a957b138ae844aba3e2707816b61a9f6549fd7",
+      "original_bytes": 136413,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-disk/guard.json",
+      "portable": "commit-fixed-2-workspace-disk/guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-disk/result.json",
+      "portable": "commit-fixed-2-workspace-disk/result.json",
+      "original_sha256": "0e4b13b28c9d3c80d0fd1ac7641ebfbb9cb90990be58318ba369679069e0a383",
+      "portable_sha256": "0e4b13b28c9d3c80d0fd1ac7641ebfbb9cb90990be58318ba369679069e0a383",
+      "original_bytes": 2733,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-disk/tests.log",
+      "portable": "commit-fixed-2-workspace-disk/tests.log.gz",
+      "original_sha256": "614748daab56a7dc13cb26684ed8193931426f909e739aad91815c4a0c69f258",
+      "portable_sha256": "112ae50c3369a63e98cc14fe8f992504b285f5535cc7ff81928c251c50cac65b",
+      "original_bytes": 2613,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-tmpfs/events.jsonl",
+      "portable": "commit-fixed-2-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "f0b2805917270ebcd4f657a58d0769a118c8a6c262401d4fe491e98e1f974de4",
+      "portable_sha256": "d672f2dcb8f8d72403366415b86a72f695e51d4c8304393f968dcdad02266d8a",
+      "original_bytes": 116079,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-tmpfs/guard.json",
+      "portable": "commit-fixed-2-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-tmpfs/result.json",
+      "portable": "commit-fixed-2-workspace-tmpfs/result.json",
+      "original_sha256": "8d544913f5623d1e12f9ad559ef937d51033fcadb43d2cb7d3b9a3da78e250c6",
+      "portable_sha256": "8d544913f5623d1e12f9ad559ef937d51033fcadb43d2cb7d3b9a3da78e250c6",
+      "original_bytes": 2738,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-2-workspace-tmpfs/tests.log",
+      "portable": "commit-fixed-2-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "8aa48427d8ed76a2e7808a62945efa8ffbdca9cb865742aed11e8ba96467f942",
+      "portable_sha256": "dab4f7ef16c753a919f7ed93c19a84464d96e791d8330a0595b8183e4c384407",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-disk/events.jsonl",
+      "portable": "commit-fixed-fixture-export-disk/events.jsonl.gz",
+      "original_sha256": "4ffb52d4a3b52928f2a5e3d574f5188523a52a7b6aefd6b2f6f34c0859fb0e08",
+      "portable_sha256": "83534b61d8392638df21e2ade05ef3857ce28e06da1b16d6ccd080f23b7c3a1f",
+      "original_bytes": 137165,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-disk/guard.json",
+      "portable": "commit-fixed-fixture-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-disk/result.json",
+      "portable": "commit-fixed-fixture-export-disk/result.json",
+      "original_sha256": "901920b087e9e929d3cb37e7732f3f2a316d876f103c6ad9c9d6f4730c0b08ad",
+      "portable_sha256": "901920b087e9e929d3cb37e7732f3f2a316d876f103c6ad9c9d6f4730c0b08ad",
+      "original_bytes": 2736,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-disk/tests.log",
+      "portable": "commit-fixed-fixture-export-disk/tests.log.gz",
+      "original_sha256": "a3b444f6d1e6d91bbbb4ef9c9d2d7a8ffcd076d5e077ef29524698b93bb8361a",
+      "portable_sha256": "5dbaac9d87c7a221eca59b24f57f0dfc461bc6ac685d2fd4e01ead19f8f92d16",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-tmpfs/events.jsonl",
+      "portable": "commit-fixed-fixture-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "a11b64eec732be1270e361f48b3a4cd0f8e715cc223b7008fc427cdb59b435fd",
+      "portable_sha256": "d0d8099f46d103aac38fd3d7747b1e60cb6307dc951e8c145fb2138a218f710e",
+      "original_bytes": 121875,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-tmpfs/guard.json",
+      "portable": "commit-fixed-fixture-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-tmpfs/result.json",
+      "portable": "commit-fixed-fixture-export-tmpfs/result.json",
+      "original_sha256": "f1c9cd554b884a73af89e7ecf5932e4e9622467f89889017af1e78b344cf6434",
+      "portable_sha256": "f1c9cd554b884a73af89e7ecf5932e4e9622467f89889017af1e78b344cf6434",
+      "original_bytes": 2741,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-export-tmpfs/tests.log",
+      "portable": "commit-fixed-fixture-export-tmpfs/tests.log.gz",
+      "original_sha256": "6ae5307a21aeecf7ebe78694d49993868ed5ef964361becdbfcf281009b4d2db",
+      "portable_sha256": "bf2ad8c58d84fef122cc18c944a22de6a4d9f3515629f9016f2645f5e9c567f9",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-disk/events.jsonl",
+      "portable": "commit-fixed-fixture-workspace-disk/events.jsonl.gz",
+      "original_sha256": "7a2171a6e6b2cfc2447da5ac90ffeba8a01da034e630398b4d18c51eb17155c5",
+      "portable_sha256": "b1f57dc320d117b47e3ddd1bd44365babcc9dc9c46ac7ace22870a580f14b447",
+      "original_bytes": 136356,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-disk/guard.json",
+      "portable": "commit-fixed-fixture-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-disk/result.json",
+      "portable": "commit-fixed-fixture-workspace-disk/result.json",
+      "original_sha256": "2f65740618b89e5c1d1eaa25b5bfc94be946f56b78d25bed166fa9dfc23b47b6",
+      "portable_sha256": "2f65740618b89e5c1d1eaa25b5bfc94be946f56b78d25bed166fa9dfc23b47b6",
+      "original_bytes": 2739,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-disk/tests.log",
+      "portable": "commit-fixed-fixture-workspace-disk/tests.log.gz",
+      "original_sha256": "5db9869e3810bf73b106b68acd49252c29e24a18c5794430fdcda26ed8b0b12c",
+      "portable_sha256": "86814153212fe775acefb6e8ab2dc41764652e5071f025eeab760f421ce88236",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-tmpfs/events.jsonl",
+      "portable": "commit-fixed-fixture-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "a37431a2c06caa349502351887e32f6c2ddb6921c715ad7897fc104ec7dab667",
+      "portable_sha256": "3706f8a3c6246847fd1f5888d921de50f863e727c5dfbedaf7845f5085ab98f9",
+      "original_bytes": 117530,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-tmpfs/guard.json",
+      "portable": "commit-fixed-fixture-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-tmpfs/result.json",
+      "portable": "commit-fixed-fixture-workspace-tmpfs/result.json",
+      "original_sha256": "298e3f27da58c84e29def8f35327249e7320cad36803c0b9948bed00f83a6296",
+      "portable_sha256": "298e3f27da58c84e29def8f35327249e7320cad36803c0b9948bed00f83a6296",
+      "original_bytes": 2744,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixed-fixture-workspace-tmpfs/tests.log",
+      "portable": "commit-fixed-fixture-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "e9a2bafe82a4f040d7999a3848e0da73173e32b9d50dddd0e912de467b30e79e",
+      "portable_sha256": "b4e43b44c0ff5e2e4c9721fc6302a992bfd9de604450cf33a99dd415fcd8c71a",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixture-focused.log",
+      "portable": "commit-fixture-focused.log.gz",
+      "original_sha256": "4031a5ae095f1b9204c6cddda4629ac60cfb9c987bd70aae6a7ee6345edc4a1a",
+      "portable_sha256": "59ccf3e57fd366b92211d37b73d002a7cc43a9e0223ca28ec0dea064e00ce784",
+      "original_bytes": 10615,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-fixture-progress.json",
+      "portable": "commit-fixture-progress.json",
+      "original_sha256": "15f871e5334813eb8daf7bdcb69e91623d0a76be0eeb18632c921ff827702165",
+      "portable_sha256": "15f871e5334813eb8daf7bdcb69e91623d0a76be0eeb18632c921ff827702165",
+      "original_bytes": 11258,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-focused-progress.json",
+      "portable": "commit-focused-progress.json",
+      "original_sha256": "48e557903eb18e7b9a6273cdd904978cbb44338849e09a856b27f78989aa2ac4",
+      "portable_sha256": "48e557903eb18e7b9a6273cdd904978cbb44338849e09a856b27f78989aa2ac4",
+      "original_bytes": 22466,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-focused.log",
+      "portable": "commit-focused.log.gz",
+      "original_sha256": "3ab1c9c6687b338e8b797947c22db10ceca62e682eb1ab9a53bf8692c1f72ea0",
+      "portable_sha256": "74d94c64830178512b9084edae24761c9730079b92183f3b4bd23bd199cf945f",
+      "original_bytes": 21112,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-race-before.log",
+      "portable": "commit-race-before.log.gz",
+      "original_sha256": "b8ba06aefc3b12ec106ff346e314b0579e965693a46a17915309a5ee078d4ef7",
+      "portable_sha256": "7d60506fc859070efa9d756687c9509017dcc9fe158c46664e35861f9cd7f6ff",
+      "original_bytes": 2815,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/commit-race-fixed.log",
+      "portable": "commit-race-fixed.log.gz",
+      "original_sha256": "b7f8336f049bf5c200bf2bd7d571241e78b1a0d0214b388833883d38af823e1b",
+      "portable_sha256": "a6f005ff5201f5d43792350a72a95f735e27deafc71c1c0381dc1fea8fb7dcbe",
+      "original_bytes": 98,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/controlled-fixed.log",
+      "portable": "controlled-fixed.log.gz",
+      "original_sha256": "f4e4a6e572383a94d83f23d2334abdfdb79c004fafdc728a7e0f9a2c9c650dc3",
+      "portable_sha256": "4881004c283fdbc810ceb5cf0268350aa616e32789d5af70b8a480a4cee8346c",
+      "original_bytes": 98,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/controlled.log",
+      "portable": "controlled.log.gz",
+      "original_sha256": "7440a7ff86606cbceaf378f47e5dd1eff1a10e9b877478aaa09dd9a55e753e5e",
+      "portable_sha256": "c76536a08fd0ff72e5949572b64ecd6be03ed7cda6debb67104ab93ea1d10d6d",
+      "original_bytes": 916,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-before-guard.json",
+      "portable": "dns-before-guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-disk/events.jsonl",
+      "portable": "dns-fixed-1-export-disk/events.jsonl.gz",
+      "original_sha256": "8b66f76f387a6aa973bece9412304097e10d331957d834fec2ab09d1d4d25e6f",
+      "portable_sha256": "91c8f133f749bda831e6676b61eced0a6498eb4fb7024cbe0802f15962735f0e",
+      "original_bytes": 114955,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-disk/guard.json",
+      "portable": "dns-fixed-1-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-disk/result.json",
+      "portable": "dns-fixed-1-export-disk/result.json",
+      "original_sha256": "b8a54230fc6e313e7352cdf6d71ab5ff963251327bd32556af599d10aeaf49c4",
+      "portable_sha256": "b8a54230fc6e313e7352cdf6d71ab5ff963251327bd32556af599d10aeaf49c4",
+      "original_bytes": 2150,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-disk/tests.log",
+      "portable": "dns-fixed-1-export-disk/tests.log.gz",
+      "original_sha256": "9d9b8ca108e4679466bf02015d6a0cf7ad4da00cedbf15dcb7f88c95ba8adffb",
+      "portable_sha256": "cb6c7aa6e4182dce473934b5e2c1b36253ece8242c574bc9c4539a0153acdfb9",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-tmpfs/events.jsonl",
+      "portable": "dns-fixed-1-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "579064afd8721068637478e74e9711e1ef26a1237001a56ee6aa86af2e2cb284",
+      "portable_sha256": "f618298cafbc6c73e429454c2de368edb5752b37d7c8c7473cac401ffb9473c5",
+      "original_bytes": 88246,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-tmpfs/guard.json",
+      "portable": "dns-fixed-1-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-tmpfs/result.json",
+      "portable": "dns-fixed-1-export-tmpfs/result.json",
+      "original_sha256": "6a043ed802af6b5ec50139ad8a603fe7fd78f74130f027eb500d65da08ad477b",
+      "portable_sha256": "6a043ed802af6b5ec50139ad8a603fe7fd78f74130f027eb500d65da08ad477b",
+      "original_bytes": 2156,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-export-tmpfs/tests.log",
+      "portable": "dns-fixed-1-export-tmpfs/tests.log.gz",
+      "original_sha256": "31787cf541d7ee3dbc3a199f6f2773b87538376576a59b9d1468f7341acd6032",
+      "portable_sha256": "4b7eb2cba7982a27f10a73d9dbc3daad2856ff9794fca6539573f350842e5d0b",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-disk/events.jsonl",
+      "portable": "dns-fixed-1-workspace-disk/events.jsonl.gz",
+      "original_sha256": "409f8b5867cd3655c735d032d3d61bef3a36683931cda91bba2ca772f1bb4e43",
+      "portable_sha256": "3aceed60b1b58be740a36645289cda1b25e9d3b86aca6ac9e26feda291ef97a9",
+      "original_bytes": 100187,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-disk/guard.json",
+      "portable": "dns-fixed-1-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-disk/result.json",
+      "portable": "dns-fixed-1-workspace-disk/result.json",
+      "original_sha256": "9463496a5794f3e008f12566691cc53887756a8f1acacce9aa4c165c697e6a58",
+      "portable_sha256": "9463496a5794f3e008f12566691cc53887756a8f1acacce9aa4c165c697e6a58",
+      "original_bytes": 2153,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-disk/tests.log",
+      "portable": "dns-fixed-1-workspace-disk/tests.log.gz",
+      "original_sha256": "ca1bb70ec230f4ec73e1cf821eefca5181b97be6aefaf5a67144512cf521fee8",
+      "portable_sha256": "a130bdcc545c5bd3251d77136457c11f1c683645aac90b872bad22f632809794",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-tmpfs/events.jsonl",
+      "portable": "dns-fixed-1-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "cc43309ab90a1b7e27f9c6e2ce07a663fc20090c2301490e6a6cead6c5ee81e5",
+      "portable_sha256": "66d30b9380af53d1853a5366616460daf6e39939a9aa036c945a85a35fc9a11f",
+      "original_bytes": 88825,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-tmpfs/guard.json",
+      "portable": "dns-fixed-1-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-tmpfs/result.json",
+      "portable": "dns-fixed-1-workspace-tmpfs/result.json",
+      "original_sha256": "1f8e0290ea231cb89c7055d7c9f054b66b00607a4b0ab49f517953cee1d8235a",
+      "portable_sha256": "1f8e0290ea231cb89c7055d7c9f054b66b00607a4b0ab49f517953cee1d8235a",
+      "original_bytes": 2159,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-1-workspace-tmpfs/tests.log",
+      "portable": "dns-fixed-1-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "f8e3a99aa3b1763b9b91f69ea0b6ba451fd0e1d37c978cc100020d9f23f0408d",
+      "portable_sha256": "30eaf678dda3070d4917215b5012bf32c2aa57705eabfbb1e169d0502a8c42da",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-disk/events.jsonl",
+      "portable": "dns-fixed-2-export-disk/events.jsonl.gz",
+      "original_sha256": "1865239a3f3114950e288950524ced62391bb7fb1f0289e99b3aa437866af8ac",
+      "portable_sha256": "20632fab4ac1ede1c612638531b411f138858332b24b15b7a17d4708390d64a4",
+      "original_bytes": 101256,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-disk/guard.json",
+      "portable": "dns-fixed-2-export-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-disk/result.json",
+      "portable": "dns-fixed-2-export-disk/result.json",
+      "original_sha256": "9b63f3918e81640d2d82a77d3939a6ae6f94803891942dd1ac3994c1a5bf080b",
+      "portable_sha256": "9b63f3918e81640d2d82a77d3939a6ae6f94803891942dd1ac3994c1a5bf080b",
+      "original_bytes": 2150,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-disk/tests.log",
+      "portable": "dns-fixed-2-export-disk/tests.log.gz",
+      "original_sha256": "599226a828f418f8da8568811d3ae4ea265e6b2dbf0878e1b0f57358d205d685",
+      "portable_sha256": "73b92ef3e0455e137227511c2aba3f401da25c1c40df54f3456a44bdf74acfb0",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-tmpfs/events.jsonl",
+      "portable": "dns-fixed-2-export-tmpfs/events.jsonl.gz",
+      "original_sha256": "a3c0a0a16d8ec44470108e9c6466ae363a3441a215d0a66c23634837efcd3e92",
+      "portable_sha256": "b96271d6c50e9ea6e8104750ab8d229f2959801884b4c854446002b37b0adb65",
+      "original_bytes": 91491,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-tmpfs/guard.json",
+      "portable": "dns-fixed-2-export-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-tmpfs/result.json",
+      "portable": "dns-fixed-2-export-tmpfs/result.json",
+      "original_sha256": "f9106b89e282721ab7aea60403a7c86e6d859aa4ed12902f1531c10ad53da9a7",
+      "portable_sha256": "f9106b89e282721ab7aea60403a7c86e6d859aa4ed12902f1531c10ad53da9a7",
+      "original_bytes": 2155,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-export-tmpfs/tests.log",
+      "portable": "dns-fixed-2-export-tmpfs/tests.log.gz",
+      "original_sha256": "5300951d73cf32af700f6c82fa920dee59000c3486d548fa9149682a0420da64",
+      "portable_sha256": "1869574b5c687014c92bb490fa25090d53e7c06dfe99929ce311533635eb9d37",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-disk/events.jsonl",
+      "portable": "dns-fixed-2-workspace-disk/events.jsonl.gz",
+      "original_sha256": "3448b3470189501f2afba84ea0ca109da398f3a70bf7d27bdbaf7ba1c8ca7bba",
+      "portable_sha256": "585360fd521de6104e3f8b5b2e86b39302437cc0612445fcc79e3c565a234592",
+      "original_bytes": 99055,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-disk/guard.json",
+      "portable": "dns-fixed-2-workspace-disk/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-disk/result.json",
+      "portable": "dns-fixed-2-workspace-disk/result.json",
+      "original_sha256": "758d4dea51cd036b28a90a45761a41e9b15cd26b86e2bf89e4a7d2df45e0c650",
+      "portable_sha256": "758d4dea51cd036b28a90a45761a41e9b15cd26b86e2bf89e4a7d2df45e0c650",
+      "original_bytes": 2153,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-disk/tests.log",
+      "portable": "dns-fixed-2-workspace-disk/tests.log.gz",
+      "original_sha256": "2cde2e3895e9b54bf7ab915f0a36ffd2372d349b7cac3b5d5346445117fa0282",
+      "portable_sha256": "0c68688a7260c891487367120b494586213e7c79cb305e220ab7e63f58536379",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-tmpfs/events.jsonl",
+      "portable": "dns-fixed-2-workspace-tmpfs/events.jsonl.gz",
+      "original_sha256": "251680b54903c05b255a5ad461f8eab57e0a35532a40f6f83496db0625922d26",
+      "portable_sha256": "cab571c69ab8ecf4d31e5eb5112c4e5aabd276d02854592b92e7369a32498ca9",
+      "original_bytes": 86508,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-tmpfs/guard.json",
+      "portable": "dns-fixed-2-workspace-tmpfs/guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-tmpfs/result.json",
+      "portable": "dns-fixed-2-workspace-tmpfs/result.json",
+      "original_sha256": "2810922476b6e39d247ecf937669deefb8e807b8fb9c4ade17b8697a43e83c3b",
+      "portable_sha256": "2810922476b6e39d247ecf937669deefb8e807b8fb9c4ade17b8697a43e83c3b",
+      "original_bytes": 2158,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-2-workspace-tmpfs/tests.log",
+      "portable": "dns-fixed-2-workspace-tmpfs/tests.log.gz",
+      "original_sha256": "812dd60187f3228322a8650b851881e7517befee6153ab0f9383ec7c74db4342",
+      "portable_sha256": "1eb87624062a2dd56bd20d2002d5dcabac5734c435c4398eea55d69dcc8b760b",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-fixed-guard.json",
+      "portable": "dns-fixed-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-focused-progress.json",
+      "portable": "dns-focused-progress.json",
+      "original_sha256": "4dfc92c2e92a2585277b87758a8d060983035509b43d009637031c5c8eeb6574",
+      "portable_sha256": "4dfc92c2e92a2585277b87758a8d060983035509b43d009637031c5c8eeb6574",
+      "original_bytes": 17764,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-focused.log",
+      "portable": "dns-focused.log.gz",
+      "original_sha256": "b88232a17d7e25d58f24e3a27eb91a306d57be1b2154922b8a9d3797cefbd912",
+      "portable_sha256": "523a944a02f4f9793ec97f3decf4cdaa2fd1a2627dd4ccc474f0811519f87b27",
+      "original_bytes": 16577,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-probe-guard.json",
+      "portable": "dns-probe-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-stop-import-before.log",
+      "portable": "dns-stop-import-before.log.gz",
+      "original_sha256": "81ab49e92ac0d9996eb394ccfc255093871eea09258c0b935692608134e787ce",
+      "portable_sha256": "e35a01413ed96b54b443f45dc5ae91d92a5b2d832a90fd2c9ab6679ce83a099e",
+      "original_bytes": 829,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-stop-import-fixed.log",
+      "portable": "dns-stop-import-fixed.log.gz",
+      "original_sha256": "131a67599f8c99b10393fe4aee316b204e0d2751f305dbda2100108ff7483108",
+      "portable_sha256": "5e4f1eec066a8322623519f900219b96f8bcb2122d50e17e0dbd0f7ef7971b2e",
+      "original_bytes": 98,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/dns-stop-import-probe.log",
+      "portable": "dns-stop-import-probe.log.gz",
+      "original_sha256": "2f75e7287f56513bfb77f390c4819e452479224c0b87273363a8347e623f9efa",
+      "portable_sha256": "5dada1237100048ce1ccdda164bdd78a244a9456e1d15b96663e987187ba9726",
+      "original_bytes": 98,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/failed-startup-stage-latencies.json",
+      "portable": "failed-startup-stage-latencies.json",
+      "original_sha256": "4cf818753b860854ea4ededd412d34f97226139d3ad2f5c07d01a7252a0bde99",
+      "portable_sha256": "4cf818753b860854ea4ededd412d34f97226139d3ad2f5c07d01a7252a0bde99",
+      "original_bytes": 33320,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-boundaries.log",
+      "portable": "final-boundaries.log.gz",
+      "original_sha256": "5e7083829b587fb7bc933daa185c17de35d69ef6c3fedf69bd66322e491d8a39",
+      "portable_sha256": "4d628dc22c66eee30343fb5f6dbec4292317ea6ffbedc80acc43cb8510f82773",
+      "original_bytes": 1090,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-focused.log",
+      "portable": "final-focused.log.gz",
+      "original_sha256": "9c3e4240d61ff144f5c1c482d7dbf97291c6144b0784e9eb127857454752148f",
+      "portable_sha256": "ed270d0c0825f7cac8220f34754262bfa88de73e9c31d203502bcf2a494d70b8",
+      "original_bytes": 15523,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/all-checks.log",
+      "portable": "final-validation/all-checks.log.gz",
+      "original_sha256": "0bf7c690bb645c8e4f69a618203e81b418111dc0be1039b61bae25ace19e29ba",
+      "portable_sha256": "c5789acc383f989428f90b97a41c84d7cb90e7aab7988fc122da63ea9211c40b",
+      "original_bytes": 15102,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/all-checks.py",
+      "portable": "final-validation/all-checks.py.txt.gz",
+      "original_sha256": "ddb1fa747db90ede922f395dddeb878a553e4afa2fe2b9f6b91afe306d4e4fca",
+      "portable_sha256": "220d7066323fdf1f6819829681f1bd515ad928dc34cf3c2732784da8302e0f23",
+      "original_bytes": 902,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/build-a.json",
+      "portable": "final-validation/build-a.json",
+      "original_sha256": "d8c604d5713e52995f3a37733912a866b3adcdf18cacfbd04b8fe85ce6125881",
+      "portable_sha256": "d8c604d5713e52995f3a37733912a866b3adcdf18cacfbd04b8fe85ce6125881",
+      "original_bytes": 1771,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/build-b.json",
+      "portable": "final-validation/build-b.json",
+      "original_sha256": "d8c604d5713e52995f3a37733912a866b3adcdf18cacfbd04b8fe85ce6125881",
+      "portable_sha256": "d8c604d5713e52995f3a37733912a866b3adcdf18cacfbd04b8fe85ce6125881",
+      "original_bytes": 1771,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/build-export.json",
+      "portable": "final-validation/build-export.json",
+      "original_sha256": "4396bf4a6cece46a4a48749726347ac199060278e8dc0350baa6f56b471647ea",
+      "portable_sha256": "4396bf4a6cece46a4a48749726347ac199060278e8dc0350baa6f56b471647ea",
+      "original_bytes": 1826,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/build-one.py",
+      "portable": "final-validation/build-one.py.txt.gz",
+      "original_sha256": "0bd820f9e517b8e11486f285bfb890f610c05152c3a63feec35fe4fcb5370f15",
+      "portable_sha256": "ca7d58e1b1559ebef73fc0629447c65ae90c356f484ce6f62071a6b64b661fa5",
+      "original_bytes": 1898,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/check-progress.json",
+      "portable": "final-validation/check-progress.json",
+      "original_sha256": "3f8175081dac2c60462e6f15e91f79a6b5d1c3f52b962ee0209df0eea3c5f1bc",
+      "portable_sha256": "3f8175081dac2c60462e6f15e91f79a6b5d1c3f52b962ee0209df0eea3c5f1bc",
+      "original_bytes": 1291,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-guard.json",
+      "portable": "final-validation/export-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-phases.jsonl",
+      "portable": "final-validation/export-phases.jsonl.gz",
+      "original_sha256": "5ea23d0642512db7ce404b51ae5f3e53a89b27e56f644acc2507449627872dd3",
+      "portable_sha256": "a35254cdc94d53da8a275d8983bee9e01c5de3ad612e82561243b5f140d927ec",
+      "original_bytes": 748907,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-test-result.json",
+      "portable": "final-validation/export-test-result.json",
+      "original_sha256": "417c3296e55b990cf4ed4c2267daf363674ff7dcdf2f038d43aee9b8fcc9e19f",
+      "portable_sha256": "417c3296e55b990cf4ed4c2267daf363674ff7dcdf2f038d43aee9b8fcc9e19f",
+      "original_bytes": 3225,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-tests.log",
+      "portable": "final-validation/export-tests.log.gz",
+      "original_sha256": "e711f6149e2d26a8f7833b12b84d1740a721b6ab5ed2ce7de6d53c33d0e21aa6",
+      "portable_sha256": "d18f0873be63a66d9af1af02c712d8815a55d666a72208a046739cf4bac348b5",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-tmpfs-guard.json",
+      "portable": "final-validation/export-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-tmpfs-phases.jsonl",
+      "portable": "final-validation/export-tmpfs-phases.jsonl.gz",
+      "original_sha256": "8af9e077bf9820e6f88ded7088073ef3c856886acffd52d76ff7e55faf5ebed7",
+      "portable_sha256": "95fe05813f1a853f60571849bf287418ee0c9d66eb20f028cb384da45d0f3adc",
+      "original_bytes": 748949,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-tmpfs-test-result.json",
+      "portable": "final-validation/export-tmpfs-test-result.json",
+      "original_sha256": "4fe13f2fc6d11611482ccbc38adecbcdf6860c3664bafa5190126337259d5b3b",
+      "portable_sha256": "4fe13f2fc6d11611482ccbc38adecbcdf6860c3664bafa5190126337259d5b3b",
+      "original_bytes": 3229,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/export-tmpfs-tests.log",
+      "portable": "final-validation/export-tmpfs-tests.log.gz",
+      "original_sha256": "7ebefff68e4b2537d00213441c1e6d334d6d7e6673e42e90a06df2960a39f6a2",
+      "portable_sha256": "701e8959dc6c56303de5665c555c8200bdaa054dd33a774fe3b033144ec2d394",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/extra-regress.py",
+      "portable": "final-validation/extra-regress.py.txt.gz",
+      "original_sha256": "92f669f7c9fa93a6a389bac7db0c46f4a686c9dfb7b3f6a5ce053b652e7b8295",
+      "portable_sha256": "40cf1c5999ca8e636f84aecc0ff6be182dafbcf1d5cd510378b9f2dbfc37fa8e",
+      "original_bytes": 1542,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/failed-authentication-evidence.json",
+      "portable": "final-validation/failed-authentication-evidence.json",
+      "original_sha256": "be22912528a460cf93bca3faa61cc41a2b790a227f0bc124c4be506ff4c1fb7f",
+      "portable_sha256": "be22912528a460cf93bca3faa61cc41a2b790a227f0bc124c4be506ff4c1fb7f",
+      "original_bytes": 15784,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/finalize-review-profile.py",
+      "portable": "final-validation/finalize-review-profile.py.txt.gz",
+      "original_sha256": "b8269e00a52b17fdc3c5d7d8b0756bf334e15fe57f5779f08892662c89ae2250",
+      "portable_sha256": "e195592acfd5e8fd75dadd1facfbeac41bd0bf35c3cb9ae7dae47151d1d21829",
+      "original_bytes": 4036,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/focused-green.json",
+      "portable": "final-validation/focused-green.json.gz",
+      "original_sha256": "919c4ee45ec9bdb3cb631fa453996844dfe384a476e196aef265b254ed791bd0",
+      "portable_sha256": "056a4ea530bf3171334ebeb3c65e91ad12644ab10652a93eee9c995ba99c9e83",
+      "original_bytes": 197620,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/full-regress-tmpfs.py",
+      "portable": "final-validation/full-regress-tmpfs.py.txt.gz",
+      "original_sha256": "ab5d927373fdb4702e5a3a36d6a15415218c393b0911b55aee32389879efd701",
+      "portable_sha256": "ae64d706c6dbc7c8210d0e0537027704bed40835df2fb5251143e16ef168a8aa",
+      "original_bytes": 2509,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/full-regress.py",
+      "portable": "final-validation/full-regress.py.txt.gz",
+      "original_sha256": "e70e13a0a33dae69551e999adec22946a0da1699689884ffcfe00fae9f7a9ffc",
+      "portable_sha256": "ba4518d892afc48acc88469bcc26214ef3f93d49891f70c62bd80f2b5eea1608",
+      "original_bytes": 2478,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/prepare-reliability-candidate.py",
+      "portable": "final-validation/prepare-reliability-candidate.py.txt.gz",
+      "original_sha256": "62df93e3cf7c0005767259dac4a7a7d618b8343aca1b2657d5e91c701d53ad0d",
+      "portable_sha256": "994df2bc509bd5cae2fac98aafe52c4ffca1243fc3777914e7032ac4ee611768",
+      "original_bytes": 10023,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/regression_observer.py",
+      "portable": "final-validation/regression_observer.py.txt.gz",
+      "original_sha256": "ca2d0fb13d7912d2b902b25d0f0733fe81caf428d141100590bcab0c2ba56821",
+      "portable_sha256": "b1f7c05e8ccfa4dc761bb6df341a1619b9485c34dd23219136cf738083294882",
+      "original_bytes": 558,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-guard.json",
+      "portable": "final-validation/supplement-export-guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-phases.jsonl",
+      "portable": "final-validation/supplement-export-phases.jsonl.gz",
+      "original_sha256": "9dd81d385c77f2d72372bed914bcaeb3a3fac83f5173e03f2c3eb199c847ea20",
+      "portable_sha256": "389054f892e5521437bdcc12644edbb22ea2ad7b422d976fc983e7e2c4c58b29",
+      "original_bytes": 129267,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-result.json",
+      "portable": "final-validation/supplement-export-result.json",
+      "original_sha256": "387c4f1b2a09d73bc7b6eff0a6abdfc1c83547f7a881b1ef76492f52b3285d96",
+      "portable_sha256": "387c4f1b2a09d73bc7b6eff0a6abdfc1c83547f7a881b1ef76492f52b3285d96",
+      "original_bytes": 702,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-tmpfs-guard.json",
+      "portable": "final-validation/supplement-export-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-tmpfs-phases.jsonl",
+      "portable": "final-validation/supplement-export-tmpfs-phases.jsonl.gz",
+      "original_sha256": "694370152ddceeeb5b1c592b4c178365776bbd596ae243ed5c071d9415e00eca",
+      "portable_sha256": "d207cf1290d389cabb6d9865ee25018537eb455320231a38db525adc5f559292",
+      "original_bytes": 108711,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-tmpfs-result.json",
+      "portable": "final-validation/supplement-export-tmpfs-result.json",
+      "original_sha256": "6d303b15d9e8de705fdfe660a689c41c7464e9f59732e9cec71f3b52a28be562",
+      "portable_sha256": "6d303b15d9e8de705fdfe660a689c41c7464e9f59732e9cec71f3b52a28be562",
+      "original_bytes": 706,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export-tmpfs.log",
+      "portable": "final-validation/supplement-export-tmpfs.log.gz",
+      "original_sha256": "88c222f69df4d05021a88925358a69e97dfcf873196b15cc633cd0e8ba03fd64",
+      "portable_sha256": "2d87eee35936b1ac6067c91d43d7d6c63c6f27d2e1f82c42e6abfc75a464f140",
+      "original_bytes": 181,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-export.log",
+      "portable": "final-validation/supplement-export.log.gz",
+      "original_sha256": "f76f656307a782bd716283ed9c5dacc8f90c4e194aa42f30ebe27adf9b989c58",
+      "portable_sha256": "ee7ad40313b24dfa791110043eee3e2cc166a59aba6d6c6f4129c09d032cc2bd",
+      "original_bytes": 21029,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-regress-tmpfs.py",
+      "portable": "final-validation/supplement-regress-tmpfs.py.txt.gz",
+      "original_sha256": "bf5a68a85bff5c0c6d646ddbc9ea1fbbd9265469bb6dd38d9d0eab1fac994401",
+      "portable_sha256": "8d1be33ca25fd516a85e7e1745fa2de78af5549ba3b562452745fec2a91e3d71",
+      "original_bytes": 1670,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-regress.py",
+      "portable": "final-validation/supplement-regress.py.txt.gz",
+      "original_sha256": "1f294f3d0a6c660e882f61f5f22626121dbe372fbb889bdad66b6bf2f953e78d",
+      "portable_sha256": "1d6e8d386171df9d6ad5673ca619ae26cc8fb94eb3ee5fa1c1bc3f5880af96ad",
+      "original_bytes": 1639,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-guard.json",
+      "portable": "final-validation/supplement-workspace-guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-phases.jsonl",
+      "portable": "final-validation/supplement-workspace-phases.jsonl.gz",
+      "original_sha256": "bdfc5f7ef8e66fe3053345641c6485dfb1b14266ded35a1801883f8bebdfa12b",
+      "portable_sha256": "fdb1e4a3887b848a3459257a4841d10c0951405e44a493474a827588671c4967",
+      "original_bytes": 110063,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-result.json",
+      "portable": "final-validation/supplement-workspace-result.json",
+      "original_sha256": "7fd7e279c988395e5493ee9ded290afa835abe6944477a69c1ec49346c29b8ac",
+      "portable_sha256": "7fd7e279c988395e5493ee9ded290afa835abe6944477a69c1ec49346c29b8ac",
+      "original_bytes": 702,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-tmpfs-guard.json",
+      "portable": "final-validation/supplement-workspace-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-tmpfs-phases.jsonl",
+      "portable": "final-validation/supplement-workspace-tmpfs-phases.jsonl.gz",
+      "original_sha256": "253558adbd554cb7ae2c7f1c931df326edcadf51b666a2c6d1ad0de200b4a6da",
+      "portable_sha256": "26d87b86e8b8bd1e703c2fc964b239ec2d78b6650bffab8e6f60bf85b4e2ae1c",
+      "original_bytes": 108747,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-tmpfs-result.json",
+      "portable": "final-validation/supplement-workspace-tmpfs-result.json",
+      "original_sha256": "82f9758588aabbd6d0f834bf0d3f4a83e096b32a29f432d8b4479097919820cb",
+      "portable_sha256": "82f9758588aabbd6d0f834bf0d3f4a83e096b32a29f432d8b4479097919820cb",
+      "original_bytes": 707,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace-tmpfs.log",
+      "portable": "final-validation/supplement-workspace-tmpfs.log.gz",
+      "original_sha256": "2a34e740b2dec1264db9f3306445f2dfd40b60884045ebf4d80aaae519b95b0b",
+      "portable_sha256": "f3e4367a00c5269d444f07b976842ac8c2bdf8c30aa0c855c9ff3fec86f29b02",
+      "original_bytes": 181,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/supplement-workspace.log",
+      "portable": "final-validation/supplement-workspace.log.gz",
+      "original_sha256": "649b98b39828a100288fc78761407eb455d98051b64718f906485bc86f586e07",
+      "portable_sha256": "9ba3e762dd7ae28a5ade9fbf45f1e3e6e845e68416104a45d2abb45d02a9169d",
+      "original_bytes": 1965,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-guard.json",
+      "portable": "final-validation/workspace-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-phases.jsonl",
+      "portable": "final-validation/workspace-phases.jsonl.gz",
+      "original_sha256": "6ba80a561271f3ab0ab98a7eb234772843ca29d6c0f1cbe0dcb3fd4ab668cb9d",
+      "portable_sha256": "413af50795ae6bd82af03b0fa1239c4aec4aa771dd1cfc0d43173a06585c716a",
+      "original_bytes": 748912,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-test-result.json",
+      "portable": "final-validation/workspace-test-result.json",
+      "original_sha256": "faf70b6368252c4046e1affa98a565f0c86192050688c0662d7837649ac3a956",
+      "portable_sha256": "faf70b6368252c4046e1affa98a565f0c86192050688c0662d7837649ac3a956",
+      "original_bytes": 3228,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-tests.log",
+      "portable": "final-validation/workspace-tests.log.gz",
+      "original_sha256": "eb59da60e58a6f67060d517805f729a9456122531a04ffb6bd76c87df049da34",
+      "portable_sha256": "8308be1bc4a8745d125b2514060e3d67a8cec97641b0e4069a4240f338f86c77",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-tmpfs-guard.json",
+      "portable": "final-validation/workspace-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-tmpfs-phases.jsonl",
+      "portable": "final-validation/workspace-tmpfs-phases.jsonl.gz",
+      "original_sha256": "0560bb55437670feca5aeb015ef38301edd46e88004c55c93736f939bb0165c2",
+      "portable_sha256": "66217ee5c2ed8ac33fdf4eb20aa35bac188fc0502c0c32465e349d4669f2b5b6",
+      "original_bytes": 748963,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-tmpfs-test-result.json",
+      "portable": "final-validation/workspace-tmpfs-test-result.json",
+      "original_sha256": "3cfd9ff441c1b6e9be6786e8a940fdeb473406213668ffff3b3198c73aeda73b",
+      "portable_sha256": "3cfd9ff441c1b6e9be6786e8a940fdeb473406213668ffff3b3198c73aeda73b",
+      "original_bytes": 3232,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-validation/workspace-tmpfs-tests.log",
+      "portable": "final-validation/workspace-tmpfs-tests.log.gz",
+      "original_sha256": "90ea19344e7f992298b4b2fa4c957cacbce95a180fa374380775f9cac23ab95a",
+      "portable_sha256": "f8cce49b888e67ef25c1279b478af287d2c8258d8600622325e28fbd7dd9923d",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/Acceptance_Summary.json",
+      "portable": "final-verified/Acceptance_Summary.json",
+      "original_sha256": "13ffb0ee12a136705152ffabbba40ce40fc9620baa64e8d036bb9c57d09c232e",
+      "portable_sha256": "13ffb0ee12a136705152ffabbba40ce40fc9620baa64e8d036bb9c57d09c232e",
+      "original_bytes": 6477,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/all-checks.log",
+      "portable": "final-verified/all-checks.log.gz",
+      "original_sha256": "de0ec8e6ea0bc82c92c17147d4d0962ad3f273d9585dea8dce9990019dd35515",
+      "portable_sha256": "6d0babea1d7bd2e03b1a75505687e5e5eff35c15663c56a081ca91f675092a69",
+      "original_bytes": 17361,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/all-checks.py",
+      "portable": "final-verified/all-checks.py.txt.gz",
+      "original_sha256": "5399962a1eafff56a202978cd78016fa6d616080069e683d84ac2c3465c998d4",
+      "portable_sha256": "e67a4fc95d91ac4b81fa6467ca863269bb6fb80c1dafeb56e9d33adaaa549abe",
+      "original_bytes": 929,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/build-a.json",
+      "portable": "final-verified/build-a.json",
+      "original_sha256": "e02d4bf2e32f385926174461629e710e6ba8678d9555cc38c1528f91820bca72",
+      "portable_sha256": "e02d4bf2e32f385926174461629e710e6ba8678d9555cc38c1528f91820bca72",
+      "original_bytes": 1771,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/build-b.json",
+      "portable": "final-verified/build-b.json",
+      "original_sha256": "e02d4bf2e32f385926174461629e710e6ba8678d9555cc38c1528f91820bca72",
+      "portable_sha256": "e02d4bf2e32f385926174461629e710e6ba8678d9555cc38c1528f91820bca72",
+      "original_bytes": 1771,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/build-export.json",
+      "portable": "final-verified/build-export.json",
+      "original_sha256": "6f327d54b9983fa7889868c0ff59d8f0670a0b54dd175cb5b17bd4d9884904cd",
+      "portable_sha256": "6f327d54b9983fa7889868c0ff59d8f0670a0b54dd175cb5b17bd4d9884904cd",
+      "original_bytes": 1824,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/build-one.py",
+      "portable": "final-verified/build-one.py.txt.gz",
+      "original_sha256": "ab016f66a5e58672e02187cf33a38460899405a722b04b4bfd55f82ac0652e77",
+      "portable_sha256": "6476285dc98084eecd81ea1bbb4b9036cfc5f9db8f38354f2eefb4171709faef",
+      "original_bytes": 1896,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/api-scope-proposal.json",
+      "portable": "final-verified/candidate/api-scope-proposal.json",
+      "original_sha256": "0743c1bf4d7dabaeba1c881977d622060343fd7d15380580cd4c8f64ea952e8e",
+      "portable_sha256": "0743c1bf4d7dabaeba1c881977d622060343fd7d15380580cd4c8f64ea952e8e",
+      "original_bytes": 1671,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/candidate-identity.json",
+      "portable": "final-verified/candidate/candidate-identity.json",
+      "original_sha256": "a34aed67b9ad601bee6c717c8925bbed5d7a6680544a3950f755c2533258eef3",
+      "portable_sha256": "a34aed67b9ad601bee6c717c8925bbed5d7a6680544a3950f755c2533258eef3",
+      "original_bytes": 780,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/approval-package-final.md",
+      "portable": "final-verified/candidate/native/approval-package-final.md",
+      "original_sha256": "8d9057e7c212c26652047539ec452202b246c0751bf122d1d2b5da053c8779a5",
+      "portable_sha256": "8d9057e7c212c26652047539ec452202b246c0751bf122d1d2b5da053c8779a5",
+      "original_bytes": 12155,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/approval-request-final-v2.json",
+      "portable": "final-verified/candidate/native/approval-request-final-v2.json",
+      "original_sha256": "010579b522eb8a95f373a8e0ed57615973c841e3ffcdc10147933f150edd6c3b",
+      "portable_sha256": "010579b522eb8a95f373a8e0ed57615973c841e3ffcdc10147933f150edd6c3b",
+      "original_bytes": 44383,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/execution-pins.json",
+      "portable": "final-verified/candidate/native/execution/execution-pins.json",
+      "original_sha256": "bf32f195023073228a95166520514201bb235632cc67182389c718af4ec07b83",
+      "portable_sha256": "bf32f195023073228a95166520514201bb235632cc67182389c718af4ec07b83",
+      "original_bytes": 2755,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/root-install-manifest-v3.json",
+      "portable": "final-verified/candidate/native/root-install-manifest-v3.json",
+      "original_sha256": "eff4955904540be7ca0679ccb971ff839c4e06b8b0f94fe5aaaaecb625908186",
+      "portable_sha256": "eff4955904540be7ca0679ccb971ff839c4e06b8b0f94fe5aaaaecb625908186",
+      "original_bytes": 23138,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/runtime-config-v2.json",
+      "portable": "final-verified/candidate/native/runtime-config-v2.json",
+      "original_sha256": "2810d2b7371a82f9e64f0facf748a11fca331530eb03c4557dbd99ed4f58beb5",
+      "portable_sha256": "2810d2b7371a82f9e64f0facf748a11fca331530eb03c4557dbd99ed4f58beb5",
+      "original_bytes": 2019,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/scope-input-v2.json",
+      "portable": "final-verified/candidate/native/scope-input-v2.json",
+      "original_sha256": "289fab5390d980a0ac193c0a8d7ad6e180679241238a9ed1543b8a282140746f",
+      "portable_sha256": "289fab5390d980a0ac193c0a8d7ad6e180679241238a9ed1543b8a282140746f",
+      "original_bytes": 25668,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/source-files.json",
+      "portable": "final-verified/candidate/native/source-files.json.gz",
+      "original_sha256": "a689442082ffd9f44916d055b421efec6aee6efe5fa1dea73b7f6a71e43cd580",
+      "portable_sha256": "b7b4e280ea845a80a74593ca091ac472f5db68c70e90108bf9f7d6444352d098",
+      "original_bytes": 80404,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/single-approval-integration-scope.json",
+      "portable": "final-verified/candidate/single-approval-integration-scope.json",
+      "original_sha256": "6418fdc3cefaf0e0d557e6188cdb2603878b364cecdf6201ce910a1fbdc096ee",
+      "portable_sha256": "6418fdc3cefaf0e0d557e6188cdb2603878b364cecdf6201ce910a1fbdc096ee",
+      "original_bytes": 1252,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate-preparation.log",
+      "portable": "final-verified/candidate-preparation.log.gz",
+      "original_sha256": "814be89039f457fce4156b9c13b70fc0a19a678b1db410c6a6603302394f2430",
+      "portable_sha256": "f978676acc3e1b3ad35cd16007a4dfa8547c5e99a8923cf3cf61d8dd8264cd4e",
+      "original_bytes": 129,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate-proposal-reference-alignment.json",
+      "portable": "final-verified/candidate-proposal-reference-alignment.json",
+      "original_sha256": "e317e89939a85e28dc1535bb26a4138652ceb1645d790a9fd342113e587f4320",
+      "portable_sha256": "e317e89939a85e28dc1535bb26a4138652ceb1645d790a9fd342113e587f4320",
+      "original_bytes": 728,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/check-progress.json",
+      "portable": "final-verified/check-progress.json",
+      "original_sha256": "f77364cfa6b232ee3563f8e90c69321f743e655106b3646a83af9a4c7fee09b8",
+      "portable_sha256": "f77364cfa6b232ee3563f8e90c69321f743e655106b3646a83af9a4c7fee09b8",
+      "original_bytes": 1400,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/cli-final-results.json",
+      "portable": "final-verified/cli-final-results.json",
+      "original_sha256": "55c2cac2976cd2500e1adb4fc044970247462429e50d6fbac5b5467947a1788b",
+      "portable_sha256": "55c2cac2976cd2500e1adb4fc044970247462429e50d6fbac5b5467947a1788b",
+      "original_bytes": 448,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/doctor-final.json",
+      "portable": "final-verified/doctor-final.json",
+      "original_sha256": "90a02616916bfb3e9f2a033c0bb84c47df1b018330c2603f6d26f881c323e508",
+      "portable_sha256": "90a02616916bfb3e9f2a033c0bb84c47df1b018330c2603f6d26f881c323e508",
+      "original_bytes": 9759,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/environment.json",
+      "portable": "final-verified/environment.json",
+      "original_sha256": "63ab8ff7f432b95879ac98589e20fcb1d4c5853a3bff7488cdd61b1ab1cd3d39",
+      "portable_sha256": "63ab8ff7f432b95879ac98589e20fcb1d4c5853a3bff7488cdd61b1ab1cd3d39",
+      "original_bytes": 747,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-guard.json",
+      "portable": "final-verified/export-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-phases.jsonl",
+      "portable": "final-verified/export-phases.jsonl.gz",
+      "original_sha256": "7243b3dc66f68c6ec9145ca28386878b9290a92b7d2d075d885a263887b93753",
+      "portable_sha256": "62e92fab2bf1112dc256f43dddd3ae7b194885ece51c18ee390a53504dcb3a9d",
+      "original_bytes": 748968,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-test-result.json",
+      "portable": "final-verified/export-test-result.json",
+      "original_sha256": "b8b659c355dbd59751994b1d2833d4e76cd19ef93b1b687d9cfcb9f7eb2acb95",
+      "portable_sha256": "b8b659c355dbd59751994b1d2833d4e76cd19ef93b1b687d9cfcb9f7eb2acb95",
+      "original_bytes": 3220,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-tests.log",
+      "portable": "final-verified/export-tests.log.gz",
+      "original_sha256": "d5b712b67ed711727681a1483673a03ad3dacb3461a1db1097b13a277665d109",
+      "portable_sha256": "71372fb0bcf068bc5f74c78191dfee65d08ac442c7b193f3584d74ba68317bf1",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-tmpfs-guard.json",
+      "portable": "final-verified/export-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-tmpfs-phases.jsonl",
+      "portable": "final-verified/export-tmpfs-phases.jsonl.gz",
+      "original_sha256": "47a73014e0f1a0b3d52aaa95a8286ce8b4d57cfff07c6c6d435dffd9272e80c8",
+      "portable_sha256": "3562c9589d0ccf5b80ca2ed38956cf816fba395a3c595f4dceea3d54d6a37a1f",
+      "original_bytes": 749094,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-tmpfs-test-result.json",
+      "portable": "final-verified/export-tmpfs-test-result.json",
+      "original_sha256": "0bbaa00c55cfd84b8c80a6040381d66401017176285e064a1dc538ef3820fc26",
+      "portable_sha256": "0bbaa00c55cfd84b8c80a6040381d66401017176285e064a1dc538ef3820fc26",
+      "original_bytes": 3224,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/export-tmpfs-tests.log",
+      "portable": "final-verified/export-tmpfs-tests.log.gz",
+      "original_sha256": "da7034f22263fbca6a68a60eab9173a828cadaf53751b8fe110e09c9a6b86869",
+      "portable_sha256": "8fc90fa5ac04d10e2219328d8ac9cd33646265b544a13b9cbf505cd9c5af267d",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-disk-guard.json",
+      "portable": "final-verified/extra-export-disk-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-disk-phases.jsonl",
+      "portable": "final-verified/extra-export-disk-phases.jsonl.gz",
+      "original_sha256": "6ee3a33f262aa902b33660ce591f9b928dc99db12e14fe1ed1b5491d3e44cdc0",
+      "portable_sha256": "41d85ae38666776ba85527a3c8acab9cb510a293cb1590a1b01689b8b7c2e245",
+      "original_bytes": 28625,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-disk-result.json",
+      "portable": "final-verified/extra-export-disk-result.json",
+      "original_sha256": "73519b167e4a690925e1ae44dc93b21187aaf062027d6a8bfddaa0cd8344e945",
+      "portable_sha256": "73519b167e4a690925e1ae44dc93b21187aaf062027d6a8bfddaa0cd8344e945",
+      "original_bytes": 611,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-disk.log",
+      "portable": "final-verified/extra-export-disk.log.gz",
+      "original_sha256": "1192884f627fb5e33b47adc0f3f8caa24ad295e5bd793ad0d9e031eb81c787d4",
+      "portable_sha256": "9b8884776dc62284a968ad0cbe28917d51f3e59153f95de3f4132a8afb64b94a",
+      "original_bytes": 99,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-tmpfs-guard.json",
+      "portable": "final-verified/extra-export-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-tmpfs-phases.jsonl",
+      "portable": "final-verified/extra-export-tmpfs-phases.jsonl.gz",
+      "original_sha256": "aa64b043cb48813f2c01ade83b0aea119833c5994f37edfce4aad50f97730088",
+      "portable_sha256": "6a71ecc4b91d5e2225185353c5ba3cff3439014e1efbc8d342b5e7d32b08edfd",
+      "original_bytes": 28667,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-tmpfs-result.json",
+      "portable": "final-verified/extra-export-tmpfs-result.json",
+      "original_sha256": "b8f1aa1e0c4cf81fd42418de4b7b98d79592c3f5da43c85dfb5157b222d64901",
+      "portable_sha256": "b8f1aa1e0c4cf81fd42418de4b7b98d79592c3f5da43c85dfb5157b222d64901",
+      "original_bytes": 615,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-export-tmpfs.log",
+      "portable": "final-verified/extra-export-tmpfs.log.gz",
+      "original_sha256": "3089470e40cf3bcb915e250119d80466b6551015b0e8b2df2584e8639d335fb2",
+      "portable_sha256": "5179bb66ab2070e608b7e1eb7c12074f67fb7f9066a3225281def71ffe9d140b",
+      "original_bytes": 99,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-regress.py",
+      "portable": "final-verified/extra-regress.py.txt.gz",
+      "original_sha256": "3e09e27ac9ae48d854f3b4effc6e006aac212c77993f226ceb7e0e092d49f822",
+      "portable_sha256": "3c20f5b454bc8dca14a65409a401d3482c12ac7494efa0c190b3f6b7eb3f81b7",
+      "original_bytes": 1537,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-disk-guard.json",
+      "portable": "final-verified/extra-workspace-disk-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-disk-phases.jsonl",
+      "portable": "final-verified/extra-workspace-disk-phases.jsonl.gz",
+      "original_sha256": "6418106a37974c22387f941b8015fa4baef33c00910b712d35a20456b7e92b9c",
+      "portable_sha256": "ea6a52060c31005d861648b56e6bf727883a8a8c6690b256c11d30ca2295daf1",
+      "original_bytes": 28646,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-disk-result.json",
+      "portable": "final-verified/extra-workspace-disk-result.json",
+      "original_sha256": "b745e7b9ef5297e25f699d602d299e1b9315503689e147a6af29499838bcb571",
+      "portable_sha256": "b745e7b9ef5297e25f699d602d299e1b9315503689e147a6af29499838bcb571",
+      "original_bytes": 614,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-disk.log",
+      "portable": "final-verified/extra-workspace-disk.log.gz",
+      "original_sha256": "7d6641898c70a23540e6dc2f3ab547a7d0b3e0c8c43dc63d44d6d4425421a5e1",
+      "portable_sha256": "209d741c13bd1bad4812c5a814ca238bbbe1d2590982aeaf84add49de056bacd",
+      "original_bytes": 99,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-tmpfs-guard.json",
+      "portable": "final-verified/extra-workspace-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-tmpfs-phases.jsonl",
+      "portable": "final-verified/extra-workspace-tmpfs-phases.jsonl.gz",
+      "original_sha256": "46c584922f55b171794f482316fabd21dabd91847b2af605cc4b466edafe0a2c",
+      "portable_sha256": "4fc7ff1780e561b09feb595115036063bdad08b36c434f1ee165bd3be1d3493e",
+      "original_bytes": 28662,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-tmpfs-result.json",
+      "portable": "final-verified/extra-workspace-tmpfs-result.json",
+      "original_sha256": "0f9407cbdb403950d6ad7479cf6432e48e70d35bc7022d6e7f18a2de0696f64d",
+      "portable_sha256": "0f9407cbdb403950d6ad7479cf6432e48e70d35bc7022d6e7f18a2de0696f64d",
+      "original_bytes": 617,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/extra-workspace-tmpfs.log",
+      "portable": "final-verified/extra-workspace-tmpfs.log.gz",
+      "original_sha256": "9674c0fda9a12db08ddaec2f0f8cf8b8f6d65a65d76b21f90b9e503d4e760b8e",
+      "portable_sha256": "2b6ea162b4e603f7fd940b45e7c3a53eff782f9498739f0577c5a0ad3b4be86a",
+      "original_bytes": 99,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/final-identity.json",
+      "portable": "final-verified/final-identity.json",
+      "original_sha256": "99cc4ffa4a8a96dd403634424729e4f67a95fd88be66e2b8735591632df5185b",
+      "portable_sha256": "99cc4ffa4a8a96dd403634424729e4f67a95fd88be66e2b8735591632df5185b",
+      "original_bytes": 1784,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/finalize-review-profile.py",
+      "portable": "final-verified/finalize-review-profile.py.txt.gz",
+      "original_sha256": "b8269e00a52b17fdc3c5d7d8b0756bf334e15fe57f5779f08892662c89ae2250",
+      "portable_sha256": "e195592acfd5e8fd75dadd1facfbeac41bd0bf35c3cb9ae7dae47151d1d21829",
+      "original_bytes": 4036,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/focused-green.json",
+      "portable": "final-verified/focused-green.json.gz",
+      "original_sha256": "bd7278f6c2ed0fa2ce2b882623204485adf4268ffae1f1b313d1d94998a637b6",
+      "portable_sha256": "8b4d714c536fa7fcfab95282b05988162017f4d169f1f9eb9fad8fc0c9e1c686",
+      "original_bytes": 191053,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/full-regress-tmpfs.py",
+      "portable": "final-verified/full-regress-tmpfs.py.txt.gz",
+      "original_sha256": "09d290ee54841caccbe3d0e7f836b257ccd855842f35b623c58f5e59f8dba6ac",
+      "portable_sha256": "16813ff4535136a7d73284ee75123c66ad65975119957501e79188bd7b9e20d9",
+      "original_bytes": 2502,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/full-regress.py",
+      "portable": "final-verified/full-regress.py.txt.gz",
+      "original_sha256": "fb1f575a0602f6759493d9d289db2d1365b4cbc19e56eb30c4b0fe23f1dcd762",
+      "portable_sha256": "3971939d63a84b224a220ade8789f36b74bb9154434eb13a80cfbad62c1c3c33",
+      "original_bytes": 2471,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/prepare-reliability-candidate.py",
+      "portable": "final-verified/prepare-reliability-candidate.py.txt.gz",
+      "original_sha256": "12e6a6cf417bbdfc5e6d53e868c9a6ec231ed304ca55243acf98126e88936e66",
+      "portable_sha256": "dd0fc698dc5e61755bdb558aef04519fb749576aa315c75ca6507e3557c36fb3",
+      "original_bytes": 10142,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/preview-final.json",
+      "portable": "final-verified/preview-final.json",
+      "original_sha256": "17bb10e83e3b2022db6f7a4745cae90008ee7a969b176acb731501c2f1914832",
+      "portable_sha256": "17bb10e83e3b2022db6f7a4745cae90008ee7a969b176acb731501c2f1914832",
+      "original_bytes": 219,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/profile-finalization.log",
+      "portable": "final-verified/profile-finalization.log.gz",
+      "original_sha256": "8bdcc2c8245ee3d9981dcf873440a6c33f76824ed79894d0126c197852229eab",
+      "portable_sha256": "3ea6251539d307badc159942f6d688a5be1ebe212c8383b4636fb8ca8b348936",
+      "original_bytes": 449,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/quality-checks.json",
+      "portable": "final-verified/quality-checks.json",
+      "original_sha256": "b1e2d5d9fc7412dbc58992b7ec3a81ff72782820188f0b33f8a8651dec7eac7a",
+      "portable_sha256": "b1e2d5d9fc7412dbc58992b7ec3a81ff72782820188f0b33f8a8651dec7eac7a",
+      "original_bytes": 355,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/regression_observer.py",
+      "portable": "final-verified/regression_observer.py.txt.gz",
+      "original_sha256": "ca2d0fb13d7912d2b902b25d0f0733fe81caf428d141100590bcab0c2ba56821",
+      "portable_sha256": "b1f7c05e8ccfa4dc761bb6df341a1619b9485c34dd23219136cf738083294882",
+      "original_bytes": 558,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/reproducible-builds.json",
+      "portable": "final-verified/reproducible-builds.json",
+      "original_sha256": "9b92b07adb376e8b208f6988a520013b6f90e9316387f72ab734e145f742e6e1",
+      "portable_sha256": "9b92b07adb376e8b208f6988a520013b6f90e9316387f72ab734e145f742e6e1",
+      "original_bytes": 1748,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/status-final.json",
+      "portable": "final-verified/status-final.json",
+      "original_sha256": "2ad3512aa59cc46bfb2b8158058e3a619c5f9321b6eb2556f68069e87f509dab",
+      "portable_sha256": "2ad3512aa59cc46bfb2b8158058e3a619c5f9321b6eb2556f68069e87f509dab",
+      "original_bytes": 445,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/summarize-final.py",
+      "portable": "final-verified/summarize-final.py.txt.gz",
+      "original_sha256": "533a09ce8e2de3d96768ba8cd65ddb592f39f6a49fef64392a7b4a4533f6a2db",
+      "portable_sha256": "7e7dabf7fca4173bfa4c13a69f00a2330bd6dccf5a008ef4424b2c2b14a7f141",
+      "original_bytes": 2387,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-guard.json",
+      "portable": "final-verified/supplement-export-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-phases.jsonl",
+      "portable": "final-verified/supplement-export-phases.jsonl.gz",
+      "original_sha256": "27143293c6d1210ee20fbe07f83d111f1c4b8c0b7cb02ab8da4e3490b420fad0",
+      "portable_sha256": "e968907b68ae6540ff8b44574977c6ee64c0562c4ff6bae72c27d9eb64db28a9",
+      "original_bytes": 110580,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-result.json",
+      "portable": "final-verified/supplement-export-result.json",
+      "original_sha256": "aec70d281927e2b3d1fe97357358807a749097b0168cd9c35c4552475801c503",
+      "portable_sha256": "aec70d281927e2b3d1fe97357358807a749097b0168cd9c35c4552475801c503",
+      "original_bytes": 697,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-tmpfs-guard.json",
+      "portable": "final-verified/supplement-export-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-tmpfs-phases.jsonl",
+      "portable": "final-verified/supplement-export-tmpfs-phases.jsonl.gz",
+      "original_sha256": "3d82fcbd1cc2fc0094c71bf01583a4e38cbc019edba588b77f3c38b41672e2dc",
+      "portable_sha256": "a9585917c6d87d276f421901eb35dc2a4557b205064bd633ddb5ca5b38764dfb",
+      "original_bytes": 110659,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-tmpfs-result.json",
+      "portable": "final-verified/supplement-export-tmpfs-result.json",
+      "original_sha256": "b1e8364375a48c3254a04307401d659391f6a5229ff97e64811289aa31be16ad",
+      "portable_sha256": "b1e8364375a48c3254a04307401d659391f6a5229ff97e64811289aa31be16ad",
+      "original_bytes": 701,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export-tmpfs.log",
+      "portable": "final-verified/supplement-export-tmpfs.log.gz",
+      "original_sha256": "812b84e5022ea50bc51f488ff7c8c660829f8bd4f1dbbb6203530df5d1027411",
+      "portable_sha256": "9ab0aad575e802880fc379dc37147a1f09bd9cabbcf56a265f376bba46c4735b",
+      "original_bytes": 181,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-export.log",
+      "portable": "final-verified/supplement-export.log.gz",
+      "original_sha256": "4e28062ebb0b913d395d742e50d71ef11e21d949090fea32f53a8e011204120c",
+      "portable_sha256": "c6847d053aa46f4840fd171f929f20e426f65523a79f93a3cb616de09d339461",
+      "original_bytes": 191,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-regress-tmpfs.py",
+      "portable": "final-verified/supplement-regress-tmpfs.py.txt.gz",
+      "original_sha256": "19c8a69db7e0acb6548069737aab34dda7ba8a33d3046ec2262b587c2a6d6391",
+      "portable_sha256": "99636dc61b657eed900c7cf6acef5e151f359266fccfc071eb3b08f1cb912c3c",
+      "original_bytes": 1665,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-regress.py",
+      "portable": "final-verified/supplement-regress.py.txt.gz",
+      "original_sha256": "faeee7c5c10437b5318567cc98dec225fb11b0c5ca53473277511ec93626fbb0",
+      "portable_sha256": "e36928f9e934b6aa603e472e9fa15a30ace919d1ed2da29cc3776aba9a5fb782",
+      "original_bytes": 1634,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-guard.json",
+      "portable": "final-verified/supplement-workspace-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-phases.jsonl",
+      "portable": "final-verified/supplement-workspace-phases.jsonl.gz",
+      "original_sha256": "7c87d613e9c35b6ae00fe8e81a3706e697fb9def357e688b8b258e9bd9c2dbbf",
+      "portable_sha256": "afb4b6d468833fb13bcc09158c7d365488576273fe56d6870f87c1b05214fabc",
+      "original_bytes": 110565,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-result.json",
+      "portable": "final-verified/supplement-workspace-result.json",
+      "original_sha256": "d4eabcdfd91fbadb758bf1881ce020b1237918ac1a1807ed63e1c30cb02abf7d",
+      "portable_sha256": "d4eabcdfd91fbadb758bf1881ce020b1237918ac1a1807ed63e1c30cb02abf7d",
+      "original_bytes": 697,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-tmpfs-guard.json",
+      "portable": "final-verified/supplement-workspace-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-tmpfs-phases.jsonl",
+      "portable": "final-verified/supplement-workspace-tmpfs-phases.jsonl.gz",
+      "original_sha256": "49e6206e7a837c7d873efa65f80a06592e053802c7cf80f586e95281f82a932f",
+      "portable_sha256": "580ac0bc3292c2658da93359f5e08d3b4f667e942f61e61b1ebe5e65a4e13b3c",
+      "original_bytes": 110655,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-tmpfs-result.json",
+      "portable": "final-verified/supplement-workspace-tmpfs-result.json",
+      "original_sha256": "23006b57391c1353161275967cd8b8a22abf8f1002a3370ba1f6d5faf38b77f5",
+      "portable_sha256": "23006b57391c1353161275967cd8b8a22abf8f1002a3370ba1f6d5faf38b77f5",
+      "original_bytes": 701,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace-tmpfs.log",
+      "portable": "final-verified/supplement-workspace-tmpfs.log.gz",
+      "original_sha256": "75985b7771beeb609ded9519529dbb584a1eb7f944a446bbbbb541c566cfad45",
+      "portable_sha256": "b52aee600eb332dd7369b177069d1d48200f00b8dc7c4b9c4cde59d99a1a21fd",
+      "original_bytes": 181,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/supplement-workspace.log",
+      "portable": "final-verified/supplement-workspace.log.gz",
+      "original_sha256": "8877f9aa0fadf602b94bd71707b773be5f8eccba0184b8daa102f1471598e171",
+      "portable_sha256": "7a0a62c3a88bf147cbfef94710b437ced9631eb9324409052bac01316c6eb356",
+      "original_bytes": 191,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/verification-summary.log",
+      "portable": "final-verified/verification-summary.log.gz",
+      "original_sha256": "036e6ad8ab07b44e60055e5c2c305cfc04c56de57157660d800e7d2c1e832772",
+      "portable_sha256": "ee386ad5debf6c9c6e90ae1c1e5592e18f3acb5a18128025613b47e87c6f7ce0",
+      "original_bytes": 2058,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-guard.json",
+      "portable": "final-verified/workspace-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-phases.jsonl",
+      "portable": "final-verified/workspace-phases.jsonl.gz",
+      "original_sha256": "4ad9d1d03d33f28f1909aedf8d2fa046833ac2014662fe7893333f4e39091595",
+      "portable_sha256": "e40ce56628488a2b3b7976da03b3ff51056e13a1e757fab76ac011c3f99af560",
+      "original_bytes": 748955,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-test-result.json",
+      "portable": "final-verified/workspace-test-result.json",
+      "original_sha256": "4a574fe44a5c61d60114927e1fc1668a57526673b4020a1a67e42d4fee40097b",
+      "portable_sha256": "4a574fe44a5c61d60114927e1fc1668a57526673b4020a1a67e42d4fee40097b",
+      "original_bytes": 3223,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-tests.log",
+      "portable": "final-verified/workspace-tests.log.gz",
+      "original_sha256": "70cb245de405876b6f98887b6f04b492b7189fcfae3a7fde18bf6797df814bad",
+      "portable_sha256": "7c62c0dbbdb868ddb07351ae18dab1e5ff1cdcfc0efa92b6a07ed7c98a12db2f",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-tmpfs-guard.json",
+      "portable": "final-verified/workspace-tmpfs-guard.json",
+      "original_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "portable_sha256": "f68ec35cdb1eef117297bdac3e3794de2be2d7279c9120cb7858b408a4a12e0f",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-tmpfs-phases.jsonl",
+      "portable": "final-verified/workspace-tmpfs-phases.jsonl.gz",
+      "original_sha256": "5afacf4669bb3cbb14d6bb1e4f6f7c59d766967be7b24bfd691218fdaaec3df3",
+      "portable_sha256": "14e8b02d3f48453ec0392c70a662e56ab24e15199a5b65eaaaf7aa9fe2168e27",
+      "original_bytes": 749127,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-tmpfs-test-result.json",
+      "portable": "final-verified/workspace-tmpfs-test-result.json",
+      "original_sha256": "ef94d7fb0d7a677058ab03d30f439fb68872526d7648386eb10312052989a1d0",
+      "portable_sha256": "ef94d7fb0d7a677058ab03d30f439fb68872526d7648386eb10312052989a1d0",
+      "original_bytes": 3227,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/workspace-tmpfs-tests.log",
+      "portable": "final-verified/workspace-tmpfs-tests.log.gz",
+      "original_sha256": "19dad32fee0fd5a8ccea3ad4b12fd62fb32263f9067fe6065f5325d8584ed0c8",
+      "portable_sha256": "64c9b2fcc1733bc2aa257b52a373adf80664ba3651a5366f69add74aeb16d431",
+      "original_bytes": 1072,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-fix.log",
+      "portable": "first-fix.log.gz",
+      "original_sha256": "2e0e7c3fb944fbdacbdcb9d41654d539096261068d58c06261811bfd899e9cda",
+      "portable_sha256": "efe0bc4bf99e1b3df072648406007325966a9b5054b428da9140213dd585590e",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-whole-regression/all-checks.log",
+      "portable": "first-whole-regression/all-checks.log.gz",
+      "original_sha256": "eb6d6a2f404f2fe0c27c4b5e7207e6b12cd57549939d893db3a95e87f7366db8",
+      "portable_sha256": "4cabc9c0b201691a26ddd215bd4ef1c91626c40e2d5b673a364f0072b7ab88ae",
+      "original_bytes": 2984,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-whole-regression/quarantine-cleanup-derived.json",
+      "portable": "first-whole-regression/quarantine-cleanup-derived.json",
+      "original_sha256": "9d9d6173f488ac633f6a51e420f856c3d9e67dd56644fa58a74f628be67c0090",
+      "portable_sha256": "9d9d6173f488ac633f6a51e420f856c3d9e67dd56644fa58a74f628be67c0090",
+      "original_bytes": 1092,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-whole-regression/workspace-guard.json",
+      "portable": "first-whole-regression/workspace-guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-whole-regression/workspace-phases.jsonl",
+      "portable": "first-whole-regression/workspace-phases.jsonl.gz",
+      "original_sha256": "38935cae615297d455cd06175dfa6a45b668b53c8ed9b02f1439231088b509f1",
+      "portable_sha256": "f80b065112104838ac351941ddc0cf873cf2a6a55ad1e98b8e78a825cc166bad",
+      "original_bytes": 758397,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-whole-regression/workspace-test-result.json",
+      "portable": "first-whole-regression/workspace-test-result.json",
+      "original_sha256": "1233d47735e44317662dfc7086eee8982db86eaa95f67bdbbf89512299cac055",
+      "portable_sha256": "1233d47735e44317662dfc7086eee8982db86eaa95f67bdbbf89512299cac055",
+      "original_bytes": 3228,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/first-whole-regression/workspace-tests.log",
+      "portable": "first-whole-regression/workspace-tests.log.gz",
+      "original_sha256": "dde732eb77fa36ac17b3036eea452a7224e316f9a54d5bec354b0f7d421f5e2b",
+      "portable_sha256": "7bbd2f3a9fde365444ec2c6a3addd0715084400a639004773240a96218f7fb16",
+      "original_bytes": 10846,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/fixture-startup-fixed.log",
+      "portable": "fixture-startup-fixed.log.gz",
+      "original_sha256": "fb7b24f8d543a1fc5cf54f5752629472edae182d829a61a40101b895d4fee0f5",
+      "portable_sha256": "2f2bd334a4b57d88c0ce6aa51cd88fe53dc5dfe67408a85310ea983bd16bc29d",
+      "original_bytes": 98,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-acceptance-progress.json",
+      "portable": "focused-acceptance-progress.json",
+      "original_sha256": "baf395ef245cf74731e18fb16f68afa2c07fb8eaff69419e4317bbb45d17fdf2",
+      "portable_sha256": "baf395ef245cf74731e18fb16f68afa2c07fb8eaff69419e4317bbb45d17fdf2",
+      "original_bytes": 16691,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-acceptance.log",
+      "portable": "focused-acceptance.log.gz",
+      "original_sha256": "1846651472fff14cc512a1d0b546574727c0ad48e2f2679dbd28658e156cbd24",
+      "portable_sha256": "e9559c9e1cac0898ece1e0b47f95bcb042fffeff61d44e0f283447463a5769fd",
+      "original_bytes": 15520,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-clean-fixture.log",
+      "portable": "focused-clean-fixture.log.gz",
+      "original_sha256": "83d9adb45cae9ec9e8b2f5cb11650237ba6418fae21110b23d1d4d2ad038f1d6",
+      "portable_sha256": "9e212768339cc62e3a89bc89c36ae77f04884be722b4f4af4978f21253cc1c07",
+      "original_bytes": 1938,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-green.json",
+      "portable": "focused-green.json.gz",
+      "original_sha256": "c0116b613d8672ba4ca09e392e3d8f6ec14dee26ecd098043ed0a1ddd0f05a4b",
+      "portable_sha256": "54d70886c6727d0ca50fdfe6c29db3dd7b86c42aa2fdfda607a3ed0e1fda7890",
+      "original_bytes": 179455,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-progress.json",
+      "portable": "focused-progress.json",
+      "original_sha256": "4d58589b85654c26224dc303c89d1ae4cbedac3ca0fbe9a11632057f7314d73a",
+      "portable_sha256": "4d58589b85654c26224dc303c89d1ae4cbedac3ca0fbe9a11632057f7314d73a",
+      "original_bytes": 16693,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-summary.json",
+      "portable": "focused-summary.json.gz",
+      "original_sha256": "dc6a49581ab65d7fa0ade08c1ef8ba8e1242d71f5f8b11fa4b5b40d8c2d3a612",
+      "portable_sha256": "5f07ff0d9c7d475ee343ac03f4b57d023e1d8f8478dc65535f8cc98157e23a7d",
+      "original_bytes": 2365390,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/focused-summary.log",
+      "portable": "focused-summary.log.gz",
+      "original_sha256": "3057ffcf645c0b5c8d2f9a925b72b83afa3709f436d5503276c4613f296e7f7e",
+      "portable_sha256": "bd9a770a6ce0b23d76473e6c3cbf7d07f04c2a3221274f47bcee58ffb34a9f33",
+      "original_bytes": 2170,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/historical-failures.json",
+      "portable": "historical-failures.json",
+      "original_sha256": "6c0e62b8f5c1e888a2687e69676889ead094c2cf2ed9fc3e268c359e8003a2ba",
+      "portable_sha256": "6c0e62b8f5c1e888a2687e69676889ead094c2cf2ed9fc3e268c359e8003a2ba",
+      "original_bytes": 9928,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/initial-gate-blocked.log",
+      "portable": "initial-gate-blocked.log.gz",
+      "original_sha256": "cb9ec4384b4d91bf7a1b64357d632087beb8a5ab2143c6462a8001f0fee22a9f",
+      "portable_sha256": "f4f2116a2ea00e0638592f370fabdd8a4edc8adaaac2908fd0af728c0f1d72af",
+      "original_bytes": 331,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/no_live_guard.py.txt",
+      "portable": "no_live_guard.py.txt",
+      "original_sha256": "e205c2d94e50ba4c8dce46643d1bf927fc4e2507b863d51e11bf0775f7bac638",
+      "portable_sha256": "e205c2d94e50ba4c8dce46643d1bf927fc4e2507b863d51e11bf0775f7bac638",
+      "original_bytes": 1585,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/order-fixed.log",
+      "portable": "order-fixed.log.gz",
+      "original_sha256": "c2f5a429955344a5ebcd92b5e39deff17ba48e96febea51c725abc1e2402d79c",
+      "portable_sha256": "2259d3d56be7e4b20998bc3cbe25dbe86b5fe51b3c170fb3874811ea92ad5476",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/owned-reader.log",
+      "portable": "owned-reader.log.gz",
+      "original_sha256": "217d98dcad12048b46ca386a687b52d1ba8f4ee6ae62b8955b44a3a88542f86e",
+      "portable_sha256": "2d3b610aefcb01da6f751cc786c50ac37189de88177e82f97aa11db41023b8ba",
+      "original_bytes": 100,
+      "gzip": true
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/preservation.json",
+      "portable": "preservation.json",
+      "original_sha256": "51e91141e7c2dd62b06698437cadbce57f88fba428d6534c0adb65a0841e1e86",
+      "portable_sha256": "51e91141e7c2dd62b06698437cadbce57f88fba428d6534c0adb65a0841e1e86",
+      "original_bytes": 2398,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/reader-after.json",
+      "portable": "reader-after.json",
+      "original_sha256": "2f2dc09daa5babd82028e1811c24629250678cc3a3146c3aeffb6864c834f7a6",
+      "portable_sha256": "2f2dc09daa5babd82028e1811c24629250678cc3a3146c3aeffb6864c834f7a6",
+      "original_bytes": 270,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/reader-before.json",
+      "portable": "reader-before.json",
+      "original_sha256": "2cef57ec64c2eee45f4abe41f39e987dbe8005ae7b0c611994984fd2e16f6395",
+      "portable_sha256": "2cef57ec64c2eee45f4abe41f39e987dbe8005ae7b0c611994984fd2e16f6395",
+      "original_bytes": 434,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/system-pressure-after-failed-focus.json",
+      "portable": "system-pressure-after-failed-focus.json",
+      "original_sha256": "dbf6593f6f3e582c458d09a140f9e14fa662091b462b363e84e4e6dbcac23829",
+      "portable_sha256": "dbf6593f6f3e582c458d09a140f9e14fa662091b462b363e84e4e6dbcac23829",
+      "original_bytes": 638,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/workspace-guard.json",
+      "portable": "workspace-guard.json",
+      "original_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "portable_sha256": "75b881a71d8124068cde8cea94cceb4d26e0f557aeb61cf7485756f3b64c1c61",
+      "original_bytes": 94,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/workspace-test-result.json",
+      "portable": "workspace-test-result.json",
+      "original_sha256": "1233d47735e44317662dfc7086eee8982db86eaa95f67bdbbf89512299cac055",
+      "portable_sha256": "1233d47735e44317662dfc7086eee8982db86eaa95f67bdbbf89512299cac055",
+      "original_bytes": 3228,
+      "gzip": false
+    },
+    {
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/workspace-tests.log",
+      "portable": "workspace-tests.log.gz",
+      "original_sha256": "dde732eb77fa36ac17b3036eea452a7224e316f9a54d5bec354b0f7d421f5e2b",
+      "portable_sha256": "7bbd2f3a9fde365444ec2c6a3addd0715084400a639004773240a96218f7fb16",
+      "original_bytes": 10846,
+      "gzip": true
+    }
+  ]
+}

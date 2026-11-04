@@ -1,0 +1,550 @@
+[
+  {
+    "fixture": "/tmp/soc-final-reliability-suppw/test_lifecycle_watch_failures_2/continuous",
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1104616.123166847,
+      "observed_monotonic": 1104616.132714181,
+      "returncode": -9,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "RUNNING": 1,
+        "PENDING": 1
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1104615.407203855,
+        "cpu_seconds": 0.021876409,
+        "pid": 3167265,
+        "thread": 129842685810496
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1104615.554539779,
+        "cpu_seconds": 0.169170634,
+        "pid": 3167265,
+        "thread": 129842685810496
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1104615.626730808,
+        "cpu_seconds": 0.241362886,
+        "pid": 3167265,
+        "thread": 129842685810496
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1104615.629870011,
+        "cpu_seconds": 0.244500345,
+        "pid": 3167265,
+        "thread": 129842685810496
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1104615.634615568,
+        "cpu_seconds": 0.249246358,
+        "pid": 3167265,
+        "thread": 129842685810496
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1104615.634809691,
+        "cpu_seconds": 0.249439083,
+        "pid": 3167265,
+        "thread": 129842685810496
+      }
+    ],
+    "audit_kinds": [
+      "INITIALIZED",
+      "START_REQUEST",
+      "RUNTIME_STARTED",
+      "FINDING_RECORDED",
+      "FINDING_RECORDED",
+      "INVESTIGATION_STARTED"
+    ],
+    "failures": [],
+    "classification": "UNKNOWN_FOR_INDIVIDUAL_RECEIPT",
+    "related_controlled_defect": "COMMIT_CANCEL_RACE_REPRODUCED_SEPARATELY",
+    "acceptance": "AN_UNVERIFIED_RECEIPT_MAY_BE_EXPECTED_FAILURE_INJECTION_CHECK_TEST_TRACE_BEFORE_CALLING_IT_A_TEST_FAILURE"
+  },
+  {
+    "fixture": "/tmp/soc-final-reliability-suppw/test_permission_denial_does_no0/continuous",
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1104609.625682963,
+      "observed_monotonic": 1104609.637744058,
+      "returncode": -15,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {},
+      "queue_drained": true,
+      "investigation_jobs": {},
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1104609.16654422,
+        "cpu_seconds": 0.024286716,
+        "pid": 3167117,
+        "thread": 125400285542208
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1104609.312893992,
+        "cpu_seconds": 0.170641359,
+        "pid": 3167117,
+        "thread": 125400285542208
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1104609.375245925,
+        "cpu_seconds": 0.232993294,
+        "pid": 3167117,
+        "thread": 125400285542208
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1104609.379569054,
+        "cpu_seconds": 0.237316267,
+        "pid": 3167117,
+        "thread": 125400285542208
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1104609.384083462,
+        "cpu_seconds": 0.241827188,
+        "pid": 3167117,
+        "thread": 125400285542208
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1104609.384255875,
+        "cpu_seconds": 0.241998666,
+        "pid": 3167117,
+        "thread": 125400285542208
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1104609.609146343,
+        "cpu_seconds": 0.279933865,
+        "pid": 3167117,
+        "thread": 125400285542208
+      }
+    ],
+    "audit_kinds": [
+      "INITIALIZED",
+      "START_REQUEST",
+      "RUNTIME_STARTED",
+      "COLLECTION_FATAL",
+      "RUNTIME_FAILED"
+    ],
+    "failures": [
+      {
+        "sequence": 5,
+        "previous": "2536c765db8e50fba3bd14e56bc3b0a37bf53977b34e20d684659fbc194e789e",
+        "kind": "RUNTIME_FAILED",
+        "details": {
+          "failure": "ValueError"
+        },
+        "at": "2026-11-04T03:30:33.680559+00:00"
+      }
+    ],
+    "classification": "UNKNOWN_FOR_INDIVIDUAL_RECEIPT",
+    "related_controlled_defect": "COMMIT_CANCEL_RACE_REPRODUCED_SEPARATELY",
+    "acceptance": "AN_UNVERIFIED_RECEIPT_MAY_BE_EXPECTED_FAILURE_INJECTION_CHECK_TEST_TRACE_BEFORE_CALLING_IT_A_TEST_FAILURE"
+  },
+  {
+    "fixture": "/tmp/soc-final-reliability-suppe/test_lifecycle_watch_failures_2/continuous",
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1104710.219625404,
+      "observed_monotonic": 1104710.227233574,
+      "returncode": -9,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "RUNNING": 1,
+        "PENDING": 1
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1104709.40223704,
+        "cpu_seconds": 0.022941055,
+        "pid": 3169373,
+        "thread": 124063358543680
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1104709.610901528,
+        "cpu_seconds": 0.231609169,
+        "pid": 3169373,
+        "thread": 124063358543680
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1104709.714475106,
+        "cpu_seconds": 0.335184639,
+        "pid": 3169373,
+        "thread": 124063358543680
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1104709.719375175,
+        "cpu_seconds": 0.340083061,
+        "pid": 3169373,
+        "thread": 124063358543680
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1104709.726150035,
+        "cpu_seconds": 0.346858926,
+        "pid": 3169373,
+        "thread": 124063358543680
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1104709.726333992,
+        "cpu_seconds": 0.347041023,
+        "pid": 3169373,
+        "thread": 124063358543680
+      }
+    ],
+    "audit_kinds": [
+      "INITIALIZED",
+      "START_REQUEST",
+      "RUNTIME_STARTED",
+      "FINDING_RECORDED",
+      "FINDING_RECORDED",
+      "INVESTIGATION_STARTED"
+    ],
+    "failures": [],
+    "classification": "UNKNOWN_FOR_INDIVIDUAL_RECEIPT",
+    "related_controlled_defect": "COMMIT_CANCEL_RACE_REPRODUCED_SEPARATELY",
+    "acceptance": "AN_UNVERIFIED_RECEIPT_MAY_BE_EXPECTED_FAILURE_INJECTION_CHECK_TEST_TRACE_BEFORE_CALLING_IT_A_TEST_FAILURE"
+  },
+  {
+    "fixture": "/tmp/soc-final-reliability-suppe/test_lifecycle_watch_failures_0/continuous",
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1104707.494990947,
+      "observed_monotonic": 1104707.715050246,
+      "returncode": 1,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "DONE_READ_ONLY": 1,
+        "PENDING": 1
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1104706.719094094,
+        "cpu_seconds": 0.019245829,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1104706.908626354,
+        "cpu_seconds": 0.208771527,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1104706.987502027,
+        "cpu_seconds": 0.287601168,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1104706.992362644,
+        "cpu_seconds": 0.292460164,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1104707.000773931,
+        "cpu_seconds": 0.300872347,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1104707.000972943,
+        "cpu_seconds": 0.301070251,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1104707.49525176,
+        "cpu_seconds": 0.598392707,
+        "pid": 3169313,
+        "thread": 136056277940032
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1104707.65324545,
+        "cpu_seconds": 0.724416264,
+        "pid": 3169313,
+        "thread": 136056277940032
+      }
+    ],
+    "audit_kinds": [
+      "INITIALIZED",
+      "START_REQUEST",
+      "RUNTIME_STARTED",
+      "FINDING_RECORDED",
+      "FINDING_RECORDED",
+      "INVESTIGATION_STARTED",
+      "INVESTIGATION_DONE_READ_ONLY",
+      "RUNTIME_FAILED"
+    ],
+    "failures": [
+      {
+        "sequence": 8,
+        "previous": "9ba5cc6d63aa928816a0c1a215abfa86938f15d2248624dae60f4bd7330bae31",
+        "kind": "RUNTIME_FAILED",
+        "details": {
+          "failure": "ValueError"
+        },
+        "at": "2026-11-04T03:32:11.722596+00:00"
+      }
+    ],
+    "classification": "UNKNOWN_FOR_INDIVIDUAL_RECEIPT",
+    "related_controlled_defect": "COMMIT_CANCEL_RACE_REPRODUCED_SEPARATELY",
+    "acceptance": "AN_UNVERIFIED_RECEIPT_MAY_BE_EXPECTED_FAILURE_INJECTION_CHECK_TEST_TRACE_BEFORE_CALLING_IT_A_TEST_FAILURE"
+  },
+  {
+    "fixture": "/tmp/soc-final-reliability-suppe/test_permission_denial_does_no0/continuous",
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1104698.630808767,
+      "observed_monotonic": 1104698.63828045,
+      "returncode": -15,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {},
+      "queue_drained": true,
+      "investigation_jobs": {},
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1104698.178355576,
+        "cpu_seconds": 0.020591822,
+        "pid": 3169125,
+        "thread": 131679509219136
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1104698.330961824,
+        "cpu_seconds": 0.173198845,
+        "pid": 3169125,
+        "thread": 131679509219136
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1104698.413427973,
+        "cpu_seconds": 0.25566687,
+        "pid": 3169125,
+        "thread": 131679509219136
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1104698.418517579,
+        "cpu_seconds": 0.260755503,
+        "pid": 3169125,
+        "thread": 131679509219136
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1104698.42463144,
+        "cpu_seconds": 0.266869804,
+        "pid": 3169125,
+        "thread": 131679509219136
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1104698.424919627,
+        "cpu_seconds": 0.267156882,
+        "pid": 3169125,
+        "thread": 131679509219136
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1104698.614588147,
+        "cpu_seconds": 0.319749224,
+        "pid": 3169125,
+        "thread": 131679509219136
+      }
+    ],
+    "audit_kinds": [
+      "INITIALIZED",
+      "START_REQUEST",
+      "RUNTIME_STARTED",
+      "COLLECTION_FATAL",
+      "RUNTIME_FAILED"
+    ],
+    "failures": [
+      {
+        "sequence": 5,
+        "previous": "ace763eea6a97dfdd4a305dddc625f727d0294a4e8b1e8d14b724c8d3dc05687",
+        "kind": "RUNTIME_FAILED",
+        "details": {
+          "failure": "ValueError"
+        },
+        "at": "2026-11-04T03:32:02.686411+00:00"
+      }
+    ],
+    "classification": "UNKNOWN_FOR_INDIVIDUAL_RECEIPT",
+    "related_controlled_defect": "COMMIT_CANCEL_RACE_REPRODUCED_SEPARATELY",
+    "acceptance": "AN_UNVERIFIED_RECEIPT_MAY_BE_EXPECTED_FAILURE_INJECTION_CHECK_TEST_TRACE_BEFORE_CALLING_IT_A_TEST_FAILURE"
+  },
+  {
+    "fixture": "/tmp/soc-final-reliability-suppe/test_lifecycle_watch_failures_1/continuous",
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1104708.8086646,
+      "observed_monotonic": 1104709.017909564,
+      "returncode": 1,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "DONE_READ_ONLY": 1,
+        "PENDING": 1
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1104708.099497367,
+        "cpu_seconds": 0.025100294,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1104708.26305585,
+        "cpu_seconds": 0.187867605,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1104708.345343811,
+        "cpu_seconds": 0.27015812,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1104708.35130803,
+        "cpu_seconds": 0.276121347,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1104708.357102784,
+        "cpu_seconds": 0.281916384,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1104708.357291105,
+        "cpu_seconds": 0.282102861,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1104708.810161419,
+        "cpu_seconds": 0.548097561,
+        "pid": 3169339,
+        "thread": 128293640689472
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1104708.965541537,
+        "cpu_seconds": 0.662280638,
+        "pid": 3169339,
+        "thread": 128293640689472
+      }
+    ],
+    "audit_kinds": [
+      "INITIALIZED",
+      "START_REQUEST",
+      "RUNTIME_STARTED",
+      "FINDING_RECORDED",
+      "FINDING_RECORDED",
+      "INVESTIGATION_STARTED",
+      "INVESTIGATION_DONE_READ_ONLY",
+      "RUNTIME_FAILED"
+    ],
+    "failures": [
+      {
+        "sequence": 8,
+        "previous": "af87aec129fbc116c02524ab8e903a5e54ad414980518963e28cc773e6d94eef",
+        "kind": "RUNTIME_FAILED",
+        "details": {
+          "failure": "ValueError"
+        },
+        "at": "2026-11-04T03:32:13.039497+00:00"
+      }
+    ],
+    "classification": "UNKNOWN_FOR_INDIVIDUAL_RECEIPT",
+    "related_controlled_defect": "COMMIT_CANCEL_RACE_REPRODUCED_SEPARATELY",
+    "acceptance": "AN_UNVERIFIED_RECEIPT_MAY_BE_EXPECTED_FAILURE_INJECTION_CHECK_TEST_TRACE_BEFORE_CALLING_IT_A_TEST_FAILURE"
+  }
+]

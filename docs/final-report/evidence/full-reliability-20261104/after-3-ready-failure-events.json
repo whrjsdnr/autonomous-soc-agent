@@ -1,0 +1,1132 @@
+[
+  {
+    "event": "test_phase",
+    "monotonic": 1102068.100125698,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "nodeid": "tests/integration/linux_runtime/test_authentication_reliability_boundaries.py::test_cancelled_state_observer_is_joined_before_cleanup",
+    "phase": "setup",
+    "outcome": "passed",
+    "duration": 0.0017410009168088436,
+    "trace": null
+  },
+  {
+    "event": "AuthenticationLifecycle.start.begin",
+    "monotonic": 1102068.221328908,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "identity": null
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.322818369,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.32120151,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.368351194,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.32120151
+  },
+  {
+    "event": "spawn_begin",
+    "monotonic": 1102068.369516283,
+    "pid": 3110267,
+    "thread": 138366368294720
+  },
+  {
+    "event": "spawn_return",
+    "monotonic": 1102068.386389728,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "child": 3110931
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.389701679,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.387344221,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.389811908,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.387344221
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.442810744,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.440656252,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.44294093,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.440656252
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.49566878,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.49360101,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.495867054,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.49360101
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.549052824,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.547010741,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.549250488,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.547010741
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.601991436,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.600155336,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.602125949,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.600155336
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.654673802,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.652796633,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.654867196,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.652796633
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.710413067,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.707667677,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.710739563,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.707667677
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.768993306,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.763578492,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.769241868,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.763578492
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.821797045,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.819931765,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.821968336,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.819931765
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.873873313,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.872476738,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.874013684,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.872476738
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.92663491,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.92518256,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.926820838,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.92518256
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102068.981892477,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.980593326,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102068.981955108,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102068.980593326
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.054907644,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.053373637,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.055160355,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.053373637
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.111965845,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.107665133,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.116244284,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.107665133
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.179493288,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.177158545,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.188628511,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.177158545
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.249004916,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.242994916,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.249168488,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.242994916
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.318729431,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.316578688,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.330076387,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.316578688
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.437120885,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.434642279,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.437821183,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.434642279
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.491344398,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.488893251,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.491508281,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.488893251
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.564043077,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.562691822,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.564108089,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.562691822
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.620536724,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.6186587,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.620612559,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.6186587
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.674649708,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.67263034,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.674721726,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.67263034
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.750173002,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.748319116,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.750288794,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.748319116
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102069.809595301,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.808257905,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102069.809666756,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102069.808257905
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.034642955,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.03302524,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.034785974,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.03302524
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.132625667,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.131191225,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.133674237,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.131191225
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.188194526,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.186068942,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.189017614,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.186068942
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.250352733,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.248861863,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.250435921,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.248861863
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.302981597,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.301612624,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.303047044,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.301612624
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.515318892,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.513567099,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.51538172,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.513567099
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.574831095,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.57302817,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.574921407,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.57302817
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.635177645,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.633420754,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.635242904,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.633420754
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.691560509,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.688375665,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.692403488,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.688375665
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.760178275,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.752945569,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.760295078,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.752945569
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102070.81961651,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.818173399,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102070.819678028,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102070.818173399
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.052646158,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.049819036,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.052770289,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.049819036
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.126978465,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.125077802,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.127075486,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.125077802
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.188443427,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.186923876,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.188507093,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.186923876
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.246232153,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.244818082,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.246400651,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.244818082
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.299922529,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.296997827,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.300534896,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.296997827
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.54972793,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.351338019,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.55473433,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.351338019
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.782748171,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.781395148,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.783102517,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.781395148
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102071.933481423,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.931724725,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102071.933550914,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.931724725
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102072.650025653,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.985633006,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102072.650564997,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102071.985633006
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102072.773368635,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.701229098,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102072.773701215,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.701229098
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102072.826479853,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.825161378,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102072.82663496,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.825161378
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102072.91776391,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.914463493,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102072.918387911,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.914463493
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102072.972647547,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.970700424,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102072.97280816,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102072.970700424
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.024979197,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.023663215,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.025611709,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.023663215
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.079088479,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.076727354,
+    "state": "STOPPED",
+    "collector": "NOT_STARTED",
+    "heartbeat": null,
+    "identity": null
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.079315457,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.076727354
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.13395237,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.131887087,
+    "state": "RUNNING",
+    "collector": "NOT_STARTED",
+    "heartbeat": 1102073.087320781,
+    "identity": {
+      "pid": 3110931,
+      "start_ticks": "110206836",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    }
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.134049513,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.131887087
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.187454938,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.185084707,
+    "state": "RUNNING",
+    "collector": "NOT_STARTED",
+    "heartbeat": 1102073.136541658,
+    "identity": {
+      "pid": 3110931,
+      "start_ticks": "110206836",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    }
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.187689864,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.185084707
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.239608589,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.238285996,
+    "state": "RUNNING",
+    "collector": "NOT_STARTED",
+    "heartbeat": 1102073.136541658,
+    "identity": {
+      "pid": 3110931,
+      "start_ticks": "110206836",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    }
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.239773778,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.238285996
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.291563342,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.290271519,
+    "state": "RUNNING",
+    "collector": "NOT_STARTED",
+    "heartbeat": 1102073.136541658,
+    "identity": {
+      "pid": 3110931,
+      "start_ticks": "110206836",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    }
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.291732787,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.290271519
+  },
+  {
+    "event": "authentication_state",
+    "monotonic": 1102073.347251644,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.34436588,
+    "state": "RUNNING",
+    "collector": "NOT_STARTED",
+    "heartbeat": 1102073.136541658,
+    "identity": {
+      "pid": 3110931,
+      "start_ticks": "110206836",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    }
+  },
+  {
+    "event": "authentication_read_end",
+    "monotonic": 1102073.349467472,
+    "pid": 3110267,
+    "thread": 138365986920128,
+    "started": 1102073.34436588
+  },
+  {
+    "event": "AuthenticationLifecycle.start.end",
+    "monotonic": 1102073.403107331,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "started": 1102068.221254829,
+    "state": "FAILED",
+    "cleanup": null,
+    "evidence": {
+      "cleanup": "NOT_STARTED",
+      "stop_ack": false
+    },
+    "returncode": null
+  },
+  {
+    "event": "AuthenticationLifecycle.close.begin",
+    "monotonic": 1102073.40333858,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "identity": {
+      "pid": 3110931,
+      "start_ticks": "110206836",
+      "uid": 1000,
+      "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+    }
+  },
+  {
+    "event": "AuthenticationLifecycle.close.end",
+    "monotonic": 1102073.752271408,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "started": 1102073.403295314,
+    "state": "STOPPED",
+    "cleanup": null,
+    "evidence": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1102073.403392326,
+      "observed_monotonic": 1102073.751769282,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "PENDING": 2
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "returncode": 0
+  },
+  {
+    "event": "test_phase",
+    "monotonic": 1102073.867863347,
+    "pid": 3110267,
+    "thread": 138366368294720,
+    "nodeid": "tests/integration/linux_runtime/test_authentication_reliability_boundaries.py::test_cancelled_state_observer_is_joined_before_cleanup",
+    "phase": "call",
+    "outcome": "failed",
+    "duration": 5.652732520829886,
+    "trace": "self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x7dd7ec4b5250>\n\n    async def start(self) -> None:\n        async def launch(value):\n            if value.model_dump(mode=\"json\") != action(self.store).input_payload():\n                raise ValueError(\"AUTHENTICATION_SCOPE_CHANGED_BEFORE_EXECUTION\")\n            await self._start_owned(proposed, receipt)\n            return _Output(state=self.state, pid=self.process.pid)\n    \n        proposed, receipt, executor = await asyncio.to_thread(_authorized, self.store, launch)\n        try:\n>           await executor.execute(proposed, approval_id=receipt.approval_id)\n\nsrc/soc_agent/continuous/authentication_lifecycle.py:190: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \nsrc/soc_agent/execution/executor.py:119: in execute\n    return await tool.execute(action.input_payload())\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = Tool(metadata=ToolMetadata(name='collect_host_authentication_journal', description='Bounded existing auth/authpriv or ...authentication_lifecycle._Output'>, handler=<function AuthenticationLifecycle.start.<locals>.launch at 0x7dd7ebf699e0>)\nraw_input = {'authentication_config_sha256': '7101992ebe09a3473ad6f2f447a891ef77ef67eaa8a0b1eedc38d115220cfb7c', 'code_identity': ...inuous_config_sha256': '4fa370aadcdc6964bec50c3ea47429cfa073b6e257240042cc6e78ca304178b5', 'duration_seconds': 30, ...}\n\n    async def execute(self, raw_input: Mapping[str, object] | TInput) -> ToolResult[TOutput]:\n        \"\"\"Validate both sides, including model instances that may have been mutated.\n    \n        Extra fields are rejected; field coercion follows the supplied schema.\n        Cancellation and other BaseExceptions propagate unchanged.\n        \"\"\"\n        if self.execution_guard is not None:\n            self.execution_guard.before_tool(self)\n        try:\n            # Revalidation below reports invalid model values as boundary errors.\n            payload = (\n                raw_input.model_dump(warnings=False)\n                if isinstance(raw_input, BaseModel)\n                else raw_input\n            )\n            validated_input = self.input_model.model_validate(payload, extra=\"forbid\")\n        except ValidationError as error:\n            raise ToolInputValidationError(\"Tool input does not match its schema\") from error\n        if self.execution_guard is not None:\n            self.execution_guard.before_handler(self, validated_input)\n        try:\n            output = await self.handler(validated_input)\n        except ToolExecutionError:\n            raise\n        except Exception as error:\n            # Adapter failures are intentionally translated, never silently swallowed.\n>           raise ToolExecutionError(\"Tool implementation failed\") from error\nE           soc_agent.tools.errors.ToolExecutionError: Tool implementation failed\n\nsrc/soc_agent/tools/base.py:82: ToolExecutionError\n\nThe above exception was the direct cause of the following exception:\n\ntmp_path = PosixPath('/dev/shm/soc-reliability-after-3-export-tmpfs/test_cancelled_state_observer_0')\nmonkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7dd7d9178b00>\n\n    @pytest.mark.asyncio\n    async def test_cancelled_state_observer_is_joined_before_cleanup(tmp_path, monkeypatch):\n        from tests.integration.linux_runtime.test_managed_authentication_lifecycle import (\n            approve_fixture,\n            mock_journal_child,\n            prepare,\n        )\n    \n        from soc_agent.continuous.authentication_lifecycle import AuthenticationLifecycle\n    \n        store = prepare(tmp_path)\n        approve_fixture(store)\n        mock_journal_child(monkeypatch)\n        child = AuthenticationLifecycle(store)\n        entered, release, finished = threading.Event(), threading.Event(), threading.Event()\n        watcher = closing = None\n        try:\n>           await child.start()\n\ntests/integration/linux_runtime/test_authentication_reliability_boundaries.py:134: \n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n../reliability_observer.py:36: in call\n    try:return await previous(self,*a,**kw)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/soc_agent/continuous/authentication_lifecycle.py:196: in start\n    raise error.__cause__ from error\nsrc/soc_agent/tools/base.py:77: in execute\n    output = await self.handler(validated_input)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nsrc/soc_agent/continuous/authentication_lifecycle.py:185: in launch\n    await self._start_owned(proposed, receipt)\n_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \n\nself = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x7dd7ec4b5250>\nproposed = ActionProposal(action_id=UUID('4d5d6698-fd55-5596-a08e-a64381d6ba9f'), incident_id=UUID('cd22bdf7-8669-42d9-8241-e237e...e237eac0db83\",\"uid\":1000}', created_at=datetime.datetime(2026, 11, 4, 2, 48, 12, 353198, tzinfo=datetime.timezone.utc))\nreceipt = ApprovalRequest(approval_id=UUID('7bdda327-835d-4e66-b654-e96f5aafa6f4'), incident_id=UUID('cd22bdf7-8669-42d9-8241-e2...d'>, decided_by='fixture', decided_at=datetime.datetime(2026, 11, 4, 2, 48, 12, 302289, tzinfo=datetime.timezone.utc)))\n\n    async def _start_owned(self, proposed, receipt):\n        saved = await self._observe(5)\n        if saved[\"state\"] != \"STOPPED\":\n            raise ValueError(\"AUTHENTICATION_RUNTIME_NOT_STOPPED\")\n        await asyncio.to_thread(\n            write_new,\n            self.store.directory / \"authentication-start-intent.json\",\n            dict(\n                action=proposed.model_dump(mode=\"json\"),\n                approval_sha256=hashlib.sha256(receipt.model_dump_json().encode()).hexdigest(),\n                automatic_retry=False,\n            ),\n        )\n        self.state = \"STARTING\"\n        fd = os.open(\n            self.store.directory / \"authentication-child.log\",\n            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,\n            0o600,\n        )\n        self.log = os.fdopen(fd, \"wb\")\n        self.process = await asyncio.create_subprocess_exec(\n            sys.executable,\n            \"-B\",\n            \"-m\",\n            \"soc_agent.linux_runtime\",\n            \"--directory\",\n            str(self.directory),\n            \"start\",\n            \"--duration-seconds\",\n            str(self.store.config.managed_authentication.duration_seconds),\n            env=dict(\n                os.environ,\n                PYTHONDONTWRITEBYTECODE=\"1\",\n                OPENBLAS_NUM_THREADS=\"1\",\n                OMP_NUM_THREADS=\"1\",\n                MKL_NUM_THREADS=\"1\",\n            ),\n            stdin=asyncio.subprocess.DEVNULL,\n            stdout=self.log,\n            stderr=self.log,\n        )\n        self.identity = runtime_identity(self.process.pid)\n        deadline = time.monotonic() + 5\n        while time.monotonic() < deadline:\n            if self.process.returncode is not None:\n                raise ValueError(\"AUTHENTICATION_CHILD_EXIT_BEFORE_READY\")\n            observed = await self._observe(max(0.001, deadline - time.monotonic()))\n            if (\n                observed.get(\"runtime_identity\") == self.identity\n                and observed.get(\"collector\")\n                in (\"INITIAL_READ\", \"RESUMED_EXACT\", \"RESUMED_WITH_REPLAY\")\n                and observed[\"state\"] == \"RUNNING\"\n            ):\n                self.state = \"RUNNING\"\n                return\n            if observed[\"state\"] == \"FAILED\":\n                raise ValueError(\"AUTHENTICATION_COLLECTION_FAILED_BEFORE_READY\")\n            await asyncio.sleep(0.05)\n>       raise ValueError(\"AUTHENTICATION_READY_TIMEOUT\")\nE       ValueError: AUTHENTICATION_READY_TIMEOUT\n\nsrc/soc_agent/continuous/authentication_lifecycle.py:257: ValueError"
+  }
+]

@@ -1,0 +1,27 @@
+{
+  "code_identity": "5350eba62fd0ffe43aebf453e498c07772a0971a1aaeccd3f0c0b302bd057b8a",
+  "execution_authorized": false,
+  "execution_scheduled": false,
+  "git": "067d36a65962518adc89191d8980f2096389d45a",
+  "remaining_gate": "NEW_POLICY_RELEASE_UPDATE_ROOT_NATIVE_DNS_R1_HOST_MODEL_API_APPROVALS_REQUIRED",
+  "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native",
+  "root_changed": [
+    "/etc/soc-agent/continuous-installation.json",
+    "/etc/systemd/system/soc-operations-runtime.service",
+    "/etc/systemd/system/soc-continuous-dns.service"
+  ],
+  "session": "c1f2c795-642b-4c38-b60a-6217922f9db6",
+  "wheel_sha256": "6e42d89adbb1909f42aae2861b26472b221bdabb9746ea1cb79c7c46c8acf1f1",
+  "root_manifest_sha256": "eff4955904540be7ca0679ccb971ff839c4e06b8b0f94fe5aaaaecb625908186",
+  "review_sha256": "8d9057e7c212c26652047539ec452202b246c0751bf122d1d2b5da053c8779a5",
+  "request_sha256": "010579b522eb8a95f373a8e0ed57615973c841e3ffcdc10147933f150edd6c3b",
+  "operator_home": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/operator-home",
+  "cli": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/soc-agent",
+  "pythonpath": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/export/src",
+  "policy_status": "PROPOSED_NOT_APPROVED_NOT_ACTIVATED",
+  "live_executed": false,
+  "full_live_verification": "BLOCKED_PENDING_NEW_POLICY_AND_INDEPENDENT_AUTHORIZATIONS",
+  "readiness": "PARTIALLY_READY",
+  "unresolved": "ENVIRONMENT_SENSITIVE_TIMING_BOUNDARY_CAUSALITY_UNKNOWN",
+  "installed_manager_updated": false
+}

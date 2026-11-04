@@ -1,0 +1,15 @@
+{
+  "code_identity": "5350eba62fd0ffe43aebf453e498c07772a0971a1aaeccd3f0c0b302bd057b8a",
+  "execution_authorized": false,
+  "execution_scheduled": false,
+  "git": "067d36a65962518adc89191d8980f2096389d45a",
+  "remaining_gate": "NEW_POLICY_RELEASE_UPDATE_ROOT_NATIVE_DNS_R1_HOST_MODEL_API_APPROVALS_REQUIRED",
+  "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native",
+  "root_changed": [
+    "/etc/soc-agent/continuous-installation.json",
+    "/etc/systemd/system/soc-operations-runtime.service",
+    "/etc/systemd/system/soc-continuous-dns.service"
+  ],
+  "session": "c1f2c795-642b-4c38-b60a-6217922f9db6",
+  "wheel_sha256": "6e42d89adbb1909f42aae2861b26472b221bdabb9746ea1cb79c7c46c8acf1f1"
+}

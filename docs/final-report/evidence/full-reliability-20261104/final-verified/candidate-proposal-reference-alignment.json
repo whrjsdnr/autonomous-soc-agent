@@ -1,0 +1,25 @@
+{
+  "changes": [
+    {
+      "path": "api-scope-proposal.json",
+      "before": {
+        "source_commit": "74cbcb2ae9cf120d29d406c6e0126d07d304be58"
+      },
+      "after": {
+        "source_commit": "067d36a65962518adc89191d8980f2096389d45a"
+      }
+    },
+    {
+      "path": "single-approval-integration-scope.json",
+      "before": {
+        "source_sha256": "75b0069502a7b5518bad29c0adf3623973dc2b5da0c3af7e713a4bfd2956418c"
+      },
+      "after": {
+        "source_sha256": "701afdbf945bfde6496b6f79fe6cb21045c17487cee6826eb54671563e754e8a"
+      }
+    }
+  ],
+  "reason": "PENDING_PROPOSALS_RETAINED_TEMPLATE_SOURCE_REFERENCES_AFTER_NATIVE_SOURCE_REFREEZE",
+  "authority_created": false,
+  "source_code_changed": false
+}

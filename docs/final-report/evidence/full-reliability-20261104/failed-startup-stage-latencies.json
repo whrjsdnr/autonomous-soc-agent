@@ -1,0 +1,1098 @@
+[
+  {
+    "fixture": "test_invalid_model_grants_neve1/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105125.4200945,
+        "cpu_seconds": 0.037221098,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105125.807545475,
+        "cpu_seconds": 0.371916417,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105126.021672478,
+        "cpu_seconds": 0.567391817,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105126.035525539,
+        "cpu_seconds": 0.58125588,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105126.063483579,
+        "cpu_seconds": 0.608057637,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105126.063787906,
+        "cpu_seconds": 0.608361249,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105127.74111644,
+        "cpu_seconds": 1.409610144,
+        "pid": 3179049,
+        "thread": 125781462865728
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105127.834494372,
+        "cpu_seconds": 1.425919463,
+        "pid": 3179049,
+        "thread": 125781462865728
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.38745097490027547,
+        "process_cpu_seconds": 0.334695319,
+        "unattributed_non_cpu_seconds": 0.05275565590027548
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.2141270029824227,
+        "process_cpu_seconds": 0.19547539999999997,
+        "unattributed_non_cpu_seconds": 0.018651602982422744
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.013853061012923717,
+        "process_cpu_seconds": 0.013864062999999982,
+        "unattributed_non_cpu_seconds": 0
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.02795804012566805,
+        "process_cpu_seconds": 0.026801757000000093,
+        "unattributed_non_cpu_seconds": 0.0011562831256679562
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.000304326880723238,
+        "process_cpu_seconds": 0.00030361199999995314,
+        "unattributed_non_cpu_seconds": 7.148807232848498e-07
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 1.6773285339586437,
+        "process_cpu_seconds": 0.801248895,
+        "unattributed_non_cpu_seconds": 0.8760796389586437
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 0.09337793197482824,
+        "process_cpu_seconds": 0.0163093190000001,
+        "unattributed_non_cpu_seconds": 0.07706861297482814
+      }
+    ],
+    "cleanup": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1105127.735841041,
+      "observed_monotonic": 1105128.058320313,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 4
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "PENDING": 2
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_lifecycle_watch_failures_0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105225.756147952,
+        "cpu_seconds": 0.30264901,
+        "pid": 3180641,
+        "thread": 127651279349568
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105228.663187311,
+        "cpu_seconds": 1.095604683,
+        "pid": 3180641,
+        "thread": 127651279349568
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 2.907039358979091,
+        "process_cpu_seconds": 0.7929556729999999,
+        "unattributed_non_cpu_seconds": 2.1140836859790912
+      }
+    ],
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1105229.191819798,
+      "observed_monotonic": 1105229.330436309,
+      "returncode": -15,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {},
+      "queue_drained": true,
+      "investigation_jobs": {},
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_composed_packet_dns_authe0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105129.944074677,
+        "cpu_seconds": 0.055894672,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105130.461866381,
+        "cpu_seconds": 0.502107152,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105130.524779117,
+        "cpu_seconds": 0.564993449,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105130.527861209,
+        "cpu_seconds": 0.568073976,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105130.532306696,
+        "cpu_seconds": 0.5723648,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105130.532461803,
+        "cpu_seconds": 0.572519311,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105131.690660022,
+        "cpu_seconds": 1.103462488,
+        "pid": 3179121,
+        "thread": 127908602103616
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105132.009536646,
+        "cpu_seconds": 1.201201551,
+        "pid": 3179121,
+        "thread": 127908602103616
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.5177917040418833,
+        "process_cpu_seconds": 0.44621248,
+        "unattributed_non_cpu_seconds": 0.07157922404188333
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.06291273585520685,
+        "process_cpu_seconds": 0.06288629700000004,
+        "unattributed_non_cpu_seconds": 2.6438855206811773e-05
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.0030820919200778008,
+        "process_cpu_seconds": 0.003080526999999944,
+        "unattributed_non_cpu_seconds": 1.5649200778566907e-06
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.004445487167686224,
+        "process_cpu_seconds": 0.004290824000000026,
+        "unattributed_non_cpu_seconds": 0.0001546631676861976
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.00015510688535869122,
+        "process_cpu_seconds": 0.0001545109999999683,
+        "unattributed_non_cpu_seconds": 5.958853587229029e-07
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 1.1581982190255076,
+        "process_cpu_seconds": 0.5309431769999999,
+        "unattributed_non_cpu_seconds": 0.6272550420255076
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 0.31887662410736084,
+        "process_cpu_seconds": 0.09773906300000013,
+        "unattributed_non_cpu_seconds": 0.22113756110736071
+      }
+    ],
+    "cleanup": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1105131.688214948,
+      "observed_monotonic": 1105132.124371263,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 4
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "PENDING": 2
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_main_continuous_entry_own0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105207.50374953,
+        "cpu_seconds": 0.03867214,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105207.716780147,
+        "cpu_seconds": 0.22688584,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105207.843371777,
+        "cpu_seconds": 0.291440454,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105207.858122912,
+        "cpu_seconds": 0.294981745,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105207.867775343,
+        "cpu_seconds": 0.300245946,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105207.872672085,
+        "cpu_seconds": 0.300476935,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105220.47179385,
+        "cpu_seconds": 1.113572286,
+        "pid": 3180382,
+        "thread": 131056107345728
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105221.401800143,
+        "cpu_seconds": 1.243088644,
+        "pid": 3180382,
+        "thread": 131056107345728
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.21303061698563397,
+        "process_cpu_seconds": 0.1882137,
+        "unattributed_non_cpu_seconds": 0.024816916985633958
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.1265916300471872,
+        "process_cpu_seconds": 0.06455461400000001,
+        "unattributed_non_cpu_seconds": 0.0620370160471872
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.014751134905964136,
+        "process_cpu_seconds": 0.003541291000000002,
+        "unattributed_non_cpu_seconds": 0.011209843905964134
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.009652430890128016,
+        "process_cpu_seconds": 0.005264200999999968,
+        "unattributed_non_cpu_seconds": 0.004388229890128048
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.00489674205891788,
+        "process_cpu_seconds": 0.00023098900000001477,
+        "unattributed_non_cpu_seconds": 0.004665753058917865
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 12.599121765000746,
+        "process_cpu_seconds": 0.8130953509999999,
+        "unattributed_non_cpu_seconds": 11.786026414000746
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 0.9300062931142747,
+        "process_cpu_seconds": 0.12951635800000005,
+        "unattributed_non_cpu_seconds": 0.8004899351142747
+      }
+    ],
+    "cleanup": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1105220.471069936,
+      "observed_monotonic": 1105221.62448083,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "DONE_READ_ONLY": 1,
+        "PENDING": 1
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_existing_sshd_success_and0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105151.507895997,
+        "cpu_seconds": 0.078871788,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105151.720774382,
+        "cpu_seconds": 0.277533421,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105151.811198613,
+        "cpu_seconds": 0.35720576,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105151.8178169,
+        "cpu_seconds": 0.362305572,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105151.825164207,
+        "cpu_seconds": 0.369498362,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105151.825458624,
+        "cpu_seconds": 0.369750833,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105153.709215745,
+        "cpu_seconds": 0.926689965,
+        "pid": 3179476,
+        "thread": 124701449533248
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105154.086854147,
+        "cpu_seconds": 1.173741009,
+        "pid": 3179476,
+        "thread": 124701449533248
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.21287838486023247,
+        "process_cpu_seconds": 0.198661633,
+        "unattributed_non_cpu_seconds": 0.014216751860232468
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.09042423102073371,
+        "process_cpu_seconds": 0.07967233899999998,
+        "unattributed_non_cpu_seconds": 0.010751892020733733
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.006618287181481719,
+        "process_cpu_seconds": 0.005099812000000037,
+        "unattributed_non_cpu_seconds": 0.0015184751814816821
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.007347306935116649,
+        "process_cpu_seconds": 0.0071927900000000045,
+        "unattributed_non_cpu_seconds": 0.00015451693511664422
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.00029441691003739834,
+        "process_cpu_seconds": 0.00025247099999997635,
+        "unattributed_non_cpu_seconds": 4.1945910037421985e-05
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 1.883757121162489,
+        "process_cpu_seconds": 0.556939132,
+        "unattributed_non_cpu_seconds": 1.326817989162489
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 0.3776384019292891,
+        "process_cpu_seconds": 0.247051044,
+        "unattributed_non_cpu_seconds": 0.1305873579292891
+      }
+    ],
+    "cleanup": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1105153.693311589,
+      "observed_monotonic": 1105154.163682548,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 5
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "PENDING": 1
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_invalid_model_grants_neve0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105120.956194826,
+        "cpu_seconds": 0.024487621,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105121.127474491,
+        "cpu_seconds": 0.195494556,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105121.437267891,
+        "cpu_seconds": 0.499767469,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105121.443080686,
+        "cpu_seconds": 0.505579554,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105121.455376745,
+        "cpu_seconds": 0.513869583,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105121.457343606,
+        "cpu_seconds": 0.514158275,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105122.528059016,
+        "cpu_seconds": 0.953395763,
+        "pid": 3178967,
+        "thread": 126677067712320
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105122.668016769,
+        "cpu_seconds": 1.03161977,
+        "pid": 3178967,
+        "thread": 126677067712320
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.1712796650826931,
+        "process_cpu_seconds": 0.17100693500000003,
+        "unattributed_non_cpu_seconds": 0.0002727300826930734
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.3097933998797089,
+        "process_cpu_seconds": 0.30427291300000003,
+        "unattributed_non_cpu_seconds": 0.0055204868797088524
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.0058127951342612505,
+        "process_cpu_seconds": 0.005812084999999967,
+        "unattributed_non_cpu_seconds": 7.101342612836348e-07
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.012296058936044574,
+        "process_cpu_seconds": 0.008290028999999977,
+        "unattributed_non_cpu_seconds": 0.004006029936044597
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.0019668610766530037,
+        "process_cpu_seconds": 0.0002886920000000348,
+        "unattributed_non_cpu_seconds": 0.0016781690766529689
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 1.0707154099363834,
+        "process_cpu_seconds": 0.43923748799999995,
+        "unattributed_non_cpu_seconds": 0.6314779219363834
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 0.13995775301009417,
+        "process_cpu_seconds": 0.0782240070000001,
+        "unattributed_non_cpu_seconds": 0.06173374601009407
+      }
+    ],
+    "cleanup": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1105122.520986591,
+      "observed_monotonic": 1105122.73912756,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 4
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "PENDING": 2
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_owned_child_ready_ingesti0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105108.672607056,
+        "cpu_seconds": 0.261360904,
+        "pid": 3178777,
+        "thread": 124354188281664
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105109.676859771,
+        "cpu_seconds": 0.890932604,
+        "pid": 3178777,
+        "thread": 124354188281664
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105109.894752296,
+        "cpu_seconds": 1.073849007,
+        "pid": 3178777,
+        "thread": 124354188281664
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105109.933065871,
+        "cpu_seconds": 1.107081717,
+        "pid": 3178777,
+        "thread": 124354188281664
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105109.969249887,
+        "cpu_seconds": 1.13857865,
+        "pid": 3178777,
+        "thread": 124354188281664
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105109.969419021,
+        "cpu_seconds": 1.138746294,
+        "pid": 3178777,
+        "thread": 124354188281664
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105113.39235316,
+        "cpu_seconds": 1.219733124,
+        "pid": 3178777,
+        "thread": 124354188281664
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 1.0042527148034424,
+        "process_cpu_seconds": 0.6295717,
+        "unattributed_non_cpu_seconds": 0.3746810148034424
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.21789252501912415,
+        "process_cpu_seconds": 0.182916403,
+        "unattributed_non_cpu_seconds": 0.034976122019124145
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.038313575088977814,
+        "process_cpu_seconds": 0.033232710000000054,
+        "unattributed_non_cpu_seconds": 0.00508086508897776
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.03618401591666043,
+        "process_cpu_seconds": 0.031496932999999894,
+        "unattributed_non_cpu_seconds": 0.004687082916660534
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.00016913400031626225,
+        "process_cpu_seconds": 0.00016764400000002233,
+        "unattributed_non_cpu_seconds": 1.4900003162399145e-06
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 3.422934139147401,
+        "process_cpu_seconds": 0.08098683000000007,
+        "unattributed_non_cpu_seconds": 3.341947309147401
+      }
+    ],
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1105113.386321481,
+      "observed_monotonic": 1105118.672833555,
+      "returncode": -9,
+      "forced": true,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "PENDING": 3
+      },
+      "queue_drained": false,
+      "investigation_jobs": {},
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_cleanup_evidence_write_fa0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105203.444386089,
+        "cpu_seconds": 0.030902192,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105203.702441577,
+        "cpu_seconds": 0.241597032,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105203.845389248,
+        "cpu_seconds": 0.312781327,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105203.849159012,
+        "cpu_seconds": 0.316550497,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105203.853440424,
+        "cpu_seconds": 0.320831813,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105203.853592271,
+        "cpu_seconds": 0.320982849,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105205.633289675,
+        "cpu_seconds": 0.68795847,
+        "pid": 3180310,
+        "thread": 129990556161856
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105206.038458321,
+        "cpu_seconds": 0.758439924,
+        "pid": 3180310,
+        "thread": 129990556161856
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.2580554881133139,
+        "process_cpu_seconds": 0.21069484,
+        "unattributed_non_cpu_seconds": 0.04736064811331392
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.1429476710036397,
+        "process_cpu_seconds": 0.07118429500000001,
+        "unattributed_non_cpu_seconds": 0.07176337600363969
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.0037697639781981707,
+        "process_cpu_seconds": 0.0037691699999999884,
+        "unattributed_non_cpu_seconds": 5.939781981822989e-07
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.004281411878764629,
+        "process_cpu_seconds": 0.004281316000000035,
+        "unattributed_non_cpu_seconds": 9.58787645943815e-08
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.0001518470235168934,
+        "process_cpu_seconds": 0.0001510359999999933,
+        "unattributed_non_cpu_seconds": 8.110235169001001e-07
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 1.7796974040102214,
+        "process_cpu_seconds": 0.366975621,
+        "unattributed_non_cpu_seconds": 1.4127217830102214
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 0.40516864601522684,
+        "process_cpu_seconds": 0.07048145400000005,
+        "unattributed_non_cpu_seconds": 0.3346871920152268
+      }
+    ],
+    "cleanup": "UNKNOWN_NO_RECEIPT",
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_cancelled_state_observer_0/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105172.641594439,
+        "cpu_seconds": 0.820189199,
+        "pid": 3179845,
+        "thread": 131722018494272
+      }
+    ],
+    "intervals": [],
+    "cleanup": {
+      "cleanup": "UNVERIFIED",
+      "stop_ack": false,
+      "stop_requested_monotonic": 1105176.681180706,
+      "observed_monotonic": 1105176.769788639,
+      "returncode": -15,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {},
+      "queue_drained": true,
+      "investigation_jobs": {},
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  },
+  {
+    "fixture": "test_lifecycle_watch_failures_1/continuous",
+    "stages": [
+      {
+        "stage": "SCRIPT_READY",
+        "monotonic": 1105233.178163999,
+        "cpu_seconds": 0.060609122,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "monotonic": 1105233.488560168,
+        "cpu_seconds": 0.249446636,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "SERVICE_IMPORTED",
+        "monotonic": 1105233.614311214,
+        "cpu_seconds": 0.328768192,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "INITIALIZE_BEGIN",
+        "monotonic": 1105233.61828753,
+        "cpu_seconds": 0.332744594,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "INITIALIZE_END",
+        "monotonic": 1105233.62319963,
+        "cpu_seconds": 0.337326879,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "RUN_BEGIN",
+        "monotonic": 1105233.62336463,
+        "cpu_seconds": 0.337491027,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "STOP_RECEIVED",
+        "monotonic": 1105235.591479771,
+        "cpu_seconds": 0.720532435,
+        "pid": 3180804,
+        "thread": 126223137949504
+      },
+      {
+        "stage": "RUN_END",
+        "monotonic": 1105237.640679968,
+        "cpu_seconds": 0.806798422,
+        "pid": 3180804,
+        "thread": 126223137949504
+      }
+    ],
+    "intervals": [
+      {
+        "from_stage": "SCRIPT_READY",
+        "to_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "wall_seconds": 0.31039616907946765,
+        "process_cpu_seconds": 0.18883751399999998,
+        "unattributed_non_cpu_seconds": 0.12155865507946767
+      },
+      {
+        "from_stage": "JOURNAL_BOUNDARY_IMPORTED",
+        "to_stage": "SERVICE_IMPORTED",
+        "wall_seconds": 0.12575104599818587,
+        "process_cpu_seconds": 0.07932155600000002,
+        "unattributed_non_cpu_seconds": 0.04642948999818586
+      },
+      {
+        "from_stage": "SERVICE_IMPORTED",
+        "to_stage": "INITIALIZE_BEGIN",
+        "wall_seconds": 0.003976315958425403,
+        "process_cpu_seconds": 0.00397640199999999,
+        "unattributed_non_cpu_seconds": 0
+      },
+      {
+        "from_stage": "INITIALIZE_BEGIN",
+        "to_stage": "INITIALIZE_END",
+        "wall_seconds": 0.004912100033834577,
+        "process_cpu_seconds": 0.004582285000000019,
+        "unattributed_non_cpu_seconds": 0.00032981503383455735
+      },
+      {
+        "from_stage": "INITIALIZE_END",
+        "to_stage": "RUN_BEGIN",
+        "wall_seconds": 0.00016499985940754414,
+        "process_cpu_seconds": 0.0001641479999999751,
+        "unattributed_non_cpu_seconds": 8.518594075690444e-07
+      },
+      {
+        "from_stage": "RUN_BEGIN",
+        "to_stage": "STOP_RECEIVED",
+        "wall_seconds": 1.9681151411496103,
+        "process_cpu_seconds": 0.38304140799999997,
+        "unattributed_non_cpu_seconds": 1.5850737331496103
+      },
+      {
+        "from_stage": "STOP_RECEIVED",
+        "to_stage": "RUN_END",
+        "wall_seconds": 2.0492001969832927,
+        "process_cpu_seconds": 0.08626598699999999,
+        "unattributed_non_cpu_seconds": 1.9629342099832927
+      }
+    ],
+    "cleanup": {
+      "cleanup": "VERIFIED",
+      "stop_ack": true,
+      "stop_requested_monotonic": 1105235.580429529,
+      "observed_monotonic": 1105238.074449712,
+      "returncode": 0,
+      "forced": false,
+      "child_reaped": true,
+      "state_reader_joined": true,
+      "queue_counts": {
+        "DONE": 3
+      },
+      "queue_drained": true,
+      "investigation_jobs": {
+        "PENDING": 2
+      },
+      "pending_jobs_preserved": true,
+      "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+    },
+    "causal_attribution": "NON_CPU_TIME_DOES_NOT_SEPARATE_DISK_LOCK_SCHEDULING_OR_SLEEP"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "read_seconds": 0.0021436859387904406,
+  "connections": 4,
+  "paths": [
+    "/tmp/soc-reader-before-s2z1jooq/continuous/authentication/monitor.sqlite",
+    "/tmp/soc-reader-before-s2z1jooq/continuous/authentication/monitor.sqlite",
+    "/tmp/soc-reader-before-s2z1jooq/continuous/authentication/monitor.sqlite",
+    "/tmp/soc-reader-before-s2z1jooq/continuous/authentication/monitor.sqlite"
+  ],
+  "monotonic": 1101219.144745724
+}

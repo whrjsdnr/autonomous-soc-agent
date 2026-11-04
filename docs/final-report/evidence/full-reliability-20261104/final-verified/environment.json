@@ -1,0 +1,12 @@
+{
+  "observed_monotonic": 1105975.079437533,
+  "kernel": "6.18.33.2-microsoft-standard-WSL2",
+  "cpu_count": 4,
+  "cpu_pressure": "some avg10=0.00 avg60=0.12 avg300=3.09 total=8246282105\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+  "io_pressure": "some avg10=1.23 avg60=1.77 avg300=3.33 total=11127025893\nfull avg10=1.07 avg60=1.58 avg300=2.16 total=9419251648\n",
+  "loadavg": "0.43 1.29 2.03 1/560 3192727\n",
+  "cgroup": "0::/init.scope\n",
+  "cgroup_cpu_stat": "usage_usec 301766260000\nuser_usec 159304824000\nsystem_usec 142461436000\nnice_usec 26112000\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+  "interpretation": "OVERALL_HOST_SNAPSHOT_NOT_PER_TEST_CAUSAL_PROOF",
+  "live_execution": false
+}

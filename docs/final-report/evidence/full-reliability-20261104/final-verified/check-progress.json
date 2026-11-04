@@ -1,0 +1,74 @@
+[
+  {
+    "step": "full-regress.py",
+    "variant": "workspace",
+    "exit": 0,
+    "seconds": 205.066680385964
+  },
+  {
+    "step": "full-regress.py",
+    "variant": "export",
+    "exit": 0,
+    "seconds": 197.3777868601028
+  },
+  {
+    "step": "full-regress-tmpfs.py",
+    "variant": "workspace",
+    "exit": 0,
+    "seconds": 175.26921987906098
+  },
+  {
+    "step": "full-regress-tmpfs.py",
+    "variant": "export",
+    "exit": 0,
+    "seconds": 177.84712081798352
+  },
+  {
+    "step": "supplement-regress.py",
+    "variant": "workspace",
+    "exit": 0,
+    "seconds": 95.43789647193626
+  },
+  {
+    "step": "supplement-regress.py",
+    "variant": "export",
+    "exit": 0,
+    "seconds": 90.84720104793087
+  },
+  {
+    "step": "supplement-regress-tmpfs.py",
+    "variant": "workspace",
+    "exit": 0,
+    "seconds": 50.611285355873406
+  },
+  {
+    "step": "supplement-regress-tmpfs.py",
+    "variant": "export",
+    "exit": 0,
+    "seconds": 51.22627256717533
+  },
+  {
+    "step": "extra-regress.py",
+    "variant": "all",
+    "exit": 0,
+    "seconds": 36.025293794926256
+  },
+  {
+    "step": "build-one.py",
+    "variant": "a",
+    "exit": 0,
+    "seconds": 6.322011163923889
+  },
+  {
+    "step": "build-one.py",
+    "variant": "b",
+    "exit": 0,
+    "seconds": 5.418012535898015
+  },
+  {
+    "step": "build-one.py",
+    "variant": "export",
+    "exit": 0,
+    "seconds": 5.563585026888177
+  }
+]

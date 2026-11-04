@@ -1,0 +1,9 @@
+{
+  "read_seconds": 0.005208641989156604,
+  "connections": 2,
+  "paths": [
+    "/tmp/soc-reader-after-wfdxod0s/continuous/authentication/monitor.sqlite",
+    "/tmp/soc-reader-after-wfdxod0s/continuous/authentication/monitor.sqlite"
+  ],
+  "monotonic": 1101369.59252408
+}

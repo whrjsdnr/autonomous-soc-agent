@@ -1,0 +1,12 @@
+{
+  "state": "STOPPED",
+  "cleanup": "NOT_STARTED",
+  "collection_live": false,
+  "stop_requested": false,
+  "reset_worker": false,
+  "queue": {},
+  "heartbeat_stale": true,
+  "runtime": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime",
+  "dns_collection": "NOT_COLLECTED_IN_NATIVE_TCP_TRIAL",
+  "dns9": "INCOMPLETE_TRAINING_EXTRACTION_CONTRACT"
+}

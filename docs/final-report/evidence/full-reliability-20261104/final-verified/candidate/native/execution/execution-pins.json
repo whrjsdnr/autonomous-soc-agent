@@ -1,0 +1,14 @@
+{
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/api-scope-proposal.json": "0743c1bf4d7dabaeba1c881977d622060343fd7d15380580cd4c8f64ea952e8e",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/llm-review/run-retained-api.py": "34e3828f6c6974e5549bb9ead69eabc264225280bfc8025368939ee365d068b6",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/approval-package-final.md": "8d9057e7c212c26652047539ec452202b246c0751bf122d1d2b5da053c8779a5",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/approval-request-final-v2.json": "010579b522eb8a95f373a8e0ed57615973c841e3ffcdc10147933f150edd6c3b",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/open-gui.sh": "96c5460adc193c2a3f343c6495e2fbd49d446458c0e8be81d2ceecbcd129cdcf",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/review-and-approve-sealed-models.py": "9dd6362d3b3a610dd8a7218e49e19b3083b1dcd7b14d494e7518922fb62d9c2d",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/root-trial.py": "56e7527da2554cfb023cac71ed9ac2aea659400680d2c5b865d2f8fc1fcae3b8",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/run-api-followup.py": "4d6c7f43ab84ae2fa46d92b904a15a5b4515c3a467504618e35a590ea9f4849c",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/run-terminal.sh": "a739556dc6b41ad48231c2fb0768907b568ad15341f2bc71c19ec16f25d8143d",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/terminal-worker.py": "75aa670b5d6ba84d9c41baf4c1f285a6cc9da27190682aa9c7b3244cb98b0072",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/execution/terminal.py": "46643f1163d09b9743b1b3040d8812dd2b0a136d144ab16020750f1a0dda295b",
+  "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/single-approval-integration-scope.json": "6418fdc3cefaf0e0d557e6188cdb2603878b364cecdf6201ce910a1fbdc096ee"
+}

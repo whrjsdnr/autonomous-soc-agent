@@ -1,0 +1,27 @@
+[
+  {
+    "command": [
+      "doctor"
+    ],
+    "returncode": 0,
+    "status": "PREFLIGHT_ONLY_NO_INFERENCE"
+  },
+  {
+    "command": [
+      "start",
+      "--preview"
+    ],
+    "returncode": 1,
+    "status": "BLOCKED",
+    "root_executed": false,
+    "capture_started": false,
+    "reservations_created": false,
+    "error": "AUTHENTICATION_EXACT_HUMAN_APPROVAL_REQUIRED"
+  },
+  {
+    "command": [
+      "status"
+    ],
+    "returncode": 0
+  }
+]

@@ -1,0 +1,173 @@
+[
+  {
+    "environment": "historical-eight-second-failure.log",
+    "nodeid": "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/historical-eight-second-failure.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "PRIOR_SOURCE_NOT_B7505CA",
+    "expected": "Identity within8s",
+    "observed": "No control identity before assertion",
+    "status": "FIXED_AND_MEASURED_IN_PREVIOUS_TASK_HISTORICAL_FIRST_CAUSE_UNKNOWN"
+  },
+  {
+    "environment": "intermediate-regression.log",
+    "nodeid": "tests/unit/continuous/test_dns_lifecycle.py::test_real_two_second_silence_is_not_an_initial_process_exit",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/intermediate-regression.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "PRIOR_SOURCE_NOT_B7505CA",
+    "expected": "HEARTBEAT_OR_PROCESS_STALE within6s",
+    "observed": "wait_for Timeout"
+  },
+  {
+    "environment": "intermediate-regression.log",
+    "nodeid": "tests/unit/continuous/test_storage_control_isolation.py::test_runtime_writer_failure_retains_error_and_durable_cleanup",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/intermediate-regression.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "STARTUP_ORDER_RACE",
+    "baseline_source": "PRIOR_SOURCE_NOT_B7505CA",
+    "expected": "Primary writer OSError retained; owned cleanup VERIFIED",
+    "observed": "UNVERIFIED because primary writer error became secondary during early startup STOP",
+    "status": "FIXED_BY_BASELINE_B7505CA_NOT_CHANGED_AGAIN"
+  },
+  {
+    "environment": "supplement-export-tmpfs.log",
+    "nodeid": "tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[rejected]",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/supplement-export-tmpfs.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "Authentication READY within5s; independently exit0+ACK+durable cleanup",
+    "observed": "READY Timeout or AUTHENTICATION_CLEANUP_UNVERIFIED before/after fixture input setup",
+    "related_confirmed_defects": [
+      "STARTUP_ORDER_RACE",
+      "STOP_ACK_RACE",
+      "CLEANUP_RACE"
+    ],
+    "historical_causality": "NOT_PROVEN"
+  },
+  {
+    "environment": "supplement-export.log",
+    "nodeid": "tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[changed_input]",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/supplement-export.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "Authentication READY within5s; independently exit0+ACK+durable cleanup",
+    "observed": "READY Timeout or AUTHENTICATION_CLEANUP_UNVERIFIED before/after fixture input setup",
+    "related_confirmed_defects": [
+      "STARTUP_ORDER_RACE",
+      "STOP_ACK_RACE",
+      "CLEANUP_RACE"
+    ],
+    "historical_causality": "NOT_PROVEN"
+  },
+  {
+    "environment": "supplement-export.log",
+    "nodeid": "tests/integration/linux_runtime/test_host_if_integration.py::test_composed_packet_dns_authentication_mock_e2e_one_parent_session",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/supplement-export.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "Authentication READY within5s; independently exit0+ACK+durable cleanup",
+    "observed": "READY Timeout or AUTHENTICATION_CLEANUP_UNVERIFIED before/after fixture input setup",
+    "related_confirmed_defects": [
+      "STARTUP_ORDER_RACE",
+      "STOP_ACK_RACE",
+      "CLEANUP_RACE"
+    ],
+    "historical_causality": "NOT_PROVEN"
+  },
+  {
+    "environment": "supplement-export.log",
+    "nodeid": "tests/integration/linux_runtime/test_host_if_integration.py::test_existing_sshd_success_and_failure_share_training_feature_contract",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/supplement-export.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "Authentication READY within5s; independently exit0+ACK+durable cleanup",
+    "observed": "READY Timeout or AUTHENTICATION_CLEANUP_UNVERIFIED before/after fixture input setup",
+    "related_confirmed_defects": [
+      "STARTUP_ORDER_RACE",
+      "STOP_ACK_RACE",
+      "CLEANUP_RACE"
+    ],
+    "historical_causality": "NOT_PROVEN"
+  },
+  {
+    "environment": "supplement-workspace.log",
+    "nodeid": "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py::test_owned_child_ready_ingestion_gui_cache_stop_ack_and_durable_cleanup",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/supplement-workspace.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "Authentication READY within5s; independently exit0+ACK+durable cleanup",
+    "observed": "READY Timeout or AUTHENTICATION_CLEANUP_UNVERIFIED before/after fixture input setup",
+    "related_confirmed_defects": [
+      "STARTUP_ORDER_RACE",
+      "STOP_ACK_RACE",
+      "CLEANUP_RACE"
+    ],
+    "historical_causality": "NOT_PROVEN"
+  },
+  {
+    "environment": "workspace-tests.log",
+    "nodeid": "tests/unit/continuous/test_storage_control_isolation.py::test_ten_second_write_does_not_block_heartbeat_or_stop",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/workspace-tests.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "DEGRADED, heartbeat age<2, >=20 sampled sequences in 6s",
+    "observed": "DEGRADED; no publication error; 18 sampled sequences; final sequence28; maximum publication1.123329855s",
+    "monotonic": 1098363.499396942,
+    "pid": 3029128,
+    "candidate_delays": [
+      "CPU_SCHEDULING_DELAY",
+      "DISK_IO_DELAY"
+    ]
+  },
+  {
+    "environment": "workspace-tmpfs-tests.log",
+    "nodeid": "tests/unit/continuous/test_dns_lifecycle.py::test_closed_without_process_exit_remains_unverified_at_shared_deadline",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/workspace-tmpfs-tests.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "UNKNOWN",
+    "baseline_source": "b7505ca",
+    "expected": "Task ends before5.5s; CLOSED but alive process stays UNVERIFIED",
+    "observed": "Timeout at task wait; polling helper process exit"
+  },
+  {
+    "environment": "workspace-tmpfs-tests.log",
+    "nodeid": "tests/unit/continuous/test_storage_control_isolation.py::test_dns_status_reader_lock_does_not_block_control_or_stop",
+    "assertion_trace_preserved": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/docs/final-report/evidence/control-startup-20261104/workspace-tmpfs-tests.log",
+    "historical_per_test_elapsed": "UNKNOWN_UNRECORDED",
+    "historical_pid_thread": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "historical_monotonic": "UNKNOWN_UNLESS_FIXTURE_RECEIPT",
+    "classification": "TEST_FIXTURE_RACE",
+    "baseline_source": "b7505ca",
+    "expected": "One overlapping status read; STOP independent; sequence>=2",
+    "observed": "Two reads; concurrent overlap was not established before Control start",
+    "confirmed_by": "test_data_snapshot_delayed_before_dns_read_requires_a_new_status_read"
+  }
+]

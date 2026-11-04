@@ -1,0 +1,23 @@
+{
+  "returncode": 1,
+  "seconds": 89.56777388812043,
+  "source_unchanged": true,
+  "command": [
+    "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-p",
+    "no_live_guard",
+    "-p",
+    "regression_observer",
+    "tests/integration/linux_runtime",
+    "tests/unit/operational_features/test_native_authentication.py",
+    "tests/unit/gui/test_operator_review_prompts.py",
+    "tests/unit/test_agent_model_review.py",
+    "tests/unit/test_agent_api_review.py",
+    "--import-mode=importlib",
+    "-q",
+    "--basetemp=/tmp/soc-final-reliability-suppe"
+  ],
+  "scope": "FIXTURE_JOURNAL_COMMAND_BOUNDARY_ONLY_NO_NATIVE_OR_API_OR_MODEL"
+}

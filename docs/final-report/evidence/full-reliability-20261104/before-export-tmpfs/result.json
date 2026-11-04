@@ -1,0 +1,29 @@
+{
+  "exit": 0,
+  "seconds": 38.629264884861186,
+  "source_unchanged": true,
+  "source_sha": "bf248a888701b32ca3001baa867807bfea299feaca8119451062df95ed8eb8f4",
+  "command": [
+    "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-p",
+    "no_live_guard",
+    "-p",
+    "reliability_observer",
+    "tests/unit/continuous/test_storage_control_isolation.py::test_ten_second_write_does_not_block_heartbeat_or_stop",
+    "tests/unit/continuous/test_storage_control_isolation.py::test_dns_status_reader_lock_does_not_block_control_or_stop",
+    "tests/unit/continuous/test_storage_control_isolation.py::test_runtime_writer_failure_retains_error_and_durable_cleanup",
+    "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+    "tests/unit/continuous/test_dns_lifecycle.py::test_closed_without_process_exit_remains_unverified_at_shared_deadline",
+    "tests/unit/continuous/test_dns_lifecycle.py::test_real_two_second_silence_is_not_an_initial_process_exit",
+    "tests/integration/linux_runtime/test_managed_authentication_lifecycle.py::test_owned_child_ready_ingestion_gui_cache_stop_ack_and_durable_cleanup",
+    "tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[changed_input]",
+    "tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[rejected]",
+    "tests/integration/linux_runtime/test_host_if_integration.py::test_composed_packet_dns_authentication_mock_e2e_one_parent_session",
+    "tests/integration/linux_runtime/test_host_if_integration.py::test_existing_sshd_success_and_failure_share_training_feature_contract",
+    "--import-mode=importlib",
+    "-q",
+    "--basetemp=/dev/shm/soc-reliability-before-export-tmpfs"
+  ]
+}

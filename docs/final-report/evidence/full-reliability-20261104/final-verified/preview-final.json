@@ -1,0 +1,9 @@
+{
+  "status": "BLOCKED",
+  "error": "AUTHENTICATION_EXACT_HUMAN_APPROVAL_REQUIRED",
+  "returncode": 2,
+  "root_executed": false,
+  "capture_started": false,
+  "reservations_created": false,
+  "automatic_retry": false
+}

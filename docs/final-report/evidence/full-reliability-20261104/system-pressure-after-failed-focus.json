@@ -1,0 +1,9 @@
+{
+  "observed_monotonic": 1105466.798386901,
+  "cpu_pressure": "some avg10=0.39 avg60=4.03 avg300=14.54 total=8238133470\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+  "io_pressure": "some avg10=6.26 avg60=4.75 avg300=9.12 total=11112321554\nfull avg10=5.64 avg60=2.96 avg300=3.85 total=9406850968\n",
+  "loadavg": "1.91 3.71 2.89 2/561 3184584\n",
+  "cgroup": "0::/init.scope\n",
+  "cpu_stat": "usage_usec 301370524000\nuser_usec 159063868000\nsystem_usec 142306656000\nnice_usec 26112000\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n",
+  "attribution": "SYSTEM_SNAPSHOT_NOT_PER_TEST_CAUSAL_PROOF"
+}

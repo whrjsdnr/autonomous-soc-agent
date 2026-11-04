@@ -1,0 +1,21 @@
+{
+  "exit": 0,
+  "seconds": 6.744315471034497,
+  "source_unchanged": true,
+  "command": [
+    "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-p",
+    "no_live_guard",
+    "-p",
+    "regression_observer",
+    "tests/unit/operational_features/test_authentication_investigation.py",
+    "tests/integration/demo/test_workflow.py",
+    "tests/integration/demo/test_ingestion.py",
+    "--import-mode=importlib",
+    "-q",
+    "--basetemp=/dev/shm/soc-commit-extra-export-tmpfs"
+  ],
+  "scope": "READ_ONLY_TOOLS_DEMO_INGESTION_SCRIPTED_NO_MODEL_NO_API"
+}

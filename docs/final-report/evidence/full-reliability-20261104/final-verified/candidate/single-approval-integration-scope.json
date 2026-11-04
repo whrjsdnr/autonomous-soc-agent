@@ -1,0 +1,30 @@
+{
+  "api_automatic_retry": false,
+  "api_base_url": "https://api.openai.com/v1",
+  "api_gui": "SAME_NATIVE_GUI_BOUND_RETAINED_API_PROJECTION",
+  "api_input_selector": "FIRST_SUCCESSFUL_REAL_NATIVE_NETWORK_ANALYSIS_FROM_THIS_SESSION_WITH_EXACT_TASK_SOURCE_REVISION",
+  "api_model": "gpt-5-mini",
+  "api_output_tokens_max": 4096,
+  "api_provider": "OpenAI",
+  "api_timeout_seconds": 20,
+  "approval_channel": "DIRECT_TTY_A_AND_EXACT_GUI_B_C_DECISIONS",
+  "contract": "EXISTING_HUMAN_REVIEW_SINGLE_TEST_SCOPE",
+  "expires_at": "2026-11-05T00:09:35.912778+00:00",
+  "future_model_delegation": false,
+  "implemented_api_calls_limit": 2,
+  "implemented_api_purposes": [
+    "PLAN",
+    "ASSESSMENT"
+  ],
+  "initial_scope_grants_model_or_api": false,
+  "native_automatic_retry": false,
+  "resource_contract_unchanged": true,
+  "rf_lr_max_invocations": 16,
+  "root_or_dns_authority_from_ai": false,
+  "runtime_session": "c1f2c795-642b-4c38-b60a-6217922f9db6",
+  "sealed_eligible_jobs_max": 2,
+  "source_sha256": "701afdbf945bfde6496b6f79fe6cb21045c17487cee6826eb54671563e754e8a",
+  "unresolved_prior_model_failure": "SERVICE_CONTEXT_FAILURE_UNKNOWN_HOST_RETAINED_NATIVE_REAL_MODELS_8_SUCCESS",
+  "user_llm_budget_usd": "0.05",
+  "user_llm_requests_upper": 2
+}

@@ -1,0 +1,41 @@
+{
+  "authentication_packages": [
+    {
+      "directory": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/frozen-source/tests/fixtures/security_ai_packages/authentication_anomaly",
+      "manifest_sha256": "aabeb76277534d9300f70699dfddb84214720add607ef1d17b4c0e34e084b5f6"
+    }
+  ],
+  "authentication_runtime": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-runtime/authentication",
+  "collector_restarts": 0,
+  "contract": "soc-continuous-runtime:v1",
+  "dns_session": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/dns-session",
+  "dns_session_sha256": "a5749207c42f31b45204c9e14663b532f74451678546196623606c7d6abed003",
+  "heartbeat_seconds": 1.0,
+  "input_file": "/etc/soc-agent/continuous-installation.json",
+  "input_sha256": "6e66d66df1fedbcf27474c18299316ba7dfbf37938fe4c8866d6d68f60657e65",
+  "interface": "lo",
+  "journal_replay_file": null,
+  "journal_replay_sha256": null,
+  "managed_authentication": {
+    "approval_file": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/authentication-collection-approval.json",
+    "duration_seconds": 420
+  },
+  "max_active_flows": 128,
+  "max_seen_events": 100000,
+  "max_storage_bytes": 268435456,
+  "max_windows": 512,
+  "metadata_window_seconds": 60,
+  "ml_root": "/home/geonug/kdt-linux/ML",
+  "mode": "CONTINUOUS",
+  "namespace": "net:[4026532232]",
+  "native_model_approvals": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/full-reliability-stabilization-20261104T021605Z/final-verified/candidate/native/future-model-approvals",
+  "profiles": [
+    "quality",
+    "edge"
+  ],
+  "queue_capacity": 32,
+  "replay_delay_seconds": 0.0,
+  "shutdown_seconds": 10.0,
+  "source": "NATIVE_SERVICE",
+  "worker_circuit_failures": 2
+}
