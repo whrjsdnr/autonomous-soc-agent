@@ -3,6 +3,8 @@
 import asyncio
 import math
 import os
+import threading
+import traceback
 from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
@@ -179,7 +181,32 @@ class LinuxMonitor:
                 self.store.update, llm="NOT_CONFIGURED", last_error="LLM_CONFIGURATION_UNAVAILABLE"
             )
             return
-        claimed = await self.storage(self.store.claim)
+        claimed = None
+
+        def claim():
+            nonlocal claimed
+            claimed = self.store.claim()
+
+        try:
+            await self.storage(claim)
+        except asyncio.CancelledError:
+            if claimed:
+                finding, _ = claimed
+                await self.storage(
+                    self.store.finish,
+                    finding,
+                    "PENDING",
+                    dict(
+                        finding_digest=finding.digest,
+                        failure="CANCELLED_BEFORE_INVESTIGATION",
+                        llm_calls=0,
+                        token_usage=None,
+                        cost_estimate=None,
+                        invocation_outcome="NOT_SUBMITTED",
+                        write_disposition="WRITE_DENIED",
+                    ),
+                )
+            raise
         if not claimed:
             return
         finding, attempt = claimed
@@ -191,6 +218,7 @@ class LinuxMonitor:
             else None
         )
         failure_code = "SOURCE_VALIDATION_FAILURE"
+        completion_committed = False
         try:
             await self.storage(validate_finding, self.pipeline, finding)
             failure_code = "INVESTIGATION_FAILURE"
@@ -274,7 +302,13 @@ class LinuxMonitor:
                 result["write_probe"] = "DENIED_HANDLER_NOT_REGISTERED"
             else:
                 raise ValueError("READ_ONLY_BOUNDARY_BYPASS")
-            await self.storage(self.store.finish, finding, status, result)
+
+            def finish():
+                nonlocal completion_committed
+                self.store.finish(finding, status, result)
+                completion_committed = True
+
+            await self.storage(finish)
             self.llm_failures = 0
             await self.storage(self.store.update, llm_failures=0, circuit_open=False)
             await self.storage(
@@ -284,6 +318,10 @@ class LinuxMonitor:
                 last_error=None,
             )
         except asyncio.CancelledError:
+            if completion_committed:
+                # The joined commit is already authoritative. Do not reopen it
+                # or issue a second completion merely because STOP raced return.
+                raise
             await self.storage(
                 self.store.finish,
                 finding,
@@ -492,7 +530,19 @@ class LinuxMonitor:
                     self.store.update, state="FAILED", last_error=type(error).__name__
                 )
                 await self.storage(
-                    self.store.event, "RUNTIME_FAILED", {"failure": type(error).__name__}
+                    self.store.event,
+                    "RUNTIME_FAILED",
+                    dict(
+                        failure=type(error).__name__,
+                        monotonic=monotonic(),
+                        pid=os.getpid(),
+                        thread=threading.get_ident(),
+                        origin=[
+                            dict(file=Path(f.filename).name, function=f.name, line=f.lineno)
+                            for f in traceback.extract_tb(error.__traceback__)[-6:]
+                        ],
+                        message_recorded=False,
+                    ),
                 )
                 raise
             finally:

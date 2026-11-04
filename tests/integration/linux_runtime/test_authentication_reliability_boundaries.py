@@ -49,6 +49,66 @@ def test_authentication_cli_import_does_not_load_models():
 
 
 @pytest.mark.asyncio
+async def test_stop_after_completion_commit_never_finishes_the_job_twice(tmp_path, monkeypatch):
+    _, monitor = setup(tmp_path, monkeypatch)
+    committed, release = threading.Event(), threading.Event()
+    statuses = []
+    original = monitor.store.finish
+
+    def finish(finding, status, *args, **kwargs):
+        original(finding, status, *args, **kwargs)
+        statuses.append(status)
+        committed.set()
+        assert release.wait(3)
+
+    monkeypatch.setattr(monitor.store, "finish", finish)
+    tick = asyncio.create_task(monitor.tick())
+    try:
+        assert await asyncio.to_thread(committed.wait, 2)
+        tick.cancel()
+    finally:
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await tick
+    assert statuses == ["DONE_READ_ONLY"]
+    assert monitor.store.jobs() == {"DONE_READ_ONLY": 1, "PENDING": 1}
+
+
+@pytest.mark.asyncio
+async def test_stop_after_claim_commit_returns_unstarted_work_to_pending(tmp_path, monkeypatch):
+    _, monitor = setup(tmp_path, monkeypatch)
+
+    # Prepare real ingestion before timing the claim/cancellation interleaving.
+    # Disk work unrelated to claiming is covered by the lifecycle tests.
+    async def defer_investigation():
+        return None
+
+    with monkeypatch.context() as preparation:
+        preparation.setattr(monitor, "investigate_one", defer_investigation)
+        await monitor.tick()
+    assert monitor.store.jobs() == {"PENDING": 2}
+    committed, release = threading.Event(), threading.Event()
+    original = monitor.store.claim
+
+    def claim():
+        result = original()
+        committed.set()
+        assert release.wait(3)
+        return result
+
+    monkeypatch.setattr(monitor.store, "claim", claim)
+    tick = asyncio.create_task(monitor.investigate_one())
+    try:
+        assert await asyncio.to_thread(committed.wait, 2)
+        tick.cancel()
+    finally:
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await tick
+    assert monitor.store.jobs() == {"PENDING": 2}
+
+
+@pytest.mark.asyncio
 async def test_collection_storage_never_executes_on_control_loop(tmp_path, monkeypatch):
     _, monitor = setup(tmp_path, monkeypatch)
     loop_thread = threading.get_ident()
