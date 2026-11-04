@@ -1,0 +1,88 @@
+{
+  "classification": "PARTIALLY_READY_HOST_APPROVAL_PENDING",
+  "code_commit": "a5441a9",
+  "source_files_unchanged": 682,
+  "host_diagnostic_calls": 0,
+  "native_model_api_calls": 0,
+  "historical_runtime_cleanup": "UNVERIFIED",
+  "historical_source_cause": "UNKNOWN",
+  "ledger_rows": 81,
+  "ledger_sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+  "original_failure_evidence_unchanged": true,
+  "matrix": {
+    "workspace-disk": {
+      "passed": 112,
+      "elapsed_seconds": 85.94695723196492,
+      "guard_violations": [],
+      "source": "/home/geonug/kdt-linux/soc-auth-startup-recovery-20261104",
+      "test_storage": "/tmp"
+    },
+    "workspace-tmpfs": {
+      "passed": 112,
+      "elapsed_seconds": 55.804430342046544,
+      "guard_violations": [],
+      "source": "/home/geonug/kdt-linux/soc-auth-startup-recovery-20261104",
+      "test_storage": "/dev/shm"
+    },
+    "export-disk": {
+      "passed": 112,
+      "elapsed_seconds": 82.93030954198912,
+      "guard_violations": [],
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/authentication-source-rca-20261104/export",
+      "test_storage": "/tmp"
+    },
+    "export-tmpfs": {
+      "passed": 112,
+      "elapsed_seconds": 55.83448026608676,
+      "guard_violations": [],
+      "source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/authentication-source-rca-20261104/export",
+      "test_storage": "/dev/shm"
+    }
+  },
+  "gui": {
+    "status": "PASS",
+    "views": [
+      {
+        "index": 1,
+        "incident_id": "a79cecb6-9b8e-4c21-a55a-5caf7b150400",
+        "origins": [
+          "OFFLINE_PCAP"
+        ],
+        "recorded_inferences": 2,
+        "recorded_api_calls": 2,
+        "state": "IMPORTED_VERIFIED_REPORT",
+        "audit": "VERIFIED",
+        "live_calls_this_check": 0
+      },
+      {
+        "index": 2,
+        "incident_id": "a79cecb6-9b8e-4c21-a55a-5caf7b150400",
+        "origins": [
+          "OFFLINE_PCAP"
+        ],
+        "recorded_inferences": 2,
+        "recorded_api_calls": 2,
+        "state": "IMPORTED_VERIFIED_REPORT",
+        "audit": "VERIFIED",
+        "live_calls_this_check": 0
+      }
+    ],
+    "failures": [],
+    "guard_violations": [],
+    "source_unchanged": true,
+    "native_host_model_api_execution": 0,
+    "scope": "HISTORICAL_REPORT_VIEW_ONLY_NOT_NEW_REPLAY_OR_FULL_E2E"
+  },
+  "failed_copy_view": {
+    "status": "FAIL",
+    "views": [],
+    "failures": [
+      "RuntimeError:SAVED_GUI_ATTACHMENT_NOT_READY",
+      "RuntimeError:SAVED_GUI_ATTACHMENT_NOT_READY"
+    ],
+    "guard_violations": [],
+    "source_unchanged": true,
+    "native_host_model_api_execution": 0,
+    "scope": "HISTORICAL_REPORT_VIEW_ONLY_NOT_NEW_REPLAY_OR_FULL_E2E"
+  }
+}
