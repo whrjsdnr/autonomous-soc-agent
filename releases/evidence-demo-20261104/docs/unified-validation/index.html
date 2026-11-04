@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><title>SOC 시연 화면 모음</title>
+<style>body{background:#0b1220;color:#e2e8f0;font:16px system-ui;margin:24px auto;max-width:1440px}a{color:#38bdf8}button{padding:10px 20px;margin:8px;background:#17243a;color:white;border:1px solid #334155;cursor:pointer}img{width:100%;border:1px solid #334155}nav{position:sticky;top:0;background:#0b1220;padding:8px}p{line-height:1.6}</style>
+<h1>Autonomous SOC Agent</h1><p>저장된 GUI 캡처를 사용하는 예비 발표 자료. 서로 다른 시험의 결과이며 새 Live 실행이 아닙니다.</p>
+<nav><button onclick="move(-1)">← 이전</button><button onclick="move(1)">다음 →</button><span id="label"></span> · <a href="../Unified_Demonstration_Guide.md">출처·발표 가이드</a></nav>
+<img id="screen" alt="실제 시연 GUI 캡처">
+<script>
+const files=['unified-collecting.png','unified-llm-investigation.png',...Array.from({length:8},(_,i)=>`unified-1-stage-${i+1}.png`),'unified-1-source-details.png','unified-1-Dashboard-graphs.png','unified-1-System-graphs.png'];
+const titles=['Packet·DNS 이벤트 도착','LLM Plan·Tool·Assessment','Packet·DNS','Window Seal·Eligibility','RF/LR Prediction','Incident','SOCRuntime Task','LLM Plan·Tool·Assessment','Authentication IF','Audit·Cleanup','출처 상세','Dashboard 그래프','System 그래프'];
+let index=0;function render(){document.getElementById('screen').src=files[index];document.getElementById('label').textContent=`${index+1}/${files.length} · ${titles[index]}`;}function move(delta){index=Math.max(0,Math.min(files.length-1,index+delta));render();}document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);});render();
+</script></html>

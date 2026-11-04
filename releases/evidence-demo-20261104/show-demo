@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+DEMO_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python" -I -B "$DEMO_DIR/evidence_viewer.py" "$@"

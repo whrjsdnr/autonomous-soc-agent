@@ -1,0 +1,37 @@
+{
+  "view": "replay",
+  "round": 1,
+  "code": 0,
+  "checks": {
+    "stages": [],
+    "errors": [],
+    "metrics": {
+      "received": 1035,
+      "packets": 619,
+      "native_events": 0,
+      "auth_windows": 0,
+      "recovered_events": 0,
+      "dns_inputs": 0,
+      "dns_metadata_bytes": 0,
+      "dns_rejected": 0,
+      "authentication_inputs": 0,
+      "duplicates": 0,
+      "excluded": 416,
+      "source_gaps": 0,
+      "invalid": 0,
+      "flows": 207,
+      "eligible": 206,
+      "incomplete": 1,
+      "queue_dropped": 0,
+      "predictions": 406,
+      "incidents": 203,
+      "model_errors": 0,
+      "collector_restarts": 0
+    },
+    "normal_close": true,
+    "os_lock_released": true
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 4.205330924829468,
+  "status": "PASS"
+}

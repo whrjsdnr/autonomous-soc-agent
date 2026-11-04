@@ -1,0 +1,37 @@
+{
+  "view": "native",
+  "round": 1,
+  "code": 0,
+  "checks": {
+    "stages": [],
+    "errors": [],
+    "metrics": {
+      "received": 57,
+      "packets": 54,
+      "native_events": 54,
+      "auth_windows": 0,
+      "recovered_events": 0,
+      "dns_inputs": 14,
+      "dns_metadata_bytes": 12830,
+      "dns_rejected": 0,
+      "authentication_inputs": 0,
+      "duplicates": 0,
+      "excluded": 0,
+      "source_gaps": 0,
+      "invalid": 0,
+      "flows": 7,
+      "eligible": 5,
+      "incomplete": 2,
+      "queue_dropped": 0,
+      "predictions": 8,
+      "incidents": 2,
+      "model_errors": 0,
+      "collector_restarts": 0
+    },
+    "normal_close": true,
+    "os_lock_released": true
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 3.9668008799199015,
+  "status": "PASS"
+}

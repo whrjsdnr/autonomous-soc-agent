@@ -1,0 +1,15 @@
+{
+  "view": "authentication",
+  "round": 1,
+  "code": 0,
+  "checks": {
+    "stages": [],
+    "errors": [],
+    "authentication": "SOURCE_UNAVAILABLE / NOT_INFERABLE",
+    "normal_close": true,
+    "os_lock_released": true
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 4.246695909881964,
+  "status": "PASS"
+}

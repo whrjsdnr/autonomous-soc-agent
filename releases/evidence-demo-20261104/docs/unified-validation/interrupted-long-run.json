@@ -1,0 +1,53 @@
+{
+  "view": "unified",
+  "round": 2,
+  "code": 0,
+  "checks": {
+    "stages": [
+      {
+        "stage": 1,
+        "elapsed": 0.38095004204660654,
+        "page": "Dashboard",
+        "source": "native"
+      },
+      {
+        "stage": 2,
+        "elapsed": 35.28933488414623,
+        "page": "AI Analysis",
+        "source": "native"
+      },
+      {
+        "stage": 3,
+        "elapsed": 65.2155405501835,
+        "page": "Dashboard",
+        "source": "native"
+      },
+      {
+        "stage": 4,
+        "elapsed": 105.05315736518241,
+        "page": "Dashboard",
+        "source": "native"
+      },
+      {
+        "stage": 5,
+        "elapsed": 135.2804405570496,
+        "page": "Dashboard",
+        "source": "native"
+      },
+      {
+        "stage": 6,
+        "elapsed": 180.15915287518874,
+        "page": "Dashboard",
+        "source": "native"
+      }
+    ],
+    "errors": [],
+    "no_automatic_navigation": true,
+    "default_autoplay": true,
+    "llm_assessment_visible": true,
+    "llm_assessment_seconds": 48.33550026710145
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 229.6994844530709,
+  "status": "FAIL"
+}

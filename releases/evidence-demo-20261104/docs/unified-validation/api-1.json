@@ -1,0 +1,15 @@
+{
+  "view": "api",
+  "round": 1,
+  "code": 0,
+  "checks": {
+    "stages": [],
+    "errors": [],
+    "mode": "REAL_API",
+    "normal_close": true,
+    "os_lock_released": true
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 3.6601503510028124,
+  "status": "PASS"
+}

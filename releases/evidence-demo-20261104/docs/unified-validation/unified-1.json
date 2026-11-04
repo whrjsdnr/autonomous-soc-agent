@@ -1,0 +1,214 @@
+{
+  "view": "unified",
+  "round": 1,
+  "code": 0,
+  "checks": {
+    "stages": [
+      {
+        "stage": 1,
+        "source": {
+          "name": "native",
+          "trial_date": "2026-10-30",
+          "execution": "NATIVE_SERVICE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {
+            "TCX": [
+              "6c75f1f0-feca-5575-b259-9030c89e406c",
+              "b8c0e4bf-f085-540d-bf0b-ff1b66d8c1b3"
+            ],
+            "DNS": [
+              "0771bfdf-3f98-4181-b21e-3b15772e15c8"
+            ]
+          },
+          "identity": "store_id=bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b; clock_epoch=bda9d984-5d22-578c-b67b-a9338c5d8ab5",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/future-runtime",
+          "note": "2026-10-30 retained Native: Packet 54 / DNS 3 / RF-LR 8 / tasks 5 / SCRIPTED, API 0. Historical owned cleanup VERIFIED; Global UNKNOWN."
+        },
+        "rows": 0,
+        "elapsed": 5.086405724054202
+      },
+      {
+        "stage": 2,
+        "source": {
+          "name": "native",
+          "trial_date": "2026-10-30",
+          "execution": "NATIVE_SERVICE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {
+            "TCX": [
+              "6c75f1f0-feca-5575-b259-9030c89e406c",
+              "b8c0e4bf-f085-540d-bf0b-ff1b66d8c1b3"
+            ],
+            "DNS": [
+              "0771bfdf-3f98-4181-b21e-3b15772e15c8"
+            ]
+          },
+          "identity": "store_id=bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b; clock_epoch=bda9d984-5d22-578c-b67b-a9338c5d8ab5",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/future-runtime",
+          "note": "2026-10-30 retained Native: Packet 54 / DNS 3 / RF-LR 8 / tasks 5 / SCRIPTED, API 0. Historical owned cleanup VERIFIED; Global UNKNOWN."
+        },
+        "rows": 0,
+        "elapsed": 5.4847296280786395
+      },
+      {
+        "stage": 3,
+        "source": {
+          "name": "native",
+          "trial_date": "2026-10-30",
+          "execution": "NATIVE_SERVICE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {
+            "TCX": [
+              "6c75f1f0-feca-5575-b259-9030c89e406c",
+              "b8c0e4bf-f085-540d-bf0b-ff1b66d8c1b3"
+            ],
+            "DNS": [
+              "0771bfdf-3f98-4181-b21e-3b15772e15c8"
+            ]
+          },
+          "identity": "store_id=bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b; clock_epoch=bda9d984-5d22-578c-b67b-a9338c5d8ab5",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/future-runtime",
+          "note": "2026-10-30 retained Native: Packet 54 / DNS 3 / RF-LR 8 / tasks 5 / SCRIPTED, API 0. Historical owned cleanup VERIFIED; Global UNKNOWN."
+        },
+        "rows": 8,
+        "elapsed": 5.895262358011678
+      },
+      {
+        "stage": 4,
+        "source": {
+          "name": "native",
+          "trial_date": "2026-10-30",
+          "execution": "NATIVE_SERVICE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {
+            "TCX": [
+              "6c75f1f0-feca-5575-b259-9030c89e406c",
+              "b8c0e4bf-f085-540d-bf0b-ff1b66d8c1b3"
+            ],
+            "DNS": [
+              "0771bfdf-3f98-4181-b21e-3b15772e15c8"
+            ]
+          },
+          "identity": "store_id=bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b; clock_epoch=bda9d984-5d22-578c-b67b-a9338c5d8ab5",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/future-runtime",
+          "note": "2026-10-30 retained Native: Packet 54 / DNS 3 / RF-LR 8 / tasks 5 / SCRIPTED, API 0. Historical owned cleanup VERIFIED; Global UNKNOWN."
+        },
+        "rows": 2,
+        "elapsed": 6.300676700193435
+      },
+      {
+        "stage": 5,
+        "source": {
+          "name": "native",
+          "trial_date": "2026-10-30",
+          "execution": "NATIVE_SERVICE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {
+            "TCX": [
+              "6c75f1f0-feca-5575-b259-9030c89e406c",
+              "b8c0e4bf-f085-540d-bf0b-ff1b66d8c1b3"
+            ],
+            "DNS": [
+              "0771bfdf-3f98-4181-b21e-3b15772e15c8"
+            ]
+          },
+          "identity": "store_id=bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b; clock_epoch=bda9d984-5d22-578c-b67b-a9338c5d8ab5",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/future-runtime",
+          "note": "2026-10-30 retained Native: Packet 54 / DNS 3 / RF-LR 8 / tasks 5 / SCRIPTED, API 0. Historical owned cleanup VERIFIED; Global UNKNOWN."
+        },
+        "rows": 5,
+        "elapsed": 6.6854554109741
+      },
+      {
+        "stage": 6,
+        "source": {
+          "name": "api",
+          "trial_date": "2026-10-27",
+          "execution": "OFFLINE_PCAP / REAL_API",
+          "session": null,
+          "capture_sessions": {},
+          "identity": "incident_id=a79cecb6-9b8e-4c21-a55a-5caf7b150400",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/ai-pipeline-integration-20261027-1/actual-api-e2e",
+          "note": "Separate actual API trial. No Native session link; original session field is null. PCAP event time 2018-07-31 is distinct from trial time."
+        },
+        "rows": 0,
+        "elapsed": 7.103537312010303
+      },
+      {
+        "stage": 7,
+        "source": {
+          "name": "authentication_if",
+          "trial_date": "2026-10-27",
+          "execution": "FIXTURE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {},
+          "identity": "incident_id=97720933-47db-4111-b4f7-8c5346aa1ced",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/offline-ai-e2e-20261027-1/authentication-after-context-fix",
+          "note": "2026-10-27 retained actual IF inference on 42 FIXTURE authentication inputs; SCRIPTED investigation; not live Host IF"
+        },
+        "rows": 0,
+        "elapsed": 7.508922750130296
+      },
+      {
+        "stage": 8,
+        "source": {
+          "name": "native",
+          "trial_date": "2026-10-30",
+          "execution": "NATIVE_SERVICE / SCRIPTED",
+          "session": null,
+          "capture_sessions": {
+            "TCX": [
+              "6c75f1f0-feca-5575-b259-9030c89e406c",
+              "b8c0e4bf-f085-540d-bf0b-ff1b66d8c1b3"
+            ],
+            "DNS": [
+              "0771bfdf-3f98-4181-b21e-3b15772e15c8"
+            ]
+          },
+          "identity": "store_id=bd5cd8aa-66b4-4e1d-b997-bc38f9bfb97b; clock_epoch=bda9d984-5d22-578c-b67b-a9338c5d8ab5",
+          "path": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-final-fixes-20261030T085013Z/review-ready/future-runtime",
+          "note": "2026-10-30 retained Native: Packet 54 / DNS 3 / RF-LR 8 / tasks 5 / SCRIPTED, API 0. Historical owned cleanup VERIFIED; Global UNKNOWN."
+        },
+        "rows": 0,
+        "elapsed": 7.8869320100639015
+      }
+    ],
+    "errors": [],
+    "no_automatic_navigation": true,
+    "dashboard_charts_connected": 6,
+    "reconnected": true,
+    "system_charts_connected": 5,
+    "all_native_pages": [
+      {
+        "page": "Dashboard",
+        "charts": 6
+      },
+      {
+        "page": "Security Events",
+        "charts": 2
+      },
+      {
+        "page": "Investigation",
+        "charts": 2
+      },
+      {
+        "page": "AI Analysis",
+        "charts": 0
+      },
+      {
+        "page": "Continuous",
+        "charts": 0
+      },
+      {
+        "page": "System",
+        "charts": 5
+      }
+    ],
+    "explicit_source_navigation": true,
+    "pause_resume_restart_previous": true,
+    "normal_close": true
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 15.199378352146596,
+  "status": "PASS"
+}

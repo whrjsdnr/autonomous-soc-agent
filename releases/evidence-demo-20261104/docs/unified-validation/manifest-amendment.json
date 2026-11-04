@@ -1,0 +1,48 @@
+{
+  "baseline_manifest_sha256": "d299aa7f49a3aade2b4e6fa5d85473074f03185f5262f105721137cf7304f933",
+  "current_manifest_sha256": "4baa352ea3c5db057d2e0540a7f7dd8433f5c509c9bf38b3c66850f40acf0ebb",
+  "original_file_count": 7181,
+  "current_file_count": 7189,
+  "changed_original_pins": [
+    "evidence_viewer.py"
+  ],
+  "added_pins": [
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/offline-ai-e2e-20261027-1/authentication-after-context-fix/inference-0.json",
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/offline-ai-e2e-20261027-1/authentication-after-context-fix/input.json",
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/offline-ai-e2e-20261027-1/authentication-after-context-fix/result.json",
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/offline-ai-e2e-20261027-1/authentication-after-context-fix/soc/external-validation.sqlite",
+    "/home/geonug/kdt-linux/autonomous-soc-agent/.git/offline-ai-e2e-20261027-1/authentication-after-context-fix/submitted-input.json",
+    "unified_evidence.py",
+    "unified_metrics.py",
+    "unified_viewer.py"
+  ],
+  "removed_pins": [],
+  "original_views_unchanged": true,
+  "runtime_manifest_regeneration": false,
+  "presentation_playback": {
+    "default_autoplay": true,
+    "duration_seconds": 300,
+    "automatic_close": false,
+    "manual_option": "--manual",
+    "packet_pacing": "SYNTHETIC_PRESENTATION_TIMING_TO_RETAINED_TOTAL_54",
+    "packet_headers": "14 retained samples only",
+    "dns": "6 retained query/response events; presentation timing",
+    "later_results": "Original rows revealed by stage; snapshots and receipts unchanged",
+    "monitoring_label": "Presentation clock state, not a new capture process",
+    "automatic_navigation": false,
+    "first_model_receipt_seconds": 6.5,
+    "all_model_receipts_seconds": 24,
+    "llm_replay": {
+      "source": "api",
+      "plan_seconds": 24,
+      "tools_seconds": 34,
+      "assessment_seconds": 48,
+      "new_api_calls": 0
+    },
+    "authentication_if_seconds": 20,
+    "queue": "Synthetic presentation arrivals minus displayed model receipts; original final backlog remains zero"
+  },
+  "original_viewer_sha256": "faeba010de05bb838ca7fd2de793d60df9131928e07f94e9ffcc4efee3a9b512",
+  "current_viewer_sha256": "56a0fad87e5551f322754e04c579307a7cad474883453fd54696eec7e997dcd1",
+  "show_demo_unchanged": true
+}

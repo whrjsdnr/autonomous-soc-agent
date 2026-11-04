@@ -1,0 +1,97 @@
+{
+  "status": "PASS_FOR_LISTED_CHECKS",
+  "date": "2026-11-04",
+  "command": "~/kdt-linux/autonomous-soc-agent/releases/evidence-demo-20261104/show-demo unified",
+  "final_behavior": {
+    "autoplay": true,
+    "automatic_navigation": false,
+    "automatic_close": false,
+    "presentation_seconds": 300,
+    "first_rf_lr_result_seconds_observed": 7.26537999114953,
+    "all_rf_lr_results_seconds_observed": 24.113854975206777,
+    "queue_peak_observed": 2,
+    "auth_if": "1 actual retained receipt on 42 fixture inputs; display at 20 seconds",
+    "llm": "Independent real API trial: saved Plan at24s / Tool34s / Assessment48s; no new API calls"
+  },
+  "gui_runs": {
+    "unified-1.json": {
+      "status": "PASS",
+      "seconds": 15.199378352146596,
+      "detail": "unified-validation/unified-1.json"
+    },
+    "unified-2.json": {
+      "status": "PASS",
+      "seconds": 61.632234073011205,
+      "detail": "unified-validation/unified-2.json"
+    },
+    "native-1.json": {
+      "status": "PASS",
+      "seconds": 3.9668008799199015,
+      "detail": "unified-validation/native-1.json"
+    },
+    "replay-1.json": {
+      "status": "PASS",
+      "seconds": 4.205330924829468,
+      "detail": "unified-validation/replay-1.json"
+    },
+    "api-1.json": {
+      "status": "PASS",
+      "seconds": 3.6601503510028124,
+      "detail": "unified-validation/api-1.json"
+    },
+    "authentication-1.json": {
+      "status": "PASS",
+      "seconds": 4.246695909881964,
+      "detail": "unified-validation/authentication-1.json"
+    }
+  },
+  "terminal_runs": [
+    {
+      "round": 1,
+      "command": "./releases/evidence-demo-20261104/show-demo unified",
+      "gui_window_observed": true,
+      "stop": "SIGINT equivalent Ctrl+C",
+      "returncode": 0,
+      "pid_absent": true,
+      "mapped_seconds": 4.895185597939417,
+      "total_seconds": 6.262056251056492
+    },
+    {
+      "round": 2,
+      "command": "./releases/evidence-demo-20261104/show-demo unified",
+      "gui_window_observed": true,
+      "stop": "SIGINT equivalent Ctrl+C",
+      "returncode": 0,
+      "pid_absent": true,
+      "mapped_seconds": 4.788770631887019,
+      "total_seconds": 6.103909156983718
+    }
+  ],
+  "checks": {
+    "pytest": "11 passed",
+    "ruff": "PASS, seven changed Python files",
+    "format": "PASS, seven changed Python files",
+    "diff": "PASS",
+    "original_non_viewer_sha_pins_unchanged": 7180,
+    "current_manifest_files_verified": 7189,
+    "reconnect": "PASS",
+    "manual_stage_navigation": "8 stages PASS",
+    "read_only_guard": "PASS",
+    "original_four_views": "PASS"
+  },
+  "timing_validation": {
+    "300_second_clock": "Unit test PASS",
+    "gui_automatic": "55 seconds of actual GUI updates, then test-only clock advance to completion; window remained open until harness closed it",
+    "uninterrupted_300_second_wall_clock_run": "NOT_COMPLETED: earlier run ended after229.7s, no callback error; retained in interrupted-long-run.json. Not counted as a PASS."
+  },
+  "presentation_only_data": [
+    "Packet arrival pacing to original total54; 14 original packet samples only",
+    "Queue arrivals/drain schedule",
+    "System CPU/RSS/queue/drop/gap/token cosmetic telemetry"
+  ],
+  "source_boundary": "Native, PCAP Replay, real API, actual IF on fixture input, failed Authentication Runtime remain separate. No single live E2E success claim.",
+  "source_integrity": "unified-validation/integrity.json",
+  "screenshots": "unified-validation/index.html",
+  "manifest_sha256": "4baa352ea3c5db057d2e0540a7f7dd8433f5c509c9bf38b3c66850f40acf0ebb",
+  "deployment_limit": "Uses this PC retained .git evidence paths, frozen release/python and research-mvp interpreter; not a portable clone-only release."
+}

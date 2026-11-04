@@ -1,0 +1,104 @@
+{
+  "view": "unified",
+  "round": 2,
+  "code": 0,
+  "checks": {
+    "stages": [
+      {
+        "stage": 1,
+        "elapsed": 0.37382737500593066,
+        "page": "Dashboard",
+        "source": "native"
+      },
+      {
+        "stage": 2,
+        "elapsed": 35.150952455122024,
+        "page": "Dashboard",
+        "source": "native"
+      }
+    ],
+    "errors": [],
+    "no_automatic_navigation": true,
+    "default_autoplay": true,
+    "queue_peak": 2,
+    "auth_if_visible": "1 IF receipt",
+    "llm_assessment_visible": true,
+    "llm_assessment_seconds": 48.25958790513687,
+    "test_only_fast_forward": true,
+    "automatic_seconds": 55.27266105916351,
+    "remains_open_after_completion": true,
+    "automatic_close": false,
+    "packet_counter_sequence": [
+      0,
+      2,
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20,
+      23,
+      24,
+      26,
+      29,
+      31,
+      33,
+      35,
+      37,
+      39,
+      41,
+      43,
+      45,
+      47,
+      49,
+      51,
+      53,
+      54
+    ],
+    "model_counter_sequence": [
+      {
+        "count": 0,
+        "seconds": 0.37382737500593066
+      },
+      {
+        "count": 1,
+        "seconds": 7.26537999114953
+      },
+      {
+        "count": 2,
+        "seconds": 9.329053807072341
+      },
+      {
+        "count": 3,
+        "seconds": 12.238616575021297
+      },
+      {
+        "count": 4,
+        "seconds": 14.287977299187332
+      },
+      {
+        "count": 5,
+        "seconds": 17.20715849311091
+      },
+      {
+        "count": 6,
+        "seconds": 19.256863119080663
+      },
+      {
+        "count": 7,
+        "seconds": 22.1348446381744
+      },
+      {
+        "count": 8,
+        "seconds": 24.113854975206777
+      }
+    ],
+    "normal_close": true
+  },
+  "remaining_non_daemon_threads": [],
+  "seconds": 61.632234073011205,
+  "status": "PASS"
+}
