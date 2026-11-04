@@ -22,9 +22,27 @@ def review_models(app, batch):
         "No Root, capture, DNS or API authority. No future-input approval.",
     ]
     for job in batch["jobs"]:
-        summary.append(f"Job {job['job']}: eligible={job['eligible']}, RF/LR calls={job['calls']}")
+        family = job.get("family", "NETWORK_RF_LR")
+        summary.append(
+            f"{family} Job {job['job']}: eligible={job['eligible']}, calls={job['calls']}"
+        )
+        if family == "AUTHENTICATION_IF":
+            summary.append("Declared Host Journal; research model, Host accuracy unverified.")
+            summary.append("Evidence Revision: " + str(job["evidence_revision"]))
+            summary.append(
+                "IF model / input contract: " + json.dumps(job["model_details"], sort_keys=True)
+            )
+    summary.append(
+        f"IF prior calls: {batch.get('authentication_previous_invocations', 0)} / "
+        f"{batch.get('authentication_maximum_invocations', 0)}"
+    )
     summary.append("Models / fingerprints: " + json.dumps(batch["models"], sort_keys=True))
-    if messagebox.askyesno("Exact RF/LR job approval", "\n".join(summary), parent=app.root):
+    title = (
+        "Exact IF / network model job approval"
+        if any(j.get("family") == "AUTHENTICATION_IF" for j in batch["jobs"])
+        else "Exact RF/LR job approval"
+    )
+    if messagebox.askyesno(title, "\n".join(summary), parent=app.root):
         app.call(
             "model_review_approve",
             batch["batch_digest"],

@@ -136,6 +136,7 @@ class OfflineWorkflow:
         api_authorization: APIRunAuthorization | None = None,
         api_settings: OpenAICompatibleSettings | None = None,
         tcx_approval: ApprovalRequest | None = None,
+        authentication_approval: ApprovalRequest | None = None,
         defer_investigation: bool = False,
     ):
         if bool(api_authorization) != bool(api_settings) or api_authorization and llm_client:
@@ -151,6 +152,7 @@ class OfflineWorkflow:
         self.paths, self.llm_client, self.claimed = paths, llm_client, False
         self.api_authorization, self.api_settings = api_authorization, api_settings
         self.tcx_approval = tcx_approval
+        self.authentication_approval = authentication_approval
         if defer_investigation and (api_authorization or llm_client):
             raise ValueError("DEFERRED_INVESTIGATION_HAS_NO_PROVIDER_AUTHORITY")
         self.defer_investigation = defer_investigation
@@ -210,6 +212,10 @@ class OfflineWorkflow:
             from soc_agent.security_ai.tcx_analysis import incident_id as tcx_incident_id
 
             incident_id = tcx_incident_id(job)
+        if isinstance(job, AuthenticationWindowJob) and job.host_binding is not None:
+            from soc_agent.security_ai.authentication_action import incident_id as auth_incident_id
+
+            incident_id = auth_incident_id(job)
         state = IncidentState(incident_id=incident_id)
         records = []
         envelopes = ()
@@ -323,7 +329,23 @@ class OfflineWorkflow:
 
                 eligible = validate_window(job)
                 envelopes = record_envelopes(job)
-                if eligible == "ELIGIBLE":
+                if eligible == "ELIGIBLE" and job.host_binding is not None:
+                    from soc_agent.security_ai.authentication_action import (
+                        analyze as analyze_host_if,
+                    )
+
+                    fusion = await analyze_host_if(
+                        job,
+                        state,
+                        record,
+                        self.directory,
+                        self.write,
+                        self.event,
+                        self.authentication_approval,
+                    )
+                    if fusion is None:
+                        reasons.append("HOST_IF_EXACT_ACTION_APPROVAL_REQUIRED")
+                elif eligible == "ELIGIBLE":
                     fusion = await packaged(job, state, record)
                 else:
                     reasons.append("AUTHENTICATION_WINDOW_" + eligible)
@@ -748,6 +770,47 @@ def verify_result(directory: Path) -> AnalysisOutcome:
         checked = AuthenticationWindowJob.model_validate(source)
         if result.inference and validate_window(checked) != "ELIGIBLE":
             raise ValueError("AUTH_WINDOW_INFERENCE_WITHOUT_ELIGIBILITY")
+        if checked.host_binding is not None:
+            from soc_agent.execution.binding import validate_binding
+            from soc_agent.security_ai.authentication_action import (
+                METADATA,
+                analysis_action,
+                incident_id,
+            )
+
+            if result.incident_id != incident_id(checked):
+                raise ValueError("HOST_IF_RESULT_INCIDENT_CHANGED")
+            for code, name in (
+                ("HOST_IF_ACTION_BOUND", "host-if-action.json"),
+                ("HOST_IF_APPROVAL_VALIDATED", "host-if-approval.json"),
+            ):
+                pins = [e["binding_digest"] for e in events if e["code"] == code]
+                if pins and pins != [digest(json.loads(read_local(directory / name, 32768)))]:
+                    raise ValueError("HOST_IF_AUTHORITY_AUDIT_CHANGED")
+            if result.inference:
+                proposed = analysis_action(checked, directory)
+                approval = ApprovalRequest.model_validate_json(
+                    read_local(directory / "host-if-approval.json", 32768)
+                )
+                validate_binding(proposed, approval, METADATA)
+                if approval.status.value != "approved" or len(result.inference) != 1:
+                    raise ValueError("HOST_IF_EXACT_APPROVAL_MISSING")
+                from soc_agent.execution import ActionProposal
+
+                saved_action = ActionProposal.model_validate_json(
+                    read_local(directory / "host-if-action.json", 32768)
+                )
+                if saved_action.model_dump(
+                    mode="json", exclude={"created_at"}
+                ) != proposed.model_dump(mode="json", exclude={"created_at"}):
+                    raise ValueError("HOST_IF_ORIGINAL_ACTION_CHANGED")
+                completed = [
+                    e["binding_digest"]
+                    for e in events
+                    if e["code"] == "HOST_IF_EXECUTION_COMPLETED"
+                ]
+                if completed != [digest(saved_action.model_dump(mode="json"))]:
+                    raise ValueError("HOST_IF_COMPLETION_AUDIT_MISSING")
     if source.get("kind") == "packet_window":
         from soc_agent.security_ai.packet_window import request, validate_window
         from soc_agent.security_ai.research.live_input import validate_result

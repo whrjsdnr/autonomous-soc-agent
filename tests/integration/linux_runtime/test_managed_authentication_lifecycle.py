@@ -24,7 +24,7 @@ from soc_agent.linux_runtime.service import initialize
 from soc_agent.state.evidence import utc_now
 
 
-def prepare(tmp_path):
+def prepare(tmp_path, *, packages=()):
     directory = tmp_path / "continuous"
     source = tmp_path / "empty.jsonl"
     source.write_bytes(b"")
@@ -32,6 +32,8 @@ def prepare(tmp_path):
         directory,
         ContinuousConfig(
             source="JSONL_REPLAY",
+            authentication_packages=packages,
+            native_model_approvals=tmp_path / "model-approvals" if packages else None,
             input_file=source,
             input_sha256=hashlib.sha256(b"").hexdigest(),
             authentication_runtime=directory / "authentication",
@@ -71,7 +73,7 @@ def approve_fixture(store, *, reject=False):
     store.config.managed_authentication.approval_file.write_text(decision.model_dump_json())
 
 
-def mock_journal_child(monkeypatch, *, denied=False):
+def mock_journal_child(monkeypatch, *, denied=False, seconds=(1, 2, 3)):
     original = asyncio.create_subprocess_exec
     # Keep the real CLI, monitor, parser, queue, stores, signal handlers and audit.
     # The child patches only the unavailable Host Journal command boundary.
@@ -81,7 +83,7 @@ from soc_agent.realtime.collectors import LinuxJournalCollector, CollectorUnavai
 from soc_agent.security_ai.operational import native_authentication
 from tests.unit.operational_features.test_native_authentication import row
 message = "Failed password for fixture-user from 192.0.2.5 port 34567 ssh2"
-rows = [row(i, i, message) for i in range(1,4)]
+rows = [row(i + 1, second, message) for i, second in enumerate(SECONDS)]
 def available(self): self.command = "/fixture/journalctl"
 def command(arguments):
     if DENIED: raise CollectorUnavailable("PERMISSION_DENIED:fixture")
@@ -95,7 +97,7 @@ LinuxJournalCollector.__init__ = available
 native_authentication.bounded_command = command
 sys.argv = ["soc_agent.linux_runtime"] + sys.argv[1:]
 runpy.run_module("soc_agent.linux_runtime", run_name="__main__")
-""".replace("if DENIED:", f"if {denied}:")
+""".replace("if DENIED:", f"if {denied}:").replace("SECONDS", repr(seconds))
 
     async def spawn(*args, **kwargs):
         assert args[1:4] == ("-B", "-m", "soc_agent.linux_runtime")

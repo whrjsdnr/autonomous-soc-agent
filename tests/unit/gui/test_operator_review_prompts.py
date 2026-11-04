@@ -131,3 +131,47 @@ def test_api_dialog_requires_human_answer_for_exact_evidence_and_cost(monkeypatc
     assert [c[0] for c in calls] == (
         [("api_review_approve", "exact-api-pin", True)] if confirmed else []
     )
+
+
+@pytest.mark.parametrize("confirmed", [False, True])
+def test_authentication_if_dialog_presents_exact_research_contract(monkeypatch, confirmed):
+    from soc_agent.gui import continuous_view
+
+    calls, shown = [], []
+    app = SimpleNamespace(
+        root=object(),
+        continuous_updated=lambda _: None,
+        call=lambda *args, **kwargs: calls.append(args),
+    )
+
+    def answer(title, text, *, parent):
+        shown.append((title, text))
+        return confirmed
+
+    monkeypatch.setattr(continuous_view.messagebox, "askyesno", answer)
+    batch = dict(
+        jobs=[
+            dict(
+                job="sealed-auth",
+                eligible=1,
+                calls=1,
+                family="AUTHENTICATION_IF",
+                evidence_revision="exact-revision",
+                model_details={"model_sha256": "pinned-if", "threshold": 0.95},
+            )
+        ],
+        runtime_session="fixture-session",
+        actor="fixture-human",
+        previous_invocations=0,
+        maximum_invocations=16,
+        models={},
+        authentication_maximum_invocations=1,
+        authentication_previous_invocations=0,
+        batch_digest="exact-if-batch",
+    )
+    continuous_view.review_models(app, batch)
+    assert all(
+        s in shown[0][1]
+        for s in ("sealed-auth", "exact-revision", "pinned-if", "0.95", "No future-input approval")
+    )
+    assert calls == ([("model_review_approve", "exact-if-batch", True)] if confirmed else [])

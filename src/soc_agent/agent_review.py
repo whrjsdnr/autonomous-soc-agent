@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from pydantic import JsonValue
+from pydantic import Field, JsonValue
 
 from soc_agent.approval import ApprovalManager, ApprovalRequest
 from soc_agent.continuous.cli import observed_status
@@ -35,6 +35,9 @@ class ModelReviewItem(Frozen):
     eligible: int
     calls: int
     action: dict[str, JsonValue]
+    family: str = "NETWORK_RF_LR"
+    model_details: dict[str, JsonValue] = Field(default_factory=dict)
+    evidence_revision: str | None = None
 
 
 class ModelReviewBatch(Frozen):
@@ -44,6 +47,8 @@ class ModelReviewBatch(Frozen):
     previous_invocations: int
     models: dict[str, JsonValue]
     jobs: tuple[ModelReviewItem, ...]
+    authentication_maximum_invocations: int = 0
+    authentication_previous_invocations: int = 0
 
 
 def _context(review: Path):
@@ -72,12 +77,61 @@ def pending_models(review: Path) -> ModelReviewBatch:
     limit = request["model_action_review"]["max_model_invocations"]
     if type(limit) is not int or not 1 <= limit <= 16:
         raise ValueError("MODEL_REVIEW_INVOCATION_SCOPE_INVALID")
+    if_limit = request.get("authentication_model_action_review", {}).get("max_model_invocations", 0)
+    if type(if_limit) is not int or not 0 <= if_limit <= 16:
+        raise ValueError("IF_MODEL_REVIEW_INVOCATION_SCOPE_INVALID")
+    previous_if = if_grants = 0
     previous = 0
     grant_count = 0
     jobs = []
     for path in sorted((runtime / "inputs").glob("*.json")):
         body = read_local(path, 1024 * 1024)
         job = JOB.validate_json(body)
+        if job.kind == "authentication_window" and job.host_binding is not None:
+            if not if_limit:
+                continue
+            from soc_agent.continuous.host_authentication import validate_job
+            from soc_agent.security_ai.authentication_action import analysis_action as if_action
+
+            pin = digest(job.model_dump(mode="json"))
+            if path.stem != pin:
+                raise ValueError("IF_MODEL_REVIEW_JOB_PIN_CHANGED")
+            bound = job.host_binding
+            if (
+                str(bound.session) != request["runtime_session"]
+                or bound.runtime_directory != str(runtime)
+                or bound.scope_sha256 != cfg.input_sha256
+                or bound.namespace != cfg.namespace
+                or tuple(job.packages) != cfg.authentication_packages
+            ):
+                raise ValueError("IF_MODEL_REVIEW_SESSION_SCOPE_MISMATCH")
+            contract = validate_job(job)
+            out = runtime / "analysis" / ("run-" + pin)
+            proposed = if_action(job, out)
+            grant = cfg.native_model_approvals / (pin + ".json")
+            if grant.exists():
+                old = ApprovalRequest.model_validate_json(read_local(grant, 32768))
+                if (
+                    old.action_id != proposed.action_id
+                    or old.action_input_json != proposed.tool_input
+                ):
+                    raise ValueError("IF_MODEL_REVIEW_EXISTING_GRANT_CHANGED")
+                previous_if += 1
+                if_grants += 1
+            elif not out.exists():
+                jobs.append(
+                    ModelReviewItem(
+                        job=pin,
+                        input_sha256=hashlib.sha256(body).hexdigest(),
+                        eligible=1,
+                        calls=1,
+                        action=proposed.model_dump(mode="json", exclude={"created_at"}),
+                        family="AUTHENTICATION_IF",
+                        model_details=contract,
+                        evidence_revision=bound.evidence_revision,
+                    )
+                )
+            continue
         if job.kind != "tcx_analysis":
             continue
         pin = digest(job.model_dump(mode="json"))
@@ -116,7 +170,11 @@ def pending_models(review: Path) -> ModelReviewBatch:
                 action=action.model_dump(mode="json", exclude={"created_at"}),
             )
         )
-    if grant_count + len(jobs) > 2 or previous + sum(j.calls for j in jobs) > limit:
+    network_jobs = [j for j in jobs if j.family == "NETWORK_RF_LR"]
+    if_jobs = [j for j in jobs if j.family == "AUTHENTICATION_IF"]
+    if previous_if + len(if_jobs) > if_limit or if_grants + len(if_jobs) > if_limit:
+        raise ValueError("IF_MODEL_REVIEW_SCOPE_LIMIT_EXCEEDED")
+    if grant_count + len(network_jobs) > 2 or previous + sum(j.calls for j in network_jobs) > limit:
         raise ValueError("MODEL_REVIEW_SCOPE_LIMIT_EXCEEDED")
     return ModelReviewBatch(
         runtime_session=request["runtime_session"],
@@ -127,6 +185,8 @@ def pending_models(review: Path) -> ModelReviewBatch:
         previous_invocations=previous,
         models=SPECS,
         jobs=tuple(jobs),
+        authentication_maximum_invocations=if_limit,
+        authentication_previous_invocations=previous_if,
     )
 
 
@@ -176,13 +236,21 @@ def approve_models(review: Path, batch_digest: str, *, actor: str, confirmed: bo
             if hashlib.sha256(body).hexdigest() != item.input_sha256:
                 raise ValueError("MODEL_REVIEW_INPUT_CHANGED_AFTER_CONFIRMATION")
             job = JOB.validate_json(body)
-            action = analysis_action(job, runtime / "analysis" / ("run-" + item.job))
+            metadata = METADATA
+            if item.family == "AUTHENTICATION_IF":
+                from soc_agent.security_ai.authentication_action import METADATA as IF_METADATA
+                from soc_agent.security_ai.authentication_action import analysis_action as if_action
+
+                action = if_action(job, runtime / "analysis" / ("run-" + item.job))
+                metadata = IF_METADATA
+            else:
+                action = analysis_action(job, runtime / "analysis" / ("run-" + item.job))
             if action.model_dump(mode="json", exclude={"created_at"}) != item.action:
                 raise ValueError("MODEL_REVIEW_ACTION_CHANGED_AFTER_CONFIRMATION")
             manager = ApprovalManager()
             pending = manager.create(
                 incident_id=action.incident_id,
-                metadata=METADATA,
+                metadata=metadata,
                 reason="Explicit local operator review of exactly displayed sealed ELIGIBLE jobs",
                 action_id=action.action_id,
                 action_input_json=action.tool_input,

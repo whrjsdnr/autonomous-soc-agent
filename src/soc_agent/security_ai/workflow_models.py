@@ -88,11 +88,36 @@ class RecordsJob(Frozen):
     packages: tuple[PackageInput, ...] = Field(min_length=1, max_length=3)
 
 
+class HostAuthenticationBinding(Frozen):
+    contract: Literal["soc-host-authentication-window:v1"] = "soc-host-authentication-window:v1"
+    runtime_directory: str
+    session: UUID
+    namespace: str
+    scope_sha256: Hash
+    configuration_sha256: Hash
+    authentication_configuration_sha256: Hash
+    source_store_id: UUID
+    source_digests: tuple[Hash, ...] = Field(min_length=1, max_length=4096)
+    evidence_revision: Hash
+    feature_fingerprint: Hash
+    implementation_sha256: Hash
+    collection_approval_sha256: Hash
+    source_assurance: Literal["DECLARED_UNATTESTED"] = "DECLARED_UNATTESTED"
+
+
 class AuthenticationWindowJob(RecordsJob):
     kind: Literal["authentication_window"]
+    origin: Literal["FIXTURE", "DECLARED_STORED_RECORDS", "DECLARED_HOST_JOURNAL"]
+    host_binding: HostAuthenticationBinding | None = None
     witness: UTCTimestamp
     quality: Literal["ELIGIBLE", "INCOMPLETE", "INVALID", "UNKNOWN"]
     source_sha256: Hash
+
+    @model_validator(mode="after")
+    def host_scope(self):
+        if (self.origin == "DECLARED_HOST_JOURNAL") != (self.host_binding is not None):
+            raise ValueError("HOST_AUTHENTICATION_EXPLICIT_BINDING_REQUIRED")
+        return self
 
 
 class ContinuousNativeWindowJob(Frozen):

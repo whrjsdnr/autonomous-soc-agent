@@ -7,7 +7,7 @@ from soc_agent.linux_runtime.store import RuntimeStore
 from soc_agent.security_ai.research.models import digest
 
 
-def observation(directory, packages):
+def observation(directory, packages, parent_directory=None):
     store = RuntimeStore(directory)
     pipeline = open_pipeline(directory, store.config)
     windows = pipeline.store.windows(store.config.incident_id)
@@ -38,7 +38,7 @@ def observation(directory, packages):
             threshold=loaded.profile.config.threshold,
             validation="INTERNAL_PACKAGE_BINDING_NOT_NATIVE_TRAINING_ASSURANCE",
         )
-    return dict(
+    value = dict(
         host_events=sum(pipeline.queue.counts().values()),
         authentication_windows=dict(
             total=len(windows),
@@ -61,3 +61,28 @@ def observation(directory, packages):
         rule_incidents=store.jobs(),
         source_assurance="DECLARED_UNATTESTED_HOST_JOURNAL_NOT_TCX_CAPTURE",
     )
+
+    if parent_directory is not None and packages:
+        from soc_agent.continuous.host_authentication import package_contract, sealed_jobs
+        from soc_agent.continuous.store import Store
+
+        parent = Store(parent_directory)
+        if (parent.directory / "authentication-start-intent.json").exists():
+            jobs = sealed_jobs(parent)
+            value["if_admission"].update(
+                state="WAITING_EXACT_IF_ACTION_APPROVAL"
+                if jobs
+                else "INSUFFICIENT_COMPLETE_WINDOW",
+                model=package_contract(packages),
+                technical_training_parity="VERIFIED_SHARED_EXTRACTOR_SCHEMA_FROZEN_SCALER_AND_PROFILE",
+                host_distribution_validation="UNVERIFIED_RESEARCH_MODEL",
+                sealed_jobs=[
+                    dict(
+                        job=digest(j.model_dump(mode="json")),
+                        evidence_revision=j.host_binding.evidence_revision,
+                        feature_fingerprint=j.host_binding.feature_fingerprint,
+                    )
+                    for j in jobs
+                ],
+            )
+    return value

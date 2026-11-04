@@ -45,6 +45,8 @@ def record_envelopes(job: RecordsJob) -> tuple[EvidenceEnvelope, ...]:
             observed_at=r.observed_at,
             source_incident=r.incident_id,
             schema_version=r.record_schema_version,
+            session=str(job.host_binding.session) if getattr(job, "host_binding", None) else None,
+            namespace=job.host_binding.namespace if getattr(job, "host_binding", None) else None,
             integrity="FIXTURE" if job.origin == "FIXTURE" else "DECLARED_UNATTESTED",
             provenance=(r.source_reference.model_dump_json(),),
         )
@@ -85,6 +87,8 @@ async def packaged(
     job: RecordsJob,
     state: IncidentState,
     record: Callable[[InferenceRecord], None],
+    *,
+    authorize: Callable[[], None] | None = None,
 ) -> dict:
     # All source extraction/compatibility checks precede the first predict call.
     features = extract_records(job, state)
@@ -124,6 +128,8 @@ async def packaged(
         manifest = package.manifest
         model = ADAPTERS[manifest.model_kind](package).as_security_ai()
         for feature in features[manifest.model_kind]:
+            if authorize is not None:
+                authorize()
             start = time.perf_counter()
             result = await model.predict(
                 SecurityAIRequest(incident_id=state.incident_id, input=feature)

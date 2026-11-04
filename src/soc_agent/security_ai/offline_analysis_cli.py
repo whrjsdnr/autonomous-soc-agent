@@ -29,6 +29,8 @@ def main(argv=None) -> int:
     parser.add_argument("--tcx-release-manifest")
     parser.add_argument("--tcx-approval", type=Path)
     parser.add_argument("--tcx-approval-sha256")
+    parser.add_argument("--authentication-approval", type=Path)
+    parser.add_argument("--authentication-approval-sha256")
     args = parser.parse_args(argv)
     try:
         if args.parent_pid is not None:
@@ -43,6 +45,8 @@ def main(argv=None) -> int:
                     args.tcx_release_manifest,
                     args.tcx_approval,
                     args.tcx_approval_sha256,
+                    args.authentication_approval,
+                    args.authentication_approval_sha256,
                 )
             ):
                 raise ValueError("VERIFY_HAS_NO_NEW_TCX_AUTHORITY")
@@ -74,6 +78,14 @@ def main(argv=None) -> int:
                 if hashlib.sha256(approval_bytes).hexdigest() != args.tcx_approval_sha256:
                     raise ValueError("TCX_APPROVAL_SHA_MISMATCH")
                 tcx_approval = ApprovalRequest.model_validate_json(approval_bytes)
+            auth_approval = None
+            if bool(args.authentication_approval) != bool(args.authentication_approval_sha256):
+                raise ValueError("HOST_IF_APPROVAL_EXPLICIT_SHA_REQUIRED")
+            if args.authentication_approval:
+                data = read_local(args.authentication_approval, 32768)
+                if hashlib.sha256(data).hexdigest() != args.authentication_approval_sha256:
+                    raise ValueError("HOST_IF_APPROVAL_SHA_MISMATCH")
+                auth_approval = ApprovalRequest.model_validate_json(data)
             authorization = settings = None
             if bool(args.api_authorization) != bool(args.api_env_file):
                 raise ValueError("API_AUTHORIZATION_AND_ENV_FILE_REQUIRED")
@@ -106,6 +118,7 @@ def main(argv=None) -> int:
                 api_authorization=authorization,
                 api_settings=settings,
                 tcx_approval=tcx_approval,
+                authentication_approval=auth_approval,
                 defer_investigation=args.defer_investigation,
             )
             workflow.write("submitted-input.json", submitted)

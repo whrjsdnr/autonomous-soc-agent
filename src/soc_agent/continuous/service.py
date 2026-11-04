@@ -133,6 +133,8 @@ class ContinuousRuntime:
                 "dns_metadata_bytes",
                 "dns_rejected",
                 "authentication_inputs",
+                "authentication_predictions",
+                "authentication_incidents",
                 "duplicates",
                 "excluded",
                 "source_gaps",
@@ -400,10 +402,17 @@ class ContinuousRuntime:
                     auth_observation,
                     self.config.authentication_runtime,
                     self.config.authentication_packages,
+                    self.directory if self.auth_lifecycle else None,
                 )
             )
             if self.auth_lifecycle:
                 authentication.update(self.auth_lifecycle.snapshot())
+        if "if_admission" in authentication:
+            admission = authentication["if_admission"]
+            admission["predictions"] = self.metrics["authentication_predictions"]
+            admission["incidents"] = self.metrics["authentication_incidents"]
+            if admission["predictions"]:
+                admission["state"] = "APPROVED_RESULTS_RECORDED"
         self.cached_authentication = authentication
         if self.dns_source:
             await self.refresh_dns_snapshot()
@@ -1048,18 +1057,67 @@ class ContinuousRuntime:
             await self.source.close()
             self.done.set()
 
+    async def collect_host_authentication(self):
+        from soc_agent.continuous.host_authentication import sealed_jobs
+
+        revisions = set()
+        for path in (self.directory / "inputs").glob("*.json"):
+            job = JOB.validate_json(read_local(path, 1024**2))
+            if job.kind == "authentication_window" and job.host_binding:
+                revisions.add(job.host_binding.evidence_revision)
+        while not self.stop.is_set():
+            polling = asyncio.create_task(asyncio.to_thread(sealed_jobs, self.store))
+            try:
+                jobs = await asyncio.shield(polling)
+            except asyncio.CancelledError:
+                await asyncio.wait_for(asyncio.shield(polling), self.config.shutdown_seconds)
+                raise
+            for job in jobs:
+                if self.stop.is_set():
+                    break
+                revision = job.host_binding.evidence_revision
+                if revision in revisions:
+                    continue
+                await self.handoff(job)
+                revisions.add(revision)
+                self.metrics["auth_windows"] += 1
+                await self.storage(
+                    self.store.event_once,
+                    "CONTINUOUS_HOST_AUTH_WINDOW_SEALED",
+                    dict(
+                        job=digest(job.model_dump(mode="json")),
+                        session=str(job.host_binding.session),
+                        evidence_revision=revision,
+                        feature=job.host_binding.feature_fingerprint,
+                        source_assurance="DECLARED_UNATTESTED",
+                        model_authority="EXACT_ACTION_REQUIRED",
+                    ),
+                )
+            try:
+                await asyncio.wait_for(self.stop.wait(), 2)
+            except TimeoutError:
+                continue
+
     async def start_analysis(self, path, body):
         """Keep a retained Native action pending without starting any model worker."""
         job = JOB.validate_json(body)
-        if job.kind != "tcx_analysis":
+        host_if = job.kind == "authentication_window" and job.host_binding is not None
+        if job.kind != "tcx_analysis" and not host_if:
             await self.analysis.start(path)
             return
         from soc_agent.security_ai.tcx_input import candidates
 
-        receipts = (await self.storage(candidates, job))[2]
-        if job.origin == "REAL_NATIVE" and any(r["eligible"] for r in receipts):
+        if host_if:
+            from soc_agent.continuous.host_authentication import validate_job
+            from soc_agent.security_ai.authentication_action import analysis_action
+
+            await self.storage(validate_job, job)
+            receipts = [dict(eligible=True)]
+        else:
             from soc_agent.security_ai.tcx_analysis import analysis_action
 
+            receipts = (await self.storage(candidates, job))[2]
+        if host_if or job.origin == "REAL_NATIVE" and any(r["eligible"] for r in receipts):
             pin = digest(job.model_dump(mode="json"))
             output = self.analysis.directory / ("run-" + pin)
             action = await self.storage(analysis_action, job, output)
@@ -1083,7 +1141,14 @@ class ContinuousRuntime:
                 await asyncio.sleep(0.1)
             if self.stop.is_set():
                 raise asyncio.CancelledError
-        await self.analysis.start_retained_tcx(path, approvals=self.config.native_model_approvals)
+        if host_if:
+            await self.analysis.start_retained_authentication(
+                path, approvals=self.config.native_model_approvals
+            )
+        else:
+            await self.analysis.start_retained_tcx(
+                path, approvals=self.config.native_model_approvals
+            )
         # The admission boundary above validates the receipt and starts the worker.
         # A prior approval wait must not remain the published state during inference.
         self.worker_state = "ANALYZING"
@@ -1152,6 +1217,9 @@ class ContinuousRuntime:
                         human_boundary="WRITE_DENIED",
                     ),
                 )
+                if "AUTHENTICATION" in outcome.get("evidence_domains", []):
+                    self.metrics["authentication_predictions"] += outcome["inference_count"]
+                    self.metrics["authentication_incidents"] += 1
                 self.metrics["predictions"] += outcome["inference_count"]
                 self.metrics["incidents"] += 1
                 self.last_results = (
@@ -1218,7 +1286,7 @@ class ContinuousRuntime:
         require_source_authority(self.config)
         with exclusive_runtime_lock(self.directory / "service.lock"):
             collector = consumer = journal = dns_task = investigation_worker = control = None
-            authentication_worker = None
+            authentication_worker = host_auth_worker = None
             primary = None
             try:
                 # Clear the prior invocation's flags before the first asynchronous
@@ -1276,6 +1344,8 @@ class ContinuousRuntime:
                     journal = asyncio.create_task(self.collect_journal())
                 if self.dns_source:
                     dns_task = asyncio.create_task(self.collect_dns())
+                if self.auth_lifecycle and self.config.authentication_packages:
+                    host_auth_worker = asyncio.create_task(self.collect_host_authentication())
                 collector = asyncio.create_task(self.collect())
                 consumer = asyncio.create_task(self.consume())
                 if self.control_identity is not None:
@@ -1315,6 +1385,10 @@ class ContinuousRuntime:
                                 (getattr(self.source, "failure", None) or {}).get("code")
                                 or "CONTINUOUS_NATIVE_COLLECTOR_EARLY_EXIT"
                             )
+                    if host_auth_worker and host_auth_worker.done():
+                        host_auth_worker.result()
+                        if not self.stop.is_set():
+                            raise ValueError("HOST_AUTH_WINDOW_WORKER_EXITED")
                     if authentication_worker and authentication_worker.done():
                         authentication_worker.result()
                         if not self.stop.is_set():
@@ -1477,6 +1551,16 @@ class ContinuousRuntime:
                     # The producer attempts its bounded failure STOP before it
                     # closes. Local closure still cannot replace a bound ACK.
                     failures.append(ValueError("CONTINUOUS_REMOTE_CLEANUP_UNVERIFIED"))
+                if host_auth_worker:
+                    host_auth_worker.cancel()
+                    outcomes = await asyncio.gather(host_auth_worker, return_exceptions=True)
+                    failures.extend(
+                        e
+                        for e in outcomes
+                        if isinstance(e, BaseException)
+                        and not isinstance(e, asyncio.CancelledError)
+                        and e is not primary
+                    )
                 if authentication_worker:
                     authentication_worker.cancel()
                     outcomes = await asyncio.gather(authentication_worker, return_exceptions=True)

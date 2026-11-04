@@ -135,7 +135,16 @@ class AnalysisService:
         """
         return await self._start(input_file, retained=True, approvals=approvals)
 
-    async def _start(self, input_file: Path, *, retained=False, approvals=None):
+    async def start_retained_authentication(
+        self, input_file: Path, *, approvals: Path | None = None
+    ):
+        return await self._start(
+            input_file, retained=True, approvals=approvals, authentication=True
+        )
+
+    async def _start(
+        self, input_file: Path, *, retained=False, approvals=None, authentication=False
+    ):
         async with self._lock:
             if (
                 self.closed
@@ -147,7 +156,10 @@ class AnalysisService:
             job = JOB.validate_json(body)
             if job.kind == "native_checkpoint" or (job.kind == "tcx_analysis" and not retained):
                 raise ValueError("NATIVE_ANALYSIS_REQUIRES_EXISTING_APPROVAL_ENTRYPOINT")
-            if retained and job.kind != "tcx_analysis":
+            expected_kind = "authentication_window" if authentication else "tcx_analysis"
+            if retained and (
+                job.kind != expected_kind or authentication and job.host_binding is None
+            ):
                 raise ValueError("RETAINED_TCX_JOB_REQUIRED")
             from soc_agent.security_ai.research.models import digest
 
@@ -180,7 +192,8 @@ class AnalysisService:
                 approval = approvals / (self.session + ".json")
                 if approval.exists():
                     pin = hashlib.sha256(read_local(approval, 32768)).hexdigest()
-                    args += ["--tcx-approval", str(approval), "--tcx-approval-sha256", pin]
+                    option = "--authentication-approval" if authentication else "--tcx-approval"
+                    args += [option, str(approval), option + "-sha256", pin]
             if self.ml_root:
                 args += ["--research-ml-root", str(self.ml_root)]
             if self.defer_investigation:
