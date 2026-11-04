@@ -6,6 +6,7 @@ from typing import Literal
 from soc_agent.realtime.collectors import (
     CollectorFailure,
     CollectorUnavailable,
+    CommandObservation,
     CursorUnavailable,
     collector_failure,
 )
@@ -37,6 +38,7 @@ class CollectionHealth(Snapshot):
     continuation_allowed: bool = False
     audit_digest: Hash
     failure_code: CollectorFailure | None = None
+    command_observation: CommandObservation | None = None
     started_monotonic: float | None = None
     finished_monotonic: float | None = None
 
@@ -58,6 +60,7 @@ def collect_with_health(
     audit.append("COLLECTION_START", "STARTED", pipeline.digest)
     started = monotonic()
     failure_code = None
+    command_observation = None
     cursor = None
     accepted = None
     count = None
@@ -76,6 +79,7 @@ def collect_with_health(
         gap = "UNKNOWN"
     except CollectorUnavailable as error:
         failure_code = collector_failure(error)
+        command_observation = error.command_observation
         status = (
             "PERMISSION_DENIED"
             if str(error).startswith("PERMISSION_DENIED:")
@@ -121,6 +125,7 @@ def collect_with_health(
         continuation_allowed=status in ("INITIAL_READ", "RESUMED_EXACT", "RESUMED_WITH_REPLAY"),
         audit_digest=entry,
         failure_code=failure_code,
+        command_observation=command_observation,
         started_monotonic=started,
         finished_monotonic=monotonic(),
     )

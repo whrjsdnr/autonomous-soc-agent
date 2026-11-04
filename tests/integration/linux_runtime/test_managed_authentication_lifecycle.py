@@ -111,7 +111,7 @@ def command(arguments):
     cursor = next((a.split("=",1)[1] for a in arguments if a.startswith("--cursor=")),None)
     if cursor: return json.dumps(next(r for r in rows if r["__CURSOR"] == cursor)) + "\\n"
     if any(a.startswith("--after-cursor=") for a in arguments): return ""
-    return "\\n".join(json.dumps(r) for r in rows) + "\\n"
+    return "\\n".join(json.dumps(r) for r in rows) + ("\\n" if rows else "")
 LinuxJournalCollector.__init__ = available
 native_authentication.bounded_command = command
 from soc_agent.linux_runtime.service import LinuxMonitor

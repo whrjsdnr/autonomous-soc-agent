@@ -81,9 +81,10 @@ async def test_collector_to_queue_monitor_continuous_gui_and_reconnect(tmp_path,
     reconnected = None
     try:
         for _ in range(40):
-            if monitor.store.state()["last_collection"]:
+            if monitor.store.state()["collector"] == "INITIAL_READ":
                 break
             await asyncio.sleep(0.05)
+        assert monitor.store.state()["collector"] == "INITIAL_READ"
         snapshot = await continuous.observed_snapshot()
         assert snapshot["authentication"]["runtime_state"] == "RUNNING"
         value = (await desktop.production_status())["authentication"]

@@ -386,6 +386,9 @@ class LinuxMonitor:
         )
         diagnostic = {
             "failure_code": health.failure_code,
+            "command_observation": health.command_observation.model_dump(mode="json")
+            if health.command_observation is not None
+            else None,
             "started_monotonic": health.started_monotonic,
             "finished_monotonic": health.finished_monotonic,
         }

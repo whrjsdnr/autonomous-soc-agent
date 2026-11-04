@@ -155,6 +155,7 @@ async def test_collector_ready_is_published_after_first_ingestion_batch(tmp_path
     tick = asyncio.create_task(monitor.tick())
     try:
         assert await asyncio.to_thread(entered.wait, 1)
+        assert monitor.store.state()["last_collection"] is not None
         assert monitor.store.state()["collector"] == "NOT_STARTED"
         assert monitor.pipeline.queue.counts() == {"PENDING": 3}
     finally:

@@ -8,7 +8,10 @@ import subprocess
 import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from time import monotonic
 from typing import Literal, get_args
+
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from soc_agent.realtime.models import SourceIdentity, SourceMetadata, native_event
 
@@ -24,10 +27,33 @@ CollectorFailure = Literal[
 ]
 
 
+class CommandObservation(BaseModel):
+    """Command lifecycle only; never arguments, raw journal output or stderr."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    started_monotonic: float = Field(ge=0, allow_inf_nan=False)
+    finished_monotonic: float = Field(ge=0, allow_inf_nan=False)
+    returncode: int | None = Field(default=None, strict=True)
+    os_errno: int | None = Field(default=None, strict=True, ge=0)
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if self.finished_monotonic < self.started_monotonic:
+            raise ValueError("COMMAND_OBSERVATION_CLOCK_REGRESSION")
+        return self
+
+
 class CollectorUnavailable(ValueError):
-    def __init__(self, message: str, *, failure_code: CollectorFailure = "UNKNOWN"):
+    def __init__(
+        self,
+        message: str,
+        *,
+        failure_code: CollectorFailure = "UNKNOWN",
+        command_observation: CommandObservation | None = None,
+    ):
         super().__init__(message)
         self.failure_code = failure_code
+        self.command_observation = command_observation
 
 
 def collector_failure(error: CollectorUnavailable) -> CollectorFailure:
@@ -54,30 +80,50 @@ class CursorUnavailable(CollectorUnavailable):
 def bounded_command(args: list[str]) -> bytes:
     # Native commands have bounded record counts. Never print raw output on failure.
     with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as errors:
+        started = monotonic()
         try:
             result = subprocess.run(args, stdout=output, stderr=errors, timeout=15, check=False)
         except subprocess.TimeoutExpired as error:
             raise CollectorUnavailable(
-                "Read-only collector command unavailable", failure_code="COMMAND_TIMEOUT"
+                "Read-only collector command unavailable",
+                failure_code="COMMAND_TIMEOUT",
+                command_observation=CommandObservation(
+                    started_monotonic=started,
+                    finished_monotonic=monotonic(),
+                ),
             ) from error
         except OSError as error:
             raise CollectorUnavailable(
-                "Read-only collector command unavailable", failure_code="COMMAND_OS_ERROR"
+                "Read-only collector command unavailable",
+                failure_code="COMMAND_OS_ERROR",
+                command_observation=CommandObservation(
+                    started_monotonic=started,
+                    finished_monotonic=monotonic(),
+                    os_errno=error.errno,
+                ),
             ) from error
+        observation = CommandObservation(
+            started_monotonic=started,
+            finished_monotonic=monotonic(),
+            returncode=result.returncode,
+        )
         if result.returncode == 3:
             raise CollectorUnavailable(
                 "PERMISSION_DENIED: source is not readable by this user",
                 failure_code="COMMAND_PERMISSION_DENIED",
+                command_observation=observation,
             )
         if result.returncode:
             raise CollectorUnavailable(
                 "Collector permission, cursor or output limit rejected",
                 failure_code="COMMAND_EXIT_NONZERO",
+                command_observation=observation,
             )
         if output.tell() > 4 * 1024 * 1024:
             raise CollectorUnavailable(
                 "Collector permission, cursor or output limit rejected",
                 failure_code="COMMAND_OUTPUT_LIMIT",
+                command_observation=observation,
             )
         output.seek(0)
         return output.read()
