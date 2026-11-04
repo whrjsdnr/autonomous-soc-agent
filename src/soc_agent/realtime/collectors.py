@@ -8,12 +8,43 @@ import subprocess
 import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Literal, get_args
 
 from soc_agent.realtime.models import SourceIdentity, SourceMetadata, native_event
 
+CollectorFailure = Literal[
+    "COMMAND_OS_ERROR",
+    "COMMAND_TIMEOUT",
+    "COMMAND_PERMISSION_DENIED",
+    "COMMAND_EXIT_NONZERO",
+    "COMMAND_OUTPUT_LIMIT",
+    "JOURNAL_RECORD_REJECTED",
+    "JOURNAL_JSON_REJECTED",
+    "UNKNOWN",
+]
+
 
 class CollectorUnavailable(ValueError):
-    pass
+    def __init__(self, message: str, *, failure_code: CollectorFailure = "UNKNOWN"):
+        super().__init__(message)
+        self.failure_code = failure_code
+
+
+def collector_failure(error: CollectorUnavailable) -> CollectorFailure:
+    """Only fixed categories cross the audit boundary; never exception/payload text."""
+    if error.failure_code != "UNKNOWN" and error.failure_code in get_args(CollectorFailure):
+        return error.failure_code
+    if str(error) in (
+        "Invalid authentication journal record",
+        "Non-scalar or oversized authentication journal record",
+        "Invalid authentication journal timestamp",
+        "Invalid journal record metadata",
+        "Authentication batch response exceeded limit",
+    ):
+        return "JOURNAL_RECORD_REJECTED"
+    if str(error) == "Authentication journal response rejected":
+        return "JOURNAL_JSON_REJECTED"
+    return "UNKNOWN"
 
 
 class CursorUnavailable(CollectorUnavailable):
@@ -25,12 +56,29 @@ def bounded_command(args: list[str]) -> bytes:
     with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as errors:
         try:
             result = subprocess.run(args, stdout=output, stderr=errors, timeout=15, check=False)
-        except (OSError, subprocess.TimeoutExpired) as error:
-            raise CollectorUnavailable("Read-only collector command unavailable") from error
+        except subprocess.TimeoutExpired as error:
+            raise CollectorUnavailable(
+                "Read-only collector command unavailable", failure_code="COMMAND_TIMEOUT"
+            ) from error
+        except OSError as error:
+            raise CollectorUnavailable(
+                "Read-only collector command unavailable", failure_code="COMMAND_OS_ERROR"
+            ) from error
         if result.returncode == 3:
-            raise CollectorUnavailable("PERMISSION_DENIED: source is not readable by this user")
-        if result.returncode or output.tell() > 4 * 1024 * 1024:
-            raise CollectorUnavailable("Collector permission, cursor or output limit rejected")
+            raise CollectorUnavailable(
+                "PERMISSION_DENIED: source is not readable by this user",
+                failure_code="COMMAND_PERMISSION_DENIED",
+            )
+        if result.returncode:
+            raise CollectorUnavailable(
+                "Collector permission, cursor or output limit rejected",
+                failure_code="COMMAND_EXIT_NONZERO",
+            )
+        if output.tell() > 4 * 1024 * 1024:
+            raise CollectorUnavailable(
+                "Collector permission, cursor or output limit rejected",
+                failure_code="COMMAND_OUTPUT_LIMIT",
+            )
         output.seek(0)
         return output.read()
 

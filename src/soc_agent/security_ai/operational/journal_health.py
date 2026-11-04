@@ -1,8 +1,14 @@
 """Observed intake failures, no cursor reset, seek fallback, delete or model authorization."""
 
+from time import monotonic
 from typing import Literal
 
-from soc_agent.realtime.collectors import CollectorUnavailable, CursorUnavailable
+from soc_agent.realtime.collectors import (
+    CollectorFailure,
+    CollectorUnavailable,
+    CursorUnavailable,
+    collector_failure,
+)
 from soc_agent.realtime.queue import QueueFull, QueueIntegrityError
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.security_ai.external.models import Hash, Snapshot, content_digest_payload
@@ -30,6 +36,9 @@ class CollectionHealth(Snapshot):
     gap_extent: Literal["UNKNOWN", "NOT_APPLICABLE"] = "NOT_APPLICABLE"
     continuation_allowed: bool = False
     audit_digest: Hash
+    failure_code: CollectorFailure | None = None
+    started_monotonic: float | None = None
+    finished_monotonic: float | None = None
 
 
 def collect_with_health(
@@ -47,6 +56,8 @@ def collect_with_health(
     if audit.binding != pipeline.digest:
         raise RetentionDenied("MAINTENANCE_BINDING_REJECTED")
     audit.append("COLLECTION_START", "STARTED", pipeline.digest)
+    started = monotonic()
+    failure_code = None
     cursor = None
     accepted = None
     count = None
@@ -64,6 +75,7 @@ def collect_with_health(
         status = "GAP_DETECTED" if cursor else "CURSOR_INVALID"
         gap = "UNKNOWN"
     except CollectorUnavailable as error:
+        failure_code = collector_failure(error)
         status = (
             "PERMISSION_DENIED"
             if str(error).startswith("PERMISSION_DENIED:")
@@ -77,6 +89,7 @@ def collect_with_health(
     except (StorageError, OSError, RuntimeError):
         status = "STORE_FAILURE"
     except ValueError:
+        failure_code = "UNKNOWN"
         status = "SOURCE_UNAVAILABLE"
     retained = None
     try:
@@ -107,4 +120,7 @@ def collect_with_health(
         gap_extent=gap,
         continuation_allowed=status in ("INITIAL_READ", "RESUMED_EXACT", "RESUMED_WITH_REPLAY"),
         audit_digest=entry,
+        failure_code=failure_code,
+        started_monotonic=started,
+        finished_monotonic=monotonic(),
     )

@@ -145,6 +145,7 @@ class AuthenticationLifecycle:
         self.log = None
         self.state = "NOT_STARTED"
         self.cleanup_written = False
+        self.startup_diagnostic = {}
         self._reader = None
         self.evidence = dict(cleanup="NOT_STARTED", stop_ack=False)
 
@@ -158,6 +159,7 @@ class AuthenticationLifecycle:
             managed_lifecycle=dict(
                 state=self.state,
                 identity=self.identity,
+                startup_diagnostic=dict(self.startup_diagnostic),
                 durable_cleanup=self.cleanup_written,
                 **self.evidence,
                 input_assurance="DECLARED_HOST_READER_NOT_KERNEL_ATTESTATION",
@@ -238,11 +240,20 @@ class AuthenticationLifecycle:
             stderr=self.log,
         )
         self.identity = runtime_identity(self.process.pid)
-        deadline = time.monotonic() + 5
+        spawned = time.monotonic()
+        deadline = spawned + 5
+        self.startup_diagnostic = dict(spawned_monotonic=spawned, deadline_monotonic=deadline)
         while time.monotonic() < deadline:
             if self.process.returncode is not None:
                 raise ValueError("AUTHENTICATION_CHILD_EXIT_BEFORE_READY")
             observed = await self._observe(max(0.001, deadline - time.monotonic()))
+            self.startup_diagnostic.update(
+                observed_monotonic=time.monotonic(),
+                identity_matches=observed.get("runtime_identity") == self.identity,
+                state=observed["state"],
+                collector=observed.get("collector"),
+                collection_diagnostic=observed.get("collection_diagnostic"),
+            )
             if (
                 observed.get("runtime_identity") == self.identity
                 and observed.get("collector")

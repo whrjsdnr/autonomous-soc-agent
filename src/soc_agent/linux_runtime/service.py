@@ -384,9 +384,17 @@ class LinuxMonitor:
             audit=self.audit,
             limit=self.config.batch_size,
         )
+        diagnostic = {
+            "failure_code": health.failure_code,
+            "started_monotonic": health.started_monotonic,
+            "finished_monotonic": health.finished_monotonic,
+        }
         if not health.continuation_allowed:
             await self.storage(
-                self.store.update, collector=health.status, cursor_health=health.status
+                self.store.update,
+                collector=health.status,
+                cursor_health=health.status,
+                collection_diagnostic=diagnostic,
             )
         if health.continuation_allowed:
             self.collection_failures = 0
@@ -397,14 +405,16 @@ class LinuxMonitor:
             "PERMISSION_DENIED",
             "STORE_FAILURE",
         ):
-            await self.storage(self.store.event, "COLLECTION_FATAL", {"status": health.status})
+            await self.storage(
+                self.store.event, "COLLECTION_FATAL", {"status": health.status, **diagnostic}
+            )
             raise ValueError(health.status)
         elif health.status != "BACKPRESSURE":
             self.collection_failures += 1
             await self.storage(
                 self.store.event,
                 "COLLECTION_RETRY",
-                {"status": health.status, "attempt": self.collection_failures},
+                {"status": health.status, "attempt": self.collection_failures, **diagnostic},
             )
             if self.collection_failures > self.config.collector_retry_limit:
                 raise ValueError("COLLECTOR_RETRY_LIMIT")
@@ -422,7 +432,10 @@ class LinuxMonitor:
             # READY must not expose an unprocessed initial ingestion batch.
             # Investigation/LLM completion is a separate state and is not awaited.
             await self.storage(
-                self.store.update, collector=health.status, cursor_health=health.status
+                self.store.update,
+                collector=health.status,
+                cursor_health=health.status,
+                collection_diagnostic=diagnostic,
             )
         await self.investigate_one()
         if (

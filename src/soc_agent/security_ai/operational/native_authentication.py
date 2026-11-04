@@ -191,6 +191,8 @@ class LinuxAuthenticationCollector:
                 project_journal(json.loads(line), include_pam_failures=self.include_pam_failures)
                 for line in data.splitlines()
             ]
+        except CollectorUnavailable:
+            raise  # Preserve the safe parser category; never include the rejected row.
         except (ValueError, TypeError) as error:
             raise CollectorUnavailable("Authentication journal response rejected") from error
         if len(rows) > limit:

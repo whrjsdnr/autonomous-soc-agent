@@ -84,6 +84,7 @@ def status(directory: Path):
         "collector_state": state["collector"],
         "last_collection_time": state["last_collection"],
         "journal_cursor_health": state["cursor_health"],
+        "collection_diagnostic": state.get("collection_diagnostic"),
         "queue_backlog": queue.get("PENDING", 0) + queue.get("CLAIMED", 0),
         "pending_investigations": jobs.get("PENDING", 0),
         "running_investigations": jobs.get("RUNNING", 0),
