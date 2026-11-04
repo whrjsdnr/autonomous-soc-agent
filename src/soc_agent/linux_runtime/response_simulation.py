@@ -18,7 +18,6 @@ from pydantic import Field, model_validator
 
 from soc_agent.approval import ApprovalManager, ApprovalRequest
 from soc_agent.approval.errors import ApprovalError
-from soc_agent.assessment import AssessmentResult
 from soc_agent.demo.tools import DemoIdentityOutput, demo_response_tool
 from soc_agent.execution import ActionProposal, GovernedExecutor
 from soc_agent.execution.binding import validate_binding
@@ -229,6 +228,8 @@ class RuntimeResponseSimulation:
         ):
             raise ValueError("SIMULATION_INVESTIGATION_BINDING_REJECTED")
         if "assessment" in result:
+            from soc_agent.assessment import AssessmentResult
+
             assessment = AssessmentResult.model_validate(result["assessment"])
             if (
                 assessment.incident_state.incident_id != finding.incident_id

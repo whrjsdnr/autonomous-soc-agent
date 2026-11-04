@@ -88,20 +88,34 @@ class RuntimeStore:
         )
 
     def verify_audit(self):
-        previous = "0" * 64
         with self.database.transaction(write=False) as c:
-            for index, row in enumerate(
-                c.execute("SELECT * FROM monitor_audit ORDER BY sequence"), 1
+            return self._verify_audit(c)
+
+    @staticmethod
+    def _verify_audit(c):
+        previous = "0" * 64
+        for index, row in enumerate(c.execute("SELECT * FROM monitor_audit ORDER BY sequence"), 1):
+            payload = json.loads(row["payload"])
+            if (
+                payload["sequence"] != index
+                or payload["previous"] != previous
+                or content_digest_payload(payload) != row["digest"]
             ):
-                payload = json.loads(row["payload"])
-                if (
-                    payload["sequence"] != index
-                    or payload["previous"] != previous
-                    or content_digest_payload(payload) != row["digest"]
-                ):
-                    raise ValueError("RUNTIME_AUDIT_INTEGRITY_REJECTED")
-                previous = row["digest"]
+                raise ValueError("RUNTIME_AUDIT_INTEGRITY_REJECTED")
+            previous = row["digest"]
         return previous
+
+    @classmethod
+    def observation(cls, directory: Path):
+        """Same integrity checks in one read snapshot, rather than four opens."""
+        database = GovernanceDatabase(directory / "monitor.sqlite")
+        with database.transaction(write=False) as c:
+            row = c.execute("SELECT payload,digest FROM monitor_config WHERE id=1").fetchone()
+            config = RuntimeConfig.model_validate_json(row["payload"])
+            if config.digest != row["digest"]:
+                raise ValueError("RUNTIME_CONFIG_INTEGRITY_REJECTED")
+            cls._verify_audit(c)
+            return cls._state(c)
 
     def event(self, kind, details):
         with self.database.transaction() as c:
@@ -121,11 +135,15 @@ class RuntimeStore:
 
     def state(self):
         with self.database.transaction(write=False) as c:
-            row = c.execute("SELECT * FROM monitor_state WHERE id=1").fetchone()
-            body = json.loads(row["payload"])
-            if content_digest_payload(body) != row["digest"] or row["stop_requested"] not in (0, 1):
-                raise ValueError("RUNTIME_STATE_INTEGRITY_REJECTED")
-            return body | {"stop_requested": bool(row["stop_requested"])}
+            return self._state(c)
+
+    @staticmethod
+    def _state(c):
+        row = c.execute("SELECT * FROM monitor_state WHERE id=1").fetchone()
+        body = json.loads(row["payload"])
+        if content_digest_payload(body) != row["digest"] or row["stop_requested"] not in (0, 1):
+            raise ValueError("RUNTIME_STATE_INTEGRITY_REJECTED")
+        return body | {"stop_requested": bool(row["stop_requested"])}
 
     def update(self, **fields):
         with self.database.transaction() as c:

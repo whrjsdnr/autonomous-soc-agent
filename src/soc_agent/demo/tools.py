@@ -1,12 +1,14 @@
 """Synthetic read/report and simulated WRITE adapters. No OS/network action implementation."""
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 from uuid import UUID
 
 from soc_agent.ingestion.models import NetworkAttributes
-from soc_agent.ingestion.store import EventIngestor
 from soc_agent.review.models import Frozen
 from soc_agent.tools import Tool, ToolMetadata, ToolPermission, ToolRiskLevel
+
+if TYPE_CHECKING:
+    from soc_agent.ingestion.store import EventIngestor
 
 
 class DemoIdentityInput(Frozen):
@@ -55,7 +57,7 @@ class DemoReport(Frozen):
     )
 
 
-def demo_read_tool(ingestor: EventIngestor):
+def demo_read_tool(ingestor: "EventIngestor"):
     async def read(value: DemoReadInput):
         receipt = ingestor.load(value.incident_id)
         event = receipt.event
@@ -102,7 +104,7 @@ class DemoNetworkReport(Frozen):
     )
 
 
-def demo_network_tool(ingestor: EventIngestor):
+def demo_network_tool(ingestor: "EventIngestor"):
     async def read(value: DemoReadInput):
         receipt = ingestor.load(value.incident_id)
         event = receipt.event

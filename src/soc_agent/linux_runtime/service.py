@@ -3,14 +3,15 @@
 import asyncio
 import math
 import os
+from collections.abc import Callable
 from datetime import timedelta
 from pathlib import Path
 from time import monotonic
+from typing import ParamSpec, TypeVar
 
 from pydantic import ValidationError
 
 from soc_agent.approval import ApprovalManager
-from soc_agent.demo.scenario_analysis import analyze
 from soc_agent.execution import ActionProposal, GovernedExecutor
 from soc_agent.execution.errors import ExecutionDeniedError
 from soc_agent.linux_runtime.findings import correlate, validate_finding
@@ -39,6 +40,9 @@ from soc_agent.security_ai.operational.native_authentication import LinuxAuthent
 from soc_agent.security_ai.operational.retention import MaintenanceLog
 from soc_agent.security_ai.operational.source_store import OperationalSourceStore
 from soc_agent.state.evidence import utc_now
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 def open_pipeline(directory: Path, config: RuntimeConfig):
@@ -135,6 +139,7 @@ class LinuxMonitor:
         self.audit = MaintenanceLog(self.directory / "collection-audit.sqlite", self.pipeline)
         self.collector = collector or LinuxAuthenticationCollector(include_pam_failures=True)
         self.stop_event = asyncio.Event()
+        self.storage_lock = asyncio.Lock()
         saved = self.store.state()
         self.collection_failures = saved.get("collection_failures", 0)
         self.llm_failures = saved.get("llm_failures", 0)
@@ -151,13 +156,30 @@ class LinuxMonitor:
     def request_stop(self):
         self.stop_event.set()
 
+    async def storage(self, operation: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+        """Serial owned I/O; cancellation joins it before STOP/Audit can finish."""
+        async with self.storage_lock:
+            pending = asyncio.create_task(asyncio.to_thread(operation, *args, **kwargs))
+            cancelled = None
+            while True:
+                try:
+                    result = await asyncio.shield(pending)
+                    break
+                except asyncio.CancelledError as error:
+                    cancelled = cancelled or error
+            if cancelled:
+                raise cancelled
+            return result
+
     async def investigate_one(self):
         if self.circuit_open:
             return
         if self.config.assessment_mode == "REAL_LLM" and self.client is None:
-            self.store.update(llm="NOT_CONFIGURED", last_error="LLM_CONFIGURATION_UNAVAILABLE")
+            await self.storage(
+                self.store.update, llm="NOT_CONFIGURED", last_error="LLM_CONFIGURATION_UNAVAILABLE"
+            )
             return
-        claimed = self.store.claim()
+        claimed = await self.storage(self.store.claim)
         if not claimed:
             return
         finding, attempt = claimed
@@ -170,7 +192,7 @@ class LinuxMonitor:
         )
         failure_code = "SOURCE_VALIDATION_FAILURE"
         try:
-            validate_finding(self.pipeline, finding)
+            await self.storage(validate_finding, self.pipeline, finding)
             failure_code = "INVESTIGATION_FAILURE"
             if self.config.assessment_mode == "READ_ONLY":
                 investigation = await asyncio.wait_for(
@@ -180,7 +202,9 @@ class LinuxMonitor:
                 if not all(step.status.value == "completed" for step in investigation.plan.steps):
                     from soc_agent.experience.failure import record_read_failures
 
-                    record_read_failures(self.store, finding, attempt, investigation)
+                    await self.storage(
+                        record_read_failures, self.store, finding, attempt, investigation
+                    )
                     raise ValueError("READ_INVESTIGATION_FAILED")
                 result = {
                     "finding_digest": finding.digest,
@@ -196,6 +220,8 @@ class LinuxMonitor:
                 }
                 status = "DONE_READ_ONLY"
             else:
+                from soc_agent.demo.scenario_analysis import analyze
+
                 investigation, assessment, stages, exchanges = await asyncio.wait_for(
                     analyze(
                         self.pipeline,
@@ -209,7 +235,9 @@ class LinuxMonitor:
                 if any(stage.status != "PASS" for stage in stages.values()):
                     from soc_agent.experience.failure import record_read_failures
 
-                    record_read_failures(self.store, finding, attempt, investigation)
+                    await self.storage(
+                        record_read_failures, self.store, finding, attempt, investigation
+                    )
                     failure_code = stages["investigation"].outcome
                     raise ValueError("LLM_INVESTIGATION_BLOCKED")
                 result = {
@@ -246,16 +274,18 @@ class LinuxMonitor:
                 result["write_probe"] = "DENIED_HANDLER_NOT_REGISTERED"
             else:
                 raise ValueError("READ_ONLY_BOUNDARY_BYPASS")
-            self.store.finish(finding, status, result)
+            await self.storage(self.store.finish, finding, status, result)
             self.llm_failures = 0
-            self.store.update(llm_failures=0, circuit_open=False)
-            self.store.update(
+            await self.storage(self.store.update, llm_failures=0, circuit_open=False)
+            await self.storage(
+                self.store.update,
                 last_investigation=utc_now().isoformat(),
                 llm="AVAILABLE" if budget else "DISABLED",
                 last_error=None,
             )
         except asyncio.CancelledError:
-            self.store.finish(
+            await self.storage(
+                self.store.finish,
                 finding,
                 "BLOCKED" if budget and budget.calls else "PENDING",
                 {
@@ -286,7 +316,8 @@ class LinuxMonitor:
                 else "SETTLED",
                 "write_disposition": "WRITE_DENIED",
             }
-            self.store.finish(
+            await self.storage(
+                self.store.finish,
                 finding,
                 "PENDING" if retry else "FAILED",
                 result,
@@ -295,53 +326,76 @@ class LinuxMonitor:
                 else None,
             )
             self.circuit_open = self.llm_failures >= self.config.circuit_failures
-            self.store.update(llm_failures=self.llm_failures, circuit_open=self.circuit_open)
-            self.store.update(
+            await self.storage(
+                self.store.update, llm_failures=self.llm_failures, circuit_open=self.circuit_open
+            )
+            await self.storage(
+                self.store.update,
                 last_error=failure_code if isinstance(error, ValueError) else type(error).__name__,
                 llm="CIRCUIT_OPEN" if self.circuit_open else "UNAVAILABLE",
                 last_investigation=utc_now().isoformat(),
             )
 
     async def tick(self):
-        if self.stop_event.is_set() or self.store.state()["stop_requested"]:
+        if self.stop_event.is_set() or (await self.storage(self.store.state))["stop_requested"]:
             return False
-        health = collect_with_health(
-            self.pipeline, self.collector, audit=self.audit, limit=self.config.batch_size
+        health = await self.storage(
+            collect_with_health,
+            self.pipeline,
+            self.collector,
+            audit=self.audit,
+            limit=self.config.batch_size,
         )
-        self.store.update(collector=health.status, cursor_health=health.status)
+        if not health.continuation_allowed:
+            await self.storage(
+                self.store.update, collector=health.status, cursor_health=health.status
+            )
         if health.continuation_allowed:
             self.collection_failures = 0
-            self.store.update(last_collection=utc_now().isoformat())
+            await self.storage(self.store.update, last_collection=utc_now().isoformat())
         elif health.status in (
             "GAP_DETECTED",
             "CURSOR_INVALID",
             "PERMISSION_DENIED",
             "STORE_FAILURE",
         ):
-            self.store.event("COLLECTION_FATAL", {"status": health.status})
+            await self.storage(self.store.event, "COLLECTION_FATAL", {"status": health.status})
             raise ValueError(health.status)
         elif health.status != "BACKPRESSURE":
             self.collection_failures += 1
-            self.store.event(
-                "COLLECTION_RETRY", {"status": health.status, "attempt": self.collection_failures}
+            await self.storage(
+                self.store.event,
+                "COLLECTION_RETRY",
+                {"status": health.status, "attempt": self.collection_failures},
             )
             if self.collection_failures > self.config.collector_retry_limit:
                 raise ValueError("COLLECTOR_RETRY_LIMIT")
-        self.store.update(collection_failures=self.collection_failures)
+        await self.storage(self.store.update, collection_failures=self.collection_failures)
         for _ in range(self.config.worker_batch):
-            if self.stop_event.is_set() or self.store.state()["stop_requested"]:
+            if self.stop_event.is_set() or (await self.storage(self.store.state))["stop_requested"]:
                 break
-            if self.pipeline.step() == "IDLE":
+            if await self.storage(self.pipeline.step) == "IDLE":
                 break
-        if self.stop_event.is_set() or self.store.state()["stop_requested"]:
+        if self.stop_event.is_set() or (await self.storage(self.store.state))["stop_requested"]:
             return False
-        for finding in correlate(self.pipeline, self.config):
-            self.store.put(finding)
+        for finding in await self.storage(correlate, self.pipeline, self.config):
+            await self.storage(self.store.put, finding)
+        if health.continuation_allowed:
+            # READY must not expose an unprocessed initial ingestion batch.
+            # Investigation/LLM completion is a separate state and is not awaited.
+            await self.storage(
+                self.store.update, collector=health.status, cursor_health=health.status
+            )
         await self.investigate_one()
-        if not self.stop_event.is_set() and not self.store.state()["stop_requested"]:
-            self.simulation.prepare_completed()
-        self.store.update(
-            detection="IDLE", investigation="CIRCUIT_OPEN" if self.circuit_open else "IDLE"
+        if (
+            not self.stop_event.is_set()
+            and not (await self.storage(self.store.state))["stop_requested"]
+        ):
+            await self.storage(self.simulation.prepare_completed)
+        await self.storage(
+            self.store.update,
+            detection="IDLE",
+            investigation="CIRCUIT_OPEN" if self.circuit_open else "IDLE",
         )
         return True
 
@@ -353,19 +407,20 @@ class LinuxMonitor:
         ):
             raise ValueError("RUNTIME_DURATION_INVALID")
         with exclusive_runtime_lock(self.directory / "writer.lock"):
-            self.pipeline.queue.recover()
-            self.store.recover()
-            self.simulation.recover()
-            self.store.request_stop(False)
+            await self.storage(self.pipeline.queue.recover)
+            await self.storage(self.store.recover)
+            await self.storage(self.simulation.recover)
+            await self.storage(self.store.request_stop, False)
             from soc_agent.continuous.process_identity import runtime_identity
 
-            self.store.update(
+            await self.storage(
+                self.store.update,
                 state="RUNNING",
                 started_at=utc_now().isoformat(),
                 last_error=None,
                 runtime_identity=runtime_identity(os.getpid()),
             )
-            self.store.event("RUNTIME_STARTED", {"config": self.config.digest})
+            await self.storage(self.store.event, "RUNTIME_STARTED", {"config": self.config.digest})
             start = monotonic()
             task = None
             operator = None
@@ -388,12 +443,21 @@ class LinuxMonitor:
                     task = asyncio.create_task(self.tick())
                     while not task.done():
                         await asyncio.sleep(0.1)
-                        stopping = self.stop_event.is_set() or self.store.state()["stop_requested"]
+                        operator_stop = (
+                            self.stop_event.is_set()
+                            or (await self.storage(self.store.state))["stop_requested"]
+                        )
+                        stopping = operator_stop
                         stopping |= (
                             duration_seconds is not None and monotonic() - start >= duration_seconds
                         )
                         if stopping:
                             self.stop_event.set()
+                            if operator_stop:
+                                # A second full 5s grace leaves no time for the
+                                # parent's unchanged 5s exit/ACK budget. Cancel
+                                # read-only work now; storage() still joins I/O.
+                                task.cancel()
                             try:
                                 await asyncio.wait_for(
                                     asyncio.shield(task), timeout=self.config.shutdown_seconds
@@ -401,6 +465,9 @@ class LinuxMonitor:
                             except TimeoutError:
                                 task.cancel()
                                 await asyncio.gather(task, return_exceptions=True)
+                            except asyncio.CancelledError:
+                                if not task.cancelled() or asyncio.current_task().cancelling():
+                                    raise
                             break
                     if task.cancelled() or not await task:
                         break
@@ -409,20 +476,24 @@ class LinuxMonitor:
                         await asyncio.wait_for(self.stop_event.wait(), timeout=delay)
                     except TimeoutError:
                         continue
-                self.store.update(state="STOPPING")
-                self.store.event("RUNTIME_STOPPING", {})
-                self.store.update(state="STOPPED")
-                self.store.event("RUNTIME_STOPPED", {})
+                await self.storage(self.store.update, state="STOPPING")
+                await self.storage(self.store.event, "RUNTIME_STOPPING", {})
+                await self.storage(self.store.update, state="STOPPED")
+                await self.storage(self.store.event, "RUNTIME_STOPPED", {})
             except asyncio.CancelledError:
                 if task is not None and not task.done():
                     task.cancel()
                     await asyncio.gather(task, return_exceptions=True)
-                self.store.update(state="STOPPED", last_error="CANCELLED")
-                self.store.event("RUNTIME_CANCELLED", {})
+                await self.storage(self.store.update, state="STOPPED", last_error="CANCELLED")
+                await self.storage(self.store.event, "RUNTIME_CANCELLED", {})
                 raise
             except (ValueError, StorageError, OSError) as error:
-                self.store.update(state="FAILED", last_error=type(error).__name__)
-                self.store.event("RUNTIME_FAILED", {"failure": type(error).__name__})
+                await self.storage(
+                    self.store.update, state="FAILED", last_error=type(error).__name__
+                )
+                await self.storage(
+                    self.store.event, "RUNTIME_FAILED", {"failure": type(error).__name__}
+                )
                 raise
             finally:
                 if network is not None and network_task is not None:
@@ -430,6 +501,6 @@ class LinuxMonitor:
                     try:
                         await asyncio.wait_for(network_task, timeout=self.config.shutdown_seconds)
                     except TimeoutError:
-                        self.store.event("NETWORK_SHUTDOWN_UNCERTAIN", {})
+                        await self.storage(self.store.event, "NETWORK_SHUTDOWN_UNCERTAIN", {})
                 if operator is not None:
                     await operator.close()

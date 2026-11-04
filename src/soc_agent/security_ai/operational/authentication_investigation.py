@@ -1,5 +1,6 @@
 """Read-only storage investigation, never model evidence or response authority."""
 
+import asyncio
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -272,7 +273,7 @@ def authentication_read_registry(pipeline: AuthenticationPipeline) -> ToolRegist
     async def read(query: AuthenticationReadQuery) -> AuthenticationReadView:
         if query.incident_id != pipeline.incident_id:
             raise ValueError("AUTH_READ_INCIDENT_DENIED")
-        view = read_authentication_view(pipeline)
+        view = await _joined_read_view(pipeline)
         if (
             query.expected_evidence_digest is not None
             and view.evidence_digest != query.expected_evidence_digest
@@ -296,9 +297,23 @@ def authentication_read_registry(pipeline: AuthenticationPipeline) -> ToolRegist
     return registry
 
 
+async def _joined_read_view(pipeline: AuthenticationPipeline) -> AuthenticationReadView:
+    pending = asyncio.create_task(asyncio.to_thread(read_authentication_view, pipeline))
+    cancelled = None
+    while True:
+        try:
+            result = await asyncio.shield(pending)
+            break
+        except asyncio.CancelledError as error:
+            cancelled = cancelled or error
+    if cancelled:
+        raise cancelled
+    return result
+
+
 async def investigate_authentication(pipeline: AuthenticationPipeline) -> InvestigationResult:
     """Existing orchestration/policy/approval/execution with one read step; no LLM."""
-    view = read_authentication_view(pipeline)
+    view = await _joined_read_view(pipeline)
     registry = authentication_read_registry(pipeline)
     executor = GovernedExecutor(
         registry=registry, policy=PolicyEngine(), approvals=ApprovalManager()

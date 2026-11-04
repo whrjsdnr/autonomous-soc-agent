@@ -73,19 +73,36 @@ def approve_fixture(store, *, reject=False):
     store.config.managed_authentication.approval_file.write_text(decision.model_dump_json())
 
 
+def journal_fixture_rows(seconds=(1, 2, 3), messages=None):
+    from tests.unit.operational_features.test_native_authentication import row
+
+    message = "Failed password for fixture-user from 192.0.2.5 port 34567 ssh2"
+    return [
+        row(i + 1, second, messages[i] if messages else message) for i, second in enumerate(seconds)
+    ]
+
+
 def mock_journal_child(monkeypatch, *, denied=False, seconds=(1, 2, 3), messages=None):
+    rows = journal_fixture_rows(seconds, messages)
     original = asyncio.create_subprocess_exec
     # Keep the real CLI, monitor, parser, queue, stores, signal handlers and audit.
     # The child patches only the unavailable Host Journal command boundary.
-    bootstrap = (
-        """
-import json, runpy, sys
+    bootstrap = """
+import json, runpy, sys, os, time, threading
+from pathlib import Path
+trace = (Path(sys.argv[sys.argv.index("--directory")+1]).parent
+         / "authentication-fixture-startup.jsonl")
+def mark(stage):
+    value = dict(stage=stage,monotonic=time.monotonic(),cpu_seconds=time.process_time(),
+                 pid=os.getpid(),thread=threading.get_ident())
+    fd = os.open(trace,os.O_WRONLY|os.O_APPEND|os.O_CREAT|os.O_NOFOLLOW,0o600)
+    try: os.write(fd,(json.dumps(value)+"\\n").encode())
+    finally: os.close(fd)
+mark("SCRIPT_READY")
 from soc_agent.realtime.collectors import LinuxJournalCollector, CollectorUnavailable
 from soc_agent.security_ai.operational import native_authentication
-from tests.unit.operational_features.test_native_authentication import row
-message = "Failed password for fixture-user from 192.0.2.5 port 34567 ssh2"
-rows = [row(i + 1, second, MESSAGES[i] if MESSAGES else message)
-        for i, second in enumerate(SECONDS)]
+rows = json.loads(ROWS_JSON)
+mark("JOURNAL_BOUNDARY_IMPORTED")
 def available(self): self.command = "/fixture/journalctl"
 def command(arguments):
     if DENIED: raise CollectorUnavailable("PERMISSION_DENIED:fixture")
@@ -97,12 +114,29 @@ def command(arguments):
     return "\\n".join(json.dumps(r) for r in rows) + "\\n"
 LinuxJournalCollector.__init__ = available
 native_authentication.bounded_command = command
+from soc_agent.linux_runtime.service import LinuxMonitor
+mark("SERVICE_IMPORTED")
+assert "pytest" not in sys.modules, "TEST_FRAMEWORK_IN_CHILD_STARTUP_BUDGET"
+original_init = LinuxMonitor.__init__
+def initialize(self,*args,**kwargs):
+    mark("INITIALIZE_BEGIN")
+    try: return original_init(self,*args,**kwargs)
+    finally: mark("INITIALIZE_END")
+LinuxMonitor.__init__ = initialize
+original_run = LinuxMonitor.run
+async def run(self,*args,**kwargs):
+    mark("RUN_BEGIN")
+    try: return await original_run(self,*args,**kwargs)
+    finally: mark("RUN_END")
+LinuxMonitor.run = run
+original_stop = LinuxMonitor.request_stop
+def stop(self):
+    mark("STOP_RECEIVED")
+    return original_stop(self)
+LinuxMonitor.request_stop = stop
 sys.argv = ["soc_agent.linux_runtime"] + sys.argv[1:]
 runpy.run_module("soc_agent.linux_runtime", run_name="__main__")
-""".replace("if DENIED:", f"if {denied}:")
-        .replace("SECONDS", repr(seconds))
-        .replace("MESSAGES", repr(messages))
-    )
+""".replace("if DENIED:", f"if {denied}:").replace("ROWS_JSON", repr(json.dumps(rows)))
 
     async def spawn(*args, **kwargs):
         assert args[1:4] == ("-B", "-m", "soc_agent.linux_runtime")

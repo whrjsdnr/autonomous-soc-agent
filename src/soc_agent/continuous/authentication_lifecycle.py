@@ -145,6 +145,7 @@ class AuthenticationLifecycle:
         self.log = None
         self.state = "NOT_STARTED"
         self.cleanup_written = False
+        self._reader = None
         self.evidence = dict(cleanup="NOT_STARTED", stop_ack=False)
 
     def snapshot(self):
@@ -165,7 +166,17 @@ class AuthenticationLifecycle:
         )
 
     def _read(self):
-        return RuntimeStore(self.directory).state()
+        return RuntimeStore.observation(self.directory)
+
+    async def _observe(self, timeout):
+        if self._reader is not None and not self._reader.done():
+            raise ValueError("AUTHENTICATION_STATE_READER_STILL_PENDING")
+        self._reader = asyncio.create_task(asyncio.to_thread(self._read))
+        return await asyncio.wait_for(asyncio.shield(self._reader), timeout)
+
+    async def _join_reader(self, timeout):
+        if self._reader is not None:
+            await asyncio.wait_for(asyncio.shield(self._reader), max(0.001, timeout))
 
     async def start(self) -> None:
         async def launch(value):
@@ -186,7 +197,7 @@ class AuthenticationLifecycle:
             raise
 
     async def _start_owned(self, proposed, receipt):
-        saved = await asyncio.to_thread(self._read)
+        saved = await self._observe(5)
         if saved["state"] != "STOPPED":
             raise ValueError("AUTHENTICATION_RUNTIME_NOT_STOPPED")
         await asyncio.to_thread(
@@ -231,9 +242,7 @@ class AuthenticationLifecycle:
         while time.monotonic() < deadline:
             if self.process.returncode is not None:
                 raise ValueError("AUTHENTICATION_CHILD_EXIT_BEFORE_READY")
-            observed = await asyncio.wait_for(
-                asyncio.to_thread(self._read), max(0.001, deadline - time.monotonic())
-            )
+            observed = await self._observe(max(0.001, deadline - time.monotonic()))
             if (
                 observed.get("runtime_identity") == self.identity
                 and observed.get("collector")
@@ -253,7 +262,7 @@ class AuthenticationLifecycle:
                 if self.process.returncode is not None:
                     raise ValueError("AUTHENTICATION_CHILD_EXITED_DURING_COLLECTION")
                 try:
-                    state = await asyncio.wait_for(asyncio.to_thread(self._read), 5)
+                    state = await self._observe(5)
                 except TimeoutError as error:
                     raise ValueError("AUTHENTICATION_STATE_OBSERVATION_TIMEOUT") from error
                 # STOP can arrive while the read is in flight. Liveness applies
@@ -280,6 +289,7 @@ class AuthenticationLifecycle:
         if self.evidence.get("cleanup") == "VERIFIED":
             return
         if self.process is None:
+            await self._join_reader(5)
             if self.log is not None:
                 self.log.close()
             return
@@ -298,6 +308,10 @@ class AuthenticationLifecycle:
                 if same_runtime(self.identity):
                     self.process.kill()
                 await asyncio.wait_for(self.process.wait(), 5)
+            # A timed-out/cancelled observation still owns its SQLite reader.
+            # It must finish before any resource Cleanup claim, within the
+            # existing STOP budget, without issuing another observation.
+            await self._join_reader(requested + 5 - time.monotonic())
             auth = await asyncio.to_thread(RuntimeStore, self.directory)
             state = await asyncio.to_thread(auth.state)
             await asyncio.to_thread(auth.verify_audit)
@@ -338,6 +352,7 @@ class AuthenticationLifecycle:
                 returncode=self.process.returncode,
                 forced=forced,
                 child_reaped=True,
+                state_reader_joined=self._reader is None or self._reader.done(),
                 queue_counts=queue_counts,
                 queue_drained=not any(queue_counts.get(k, 0) for k in ("PENDING", "CLAIMED")),
                 investigation_jobs=jobs,

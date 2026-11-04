@@ -87,9 +87,13 @@ async def test_dns_status_reader_lock_does_not_block_control_or_stop(tmp_path):
 
     service.dns_source = SlowDNSStatus()
     pending = asyncio.create_task(service.observed_snapshot())
-    control = asyncio.create_task(service.control())
+    # This scenario requires two concurrent status requests. The data snapshot
+    # must reach the status reader before the independent Control observer; DB
+    # latency before that point is tested separately, not assumed to be <0.4s.
+    control = None
     try:
         assert await asyncio.to_thread(entered.wait, 1)
+        control = asyncio.create_task(service.control())
         await asyncio.sleep(0.4)
         value = shown(directory)
         assert value["control"]["sequence"] >= 2
@@ -103,7 +107,8 @@ async def test_dns_status_reader_lock_does_not_block_control_or_stop(tmp_path):
         release.set()
         await pending
         service.stop.set()
-        await control
+        if control:
+            await control
     assert len(reader_threads) == 1 and reader_threads[0] != loop_thread
 
 
