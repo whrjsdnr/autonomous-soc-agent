@@ -1,6 +1,7 @@
 """Real stores and status projection; only the Host reader is replaced."""
 
 import json
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -115,4 +116,55 @@ async def test_empty_readable_journal_reaches_ready_and_ack_without_inference(
         await child.close()
     assert child.evidence["stop_ack"]
     assert child.evidence["cleanup"] == "VERIFIED"
+    assert child.evidence["queue_counts"] == {}
+
+
+@pytest.mark.asyncio
+async def test_source_unavailable_can_be_a_stop_consequence_after_ready_timeout(
+    tmp_path, monkeypatch
+):
+    from tests.integration.linux_runtime.test_managed_authentication_lifecycle import (
+        approve_fixture,
+        mock_journal_child,
+        prepare,
+    )
+
+    from soc_agent.continuous.authentication_lifecycle import AuthenticationLifecycle
+
+    store = prepare(tmp_path)
+    approve_fixture(store)
+    # Only the Journal boundary is held by an Event. The real five-second
+    # admission deadline and owned child STOP/ACK/cleanup remain unchanged.
+    mock_journal_child(monkeypatch, held_until_stop=True)
+    child = AuthenticationLifecycle(store)
+    try:
+        with pytest.raises(ValueError, match="AUTHENTICATION_READY_TIMEOUT"):
+            await child.start()
+        timeout_observed = time.monotonic()
+        assert child.state == "FAILED"
+        assert child.startup_diagnostic["collector"] == "NOT_STARTED"
+        assert (
+            child.startup_diagnostic["deadline_monotonic"]
+            - child.startup_diagnostic["spawned_monotonic"]
+            == 5
+        )
+    finally:
+        await child.close()
+
+    trace = [
+        json.loads(line)
+        for line in (store.directory / "authentication-fixture-startup.jsonl")
+        .read_text()
+        .splitlines()
+    ]
+    stages = {row["stage"]: row["monotonic"] for row in trace}
+    assert stages["JOURNAL_COMMAND_BEGIN"] < timeout_observed
+    assert timeout_observed <= stages["STOP_RECEIVED"]
+    assert stages["STOP_RECEIVED"] <= stages["JOURNAL_COMMAND_TERMINATED_AFTER_STOP"]
+    observed = status(child.directory)
+    assert child._read()["collector"] == "SOURCE_UNAVAILABLE"
+    command = observed["collection_diagnostic"]["command_observation"]
+    assert command["returncode"] == -15
+    assert command["finished_monotonic"] >= stages["STOP_RECEIVED"]
+    assert child.evidence["stop_ack"] and child.evidence["cleanup"] == "VERIFIED"
     assert child.evidence["queue_counts"] == {}

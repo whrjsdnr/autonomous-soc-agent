@@ -82,12 +82,15 @@ def journal_fixture_rows(seconds=(1, 2, 3), messages=None):
     ]
 
 
-def mock_journal_child(monkeypatch, *, denied=False, seconds=(1, 2, 3), messages=None):
+def mock_journal_child(
+    monkeypatch, *, denied=False, seconds=(1, 2, 3), messages=None, held_until_stop=False
+):
     rows = journal_fixture_rows(seconds, messages)
     original = asyncio.create_subprocess_exec
     # Keep the real CLI, monitor, parser, queue, stores, signal handlers and audit.
     # The child patches only the unavailable Host Journal command boundary.
-    bootstrap = """
+    bootstrap = (
+        """
 import json, runpy, sys, os, time, threading
 from pathlib import Path
 trace = (Path(sys.argv[sys.argv.index("--directory")+1]).parent
@@ -99,12 +102,23 @@ def mark(stage):
     try: os.write(fd,(json.dumps(value)+"\\n").encode())
     finally: os.close(fd)
 mark("SCRIPT_READY")
-from soc_agent.realtime.collectors import LinuxJournalCollector, CollectorUnavailable
+from soc_agent.realtime.collectors import (
+    LinuxJournalCollector, CollectorUnavailable, CommandObservation,
+)
 from soc_agent.security_ai.operational import native_authentication
 rows = json.loads(ROWS_JSON)
 mark("JOURNAL_BOUNDARY_IMPORTED")
 def available(self): self.command = "/fixture/journalctl"
+source_release = threading.Event()
 def command(arguments):
+    if HELD_UNTIL_STOP:
+        began = time.monotonic()
+        mark("JOURNAL_COMMAND_BEGIN")
+        assert source_release.wait(12), "FIXTURE_STOP_NOT_RECEIVED"
+        mark("JOURNAL_COMMAND_TERMINATED_AFTER_STOP")
+        raise CollectorUnavailable("fixture command stopped", failure_code="COMMAND_EXIT_NONZERO",
+            command_observation=CommandObservation(started_monotonic=began,
+                finished_monotonic=time.monotonic(),returncode=-15))
     if DENIED: raise CollectorUnavailable("PERMISSION_DENIED:fixture")
     assert arguments[0] == "/fixture/journalctl"
     assert arguments[-4:] == ["SYSLOG_FACILITY=4", "SYSLOG_FACILITY=10", "+", "_COMM=sshd"]
@@ -132,11 +146,15 @@ LinuxMonitor.run = run
 original_stop = LinuxMonitor.request_stop
 def stop(self):
     mark("STOP_RECEIVED")
+    source_release.set()
     return original_stop(self)
 LinuxMonitor.request_stop = stop
 sys.argv = ["soc_agent.linux_runtime"] + sys.argv[1:]
 runpy.run_module("soc_agent.linux_runtime", run_name="__main__")
-""".replace("if DENIED:", f"if {denied}:").replace("ROWS_JSON", repr(json.dumps(rows)))
+""".replace("if DENIED:", f"if {denied}:")
+        .replace("if HELD_UNTIL_STOP:", f"if {held_until_stop}:")
+        .replace("ROWS_JSON", repr(json.dumps(rows)))
+    )
 
     async def spawn(*args, **kwargs):
         assert args[1:4] == ("-B", "-m", "soc_agent.linux_runtime")
