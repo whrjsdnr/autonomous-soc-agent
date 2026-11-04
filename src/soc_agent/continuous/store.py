@@ -2,6 +2,7 @@
 
 import json
 import os
+import sqlite3
 import tempfile
 from pathlib import Path
 from uuid import NAMESPACE_URL, uuid5
@@ -12,9 +13,20 @@ from soc_agent.realtime.queue import EventQueue
 from soc_agent.review.identity import content_digest
 from soc_agent.review.persistence.database import GovernanceDatabase
 from soc_agent.review.persistence.secure_storage import create_private_directory
-from soc_agent.security_ai.external.runtime_store import DDL, audit, validate_audit
 from soc_agent.security_ai.research.models import digest
 from soc_agent.state.evidence import utc_now
+
+
+def audit(connection: sqlite3.Connection, code: str, *, binding_digest: str | None = None) -> None:
+    from soc_agent.security_ai.external.runtime_store import audit as append
+
+    return append(connection, code, binding_digest=binding_digest)
+
+
+def validate_audit(connection: sqlite3.Connection) -> None:
+    from soc_agent.security_ai.external.runtime_store import validate_audit as validate
+
+    return validate(connection)
 
 
 class Store:
@@ -32,6 +44,8 @@ class Store:
 
     @classmethod
     def create(cls, directory, config):
+        from soc_agent.security_ai.external.runtime_store import DDL
+
         if directory.exists():
             raise ValueError("CONTINUOUS_NEW_DIRECTORY_REQUIRED")
         create_private_directory(directory, exist_ok=False)
@@ -192,9 +206,13 @@ class Store:
             return value | dict(stop_requested=bool(row["stop"]), reset_worker=bool(row["reset"]))
 
     def control(self, *, stop=False, reset=False):
+        # Resolve the unchanged audit implementation before acquiring SQLite's
+        # write lock; application imports must never lengthen a transaction.
+        from soc_agent.security_ai.external.runtime_store import audit as append
+
         with self.database.transaction() as c:
             c.execute("UPDATE continuous_state SET stop=?,reset=?", (int(stop), int(reset)))
-            audit(c, "CONTINUOUS_STOP_REQUEST" if stop else "CONTINUOUS_OPERATOR_REQUEST")
+            append(c, "CONTINUOUS_STOP_REQUEST" if stop else "CONTINUOUS_OPERATOR_REQUEST")
 
     def enqueue(self, job):
         from soc_agent.security_ai.research.service import write_new

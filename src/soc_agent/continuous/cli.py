@@ -107,7 +107,7 @@ def _freshness(value, heartbeat_seconds):
         and str(value.get("cleanup", "")).startswith("UNVERIFIED")
     )
     if (
-        value.get("state") in ("RUNNING", "DEGRADED")
+        value.get("state") in ("STARTING", "RUNNING", "DEGRADED")
         and value["heartbeat_stale"]
         and not terminal_failure
     ):

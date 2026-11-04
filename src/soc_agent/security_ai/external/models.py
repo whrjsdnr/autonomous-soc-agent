@@ -247,3 +247,11 @@ class AdapterOutcome(Snapshot):
         elif self.result.validation != self.validation:
             raise ValueError("Outcome status differs from result")
         return self
+
+
+class FeatureRow(Snapshot):
+    """Shared wire contract; importing source events must not compose the SOC app."""
+
+    event_id: UUID
+    profiles: tuple[Profile, ...]
+    observation: SourceFeatureObservation

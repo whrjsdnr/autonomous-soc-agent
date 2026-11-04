@@ -175,6 +175,7 @@ class ContinuousRuntime:
         self.control_health = dict(last_seconds=None, max_seconds=0.0, error=None)
         self.data_progress = dict(active=False, operation=None, started_monotonic=None)
         self.control_identity = None
+        self.startup = None
         self.data_stall_evidence = None
         self.data_stalled = False
         self.data_degradation_count = 0
@@ -212,12 +213,15 @@ class ContinuousRuntime:
             authentication=authentication,
             mode="CONTINUOUS",
             source=self.config.source,
+            startup=dict(self.startup) if self.startup else None,
             state="DEGRADED"
             if self.circuit
             or self.data_stalled
             or self.last_error
             or self.collector_state == "CIRCUIT_OPEN"
             or getattr(self.source, "failure", None)
+            else "STARTING"
+            if self.startup and self.startup["stage"] != "COMPLETE"
             else "RUNNING",
             service_pid=os.getpid(),
             collector=(
@@ -483,6 +487,10 @@ class ContinuousRuntime:
         stalled = False
         try:
             while True:
+                # DNS can be initialized after Control starts. Observe that
+                # same producer as soon as it exists; never create another one.
+                if dns_observer is None and self.dns_source is not None:
+                    dns_observer = asyncio.create_task(self.observe_dns_status())
                 if dns_observer and dns_observer.done():
                     try:
                         dns_observer.result()
@@ -1290,14 +1298,41 @@ class ContinuousRuntime:
             authentication_worker = host_auth_worker = None
             primary = None
             try:
-                # Clear the prior invocation's flags before the first asynchronous
-                # initialization. A STOP arriving during that initialization must
-                # survive until the supervisor reads it.
-                self.store.control()
-                from soc_agent.continuous.investigation import isolated_consume as investigate
+                # Clear prior durable flags before data-plane initialization.
+                # Signal STOP remains in self.stop while this asynchronous work
+                # runs; it must not start new collectors after cancellation.
+                self.startup = dict(stage="CONTROL_FLAGS", started_monotonic=time.monotonic())
+                if self.control_identity is not None:
+                    control = asyncio.create_task(self.control())
+                await self.storage(self.store.control)
                 from soc_agent.continuous.investigation_store import InvestigationTasks
 
+                self.startup["stage"] = "INVESTIGATION_STORAGE"
                 self.investigations = await self.storage(InvestigationTasks, self.store)
+                if self.stop.is_set():
+                    if control:
+                        await control  # Preserve a publication failure as the primary error.
+                    return
+
+                async def investigate(*args, **kwargs):
+                    # The existing investigation thread/runtime is reused. Import
+                    # its AI/application dependencies off the Control loop too.
+                    from importlib import import_module
+
+                    loading = asyncio.create_task(
+                        asyncio.to_thread(import_module, "soc_agent.continuous.investigation")
+                    )
+                    try:
+                        module = await asyncio.shield(loading)
+                    except asyncio.CancelledError:
+                        # Never declare cleanup while an owned import thread is
+                        # still initializing modules/file handles.
+                        await loading
+                        raise
+                    if not self.stop.is_set():
+                        await module.isolated_consume(*args, **kwargs)
+
+                self.startup["stage"] = "QUEUE_RECOVERY"
                 investigation_worker = asyncio.create_task(
                     investigate(
                         self.investigations,
@@ -1309,37 +1344,49 @@ class ContinuousRuntime:
                 if self.config.dns_session and self.dns_source is None:
                     from soc_agent.continuous.dns_source import DNSProducer
 
-                    self.dns_source = DNSProducer(
-                        self.config.dns_session, self.config.dns_session_sha256
+                    self.dns_source = await self.storage(
+                        DNSProducer, self.config.dns_session, self.config.dns_session_sha256
                     )
-                self.store.queue.recover()
-                self.store.event(
+                await self.storage(self.store.queue.recover)
+                await self.storage(
+                    self.store.event,
                     "CONTINUOUS_SERVICE_STARTED",
                     dict(pid=os.getpid(), epoch=str(self.epoch), source=self.config.source),
                 )
+                if self.stop.is_set():
+                    if control:
+                        await control  # Preserve a publication failure as the primary error.
+                    return
                 if self.auth_lifecycle:
+                    self.startup["stage"] = "AUTHENTICATION_READY"
                     await self.auth_lifecycle.start()
                     authentication_worker = asyncio.create_task(
                         self.auth_lifecycle.watch(self.stop)
                     )
                 if self.config.source != "NATIVE_SERVICE":
-                    for retained in self.store.retained():
+                    for retained in await self.storage(self.store.retained):
                         await self.observe(retained, recovering=True)
                         self.metrics["recovered_events"] += 1
-                    self.store.event(
-                        "CONTINUOUS_INGRESS_REBUILT", dict(count=self.metrics["recovered_events"])
+                    await self.storage(
+                        self.store.event,
+                        "CONTINUOUS_INGRESS_REBUILT",
+                        dict(count=self.metrics["recovered_events"]),
                     )
                 if self.config.source == "NATIVE_SERVICE":
-                    for raw in self.store.auxiliary():
+                    for raw in await self.storage(self.store.auxiliary):
                         if raw.get("kind") in ("native_tcx", "native_seal"):
                             jobs, _ = await self.storage(self.capture_windows.accept, raw)
                             for job in jobs:
                                 await self.handoff(job)
                         elif raw.get("kind") == "native_dns":
                             await self.project_dns(raw, recovering=True)
+                if self.stop.is_set():
+                    if control:
+                        await control  # Preserve a publication failure as the primary error.
+                    return
                 if self.journal:
-                    self.journal.recover()
-                    for retained in self.store.auxiliary():
+                    await self.storage(self.journal.recover)
+                    for retained in await self.storage(self.store.auxiliary):
                         if retained.get("kind") not in ("native_tcx", "native_seal", "native_dns"):
                             await self.project_journal(retained)
                     journal = asyncio.create_task(self.collect_journal())
@@ -1347,10 +1394,13 @@ class ContinuousRuntime:
                     dns_task = asyncio.create_task(self.collect_dns())
                 if self.auth_lifecycle and self.config.authentication_packages:
                     host_auth_worker = asyncio.create_task(self.collect_host_authentication())
+                if self.stop.is_set():
+                    if control:
+                        await control  # Preserve a publication failure as the primary error.
+                    return
+                self.startup.update(stage="COMPLETE", completed_monotonic=time.monotonic())
                 collector = asyncio.create_task(self.collect())
                 consumer = asyncio.create_task(self.consume())
-                if self.control_identity is not None:
-                    control = asyncio.create_task(self.control())
                 while not self.stop.is_set():
                     if control and control.done():
                         control.result()

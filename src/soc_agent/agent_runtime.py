@@ -355,7 +355,7 @@ def start(home: Path, *, preview: bool = False, gui: bool = False) -> dict:
         if artifact.get("status") == "FAIL":
             raise ValueError(artifact["code"])
         current = status(home)
-        if current.get("state") in {"RUNNING", "DEGRADED", "STOPPING"}:
+        if current.get("state") in {"STARTING", "RUNNING", "DEGRADED", "STOPPING"}:
             raise ValueError("AGENT_ALREADY_RUNNING")
         if selected.configuration.source == "NATIVE_SERVICE":
             from soc_agent.agent_native import validate_plan

@@ -148,7 +148,7 @@ def prior_session(home: Path) -> str:
     selected = profile(home)
     execution = selected.review / "execution" if selected.review else None
     current = status(home)
-    if current.get("state") in {"RUNNING", "DEGRADED", "STOPPING"}:
+    if current.get("state") in {"STARTING", "RUNNING", "DEGRADED", "STOPPING"}:
         raise ValueError("AGENT_ALREADY_RUNNING")
     markers = (
         "scope-confirmed.json",

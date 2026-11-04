@@ -18,11 +18,11 @@ from soc_agent.review.identity import content_digest
 from soc_agent.review.persistence.models import StorageError
 from soc_agent.security_ai.external.metadata import reviewed_binding
 from soc_agent.security_ai.external.models import (
+    FeatureRow as FeatureRow,
+)
+from soc_agent.security_ai.external.models import (
     IncidentAssociation,
-    Profile,
-    Snapshot,
     SourceEvidenceReference,
-    SourceFeatureObservation,
     content_digest_payload,
 )
 from soc_agent.security_ai.external.read_only_backend import CapabilityDenied
@@ -35,12 +35,6 @@ CODE_PIN = "56293972d069dffaf564a390ab7a4c4554c2a2a5b2ab6be6f6f758b5ea3cce44"
 CONTRACT = content_digest_payload(
     {"runtime": "soc-external-runtime:v1", "schema": 16, "disposition": "READ_ONLY"}
 )
-
-
-class FeatureRow(Snapshot):
-    event_id: UUID
-    profiles: tuple[Profile, ...]
-    observation: SourceFeatureObservation
 
 
 def read_features(path: Path) -> dict[UUID, list[FeatureRow]]:

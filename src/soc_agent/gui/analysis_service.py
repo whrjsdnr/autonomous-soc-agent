@@ -14,9 +14,15 @@ from pathlib import Path
 from uuid import uuid4
 
 from soc_agent.review.persistence.secure_storage import create_private_directory
-from soc_agent.security_ai.offline_workflow import verify_result
 from soc_agent.security_ai.research.environment import read_local
 from soc_agent.security_ai.workflow_models import JOB, AnalysisOutcome
+
+
+def verify_result(directory: Path) -> AnalysisOutcome:
+    # Verification stays unchanged; only the already-finished worker needs it.
+    from soc_agent.security_ai.offline_workflow import verify_result as verify
+
+    return verify(directory)
 
 
 def project_result(result: AnalysisOutcome) -> dict:
