@@ -1,0 +1,71 @@
+{
+  "user_files": 164,
+  "user_unchanged": true,
+  "user_mismatches": [],
+  "historical_files": 797,
+  "historical_unchanged": true,
+  "historical_mismatches": [],
+  "root_eight": [
+    {
+      "path": "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+      "sha256": "4b36f322ef409220bfd1c5bae7ef30b36022caf40f85a2f812b9c2a47f46a002",
+      "inode": 2451423,
+      "mtime_ns": 1793612680535955501,
+      "unchanged": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-tcp-trial.service",
+      "sha256": "c78030d783a01e03cf3a2ab2df41df14889cb748bde1ed4d7d8068dc30cc4f4b",
+      "inode": 2084939,
+      "mtime_ns": 1793357834000244581,
+      "unchanged": true
+    },
+    {
+      "path": "/etc/soc-agent/continuous-installation.json",
+      "sha256": "d2d56ba8b9b7185a365db763f75a7a20c0c6eea1794e0b25e40de4a57284a359",
+      "inode": 2722101,
+      "mtime_ns": 1793689596433375459,
+      "unchanged": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-operations-runtime.service",
+      "sha256": "02d4644162cbadba5dabdfbf2b8daa5e52fa7c8b02b32a3efd9f731b308a4ec2",
+      "inode": 2722103,
+      "mtime_ns": 1793689596460969203,
+      "unchanged": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-dns.service",
+      "sha256": "1fa70b4c29e5b841fec12e9512d35aede2c810ef6675992255f34bfd272a7e5b",
+      "inode": 2722105,
+      "mtime_ns": 1793689596484502986,
+      "unchanged": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-dnsmasq.service",
+      "sha256": "1f7a36c1767089c38c4328324f74d4e68dc33a1804173adcc988657ecf5ec55f",
+      "inode": 2084947,
+      "mtime_ns": 1793357834080175596,
+      "unchanged": true
+    },
+    {
+      "path": "/usr/lib/soc-agent/continuous/service.py",
+      "sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "inode": 2722109,
+      "mtime_ns": 1793689596669204080,
+      "unchanged": true
+    },
+    {
+      "path": "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf",
+      "sha256": "61257ee34448f64716b75b4e97f5e619a2d3866ed7461ca89919d966e259cad9",
+      "inode": 2084951,
+      "mtime_ns": 1793357834117147432,
+      "unchanged": true
+    }
+  ],
+  "ledger": {
+    "rows": 81,
+    "sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae"
+  },
+  "installed_manager": "4e4fb2c90c3a9467-57f8c396184bc1f8"
+}

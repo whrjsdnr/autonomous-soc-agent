@@ -1,0 +1,19 @@
+{
+  "cleanup": "UNVERIFIED",
+  "stop_ack": false,
+  "stop_requested_monotonic": 1099235.587324234,
+  "observed_monotonic": 1099240.678889787,
+  "returncode": -9,
+  "forced": true,
+  "child_reaped": true,
+  "queue_counts": {
+    "DONE": 3
+  },
+  "queue_drained": true,
+  "investigation_jobs": {
+    "RUNNING": 1,
+    "PENDING": 1
+  },
+  "pending_jobs_preserved": true,
+  "scope": "OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL"
+}

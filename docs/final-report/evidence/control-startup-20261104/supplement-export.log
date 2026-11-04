@@ -1,0 +1,710 @@
+..........F.FF.......................................................... [ 65%]
+......................................                                   [100%]
+=================================== FAILURES ===================================
+_____ test_invalid_model_grants_never_reach_numeric_scoring[changed_input] _____
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6d81a9a90>
+
+    async def start(self) -> None:
+        async def launch(value):
+            if value.model_dump(mode="json") != action(self.store).input_payload():
+                raise ValueError("AUTHENTICATION_SCOPE_CHANGED_BEFORE_EXECUTION")
+            await self._start_owned(proposed, receipt)
+            return _Output(state=self.state, pid=self.process.pid)
+    
+        proposed, receipt, executor = await asyncio.to_thread(_authorized, self.store, launch)
+        try:
+>           await executor.execute(proposed, approval_id=receipt.approval_id)
+
+src/soc_agent/continuous/authentication_lifecycle.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/execution/executor.py:119: in execute
+    return await tool.execute(action.input_payload())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Tool(metadata=ToolMetadata(name='collect_host_authentication_journal', description='Bounded existing auth/authpriv or ...authentication_lifecycle._Output'>, handler=<function AuthenticationLifecycle.start.<locals>.launch at 0x79b6ebf94860>)
+raw_input = {'authentication_config_sha256': 'e7cee8fe871feca4d7510ea85607bda437415a386c07f7d3729f7cef3a4a6f26', 'code_identity': ...inuous_config_sha256': '56b422c0634c187db2d451943a4bae39d50a3317f9da32756b5ccae914a53555', 'duration_seconds': 30, ...}
+
+    async def execute(self, raw_input: Mapping[str, object] | TInput) -> ToolResult[TOutput]:
+        """Validate both sides, including model instances that may have been mutated.
+    
+        Extra fields are rejected; field coercion follows the supplied schema.
+        Cancellation and other BaseExceptions propagate unchanged.
+        """
+        if self.execution_guard is not None:
+            self.execution_guard.before_tool(self)
+        try:
+            # Revalidation below reports invalid model values as boundary errors.
+            payload = (
+                raw_input.model_dump(warnings=False)
+                if isinstance(raw_input, BaseModel)
+                else raw_input
+            )
+            validated_input = self.input_model.model_validate(payload, extra="forbid")
+        except ValidationError as error:
+            raise ToolInputValidationError("Tool input does not match its schema") from error
+        if self.execution_guard is not None:
+            self.execution_guard.before_handler(self, validated_input)
+        try:
+            output = await self.handler(validated_input)
+        except ToolExecutionError:
+            raise
+        except Exception as error:
+            # Adapter failures are intentionally translated, never silently swallowed.
+>           raise ToolExecutionError("Tool implementation failed") from error
+E           soc_agent.tools.errors.ToolExecutionError: Tool implementation failed
+
+src/soc_agent/tools/base.py:82: ToolExecutionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-suppe/test_invalid_model_grants_neve2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79b6d8139280>
+seconds = (1, 2, 3, 361), scope_sha256 = None, messages = None
+
+    async def retained(
+        tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361), scope_sha256=None, messages=None
+    ):
+        store = prepare(tmp_path, packages=packages(), scope_sha256=scope_sha256)
+        approve_fixture(store)
+        mock_journal_child(monkeypatch, seconds=seconds, messages=messages)
+        child = AuthenticationLifecycle(store)
+        try:
+>           await child.start()
+
+tests/integration/linux_runtime/test_host_if_integration.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/continuous/authentication_lifecycle.py:185: in start
+    raise error.__cause__ from error
+src/soc_agent/tools/base.py:77: in execute
+    output = await self.handler(validated_input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/soc_agent/continuous/authentication_lifecycle.py:174: in launch
+    await self._start_owned(proposed, receipt)
+src/soc_agent/continuous/authentication_lifecycle.py:234: in _start_owned
+    observed = await asyncio.wait_for(
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Timeout [expired]>
+exc_type = <class 'asyncio.exceptions.CancelledError'>
+exc_val = CancelledError(), exc_tb = <traceback object at 0x79b6d812c6c0>
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        assert self._state in (_State.ENTERED, _State.EXPIRING)
+    
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
+    
+        if self._state is _State.EXPIRING:
+            self._state = _State.EXPIRED
+    
+            if self._task.uncancel() <= self._cancelling and exc_type is exceptions.CancelledError:
+                # Since there are no new cancel requests, we're
+                # handling this.
+>               raise TimeoutError from exc_val
+E               TimeoutError
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py:115: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-suppe/test_invalid_model_grants_neve2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79b6d8139280>
+decision = 'changed_input'
+
+    @pytest.mark.parametrize("decision", ["rejected", "expired", "changed_input"])
+    @pytest.mark.asyncio
+    async def test_invalid_model_grants_never_reach_numeric_scoring(tmp_path, monkeypatch, decision):
+>       store = await retained(tmp_path, monkeypatch)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/integration/linux_runtime/test_host_if_integration.py:221: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/integration/linux_runtime/test_host_if_integration.py:45: in retained
+    await child.close()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6d81a9a90>
+
+    async def close(self) -> None:
+        if self.evidence.get("cleanup") == "VERIFIED":
+            return
+        if self.process is None:
+            if self.log is not None:
+                self.log.close()
+            return
+        requested = time.monotonic()
+        self.state = "STOPPING"
+        forced = False
+        try:
+            if self.process.returncode is None:
+                if not same_runtime(self.identity):
+                    raise ValueError("AUTHENTICATION_STOP_IDENTITY_CHANGED")
+                self.process.terminate()  # Only this owned child; existing CLI handles SIGTERM.
+            try:
+                await asyncio.wait_for(self.process.wait(), 5)
+            except TimeoutError:
+                forced = True
+                if same_runtime(self.identity):
+                    self.process.kill()
+                await asyncio.wait_for(self.process.wait(), 5)
+            auth = await asyncio.to_thread(RuntimeStore, self.directory)
+            state = await asyncio.to_thread(auth.state)
+            await asyncio.to_thread(auth.verify_audit)
+            with auth.database.transaction(write=False) as connection:
+                events = [
+                    json.loads(row[0])["kind"]
+                    for row in connection.execute(
+                        "SELECT payload FROM monitor_audit ORDER BY sequence"
+                    )
+                ]
+            # Only the latest child run's ordered stop records can acknowledge it.
+            latest_start = max(
+                (i for i, kind in enumerate(events) if kind == "RUNTIME_STARTED"),
+                default=-1,
+            )
+            latest_events = events[latest_start + 1 :]
+            from soc_agent.linux_runtime.service import open_pipeline
+    
+            pipeline = await asyncio.to_thread(open_pipeline, self.directory, auth.config)
+            queue_counts = await asyncio.to_thread(pipeline.queue.counts)
+            jobs = await asyncio.to_thread(auth.jobs)
+            ack = bool(
+                not forced
+                and self.process.returncode == 0
+                and state["state"] == "STOPPED"
+                and state.get("last_error") is None
+                and state.get("runtime_identity") == self.identity
+                and latest_start >= 0
+                and "RUNTIME_STOPPING" in latest_events
+                and "RUNTIME_STOPPED" in latest_events
+                and latest_events.index("RUNTIME_STOPPING") < latest_events.index("RUNTIME_STOPPED")
+            )
+            self.evidence = dict(
+                cleanup="VERIFIED" if ack else "UNVERIFIED",
+                stop_ack=ack,
+                stop_requested_monotonic=requested,
+                observed_monotonic=time.monotonic(),
+                returncode=self.process.returncode,
+                forced=forced,
+                child_reaped=True,
+                queue_counts=queue_counts,
+                queue_drained=not any(queue_counts.get(k, 0) for k in ("PENDING", "CLAIMED")),
+                investigation_jobs=jobs,
+                pending_jobs_preserved=True,
+                scope="OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL",
+            )
+            await asyncio.to_thread(
+                write_new, self.store.directory / "authentication-cleanup.json", self.evidence
+            )
+            self.cleanup_written = True
+            if not ack:
+>               raise ValueError("AUTHENTICATION_CLEANUP_UNVERIFIED")
+E               ValueError: AUTHENTICATION_CLEANUP_UNVERIFIED
+
+src/soc_agent/continuous/authentication_lifecycle.py:352: ValueError
+_____ test_composed_packet_dns_authentication_mock_e2e_one_parent_session ______
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6ebf2a840>
+
+    async def start(self) -> None:
+        async def launch(value):
+            if value.model_dump(mode="json") != action(self.store).input_payload():
+                raise ValueError("AUTHENTICATION_SCOPE_CHANGED_BEFORE_EXECUTION")
+            await self._start_owned(proposed, receipt)
+            return _Output(state=self.state, pid=self.process.pid)
+    
+        proposed, receipt, executor = await asyncio.to_thread(_authorized, self.store, launch)
+        try:
+>           await executor.execute(proposed, approval_id=receipt.approval_id)
+
+src/soc_agent/continuous/authentication_lifecycle.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/execution/executor.py:119: in execute
+    return await tool.execute(action.input_payload())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Tool(metadata=ToolMetadata(name='collect_host_authentication_journal', description='Bounded existing auth/authpriv or ...authentication_lifecycle._Output'>, handler=<function AuthenticationLifecycle.start.<locals>.launch at 0x79b6d808bb00>)
+raw_input = {'authentication_config_sha256': '8a3f6f26c251f926cbbe091529b65316acc308b6f7ad7fdaf89c50666825e953', 'code_identity': ...inuous_config_sha256': '44040015b391b8c26024b0fc5054d6ee4055a84ea48f561fe6feb95a91b79464', 'duration_seconds': 30, ...}
+
+    async def execute(self, raw_input: Mapping[str, object] | TInput) -> ToolResult[TOutput]:
+        """Validate both sides, including model instances that may have been mutated.
+    
+        Extra fields are rejected; field coercion follows the supplied schema.
+        Cancellation and other BaseExceptions propagate unchanged.
+        """
+        if self.execution_guard is not None:
+            self.execution_guard.before_tool(self)
+        try:
+            # Revalidation below reports invalid model values as boundary errors.
+            payload = (
+                raw_input.model_dump(warnings=False)
+                if isinstance(raw_input, BaseModel)
+                else raw_input
+            )
+            validated_input = self.input_model.model_validate(payload, extra="forbid")
+        except ValidationError as error:
+            raise ToolInputValidationError("Tool input does not match its schema") from error
+        if self.execution_guard is not None:
+            self.execution_guard.before_handler(self, validated_input)
+        try:
+            output = await self.handler(validated_input)
+        except ToolExecutionError:
+            raise
+        except Exception as error:
+            # Adapter failures are intentionally translated, never silently swallowed.
+>           raise ToolExecutionError("Tool implementation failed") from error
+E           soc_agent.tools.errors.ToolExecutionError: Tool implementation failed
+
+src/soc_agent/tools/base.py:82: ToolExecutionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-suppe/test_composed_packet_dns_authe0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79b6ebf2a330>
+seconds = (1, 2, 3, 361)
+scope_sha256 = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+messages = None
+
+    async def retained(
+        tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361), scope_sha256=None, messages=None
+    ):
+        store = prepare(tmp_path, packages=packages(), scope_sha256=scope_sha256)
+        approve_fixture(store)
+        mock_journal_child(monkeypatch, seconds=seconds, messages=messages)
+        child = AuthenticationLifecycle(store)
+        try:
+>           await child.start()
+
+tests/integration/linux_runtime/test_host_if_integration.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/continuous/authentication_lifecycle.py:185: in start
+    raise error.__cause__ from error
+src/soc_agent/tools/base.py:77: in execute
+    output = await self.handler(validated_input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/soc_agent/continuous/authentication_lifecycle.py:174: in launch
+    await self._start_owned(proposed, receipt)
+src/soc_agent/continuous/authentication_lifecycle.py:234: in _start_owned
+    observed = await asyncio.wait_for(
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Timeout [expired]>
+exc_type = <class 'asyncio.exceptions.CancelledError'>
+exc_val = CancelledError(), exc_tb = <traceback object at 0x79b6d6ff1c00>
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        assert self._state in (_State.ENTERED, _State.EXPIRING)
+    
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
+    
+        if self._state is _State.EXPIRING:
+            self._state = _State.EXPIRED
+    
+            if self._task.uncancel() <= self._cancelling and exc_type is exceptions.CancelledError:
+                # Since there are no new cancel requests, we're
+                # handling this.
+>               raise TimeoutError from exc_val
+E               TimeoutError
+
+/home/geonug/.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py:115: TimeoutError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-suppe/test_composed_packet_dns_authe0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79b6ebf2a330>
+
+    @pytest.mark.asyncio
+    async def test_composed_packet_dns_authentication_mock_e2e_one_parent_session(
+        tmp_path, monkeypatch
+    ):
+        """Synthetic TCX shape + saved journal + wire fixture; NOT a Live success."""
+        from tests.integration import test_tcx_ai_workflow as network_fixture
+        from tests.integration.test_continuous_orchestration import Recorded, drained
+        from tests.integration.test_raw_dns_workflow import job as dns_job
+        from tests.integration.test_raw_dns_workflow import message
+    
+        from soc_agent.continuous.investigation import from_analysis
+        from soc_agent.continuous.investigation_store import InvestigationTasks
+        from soc_agent.continuous.store import Store
+        from soc_agent.gui.analysis_service import project_result
+    
+        # Includes real child lifecycle/queue/parser, exact IF gate, numeric mock,
+        # original Fusion validation, Incident, SOCRuntime, scripted Plan/Assessment.
+        synthetic_scope = network_fixture.job(native=True).result["tcx"]["data_plane"]["processing"][
+            "plan"
+        ]["source_digest"]
+        # Same synthetic policy scope; this retained-evidence fixture never reads
+        # the placeholder primary input or asserts real Source/Kernel integrity.
+>       await exact_if_e2e(tmp_path, monkeypatch, scope_sha256=synthetic_scope)
+
+tests/integration/linux_runtime/test_host_if_integration.py:310: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/integration/linux_runtime/test_host_if_integration.py:112: in exact_if_e2e
+    store = await retained(tmp_path, monkeypatch, scope_sha256=scope_sha256)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/integration/linux_runtime/test_host_if_integration.py:45: in retained
+    await child.close()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6ebf2a840>
+
+    async def close(self) -> None:
+        if self.evidence.get("cleanup") == "VERIFIED":
+            return
+        if self.process is None:
+            if self.log is not None:
+                self.log.close()
+            return
+        requested = time.monotonic()
+        self.state = "STOPPING"
+        forced = False
+        try:
+            if self.process.returncode is None:
+                if not same_runtime(self.identity):
+                    raise ValueError("AUTHENTICATION_STOP_IDENTITY_CHANGED")
+                self.process.terminate()  # Only this owned child; existing CLI handles SIGTERM.
+            try:
+                await asyncio.wait_for(self.process.wait(), 5)
+            except TimeoutError:
+                forced = True
+                if same_runtime(self.identity):
+                    self.process.kill()
+                await asyncio.wait_for(self.process.wait(), 5)
+            auth = await asyncio.to_thread(RuntimeStore, self.directory)
+            state = await asyncio.to_thread(auth.state)
+            await asyncio.to_thread(auth.verify_audit)
+            with auth.database.transaction(write=False) as connection:
+                events = [
+                    json.loads(row[0])["kind"]
+                    for row in connection.execute(
+                        "SELECT payload FROM monitor_audit ORDER BY sequence"
+                    )
+                ]
+            # Only the latest child run's ordered stop records can acknowledge it.
+            latest_start = max(
+                (i for i, kind in enumerate(events) if kind == "RUNTIME_STARTED"),
+                default=-1,
+            )
+            latest_events = events[latest_start + 1 :]
+            from soc_agent.linux_runtime.service import open_pipeline
+    
+            pipeline = await asyncio.to_thread(open_pipeline, self.directory, auth.config)
+            queue_counts = await asyncio.to_thread(pipeline.queue.counts)
+            jobs = await asyncio.to_thread(auth.jobs)
+            ack = bool(
+                not forced
+                and self.process.returncode == 0
+                and state["state"] == "STOPPED"
+                and state.get("last_error") is None
+                and state.get("runtime_identity") == self.identity
+                and latest_start >= 0
+                and "RUNTIME_STOPPING" in latest_events
+                and "RUNTIME_STOPPED" in latest_events
+                and latest_events.index("RUNTIME_STOPPING") < latest_events.index("RUNTIME_STOPPED")
+            )
+            self.evidence = dict(
+                cleanup="VERIFIED" if ack else "UNVERIFIED",
+                stop_ack=ack,
+                stop_requested_monotonic=requested,
+                observed_monotonic=time.monotonic(),
+                returncode=self.process.returncode,
+                forced=forced,
+                child_reaped=True,
+                queue_counts=queue_counts,
+                queue_drained=not any(queue_counts.get(k, 0) for k in ("PENDING", "CLAIMED")),
+                investigation_jobs=jobs,
+                pending_jobs_preserved=True,
+                scope="OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL",
+            )
+            await asyncio.to_thread(
+                write_new, self.store.directory / "authentication-cleanup.json", self.evidence
+            )
+            self.cleanup_written = True
+            if not ack:
+>               raise ValueError("AUTHENTICATION_CLEANUP_UNVERIFIED")
+E               ValueError: AUTHENTICATION_CLEANUP_UNVERIFIED
+
+src/soc_agent/continuous/authentication_lifecycle.py:352: ValueError
+____ test_existing_sshd_success_and_failure_share_training_feature_contract ____
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6d854de80>
+
+    async def start(self) -> None:
+        async def launch(value):
+            if value.model_dump(mode="json") != action(self.store).input_payload():
+                raise ValueError("AUTHENTICATION_SCOPE_CHANGED_BEFORE_EXECUTION")
+            await self._start_owned(proposed, receipt)
+            return _Output(state=self.state, pid=self.process.pid)
+    
+        proposed, receipt, executor = await asyncio.to_thread(_authorized, self.store, launch)
+        try:
+>           await executor.execute(proposed, approval_id=receipt.approval_id)
+
+src/soc_agent/continuous/authentication_lifecycle.py:179: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/execution/executor.py:119: in execute
+    return await tool.execute(action.input_payload())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Tool(metadata=ToolMetadata(name='collect_host_authentication_journal', description='Bounded existing auth/authpriv or ...authentication_lifecycle._Output'>, handler=<function AuthenticationLifecycle.start.<locals>.launch at 0x79b6d80b4720>)
+raw_input = {'authentication_config_sha256': '6c018348276c8da795b54b6f3c90c2fb81244facc4df062272872faedf195c53', 'code_identity': ...inuous_config_sha256': '43852661a700fcbb17d64b1221ab1d5bd277fe395945f9a3340cbc9180db4ab3', 'duration_seconds': 30, ...}
+
+    async def execute(self, raw_input: Mapping[str, object] | TInput) -> ToolResult[TOutput]:
+        """Validate both sides, including model instances that may have been mutated.
+    
+        Extra fields are rejected; field coercion follows the supplied schema.
+        Cancellation and other BaseExceptions propagate unchanged.
+        """
+        if self.execution_guard is not None:
+            self.execution_guard.before_tool(self)
+        try:
+            # Revalidation below reports invalid model values as boundary errors.
+            payload = (
+                raw_input.model_dump(warnings=False)
+                if isinstance(raw_input, BaseModel)
+                else raw_input
+            )
+            validated_input = self.input_model.model_validate(payload, extra="forbid")
+        except ValidationError as error:
+            raise ToolInputValidationError("Tool input does not match its schema") from error
+        if self.execution_guard is not None:
+            self.execution_guard.before_handler(self, validated_input)
+        try:
+            output = await self.handler(validated_input)
+        except ToolExecutionError:
+            raise
+        except Exception as error:
+            # Adapter failures are intentionally translated, never silently swallowed.
+>           raise ToolExecutionError("Tool implementation failed") from error
+E           soc_agent.tools.errors.ToolExecutionError: Tool implementation failed
+
+src/soc_agent/tools/base.py:82: ToolExecutionError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-suppe/test_existing_sshd_success_and0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79b6d81d1be0>
+seconds = (1, 2, 3, 4, 361), scope_sha256 = None
+messages = ('Failed password for fixture-user from 192.0.2.5 port 34567 ssh2', 'Accepted password for fixture-user from 192.0.2.5...rd for fixture-user from 192.0.2.5 port 34567 ssh2', 'Failed password for fixture-user from 192.0.2.5 port 34567 ssh2')
+
+    async def retained(
+        tmp_path, monkeypatch, *, seconds=(1, 2, 3, 361), scope_sha256=None, messages=None
+    ):
+        store = prepare(tmp_path, packages=packages(), scope_sha256=scope_sha256)
+        approve_fixture(store)
+        mock_journal_child(monkeypatch, seconds=seconds, messages=messages)
+        child = AuthenticationLifecycle(store)
+        try:
+>           await child.start()
+
+tests/integration/linux_runtime/test_host_if_integration.py:43: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/continuous/authentication_lifecycle.py:185: in start
+    raise error.__cause__ from error
+src/soc_agent/tools/base.py:77: in execute
+    output = await self.handler(validated_input)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/soc_agent/continuous/authentication_lifecycle.py:174: in launch
+    await self._start_owned(proposed, receipt)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6d854de80>
+proposed = ActionProposal(action_id=UUID('a0e5a527-afad-5ce0-a415-aedca2f42ff7'), incident_id=UUID('13ea86e1-63bd-4a84-bb0c-7f5c8...-7f5c88f454d7","uid":1000}', created_at=datetime.datetime(2026, 11, 4, 2, 2, 54, 625871, tzinfo=datetime.timezone.utc))
+receipt = ApprovalRequest(approval_id=UUID('8719b83c-a9b5-491c-b2fe-c61e2def23be'), incident_id=UUID('13ea86e1-63bd-4a84-bb0c-7f...ed'>, decided_by='fixture', decided_at=datetime.datetime(2026, 11, 4, 2, 2, 54, 589897, tzinfo=datetime.timezone.utc)))
+
+    async def _start_owned(self, proposed, receipt):
+        saved = await asyncio.to_thread(self._read)
+        if saved["state"] != "STOPPED":
+            raise ValueError("AUTHENTICATION_RUNTIME_NOT_STOPPED")
+        await asyncio.to_thread(
+            write_new,
+            self.store.directory / "authentication-start-intent.json",
+            dict(
+                action=proposed.model_dump(mode="json"),
+                approval_sha256=hashlib.sha256(receipt.model_dump_json().encode()).hexdigest(),
+                automatic_retry=False,
+            ),
+        )
+        self.state = "STARTING"
+        fd = os.open(
+            self.store.directory / "authentication-child.log",
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+            0o600,
+        )
+        self.log = os.fdopen(fd, "wb")
+        self.process = await asyncio.create_subprocess_exec(
+            sys.executable,
+            "-B",
+            "-m",
+            "soc_agent.linux_runtime",
+            "--directory",
+            str(self.directory),
+            "start",
+            "--duration-seconds",
+            str(self.store.config.managed_authentication.duration_seconds),
+            env=dict(
+                os.environ,
+                PYTHONDONTWRITEBYTECODE="1",
+                OPENBLAS_NUM_THREADS="1",
+                OMP_NUM_THREADS="1",
+                MKL_NUM_THREADS="1",
+            ),
+            stdin=asyncio.subprocess.DEVNULL,
+            stdout=self.log,
+            stderr=self.log,
+        )
+        self.identity = runtime_identity(self.process.pid)
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            if self.process.returncode is not None:
+                raise ValueError("AUTHENTICATION_CHILD_EXIT_BEFORE_READY")
+            observed = await asyncio.wait_for(
+                asyncio.to_thread(self._read), max(0.001, deadline - time.monotonic())
+            )
+            if (
+                observed.get("runtime_identity") == self.identity
+                and observed.get("collector")
+                in ("INITIAL_READ", "RESUMED_EXACT", "RESUMED_WITH_REPLAY")
+                and observed["state"] == "RUNNING"
+            ):
+                self.state = "RUNNING"
+                return
+            if observed["state"] == "FAILED":
+                raise ValueError("AUTHENTICATION_COLLECTION_FAILED_BEFORE_READY")
+            await asyncio.sleep(0.05)
+>       raise ValueError("AUTHENTICATION_READY_TIMEOUT")
+E       ValueError: AUTHENTICATION_READY_TIMEOUT
+
+src/soc_agent/continuous/authentication_lifecycle.py:248: ValueError
+
+During handling of the above exception, another exception occurred:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-suppe/test_existing_sshd_success_and0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x79b6d81d1be0>
+
+    @pytest.mark.asyncio
+    async def test_existing_sshd_success_and_failure_share_training_feature_contract(
+        tmp_path, monkeypatch
+    ):
+        failed = "Failed password for fixture-user from 192.0.2.5 port 34567 ssh2"
+        accepted = "Accepted password for fixture-user from 192.0.2.5 port 34567 ssh2"
+>       store = await retained(
+            tmp_path,
+            monkeypatch,
+            seconds=(1, 2, 3, 4, 361),
+            messages=(failed, accepted, failed, accepted, failed),
+        )
+
+tests/integration/linux_runtime/test_host_if_integration.py:360: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/integration/linux_runtime/test_host_if_integration.py:45: in retained
+    await child.close()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <soc_agent.continuous.authentication_lifecycle.AuthenticationLifecycle object at 0x79b6d854de80>
+
+    async def close(self) -> None:
+        if self.evidence.get("cleanup") == "VERIFIED":
+            return
+        if self.process is None:
+            if self.log is not None:
+                self.log.close()
+            return
+        requested = time.monotonic()
+        self.state = "STOPPING"
+        forced = False
+        try:
+            if self.process.returncode is None:
+                if not same_runtime(self.identity):
+                    raise ValueError("AUTHENTICATION_STOP_IDENTITY_CHANGED")
+                self.process.terminate()  # Only this owned child; existing CLI handles SIGTERM.
+            try:
+                await asyncio.wait_for(self.process.wait(), 5)
+            except TimeoutError:
+                forced = True
+                if same_runtime(self.identity):
+                    self.process.kill()
+                await asyncio.wait_for(self.process.wait(), 5)
+            auth = await asyncio.to_thread(RuntimeStore, self.directory)
+            state = await asyncio.to_thread(auth.state)
+            await asyncio.to_thread(auth.verify_audit)
+            with auth.database.transaction(write=False) as connection:
+                events = [
+                    json.loads(row[0])["kind"]
+                    for row in connection.execute(
+                        "SELECT payload FROM monitor_audit ORDER BY sequence"
+                    )
+                ]
+            # Only the latest child run's ordered stop records can acknowledge it.
+            latest_start = max(
+                (i for i, kind in enumerate(events) if kind == "RUNTIME_STARTED"),
+                default=-1,
+            )
+            latest_events = events[latest_start + 1 :]
+            from soc_agent.linux_runtime.service import open_pipeline
+    
+            pipeline = await asyncio.to_thread(open_pipeline, self.directory, auth.config)
+            queue_counts = await asyncio.to_thread(pipeline.queue.counts)
+            jobs = await asyncio.to_thread(auth.jobs)
+            ack = bool(
+                not forced
+                and self.process.returncode == 0
+                and state["state"] == "STOPPED"
+                and state.get("last_error") is None
+                and state.get("runtime_identity") == self.identity
+                and latest_start >= 0
+                and "RUNTIME_STOPPING" in latest_events
+                and "RUNTIME_STOPPED" in latest_events
+                and latest_events.index("RUNTIME_STOPPING") < latest_events.index("RUNTIME_STOPPED")
+            )
+            self.evidence = dict(
+                cleanup="VERIFIED" if ack else "UNVERIFIED",
+                stop_ack=ack,
+                stop_requested_monotonic=requested,
+                observed_monotonic=time.monotonic(),
+                returncode=self.process.returncode,
+                forced=forced,
+                child_reaped=True,
+                queue_counts=queue_counts,
+                queue_drained=not any(queue_counts.get(k, 0) for k in ("PENDING", "CLAIMED")),
+                investigation_jobs=jobs,
+                pending_jobs_preserved=True,
+                scope="OWNED_AUTHENTICATION_CHILD_AND_AUDITED_STORE_NOT_GLOBAL_KERNEL",
+            )
+            await asyncio.to_thread(
+                write_new, self.store.directory / "authentication-cleanup.json", self.evidence
+            )
+            self.cleanup_written = True
+            if not ack:
+>               raise ValueError("AUTHENTICATION_CLEANUP_UNVERIFIED")
+E               ValueError: AUTHENTICATION_CLEANUP_UNVERIFIED
+
+src/soc_agent/continuous/authentication_lifecycle.py:352: ValueError
+=========================== short test summary info ============================
+FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[changed_input]
+FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_composed_packet_dns_authentication_mock_e2e_one_parent_session
+FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_existing_sshd_success_and_failure_share_training_feature_contract
+3 failed, 107 passed in 206.75s (0:03:26)

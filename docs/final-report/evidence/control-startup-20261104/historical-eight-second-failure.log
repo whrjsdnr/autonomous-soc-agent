@@ -1,0 +1,41 @@
+........................................................................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 23%]
+.................F...................................................... [ 31%]
+........................................................................ [ 39%]
+........................................................................ [ 47%]
+........................................................................ [ 55%]
+........................................................................ [ 63%]
+........................................................................ [ 71%]
+........................................................................ [ 79%]
+........................................................................ [ 87%]
+........................................................................ [ 95%]
+......................................                                   [100%]
+=================================== FAILURES ===================================
+_______________ test_exact_cli_stop_bypasses_real_locked_sqlite ________________
+
+tmp_path = PosixPath('/tmp/soc-auth-if-quiet-disk-export/test_exact_cli_stop_bypasses_r0')
+
+    def test_exact_cli_stop_bypasses_real_locked_sqlite(tmp_path):
+        directory, store = replay_runtime(tmp_path)
+        (directory / "code-identity").write_text(code_identity())
+        child = subprocess.Popen(
+            [sys.executable, "-m", "soc_agent.cli", "continuous", "run", str(directory)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+        try:
+            end = time.monotonic() + 8
+            while time.monotonic() < end:
+                if (directory / "observation.json").exists() and shown(directory).get("control"):
+                    break
+                assert child.poll() is None
+                time.sleep(0.05)
+            else:
+>               raise AssertionError("ordinary CLI did not publish control identity")
+E               AssertionError: ordinary CLI did not publish control identity
+
+tests/unit/continuous/test_storage_control_isolation.py:358: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite
+1 failed, 901 passed in 232.39s (0:03:52)

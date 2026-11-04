@@ -1,0 +1,147 @@
+........................................................................ [  7%]
+......F................................................................. [ 15%]
+........................................................................ [ 23%]
+...........F............................................................ [ 31%]
+........................................................................ [ 39%]
+........................................................................ [ 47%]
+........................................................................ [ 55%]
+........................................................................ [ 63%]
+........................................................................ [ 71%]
+........................................................................ [ 79%]
+........................................................................ [ 87%]
+........................................................................ [ 95%]
+.............................................                            [100%]
+=================================== FAILURES ===================================
+____ test_closed_without_process_exit_remains_unverified_at_shared_deadline ____
+
+    async def consume():
+        values = []
+>       async for packet in source.events():
+
+tests/unit/continuous/test_dns_lifecycle.py:229: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/continuous/dns_source.py:455: in events
+    await self.close()
+src/soc_agent/continuous/dns_source.py:533: in close
+    await asyncio.sleep(0.01)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+delay = 0.01, result = None
+
+    async def sleep(delay, result=None):
+        """Coroutine that completes after a given time (in seconds)."""
+        if delay <= 0:
+            await __sleep0()
+            return result
+    
+        loop = events.get_running_loop()
+        future = loop.create_future()
+        h = loop.call_later(delay,
+                            futures._set_result_unless_cancelled,
+                            future, result)
+        try:
+>           return await future
+                   ^^^^^^^^^^^^
+E           asyncio.exceptions.CancelledError
+
+../../../../.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:665: CancelledError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/dev/shm/soc-startup-rca-full-workspace/test_closed_without_process_ex0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x71198e654890>
+
+    @pytest.mark.asyncio
+    async def test_closed_without_process_exit_remains_unverified_at_shared_deadline(
+        tmp_path, monkeypatch
+    ):
+        directory, source, child, task = await started(tmp_path, monkeypatch, "process_exit_missing")
+        began = time.monotonic()
+        try:
+            await source.request_stop()
+>           assert await asyncio.wait_for(task, 5.5) == []
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/unit/continuous/test_dns_lifecycle.py:544: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Timeout [expired]>
+exc_type = <class 'asyncio.exceptions.CancelledError'>
+exc_val = CancelledError(), exc_tb = <traceback object at 0x71198cdee840>
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        assert self._state in (_State.ENTERED, _State.EXPIRING)
+    
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
+    
+        if self._state is _State.EXPIRING:
+            self._state = _State.EXPIRED
+    
+            if self._task.uncancel() <= self._cancelling and exc_type is exceptions.CancelledError:
+                # Since there are no new cancel requests, we're
+                # handling this.
+>               raise TimeoutError from exc_val
+E               TimeoutError
+
+../../../../.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py:115: TimeoutError
+__________ test_dns_status_reader_lock_does_not_block_control_or_stop __________
+
+tmp_path = PosixPath('/dev/shm/soc-startup-rca-full-workspace/test_dns_status_reader_lock_do0')
+
+    @pytest.mark.asyncio
+    async def test_dns_status_reader_lock_does_not_block_control_or_stop(tmp_path):
+        directory, service = runtime(tmp_path)
+        entered, release = threading.Event(), threading.Event()
+        loop_thread = threading.get_ident()
+        reader_threads = []
+    
+        class SlowDNSStatus:
+            last_error = None
+    
+            @property
+            def snapshot(self):
+                reader_threads.append(threading.get_ident())
+                assert threading.get_ident() != loop_thread, "DNS_STATUS_BLOCKED_EVENT_LOOP"
+                entered.set()
+                assert release.wait(3)
+                return {"state": "RUNNING", "cleanup": "NOT_STARTED"}
+    
+        service.dns_source = SlowDNSStatus()
+        pending = asyncio.create_task(service.observed_snapshot())
+        control = asyncio.create_task(service.control())
+        try:
+            assert await asyncio.to_thread(entered.wait, 1)
+            await asyncio.sleep(0.4)
+            value = shown(directory)
+            assert value["control"]["sequence"] >= 2
+            assert value["dns_transport"]["state"] == "UNKNOWN_STALE_OBSERVATION"
+            assert time.monotonic() - value["control"]["monotonic"] < 2
+            assert not pending.done() and not control.done()
+            service.stop.set()
+            await asyncio.wait_for(service.source.stop_sent.wait(), 0.5)
+            assert not pending.done()  # STOP does not wait for DNS status lock release.
+        finally:
+            release.set()
+            await pending
+            service.stop.set()
+            await control
+>       assert len(reader_threads) == 1 and reader_threads[0] != loop_thread
+E       assert (2 == 1)
+E        +  where 2 = len([124354469820096, 124354461427392])
+
+tests/unit/continuous/test_storage_control_isolation.py:107: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/continuous/test_dns_lifecycle.py::test_closed_without_process_exit_remains_unverified_at_shared_deadline
+FAILED tests/unit/continuous/test_storage_control_isolation.py::test_dns_status_reader_lock_does_not_block_control_or_stop
+2 failed, 907 passed in 220.15s (0:03:40)

@@ -1,0 +1,10 @@
+{
+  "monotonic": 1099399.807744032,
+  "pressure": {
+    "cpu": "some avg10=19.37 avg60=23.57 avg300=18.41 total=7831871823\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0\n",
+    "io": "some avg10=14.27 avg60=21.35 avg300=11.84 total=10838056782\nfull avg10=8.38 avg60=8.70 avg300=5.33 total=9233142668\n",
+    "memory": "some avg10=38.98 avg60=18.17 avg300=6.47 total=1054164447\nfull avg10=35.61 avg60=13.90 avg300=4.78 total=953393099\n"
+  },
+  "loadavg": "5.61 3.71 3.16 2/625 3053024\n",
+  "own_cgroup": "0::/init.scope\n"
+}

@@ -1,0 +1,209 @@
+{
+  "contract": "soc-continuous-observation:v1",
+  "store_id": "ecb93369-3e7b-42cf-b71a-1df12d8f8793",
+  "configuration": {
+    "contract": "soc-continuous-runtime:v1",
+    "mode": "CONTINUOUS",
+    "source": "JSONL_REPLAY",
+    "input_file": "/tmp/soc-startup-rca-full-workspace/test_ten_second_write_does_not0/source.jsonl",
+    "input_sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+    "ml_root": null,
+    "authentication_runtime": null,
+    "managed_authentication": null,
+    "native_model_approvals": null,
+    "dns_session": null,
+    "dns_session_sha256": null,
+    "journal_replay_file": null,
+    "journal_replay_sha256": null,
+    "authentication_packages": [],
+    "metadata_window_seconds": 60,
+    "namespace": "net:[4026532232]",
+    "interface": "lo",
+    "queue_capacity": 8,
+    "max_active_flows": 128,
+    "max_windows": 512,
+    "max_storage_bytes": 268435456,
+    "max_seen_events": 100000,
+    "collector_restarts": 1,
+    "worker_circuit_failures": 2,
+    "heartbeat_seconds": 0.1,
+    "shutdown_seconds": 10.0,
+    "replay_delay_seconds": 0.0,
+    "profiles": [
+      "quality",
+      "edge"
+    ]
+  },
+  "snapshot": {
+    "orchestration": {
+      "worker": {
+        "state": "NOT_STARTED",
+        "provider": "SCRIPTED"
+      }
+    },
+    "authentication": {
+      "state": "NOT_ATTACHED",
+      "events": null
+    },
+    "mode": "CONTINUOUS",
+    "source": "NATIVE_SERVICE",
+    "startup": null,
+    "state": "DEGRADED",
+    "service_pid": 3029128,
+    "collector": "RUNNING",
+    "worker": "STOPPED",
+    "collection_live": false,
+    "source_assurance": "ROOT_INSTALLED_PASSIVE_TCX",
+    "native_model": "EXACT_RETAINED_WINDOW_ACTION_APPROVAL_REQUIRED",
+    "capture_window": {
+      "id": null,
+      "assessment": {
+        "status": "UNKNOWN",
+        "reasons": [
+          "WINDOW_NOT_SEALED"
+        ]
+      },
+      "pending_events": 0,
+      "abandoned_partial": 0,
+      "verified_capture_ns": 0,
+      "duration_basis": "SEALED_ENABLED_INTERVALS_EXCLUDING_ATTACH_DRAIN_AND_GAPS"
+    },
+    "producer": {
+      "receiver_queue_depth": 0,
+      "receiver_dropped_batches": 0,
+      "last_message_monotonic": null,
+      "last_validated_monotonic": null,
+      "last_data_monotonic": null,
+      "last_root_clock": null,
+      "failure": null
+    },
+    "collector_cleanup": "UNKNOWN",
+    "collector_failure": null,
+    "auth_pending": 0,
+    "authentication_transport": {
+      "state": "NOT_ATTACHED",
+      "source": null
+    },
+    "heartbeat_unix": 1793756787.5809426,
+    "component_health": {
+      "collector_event_unix": null,
+      "collector_message_unix": null,
+      "worker_observed_unix": null,
+      "worker_child_running": false,
+      "worker_child_returncode": null,
+      "worker_heartbeat_scope": "SUPERVISOR_OBSERVATION_NOT_MODEL_PROGRESS",
+      "collector_heartbeat_scope": "AUTHENTICATED_ROOT_MESSAGE",
+      "automatic_kernel_restart": false,
+      "storage": {
+        "pending": true,
+        "last_seconds": null,
+        "max_seconds": 0.0,
+        "operation": "slow_write",
+        "started_monotonic": 1098357.480894997
+      },
+      "data_progress": {
+        "active": false,
+        "operation": null,
+        "started_monotonic": null,
+        "stalled": true,
+        "reason": "CONTINUOUS_DATA_PROGRESS_STALLED",
+        "degradation_count": 1,
+        "recovery_count": 0
+      },
+      "publication": {
+        "last_seconds": 0.00164935109205544,
+        "max_seconds": 1.123329855967313,
+        "error": null,
+        "completed_monotonic": 1098363.398185011
+      }
+    },
+    "uptime_seconds": 6.019739835057408,
+    "clock_epoch": "5d103a51-83df-5fbb-8683-dbe38ba21739",
+    "metrics": {
+      "received": 0,
+      "packets": 0,
+      "native_events": 0,
+      "auth_windows": 0,
+      "recovered_events": 0,
+      "dns_inputs": 0,
+      "dns_metadata_bytes": 0,
+      "dns_rejected": 0,
+      "authentication_inputs": 0,
+      "authentication_predictions": 0,
+      "authentication_incidents": 0,
+      "duplicates": 0,
+      "excluded": 0,
+      "source_gaps": 0,
+      "invalid": 0,
+      "flows": 0,
+      "eligible": 0,
+      "incomplete": 0,
+      "queue_dropped": 0,
+      "predictions": 0,
+      "incidents": 0,
+      "model_errors": 0,
+      "collector_restarts": 0
+    },
+    "queue": {},
+    "circuit_open": false,
+    "last_error": null,
+    "stop_reason": null,
+    "runtime_stop_request": null,
+    "analysis": {
+      "state": "IDLE",
+      "session_id": null,
+      "mode": "OFFLINE_ANALYSIS",
+      "collection_live": false,
+      "worker_running": false,
+      "child_returncode": null,
+      "cleanup": "NOT_STARTED",
+      "last_error": null,
+      "result": null,
+      "output": null,
+      "native_start": "EXTERNAL_GOVERNED_TERMINAL_REQUIRED",
+      "dns9": "INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
+      "api_calls_started_by_gui": 0
+    },
+    "recent_results": [],
+    "dns": {
+      "counts": {},
+      "pending": 0,
+      "recent_events": [],
+      "dns9_inference": "BLOCKED",
+      "producer_parity": "UNVERIFIED",
+      "names_retained": false,
+      "tcp_support": "SINGLE_COMPLETE_MESSAGE_ONLY_NO_REASSEMBLY",
+      "encrypted_dns": "UNKNOWN_NOT_DECRYPTED",
+      "diagnostic_status": "HEALTHY",
+      "quarantined_connections": 0,
+      "event_time_policy": "CONNECTION_LOCAL_NO_NETWORK_EXPIRY"
+    },
+    "dns_transport": {
+      "state": "NOT_COLLECTED_IN_THIS_SCOPE",
+      "origin": "NO_DATA"
+    },
+    "dns9": "INCOMPLETE_TRAINING_EXTRACTION_CONTRACT",
+    "api": "NOT_AUTOMATICALLY_AUTHORIZED",
+    "audit": "VERIFIED",
+    "resources": {
+      "cpu_seconds": 9.572354229,
+      "peak_rss_bytes": 236834816
+    },
+    "cleanup": "PENDING_SERVICE_STOP",
+    "control": {
+      "contract": "soc-runtime-control:v1",
+      "identity": {
+        "pid": 3029128,
+        "start_ticks": "109828198",
+        "uid": 1000,
+        "boot_id": "67d54395-bd0f-4e00-867b-58b7f20342fb"
+      },
+      "sequence": 28,
+      "monotonic": 1098363.499396942,
+      "lease_seconds": 5,
+      "data_stalled": true,
+      "queue_scope": "LAST_COMPLETED_READ_NOT_LIVENESS"
+    }
+  },
+  "digest": "1fa2af5272d5990eefaf1daf481fa5da8c87586c59933b71cde8b128a3097d20"
+}

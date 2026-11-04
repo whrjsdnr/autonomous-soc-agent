@@ -1,0 +1,55 @@
+........................................................................ [  7%]
+........................................................................ [ 15%]
+........................................................................ [ 23%]
+.............F.......................................................... [ 31%]
+........................................................................ [ 39%]
+........................................................................ [ 47%]
+........................................................................ [ 55%]
+........................................................................ [ 63%]
+........................................................................ [ 71%]
+........................................................................ [ 79%]
+........................................................................ [ 87%]
+........................................................................ [ 95%]
+.............................................                            [100%]
+=================================== FAILURES ===================================
+____________ test_ten_second_write_does_not_block_heartbeat_or_stop ____________
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-full-workspace/test_ten_second_write_does_not0')
+
+    @pytest.mark.asyncio
+    async def test_ten_second_write_does_not_block_heartbeat_or_stop(tmp_path):
+        directory, service = runtime(tmp_path)
+        entered = threading.Event()
+    
+        def slow_write():
+            entered.set()
+            time.sleep(10)
+    
+        pending = asyncio.create_task(service.storage(slow_write))
+        assert await asyncio.to_thread(entered.wait, 1)
+        control = asyncio.create_task(service.control())
+        sequences = []
+        while time.monotonic() - service.storage_health["started_monotonic"] < 6:
+            await asyncio.sleep(0.2)
+            if (directory / "observation.json").exists():
+                value = shown(directory)
+                sequences.append(value["control"]["sequence"])
+                assert time.monotonic() - value["control"]["monotonic"] < 2
+        assert not pending.done() and not control.done()
+        value = shown(directory)
+        assert value["state"] == "DEGRADED" and value["control"]["data_stalled"]
+        assert value["last_error"] is None
+        assert (
+            value["component_health"]["data_progress"]["reason"] == "CONTINUOUS_DATA_PROGRESS_STALLED"
+        )
+        assert not service.source.stop_sent.is_set()  # Slow data does not kill the Collector.
+        assert service.control_health["error"] is None
+>       assert len(set(sequences)) >= 20
+E       assert 18 >= 20
+E        +  where 18 = len({2, 4, 6, 8, 10, 11, ...})
+E        +    where {2, 4, 6, 8, 10, 11, ...} = set([2, 4, 6, 8, 10, 11, ...])
+
+tests/unit/continuous/test_storage_control_isolation.py:153: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/continuous/test_storage_control_isolation.py::test_ten_second_write_does_not_block_heartbeat_or_stop
+1 failed, 908 passed in 209.69s (0:03:29)

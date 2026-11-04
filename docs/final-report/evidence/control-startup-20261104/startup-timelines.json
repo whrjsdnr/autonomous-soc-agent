@@ -1,0 +1,968 @@
+{
+  "instrumented": true,
+  "common_clock": "CLOCK_MONOTONIC_SAME_BOOT",
+  "historical_failure_phase_times": "UNKNOWN",
+  "shared_cgroup_not_child_attribution": true,
+  "runs": [
+    {
+      "label": "workspace-disk",
+      "child": 2998796,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1096912.579839868,
+        "pid": 2998599
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.026231826981529593,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1096912.606071695,
+          "pid": 2998796
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 4.185300359968096,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1096916.765140228,
+          "pid": 2998796
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 4.293852757895365,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1096916.873692626,
+          "pid": 2998796
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 4.294313804944977,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1096916.874153673,
+          "pid": 2998796
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 4.378822081023827,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1096916.958661949,
+          "pid": 2998796
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 4.510746146086603,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1096917.090586014,
+          "pid": 2998796,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1096917.099008363,
+          "pid": 2998599,
+          "since_spawn_seconds": 4.519168494967744
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 13.911877651000395,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/soc-startup-timeline-workspace-disk"
+        ]
+      }
+    },
+    {
+      "label": "export-disk",
+      "child": 2999082,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1096924.817898499,
+        "pid": 2998914
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.020304868929088116,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1096924.838203368,
+          "pid": 2999082
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 3.1970139199402183,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1096928.014912419,
+          "pid": 2999082
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 3.312387840822339,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1096928.13028634,
+          "pid": 2999082
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 3.312982545932755,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1096928.130881045,
+          "pid": 2999082
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 3.3990880949422717,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1096928.216986594,
+          "pid": 2999082
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 3.5544647770002484,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1096928.372363276,
+          "pid": 2999082,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1096928.389599376,
+          "pid": 2998914,
+          "since_spawn_seconds": 3.5717008768115193
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 11.447362920967862,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/soc-startup-timeline-export-disk"
+        ]
+      }
+    },
+    {
+      "label": "workspace-tmpfs",
+      "child": 2999341,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1096934.796921052,
+        "pid": 2999189
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.02127088885754347,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1096934.818191941,
+          "pid": 2999341
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 3.010361187858507,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1096937.80728224,
+          "pid": 2999341
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 3.162860156968236,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1096937.959781209,
+          "pid": 2999341
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 3.163465265883133,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1096937.960386318,
+          "pid": 2999341
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 3.2309473908971995,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1096938.027868443,
+          "pid": 2999341
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 3.315493097063154,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1096938.112414149,
+          "pid": 2999341,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1096938.121512996,
+          "pid": 2999189,
+          "since_spawn_seconds": 3.3245919439941645
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 9.559006513096392,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/dev/shm/soc-startup-timeline-workspace-tmpfs"
+        ]
+      }
+    },
+    {
+      "label": "export-tmpfs",
+      "child": 2999561,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1096945.060532905,
+        "pid": 2999446
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.01779425097629428,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1096945.078327156,
+          "pid": 2999561
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 3.507870545145124,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1096948.56840345,
+          "pid": 2999561
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 3.623276871163398,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1096948.683809776,
+          "pid": 2999561
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 3.623858183156699,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1096948.684391088,
+          "pid": 2999561
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 3.7027035700157285,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1096948.763236475,
+          "pid": 2999561
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 3.7847397150471807,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1096948.84527262,
+          "pid": 2999561,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1096948.891046955,
+          "pid": 2999446,
+          "since_spawn_seconds": 3.830514050088823
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 10.803588419919834,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/dev/shm/soc-startup-timeline-export-tmpfs"
+        ]
+      }
+    },
+    {
+      "label": "final-workspace-disk",
+      "child": 3015721,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1097724.749177747,
+        "pid": 3015612
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.028458992019295692,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1097724.777636739,
+          "pid": 3015721
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.4130605140235275,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1097725.162238261,
+          "pid": 3015721
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.522004707949236,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1097725.271182455,
+          "pid": 3015721
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.5228383119683713,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1097725.272016059,
+          "pid": 3015721
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.5734572149813175,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1097725.322634962,
+          "pid": 3015721
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.5765056910458952,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1097725.325683438,
+          "pid": 3015721,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1097725.353134308,
+          "pid": 3015612,
+          "since_spawn_seconds": 0.6039565610699356
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 9.73971873614937,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/soc-startup-timeline-final-workspace-disk"
+        ]
+      }
+    },
+    {
+      "label": "final-export-disk",
+      "child": 3016004,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1097735.209975143,
+        "pid": 3015883
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.02650638110935688,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1097735.236481524,
+          "pid": 3016004
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.5294134290888906,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1097735.739388572,
+          "pid": 3016004
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.639373118057847,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1097735.849348261,
+          "pid": 3016004
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.6400558350142092,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1097735.850030978,
+          "pid": 3016004
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.7260936009697616,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1097735.936068744,
+          "pid": 3016004
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.7355607140343636,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1097735.945535857,
+          "pid": 3016004,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1097735.966517553,
+          "pid": 3015883,
+          "since_spawn_seconds": 0.7565424100030214
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 10.342970706056803,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/soc-startup-timeline-final-export-disk"
+        ]
+      }
+    },
+    {
+      "label": "final-workspace-tmpfs",
+      "child": 3016195,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1097744.74481645,
+        "pid": 3016098
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.01864909613505006,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1097744.763465546,
+          "pid": 3016195
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.42058057710528374,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1097745.165397027,
+          "pid": 3016195
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.558247972978279,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1097745.303064423,
+          "pid": 3016195
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.559152641100809,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1097745.303969091,
+          "pid": 3016195
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.6162949879653752,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1097745.361111438,
+          "pid": 3016195
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.6193368991371244,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1097745.364153349,
+          "pid": 3016195,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1097745.400372243,
+          "pid": 3016098,
+          "since_spawn_seconds": 0.6555557930842042
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 9.188516245922074,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/dev/shm/soc-startup-timeline-final-workspace-tmpfs"
+        ]
+      }
+    },
+    {
+      "label": "final-export-tmpfs",
+      "child": 3016398,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1097754.573825396,
+        "pid": 3016282
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.01730605005286634,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1097754.591131446,
+          "pid": 3016398
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.44140150118619204,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1097755.015226897,
+          "pid": 3016398
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.5504378119949251,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1097755.124263208,
+          "pid": 3016398
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.550924216164276,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1097755.124749612,
+          "pid": 3016398
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.6345068200025707,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1097755.208332216,
+          "pid": 3016398
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.639080619206652,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1097755.212906015,
+          "pid": 3016398,
+          "has_control": true
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1097755.227806918,
+          "pid": 3016282,
+          "since_spawn_seconds": 0.6539815221913159
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 10.02841498889029,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/dev/shm/soc-startup-timeline-final-export-tmpfs"
+        ]
+      }
+    },
+    {
+      "label": "stable-workspace-disk",
+      "child": 3060677,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1099711.40154198,
+        "pid": 3060389
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.03219463094137609,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1099711.433736611,
+          "pid": 3060677,
+          "process_cpu_seconds": 0.022496289,
+          "voluntary_switches": 1,
+          "involuntary_switches": 1,
+          "major_faults": 1,
+          "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 376832\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255797313459\nuser_usec 162330651882\nsystem_usec 93466661577\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.7612125629093498,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1099712.162754543,
+          "pid": 3060677,
+          "process_cpu_seconds": 0.477333942,
+          "voluntary_switches": 15,
+          "involuntary_switches": 16,
+          "major_faults": 3,
+          "self_io": "rchar: 5540525\nwchar: 1302\nsyscr: 594\nsyscw: 5\nread_bytes: 765952\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255798101142\nuser_usec 162331285124\nsystem_usec 93466816018\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.8710085491184145,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1099712.272550529,
+          "pid": 3060677
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.8714615569915622,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1099712.273003537,
+          "pid": 3060677
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 1.8714498260524124,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1099713.272991806,
+          "pid": 3060677,
+          "process_cpu_seconds": 0.657199666,
+          "voluntary_switches": 31,
+          "involuntary_switches": 24,
+          "major_faults": 3,
+          "self_io": "rchar: 10625678\nwchar: 4359\nsyscr: 1958\nsyscw: 30\nread_bytes: 1036288\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255799288852\nuser_usec 162332065417\nsystem_usec 93467223435\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 1.8745071839075536,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1099713.276049164,
+          "pid": 3060677,
+          "has_control": true,
+          "process_cpu_seconds": 0.660476078,
+          "voluntary_switches": 51,
+          "involuntary_switches": 24,
+          "major_faults": 3,
+          "self_io": "rchar: 10636266\nwchar: 10456\nsyscr: 1967\nsyscw: 39\nread_bytes: 1044480\nwrite_bytes: 16384\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255799293113\nuser_usec 162332069678\nsystem_usec 93467223435\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1099713.312916931,
+          "pid": 3060389,
+          "since_spawn_seconds": 1.9113749510142952
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 19.813102627173066,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/soc-startup-timeline-stable-workspace-disk"
+        ]
+      }
+    },
+    {
+      "label": "stable-export-disk",
+      "child": 3060980,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1099725.385001524,
+        "pid": 3060796
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.02040648111142218,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1099725.405408005,
+          "pid": 3060980,
+          "process_cpu_seconds": 0.019740884,
+          "voluntary_switches": 0,
+          "involuntary_switches": 14,
+          "major_faults": 0,
+          "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 0\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255818318656\nuser_usec 162346113421\nsystem_usec 93472205235\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.5537898212205619,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1099725.938791345,
+          "pid": 3060980,
+          "process_cpu_seconds": 0.540245343,
+          "voluntary_switches": 0,
+          "involuntary_switches": 156,
+          "major_faults": 0,
+          "self_io": "rchar: 5370284\nwchar: 1294\nsyscr: 594\nsyscw: 5\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255819578878\nuser_usec 162347060979\nsystem_usec 93472517899\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.6687918761745095,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1099726.0537934,
+          "pid": 3060980
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.6692432500422001,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1099726.054244774,
+          "pid": 3060980
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.7973990531172603,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1099726.182400577,
+          "pid": 3060980,
+          "process_cpu_seconds": 0.77643777,
+          "voluntary_switches": 14,
+          "involuntary_switches": 157,
+          "major_faults": 0,
+          "self_io": "rchar: 10389535\nwchar: 4342\nsyscr: 1958\nsyscw: 30\nread_bytes: 90112\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255819942700\nuser_usec 162347378799\nsystem_usec 93472563901\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.8060730041470379,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1099726.191074528,
+          "pid": 3060980,
+          "has_control": true,
+          "process_cpu_seconds": 0.783327069,
+          "voluntary_switches": 50,
+          "involuntary_switches": 159,
+          "major_faults": 0,
+          "self_io": "rchar: 10417621\nwchar: 10437\nsyscr: 1972\nsyscw: 39\nread_bytes: 90112\nwrite_bytes: 16384\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255819956833\nuser_usec 162347390902\nsystem_usec 93472565931\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1099726.194942083,
+          "pid": 3060796,
+          "since_spawn_seconds": 0.8099405590910465
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 11.354184431955218,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/tmp/soc-startup-timeline-stable-export-disk"
+        ]
+      }
+    },
+    {
+      "label": "stable-workspace-tmpfs",
+      "child": 3061227,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1099735.630943909,
+        "pid": 3061104
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.018456131918355823,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1099735.649400041,
+          "pid": 3061227,
+          "process_cpu_seconds": 0.017894659,
+          "voluntary_switches": 0,
+          "involuntary_switches": 2,
+          "major_faults": 0,
+          "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 0\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255835549996\nuser_usec 162359872014\nsystem_usec 93475677981\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.42109908000566065,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1099736.052042989,
+          "pid": 3061227,
+          "process_cpu_seconds": 0.420046541,
+          "voluntary_switches": 0,
+          "involuntary_switches": 6,
+          "major_faults": 0,
+          "self_io": "rchar: 5540515\nwchar: 1290\nsyscr: 594\nsyscw: 5\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255836173614\nuser_usec 162360365922\nsystem_usec 93475807692\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.5431012860499322,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1099736.174045195,
+          "pid": 3061227
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.5435837230179459,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1099736.174527632,
+          "pid": 3061227
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.6033507529646158,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1099736.234294662,
+          "pid": 3061227,
+          "process_cpu_seconds": 0.60244758,
+          "voluntary_switches": 0,
+          "involuntary_switches": 7,
+          "major_faults": 0,
+          "self_io": "rchar: 10625663\nwchar: 4341\nsyscr: 1958\nsyscw: 30\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255836471555\nuser_usec 162360590218\nsystem_usec 93475881337\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.6208396928850561,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1099736.251783602,
+          "pid": 3061227,
+          "has_control": true,
+          "process_cpu_seconds": 0.619935343,
+          "voluntary_switches": 47,
+          "involuntary_switches": 15,
+          "major_faults": 0,
+          "self_io": "rchar: 10741021\nwchar: 10436\nsyscr: 1993\nsyscw: 39\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255836512974\nuser_usec 162360616586\nsystem_usec 93475896388\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1099736.285872142,
+          "pid": 3061104,
+          "since_spawn_seconds": 0.6549282330088317
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 9.398564721923321,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/dev/shm/soc-startup-timeline-stable-workspace-tmpfs"
+        ]
+      }
+    },
+    {
+      "label": "stable-export-tmpfs",
+      "child": 3061406,
+      "spawn": {
+        "stage": "PROCESS_SPAWN_BEGIN",
+        "monotonic": 1099745.477862086,
+        "pid": 3061275
+      },
+      "stages": {
+        "interpreter_ready": {
+          "since_spawn_seconds": 0.03093600505962968,
+          "stage": "INTERPRETER_READY",
+          "monotonic": 1099745.508798091,
+          "pid": 3061406,
+          "process_cpu_seconds": 0.03016096,
+          "voluntary_switches": 0,
+          "involuntary_switches": 0,
+          "major_faults": 0,
+          "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 0\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255849612062\nuser_usec 162370867367\nsystem_usec 93478744694\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "module_import_complete": {
+          "since_spawn_seconds": 0.49957149801775813,
+          "stage": "continuous/cli.py:<module>:return",
+          "monotonic": 1099745.977433584,
+          "pid": 3061406,
+          "process_cpu_seconds": 0.498048515,
+          "voluntary_switches": 0,
+          "involuntary_switches": 13,
+          "major_faults": 0,
+          "self_io": "rchar: 5370284\nwchar: 1290\nsyscr: 594\nsyscw: 5\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255850396880\nuser_usec 162371469429\nsystem_usec 93478927451\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "runtime_init": {
+          "since_spawn_seconds": 0.609940076014027,
+          "stage": "continuous/service.py:__init__:call",
+          "monotonic": 1099746.087802162,
+          "pid": 3061406
+        },
+        "sqlite_open": {
+          "since_spawn_seconds": 0.6105408780276775,
+          "stage": "review/persistence/database.py:_connect:call",
+          "monotonic": 1099746.088402964,
+          "pid": 3061406
+        },
+        "control_identity_created": {
+          "since_spawn_seconds": 0.6907738801091909,
+          "stage": "continuous/process_identity.py:runtime_identity:return",
+          "monotonic": 1099746.168635966,
+          "pid": 3061406,
+          "process_cpu_seconds": 0.689106112,
+          "voluntary_switches": 0,
+          "involuntary_switches": 16,
+          "major_faults": 0,
+          "self_io": "rchar: 10389535\nwchar: 4344\nsyscr: 1958\nsyscw: 30\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255850755813\nuser_usec 162371792228\nsystem_usec 93478963585\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "control_identity_published": {
+          "since_spawn_seconds": 0.6975373981986195,
+          "stage": "continuous/store.py:publish_observation:return",
+          "monotonic": 1099746.175399484,
+          "pid": 3061406,
+          "has_control": true,
+          "process_cpu_seconds": 0.695382425,
+          "voluntary_switches": 37,
+          "involuntary_switches": 16,
+          "major_faults": 0,
+          "self_io": "rchar: 10417301\nwchar: 10438\nsyscr: 1971\nsyscw: 39\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+          "shared_cgroup_cpu_stat": "usage_usec 255850765371\nuser_usec 162371795572\nsystem_usec 93478969799\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+        },
+        "observer_received": {
+          "stage": "OBSERVER_CONTROL_RECEIVED",
+          "monotonic": 1099746.183407564,
+          "pid": 3061275,
+          "since_spawn_seconds": 0.7055454780347645
+        }
+      },
+      "result": {
+        "exit": 0,
+        "seconds": 10.261704054893926,
+        "instrumented": true,
+        "command": [
+          "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-p",
+          "no_live_guard",
+          "-p",
+          "observer",
+          "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+          "-q",
+          "--tb=short",
+          "--basetemp=/dev/shm/soc-startup-timeline-stable-export-tmpfs"
+        ]
+      }
+    }
+  ]
+}

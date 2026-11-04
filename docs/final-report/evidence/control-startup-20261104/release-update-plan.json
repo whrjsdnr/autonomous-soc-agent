@@ -1,0 +1,8 @@
+{
+  "status": "BLOCKED_REGRESSION_GATE_NOT_EXECUTED",
+  "old_manager_unchanged": true,
+  "candidate_wheel_sha256": "1241ef4b97ee3e59740a33eda795f1c71ecc60cc60e9d6dfb38a255a1f02a043",
+  "must_not_execute_before_green_and_explicit_review": true,
+  "reason": "Workspace full disk/tmpfs and Authentication focused timing failures retained; no fabricated all-green proof",
+  "root_installation_included": false
+}

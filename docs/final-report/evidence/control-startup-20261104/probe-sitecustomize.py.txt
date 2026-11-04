@@ -1,0 +1,32 @@
+"""Owned fixture process timing only; no application authority or payload logs."""
+import os,sys,time,json,resource
+from pathlib import Path
+base=os.environ.get('SOC_STARTUP_PROBE')
+if base:
+ fd=os.open(base+'-'+str(os.getpid())+'.jsonl',os.O_CREAT|os.O_WRONLY|os.O_APPEND,0o600)
+ def mark(stage,**values):
+  if stage=='INTERPRETER_READY' or stage.endswith((':<module>:return',':runtime_identity:return',':publish_observation:return')):
+   usage=resource.getrusage(resource.RUSAGE_SELF)
+   values['process_cpu_seconds']=time.process_time()
+   values['voluntary_switches']=usage.ru_nvcsw
+   values['involuntary_switches']=usage.ru_nivcsw
+   values['major_faults']=usage.ru_majflt
+   values['self_io']=Path('/proc/self/io').read_text()
+   group=Path('/proc/self/cgroup').read_text().split('::',1)[-1].strip()
+   stat=Path('/sys/fs/cgroup')/group.lstrip('/')/'cpu.stat'
+   values['shared_cgroup_cpu_stat']=stat.read_text() if stat.is_file() else None
+  os.write(fd,(json.dumps(dict(stage=stage,monotonic=time.monotonic(),pid=os.getpid(),**values))+'\n').encode())
+ mark('INTERPRETER_READY')
+ def profile(frame,event,arg):
+  if event not in ('call','return'):return
+  name=frame.f_code.co_name;file=frame.f_code.co_filename.replace('\\','/')
+  if '/soc_agent/' not in file:return
+  module=file.split('/soc_agent/',1)[1]
+  chosen=(name=='<module>' and module in ('cli.py','continuous/cli.py','continuous/service.py')) or (module=='continuous/process_identity.py' and name=='runtime_identity') or (module=='review/persistence/database.py' and name in ('_connect','_commit')) or (module=='continuous/service.py' and name in ('__init__','run','control')) or (module=='continuous/store.py' and name in ('__init__','control','event','publish_observation')) or (module=='continuous/investigation_store.py' and name=='__init__')
+  if chosen:
+   data={}
+   if name=='publish_observation':data['has_control']=bool(frame.f_locals.get('value',{}).get('control'))
+   mark(module+':'+name+':'+event,**data)
+ sys.setprofile(profile)
+ import threading
+ threading.setprofile(profile)

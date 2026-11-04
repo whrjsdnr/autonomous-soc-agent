@@ -1,0 +1,1843 @@
+{
+  "code_commit": "b7505cabd08b0a431652796ee087c81f00643475",
+  "git_tree": "29d8182546859e97d49db1347bb4355e358d4dec",
+  "source_file_count": 682,
+  "source_sha256": "82c97502caef2b6a73f31dfbd8265e4d41278f9f490cda15e9d9ab160e033ec0",
+  "code_identity": "0c5586ab6951c66adfcbf263f70748d7cba7ed1656baaa0897c6f0a747c475a1",
+  "source_identical_workspace_export_candidate_frozen": true,
+  "tests": [
+    {
+      "label": "workspace",
+      "summary": "1 failed, 908 passed in 209.69s (0:03:29)",
+      "failed": [
+        "FAILED tests/unit/continuous/test_storage_control_isolation.py::test_ten_second_write_does_not_block_heartbeat_or_stop"
+      ],
+      "returncode": 1,
+      "seconds": 211.38854968408123,
+      "source_unchanged": true,
+      "source_sha256": "49e6fa8333e17735f6ae74ea665e2de63519c3cd7c631d39b23a9f510e677f44",
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/unit/continuous/test_authentication_runtime_attachment.py",
+        "tests/unit/continuous/test_capture_duration.py",
+        "tests/unit/continuous/test_control_transport.py",
+        "tests/unit/continuous/test_dashboard_projection.py",
+        "tests/unit/continuous/test_dns_control.py",
+        "tests/unit/continuous/test_dns_heartbeat_diagnostics.py",
+        "tests/unit/continuous/test_dns_lifecycle.py",
+        "tests/unit/continuous/test_dns_policy_completion.py",
+        "tests/unit/continuous/test_dns_source.py",
+        "tests/unit/continuous/test_dns_trial.py",
+        "tests/unit/continuous/test_first_failure_latch.py",
+        "tests/unit/continuous/test_native_header.py",
+        "tests/unit/continuous/test_observation.py",
+        "tests/unit/continuous/test_observer_order.py",
+        "tests/unit/continuous/test_process_identity.py",
+        "tests/unit/continuous/test_receive_diagnostics.py",
+        "tests/unit/continuous/test_receiver_backpressure.py",
+        "tests/unit/continuous/test_recovery_copy.py",
+        "tests/unit/continuous/test_recovery_lifecycle.py",
+        "tests/unit/continuous/test_release_health.py",
+        "tests/unit/continuous/test_release_windows.py",
+        "tests/unit/continuous/test_replay_shutdown.py",
+        "tests/unit/continuous/test_root_audit_transport.py",
+        "tests/unit/continuous/test_startup_control.py",
+        "tests/unit/continuous/test_storage_control_isolation.py",
+        "tests/unit/continuous/test_tcx_failure_cleanup.py",
+        "tests/unit/continuous/test_tcx_transport_diagnostics.py",
+        "tests/unit/continuous/test_timing_evidence.py",
+        "tests/unit/continuous/test_trial_observation.py",
+        "tests/unit/continuous/test_stream_integration.py::test_root_resource_contract_is_required",
+        "tests/unit/gui",
+        "tests/unit/llm",
+        "tests/unit/planning",
+        "tests/unit/assessment",
+        "tests/unit/adaptive",
+        "tests/unit/investigation",
+        "tests/unit/investigation_runtime",
+        "tests/unit/test_agent_api_review.py",
+        "tests/unit/test_agent_cli.py",
+        "tests/unit/test_agent_installation.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_native.py",
+        "tests/unit/test_agent_release.py",
+        "tests/unit/test_agent_session_validity.py",
+        "tests/unit/test_native_terminal_confirmation.py",
+        "tests/gui_reliability_checks.py",
+        "tests/integration/test_continuous_orchestration.py",
+        "tests/integration/test_continuous_orchestration_recovery.py",
+        "tests/integration/test_continuous_api_investigation.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/tmp/soc-startup-rca-full-workspace"
+      ],
+      "real_model_tests_excluded": [
+        "test_capture_admission.py",
+        "test_runtime.py",
+        "test_stream_integration.py"
+      ],
+      "scope": "UNPRIVILEGED_FIXTURE_CONTROL_STORAGE_GUI_ONLY_NO_LIVE_REPLAY_OR_MODEL_INFERENCE"
+    },
+    {
+      "label": "export",
+      "summary": "909 passed in 213.90s (0:03:33)",
+      "failed": [],
+      "returncode": 0,
+      "seconds": 215.7461576659698,
+      "source_unchanged": true,
+      "source_sha256": "49e6fa8333e17735f6ae74ea665e2de63519c3cd7c631d39b23a9f510e677f44",
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/unit/continuous/test_authentication_runtime_attachment.py",
+        "tests/unit/continuous/test_capture_duration.py",
+        "tests/unit/continuous/test_control_transport.py",
+        "tests/unit/continuous/test_dashboard_projection.py",
+        "tests/unit/continuous/test_dns_control.py",
+        "tests/unit/continuous/test_dns_heartbeat_diagnostics.py",
+        "tests/unit/continuous/test_dns_lifecycle.py",
+        "tests/unit/continuous/test_dns_policy_completion.py",
+        "tests/unit/continuous/test_dns_source.py",
+        "tests/unit/continuous/test_dns_trial.py",
+        "tests/unit/continuous/test_first_failure_latch.py",
+        "tests/unit/continuous/test_native_header.py",
+        "tests/unit/continuous/test_observation.py",
+        "tests/unit/continuous/test_observer_order.py",
+        "tests/unit/continuous/test_process_identity.py",
+        "tests/unit/continuous/test_receive_diagnostics.py",
+        "tests/unit/continuous/test_receiver_backpressure.py",
+        "tests/unit/continuous/test_recovery_copy.py",
+        "tests/unit/continuous/test_recovery_lifecycle.py",
+        "tests/unit/continuous/test_release_health.py",
+        "tests/unit/continuous/test_release_windows.py",
+        "tests/unit/continuous/test_replay_shutdown.py",
+        "tests/unit/continuous/test_root_audit_transport.py",
+        "tests/unit/continuous/test_startup_control.py",
+        "tests/unit/continuous/test_storage_control_isolation.py",
+        "tests/unit/continuous/test_tcx_failure_cleanup.py",
+        "tests/unit/continuous/test_tcx_transport_diagnostics.py",
+        "tests/unit/continuous/test_timing_evidence.py",
+        "tests/unit/continuous/test_trial_observation.py",
+        "tests/unit/continuous/test_stream_integration.py::test_root_resource_contract_is_required",
+        "tests/unit/gui",
+        "tests/unit/llm",
+        "tests/unit/planning",
+        "tests/unit/assessment",
+        "tests/unit/adaptive",
+        "tests/unit/investigation",
+        "tests/unit/investigation_runtime",
+        "tests/unit/test_agent_api_review.py",
+        "tests/unit/test_agent_cli.py",
+        "tests/unit/test_agent_installation.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_native.py",
+        "tests/unit/test_agent_release.py",
+        "tests/unit/test_agent_session_validity.py",
+        "tests/unit/test_native_terminal_confirmation.py",
+        "tests/gui_reliability_checks.py",
+        "tests/integration/test_continuous_orchestration.py",
+        "tests/integration/test_continuous_orchestration_recovery.py",
+        "tests/integration/test_continuous_api_investigation.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/tmp/soc-startup-rca-full-export"
+      ],
+      "real_model_tests_excluded": [
+        "test_capture_admission.py",
+        "test_runtime.py",
+        "test_stream_integration.py"
+      ],
+      "scope": "UNPRIVILEGED_FIXTURE_CONTROL_STORAGE_GUI_ONLY_NO_LIVE_REPLAY_OR_MODEL_INFERENCE"
+    },
+    {
+      "label": "workspace-tmpfs",
+      "summary": "2 failed, 907 passed in 220.15s (0:03:40)",
+      "failed": [
+        "FAILED tests/unit/continuous/test_dns_lifecycle.py::test_closed_without_process_exit_remains_unverified_at_shared_deadline",
+        "FAILED tests/unit/continuous/test_storage_control_isolation.py::test_dns_status_reader_lock_does_not_block_control_or_stop"
+      ],
+      "returncode": 1,
+      "seconds": 222.2185142179951,
+      "source_unchanged": true,
+      "source_sha256": "49e6fa8333e17735f6ae74ea665e2de63519c3cd7c631d39b23a9f510e677f44",
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/unit/continuous/test_authentication_runtime_attachment.py",
+        "tests/unit/continuous/test_capture_duration.py",
+        "tests/unit/continuous/test_control_transport.py",
+        "tests/unit/continuous/test_dashboard_projection.py",
+        "tests/unit/continuous/test_dns_control.py",
+        "tests/unit/continuous/test_dns_heartbeat_diagnostics.py",
+        "tests/unit/continuous/test_dns_lifecycle.py",
+        "tests/unit/continuous/test_dns_policy_completion.py",
+        "tests/unit/continuous/test_dns_source.py",
+        "tests/unit/continuous/test_dns_trial.py",
+        "tests/unit/continuous/test_first_failure_latch.py",
+        "tests/unit/continuous/test_native_header.py",
+        "tests/unit/continuous/test_observation.py",
+        "tests/unit/continuous/test_observer_order.py",
+        "tests/unit/continuous/test_process_identity.py",
+        "tests/unit/continuous/test_receive_diagnostics.py",
+        "tests/unit/continuous/test_receiver_backpressure.py",
+        "tests/unit/continuous/test_recovery_copy.py",
+        "tests/unit/continuous/test_recovery_lifecycle.py",
+        "tests/unit/continuous/test_release_health.py",
+        "tests/unit/continuous/test_release_windows.py",
+        "tests/unit/continuous/test_replay_shutdown.py",
+        "tests/unit/continuous/test_root_audit_transport.py",
+        "tests/unit/continuous/test_startup_control.py",
+        "tests/unit/continuous/test_storage_control_isolation.py",
+        "tests/unit/continuous/test_tcx_failure_cleanup.py",
+        "tests/unit/continuous/test_tcx_transport_diagnostics.py",
+        "tests/unit/continuous/test_timing_evidence.py",
+        "tests/unit/continuous/test_trial_observation.py",
+        "tests/unit/continuous/test_stream_integration.py::test_root_resource_contract_is_required",
+        "tests/unit/gui",
+        "tests/unit/llm",
+        "tests/unit/planning",
+        "tests/unit/assessment",
+        "tests/unit/adaptive",
+        "tests/unit/investigation",
+        "tests/unit/investigation_runtime",
+        "tests/unit/test_agent_api_review.py",
+        "tests/unit/test_agent_cli.py",
+        "tests/unit/test_agent_installation.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_native.py",
+        "tests/unit/test_agent_release.py",
+        "tests/unit/test_agent_session_validity.py",
+        "tests/unit/test_native_terminal_confirmation.py",
+        "tests/gui_reliability_checks.py",
+        "tests/integration/test_continuous_orchestration.py",
+        "tests/integration/test_continuous_orchestration_recovery.py",
+        "tests/integration/test_continuous_api_investigation.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/dev/shm/soc-startup-rca-full-workspace"
+      ],
+      "real_model_tests_excluded": [
+        "test_capture_admission.py",
+        "test_runtime.py",
+        "test_stream_integration.py"
+      ],
+      "scope": "UNPRIVILEGED_FIXTURE_CONTROL_STORAGE_GUI_ONLY_NO_LIVE_REPLAY_OR_MODEL_INFERENCE"
+    },
+    {
+      "label": "export-tmpfs",
+      "summary": "909 passed in 215.51s (0:03:35)",
+      "failed": [],
+      "returncode": 0,
+      "seconds": 220.8024197050836,
+      "source_unchanged": true,
+      "source_sha256": "49e6fa8333e17735f6ae74ea665e2de63519c3cd7c631d39b23a9f510e677f44",
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/unit/continuous/test_authentication_runtime_attachment.py",
+        "tests/unit/continuous/test_capture_duration.py",
+        "tests/unit/continuous/test_control_transport.py",
+        "tests/unit/continuous/test_dashboard_projection.py",
+        "tests/unit/continuous/test_dns_control.py",
+        "tests/unit/continuous/test_dns_heartbeat_diagnostics.py",
+        "tests/unit/continuous/test_dns_lifecycle.py",
+        "tests/unit/continuous/test_dns_policy_completion.py",
+        "tests/unit/continuous/test_dns_source.py",
+        "tests/unit/continuous/test_dns_trial.py",
+        "tests/unit/continuous/test_first_failure_latch.py",
+        "tests/unit/continuous/test_native_header.py",
+        "tests/unit/continuous/test_observation.py",
+        "tests/unit/continuous/test_observer_order.py",
+        "tests/unit/continuous/test_process_identity.py",
+        "tests/unit/continuous/test_receive_diagnostics.py",
+        "tests/unit/continuous/test_receiver_backpressure.py",
+        "tests/unit/continuous/test_recovery_copy.py",
+        "tests/unit/continuous/test_recovery_lifecycle.py",
+        "tests/unit/continuous/test_release_health.py",
+        "tests/unit/continuous/test_release_windows.py",
+        "tests/unit/continuous/test_replay_shutdown.py",
+        "tests/unit/continuous/test_root_audit_transport.py",
+        "tests/unit/continuous/test_startup_control.py",
+        "tests/unit/continuous/test_storage_control_isolation.py",
+        "tests/unit/continuous/test_tcx_failure_cleanup.py",
+        "tests/unit/continuous/test_tcx_transport_diagnostics.py",
+        "tests/unit/continuous/test_timing_evidence.py",
+        "tests/unit/continuous/test_trial_observation.py",
+        "tests/unit/continuous/test_stream_integration.py::test_root_resource_contract_is_required",
+        "tests/unit/gui",
+        "tests/unit/llm",
+        "tests/unit/planning",
+        "tests/unit/assessment",
+        "tests/unit/adaptive",
+        "tests/unit/investigation",
+        "tests/unit/investigation_runtime",
+        "tests/unit/test_agent_api_review.py",
+        "tests/unit/test_agent_cli.py",
+        "tests/unit/test_agent_installation.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_native.py",
+        "tests/unit/test_agent_release.py",
+        "tests/unit/test_agent_session_validity.py",
+        "tests/unit/test_native_terminal_confirmation.py",
+        "tests/gui_reliability_checks.py",
+        "tests/integration/test_continuous_orchestration.py",
+        "tests/integration/test_continuous_orchestration_recovery.py",
+        "tests/integration/test_continuous_api_investigation.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/dev/shm/soc-startup-rca-full-export"
+      ],
+      "real_model_tests_excluded": [
+        "test_capture_admission.py",
+        "test_runtime.py",
+        "test_stream_integration.py"
+      ],
+      "scope": "UNPRIVILEGED_FIXTURE_CONTROL_STORAGE_GUI_ONLY_NO_LIVE_REPLAY_OR_MODEL_INFERENCE"
+    },
+    {
+      "label": "supplement-workspace",
+      "summary": "1 failed, 109 passed in 116.69s (0:01:56)",
+      "failed": [
+        "FAILED tests/integration/linux_runtime/test_managed_authentication_lifecycle.py::test_owned_child_ready_ingestion_gui_cache_stop_ack_and_durable_cleanup"
+      ],
+      "returncode": 1,
+      "seconds": 117.66817906498909,
+      "source_unchanged": true,
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/integration/linux_runtime",
+        "tests/unit/operational_features/test_native_authentication.py",
+        "tests/unit/gui/test_operator_review_prompts.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_api_review.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/tmp/soc-startup-rca-suppw"
+      ],
+      "scope": "FIXTURE_JOURNAL_COMMAND_BOUNDARY_ONLY_NO_NATIVE_OR_API_OR_MODEL"
+    },
+    {
+      "label": "supplement-export",
+      "summary": "3 failed, 107 passed in 206.75s (0:03:26)",
+      "failed": [
+        "FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[changed_input]",
+        "FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_composed_packet_dns_authentication_mock_e2e_one_parent_session",
+        "FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_existing_sshd_success_and_failure_share_training_feature_contract"
+      ],
+      "returncode": 1,
+      "seconds": 207.8580219510477,
+      "source_unchanged": true,
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/integration/linux_runtime",
+        "tests/unit/operational_features/test_native_authentication.py",
+        "tests/unit/gui/test_operator_review_prompts.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_api_review.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/tmp/soc-startup-rca-suppe"
+      ],
+      "scope": "FIXTURE_JOURNAL_COMMAND_BOUNDARY_ONLY_NO_NATIVE_OR_API_OR_MODEL"
+    },
+    {
+      "label": "supplement-workspace-tmpfs",
+      "summary": "110 passed in 76.41s (0:01:16)",
+      "failed": [],
+      "returncode": 0,
+      "seconds": 77.40818625502288,
+      "source_unchanged": true,
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/integration/linux_runtime",
+        "tests/unit/operational_features/test_native_authentication.py",
+        "tests/unit/gui/test_operator_review_prompts.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_api_review.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/dev/shm/soc-startup-rca-suppw"
+      ],
+      "scope": "FIXTURE_JOURNAL_COMMAND_BOUNDARY_ONLY_NO_NATIVE_OR_API_OR_MODEL"
+    },
+    {
+      "label": "supplement-export-tmpfs",
+      "summary": "1 failed, 109 passed in 92.96s (0:01:32)",
+      "failed": [
+        "FAILED tests/integration/linux_runtime/test_host_if_integration.py::test_invalid_model_grants_never_reach_numeric_scoring[rejected]"
+      ],
+      "returncode": 1,
+      "seconds": 93.80538930697367,
+      "source_unchanged": true,
+      "command": [
+        "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-p",
+        "no_live_guard",
+        "tests/integration/linux_runtime",
+        "tests/unit/operational_features/test_native_authentication.py",
+        "tests/unit/gui/test_operator_review_prompts.py",
+        "tests/unit/test_agent_model_review.py",
+        "tests/unit/test_agent_api_review.py",
+        "--import-mode=importlib",
+        "-q",
+        "--basetemp=/dev/shm/soc-startup-rca-suppe"
+      ],
+      "scope": "FIXTURE_JOURNAL_COMMAND_BOUNDARY_ONLY_NO_NATIVE_OR_API_OR_MODEL"
+    }
+  ],
+  "guards": {
+    "after-workspace-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "stable-workspace-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "final-workspace-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "export-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "final-export-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "supplement-export-tmpfs-guard.json": {
+      "exitstatus": 1,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "after-export-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "after-workspace-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "workspace-guard.json": {
+      "exitstatus": 1,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "workspace-tmpfs-guard.json": {
+      "exitstatus": 1,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "supplement-workspace-guard.json": {
+      "exitstatus": 1,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "final-workspace-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "workspace-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "export-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "stable-export-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "final-export-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "stable-export-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "export-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "stable-workspace-disk-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "after-export-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "supplement-export-guard.json": {
+      "exitstatus": 1,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    },
+    "supplement-workspace-tmpfs-guard.json": {
+      "exitstatus": 0,
+      "violations": [],
+      "external_native_model_execution_allowed": false
+    }
+  },
+  "build": {
+    "native": {
+      "continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff",
+      "runtime-identity.json": "431f2854bdd2c515f47ad60784263b1446305b1b515108ab5a898aef313ee7fb",
+      "service.py": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+      "soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033"
+    },
+    "legacy": {
+      "bootstrap": "a67e1e24e0b052deb9bf94dcf124631bbe081b453121039cb5924f637658cca2",
+      "broker": "5fa148e5d0d7b1f3c4b5b5854059140f414c7eabc3db6152364215310b8b0434",
+      "entry": "8e4ef82c3fe45ae5a414509316a2922898148ed860bb7ebdde9f743509ce4455",
+      "libnative-tc.so": "d2bf58c38ed5a9cab92ed1ffa03f59951d3118b444170861568c482d38be05ea",
+      "source_bundle_digest": "f5202ab5f97a730d6745f221a5d474ddb10e2b28c6ba12e89a50c4a0a8c07669",
+      "tc-fixture": "32fd5478c736c536881bcaf9608db72b46585d33770f360f5f62be14a9c53758",
+      "tcx-dispatch-fixture": "6e1c9bb10e0efba52265e2a6f6008610f1a080202f6c8c25d0bfbe8fda3d1322",
+      "tcx.bpf.o": "9a4d26cfc3b09ac4635972f8559006d735aa3bc3da0cb09028b3ce53ae5fde06"
+    },
+    "supervisor": {
+      "supervisor.py": "5b7bbccc5cbd5df9aa95ff65d7f0179bda2fb17366ad4495beead56128c92619",
+      "supervisor.tcx-only.py": "0942927e53cdf7f55cf87f0e61dd7dbef9c9d0e893c9104829788fd6a0cbc469"
+    },
+    "wheel_sha256": "1241ef4b97ee3e59740a33eda795f1c71ecc60cc60e9d6dfb38a255a1f02a043",
+    "native_reproducible": true,
+    "legacy_native_reproducible": true,
+    "supervisor_reproducible": true,
+    "wheel_reproducible": true,
+    "three_way_equal": true,
+    "compile_only": true,
+    "actual_execution": false,
+    "source_imports": [
+      "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/src/soc_agent/continuous/native/build.py",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/src/soc_agent/continuous/native/build.py",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/export-final/src/soc_agent/continuous/native/build.py"
+    ]
+  },
+  "startup": {
+    "instrumented": true,
+    "common_clock": "CLOCK_MONOTONIC_SAME_BOOT",
+    "historical_failure_phase_times": "UNKNOWN",
+    "shared_cgroup_not_child_attribution": true,
+    "runs": [
+      {
+        "label": "workspace-disk",
+        "child": 2998796,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1096912.579839868,
+          "pid": 2998599
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.026231826981529593,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1096912.606071695,
+            "pid": 2998796
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 4.185300359968096,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1096916.765140228,
+            "pid": 2998796
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 4.293852757895365,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1096916.873692626,
+            "pid": 2998796
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 4.294313804944977,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1096916.874153673,
+            "pid": 2998796
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 4.378822081023827,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1096916.958661949,
+            "pid": 2998796
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 4.510746146086603,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1096917.090586014,
+            "pid": 2998796,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1096917.099008363,
+            "pid": 2998599,
+            "since_spawn_seconds": 4.519168494967744
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 13.911877651000395,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/tmp/soc-startup-timeline-workspace-disk"
+          ]
+        }
+      },
+      {
+        "label": "export-disk",
+        "child": 2999082,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1096924.817898499,
+          "pid": 2998914
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.020304868929088116,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1096924.838203368,
+            "pid": 2999082
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 3.1970139199402183,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1096928.014912419,
+            "pid": 2999082
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 3.312387840822339,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1096928.13028634,
+            "pid": 2999082
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 3.312982545932755,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1096928.130881045,
+            "pid": 2999082
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 3.3990880949422717,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1096928.216986594,
+            "pid": 2999082
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 3.5544647770002484,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1096928.372363276,
+            "pid": 2999082,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1096928.389599376,
+            "pid": 2998914,
+            "since_spawn_seconds": 3.5717008768115193
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 11.447362920967862,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/tmp/soc-startup-timeline-export-disk"
+          ]
+        }
+      },
+      {
+        "label": "workspace-tmpfs",
+        "child": 2999341,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1096934.796921052,
+          "pid": 2999189
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.02127088885754347,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1096934.818191941,
+            "pid": 2999341
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 3.010361187858507,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1096937.80728224,
+            "pid": 2999341
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 3.162860156968236,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1096937.959781209,
+            "pid": 2999341
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 3.163465265883133,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1096937.960386318,
+            "pid": 2999341
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 3.2309473908971995,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1096938.027868443,
+            "pid": 2999341
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 3.315493097063154,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1096938.112414149,
+            "pid": 2999341,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1096938.121512996,
+            "pid": 2999189,
+            "since_spawn_seconds": 3.3245919439941645
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 9.559006513096392,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/dev/shm/soc-startup-timeline-workspace-tmpfs"
+          ]
+        }
+      },
+      {
+        "label": "export-tmpfs",
+        "child": 2999561,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1096945.060532905,
+          "pid": 2999446
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.01779425097629428,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1096945.078327156,
+            "pid": 2999561
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 3.507870545145124,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1096948.56840345,
+            "pid": 2999561
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 3.623276871163398,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1096948.683809776,
+            "pid": 2999561
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 3.623858183156699,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1096948.684391088,
+            "pid": 2999561
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 3.7027035700157285,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1096948.763236475,
+            "pid": 2999561
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 3.7847397150471807,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1096948.84527262,
+            "pid": 2999561,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1096948.891046955,
+            "pid": 2999446,
+            "since_spawn_seconds": 3.830514050088823
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 10.803588419919834,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/dev/shm/soc-startup-timeline-export-tmpfs"
+          ]
+        }
+      },
+      {
+        "label": "final-workspace-disk",
+        "child": 3015721,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1097724.749177747,
+          "pid": 3015612
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.028458992019295692,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1097724.777636739,
+            "pid": 3015721
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.4130605140235275,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1097725.162238261,
+            "pid": 3015721
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.522004707949236,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1097725.271182455,
+            "pid": 3015721
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.5228383119683713,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1097725.272016059,
+            "pid": 3015721
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.5734572149813175,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1097725.322634962,
+            "pid": 3015721
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.5765056910458952,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1097725.325683438,
+            "pid": 3015721,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1097725.353134308,
+            "pid": 3015612,
+            "since_spawn_seconds": 0.6039565610699356
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 9.73971873614937,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/tmp/soc-startup-timeline-final-workspace-disk"
+          ]
+        }
+      },
+      {
+        "label": "final-export-disk",
+        "child": 3016004,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1097735.209975143,
+          "pid": 3015883
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.02650638110935688,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1097735.236481524,
+            "pid": 3016004
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.5294134290888906,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1097735.739388572,
+            "pid": 3016004
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.639373118057847,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1097735.849348261,
+            "pid": 3016004
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.6400558350142092,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1097735.850030978,
+            "pid": 3016004
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.7260936009697616,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1097735.936068744,
+            "pid": 3016004
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.7355607140343636,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1097735.945535857,
+            "pid": 3016004,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1097735.966517553,
+            "pid": 3015883,
+            "since_spawn_seconds": 0.7565424100030214
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 10.342970706056803,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/tmp/soc-startup-timeline-final-export-disk"
+          ]
+        }
+      },
+      {
+        "label": "final-workspace-tmpfs",
+        "child": 3016195,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1097744.74481645,
+          "pid": 3016098
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.01864909613505006,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1097744.763465546,
+            "pid": 3016195
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.42058057710528374,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1097745.165397027,
+            "pid": 3016195
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.558247972978279,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1097745.303064423,
+            "pid": 3016195
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.559152641100809,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1097745.303969091,
+            "pid": 3016195
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.6162949879653752,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1097745.361111438,
+            "pid": 3016195
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.6193368991371244,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1097745.364153349,
+            "pid": 3016195,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1097745.400372243,
+            "pid": 3016098,
+            "since_spawn_seconds": 0.6555557930842042
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 9.188516245922074,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/dev/shm/soc-startup-timeline-final-workspace-tmpfs"
+          ]
+        }
+      },
+      {
+        "label": "final-export-tmpfs",
+        "child": 3016398,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1097754.573825396,
+          "pid": 3016282
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.01730605005286634,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1097754.591131446,
+            "pid": 3016398
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.44140150118619204,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1097755.015226897,
+            "pid": 3016398
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.5504378119949251,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1097755.124263208,
+            "pid": 3016398
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.550924216164276,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1097755.124749612,
+            "pid": 3016398
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.6345068200025707,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1097755.208332216,
+            "pid": 3016398
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.639080619206652,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1097755.212906015,
+            "pid": 3016398,
+            "has_control": true
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1097755.227806918,
+            "pid": 3016282,
+            "since_spawn_seconds": 0.6539815221913159
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 10.02841498889029,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/dev/shm/soc-startup-timeline-final-export-tmpfs"
+          ]
+        }
+      },
+      {
+        "label": "stable-workspace-disk",
+        "child": 3060677,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1099711.40154198,
+          "pid": 3060389
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.03219463094137609,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1099711.433736611,
+            "pid": 3060677,
+            "process_cpu_seconds": 0.022496289,
+            "voluntary_switches": 1,
+            "involuntary_switches": 1,
+            "major_faults": 1,
+            "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 376832\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255797313459\nuser_usec 162330651882\nsystem_usec 93466661577\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.7612125629093498,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1099712.162754543,
+            "pid": 3060677,
+            "process_cpu_seconds": 0.477333942,
+            "voluntary_switches": 15,
+            "involuntary_switches": 16,
+            "major_faults": 3,
+            "self_io": "rchar: 5540525\nwchar: 1302\nsyscr: 594\nsyscw: 5\nread_bytes: 765952\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255798101142\nuser_usec 162331285124\nsystem_usec 93466816018\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.8710085491184145,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1099712.272550529,
+            "pid": 3060677
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.8714615569915622,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1099712.273003537,
+            "pid": 3060677
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 1.8714498260524124,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1099713.272991806,
+            "pid": 3060677,
+            "process_cpu_seconds": 0.657199666,
+            "voluntary_switches": 31,
+            "involuntary_switches": 24,
+            "major_faults": 3,
+            "self_io": "rchar: 10625678\nwchar: 4359\nsyscr: 1958\nsyscw: 30\nread_bytes: 1036288\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255799288852\nuser_usec 162332065417\nsystem_usec 93467223435\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 1.8745071839075536,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1099713.276049164,
+            "pid": 3060677,
+            "has_control": true,
+            "process_cpu_seconds": 0.660476078,
+            "voluntary_switches": 51,
+            "involuntary_switches": 24,
+            "major_faults": 3,
+            "self_io": "rchar: 10636266\nwchar: 10456\nsyscr: 1967\nsyscw: 39\nread_bytes: 1044480\nwrite_bytes: 16384\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255799293113\nuser_usec 162332069678\nsystem_usec 93467223435\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1099713.312916931,
+            "pid": 3060389,
+            "since_spawn_seconds": 1.9113749510142952
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 19.813102627173066,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/tmp/soc-startup-timeline-stable-workspace-disk"
+          ]
+        }
+      },
+      {
+        "label": "stable-export-disk",
+        "child": 3060980,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1099725.385001524,
+          "pid": 3060796
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.02040648111142218,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1099725.405408005,
+            "pid": 3060980,
+            "process_cpu_seconds": 0.019740884,
+            "voluntary_switches": 0,
+            "involuntary_switches": 14,
+            "major_faults": 0,
+            "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 0\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255818318656\nuser_usec 162346113421\nsystem_usec 93472205235\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.5537898212205619,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1099725.938791345,
+            "pid": 3060980,
+            "process_cpu_seconds": 0.540245343,
+            "voluntary_switches": 0,
+            "involuntary_switches": 156,
+            "major_faults": 0,
+            "self_io": "rchar: 5370284\nwchar: 1294\nsyscr: 594\nsyscw: 5\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255819578878\nuser_usec 162347060979\nsystem_usec 93472517899\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.6687918761745095,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1099726.0537934,
+            "pid": 3060980
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.6692432500422001,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1099726.054244774,
+            "pid": 3060980
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.7973990531172603,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1099726.182400577,
+            "pid": 3060980,
+            "process_cpu_seconds": 0.77643777,
+            "voluntary_switches": 14,
+            "involuntary_switches": 157,
+            "major_faults": 0,
+            "self_io": "rchar: 10389535\nwchar: 4342\nsyscr: 1958\nsyscw: 30\nread_bytes: 90112\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255819942700\nuser_usec 162347378799\nsystem_usec 93472563901\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.8060730041470379,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1099726.191074528,
+            "pid": 3060980,
+            "has_control": true,
+            "process_cpu_seconds": 0.783327069,
+            "voluntary_switches": 50,
+            "involuntary_switches": 159,
+            "major_faults": 0,
+            "self_io": "rchar: 10417621\nwchar: 10437\nsyscr: 1972\nsyscw: 39\nread_bytes: 90112\nwrite_bytes: 16384\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255819956833\nuser_usec 162347390902\nsystem_usec 93472565931\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1099726.194942083,
+            "pid": 3060796,
+            "since_spawn_seconds": 0.8099405590910465
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 11.354184431955218,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/tmp/soc-startup-timeline-stable-export-disk"
+          ]
+        }
+      },
+      {
+        "label": "stable-workspace-tmpfs",
+        "child": 3061227,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1099735.630943909,
+          "pid": 3061104
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.018456131918355823,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1099735.649400041,
+            "pid": 3061227,
+            "process_cpu_seconds": 0.017894659,
+            "voluntary_switches": 0,
+            "involuntary_switches": 2,
+            "major_faults": 0,
+            "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 0\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255835549996\nuser_usec 162359872014\nsystem_usec 93475677981\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.42109908000566065,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1099736.052042989,
+            "pid": 3061227,
+            "process_cpu_seconds": 0.420046541,
+            "voluntary_switches": 0,
+            "involuntary_switches": 6,
+            "major_faults": 0,
+            "self_io": "rchar: 5540515\nwchar: 1290\nsyscr: 594\nsyscw: 5\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255836173614\nuser_usec 162360365922\nsystem_usec 93475807692\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.5431012860499322,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1099736.174045195,
+            "pid": 3061227
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.5435837230179459,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1099736.174527632,
+            "pid": 3061227
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.6033507529646158,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1099736.234294662,
+            "pid": 3061227,
+            "process_cpu_seconds": 0.60244758,
+            "voluntary_switches": 0,
+            "involuntary_switches": 7,
+            "major_faults": 0,
+            "self_io": "rchar: 10625663\nwchar: 4341\nsyscr: 1958\nsyscw: 30\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255836471555\nuser_usec 162360590218\nsystem_usec 93475881337\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.6208396928850561,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1099736.251783602,
+            "pid": 3061227,
+            "has_control": true,
+            "process_cpu_seconds": 0.619935343,
+            "voluntary_switches": 47,
+            "involuntary_switches": 15,
+            "major_faults": 0,
+            "self_io": "rchar: 10741021\nwchar: 10436\nsyscr: 1993\nsyscw: 39\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255836512974\nuser_usec 162360616586\nsystem_usec 93475896388\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1099736.285872142,
+            "pid": 3061104,
+            "since_spawn_seconds": 0.6549282330088317
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 9.398564721923321,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/dev/shm/soc-startup-timeline-stable-workspace-tmpfs"
+          ]
+        }
+      },
+      {
+        "label": "stable-export-tmpfs",
+        "child": 3061406,
+        "spawn": {
+          "stage": "PROCESS_SPAWN_BEGIN",
+          "monotonic": 1099745.477862086,
+          "pid": 3061275
+        },
+        "stages": {
+          "interpreter_ready": {
+            "since_spawn_seconds": 0.03093600505962968,
+            "stage": "INTERPRETER_READY",
+            "monotonic": 1099745.508798091,
+            "pid": 3061406,
+            "process_cpu_seconds": 0.03016096,
+            "voluntary_switches": 0,
+            "involuntary_switches": 0,
+            "major_faults": 0,
+            "self_io": "rchar: 701569\nwchar: 0\nsyscr: 91\nsyscw: 0\nread_bytes: 0\nwrite_bytes: 0\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255849612062\nuser_usec 162370867367\nsystem_usec 93478744694\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "module_import_complete": {
+            "since_spawn_seconds": 0.49957149801775813,
+            "stage": "continuous/cli.py:<module>:return",
+            "monotonic": 1099745.977433584,
+            "pid": 3061406,
+            "process_cpu_seconds": 0.498048515,
+            "voluntary_switches": 0,
+            "involuntary_switches": 13,
+            "major_faults": 0,
+            "self_io": "rchar: 5370284\nwchar: 1290\nsyscr: 594\nsyscw: 5\nread_bytes: 0\nwrite_bytes: 4096\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255850396880\nuser_usec 162371469429\nsystem_usec 93478927451\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "runtime_init": {
+            "since_spawn_seconds": 0.609940076014027,
+            "stage": "continuous/service.py:__init__:call",
+            "monotonic": 1099746.087802162,
+            "pid": 3061406
+          },
+          "sqlite_open": {
+            "since_spawn_seconds": 0.6105408780276775,
+            "stage": "review/persistence/database.py:_connect:call",
+            "monotonic": 1099746.088402964,
+            "pid": 3061406
+          },
+          "control_identity_created": {
+            "since_spawn_seconds": 0.6907738801091909,
+            "stage": "continuous/process_identity.py:runtime_identity:return",
+            "monotonic": 1099746.168635966,
+            "pid": 3061406,
+            "process_cpu_seconds": 0.689106112,
+            "voluntary_switches": 0,
+            "involuntary_switches": 16,
+            "major_faults": 0,
+            "self_io": "rchar: 10389535\nwchar: 4344\nsyscr: 1958\nsyscw: 30\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255850755813\nuser_usec 162371792228\nsystem_usec 93478963585\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "control_identity_published": {
+            "since_spawn_seconds": 0.6975373981986195,
+            "stage": "continuous/store.py:publish_observation:return",
+            "monotonic": 1099746.175399484,
+            "pid": 3061406,
+            "has_control": true,
+            "process_cpu_seconds": 0.695382425,
+            "voluntary_switches": 37,
+            "involuntary_switches": 16,
+            "major_faults": 0,
+            "self_io": "rchar: 10417301\nwchar: 10438\nsyscr: 1971\nsyscw: 39\nread_bytes: 0\nwrite_bytes: 8192\ncancelled_write_bytes: 0\n",
+            "shared_cgroup_cpu_stat": "usage_usec 255850765371\nuser_usec 162371795572\nsystem_usec 93478969799\nnice_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n"
+          },
+          "observer_received": {
+            "stage": "OBSERVER_CONTROL_RECEIVED",
+            "monotonic": 1099746.183407564,
+            "pid": 3061275,
+            "since_spawn_seconds": 0.7055454780347645
+          }
+        },
+        "result": {
+          "exit": 0,
+          "seconds": 10.261704054893926,
+          "instrumented": true,
+          "command": [
+            "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/python",
+            "-m",
+            "pytest",
+            "-p",
+            "no_live_guard",
+            "-p",
+            "observer",
+            "tests/unit/continuous/test_storage_control_isolation.py::test_exact_cli_stop_bypasses_real_locked_sqlite",
+            "-q",
+            "--tb=short",
+            "--basetemp=/dev/shm/soc-startup-timeline-stable-export-tmpfs"
+          ]
+        }
+      }
+    ]
+  },
+  "identity": {
+    "code_identity": "0c5586ab6951c66adfcbf263f70748d7cba7ed1656baaa0897c6f0a747c475a1",
+    "execution_authorized": false,
+    "execution_scheduled": false,
+    "git": "b7505cabd08b0a431652796ee087c81f00643475",
+    "remaining_gate": "NEW_POLICY_RELEASE_UPDATE_ROOT_NATIVE_DNS_R1_HOST_MODEL_API_APPROVALS_REQUIRED",
+    "review": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native",
+    "root_changed": [
+      "/etc/soc-agent/continuous-installation.json",
+      "/etc/systemd/system/soc-operations-runtime.service",
+      "/etc/systemd/system/soc-continuous-dns.service"
+    ],
+    "session": "b26080ac-9cf3-4114-959f-f0c40b91271e",
+    "wheel_sha256": "1241ef4b97ee3e59740a33eda795f1c71ecc60cc60e9d6dfb38a255a1f02a043",
+    "root_manifest_sha256": "db4a73fe7e4e313bf5b8a4c3edb506e86e25befcb1640de963d65a0c02e29552",
+    "review_sha256": "941b8435e0053476d9f2a5addd7ff4be49198cb4c27031aa4fee91cd0d053a32",
+    "request_sha256": "56682b70039bdf5082e1317c8ecec98db62c4109294f0999e6f07fb4aabaea9c",
+    "operator_home": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/operator-home",
+    "cli": "/home/geonug/kdt-linux/autonomous-soc-agent/releases/research-mvp/.venv/bin/soc-agent",
+    "pythonpath": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/export/src",
+    "policy_status": "PROPOSED_NOT_APPROVED_NOT_ACTIVATED",
+    "live_executed": false,
+    "full_live_verification": "BLOCKED_PENDING_REGRESSION_AND_INDEPENDENT_AUTHORIZATIONS"
+  },
+  "preservation": {
+    "user_files": 164,
+    "user_unchanged": true,
+    "user_mismatches": [],
+    "historical_files": 797,
+    "historical_unchanged": true,
+    "historical_mismatches": [],
+    "root_eight": [
+      {
+        "path": "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf",
+        "sha256": "4b36f322ef409220bfd1c5bae7ef30b36022caf40f85a2f812b9c2a47f46a002",
+        "inode": 2451423,
+        "mtime_ns": 1793612680535955501,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-tcp-trial.service",
+        "sha256": "c78030d783a01e03cf3a2ab2df41df14889cb748bde1ed4d7d8068dc30cc4f4b",
+        "inode": 2084939,
+        "mtime_ns": 1793357834000244581,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/soc-agent/continuous-installation.json",
+        "sha256": "d2d56ba8b9b7185a365db763f75a7a20c0c6eea1794e0b25e40de4a57284a359",
+        "inode": 2722101,
+        "mtime_ns": 1793689596433375459,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-operations-runtime.service",
+        "sha256": "02d4644162cbadba5dabdfbf2b8daa5e52fa7c8b02b32a3efd9f731b308a4ec2",
+        "inode": 2722103,
+        "mtime_ns": 1793689596460969203,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dns.service",
+        "sha256": "1fa70b4c29e5b841fec12e9512d35aede2c810ef6675992255f34bfd272a7e5b",
+        "inode": 2722105,
+        "mtime_ns": 1793689596484502986,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dnsmasq.service",
+        "sha256": "1f7a36c1767089c38c4328324f74d4e68dc33a1804173adcc988657ecf5ec55f",
+        "inode": 2084947,
+        "mtime_ns": 1793357834080175596,
+        "unchanged": true
+      },
+      {
+        "path": "/usr/lib/soc-agent/continuous/service.py",
+        "sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+        "inode": 2722109,
+        "mtime_ns": 1793689596669204080,
+        "unchanged": true
+      },
+      {
+        "path": "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf",
+        "sha256": "61257ee34448f64716b75b4e97f5e619a2d3866ed7461ca89919d966e259cad9",
+        "inode": 2084951,
+        "mtime_ns": 1793357834117147432,
+        "unchanged": true
+      }
+    ],
+    "ledger": {
+      "rows": 81,
+      "sha256": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae"
+    },
+    "installed_manager": "4e4fb2c90c3a9467-57f8c396184bc1f8"
+  },
+  "cli": [
+    {
+      "command": [
+        "doctor"
+      ],
+      "returncode": 0,
+      "status": "PREFLIGHT_ONLY_NO_INFERENCE"
+    },
+    {
+      "command": [
+        "start",
+        "--preview"
+      ],
+      "returncode": 1,
+      "status": "BLOCKED",
+      "root_executed": false,
+      "capture_started": false,
+      "reservations_created": false,
+      "error": "AUTHENTICATION_EXACT_HUMAN_APPROVAL_REQUIRED"
+    },
+    {
+      "command": [
+        "status"
+      ],
+      "returncode": 0
+    }
+  ],
+  "root_manifest": {
+    "approved": false,
+    "backup_directory": "/var/lib/soc-agent/continuous/backups/control-startup-rca-20261104T012138Z-startup",
+    "contract": "soc-fixed-installation-review-only:v1",
+    "installed_file_map_canonical_digest": "508f624969ad218731a54d0c1bbfe642b5cc3e0793687680ab9c9bcc829bc4cf",
+    "no_executable_replacement": false,
+    "no_service_enable": true,
+    "preserve_and_verify": {
+      "/etc/systemd/system/soc-continuous-collector.service": "df58418162abcc539103453345c889d6b133f153935d15ad6a3251020826a033",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/effective-service-contracts.json": "dd5781b1d2bfe4e4ff4651d81a5def7c6f72579f6d7de5ff60405f66e1435cba",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/first-error.json": "ecec80f6ba067bc6573013d7c97408c66f68b35f865ea36b8e1184cf2b428e66",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/human-decision.json": "3833eb0646bc3c8f6e5c7bc616118a1d953078b35dbc7fad77f6328c8a82d0ab",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-1.json": "413b81e1f0cc99b55f49a019b486d60a589d079b513db07fa8ef540e6007a893",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-2.json": "c933a2b7a8a8d2d5240e1ddf394406dfea6f1f0a9d5e33fe0f3160e489c4646e",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-3.json": "35668bc30d7a0dd5933c45fea14741ff89f1ca231f02f20525219075e8b38c94",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-4.json": "39abe415cb313208733ed598897346184642721be39fc8f44e2f03589488697d",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-5.json": "3860e3ea2fd7f4ac0d02f6edf6109e07ea2b196b3b3ec903dec90ee59d3c708d",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-6.json": "389d0500c71db22a819e51e02d61d4d4cfb40292ce451c48dbd796840f6919ef",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-7.json": "2c317020ce35c490b7656e4da3e4639d955797e70762136f7a66b068f5ad4899",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-8.json": "3abfe9ba986f051195f982a9763414d78a7604af0362c3851c71c2ae1da99c96",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/installed-files.json": "8f3c3247699a3226e13bc9f8b6f02402304fca1b2bc59ecafd5a3f4fe33a1d9b",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/root-finished.json": "71091191453566f5317a515dd4d23aec400ae8fc2cccf2751106467cea5734e4",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-orchestration-integration-20261030T073539Z/native-review/execution/root-terminal-exit.json": "75fa175adab1efdd123be58d99ab293cedd41ecdad1ad694fb63179dd499e6ec",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/execution-result.json": "6cc3d120e833a8edba6a5b22627677e6c4b9222b63bf03a3b18d4412ab132b6b",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/gui-native-result.json": "43a2a32afdebb5f3a0bba075de1e1da2a3dde07c7d8df63287134cccdb3ff395",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/human-decision.json": "206bcd7f717afbd82f4038d3fcf053031ce1b49e544d85803201b9bbabc3622c",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/installation-policy.json": "edcf7a424d48a43a2e0a8412906e7c9cc8b78528b2084a7191712a5d2ac6040f",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/model-action-approval.json": "5c86ec7b289598f867d60b8f6f7dd48b52b2012dea3119ec8afbe48e68821918",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/retained-native-model-analysis/result.json": "87e7d2d4fc00cb0abd63993abfec09a96b6ed1b4b7cfa431fd1dd229dbbeef33",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/root-audit.json": "9ab21d2caae4cd5e38a9fdbe4cd7948e52aca27707bac99d69407bbaef519eed",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/root-finished.json": "52b53493f2f76dd39c30d62cb0e9cb58d88da350c5e11a26c6354d26f7c6d4ea",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/continuous-scalar-recovery-20261029T012308Z/execution/runtime-final.json": "c790c21074cb376d09164ed4b020a0b741867570258e9b9ba687ef77beeb34e2",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-helper-cleanup-evidence-review-20261030T023558Z/review/execution/first-error.json": "5653c8e584a600ba97ec0cf510c3f83a1a78f58bcd4131ce8be9c3589b3a07e5",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-helper-cleanup-evidence-review-20261030T023558Z/review/execution/namespace-after-tcx.json": "055cba6ad91fb5be945febd3671fee58ce8a188512030c630f0158c39316cc7e",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-helper-cleanup-evidence-review-20261030T023558Z/review/execution/namespace-after.json": "b6c12150e2fe67e0838167ed0dcb473f8f5737bcfffd8960bb8945d04c503e56",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-helper-cleanup-evidence-review-20261030T023558Z/review/execution/root-finished.json": "353a7fbd896b8ccf7df4ed77bf3b9187c8d80f05e90e0d819882be9023749ee1",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-helper-cleanup-evidence-review-20261030T023558Z/review/execution/root-terminal-exit.json": "f5a912dc3aa9b5fbfe2b90a655a35f4057f5e9216f2b86f5e58a59eec2c74eb8",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/dns-helper-cleanup-evidence-review-20261030T023558Z/review/execution/runtime-final.json": "11b0b5efbafc66c06d32f6a424de983d35d583d0571cb355c73e9f251df3440d",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/first-error.json": "234255af3a2e2df91b74fc31ecaca1279c6b6ace410484b5abc037757ae7f3cd",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/namespace-after-tcx.json": "055cba6ad91fb5be945febd3671fee58ce8a188512030c630f0158c39316cc7e",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/namespace-after.json": "a1b9c4a79cc70ec14495b9ee1691adfc961fc3b14259a5a0851639c784dd5c7a",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/root-finished.json": "bf4c8410c92ecacfa92313326b9a92308d255fb89b5e5e074dcb325efc3eb7b4",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/root-terminal-exit.json": "6ad1b7e3a1b12f48f3b42bcfca6a5a0ba802f9d3fe119ff807e723a6afd8d9b4",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/final-live-preflight-20261029T235159Z/oss-final/native-dns-lifecycle-final-review/execution/runtime-final.json": "0be5b2e5653097bc1f374af39c4dbb00b05fd148689d813375afc3e52c9a9886",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/effective-service-contracts.json": "dd5781b1d2bfe4e4ff4651d81a5def7c6f72579f6d7de5ff60405f66e1435cba",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/first-error.json": "c6fea693d571d49b668e6f0a8260ca32a5a7cb6e2518a344822300a4e4c8df23",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/human-decision.json": "0284051ebc3af4365288175b72936dad45630673bc6f58467e1d21c079cc0cf7",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-1.json": "58617cf97c9b5454fe1bdd6a0266cc6c50d089111738067492ff3d51047169e2",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-2.json": "bc844e197164bdc1d0260a0716d880b23c4c32c8879be6777f63a1c8fdd3cbae",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-3.json": "be7c3b388e33e7672179af947eeaf0d8687fea0a0aaca2f1795ad0300e3da1b6",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-4.json": "f531591dfb5cd881bfd7082ed2efbcc5610dbc9dca50a59b8a0f75ebfe8fe5be",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-5.json": "08e47881c1e5dfaf4628dd8b6cee59e4ba5d42ccab2ba1bc53a1c4af6ed1ae73",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-6.json": "887d9fe82e55c87495b9fd98711797fd9422d0f224787d9f1782ac91c21e562c",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-7.json": "dffc05f0bcd28810c65628c26d8fcce3e51739c2b2ab1c0c14c61deb841d419f",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-8.json": "c8d0e5eaa1e30c1bd0628854f219e33276a9d12f5616420ca0968acd9ef0f714",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/installed-files.json": "a3f0ee9bb2ab1ff51652db12432de17bb53728c9b0c52e7ce3d0439635cc363a",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/root-finished.json": "ebcd7374df86f16e42721c1b4fdac560632f000bd6d78689f45aca059a11bedc",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-orchestration-launcher-recovery-20261030T083446Z/review/execution/root-terminal-exit.json": "ce2efb8d1bb6fc0782bdfbc10e683dd61519dbcf7f79f9737c5eb0eb8ea944a5",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-stabilization-batch1/execution-v1/execution-ledger.jsonl": "07b3aa67d19e2c020f57dba9eb7b3d44bb7c86783cd5b91547f5c353f14f80ae",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/native-stabilization-batch3/approved-namespace-setup-20261027-1/namespace-lease.json": "24b1102b173985056043d3727121c40b4c57fe71f7486affcc32e8718d105c9e",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-execution-20261029T044319Z/execution-summary.json": "7aa75f7fdd1c1d6217e61dc4275d374fd4adcc17b265b61a0c390ca8978ab698",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-execution-20261029T044319Z/first-error.json": "758013f47da2a6e12ab22ff1ba2146a9937c07b73d5c1e79f1be5ab86d30981c",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-execution-20261029T044319Z/installed-files.json": "668e729e8d41315c238b343f4a3fa2d4407bb9164a5e61f316589ac411731607",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-execution-20261029T044319Z/root-audit-after.json": "532ae335b4042553c2f645998fbe2b083f6f3d29cf8c48d6321167b450dbff74",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-execution-20261029T044319Z/root-finished.json": "729f0d36c4710540c8393c6ecace1c1d1d01a6f16b56a98d37d2cc561e908db5",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-execution-20261029T044319Z/root-terminal-exit.json": "c50de6f27a7fa93639ae322b352c7fe5d1d07ebf43d3dac47de0861f05efcc6c",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-recovery-20261029T045628Z/execution-auth-recovery/first-error.json": "ca0fd4ba7bd8b01a3c1cd355a90811068c065b97009abf23a551fbfa7d476963",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-recovery-20261029T045628Z/execution-auth-recovery/model-job-1-post-capture-result.json": "971f876f26681f305c741966bff0bbc07545bbdb32830a65a54f6b1d3f2d5075",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-recovery-20261029T045628Z/execution-auth-recovery/root-finished.json": "2b32b8f924d4ee93e2b7e460a3d7862bfcb4775406e12887767406103a7083a4",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/one-hour-operations-recovery-20261029T045628Z/execution-auth-recovery/root-terminal-exit.json": "78db818c43ddc33f01bd24a1545a0fd0f70611cb85e88cde0d4dcf05ca11c11a",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/first-error.json": "fa6258b9a04487d3a6fac67829807d74fcd845217b8f54f6d95ea9107f101bcb",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/human-decision.json": "ef4ba6e6aa1798368514cdfb96ea02286b2d35912499094c47b21a458d528a08",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/installed-files.json": "795532fd24e6aa59d2a102ea25e60c495b4b09c019b87ac023e60860286a007b",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/root-audit-after.json": "7d23798f3cf85a4288090b55983a4ef8cca9c6a06e0868c8caa83cc74b1f973d",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/root-finished.json": "7a6b93f91530f7dae799416c772385a7f7dce19d8c99f73ed2623a40aa26f548",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/operations-final-stabilization-20261029T052719Z/next-native-gui-trial/execution/root-terminal-exit.json": "8ba100b5e405cbe983904f02c96450825d06af75980c89129a22c3275fb12571",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/first-error.json": "4ace6458547cb45604e524d9dd5862c455fd496a8d5d4eb24064eb405b8ada38",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/namespace-after-tcx.json": "055cba6ad91fb5be945febd3671fee58ce8a188512030c630f0158c39316cc7e",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/namespace-after.json": "a1b9c4a79cc70ec14495b9ee1691adfc961fc3b14259a5a0851639c784dd5c7a",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/root-finished.json": "f441afdbdbd8e80cb5084f206254f42d23a91bcb2789864fd0d5d8ef00971653",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/root-terminal-exit.json": "539309cf162db8ddbab22a228ca2a576803c3cffa402d108ae7f10dff7e0a56c",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-heartbeat-recovery-20261030T010933Z/final/review/execution/runtime-final.json": "6f748faf97c5b7c0f923b2a6c5b0f18f691118b7583db24376c6618f1441e7e0",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/first-error.json": "758923d7589cddc0d49ce6e24d5d74435a7e7bf6a21b4f59e0d6283b8a63c7f5",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/namespace-after-tcx.json": "055cba6ad91fb5be945febd3671fee58ce8a188512030c630f0158c39316cc7e",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/namespace-after.json": "84b3b951b20d6c7e9425a5d7643718fb9c73bc05c5c6b82ddd50bdf9d63613c3",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/root-finished.json": "e843ef69f8acccb167f0a9cffb92fc02a325585aeddf0193c5bd3fa99ace8f9a",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/root-terminal-exit.json": "db1e3a63de0c1a79a662bc542a1161962c8b5c7ad17e791076c9cb4779b6038d",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/packet-dns-helper-recovery-20261030T003546Z/final/review/execution/runtime-final.json": "ed30179ec52d95f5226678c69567d777ef847f242e73f261f998be744140a5a6",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/reliability-install-scope-recovery-20261102T004100Z/completed-execution-pins.json": "bd93e5a23c62a617d86b24c97ce37f89f45d9e10ed1b4c7a387ce5822b2e7c14",
+      "/home/geonug/kdt-linux/autonomous-soc-agent/.git/reliability-install-scope-recovery-20261102T004100Z/native-short-retest-result.json": "518077aca93938eb1b7f3ef38059ae15e59bd11c9fa7e2a3e7ab8acd77ff7ba1",
+      "/usr/lib/soc-agent/continuous/continuous.bpf.o": "da58d00289ce04a3c818f8ca5b776f1b2fccaaef9b96f324f60a24904bcde8f6",
+      "/usr/lib/soc-agent/continuous/policy.py": "cb050423f29747e7b0ab96b89248ad5893eea1e8c9c8bb24edc1f0c5585b3d53",
+      "/usr/lib/soc-agent/continuous/provider.so": "62e4610379f9dc3b8f2a5fb070009dfcdcdbf2c1a5a0f6d76c0c2a22b6296bff"
+    },
+    "replacements": [
+      {
+        "current_inode": 2451423,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793612680535955501,
+        "current_sha256": "4b36f322ef409220bfd1c5bae7ef30b36022caf40f85a2f812b9c2a47f46a002",
+        "new_sha256": "4b36f322ef409220bfd1c5bae7ef30b36022caf40f85a2f812b9c2a47f46a002",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/trial-limit.conf",
+        "repair_mode": false,
+        "target": "/etc/systemd/system/soc-continuous-collector.service.d/trial-limit.conf"
+      },
+      {
+        "current_inode": 2084939,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793357834000244581,
+        "current_sha256": "c78030d783a01e03cf3a2ab2df41df14889cb748bde1ed4d7d8068dc30cc4f4b",
+        "new_sha256": "c78030d783a01e03cf3a2ab2df41df14889cb748bde1ed4d7d8068dc30cc4f4b",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/soc-continuous-tcp-trial.service",
+        "repair_mode": false,
+        "target": "/etc/systemd/system/soc-continuous-tcp-trial.service"
+      },
+      {
+        "current_inode": 2722101,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793689596433375459,
+        "current_sha256": "d2d56ba8b9b7185a365db763f75a7a20c0c6eea1794e0b25e40de4a57284a359",
+        "new_sha256": "64fa070d163ee4693a004d27cf53893638d99eef6978ec6469df31687baf86de",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/continuous-installation-v2.json",
+        "repair_mode": false,
+        "target": "/etc/soc-agent/continuous-installation.json"
+      },
+      {
+        "current_inode": 2722103,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793689596460969203,
+        "current_sha256": "02d4644162cbadba5dabdfbf2b8daa5e52fa7c8b02b32a3efd9f731b308a4ec2",
+        "new_sha256": "9ef593f6c7c74db95f57358a67f787f899326bb0ebf6539b18234b7b88a97fad",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/soc-operations-runtime.service",
+        "repair_mode": false,
+        "target": "/etc/systemd/system/soc-operations-runtime.service"
+      },
+      {
+        "current_inode": 2722105,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793689596484502986,
+        "current_sha256": "1fa70b4c29e5b841fec12e9512d35aede2c810ef6675992255f34bfd272a7e5b",
+        "new_sha256": "f430d7ad3baf419be302ea29dc5b0d0edad4d87e8480fed9f80c2f23694836ca",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/soc-continuous-dns.service",
+        "repair_mode": false,
+        "target": "/etc/systemd/system/soc-continuous-dns.service"
+      },
+      {
+        "current_inode": 2084947,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793357834080175596,
+        "current_sha256": "1f7a36c1767089c38c4328324f74d4e68dc33a1804173adcc988657ecf5ec55f",
+        "new_sha256": "1f7a36c1767089c38c4328324f74d4e68dc33a1804173adcc988657ecf5ec55f",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/soc-continuous-dnsmasq.service",
+        "repair_mode": false,
+        "target": "/etc/systemd/system/soc-continuous-dnsmasq.service"
+      },
+      {
+        "current_inode": 2722109,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793689596669204080,
+        "current_sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+        "new_sha256": "075dba6a3a8570baad587add5047ed3722e159b5ce2baba7e4addf1b0a35e6b9",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/collector-service.py",
+        "repair_mode": false,
+        "target": "/usr/lib/soc-agent/continuous/service.py"
+      },
+      {
+        "current_inode": 2084951,
+        "current_mode": "0o644",
+        "current_mtime_ns": 1793357834117147432,
+        "current_sha256": "61257ee34448f64716b75b4e97f5e619a2d3866ed7461ca89919d966e259cad9",
+        "new_sha256": "61257ee34448f64716b75b4e97f5e619a2d3866ed7461ca89919d966e259cad9",
+        "new_source": "/home/geonug/kdt-linux/autonomous-soc-agent/.git/control-startup-rca-20261104T012138Z/candidate/native/dns-trial-deadline.conf",
+        "repair_mode": false,
+        "target": "/etc/systemd/system/soc-continuous-dns.service.d/trial-deadline.conf"
+      }
+    ],
+    "scope_input_sha256": "9c734e05db868fe66847cb7c332cc56b51c006c5a8f8bcf06f9a5b01d7b61cb3",
+    "source_file_map_sha256": "d26b95c97cd4419311e7b8262c6f092806ac3540d9e699fc57839ae4a4622d25"
+  },
+  "startup_verdict": "STARTUP_STABILITY_VERIFIED_WITHIN_MEASURED_UNPRIVILEGED_SCOPE",
+  "readiness": "PARTIALLY_READY",
+  "full_live_e2e": "NOT_EXECUTED",
+  "root_executed": false,
+  "native_executed": false,
+  "host_journal_executed": false,
+  "actual_model_actions": 0,
+  "external_api_calls": 0,
+  "actual_authority_issued_or_consumed": false,
+  "remaining_failures_must_not_be_waived": true
+}

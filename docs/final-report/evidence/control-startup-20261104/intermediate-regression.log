@@ -1,0 +1,269 @@
+........................................................................ [  7%]
+F....................................................................... [ 15%]
+........................................................................ [ 23%]
+.............................F.......................................... [ 31%]
+........................................................................ [ 39%]
+........................................................................ [ 47%]
+........................................................................ [ 55%]
+........................................................................ [ 63%]
+........................................................................ [ 71%]
+........................................................................ [ 79%]
+........................................................................ [ 87%]
+........................................................................ [ 95%]
+............................................                             [100%]
+=================================== FAILURES ===================================
+_________ test_real_two_second_silence_is_not_an_initial_process_exit __________
+
+self = <soc_agent.continuous.dns_source.DNSProducer object at 0x75badc224fe0>
+
+    async def events(self):
+        if self._owner_stop_requested:
+            return
+        handshake = asyncio.create_task(asyncio.to_thread(self.capture.handshake))
+        self._handshake_task = handshake
+        try:
+            await asyncio.shield(handshake)
+            self.capture.start_reader()
+            self.state = "RUNNING"
+            while True:
+>               packet = self.capture.receive()
+                         ^^^^^^^^^^^^^^^^^^^^^^
+
+src/soc_agent/continuous/dns_source.py:430: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/security_ai/operational/network_capture/stream_transport.py:108: in receive
+    packet = super().receive()
+             ^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <soc_agent.continuous.dns_source.DNSCapture object at 0x75badc2250a0>
+
+    def receive(self):
+        if self.closed.is_set():
+            return None
+        if self.reader_thread is not None:
+            with self.reader_lock:
+                if self.reader_failed():
+>                   raise CaptureUnavailable(self.reader_error)
+E                   soc_agent.security_ai.operational.network_capture.capture.CaptureUnavailable: HELPER_HEARTBEAT_OR_PROCESS_STALE
+
+src/soc_agent/security_ai/operational/network_capture/helper_transport.py:578: CaptureUnavailable
+
+During handling of the above exception, another exception occurred:
+
+    async def consume():
+        values = []
+>       async for packet in source.events():
+
+tests/unit/continuous/test_dns_lifecycle.py:229: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/soc_agent/continuous/dns_source.py:455: in events
+    await self.close()
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <soc_agent.continuous.dns_source.DNSProducer object at 0x75badc224fe0>
+
+    async def close(self):
+        async with self._close_lock:
+            if self.capture.closed.is_set():
+                return
+            cleanup_started = time.monotonic()
+            deadline = self.capture.stop_deadline_monotonic or cleanup_started + 5
+            thread = self.capture.reader_thread
+            if thread is not None and self.capture.reader_error is not None:
+                # Do not destroy the transport while its bounded failure STOP is
+                # collecting the final receipt. Never hold the event loop here.
+                await asyncio.to_thread(thread.join, max(0, deadline - time.monotonic()) + 0.1)
+            protocol_closed = (
+                self.capture.terminal is not None and self.capture.completion_verified()
+            ) or self.capture.cleanup_ack_verified()
+            self.cleanup = "UNVERIFIED"
+            await asyncio.to_thread(self.capture.close, reason="CONTINUOUS_DNS_OWNER_STOP")
+            handshake_error = None
+            if self._handshake_task is not None:
+                # Closing the listener unblocks accept. Join that owned handshake
+                # before publishing cleanup, including a peer racing with Stop.
+                outcome = await asyncio.wait_for(
+                    asyncio.gather(self._handshake_task, return_exceptions=True), 2.1
+                )
+                if isinstance(outcome[0], BaseException):
+                    handshake_error = outcome[0]
+            cancelled_before_admission = bool(
+                self._owner_stop_requested
+                and self.capture.ready is None
+                and self.capture.channel is None
+                and self.capture.reader_error is None
+                and self.last_error is None
+                and (handshake_error is None or self._cancelled_handshake(handshake_error))
+            )
+            process = self.capture.process_observation()
+            # CLOSED proves capture.close() returned in the pinned helper. Its
+            # process exit is independently observed, without sending any signal.
+            while protocol_closed and process["state"] == "ALIVE" and time.monotonic() < deadline:
+                await asyncio.sleep(0.01)
+                process = self.capture.process_observation()
+            stopped = process["state"] in {
+                "EXITED",
+                "EXITED_ZOMBIE",
+                "PID_REUSED_OR_IDENTITY_CHANGED",
+            }
+            local_closed = (
+                self.capture.listener.fileno() == -1
+                and (self.capture.channel is None or self.capture.channel.fileno() == -1)
+                and (thread is None or not thread.is_alive())
+            )
+            ack_order_verified = bool(
+                self.capture.stop_requested_monotonic is None
+                or (
+                    self.capture.terminal_observed_monotonic is not None
+                    and self.capture.stop_requested_monotonic
+                    <= self.capture.terminal_observed_monotonic
+                    <= deadline
+                )
+            )
+            verified = bool(
+                local_closed
+                and (ack_order_verified or cancelled_before_admission)
+                and self.capture.stop_send_error is None
+                and ((protocol_closed and stopped) or cancelled_before_admission)
+            )
+            if self.last_error is None and self.capture.reader_error:
+                self.last_error = "CaptureUnavailable:" + self.capture.reader_error
+                self.last_error_observed_unix = self.capture.reader_failure_observed_unix
+            self.state = "FAILED" if self.last_error else "STOPPED"
+            proof = dict(
+                contract="soc-continuous-dns-owned-cleanup:v1",
+                session=str(self.session.session_id),
+                namespace=self.session.namespace,
+                observed_at_unix=time.time(),
+                first_error=self.last_error or self.capture.reader_error,
+                capture_admission="DENIED_AFTER_FAILURE"
+                if self.capture.reader_error
+                else "UNCHANGED",
+                stop_requested_unix=self.capture.stop_requested_unix,
+                stop_requested_monotonic=self.capture.stop_requested_monotonic,
+                cleanup_deadline_monotonic=deadline,
+                cleanup_elapsed_seconds=time.monotonic() - cleanup_started,
+                ack_order_verified=ack_order_verified,
+                stop_send_error=self.capture.stop_send_error,
+                closed_observed_unix=self.capture.terminal_observed_unix,
+                authenticated_closed=bool(protocol_closed),
+                stream_completion_verified=self.capture.completion_verified(),
+                closed_sha256=(
+                    hashlib.sha256(self.capture.terminal.model_dump_json().encode()).hexdigest()
+                    if self.capture.terminal is not None
+                    else None
+                ),
+                helper_process=process,
+                listener_closed=self.capture.listener.fileno() == -1,
+                channel_closed=self.capture.channel is None or self.capture.channel.fileno() == -1,
+                reader_joined=thread is None or not thread.is_alive(),
+                global_kernel_cleanup="UNKNOWN",
+                cleanup_scope="LOCAL_DNS_LISTENER_ONLY_NO_AUTHENTICATED_HELPER"
+                if cancelled_before_admission
+                else "OWNED_DNS_CAPTURE_AND_TRANSPORT_NOT_GLOBAL_KERNEL",
+                helper_cleanup="NOT_OBSERVED_NO_AUTHENTICATED_HELPER"
+                if cancelled_before_admission
+                else "VERIFIED"
+                if protocol_closed and stopped and ack_order_verified
+                else "UNVERIFIED",
+                handshake_joined=self._handshake_task is None or self._handshake_task.done(),
+                quarantined_packets=self.capture.quarantined_packets,
+                failure_stop_error=self.capture.failure_stop_error,
+                failure_stop_elapsed_seconds=self.capture.failure_stop_elapsed_seconds,
+                transport_diagnostic_error=self.capture.reader_diagnostic_error,
+                cleanup="VERIFIED" if verified else "UNVERIFIED",
+            )
+            commit = asyncio.create_task(
+                asyncio.to_thread(write_cleanup, self.capture.directory, proof)
+            )
+            try:
+>               self.cleanup_evidence_sha256 = await asyncio.shield(commit)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               asyncio.exceptions.CancelledError
+
+src/soc_agent/continuous/dns_source.py:611: CancelledError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-full-workspace/test_real_two_second_silence_i0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x75badc227110>
+
+    @pytest.mark.asyncio
+    async def test_real_two_second_silence_is_not_an_initial_process_exit(tmp_path, monkeypatch):
+        directory, source, child, task = await started(tmp_path, monkeypatch, "delayed")
+        try:
+            began = time.monotonic()
+            assert child.poll() is None and source.capture.process_observation()["state"] == "ALIVE"
+            with pytest.raises(ValueError, match="HEARTBEAT_OR_PROCESS_STALE"):
+>               await asyncio.wait_for(task, 6)
+
+tests/unit/continuous/test_dns_lifecycle.py:421: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../../../.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/tasks.py:519: in wait_for
+    async with timeouts.timeout(timeout):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <Timeout [expired]>
+exc_type = <class 'asyncio.exceptions.CancelledError'>
+exc_val = CancelledError(), exc_tb = <traceback object at 0x75badc284f80>
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        assert self._state in (_State.ENTERED, _State.EXPIRING)
+    
+        if self._timeout_handler is not None:
+            self._timeout_handler.cancel()
+            self._timeout_handler = None
+    
+        if self._state is _State.EXPIRING:
+            self._state = _State.EXPIRED
+    
+            if self._task.uncancel() <= self._cancelling and exc_type is exceptions.CancelledError:
+                # Since there are no new cancel requests, we're
+                # handling this.
+>               raise TimeoutError from exc_val
+E               TimeoutError
+
+../../../../.local/share/uv/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/asyncio/timeouts.py:115: TimeoutError
+________ test_runtime_writer_failure_retains_error_and_durable_cleanup _________
+
+tmp_path = PosixPath('/tmp/soc-startup-rca-full-workspace/test_runtime_writer_failure_re0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x75badd40f350>
+
+    @pytest.mark.asyncio
+    async def test_runtime_writer_failure_retains_error_and_durable_cleanup(tmp_path, monkeypatch):
+        directory, store = replay_runtime(tmp_path)
+        service = ContinuousRuntime(directory)
+        original = service.store.publish_observation
+        attempts = 0
+    
+        def fail_once(value, **kwargs):
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise OSError("INJECTED_CONTROL_WRITER_FAILURE")
+            original(value, **kwargs)
+    
+        monkeypatch.setattr(service.store, "publish_observation", fail_once)
+        with pytest.raises(OSError, match="CONTROL_WRITER_FAILURE"):
+            await asyncio.wait_for(service.run(), 5)
+        final = store.state()
+        assert final["last_error"] == "CONTINUOUS_HEARTBEAT_PUBLICATION_FAILED"
+>       assert final["cleanup"] == "VERIFIED" and final["final_flush"] == "VERIFIED"
+E       AssertionError: assert ('UNVERIFIED' == 'VERIFIED'
+E         
+E         - VERIFIED
+E         + UNVERIFIED
+E         ? ++)
+
+tests/unit/continuous/test_storage_control_isolation.py:485: AssertionError
+=========================== short test summary info ============================
+FAILED tests/unit/continuous/test_dns_lifecycle.py::test_real_two_second_silence_is_not_an_initial_process_exit
+FAILED tests/unit/continuous/test_storage_control_isolation.py::test_runtime_writer_failure_retains_error_and_durable_cleanup
+2 failed, 906 passed in 245.71s (0:04:05)

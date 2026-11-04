@@ -1,0 +1,19 @@
+"""Wrap only existing test's spawn and read observations, preserving its assertions."""
+import pytest,time,os,json,subprocess
+from pathlib import Path
+@pytest.fixture(autouse=True)
+def timing(monkeypatch):
+ base=os.environ['SOC_STARTUP_PROBE'];original=subprocess.Popen;read=Path.read_text
+ def mark(stage,**x):
+  with open(base+'-observer.jsonl','a') as f:f.write(json.dumps(dict(stage=stage,monotonic=time.monotonic(),pid=os.getpid(),**x))+'\n')
+ def spawn(*a,**kw):
+  mark('PROCESS_SPAWN_BEGIN');p=original(*a,**kw);mark('PROCESS_SPAWN_RETURN',child=p.pid);return p
+ seen=set()
+ def observe(self,*a,**kw):
+  v=read(self,*a,**kw)
+  if self.name=='observation.json' and str(self) not in seen:
+   value=json.loads(v)
+   if value.get('snapshot',{}).get('control'):
+    seen.add(str(self));mark('OBSERVER_CONTROL_RECEIVED')
+  return v
+ monkeypatch.setattr(subprocess,'Popen',spawn);monkeypatch.setattr(Path,'read_text',observe)
